@@ -22,7 +22,7 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget_single_threshold');
 
 function getView() {
-  return App.TextDashboardSingleThresholdWidgetView.create({thresh1:0});
+  return App.TextDashboardSingleThresholdWidgetView.create({thresholdMin:0});
 }
 
 describe('App.TextDashboardSingleThresholdWidgetView', function() {
@@ -43,8 +43,8 @@ describe('App.TextDashboardSingleThresholdWidgetView', function() {
   ];
 
   tests.forEach(function(test) {
-    describe('data - ' + test.data + ' | thresh1 - 0', function() {
-      var textDashboardWidgetSingleThresholdView = App.TextDashboardSingleThresholdWidgetView.create({thresh1:0});
+    describe('data - ' + test.data + ' | thresholdMin - 0', function() {
+      var textDashboardWidgetSingleThresholdView = App.TextDashboardSingleThresholdWidgetView.create({thresholdMin:0});
       textDashboardWidgetSingleThresholdView.set('data', test.data);
       it('isNA', function() {
         expect(textDashboardWidgetSingleThresholdView.get('isNA')).to.equal(test.e.isNA);
@@ -52,6 +52,6 @@ describe('App.TextDashboardSingleThresholdWidgetView', function() {
     });
   });
 
-  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresh1');
-  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresh1');
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresholdMin');
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresholdMin');
 });

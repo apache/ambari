@@ -20,11 +20,6 @@ var App = require('app');
 
 App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.HBaseAverageLoad'),
-  id: '14',
-
-  model_type: 'hbase',
-
   hiddenInfo: function () {
     var avgLoad = this.get('model.averageLoad');
     if (isNaN(avgLoad)) {
@@ -33,15 +28,13 @@ App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend(App.EditableWidget
     return [Em.I18n.t('dashboard.services.hbase.averageLoadPerServer').format(avgLoad)];
   }.property("model.averageLoad"),
 
-  isGreen: Em.computed.lteProperties('data', 'thresh1'),
-  isRed: Em.computed.gtProperties('data', 'thresh2'),
+  isGreen: Em.computed.lteProperties('data', 'thresholdMin'),
+  isRed: Em.computed.gtProperties('data', 'thresholdMax'),
 
   isNA: function (){
     return this.get('data') === null || isNaN(this.get('data'));
   }.property('data'),
 
-  thresh1: 0.5,
-  thresh2: 2,
   maxValue: 'infinity',
 
   data: Em.computed.alias('model.averageLoad'),

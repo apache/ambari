@@ -20,10 +20,6 @@ var App = require('app');
 
 App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
-  id: '3',
-
-  model_type: 'hdfs',
   widgetHtmlId: 'widget-nn-cpu',
   cpuWio: null,
   nnHostName: "",

@@ -20,11 +20,6 @@ var App = require('app');
 
 App.NameNodeUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
-  id: '10',
-
-  model_type: 'hdfs',
-
   component: 'NameNode',
   modelField: 'nameNodeStartTime',
 

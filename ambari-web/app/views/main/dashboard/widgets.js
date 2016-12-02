@@ -20,26 +20,199 @@ var App = require('app');
 var filters = require('views/common/filter_view');
 
 App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, App.TimeRangeMixin, {
-
   name: 'mainDashboardWidgetsView',
-
   templateName: require('templates/main/dashboard/widgets'),
 
-  didInsertElement: function () {
-    this._super();
-    this.setWidgetsDataModel();
-    this.setInitPrefObject();
-    this.setOnLoadVisibleWidgets();
-    this.set('isDataLoaded', true);
-    App.loadTimer.finish('Dashboard Metrics Page');
-    Em.run.next(this, 'makeSortable');
-  },
+  widgetsDefinition: [
+    {
+      id: 1,
+      viewName: 'NameNodeHeapPieChartView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
+      threshold: [80, 90]
+    },
+    {
+      id: 2,
+      viewName: 'NameNodeCapacityPieChartView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
+      threshold: [85, 95]
+    },
+    {
+      id: 3,
+      viewName: 'NameNodeCpuPieChartView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
+      threshold: [90, 95]
+    },
+    {
+      id: 4,
+      viewName: 'DataNodeUpView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.DataNodeUp'),
+      threshold: [80, 90]
+    },
+    {
+      id: 5,
+      viewName: 'NameNodeRpcView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
+      threshold: [1000, 3000]
+    },
+    {
+      id: 6,
+      viewName: 'ChartClusterMetricsMemoryWidgetView',
+      sourceName: 'HOST_METRICS',
+      title: Em.I18n.t('dashboard.clusterMetrics.memory'),
+      threshold: []
+    },
+    {
+      id: 7,
+      viewName: 'ChartClusterMetricsNetworkWidgetView',
+      sourceName: 'HOST_METRICS',
+      title: Em.I18n.t('dashboard.clusterMetrics.network'),
+      threshold: []
+    },
+    {
+      id: 8,
+      viewName: 'ChartClusterMetricsCPUWidgetView',
+      sourceName: 'HOST_METRICS',
+      title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
+      threshold: []
+    },
+    {
+      id: 9,
+      viewName: 'ChartClusterMetricsLoadWidgetView',
+      sourceName: 'HOST_METRICS',
+      title: Em.I18n.t('dashboard.clusterMetrics.load'),
+      threshold: []
+    },
+    {
+      id: 10,
+      viewName: 'NameNodeUptimeView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
+      threshold: []
+    },
+    {
+      id: 11,
+      viewName: 'HDFSLinksView',
+      sourceName: 'HDFS',
+      title: Em.I18n.t('dashboard.widgets.HDFSLinks'),
+      threshold: []
+    },
+    {
+      id: 12,
+      viewName: 'HBaseLinksView',
+      sourceName: 'HBASE',
+      title: Em.I18n.t('dashboard.widgets.HBaseLinks'),
+      threshold: []
+    },
+    {
+      id: 13,
+      viewName: 'HBaseMasterHeapPieChartView',
+      sourceName: 'HBASE',
+      title: Em.I18n.t('dashboard.widgets.HBaseMasterHeap'),
+      threshold: [70, 90]
+    },
+    {
+      id: 14,
+      viewName: 'HBaseAverageLoadView',
+      sourceName: 'HBASE',
+      title: Em.I18n.t('dashboard.widgets.HBaseAverageLoad'),
+      threshold: [150, 250]
+    },
+    {
+      id: 15,
+      viewName: 'HBaseRegionsInTransitionView',
+      sourceName: 'HBASE',
+      title: Em.I18n.t('dashboard.widgets.HBaseRegionsInTransition'),
+      threshold: [3, 10],
+      isHiddenByDefault: true
+    },
+    {
+      id: 16,
+      viewName: 'HBaseMasterUptimeView',
+      sourceName: 'HBASE',
+      title: Em.I18n.t('dashboard.widgets.HBaseMasterUptime'),
+      threshold: []
+    },
+    {
+      id: 17,
+      viewName: 'ResourceManagerHeapPieChartView',
+      sourceName: 'YARN',
+      title: Em.I18n.t('dashboard.widgets.ResourceManagerHeap'),
+      threshold: [70, 90]
+    },
+    {
+      id: 18,
+      viewName: 'ResourceManagerUptimeView',
+      sourceName: 'YARN',
+      title: Em.I18n.t('dashboard.widgets.ResourceManagerUptime'),
+      threshold: []
+    },
+    {
+      id: 19,
+      viewName: 'NodeManagersLiveView',
+      sourceName: 'YARN',
+      title: Em.I18n.t('dashboard.widgets.NodeManagersLive'),
+      threshold: [50, 75]
+    },
+    {
+      id: 20,
+      viewName: 'YARNMemoryPieChartView',
+      sourceName: 'YARN',
+      title: Em.I18n.t('dashboard.widgets.YARNMemory'),
+      threshold: [50, 75]
+    },
+    {
+      id: 21,
+      viewName: 'SuperVisorUpView',
+      sourceName: 'STORM',
+      title: Em.I18n.t('dashboard.widgets.SuperVisorUp'),
+      threshold: [85, 95]
+    },
+    {
+      id: 22,
+      viewName: 'FlumeAgentUpView',
+      sourceName: 'FLUME',
+      title: Em.I18n.t('dashboard.widgets.FlumeAgentUp'),
+      threshold: [85, 95]
+    },
+    {
+      id: 23,
+      viewName: 'YARNLinksView',
+      sourceName: 'YARN',
+      title: Em.I18n.t('dashboard.widgets.YARNLinks'),
+      threshold: []
+    },
+    {
+      id: 24,
+      viewName: 'HawqSegmentUpView',
+      sourceName: 'HAWQ',
+      title: Em.I18n.t('dashboard.widgets.HawqSegmentUp'),
+      threshold: [75, 90]
+    },
+    {
+      id: 25,
+      viewName: 'PxfUpView',
+      sourceName: 'PXF',
+      title: Em.I18n.t('dashboard.widgets.PxfUp'),
+      threshold: []
+    }
+  ],
 
   /**
    * List of services
    * @type {Ember.Enumerable}
    */
   content: [],
+
+  /**
+   * Key-name to store data in Local Storage and Persist
+   * @type {string}
+   */
+  persistKey: Em.computed.format('user-pref-{0}-dashboard', 'App.router.loginName'),
 
   /**
    * @type {boolean}
@@ -51,177 +224,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
    * @type {boolean}
    */
   isMoving: false,
-
-  timeRangeClassName: 'pull-left',
-
-  /**
-   * Make widgets' list sortable on New Dashboard style
-   */
-  makeSortable: function () {
-    var self = this;
-    $("#sortable").sortable({
-      items: "> div",
-      //placeholder: "sortable-placeholder",
-      cursor: "move",
-      tolerance: "pointer",
-      scroll: false,
-      update: function (event, ui) {
-        if (!App.get('testMode')) {
-          // update persist then translate to real
-          var widgetsArray = $('div[viewid]'); // get all in DOM
-          self.getUserPref(self.get('persistKey')).complete(function () {
-            var oldValue = self.get('currentPrefObject') || self.getDBProperty(self.get('persistKey'));
-            var newValue = Em.Object.create({
-              dashboardVersion: oldValue.dashboardVersion,
-              visible: [],
-              hidden: oldValue.hidden,
-              threshold: oldValue.threshold
-            });
-            var size = oldValue.visible.length;
-            for (var j = 0; j <= size - 1; j++) {
-              var viewID = widgetsArray.get(j).getAttribute('viewid');
-              var id = viewID.split("-").get(1);
-              newValue.visible.push(id);
-            }
-            self.postUserPref(self.get('persistKey'), newValue);
-            self.setDBProperty(self.get('persistKey'), newValue);
-            //self.translateToReal(newValue);
-          });
-        }
-      },
-      activate: function (event, ui) {
-        self.set('isMoving', true);
-      },
-      deactivate: function (event, ui) {
-        self.set('isMoving', false);
-      }
-    }).disableSelection();
-  },
-
-  /**
-   * Set Service model values
-   */
-  setWidgetsDataModel: function () {
-    if (App.get('services.hostMetrics').length > 0) {
-      this.set('host_metrics_model', App.get('services.hostMetrics'));
-    }
-    App.Service.find().forEach(function (item) {
-      var extendedModel = App.Service.extendedModel[item.get('serviceName')];
-      var key = item.get('serviceName').toLowerCase() + '_model';
-      if (extendedModel && App[extendedModel].find(item.get('id'))) {
-        this.set(key, App[extendedModel].find(item.get('id')));
-      } else {
-        this.set(key, item);
-      }
-    }, this);
-  },
-
-  resolveConfigDependencies: function(visibleFull, hiddenFull) {
-    var clusterEnv = App.router.get('clusterController.clusterEnv').properties;
-
-    if (clusterEnv['hide_yarn_memory_widget'] === 'true') {
-      hiddenFull.push(['20', 'YARN Memory']);
-    } else {
-      visibleFull.splice(visibleFull.indexOf('19'), 0, '20');
-    }
-  },
-
-  /**
-   * Load widget statuses to <code>initPrefObject</code>
-   */
-  setInitPrefObject: function () {
-    //in case of some service not installed
-    var visibleFull = [
-      '2', '4', '11', //hdfs
-      '6', '7', '8', '9', //host metrics
-      '1', '5', '3', '10', //hdfs
-      '13', '12', '14', '16', //hbase
-      '17', '18', '19', '23', // all yarn
-      '21', // storm
-      '22', // flume
-      '24', // hawq
-      '25' // pxf
-    ]; // all in order
-    var hiddenFull = [
-      ['15', 'Region In Transition']
-    ];
-    this.resolveConfigDependencies(visibleFull, hiddenFull);
-
-    // Display widgets for host metrics if the stack definition has a host metrics service to display it.
-    if (this.get('host_metrics_model') == null) {
-      var hostMetrics = ['6', '7', '8', '9'];
-      hostMetrics.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-
-    if (this.get('hdfs_model') == null) {
-      var hdfs = ['1', '2', '3', '4', '5', '10', '11'];
-      hdfs.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-    if (this.get('hbase_model') == null) {
-      var hbase = ['12', '13', '14', '16'];
-      hbase.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-      hiddenFull = hiddenFull.filter(function(item) {
-        return item[0] !== '15';
-      });
-    }
-    if (this.get('yarn_model') == null) {
-      var yarn = ['17', '18', '19', '20', '23'];
-      yarn.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-    if (this.get('storm_model') == null) {
-      var storm = ['21'];
-      storm.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-    if (this.get('flume_model') == null) {
-      var flume = ['22'];
-      flume.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-    if (this.get('hawq_model') == null) {
-      var hawq = ['24'];
-      hawq.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-    if (this.get('pxf_model') == null) {
-      var pxf = ['25'];
-      pxf.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
-    var obj = this.get('initPrefObject');
-    obj.set('visible', visibleFull);
-    obj.set('hidden', hiddenFull);
-  },
-
-  host_metrics_model: null,
-
-  hdfs_model: null,
-
-  mapreduce2_model: null,
-
-  yarn_model: null,
-
-  hbase_model: null,
-
-  storm_model: null,
-
-  flume_model: null,
-
-  hawq_model: null,
-
-  pxf_model: null,
 
   /**
    * List of visible widgets
@@ -235,6 +237,216 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
    */
   hiddenWidgets: [], // widget child view will push object in this array if deleted
 
+  timeRangeClassName: 'pull-left',
+
+  /**
+   * Example:
+   * {
+   *   visible: [1, 2, 4],
+   *   hidden: [3, 5],
+   *   threshold: {
+   *     1: [80, 90],
+   *     2: [],
+   *     3: [1, 2]
+   *   }
+   * }
+   * @type {Object|null}
+   */
+  userPreferences: null,
+
+  didInsertElement: function () {
+    var self = this;
+
+    this._super();
+    this.loadWidgetsSettings().complete(function() {
+      self.checkServicesChange();
+      self.renderWidgets();
+      self.set('isDataLoaded', true);
+      App.loadTimer.finish('Dashboard Metrics Page');
+      Em.run.next(self, 'makeSortable');
+    });
+  },
+
+  /**
+   * Set visibility-status for widgets
+   */
+  loadWidgetsSettings: function () {
+    return this.getUserPref(this.get('persistKey'));
+  },
+
+  /**
+   * make POST call to save settings
+   * @param {object} settings
+   */
+  saveWidgetsSettings: function (settings) {
+    this.set('userPreferences', settings);
+    this.setDBProperty(this.get('persistKey'), settings);
+    this.postUserPref(this.get('persistKey'), settings);
+  },
+
+  getUserPrefSuccessCallback: function (response) {
+    if (response) {
+      this.set('userPreferences', response);
+    } else {
+      this.getUserPrefErrorCallback();
+    }
+  },
+
+  getUserPrefErrorCallback: function () {
+    var userPreferences = this.generateDefaultUserPreferences();
+    this.saveWidgetsSettings(userPreferences);
+  },
+
+  resolveConfigDependencies: function(widgetsDefinition) {
+    var clusterEnv = App.router.get('clusterController.clusterEnv').properties;
+    var yarnMemoryWidget = widgetsDefinition.findProperty('id', 20);
+
+    if (clusterEnv['hide_yarn_memory_widget'] === 'true') {
+      yarnMemoryWidget.isHiddenByDefault = true;
+    }
+  },
+
+  generateDefaultUserPreferences: function() {
+    var widgetsDefinition = this.get('widgetsDefinition');
+    var preferences = {
+      visible: [],
+      hidden: [],
+      threshold: {}
+    };
+
+    this.resolveConfigDependencies(widgetsDefinition);
+
+    widgetsDefinition.forEach(function(widget) {
+      if (App.Service.find(widget.sourceName).get('isLoaded') || widget.sourceName === 'HOST_METRICS') {
+        if (widget.isHiddenByDefault) {
+          preferences.hidden.push(widget.id);
+        } else {
+          preferences.visible.push(widget.id);
+        }
+      }
+      preferences.threshold[widget.id] = widget.threshold;
+    });
+
+    return preferences;
+  },
+
+  /**
+   * set widgets to view in order to render
+   */
+  renderWidgets: function () {
+    var widgetsDefinitionMap = this.get('widgetsDefinition').toMapByProperty('id');
+    var userPreferences = this.get('userPreferences');
+    var visibleWidgets = [];
+    var hiddenWidgets = [];
+
+    userPreferences.visible.forEach(function(id) {
+      var widget = widgetsDefinitionMap[id];
+      visibleWidgets.push(Em.Object.create({
+        id: id,
+        threshold: userPreferences.threshold[id],
+        viewClass: App[widget.viewName],
+        sourceName: widget.sourceName,
+        title: widget.title
+      }));
+    });
+
+    userPreferences.hidden.forEach(function(id) {
+      var widget = widgetsDefinitionMap[id];
+      hiddenWidgets.push(Em.Object.create({
+        id: id,
+        title: widget.title,
+        checked: false
+      }));
+    });
+
+    this.set('visibleWidgets', visibleWidgets);
+    this.set('hiddenWidgets', hiddenWidgets);
+  },
+
+  /**
+   * check if stack has upgraded from HDP 1.0 to 2.0 OR add/delete services.
+   * Update the value on server if true.
+   */
+  checkServicesChange: function () {
+    var userPreferences = this.get('userPreferences');
+    var defaultPreferences = this.generateDefaultUserPreferences();
+    var newValue = {
+      visible: userPreferences.visible.slice(0),
+      hidden: userPreferences.hidden.slice(0),
+      threshold: userPreferences.threshold
+    };
+    var isChanged = false;
+
+    defaultPreferences.visible.forEach(function(id) {
+      if (!userPreferences.visible.contains(id) && !userPreferences.hidden.contains(id)) {
+        isChanged = true;
+        newValue.visible.push(id);
+      }
+    });
+
+    defaultPreferences.hidden.forEach(function(id) {
+      if (!userPreferences.visible.contains(id) && !userPreferences.hidden.contains(id)) {
+        isChanged = true;
+        newValue.hidden.push(id);
+      }
+    });
+    if (isChanged) {
+      this.saveWidgetsSettings(newValue);
+    }
+  },
+
+  /**
+   * Reset widgets visibility-status
+   */
+  resetAllWidgets: function () {
+    var self = this;
+    App.showConfirmationPopup(function () {
+      self.saveWidgetsSettings(self.generateDefaultUserPreferences());
+      self.setProperties({
+        currentTimeRangeIndex: 0,
+        customStartTime: null,
+        customEndTime: null
+      });
+      self.renderWidgets();
+    });
+  },
+
+  /**
+   * Make widgets' list sortable on New Dashboard style
+   */
+  makeSortable: function () {
+    var self = this;
+    return $("#sortable").sortable({
+      items: "> div",
+      cursor: "move",
+      tolerance: "pointer",
+      scroll: false,
+      update: function () {
+        var widgetsArray = $('div[viewid]');
+
+        var userPreferences = self.get('userPreferences') || self.getDBProperty(self.get('persistKey'));
+        var newValue = Em.Object.create({
+          visible: [],
+          hidden: userPreferences.hidden,
+          threshold: userPreferences.threshold
+        });
+        var size = userPreferences.visible.length;
+        for (var j = 0; j <= size - 1; j++) {
+          var viewID = widgetsArray.get(j).getAttribute('viewid');
+          var id = Number(viewID.split("-").get(1));
+          newValue.visible.push(id);
+        }
+        self.saveWidgetsSettings(newValue);
+      },
+      activate: function (event, ui) {
+        self.set('isMoving', true);
+      },
+      deactivate: function (event, ui) {
+        self.set('isMoving', false);
+      }
+    }).disableSelection();
+  },
+
   /**
    * Submenu view for New Dashboard style
    * @type {Ember.View}
@@ -245,7 +457,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     classNames: ['dropdown-menu'],
     templateName: require('templates/main/dashboard/plus_button_filter'),
     hiddenWidgetsBinding: 'parentView.hiddenWidgets',
-    visibleWidgetsBinding: 'parentView.visibleWidgets',
     valueBinding: '',
     widgetCheckbox: App.CheckboxView.extend({
       didInsertElement: function () {
@@ -256,301 +467,24 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     }),
     closeFilter: Em.K,
     applyFilter: function () {
-      var self = this;
-      var parent = this.get('parentView');
-      var hiddenWidgets = this.get('hiddenWidgets');
-      var checkedWidgets = hiddenWidgets.filterProperty('checked', true);
-
-      if (App.get('testMode')) {
-        var visibleWidgets = this.get('visibleWidgets');
-        checkedWidgets.forEach(function (item) {
-          var newObj = parent.widgetsMapper(item.id);
-          visibleWidgets.pushObject(newObj);
-          hiddenWidgets.removeObject(item);
-        }, this);
-      } else {
-        //save in persist
-        parent.getUserPref(parent.get('persistKey')).complete(function(){
-          self.applyFilterComplete.apply(self);
-        });
-      }
-    },
-    applyFilterComplete: function () {
       var parent = this.get('parentView'),
         hiddenWidgets = this.get('hiddenWidgets'),
-        oldValue = parent.get('currentPrefObject'),
-        newValue = Em.Object.create({
-          dashboardVersion: oldValue.dashboardVersion,
-          visible: oldValue.visible,
-          hidden: [],
-          threshold: oldValue.threshold
-        });
+        userPreferences = parent.get('userPreferences'),
+        newValue = {
+          visible: userPreferences.visible.slice(0),
+          hidden: userPreferences.hidden.slice(0),
+          threshold: userPreferences.threshold
+        };
+
       hiddenWidgets.filterProperty('checked').forEach(function (item) {
         newValue.visible.push(item.id);
+        newValue.hidden = newValue.hidden.without(item.id);
         hiddenWidgets.removeObject(item);
       }, this);
-      hiddenWidgets.forEach(function (item) {
-        newValue.hidden.push([item.id, item.displayName]);
-      }, this);
-      parent.postUserPref(parent.get('persistKey'), newValue);
-      parent.translateToReal(newValue);
+      parent.saveWidgetsSettings(newValue);
+      parent.renderWidgets();
     }
   }),
-
-  /**
-   * Translate from Json value got from persist to real widgets view
-   */
-  translateToReal: function (value) {
-    var version = value.dashboardVersion;
-    var visible = value.visible;
-    var hidden = value.hidden;
-    var threshold = value.threshold;
-
-    if (version === 'new') {
-      var visibleWidgets = [];
-      var hiddenWidgets = [];
-      // re-construct visibleWidgets and hiddenWidgets
-      for (var i = 0; i < visible.length; i++) {
-        var id = visible[i];
-        var widgetClass = this.widgetsMapper(id);
-        //override with new threshold
-        if (threshold[id].length > 0) {
-          widgetClass.reopen({
-            thresh1: threshold[id][0],
-            thresh2: threshold[id][1]
-          });
-        }
-        visibleWidgets.pushObject(widgetClass);
-      }
-      for (var j = 0; j < hidden.length; j++) {
-        var title = hidden[j][1];
-        hiddenWidgets.pushObject(Em.Object.create({displayName: title, id: hidden[j][0], checked: false}));
-      }
-      this.set('visibleWidgets', visibleWidgets);
-      this.set('hiddenWidgets', hiddenWidgets);
-    }
-  },
-
-  /**
-   * Set visibility-status for widgets
-   */
-  setOnLoadVisibleWidgets: function () {
-    var self = this;
-    if (App.get('testMode')) {
-      this.translateToReal(this.get('initPrefObject'));
-    } else {
-      // called when first load/refresh/jump back page
-      this.getUserPref(this.get('persistKey')).complete(function () {
-        if (self.get('state') === 'inDOM') {
-          self.setOnLoadVisibleWidgetsComplete.apply(self);
-        }
-      });
-    }
-  },
-
-  /**
-   * complete load of visible widgets
-   */
-  setOnLoadVisibleWidgetsComplete: function () {
-    var currentPrefObject = this.get('currentPrefObject') || this.getDBProperty(this.get('persistKey'));
-    if (currentPrefObject) { // fit for no dashboard version
-      if (!currentPrefObject.dashboardVersion) {
-        currentPrefObject.dashboardVersion = 'new';
-        this.postUserPref(this.get('persistKey'), currentPrefObject);
-        this.setDBProperty(this.get('persistKey'), currentPrefObject);
-      }
-      this.set('currentPrefObject', this.checkServicesChange(currentPrefObject));
-      this.translateToReal(this.get('currentPrefObject'));
-    }
-    else {
-      // post persist then translate init object
-      this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
-      this.setDBProperty(this.get('persistKey'), this.get('initPrefObject'));
-      this.translateToReal(this.get('initPrefObject'));
-    }
-  },
-
-  /**
-   * Remove widget from visible and hidden lists
-   * @param {Object} value
-   * @param {Object} widget
-   * @returns {*}
-   */
-  removeWidget: function (value, widget) {
-    value.visible = value.visible.without(widget);
-    for (var j = 0; j < value.hidden.length; j++) {
-      if (value.hidden[j][0] == widget) {
-        value.hidden.splice(j, 1);
-      }
-    }
-    return value;
-  },
-
-  /**
-   * Check if widget is in visible or hidden list
-   * @param {Object} value
-   * @param {Object} widget
-   * @returns {bool}
-   */
-  containsWidget: function (value, widget) {
-    var flag = value.visible.contains(widget);
-    for (var j = 0; j < value.hidden.length; j++) {
-      if (!flag && value.hidden[j][0] == widget) {
-        flag = true;
-        break;
-      }
-    }
-    return flag;
-  },
-
-  /**
-   * check if stack has upgraded from HDP 1.0 to 2.0 OR add/delete services.
-   * Update the value on server if true.
-   * @param {Object} currentPrefObject
-   * @return {Object}
-   */
-  checkServicesChange: function (currentPrefObject) {
-    var toDelete = $.extend(true, {}, currentPrefObject);
-    var toAdd = [];
-    var serviceWidgetsMap = {
-      hdfs_model: ['1', '2', '3', '4', '5', '10', '11'],
-      host_metrics_model: ['6', '7', '8', '9'],
-      hbase_model: ['12', '13', '14', '15', '16'],
-      yarn_model: ['17', '18', '19', '20', '23'],
-      storm_model: ['21'],
-      flume_model: ['22'],
-      hawq_model: ['24'],
-      pxf_model: ['25']
-    };
-
-    // check each service, find out the newly added service and already deleted service
-    Em.keys(serviceWidgetsMap).forEach(function (modelName) {
-      if (!Em.isNone(this.get(modelName))) {
-        var ids = serviceWidgetsMap[modelName];
-        var flag = this.containsWidget(toDelete, ids[0]);
-        if (flag) {
-          ids.forEach(function (item) {
-            toDelete = this.removeWidget(toDelete, item);
-          }, this);
-        } else {
-          toAdd = toAdd.concat(ids);
-        }
-      }
-    }, this);
-
-    var value = currentPrefObject;
-    if (toDelete.visible.length || toDelete.hidden.length) {
-      toDelete.visible.forEach(function (item) {
-        value = this.removeWidget(value, item);
-      }, this);
-      toDelete.hidden.forEach(function (item) {
-        value = this.removeWidget(value, item[0]);
-      }, this);
-    }
-    if (toAdd.length) {
-      value.visible = value.visible.concat(toAdd);
-      var allThreshold = this.get('initPrefObject').threshold;
-      // add new threshold OR override with default value
-      toAdd.forEach(function (item) {
-        value.threshold[item] = allThreshold[item];
-      }, this);
-    }
-    return value;
-  },
-
-  /**
-   * Get view for widget by widget's id
-   * @param {string} id
-   * @returns {Ember.View}
-   */
-  widgetsMapper: function (id) {
-    return Em.get({
-      '1': App.NameNodeHeapPieChartView,
-      '2': App.NameNodeCapacityPieChartView,
-      '3': App.NameNodeCpuPieChartView,
-      '4': App.DataNodeUpView,
-      '5': App.NameNodeRpcView,
-      '6': App.ChartClusterMetricsMemoryWidgetView,
-      '7': App.ChartClusterMetricsNetworkWidgetView,
-      '8': App.ChartClusterMetricsCPUWidgetView,
-      '9': App.ChartClusterMetricsLoadWidgetView,
-      '10': App.NameNodeUptimeView,
-      '11': App.HDFSLinksView,
-      '12': App.HBaseLinksView,
-      '13': App.HBaseMasterHeapPieChartView,
-      '14': App.HBaseAverageLoadView,
-      '15': App.HBaseRegionsInTransitionView,
-      '16': App.HBaseMasterUptimeView,
-      '17': App.ResourceManagerHeapPieChartView,
-      '18': App.ResourceManagerUptimeView,
-      '19': App.NodeManagersLiveView,
-      '20': App.YARNMemoryPieChartView,
-      '21': App.SuperVisorUpView,
-      '22': App.FlumeAgentUpView,
-      '23': App.YARNLinksView,
-      '24': App.HawqSegmentUpView,
-      '25': App.PxfUpView
-    }, id);
-  },
-
-  /**
-   * @type {Object|null}
-   */
-  currentPrefObject: null,
-
-  /**
-   * @type {Ember.Object}
-   */
-  initPrefObject: Em.Object.create({
-    dashboardVersion: 'new',
-    visible: [],
-    hidden: [],
-    threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [70, 90], 14: [150, 250], 15: [3, 10], 16: [],
-      17: [70, 90], 18: [], 19: [50, 75], 20: [50, 75], 21: [85, 95], 22: [85, 95], 23: [], 24: [75, 90], 25: []} // id:[thresh1, thresh2]
-  }),
-
-  /**
-   * Key-name to store data in Local Storage and Persist
-   * @type {string}
-   */
-  persistKey: Em.computed.format('user-pref-{0}-dashboard', 'App.router.loginName'),
-
-  getUserPrefSuccessCallback: function (response, request, data) {
-    if (response) {
-      var initPrefObject = this.get('initPrefObject');
-      initPrefObject.get('threshold');
-      for(var k in response.threshold) {
-        if (response.threshold.hasOwnProperty(k)) {
-          if (response.threshold[k].length === 0 && initPrefObject.get('threshold')[k] && initPrefObject.get('threshold')[k].length) {
-            response.threshold[k] = initPrefObject.get('threshold')[k];
-          }
-        }
-      }
-      this.set('currentPrefObject', response);
-    }
-  },
-
-  getUserPrefErrorCallback: function (request) {
-  },
-
-  /**
-   * Reset widgets visibility-status
-   */
-  resetAllWidgets: function () {
-    var self = this;
-    App.showConfirmationPopup(function () {
-      if (!App.get('testMode')) {
-        self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
-        self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
-      }
-      self.setProperties({
-        currentTimeRangeIndex: 0,
-        customStartTime: null,
-        customEndTime: null
-      });
-      self.translateToReal(self.get('initPrefObject'));
-    });
-  },
 
   showAlertsPopup: Em.K
 

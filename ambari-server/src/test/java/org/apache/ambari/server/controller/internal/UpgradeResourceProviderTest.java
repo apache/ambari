@@ -710,7 +710,7 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgradeDao.findUpgrade(Long.parseLong(id));
     assertNotNull(entity);
-    assertEquals("2.1.1", entity.getFromVersion());
+    assertEquals("2.1.1.0", entity.getFromVersion());
     assertEquals("2.2.0.0", entity.getToVersion());
     assertEquals(Direction.DOWNGRADE, entity.getDirection());
 

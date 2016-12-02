@@ -20,10 +20,6 @@ var App = require('app');
 
 App.HBaseRegionsInTransitionView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.HBaseRegionsInTransition'),
-  id: '15',
-
-  model_type: 'hbase',
   hiddenInfo: function () {
     return [
       this.get("model.regionsInTransition") + " regions",
@@ -32,15 +28,13 @@ App.HBaseRegionsInTransitionView = App.TextDashboardWidgetView.extend(App.Editab
   }.property("model.regionsInTransition"),
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
-  isGreen: Em.computed.lteProperties('data', 'thresh1'),
-  isRed: Em.computed.gtProperties('data', 'thresh2'),
+  isGreen: Em.computed.lteProperties('data', 'thresholdMin'),
+  isRed: Em.computed.gtProperties('data', 'thresholdMax'),
   isOrange: Em.computed.and('!isGreen', '!isRed'),
   isNA: function () {
     return this.get('data') === null;
   }.property('data'),
 
-  thresh1: 0.5,
-  thresh2: 2,
   maxValue: 'infinity',
 
   data: Em.computed.alias('model.regionsInTransition'),

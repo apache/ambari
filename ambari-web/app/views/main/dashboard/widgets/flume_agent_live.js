@@ -20,11 +20,6 @@ var App = require('app');
 
 App.FlumeAgentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.FlumeAgentUp'),
-  id: '22',
-
-  model_type: 'flume',
-
   hiddenInfo: function () {
     return [
       this.get('flumeAgentsLive.length') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'),
@@ -34,8 +29,6 @@ App.FlumeAgentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitW
 
   hiddenInfoClass: "hidden-info-two-line",
 
-  thresh1: 40,
-  thresh2: 70,
   maxValue: 100,
 
   flumeAgentComponents: Em.computed.filterBy('model.hostComponents', 'componentName', 'FLUME_HANDLER'),

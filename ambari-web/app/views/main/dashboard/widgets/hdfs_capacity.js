@@ -21,10 +21,6 @@ var numberUtils = require('utils/number_utils');
 
 App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
-  id: '2',
-
-  model_type: 'hdfs',
   modelFieldMax: 'capacityTotal',
   /**
    * HDFS model has 'remaining' value, but not 'used'

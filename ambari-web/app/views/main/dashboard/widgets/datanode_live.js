@@ -30,11 +30,6 @@ function counterOrNA(key) {
 
 App.DataNodeUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.DataNodeUp'),
-  id: '4',
-
-  model_type: 'hdfs',
-
   hiddenInfo: function () {
     return [
       this.get('dataNodesLive') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'),
@@ -45,8 +40,6 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWid
 
   hiddenInfoClass: "hidden-info-three-line",
 
-  thresh1: 40,
-  thresh2: 70,
   maxValue: 100,
 
   dataNodesLive: counterOrNA('liveDataNodes'),

@@ -43,7 +43,7 @@
       <input type="text" value="0" disabled="disabled" class="form-control" />
     </div>
       <div id="slider-value2" {{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 :col-md-offset-2 :col-sm-offset-2 view.configPropertyObj.isThresh1Error:has-error"}}>
-        {{view Ember.TextField valueBinding="view.configPropertyObj.thresh1" class="form-control"}}
+        {{view Ember.TextField valueBinding="view.configPropertyObj.thresholdMin" class="form-control"}}
         {{#if view.configPropertyObj.errorMessage1}}
           <span class="help-block validation-block">{{view.configPropertyObj.errorMessage1}}</span>
         {{/if}}

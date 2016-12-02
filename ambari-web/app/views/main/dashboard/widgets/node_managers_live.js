@@ -20,11 +20,6 @@ var App = require('app');
 
 App.NodeManagersLiveView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.NodeManagersLive'),
-  id: '19',
-
-  model_type: 'yarn',
-
   hiddenInfo: function () {
     var nmActive = this.get('model.nodeManagersCountActive') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.nodeManagersCountActive');
     var nmLost = this.get('model.nodeManagersCountLost') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.nodeManagersCountLost');
@@ -43,8 +38,6 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend(App.EditableWithLi
 
   hiddenInfoClass: "hidden-info-five-line",
 
-  thresh1: 40,
-  thresh2: 70,
   maxValue: 100,
 
   isDataAvailable: Em.computed.and('!model.metricsNotAvailable', 'App.router.clusterController.isComponentsStateLoaded'),

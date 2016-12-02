@@ -90,6 +90,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     String stacks = "src/test/resources/stacks";
     String version = "src/test/resources/version";
     String sharedResourcesDir = "src/test/resources/";
+    String resourcesDir = "src/test/resources/";
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version").getPath();
@@ -114,6 +115,10 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
     if (!properties.containsKey(Configuration.SHARED_RESOURCES_DIR.getKey())) {
       properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
+    }
+
+    if (!properties.containsKey(Configuration.RESOURCES_DIR.getKey())) {
+      properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesDir);
     }
 
     try {

@@ -48,13 +48,13 @@
     <div id="dashboard-widgets"  class="widgets-container">
       <div class="thumbnails" id="sortable">
         {{#if view.visibleWidgets.length}}
-          {{#each widgetClass in view.visibleWidgets}}
-            <div {{bindAttr class="widgetClass.class"}}>
-              {{view widgetClass }}
-            </div>
+          {{#each widget in view.visibleWidgets}}
+             {{view widget.viewClass widgetBinding="widget"}}
           {{/each}}
         {{/if}}
       </div>
     </div>
   </div>
+{{else}}
+  {{view App.SpinnerView}}
 {{/if}}

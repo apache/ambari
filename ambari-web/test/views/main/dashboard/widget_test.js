@@ -21,175 +21,81 @@ require('views/main/dashboard/widget');
 
 describe('App.DashboardWidgetView', function () {
 
-  var dashboardWidgetView = App.DashboardWidgetView.create({
+  var dashboardWidgetView;
+
+  dashboardWidgetView = App.DashboardWidgetView.create({
     parentView: Em.Object.create({
       widgetsMapper: Em.K,
-      getUserPref: function () {return {complete: Em.K}},
+      getUserPref: function () {
+        return {complete: Em.K}
+      },
       postUserPref: Em.K,
       translateToReal: Em.K,
       visibleWidgets: [],
       hiddenWidgets: []
+    }),
+    widget: Em.Object.create({
+      id: 5,
+      sourceName: 'HDFS',
+      title: 'Widget'
     })
   });
 
   describe('#viewID', function () {
     it('viewID is computed with id', function () {
-      dashboardWidgetView.set('id', 5);
       expect(dashboardWidgetView.get('viewID')).to.equal('widget-5');
     });
   });
 
   describe('#model', function () {
-    it('model_type is null', function () {
-      dashboardWidgetView.set('model_type', null);
-      dashboardWidgetView.propertyDidChange('model');
-      expect(dashboardWidgetView.get('model')).to.eql({});
+
+    beforeEach(function() {
+      sinon.stub(dashboardWidgetView, 'findModelBySource').returns(Em.Object.create({serviceName: 'HDFS'}));
     });
-    it('model_type is valid', function () {
-      dashboardWidgetView.set('model_type', 's');
+
+    afterEach(function() {
+      dashboardWidgetView.findModelBySource.restore();
+    });
+
+    it('sourceName is null', function () {
+      dashboardWidgetView.set('widget.sourceName', null);
       dashboardWidgetView.propertyDidChange('model');
-      dashboardWidgetView.set('parentView.s_model', {'s': {}});
-      expect(dashboardWidgetView.get('model')).to.eql({'s': {}});
+      expect(dashboardWidgetView.get('model')).to.be.an.object;
+    });
+    it('sourceName is valid', function () {
+      dashboardWidgetView.set('widget.sourceName', 'HDFS');
+      dashboardWidgetView.propertyDidChange('model');
+      expect(dashboardWidgetView.get('model')).to.eql(Em.Object.create({serviceName: 'HDFS'}));
     });
   });
 
   describe("#didInsertElement()", function () {
-    before(function () {
+
+    beforeEach(function () {
       sinon.stub(App, 'tooltip', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       App.tooltip.restore();
     });
+
     it("call App.tooltip", function () {
       dashboardWidgetView.didInsertElement();
       expect(App.tooltip.calledOnce).to.be.true;
     });
   });
 
-  describe("#deleteWidget()", function () {
-    beforeEach(function () {
-      sinon.stub(dashboardWidgetView.get('parentView'), 'widgetsMapper').returns({});
-      sinon.stub(dashboardWidgetView.get('parentView'), 'getUserPref').returns({
-        complete: Em.K
-      });
-    });
-
-    afterEach(function () {
-      dashboardWidgetView.get('parentView').widgetsMapper.restore();
-      dashboardWidgetView.get('parentView').getUserPref.restore();
-    });
-
-    it("testMode is off", function () {
-      dashboardWidgetView.set('parentView.persistKey', 'key');
-      dashboardWidgetView.deleteWidget();
-      expect(dashboardWidgetView.get('parentView').getUserPref.calledWith('key')).to.be.true;
-    });
-  });
-
-  describe("#deleteWidgetComplete()", function () {
-    beforeEach(function () {
-      sinon.spy(dashboardWidgetView.get('parentView'), 'postUserPref');
-      sinon.spy(dashboardWidgetView.get('parentView'), 'translateToReal');
-      dashboardWidgetView.set('parentView.currentPrefObject', {
-        dashboardVersion: 'new',
-        visible: ['1', '2'],
-        hidden: [],
-        threshold: 'threshold'
-      });
-      dashboardWidgetView.set('parentView.persistKey', 'key');
-      dashboardWidgetView.deleteWidgetComplete();
-    });
-    afterEach(function () {
-      dashboardWidgetView.get('parentView').postUserPref.restore();
-      dashboardWidgetView.get('parentView').translateToReal.restore();
-    });
-    it("postUserPref is called with correct data", function () {
-      var arg = JSON.parse(JSON.stringify(dashboardWidgetView.get('parentView').postUserPref.args[0][1]));
-      expect(arg).to.be.eql({
-        dashboardVersion: 'new',
-        visible: ['1', '2'],
-        hidden: [[5, null]],
-        threshold: 'threshold'
-      });
-    });
-    it("translateToReal is called with valid data", function () {
-      var arg = JSON.parse(JSON.stringify(dashboardWidgetView.get('parentView').translateToReal.args[0][0]));
-      expect(arg).to.be.eql({
-        dashboardVersion: 'new',
-        visible: ['1', '2'],
-        hidden: [[5, null]],
-        threshold: 'threshold'
-      });
-    });
-  });
-
   describe("#editWidget()", function () {
-    before(function () {
+
+    beforeEach(function () {
       sinon.stub(dashboardWidgetView, 'showEditDialog', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       dashboardWidgetView.showEditDialog.restore();
     });
+
     it("call showEditDialog", function () {
       dashboardWidgetView.editWidget();
       expect(dashboardWidgetView.showEditDialog.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#showEditDialog()", function () {
-    var obj = Em.Object.create({
-      observeThresh1Value: Em.K,
-      observeThresh2Value: Em.K,
-      thresh1: '1',
-      thresh2: '2'
-    });
-    beforeEach(function () {
-      sinon.spy(obj, 'observeThresh1Value');
-      sinon.spy(obj, 'observeThresh2Value');
-      sinon.stub(dashboardWidgetView.get('parentView'), 'getUserPref').returns({
-        complete: Em.K
-      });
-      var popup = dashboardWidgetView.showEditDialog(obj);
-      popup.onPrimary();
-    });
-    afterEach(function () {
-      obj.observeThresh1Value.restore();
-      obj.observeThresh2Value.restore();
-      dashboardWidgetView.get('parentView').getUserPref.restore();
-    });
-
-    it("observeThresh1Value is called once", function () {
-      expect(obj.observeThresh1Value.calledOnce).to.be.true;
-    });
-
-    it("observeThresh2Value is called once", function () {
-      expect(obj.observeThresh2Value.calledOnce).to.be.true;
-    });
-
-    it("thresh1 = 1", function () {
-      expect(dashboardWidgetView.get('thresh1')).to.equal(1);
-    });
-
-    it("thresh2 = 2", function () {
-      expect(dashboardWidgetView.get('thresh2')).to.equal(2);
-    });
-
-    it("getUserPref is called once", function () {
-      expect(dashboardWidgetView.get('parentView').getUserPref.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#model', function () {
-    it('model_type is null', function () {
-      dashboardWidgetView.set('model_type', null);
-      dashboardWidgetView.propertyDidChange('model');
-      expect(dashboardWidgetView.get('model')).to.eql({});
-    });
-    it('model_type is valid', function () {
-      dashboardWidgetView.set('model_type', 's');
-      dashboardWidgetView.propertyDidChange('model');
-      dashboardWidgetView.set('parentView.s_model', {'s': {}});
-      expect(dashboardWidgetView.get('model')).to.eql({'s': {}});
     });
   });
 
@@ -258,7 +164,7 @@ describe('App.DashboardWidgetView', function () {
       var testCases = [
         {
           data: {
-            thresh1: '',
+            thresholdMin: '',
             maxValue: 0
           },
           result: {
@@ -268,7 +174,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh1: 'NaN',
+            thresholdMin: 'NaN',
             maxValue: 0
           },
           result: {
@@ -278,7 +184,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh1: '-1',
+            thresholdMin: '-1',
             maxValue: 0
           },
           result: {
@@ -288,7 +194,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh1: '2',
+            thresholdMin: '2',
             maxValue: 1
           },
           result: {
@@ -298,8 +204,8 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh1: '1',
-            thresh2: '1',
+            thresholdMin: '1',
+            thresholdMax: '1',
             maxValue: 2
           },
           result: {
@@ -309,8 +215,8 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh1: '1',
-            thresh2: '0',
+            thresholdMin: '1',
+            thresholdMax: '0',
             maxValue: 2
           },
           result: {
@@ -320,8 +226,8 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh1: '1',
-            thresh2: '2',
+            thresholdMin: '1',
+            thresholdMax: '2',
             maxValue: 2
           },
           result: {
@@ -331,12 +237,12 @@ describe('App.DashboardWidgetView', function () {
         }
       ];
       testCases.forEach(function (test) {
-        describe("thresh1 - " + test.data.thresh1 + ', maxValue - ' + test.data.maxValue, function () {
+        describe("thresholdMin - " + test.data.thresholdMin + ', maxValue - ' + test.data.maxValue, function () {
 
           beforeEach(function () {
             widget.set('isThresh2Error', false);
-            widget.set('thresh2', test.data.thresh2 || "");
-            widget.set('thresh1', test.data.thresh1);
+            widget.set('thresholdMax', test.data.thresholdMax || "");
+            widget.set('thresholdMin', test.data.thresholdMin);
             widget.set('maxValue', test.data.maxValue);
             widget.observeThresh1Value();
           });
@@ -367,7 +273,7 @@ describe('App.DashboardWidgetView', function () {
       var testCases = [
         {
           data: {
-            thresh2: '',
+            thresholdMax: '',
             maxValue: 0
           },
           result: {
@@ -377,7 +283,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh2: 'NaN',
+            thresholdMax: 'NaN',
             maxValue: 0
           },
           result: {
@@ -387,7 +293,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh2: '-1',
+            thresholdMax: '-1',
             maxValue: 0
           },
           result: {
@@ -397,7 +303,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh2: '2',
+            thresholdMax: '2',
             maxValue: 1
           },
           result: {
@@ -407,7 +313,7 @@ describe('App.DashboardWidgetView', function () {
         },
         {
           data: {
-            thresh2: '2',
+            thresholdMax: '2',
             maxValue: 2
           },
           result: {
@@ -417,10 +323,10 @@ describe('App.DashboardWidgetView', function () {
         }
       ];
       testCases.forEach(function (test) {
-        describe("thresh2 - " + test.data.thresh2 + ', maxValue - ' + test.data.maxValue, function () {
+        describe("thresholdMax - " + test.data.thresholdMax + ', maxValue - ' + test.data.maxValue, function () {
 
           beforeEach(function () {
-            widget.set('thresh2', test.data.thresh2 || "");
+            widget.set('thresholdMax', test.data.thresholdMax || "");
             widget.set('maxValue', test.data.maxValue);
             widget.observeThresh2Value();
           });

@@ -31,11 +31,6 @@ function counterOrNA(key) {
 
 App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.HawqSegmentUp'),
-  id: '24',
-
-  model_type: 'hawq',
-
   hiddenInfo: function () {
     return [
       this.get('hawqSegmentsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'),
@@ -46,8 +41,6 @@ App.HawqSegmentUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimit
 
   hiddenInfoClass: "hidden-info-three-line",
 
-  thresh1: 75,
-  thresh2: 90,
   maxValue: 100,
 
   hawqSegmentsStarted: counterOrNA('hawqSegmentsStarted'),

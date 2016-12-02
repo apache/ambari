@@ -194,13 +194,13 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   }
 
   /**
-   * Parses input Stings array of format "['host1'", '"host2']" into Collection of hostnames
+   * Parses input Stings array of format "host1,host2" into Collection of hostnames
    */
   protected Collection<String> parseHostsStringArrayIntoCollection(String[] hostStrings) {
     Collection<String> result = new HashSet<>();
     if (hostStrings == null) return result;
     for (String s : hostStrings) {
-      result.addAll(parseHostsStringIntoCollection(s));
+      result.add(s.trim());
     }
     return result;
   }

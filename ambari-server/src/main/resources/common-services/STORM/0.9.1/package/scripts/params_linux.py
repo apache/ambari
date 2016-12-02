@@ -170,7 +170,7 @@ if stack_supports_storm_kerberos:
   else:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
 
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 metric_collector_port = None
 if has_metric_collector:
