@@ -3156,7 +3156,6 @@ Em.I18n.translations = {
   'config.infoMessage.wrong.value.for.combobox.widget': '"{0}" is not available in the list of valid values',
   'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
   'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
-  'config.warnMessage.llap_queue_capacity.max': 'LLAP will consume entire Yarn queue',
 
   'errorMessage.config.required': 'This is required',
   'errorMessage.config.number.integer': 'Must contain digits only',
