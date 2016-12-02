@@ -81,7 +81,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "RANGER": self.recommendRangerConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "SQOOP": self.recommendSqoopConfigurations
+      "SQOOP": self.recommendSqoopConfigurations,
+      "FALCON": self.recommendFalconConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -219,6 +220,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
+    putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # hive_security_authorization == 'ranger'
@@ -258,7 +260,19 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     hive_hooks = [x for x in hive_hooks if x != ""]
     is_atlas_present_in_cluster = "ATLAS" in servicesList
 
+    enable_atlas_hook = False
     if is_atlas_present_in_cluster:
+      putHiveEnvProperty("hive.atlas.hook", "true")
+    else:
+      putHiveEnvProperty("hive.atlas.hook", "false")
+
+    if ('hive-env' in services['configurations']) and ('hive.atlas.hook' in services['configurations']['hive-env']['properties']):
+      if 'hive-env' in configurations and 'hive.atlas.hook' in configurations['hive-env']['properties']:
+        enable_atlas_hook = configurations['hive-env']['properties']['hive.atlas.hook'] == "true"
+      elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
+        enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'] == "true"
+
+    if enable_atlas_hook:
       # Append atlas hook if not already present.
       is_atlas_hook_in_config = atlas_hook_class in hive_hooks
       if not is_atlas_hook_in_config:
@@ -791,14 +805,28 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def recommendSqoopConfigurations(self, configurations, clusterData, services, hosts):
     putSqoopSiteProperty = self.putProperty(configurations, "sqoop-site", services)
+    putSqoopEnvProperty = self.putProperty(configurations, "sqoop-env", services)
 
+    enable_atlas_hook = False
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if "ATLAS" in servicesList:
+      putSqoopEnvProperty("sqoop.atlas.hook", "true")
+    else:
+      putSqoopEnvProperty("sqoop.atlas.hook", "false")
+
+    if ('sqoop-env' in services['configurations']) and ('sqoop.atlas.hook' in services['configurations']['sqoop-env']['properties']):
+      if 'sqoop-env' in configurations and 'sqoop.atlas.hook' in configurations['sqoop-env']['properties']:
+        enable_atlas_hook = configurations['sqoop-env']['properties']['sqoop.atlas.hook'] == "true"
+      elif 'sqoop-env' in services['configurations'] and 'sqoop.atlas.hook' in services['configurations']['sqoop-env']['properties']:
+        enable_atlas_hook = services['configurations']['sqoop-env']['properties']['sqoop.atlas.hook'] == "true"
+
+    if enable_atlas_hook:
       putSqoopSiteProperty('sqoop.job.data.publish.class', 'org.apache.atlas.sqoop.hook.SqoopHook')
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     putStormStartupProperty = self.putProperty(configurations, "storm-site", services)
+    putStormEnvProperty = self.putProperty(configurations, "storm-env", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     if "storm-site" in services["configurations"]:
@@ -814,11 +842,23 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       atlas_is_present = "ATLAS" in servicesList
       atlas_hook_class = "org.apache.atlas.storm.hook.StormAtlasHook"
       atlas_hook_is_set = atlas_hook_class in notifier_plugin_value
+      enable_atlas_hook = False
 
-      if atlas_is_present and not atlas_hook_is_set:
+      if atlas_is_present:
+        putStormEnvProperty("storm.atlas.hook", "true")
+      else:
+        putStormEnvProperty("storm.atlas.hook", "false")
+
+      if ('storm-env' in services['configurations']) and ('storm.atlas.hook' in services['configurations']['storm-env']['properties']):
+        if 'storm-env' in configurations and 'storm.atlas.hook' in configurations['storm-env']['properties']:
+          enable_atlas_hook = configurations['storm-env']['properties']['storm.atlas.hook'] == "true"
+        elif 'storm-env' in services['configurations'] and 'storm.atlas.hook' in services['configurations']['storm-env']['properties']:
+          enable_atlas_hook = services['configurations']['storm-env']['properties']['storm.atlas.hook'] == "true"
+
+      if enable_atlas_hook and not atlas_hook_is_set:
         notifier_plugin_value = atlas_hook_class if notifier_plugin_value == " " else ",".join([notifier_plugin_value, atlas_hook_class])
 
-      if not atlas_is_present and atlas_hook_is_set:
+      if not enable_atlas_hook and atlas_hook_is_set:
         application_classes = [item for item in notifier_plugin_value.split(",") if item != atlas_hook_class and item != " "]
         notifier_plugin_value = ",".join(application_classes) if application_classes else " "
 
@@ -827,6 +867,17 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       else:
         putStormStartupPropertyAttribute = self.putPropertyAttribute(configurations, "storm-site")
         putStormStartupPropertyAttribute(notifier_plugin_property, 'delete', 'true')
+
+  def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
+
+    putFalconEnvProperty = self.putProperty(configurations, "falcon-env", services)
+    enable_atlas_hook = False
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if "ATLAS" in servicesList:
+      putFalconEnvProperty("falcon.atlas.hook", "true")
+    else:
+      putFalconEnvProperty("falcon.atlas.hook", "false")
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

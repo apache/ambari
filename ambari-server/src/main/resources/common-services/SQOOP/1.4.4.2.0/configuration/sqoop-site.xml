@@ -35,5 +35,11 @@
   <property>
     <name>sqoop.job.data.publish.class</name>
     <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>sqoop-env</type>
+        <name>sqoop.atlas.hook</name>
+      </property>
+    </depends-on>
   </property>
 </configuration>
