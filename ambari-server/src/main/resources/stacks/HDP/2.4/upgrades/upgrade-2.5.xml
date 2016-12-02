@@ -420,7 +420,7 @@
       </execute-stage>
     </group>
 
-    <group xsi:type="stop" name="STOP_STORM" title="Stop Storm Services">
+    <group xsi:type="stop" name="STOP_STORM_UPGRADE" title="Stop Storm Services">
       <direction>UPGRADE</direction>
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -442,7 +442,7 @@
       </service>
     </group>
 
-    <group xsi:type="stop" name="STOP_STORM" title="Stop Storm Services">
+    <group xsi:type="stop" name="STOP_STORM_DOWNGRADE" title="Stop Storm Services">
       <direction>DOWNGRADE</direction>
       <service-check>false</service-check>
       <skippable>true</skippable>

@@ -398,7 +398,15 @@
         <xs:element name="type" type="upgrade-kind-type" />
         <xs:element name="prerequisite-checks" type="prerequisite-check-type" minOccurs="0" />
         <xs:element name="upgrade-path" type="upgrade-path-type" minOccurs="0" /> 
-        <xs:element name="order" type="order-type" />
+        <xs:element name="order" type="order-type">
+          <xs:unique name="unique-by-group">
+            <xs:annotation>
+              <xs:documentation>Ensures that the element "processing" does not have duplicate services</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="group" />
+            <xs:field xpath="@name" />
+          </xs:unique>
+        </xs:element>
         <xs:element name="processing" type="processing-type">
           <xs:unique name="unique-by-service">
             <xs:annotation>
