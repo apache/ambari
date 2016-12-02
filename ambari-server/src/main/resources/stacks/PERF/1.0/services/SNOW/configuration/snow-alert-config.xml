@@ -26,6 +26,7 @@
             This property describes type of alert behaviour.
             There are three types percentage, timeout, flip.
         </description>
+        <on-ambari-upgrade add="false"/>
     </property>
 
 
@@ -37,6 +38,7 @@
             set to "percentage". Here you should set percent of successful
             alert checks.
         </description>
+        <on-ambari-upgrade add="false"/>
     </property>
 
 
@@ -48,6 +50,7 @@
             set to "timeout". Here you should set result which alert will
             return after timeout, false|true|none.
         </description>
+        <on-ambari-upgrade add="false"/>
     </property>
 
     <property>
@@ -58,6 +61,7 @@
             set to "timeout". Here you should set number of seconds for
             alert to sleep.
         </description>
+        <on-ambari-upgrade add="false"/>
     </property>
 
 
@@ -69,6 +73,7 @@
             set to "flip". Here you should set number of minutes at which
             the alert should flip from true|false.
         </description>
+        <on-ambari-upgrade add="false"/>
     </property>
 
 
