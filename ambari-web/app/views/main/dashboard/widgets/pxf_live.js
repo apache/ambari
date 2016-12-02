@@ -31,11 +31,6 @@ function counterOrNA(key) {
 
 App.PxfUpView = App.TextDashboardSingleThresholdWidgetView.extend(App.SingleNumericThresholdMixin,{
 
-  title: Em.I18n.t('dashboard.widgets.PxfUp'),
-  id: '25',
-
-  model_type: 'pxf',
-
   hiddenInfo: function () {
     return [
       this.get('pxfsStarted') + ' ' + Em.I18n.t('dashboard.services.components.started'),
@@ -46,7 +41,6 @@ App.PxfUpView = App.TextDashboardSingleThresholdWidgetView.extend(App.SingleNume
 
   hiddenInfoClass: "hidden-info-three-line",
 
-  thresh1: 0,
   maxValue: counterOrNA('pxfsTotal'),
 
   pxfsStarted: counterOrNA('pxfsStarted'),

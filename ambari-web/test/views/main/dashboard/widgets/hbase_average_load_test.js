@@ -82,8 +82,8 @@ describe('App.HBaseAverageLoadView', function() {
 
   App.TestAliases.testAsComputedAlias(getView(), 'data', 'model.averageLoad', 'number');
 
-  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresh2');
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresholdMax');
 
-  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresh1');
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresholdMin');
 
 });

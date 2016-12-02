@@ -20,10 +20,6 @@ var App = require('app');
 
 App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
-  id: '1',
-
-  model_type: 'hdfs',
   modelFieldMax: 'jvmMemoryHeapMax',
   modelFieldUsed: 'jvmMemoryHeapUsed',
   widgetHtmlId: 'widget-nn-heap',

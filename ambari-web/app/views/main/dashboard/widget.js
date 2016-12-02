@@ -24,26 +24,30 @@ App.DashboardWidgetView = Em.View.extend({
    * @type {string}
    * @default null
    */
-  title: null,
-  templateName: null, // each has specific template
+  title: Em.computed.alias('widget.title'),
+
+  templateName: null,
+
+  sourceName: Em.computed.alias('widget.sourceName'),
+
+  widget: null,
 
   /**
-   * Setup model for widget by `model_type`. Usually `model_type` is a lowercase service name,
-   * for example `hdfs`, `yarn`, etc. You need to set `model_type` in extended object View, for example
-   * look App.DataNodeUpView.
-   * @type {object} - model that set up in App.MainDashboardView.setWidgetsDataModel()
+   * @type {object} - record from model that serve as data source
    */
   model : function () {
-    if (!this.get('model_type')) return {};
-    return this.get('parentView').get(this.get('model_type') + '_model');
-  }.property(),
+    var model = Em.Object.create();
+    if (Em.isNone(this.get('sourceName'))) {
+      return model;
+    }
+    return this.findModelBySource(this.get('sourceName'));
+  }.property('sourceName'),
 
   /**
-   * id 1-10 used to identify
    * @type {number}
    * @default null
    */
-  id: null,
+  id: Em.computed.alias('widget.id'),
 
   /**
    * html id bind to view-class: widget-(1)
@@ -51,6 +55,8 @@ App.DashboardWidgetView = Em.View.extend({
    * @type {string}
    */
   viewID: Em.computed.format('widget-{0}', 'id'),
+
+  classNames: ['span2p4'],
 
   attributeBindings: ['viewID'],
 
@@ -74,15 +80,19 @@ App.DashboardWidgetView = Em.View.extend({
 
   /**
    * @type {number}
-   * @default null
+   * @default 0
    */
-  thresh1: null,
+  thresholdMin: function() {
+    return Em.isNone(this.get('widget.threshold')) ? 0 : this.get('widget.threshold')[0];
+  }.property('widget.threshold'),
 
   /**
    * @type {number}
-   * @default null
+   * @default 0
    */
-  thresh2: null,
+  thresholdMax: function() {
+    return Em.isNone(this.get('widget.threshold')) ? 0 : this.get('widget.threshold')[1];
+  }.property('widget.threshold'),
 
   /**
    * @type {Boolean}
@@ -95,8 +105,8 @@ App.DashboardWidgetView = Em.View.extend({
    * @class
    */
   widgetConfig: Ember.Object.extend({
-    thresh1: '',
-    thresh2: '',
+    thresholdMin: '',
+    thresholdMax: '',
     hintInfo: Em.computed.i18nFormat('dashboard.widgets.hintInfo.common', 'maxValue'),
     isThresh1Error: false,
     isThresh2Error: false,
@@ -104,15 +114,15 @@ App.DashboardWidgetView = Em.View.extend({
     errorMessage2: "",
     maxValue: 0,
     observeThresh1Value: function () {
-      var thresh1 = this.get('thresh1');
-      var thresh2 = this.get('thresh2');
+      var thresholdMin = this.get('thresholdMin');
+      var thresholdMax = this.get('thresholdMax');
       var maxValue = this.get('maxValue');
 
-      if (thresh1.trim() !== "") {
-        if (isNaN(thresh1) || thresh1 > maxValue || thresh1 < 0) {
+      if (thresholdMin.trim() !== "") {
+        if (isNaN(thresholdMin) || thresholdMin > maxValue || thresholdMin < 0) {
           this.set('isThresh1Error', true);
           this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
-        } else if (this.get('isThresh2Error') === false && parseFloat(thresh2) <= parseFloat(thresh1)) {
+        } else if (this.get('isThresh2Error') === false && parseFloat(thresholdMax) <= parseFloat(thresholdMin)) {
           this.set('isThresh1Error', true);
           this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.smaller'));
         } else {
@@ -124,13 +134,13 @@ App.DashboardWidgetView = Em.View.extend({
         this.set('errorMessage1', Em.I18n.t('admin.users.editError.requiredField'));
       }
       this.updateSlider();
-    }.observes('thresh1', 'maxValue'),
+    }.observes('thresholdMin', 'maxValue'),
     observeThresh2Value: function () {
-      var thresh2 = this.get('thresh2');
+      var thresholdMax = this.get('thresholdMax');
       var maxValue = this.get('maxValue');
 
-      if (thresh2.trim() !== "") {
-        if (isNaN(thresh2) || thresh2 > maxValue || thresh2 < 0) {
+      if (thresholdMax.trim() !== "") {
+        if (isNaN(thresholdMax) || thresholdMax > maxValue || thresholdMax < 0) {
           this.set('isThresh2Error', true);
           this.set('errorMessage2', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
         } else {
@@ -142,15 +152,15 @@ App.DashboardWidgetView = Em.View.extend({
         this.set('errorMessage2', Em.I18n.t('admin.users.editError.requiredField'));
       }
       this.updateSlider();
-    }.observes('thresh2', 'maxValue'),
+    }.observes('thresholdMax', 'maxValue'),
     updateSlider: function () {
-      var thresh1 = this.get('thresh1');
-      var thresh2 = this.get('thresh2');
+      var thresholdMin = this.get('thresholdMin');
+      var thresholdMax = this.get('thresholdMax');
       // update the slider handles and color
       if (this.get('isThresh1Error') === false && this.get('isThresh2Error') === false) {
         $("#slider-range")
-          .slider('values', 0, parseFloat(thresh1))
-          .slider('values', 1, parseFloat(thresh2));
+          .slider('values', 0, parseFloat(thresholdMin))
+          .slider('values', 1, parseFloat(thresholdMax));
       }
     }
   }),
@@ -162,46 +172,36 @@ App.DashboardWidgetView = Em.View.extend({
     });
   },
 
-  willDestroyElement : function() {
-    $("[rel='ZoomInTooltip']").tooltip('destroy');
-  },
-  /**
-   * delete widget
-   * @param {object} event
-   */
-  deleteWidget: function () {
-    var parent = this.get('parentView');
-    var self = this;
-
-    if (App.get('testMode')) {
-      //update view on dashboard
-      var objClass = parent.widgetsMapper(this.get('id'));
-      parent.get('visibleWidgets').removeObject(objClass);
-      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.get('title'), id: this.get('id'), checked: false}));
+  findModelBySource: function (source) {
+    if (source === 'HOST_METRICS' && App.get('services.hostMetrics').length > 0) {
+      return App.get('services.hostMetrics');
+    }
+    var extendedModel = App.Service.extendedModel[source];
+    if (extendedModel) {
+      return App[extendedModel].find(source);
     } else {
-      //reconstruct new persist value then post in persist
-      parent.getUserPref(parent.get('persistKey')).complete(function () {
-        self.deleteWidgetComplete.apply(self);
-      });
+      return App.Service.find(source);
     }
   },
 
+  willDestroyElement : function() {
+    $("[rel='ZoomInTooltip']").tooltip('destroy');
+  },
+
   /**
-   * delete widget complete callback
+   * delete widget
    */
-  deleteWidgetComplete: function () {
+  deleteWidget: function () {
     var parent = this.get('parentView');
-    var oldValue = parent.get('currentPrefObject');
+    var userPreferences = parent.get('userPreferences');
     var deletedId = this.get('id');
-    var newValue = Em.Object.create({
-      dashboardVersion: oldValue.dashboardVersion,
-      visible: oldValue.visible.slice(0).without(deletedId),
-      hidden: oldValue.hidden,
-      threshold: oldValue.threshold
-    });
-    newValue.hidden.push([deletedId, this.get('title')]);
-    parent.postUserPref(parent.get('persistKey'), newValue);
-    parent.translateToReal(newValue);
+    var newValue = {
+      visible: userPreferences.visible.slice(0).without(deletedId),
+      hidden: userPreferences.hidden.concat([deletedId]),
+      threshold: userPreferences.threshold
+    };
+    parent.saveWidgetsSettings(newValue);
+    parent.renderWidgets();
   },
 
   /**
@@ -210,8 +210,8 @@ App.DashboardWidgetView = Em.View.extend({
    */
   editWidget: function (event) {
     var configObj = this.get('widgetConfig').create({
-      thresh1: this.get('thresh1') + '',
-      thresh2: this.get('thresh2') + '',
+      thresholdMin: this.get('thresholdMin') + '',
+      thresholdMax: this.get('thresholdMax') + '',
       maxValue: parseFloat(this.get('maxValue'))
     });
     this.showEditDialog(configObj)
@@ -239,18 +239,14 @@ App.DashboardWidgetView = Em.View.extend({
         configObj.observeThresh1Value();
         configObj.observeThresh2Value();
         if (!configObj.isThresh1Error && !configObj.isThresh2Error) {
-          self.set('thresh1', parseFloat(configObj.get('thresh1')));
-          self.set('thresh2', parseFloat(configObj.get('thresh2')));
+          self.set('thresholdMin', parseFloat(configObj.get('thresholdMin')));
+          self.set('thresholdMax', parseFloat(configObj.get('thresholdMax')));
 
-          if (!App.get('testMode')) {
-            // save to persist
-            var parent = self.get('parentView');
-            parent.getUserPref(parent.get('persistKey')).complete(function () {
-              var oldValue = parent.get('currentPrefObject');
-              oldValue.threshold[parseInt(self.get('id'), 10)] = [configObj.get('thresh1'), configObj.get('thresh2')];
-              parent.postUserPref(parent.get('persistKey'), oldValue);
-            });
-          }
+          var parent = self.get('parentView');
+          var userPreferences = parent.get('userPreferences');
+          userPreferences.threshold[Number(self.get('id'))] = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
+          parent.saveWidgetsSettings(userPreferences);
+          parent.renderWidgets();
 
           this.hide();
         }
@@ -259,7 +255,7 @@ App.DashboardWidgetView = Em.View.extend({
       didInsertElement: function () {
         this._super();
         var browserVersion = self.getInternetExplorerVersion();
-        var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
+        var handlers = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
         var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
 
         if (browserVersion === -1 || browserVersion > 9) {
@@ -275,8 +271,8 @@ App.DashboardWidgetView = Em.View.extend({
             },
             slide: function (event, ui) {
               updateColors(ui.values);
-              configObj.set('thresh1', ui.values[0] + '');
-              configObj.set('thresh2', ui.values[1] + '');
+              configObj.set('thresholdMin', ui.values[0] + '');
+              configObj.set('thresholdMax', ui.values[1] + '');
             },
             change: function (event, ui) {
               updateColors(ui.values);
@@ -350,9 +346,4 @@ App.DashboardWidgetView = Em.View.extend({
     return '';
   }.property('hiddenInfo.length')
 
-});
-
-
-App.DashboardWidgetView.reopenClass({
-  class: 'span2p4'
 });

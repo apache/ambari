@@ -20,10 +20,6 @@ var App = require('app');
 
 App.ResourceManagerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.ResourceManagerHeap'),
-  id: '17',
-
-  model_type: 'yarn',
   modelFieldMax: 'jvmMemoryHeapMax',
   modelFieldUsed: 'jvmMemoryHeapUsed',
   widgetHtmlId: 'widget-rm-heap',

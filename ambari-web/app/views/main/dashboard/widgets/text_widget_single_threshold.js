@@ -23,8 +23,8 @@ App.TextDashboardSingleThresholdWidgetView = App.DashboardWidgetView.extend({
   templateName: require('templates/main/dashboard/widgets/simple_text'),
 
   classNameBindings: ['isRed', 'isGreen', 'isNA'],
-  isGreen: Em.computed.lteProperties('data', 'thresh1'),
-  isRed: Em.computed.gtProperties('data', 'thresh1'),
+  isGreen: Em.computed.lteProperties('data', 'thresholdMin'),
+  isRed: Em.computed.gtProperties('data', 'thresholdMin'),
 
   isNA: function () {
     return this.get('data') === null;
@@ -32,6 +32,6 @@ App.TextDashboardSingleThresholdWidgetView = App.DashboardWidgetView.extend({
 
   hiddenInfo: [],
 
-  maxValue: null,
+  maxValue: null
 
 });

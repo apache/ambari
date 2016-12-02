@@ -21,10 +21,6 @@ var numberUtils = require('utils/number_utils');
 
 App.HBaseMasterHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.HBaseMasterHeap'),
-  id: '13',
-
-  model_type: 'hbase',
   modelFieldMax: 'heapMemoryMax',
   modelFieldUsed: 'heapMemoryUsed',
   widgetHtmlId: 'widget-hbase-heap',

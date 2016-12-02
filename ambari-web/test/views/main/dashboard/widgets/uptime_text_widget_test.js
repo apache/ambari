@@ -25,7 +25,7 @@ var uptimeTextDashboardWidgetView;
 describe('App.UptimeTextDashboardWidgetView', function() {
 
   beforeEach(function () {
-    uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresh1:40, thresh2:70});
+    uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresholdMin:40, thresholdMax:70});
   });
 
   describe('#timeConverter', function() {
