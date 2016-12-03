@@ -341,6 +341,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private AmbariActionExecutionHelper actionExecutionHelper;
 
+  private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
+
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
       Clusters clusters, Injector injector) throws Exception {
@@ -2142,6 +2144,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Get the value of credential store enabled from the DB
     Service clusterService = cluster.getService(serviceName);
     execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
+
+    // Get the map of service config type to password properties for the service
+    Map<String, Map<String, String>> configCredentials;
+    configCredentials = configCredentialsForService.get(clusterService.getName());
+    if (configCredentials == null) {
+      configCredentials = configHelper.getPropertiesWithPropertyType(stackId, clusterService,
+              PropertyType.PASSWORD);
+      configCredentialsForService.put(clusterService.getName(), configCredentials);
+    }
+
+    execCmd.setConfigurationCredentials(configCredentials);
 
     // Create a local copy for each command
     Map<String, String> commandParams = new TreeMap<String, String>();
