@@ -53,17 +53,6 @@ public class CalculatedStatus {
    */
   private final double percent;
 
-  /**
-   * A status which represents a COMPLETED state at 0%
-   */
-  public static final CalculatedStatus COMPLETED = new CalculatedStatus(HostRoleStatus.COMPLETED,
-      HostRoleStatus.COMPLETED, 100.0);
-
-  /**
-   * A status which represents a PENDING state at 0%
-   */
-  public static final CalculatedStatus PENDING = new CalculatedStatus(HostRoleStatus.PENDING,
-      HostRoleStatus.PENDING, 0.0);
 
   // ----- Constructors ------------------------------------------------------
 
@@ -90,6 +79,12 @@ public class CalculatedStatus {
     this.percent = percent;
   }
 
+  /**
+   * Static factory method to get Status that represents a Completed state
+   */
+  public static CalculatedStatus getCompletedStatus() {
+    return new CalculatedStatus(HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED, 100.0);
+  }
 
   // ----- CalculatedStatus --------------------------------------------------
 
@@ -296,24 +291,13 @@ public class CalculatedStatus {
   }
 
   /**
-   * Calculates the overall status of an upgrade. If there are no tasks, then a
-   * status of {@link HostRoleStatus#COMPLETED} is returned.
-   *
-   * @param stageDto
-   *          the map of stage-to-summary value objects
-   * @param stageIds
-   *          the stage ids to consider from the value objects
+   * Calculates the overall status of an upgrade.
+   * @param stageDto  the map of stage-to-summary value objects
+   * @param stageIds  the stage ids to consider from the value objects
    * @return the calculated status
    */
   public static CalculatedStatus statusFromStageSummary(Map<Long, HostRoleCommandStatusSummaryDTO> stageDto,
       Set<Long> stageIds) {
-
-    // if either are empty, then we have no tasks and therefore no status - we
-    // should return COMPLETED. This can happen if someone removes all tasks but
-    // leaves the stages and request
-    if (stageDto.isEmpty() || stageIds.isEmpty()) {
-      return COMPLETED;
-    }
 
     Collection<HostRoleStatus> stageStatuses = new HashSet<>();
     Collection<HostRoleStatus> stageDisplayStatuses = new HashSet<>();
@@ -394,28 +378,19 @@ public class CalculatedStatus {
    */
   public static HostRoleStatus calculateSummaryStatusOfStage(Map<HostRoleStatus, Integer> counters,
       int total, boolean skippable) {
-
-    // when there are 0 tasks, return COMPLETED
-    if (total == 0) {
-      return HostRoleStatus.COMPLETED;
-    }
-
     if (counters.get(HostRoleStatus.PENDING) == total) {
       return HostRoleStatus.PENDING;
     }
-
     // By definition, any tasks in a future stage must be held in a PENDING status.
     if (counters.get(HostRoleStatus.HOLDING) > 0 || counters.get(HostRoleStatus.HOLDING_FAILED) > 0 || counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0) {
       return counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
       counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
       HostRoleStatus.HOLDING_TIMEDOUT;
     }
-
     // Because tasks are not skippable, guaranteed to be FAILED
     if (counters.get(HostRoleStatus.FAILED) > 0 && !skippable) {
       return HostRoleStatus.FAILED;
     }
-
     // Because tasks are not skippable, guaranteed to be TIMEDOUT
     if (counters.get(HostRoleStatus.TIMEDOUT) > 0  && !skippable) {
       return HostRoleStatus.TIMEDOUT;
@@ -426,11 +401,9 @@ public class CalculatedStatus {
     if (counters.get(HostRoleStatus.ABORTED) > 0 && numActiveTasks == 0) {
       return HostRoleStatus.ABORTED;
     }
-
     if (counters.get(HostRoleStatus.COMPLETED) == total) {
       return HostRoleStatus.COMPLETED;
     }
-
     return HostRoleStatus.IN_PROGRESS;
   }
 
@@ -442,8 +415,7 @@ public class CalculatedStatus {
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  protected static HostRoleStatus calculateSummaryStatusOfUpgrade(
-      Map<HostRoleStatus, Integer> counters, int total) {
+  private static HostRoleStatus calculateSummaryStatusOfUpgrade(Map<HostRoleStatus, Integer> counters, int total) {
     return calculateSummaryStatusOfStage(counters, total, false);
   }
 
@@ -456,8 +428,8 @@ public class CalculatedStatus {
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  protected static HostRoleStatus calculateSummaryDisplayStatus(
-      Map<HostRoleStatus, Integer> counters, int total, boolean skippable) {
+  private static HostRoleStatus calculateSummaryDisplayStatus(Map<HostRoleStatus, Integer> counters,
+                                                              int total, boolean skippable) {
     return counters.get(HostRoleStatus.SKIPPED_FAILED) > 0 ? HostRoleStatus.SKIPPED_FAILED :
            counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED:
            calculateSummaryStatusOfStage(counters, total, skippable);
