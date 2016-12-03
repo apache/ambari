@@ -596,6 +596,14 @@ public class TopologyManager {
     return clusterTopologyMap.get(clusterId);
   }
 
+  /**
+   * Gets a map of components keyed by host which have operations in the
+   * {@link HostRoleStatus#PENDING} state. This could either be because hosts
+   * have not registered or becuase the operations are actually waiting to be
+   * queued.
+   *
+   * @return a mapping of host with pending components.
+   */
   public Map<String, Collection<String>> getPendingHostComponents() {
     ensureInitialized();
     Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
@@ -603,7 +611,16 @@ public class TopologyManager {
     for (LogicalRequest logicalRequest : allRequests.values()) {
       Map<Long, HostRoleCommandStatusSummaryDTO> summary = logicalRequest.getStageSummaries();
       final CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
-      if (status.getStatus().isInProgress()) {
+
+      // either use the calculated status of the stage or the fact that there
+      // are no tasks and the request has no end time to determine if the
+      // request is still in progress
+      boolean logicalRequestInProgress = false;
+      if (status.getStatus().isInProgress() || (summary.isEmpty() && logicalRequest.getEndTime() <= 0) ) {
+        logicalRequestInProgress = true;
+      }
+
+      if (logicalRequestInProgress) {
         Map<String, Collection<String>> requestTopology = logicalRequest.getProjectedTopology();
         for (Map.Entry<String, Collection<String>> entry : requestTopology.entrySet()) {
           String host = entry.getKey();

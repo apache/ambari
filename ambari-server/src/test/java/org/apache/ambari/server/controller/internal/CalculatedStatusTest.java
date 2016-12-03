@@ -657,6 +657,37 @@ public class CalculatedStatusTest {
     assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
   }
 
+  /**
+   * Tests that when there are no tasks and all counts are 0, that the returned
+   * status is {@link HostRoleStatus#COMPLETED}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetCompletedStatusForNoTasks() throws Exception {
+    // no status / no tasks
+    CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(
+        new ArrayList<HostRoleCommandEntity>(), false);
+
+    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+
+    // empty summaries
+    status = CalculatedStatus.statusFromStageSummary(
+        new HashMap<Long, HostRoleCommandStatusSummaryDTO>(), new HashSet<Long>());
+
+    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+
+    // generate a map of 0's - COMPLETED=0, IN_PROGRESS=0, etc
+    Map<HostRoleStatus, Integer> counts = CalculatedStatus.calculateStatusCounts(new ArrayList<HostRoleStatus>());
+    Map<HostRoleStatus, Integer> displayCounts = CalculatedStatus.calculateStatusCounts(new ArrayList<HostRoleStatus>());
+
+    HostRoleStatus hostRoleStatus = CalculatedStatus.calculateSummaryStatusOfUpgrade(counts, 0);
+    HostRoleStatus hostRoleDisplayStatus = CalculatedStatus.calculateSummaryDisplayStatus(displayCounts, 0, false);
+
+    assertEquals(HostRoleStatus.COMPLETED, hostRoleStatus);
+    assertEquals(HostRoleStatus.COMPLETED, hostRoleDisplayStatus);
+  }
+
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {
     Collection<HostRoleCommandEntity> entities = new LinkedList<HostRoleCommandEntity>();
 
