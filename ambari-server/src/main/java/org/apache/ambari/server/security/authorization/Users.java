@@ -49,10 +49,8 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.apache.commons.lang.StringUtils;
@@ -277,7 +275,7 @@ public class Users {
   public synchronized void setGroupLdap(String groupName) throws AmbariException {
     GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
     if (groupEntity != null) {
-      groupEntity.setLdapGroup(true);
+      groupEntity.setGroupType(GroupType.LDAP);
       groupDAO.merge(groupEntity);
     } else {
       throw new AmbariException("Group " + groupName + " doesn't exist");
@@ -435,7 +433,7 @@ public class Users {
     final GroupEntity groupEntity = new GroupEntity();
     groupEntity.setGroupName(groupName);
     groupEntity.setPrincipal(principalEntity);
-    groupEntity.setgroupType(groupType);
+    groupEntity.setGroupType(groupType);
 
     groupDAO.create(groupEntity);
   }
@@ -701,7 +699,7 @@ public class Users {
     final Set<GroupEntity> groupsToBecomeLdap = new HashSet<GroupEntity>();
     for (String groupName : batchInfo.getGroupsToBecomeLdap()) {
       final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
-      groupEntity.setLdapGroup(true);
+      groupEntity.setGroupType(GroupType.LDAP);
       allGroups.put(groupEntity.getGroupName(), groupEntity);
       groupsToBecomeLdap.add(groupEntity);
     }
@@ -737,7 +735,7 @@ public class Users {
       final GroupEntity groupEntity = new GroupEntity();
       groupEntity.setGroupName(groupName);
       groupEntity.setPrincipal(principalEntity);
-      groupEntity.setLdapGroup(true);
+      groupEntity.setGroupType(GroupType.LDAP);
 
       allGroups.put(groupEntity.getGroupName(), groupEntity);
       groupsToCreate.add(groupEntity);
