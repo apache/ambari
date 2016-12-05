@@ -137,6 +137,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateKafkaConfigs();
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
+    updateAtlasConfigs();
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -326,6 +327,35 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
       new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
+  }
+
+  protected void updateAtlasConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          updateAtlasHookConfig(cluster, "HIVE", "hive-env", "hive.atlas.hook");
+          updateAtlasHookConfig(cluster, "STORM", "storm-env", "storm.atlas.hook");
+          updateAtlasHookConfig(cluster, "FALCON", "falcon-env", "falcon.atlas.hook");
+          updateAtlasHookConfig(cluster, "SQOOP", "sqoop-env", "sqoop.atlas.hook");
+        }
+      }
+    }
+  }
+
+  protected void updateAtlasHookConfig(Cluster cluster, String serviceName, String configType, String propertyName) throws AmbariException {
+    Set<String> installedServices = cluster.getServices().keySet();
+    if (installedServices.contains("ATLAS") && installedServices.contains(serviceName)) {
+      Config configEnv = cluster.getDesiredConfigByType(configType);
+      if (configEnv != null) {
+        Map<String, String> newProperties = new HashMap<>();
+        newProperties.put(propertyName, "true");
+        boolean updateProperty = configEnv.getProperties().containsKey(propertyName);
+        updateConfigurationPropertiesForCluster(cluster, configType, newProperties, updateProperty, true);
+      }
+    }
   }
 }
 

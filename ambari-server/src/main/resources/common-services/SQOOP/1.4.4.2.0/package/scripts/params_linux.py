@@ -130,7 +130,6 @@ jdk_location = config['hostLevelParams']['jdk_location']
 ########################################################
 #region Atlas Hooks
 sqoop_atlas_application_properties = default('/configurations/sqoop-atlas-application.properties', {})
-
-if has_atlas_in_cluster():
-  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+enable_atlas_hook = default('/configurations/sqoop-env/sqoop.atlas.hook', False)
+atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
 #endregion

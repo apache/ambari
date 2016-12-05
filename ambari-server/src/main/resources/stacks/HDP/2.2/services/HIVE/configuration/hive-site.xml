@@ -232,6 +232,10 @@ limitations under the License.
     <depends-on>
       <property>
         <type>hive-env</type>
+        <name>hive.atlas.hook</name>
+      </property>
+      <property>
+        <type>hive-env</type>
         <name>hive_timeline_logging_enabled</name>
       </property>
       <property>

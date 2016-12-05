@@ -118,7 +118,7 @@ def falcon(type, action = None, upgrade_type=None):
         cd_access = "a")
 
     # Generate atlas-application.properties.xml file
-    if params.falcon_atlas_support:
+    if params.falcon_atlas_support and params.enable_atlas_hook:
       # If Atlas is added later than Falcon, this package will be absent.
       install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
                                   params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)

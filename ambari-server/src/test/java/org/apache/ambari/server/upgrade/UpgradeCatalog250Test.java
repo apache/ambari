@@ -53,6 +53,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -213,6 +214,7 @@ public class UpgradeCatalog250Test {
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
+    Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
@@ -220,6 +222,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateHiveLlapConfigs)
       .addMockedMethod(updateTablesForZeppelinViewRemoval)
+      .addMockedMethod(updateAtlasConfigs)
       .addMockedMethod(addNewConfigurationsFromXml)
       .createMock();
 
@@ -237,6 +240,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateTablesForZeppelinViewRemoval();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateAtlasConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog250);
@@ -367,6 +373,93 @@ public class UpgradeCatalog250Test {
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateKafkaConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testUpdateAtlasConfigs() throws Exception {
+
+    Map<String, String> oldHiveProperties = new HashMap<String, String>();
+    Map<String, String> newHiveProperties = new HashMap<String, String>();
+
+    oldHiveProperties.put("hive.atlas.hook", "false");
+    newHiveProperties.put("hive.atlas.hook", "true");
+    testUpdateAtlasHookConfig(oldHiveProperties, newHiveProperties, "hive-env");
+
+    Map<String, String> oldStormProperties = new HashMap<String, String>();
+    Map<String, String> newStormProperties = new HashMap<String, String>();
+    oldStormProperties.put("storm.atlas.hook", "false");
+    newStormProperties.put("storm.atlas.hook", "true");
+    testUpdateAtlasHookConfig(oldStormProperties, newStormProperties, "storm-env");
+
+    Map<String, String> oldFalconProperties = new HashMap<String, String>();
+    Map<String, String> newFalconProperties = new HashMap<String, String>();
+    oldFalconProperties.put("falcon.atlas.hook", "false");
+    newFalconProperties.put("falcon.atlas.hook", "true");
+    testUpdateAtlasHookConfig(oldFalconProperties, newFalconProperties, "falcon-env");
+
+    Map<String, String> oldSqoopProperties = new HashMap<String, String>();
+    Map<String, String> newSqoopProperties = new HashMap<String, String>();
+    oldSqoopProperties.put("sqoop.atlas.hook", "false");
+    newSqoopProperties.put("sqoop.atlas.hook", "true");
+    testUpdateAtlasHookConfig(oldSqoopProperties, newSqoopProperties, "sqoop-env");
+  }
+
+  public void testUpdateAtlasHookConfig(Map<String, String> oldProperties, Map<String, String> newProperties, String configType) throws Exception {
+
+    Map<String, Service> installedServices = new HashMap<String, Service>() {
+      {
+        put("ATLAS", null);
+        put("HIVE", null);
+        put("STORM", null);
+        put("FALCON", null);
+        put("SQOOP", null);
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    final Service service = createStrictMock(Service.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getClusterName()).andReturn("cl1").once();
+    expect(cluster.getServices()).andReturn(installedServices).atLeastOnce();
+
+    Config mockAtlasConfig = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType(configType)).andReturn(mockAtlasConfig).atLeastOnce();
+    expect(mockAtlasConfig.getProperties()).andReturn(oldProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockAtlasConfig, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog250(injector2).updateAtlasConfigs();
     easyMockSupport.verifyAll();
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
