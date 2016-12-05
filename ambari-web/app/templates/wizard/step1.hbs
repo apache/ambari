@@ -144,7 +144,7 @@
                                     {{view view.popoverView repositoryBinding="repository"}}
                                   </td>
                                   <td class="col-sm-8">
-                                    <div {{bindAttr class=":repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
+                                    <div {{bindAttr class=":repo-url repository.invalidFormatError:has-error repository.invalidError:has-error"}}>
                                       {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control"}}
                                       {{#if controller.selectedStack.usePublicRepo}}
                                         <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
