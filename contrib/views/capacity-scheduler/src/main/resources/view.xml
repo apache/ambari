@@ -23,19 +23,22 @@
     <min-ambari-version>2.1.*</min-ambari-version>
     <cluster-config-options>AMBARI-ONLY</cluster-config-options>
 
-  <resource>
-      <name>scheduler</name>
-      <service-class>org.apache.ambari.view.capacityscheduler.CapacitySchedulerService</service-class>
+    <resource>
+        <name>scheduler</name>
+        <service-class>org.apache.ambari.view.capacityscheduler.CapacitySchedulerService</service-class>
     </resource>
 
     <auto-instance>
-      <name>AUTO_CS_INSTANCE</name>
-      <label>YARN Queue Manager</label>
-      <description>Manage YARN Capacity Scheduler Queues</description>
-      <stack-id>HDP-2.*</stack-id>
-      <services>
-        <service>YARN</service>
-      </services>
+        <name>AUTO_CS_INSTANCE</name>
+        <label>YARN Queue Manager</label>
+        <description>Manage YARN Capacity Scheduler Queues</description>
+        <stack-id>HDP-2.*</stack-id>
+        <services>
+            <service>YARN</service>
+        </services>
+        <roles>
+            <role>CLUSTER.ADMINISTRATOR</role>
+        </roles>
     </auto-instance>
 
 </view>

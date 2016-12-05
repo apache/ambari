@@ -223,7 +223,7 @@ describe('App.MainDashboardWidgetsView', function () {
       expect(view.get('visibleWidgets')).to.be.eql([Em.Object.create({
         id: 1,
         threshold: [],
-        viewClass: App['NameNodeHeapPieChartView'],
+        viewClass: App.NameNodeHeapPieChartView,
         sourceName: 'HDFS',
         title: Em.I18n.t('dashboard.widgets.NameNodeHeap')
       })]);

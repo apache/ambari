@@ -97,6 +97,7 @@ class StackFeature:
   RANGER_PID_SUPPORT = "ranger_pid_support"
   RANGER_KMS_PID_SUPPORT = "ranger_kms_pid_support"
   RANGER_ADMIN_PASSWD_CHANGE = "ranger_admin_password_change"
+  RANGER_SETUP_DB_ON_START = "ranger_setup_db_on_start"
   STORM_METRICS_APACHE_CLASSES = "storm_metrics_apache_classes"
   SPARK_JAVA_OPTS_SUPPORT = "spark_java_opts_support"
   ATLAS_HBASE_SETUP = "atlas_hbase_setup"

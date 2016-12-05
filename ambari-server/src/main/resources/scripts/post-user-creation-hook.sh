@@ -84,6 +84,10 @@ echo "[" | cat > "$JSON_INPUT"
 while read -r LINE
 do
   USR_NAME=$(echo "$LINE" | awk -F, '{print $1}')
+  echo "Processing user name: $USR_NAME"
+
+  # encoding the username
+  USR_NAME=$(printf "%q" "$USR_NAME")
 
   cat <<EOF >> "$JSON_INPUT"
     {
@@ -97,7 +101,10 @@ do
 EOF
 done <"$CSV_FILE"
 
+# deleting the last line
 sed -i '$ d' "$JSON_INPUT"
+
+# appending json closing elements to the end of the file
 echo $'}\n]' | cat >> "$JSON_INPUT"
 echo "Generating file $JSON_INPUT ... DONE."
 echo "Processing post user creation hook payload ... DONE."

@@ -587,7 +587,8 @@ class TestHDP23StackAdvisor(TestCase):
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'off'
+          'hive_txn_acid': 'off',
+          'hive.atlas.hook': 'false'
         }
       },
       'hive-site': {
@@ -745,6 +746,7 @@ class TestHDP23StackAdvisor(TestCase):
         },
         "hive-env": {
           "properties": {
+            "hive.atlas.hook": "false"
           }
         },
         "hive-site": {
@@ -863,7 +865,8 @@ class TestHDP23StackAdvisor(TestCase):
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'off'
+          'hive_txn_acid': 'off',
+          'hive.atlas.hook': 'true'
         }
       },
       'hive-site': {
@@ -1045,6 +1048,7 @@ class TestHDP23StackAdvisor(TestCase):
         },
         "hive-env": {
           "properties": {
+            "hive.atlas.hook": "false"
           }
         },
         "hive-site": {
@@ -1733,6 +1737,11 @@ class TestHDP23StackAdvisor(TestCase):
         "properties": {
           "ranger-storm-plugin-enabled": "No"
         }
+      },
+      "storm-env": {
+        "properties": {
+          "storm.atlas.hook": "true"
+        }
       }
     }
     services = {
@@ -1772,6 +1781,11 @@ class TestHDP23StackAdvisor(TestCase):
         "ranger-storm-plugin-properties": {
           "properties": {
             "ranger-storm-plugin-enabled": "No"
+          }
+        },
+        "storm-env": {
+          "properties": {
+          "storm.atlas.hook": "false"
           }
         }
       },
@@ -1830,6 +1844,11 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {
           'sqoop.job.data.publish.class': 'org.apache.atlas.sqoop.hook.SqoopHook',
         }
+      },
+      'sqoop-env': {
+        'properties': {
+          'sqoop.atlas.hook': 'true'
+        }
       }
     }
     services = {
@@ -1863,6 +1882,11 @@ class TestHDP23StackAdvisor(TestCase):
         "sqoop-site": {
           "properties": {
             "sqoop.job.data.publish.class": "foo"
+          }
+        },
+        "sqoop-env": {
+          "properties": {
+            "sqoop.atlas.hook": "false"
           }
         }
       },

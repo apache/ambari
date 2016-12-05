@@ -5923,6 +5923,10 @@ public class BlueprintConfigurationProcessorTest {
     hiveProperties.put("hive.exec.post.hooks", "");
     properties.put("hive-site", hiveProperties);
 
+    Map<String, String> hiveEnv = new HashMap<String, String>();
+    hiveEnv.put("hive.atlas.hook", "false");
+    properties.put("hive-env", hiveEnv);
+
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
@@ -6000,6 +6004,9 @@ public class BlueprintConfigurationProcessorTest {
     hiveProperties.put("hive.exec.post.hooks", "");
     properties.put("hive-site", hiveProperties);
 
+    Map<String, String> hiveEnv = new HashMap<String, String>();
+    properties.put("hive-env", hiveEnv);
+
     return properties;
   }
 
@@ -6050,6 +6057,10 @@ public class BlueprintConfigurationProcessorTest {
     // default hook registered
     hiveProperties.put("hive.exec.post.hooks", "foo");
     properties.put("hive-site", hiveProperties);
+
+    Map<String, String> hiveEnv = new HashMap<String, String>();
+    hiveEnv.put("hive.atlas.hook", "false");
+    properties.put("hive-env", hiveEnv);
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();

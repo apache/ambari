@@ -64,7 +64,7 @@ def sqoop(type=None):
             )
 
   # Generate atlas-application.properties.xml file and symlink the hook jars
-  if has_atlas_in_cluster():
+  if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.sqoop_conf_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.SQOOP, params.sqoop_atlas_application_properties, atlas_hook_filepath, params.sqoop_user, params.user_group)
     setup_atlas_jar_symlinks("sqoop", params.sqoop_lib)
