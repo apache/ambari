@@ -223,7 +223,7 @@ class Configuration:
     return self.get("collector", "failover_strategy", ROUND_ROBIN_FAILOVER_STRATEGY)
 
   def get_failover_strategy_blacklisted_interval_seconds(self):
-    return self.get("collector", "failover_strategy_blacklisted_interval_seconds", 600)
+    return self.get("collector", "failover_strategy_blacklisted_interval_seconds", 300)
 
   def get_hostname_script(self):
     if self.hostname_script:

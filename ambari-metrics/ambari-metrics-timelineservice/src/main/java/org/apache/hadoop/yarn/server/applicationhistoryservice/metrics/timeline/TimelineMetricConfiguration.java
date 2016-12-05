@@ -320,6 +320,20 @@ public class TimelineMetricConfiguration {
     return hbaseConf.getTrimmed("hbase.zookeeper.quorum");
   }
 
+  public String getClusterZKClientPort() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return metricsConf.getTrimmed("cluster.zookeeper.property.clientPort", "2181");
+  }
+
+  public String getClusterZKQuorum() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return metricsConf.getTrimmed("cluster.zookeeper.quorum");
+  }
+
   public String getInstanceHostnameFromEnv() throws UnknownHostException {
     String amsInstanceName = System.getProperty("AMS_INSTANCE_NAME");
     if (amsInstanceName == null) {

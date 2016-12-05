@@ -317,9 +317,9 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
   protected void downsample(Connection conn, Long startTime, Long endTime) {
 
-    LOG.info("Checking for downsampling requests.");
+    LOG.debug("Checking for downsampling requests.");
     if (CollectionUtils.isEmpty(configuredDownSamplers)) {
-      LOG.info("No downsamplers configured");
+      LOG.debug("No downsamplers configured");
       return;
     }
 
@@ -424,7 +424,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
     PreparedStatement stmt = null;
     ResultSet rs = null;
-    LOG.info("Downsampling query : " + condition.getStatement());
+    LOG.debug("Downsampling query : " + condition.getStatement());
 
     try {
       stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);

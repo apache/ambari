@@ -107,16 +107,14 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       // Initialize policies before TTL update
       hBaseAccessor.initPoliciesAndTTL();
       // Start HA service
-      if (configuration.isDistributedOperationModeEnabled()) {
-        // Start the controller
-        haController = new MetricCollectorHAController(configuration);
-        try {
-          haController.initializeHAController();
-        } catch (Exception e) {
-          LOG.error(e);
-          throw new MetricsSystemInitializationException("Unable to " +
-            "initialize HA controller", e);
-        }
+      // Start the controller
+      haController = new MetricCollectorHAController(configuration);
+      try {
+        haController.initializeHAController();
+      } catch (Exception e) {
+        LOG.error(e);
+        throw new MetricsSystemInitializationException("Unable to " +
+          "initialize HA controller", e);
       }
 
       String whitelistFile = metricsConf.get(TIMELINE_METRICS_WHITELIST_FILE, "");
