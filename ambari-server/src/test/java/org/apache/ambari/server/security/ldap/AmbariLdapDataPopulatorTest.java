@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.apache.ambari.server.security.authorization.Group;
+import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
@@ -1576,7 +1577,7 @@ public class AmbariLdapDataPopulatorTest {
     final GroupEntity ldapGroup = new GroupEntity();
     ldapGroup.setGroupId(1);
     ldapGroup.setGroupName("ldapGroup");
-    ldapGroup.setLdapGroup(true);
+    ldapGroup.setGroupType(GroupType.LDAP);
     ldapGroup.setMemberEntities(new HashSet<MemberEntity>());
 
     final User ldapUserWithoutGroup = createLdapUserWithoutGroup();
