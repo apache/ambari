@@ -20,7 +20,7 @@
   <div class="panel-heading" {{action "onToggleBlock" category target="view"}}>
     <h3 class="panel-title">
       <i {{bindAttr class=":pull-left :panel-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
-      <a class="panel-toggle">{{view.category.displayName}}</a>
+      <a class="panel-toggle category-header"><span class="category-name">{{view.category.displayName}}</span></a>
     </h3>
   </div>
 

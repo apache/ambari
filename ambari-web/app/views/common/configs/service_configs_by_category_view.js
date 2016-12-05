@@ -439,7 +439,14 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         isNotSaved: true
       }, selectedConfigGroup);
     }
-    var serviceConfigProperty = App.ServiceConfigProperty.create(config);
+    this._appendConfigToCollection(App.ServiceConfigProperty.create(config));
+  },
+
+  /**
+   * @param {App.ServiceConfigProperty} serviceConfigProperty
+   * @private
+   */
+  _appendConfigToCollection: function (serviceConfigProperty) {
     this.get('serviceConfigs').pushObject(serviceConfigProperty);
     this.get('categoryConfigsAll').pushObject(serviceConfigProperty);
   },
