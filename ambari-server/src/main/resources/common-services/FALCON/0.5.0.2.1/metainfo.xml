@@ -131,6 +131,13 @@
       <excluded-config-types>
         <config-type>oozie-site</config-type>
       </excluded-config-types>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>
