@@ -287,10 +287,15 @@ public class UpgradePack {
     if (direction.isUpgrade()) {
       list = groups;
     } else {
-      if (type == UpgradeType.ROLLING) {
-        list = getDowngradeGroupsForRolling();
-      } else if (type == UpgradeType.NON_ROLLING) {
-        list = getDowngradeGroupsForNonrolling();
+      switch (type) {
+        case NON_ROLLING:
+          list = getDowngradeGroupsForNonrolling();
+          break;
+        case HOST_ORDERED:
+        case ROLLING:
+        default:
+          list = getDowngradeGroupsForRolling();
+          break;
       }
     }
 
@@ -356,6 +361,12 @@ public class UpgradePack {
    */
   private List<Grouping> getDowngradeGroupsForRolling() {
     List<Grouping> reverse = new ArrayList<Grouping>();
+
+    // !!! Testing exposed groups.size() == 1 issue.  Normally there's no precedent for
+    // a one-group upgrade pack, so take it into account anyway.
+    if (groups.size() == 1) {
+      return groups;
+    }
 
     int idx = 0;
     int iter = 0;
