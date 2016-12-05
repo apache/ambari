@@ -50,10 +50,16 @@ pass
 
 #AMBARI_METRICS data
 ams_pid_dir = status_params.ams_collector_pid_dir
-
+is_ams_distributed = config['configurations']['ams-site']['timeline.metrics.service.operation.mode'] == 'distributed'
 ams_collector_script = "/usr/sbin/ambari-metrics-collector"
 ams_collector_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+ams_collector_list = default("/clusterHostInfo/metrics_collector_hosts", [])
+embedded_mode_multiple_instances = False
+
+if not is_ams_distributed and len(ams_collector_list) > 1:
+  embedded_mode_multiple_instances = True
+
 failover_strategy_blacklisted_interval_seconds = default("/configurations/ams-env/failover_strategy_blacklisted_interval", "600")
 failover_strategy = default("/configurations/ams-site/failover.strategy", "round-robin")
 if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
@@ -172,7 +178,6 @@ hbase_pid_dir = status_params.hbase_pid_dir
 
 is_hbase_distributed = config['configurations']['ams-hbase-site']['hbase.cluster.distributed']
 is_local_fs_rootdir = hbase_root_dir.startswith('file://')
-is_ams_distributed = config['configurations']['ams-site']['timeline.metrics.service.operation.mode'] == 'distributed'
 
 # security is disabled for embedded mode, when HBase is backed by file
 security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled']
