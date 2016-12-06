@@ -29,13 +29,16 @@ def select_metric_collector_for_sink(sink_name):
   # TODO check '*' sink_name
 
   all_collectors_string = get_metric_collectors_from_properties_file(sink_name)
-  if all_collectors_string:
-    all_collectors_list = all_collectors_string.split(',')
-    return select_metric_collector_hosts_from_hostnames(all_collectors_list)
+  return select_metric_collector_hosts_from_hostnames(all_collectors_string)
+
+def select_metric_collector_hosts_from_hostnames(comma_separated_hosts):
+  if comma_separated_hosts:
+    hosts = comma_separated_hosts.split(',')
+    return get_random_host(hosts)
   else:
     return 'localhost'
 
-def select_metric_collector_hosts_from_hostnames(hosts):
+def get_random_host(hosts):
   return random.choice(hosts)
 
 def get_metric_collectors_from_properties_file(sink_name):

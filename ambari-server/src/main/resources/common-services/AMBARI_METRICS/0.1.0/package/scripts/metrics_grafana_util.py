@@ -18,16 +18,21 @@ limitations under the License.
 
 """
 import httplib
+
+from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_parallel, SUCCESS
+from service_check import post_metrics_to_collector
 from resource_management.core.logger import Logger
 from resource_management.core.base import Fail
 from resource_management import Template
 from collections import namedtuple
 from urlparse import urlparse
 from base64 import b64encode
+import random
 import time
 import socket
 import ambari_simplejson as json
 import network
+import os
 
 GRAFANA_CONNECT_TRIES = 15
 GRAFANA_CONNECT_TIMEOUT = 20
@@ -171,20 +176,32 @@ def perform_grafana_delete_call(url, server):
 
   return response
 
-def is_unchanged_datasource_url(datasource_url):
+def is_unchanged_datasource_url(grafana_datasource_url, new_datasource_host):
   import params
-  parsed_url = urlparse(datasource_url)
+  parsed_url = urlparse(grafana_datasource_url)
   Logger.debug("parsed url: scheme = %s, host = %s, port = %s" % (
     parsed_url.scheme, parsed_url.hostname, parsed_url.port))
   Logger.debug("collector: scheme = %s, host = %s, port = %s" %
-              (params.metric_collector_protocol, params.metric_collector_host,
+              (params.metric_collector_protocol, new_datasource_host,
                params.metric_collector_port))
 
   return parsed_url.scheme.strip() == params.metric_collector_protocol.strip() and \
-         parsed_url.hostname.strip() == params.metric_collector_host.strip() and \
+         parsed_url.hostname.strip() == new_datasource_host.strip() and \
          str(parsed_url.port) == params.metric_collector_port
 
+def do_ams_collector_post(metric_collector_host, params):
+    ams_metrics_post_url = "/ws/v1/timeline/metrics/"
+    random_value1 = random.random()
+    headers = {"Content-type": "application/json"}
+    ca_certs = os.path.join(params.ams_collector_conf_dir,
+                            params.metric_truststore_ca_certs)
 
+    current_time = int(time.time()) * 1000
+    metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
+                           current_time=current_time).get_content()
+
+    post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, params.metric_collector_port, params.metric_collector_https_enabled,
+                                metric_json, headers, ca_certs)
 def create_ams_datasource():
   import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
@@ -196,11 +213,28 @@ def create_ams_datasource():
   """
   Create AMS datasource in Grafana, if exsists make sure the collector url is accurate
   """
+  Logger.info("Trying to find working metric collector")
+  results = execute_in_parallel(do_ams_collector_post, params.ams_collector_hosts.split(','), params)
+  new_datasource_host = ""
+
+  for host in params.ams_collector_hosts:
+    if host in results:
+      if results[host].status == SUCCESS:
+        new_datasource_host = host
+        Logger.info("Found working collector on host %s" % new_datasource_host)
+        break
+      else:
+        Logger.warning(results[host].result)
+
+  if new_datasource_host == "":
+    Logger.warning("All metric collectors are unavailable. Will use random collector as datasource host.")
+    new_datasource_host = params.random_metric_collector_host
+
+  Logger.info("New datasource host will be %s" % new_datasource_host)
+
   ams_datasource_json = Template('metrics_grafana_datasource.json.j2',
-                                 ams_datasource_name=METRICS_GRAFANA_DATASOURCE_NAME).get_content()
-
+                            ams_datasource_name=METRICS_GRAFANA_DATASOURCE_NAME, ams_datasource_host=new_datasource_host).get_content()
   Logger.info("Checking if AMS Grafana datasource already exists")
-
 
   response = perform_grafana_get_call(GRAFANA_DATASOURCE_URL, server)
   create_datasource = True
@@ -215,7 +249,7 @@ def create_ams_datasource():
         Logger.info("Ambari Metrics Grafana datasource already present. Checking Metrics Collector URL")
         datasource_url = datasources_json[i]["url"]
 
-        if is_unchanged_datasource_url(datasource_url):
+        if is_unchanged_datasource_url(datasource_url, new_datasource_host):
           Logger.info("Metrics Collector URL validation succeeded.")
           return
         else: # Metrics datasource present, but collector host is wrong.
@@ -357,6 +391,5 @@ def create_ams_dashboards():
           Logger.info('No update needed for dashboard = %s' % dashboard_def['title'])
       pass
     pass
-
 
 

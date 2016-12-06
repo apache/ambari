@@ -123,7 +123,10 @@ if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_host' in config['configurations']['cluster-env']:
   metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
 else:
-  metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts.split(","))
+  metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
+
+random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
+
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_port' in config['configurations']['cluster-env']:
   metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
@@ -343,6 +346,5 @@ HdfsResource = functools.partial(
   default_fs = default_fs,
   immutable_paths = get_not_managed_resources()
  )
-
 
 
