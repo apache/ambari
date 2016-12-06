@@ -22,18 +22,17 @@ var App = require('app');
 App.ManageJournalNodeWizardStep2View = Em.View.extend({
 
   templateName: require('templates/main/admin/highAvailability/journalNode/step2'),
-  aaa: '',
   didInsertElement: function () {
     this.get('controller').loadStep();
   },
 
   journalNodesToAdd: function () {
     return App.router.get('manageJournalNodeWizardController').getJournalNodesToAdd();
-  }.property(),
+  }.property('App.router.clusterController.isHostsLoaded'),
 
   journalNodesToDelete: function () {
     return App.router.get('manageJournalNodeWizardController').getJournalNodesToDelete();
-  }.property(),
+  }.property('App.router.clusterController.isHostsLoaded'),
 
   isBackButtonVisible: false
 });
