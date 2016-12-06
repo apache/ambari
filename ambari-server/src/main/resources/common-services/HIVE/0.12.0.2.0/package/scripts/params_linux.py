@@ -588,6 +588,7 @@ if has_hive_interactive:
   hive_interactive_env_sh_template = config['configurations']['hive-interactive-env']['content']
   hive_interactive_enabled = default('/configurations/hive-interactive-env/enable_hive_interactive', False)
   llap_app_java_opts = default('/configurations/hive-interactive-env/llap_java_opts', '-XX:+AlwaysPreTouch {% if java_version > 7 %}-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200{% else %}-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{% endif %}')
+  hive_interactive_heapsize = config['configurations']['hive-interactive-env']['hive_heapsize']
 
   # Service check related
   if hive_transport_mode.lower() == "http":

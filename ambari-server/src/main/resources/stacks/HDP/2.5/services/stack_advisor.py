@@ -820,16 +820,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         # Get all leaf queues.
         leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
         Logger.info("YARN leaf Queues = {0}".format(leafQueueNames))
+        if len(leafQueueNames) == 0:
+          raise Fail("Queue(s) couldn't be retrieved from capacity-scheduler.")
 
         # Check if it's 1st invocation after enabling Hive Server Interactive (config: enable_hive_interactive).
         changed_configs_has_enable_hive_int = self.are_config_props_in_changed_configs(services, "hive-interactive-env",
                                                                                        set(['enable_hive_interactive']), False)
-        llap_named_queue_selected_in_curr_invocation = False
-        if changed_configs_has_enable_hive_int and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
-          llap_named_queue_selected_in_curr_invocation = True
-          putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', llap_queue_name)
-          putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', llap_queue_name)
-          Logger.info("'hive.llap.daemon.queue.name' and 'hive.server2.tez.default.queues' values set as : {0}".format(llap_queue_name))
+        llap_named_queue_selected_in_curr_invocation = None
+        if changed_configs_has_enable_hive_int \
+          and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
+          if (len(leafQueueNames) == 1 or (len(leafQueueNames) == 2 and llap_queue_name in leafQueueNames)):
+            llap_named_queue_selected_in_curr_invocation = True
+            putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', llap_queue_name)
+            putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', llap_queue_name)
+            Logger.info("'hive.llap.daemon.queue.name' and 'hive.server2.tez.default.queues' values set as : {0}".format(llap_queue_name))
+          else:
+            first_leaf_queue =  list(leafQueueNames)[0] # 1st invocation, pick the 1st leaf queue and set it as selected.
+            putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', first_leaf_queue)
+            putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', first_leaf_queue)
+            llap_named_queue_selected_in_curr_invocation = False
+            Logger.info("'hive.llap.daemon.queue.name' and 'hive.server2.tez.default.queues' values set as : {0}".format(first_leaf_queue))
         Logger.info("llap_named_queue_selected_in_curr_invocation = {0}".format(llap_named_queue_selected_in_curr_invocation))
 
         if (len(leafQueueNames) == 2 and (llap_daemon_selected_queue_name != None and llap_daemon_selected_queue_name == llap_queue_name) or \
@@ -1078,6 +1088,19 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       llap_xmx = max(total_mem_for_executors_per_node * 0.8, total_mem_for_executors_per_node - self.get_llap_headroom_space(services, configurations))
       Logger.info("Calculated llap_app_heap_size : {0}, using following : total_mem_for_executors : {1}".format(llap_xmx, total_mem_for_executors_per_node))
 
+      # Calculate 'hive_heapsize' for Hive2/HiveServer2 (HSI)
+      hive_server_interactive_heapsize =  None
+      hive_server_interactive_hosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER_INTERACTIVE", services, hosts)
+      if hive_server_interactive_hosts is None:
+        # If its None, read the base service HDFS's DATANODE node memory, as are host are considered homogenous.
+        hive_server_interactive_hosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
+      if hive_server_interactive_hosts is not None and len(hive_server_interactive_hosts) > 0:
+        host_mem = long(hive_server_interactive_hosts[0]["Hosts"]["total_mem"])
+        hive_server_interactive_heapsize = min(max(2048.0, 400.0*llap_concurrency), 3.0/8 * host_mem)
+        Logger.info("Calculated 'hive_server_interactive_heapsize' : {0}, using following : llap_concurrency : {1}, host_mem : "
+                    "{2}".format(hive_server_interactive_heapsize, llap_concurrency, host_mem))
+
+
       Logger.info("Updating the calculations....")
 
       # Done with calculations, updating calculated configs.
@@ -1148,6 +1171,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       llap_io_enabled = 'false'
       if cache_mem_per_node >= 64:
         llap_io_enabled = 'true'
+
+      if hive_server_interactive_heapsize !=  None:
+        putHiveInteractiveEnvProperty("hive_heapsize", hive_server_interactive_heapsize)
+        Logger.info("Hive2 config 'hive_heapsize' updated. Current : {0}".format(hive_server_interactive_heapsize))
 
       putHiveInteractiveSiteProperty('hive.llap.io.enabled', llap_io_enabled)
       Logger.info("Hive2 config 'hive.llap.io.enabled' updated to '{0}' as part of "
@@ -1830,7 +1857,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         Logger.info("AM percent key got for '{0}' queue is : '{1}'".format(llap_daemon_selected_queue_name, llap_selected_queue_am_percent_key))
         break;
     if llap_selected_queue_am_percent_key is None:
-      Logger.info("Returning default AM percent value : '0.1' for queue : {1}".format(llap_daemon_selected_queue_name))
+      Logger.info("Returning default AM percent value : '0.1' for queue : {0}".format(llap_daemon_selected_queue_name))
       return 0.1 # Default value to use if we couldn't retrieve queue's corresponding AM Percent key.
     else:
       llap_selected_queue_am_percent = capacity_scheduler_properties.get(llap_selected_queue_am_percent_key)
