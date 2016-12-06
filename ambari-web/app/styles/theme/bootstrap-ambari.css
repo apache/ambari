@@ -452,7 +452,9 @@ h2.table-title {
 .nav.nav-tabs li a:active,
 .nav.nav-tabs li a:focus {
   color: #333;
-  border-width: 0;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-right-width: 0;
   background: none;
 }
 .nav.nav-tabs li a .badge.badge-important {
