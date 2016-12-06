@@ -768,7 +768,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     knox_port = '8443'
     if 'KNOX' in servicesList:
       knox_hosts = self.getComponentHostNames(services, "KNOX", "KNOX_GATEWAY")
-      knox_host = knox_hosts[0]
+      if len(knox_hosts) > 0:
+        knox_hosts.sort()
+        knox_host = knox_hosts[0]
       if 'gateway-site' in services['configurations'] and 'gateway.port' in services['configurations']["gateway-site"]["properties"]:
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putRangerAdminProperty('ranger.sso.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
