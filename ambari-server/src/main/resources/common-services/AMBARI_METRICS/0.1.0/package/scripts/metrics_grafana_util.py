@@ -215,7 +215,7 @@ def create_ams_datasource():
   Create AMS datasource in Grafana, if exsists make sure the collector url is accurate
   """
   Logger.info("Trying to find working metric collector")
-  results = execute_in_parallel(do_ams_collector_post, params.ams_collector_hosts, params)
+  results = execute_in_parallel(do_ams_collector_post, params.ams_collector_hosts.split(','), params)
   new_datasource_host = ""
 
   for host in params.ams_collector_hosts:
