@@ -585,8 +585,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
 
         if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
-          LOG.info("Applying configuration with tag '{}' to " +
-            "cluster '{}'", newTag, cluster.getClusterName());
+          LOG.info("Applying configuration with tag '{}' and configType '{}' to " +
+            "cluster '{}'", newTag, configType, cluster.getClusterName());
 
           Map<String, Map<String, String>> propertiesAttributes = null;
           if (oldConfig != null) {

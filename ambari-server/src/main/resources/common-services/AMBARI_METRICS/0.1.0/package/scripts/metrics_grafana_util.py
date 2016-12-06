@@ -34,8 +34,8 @@ import ambari_simplejson as json
 import network
 import os
 
-GRAFANA_CONNECT_TRIES = 5
-GRAFANA_CONNECT_TIMEOUT = 10
+GRAFANA_CONNECT_TRIES = 15
+GRAFANA_CONNECT_TIMEOUT = 20
 GRAFANA_SEARCH_BUILTIN_DASHBOARDS = "/api/search?tag=builtin"
 GRAFANA_DATASOURCE_URL = "/api/datasources"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
@@ -202,6 +202,7 @@ def do_ams_collector_post(metric_collector_host, params):
 
     post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, params.metric_collector_port, params.metric_collector_https_enabled,
                                 metric_json, headers, ca_certs)
+
 def create_ams_datasource():
   import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
