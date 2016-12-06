@@ -29,8 +29,8 @@ import socket
 import ambari_simplejson as json
 import network
 
-GRAFANA_CONNECT_TRIES = 5
-GRAFANA_CONNECT_TIMEOUT = 10
+GRAFANA_CONNECT_TRIES = 15
+GRAFANA_CONNECT_TIMEOUT = 20
 GRAFANA_SEARCH_BUILTIN_DASHBOARDS = "/api/search?tag=builtin"
 GRAFANA_DATASOURCE_URL = "/api/datasources"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
