@@ -120,22 +120,30 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
   },
 
   getJournalNodesToAdd: function () {
-    return this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE')
-      .filterProperty('isInstalled', false).mapProperty('hostName');
+    var result = [];
+    var masterComponentHosts = this.get('content.masterComponentHosts');
+    if (masterComponentHosts) {
+      result = masterComponentHosts.filterProperty('component', 'JOURNALNODE').filterProperty('isInstalled', false).mapProperty('hostName');
+    }
+    return result;
   },
 
   getJournalNodesToDelete: function () {
-    var existingHosts = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
-    var currentJNs = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE');
-    var removed = existingHosts.filter(function(host) {
-      return currentJNs.filterProperty('hostName', host).length == 0;
-    });
-    return removed;
+    var result = [];
+    var masterComponentHosts = this.get('content.masterComponentHosts');
+    if (masterComponentHosts) {
+      var currentJNs = masterComponentHosts.filterProperty('component', 'JOURNALNODE');
+      var existingHosts = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
+      result = existingHosts.filter(function(host) {
+        return currentJNs.filterProperty('hostName', host).length == 0;
+      });
+    }
+    return result;
   },
 
   isDeleteOnly: function () {
-    return this.getJournalNodesToAdd().length == 0 && this.getJournalNodesToDelete().length > 0;
-  },
+    return this.get('currentStep') > 1 && this.getJournalNodesToAdd().length == 0 && this.getJournalNodesToDelete().length > 0;
+  }.property('content.masterComponentHosts', 'App.router.clusterController.isHostsLoaded', 'currentStep'),
 
   /**
    * Save config properties
