@@ -20,36 +20,39 @@
   <div class="text version-text">{{{view.versionText}}}</div>
   <div class="text method-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method}}</div>
   <div {{bindAttr class=":row-fluid :method-options view.isInUpgradeWizard:disabled"}}>
-    {{#each method in view.upgradeMethods}}
-      <div class="method-option span5">
-        <div {{bindAttr class="method.allowed::not-allowed method.allowed::not-allowed-by-version
-          method.isPrecheckFailed:not-allowed method.isPrecheckFailed:check-failed
-          method.selected:selected method.type :thumbnail"}}
-          {{action selectMethod method target="view"}}>
-            <div {{bindAttr class="method.icon :method-icon"}}></div>
-            <div class="method-name">{{method.displayName}}</div>
-            <div class="method-description">{{{method.description}}}</div>
-            {{#if view.showPreUpgradeChecks}}
-              {{#if method.isCheckRequestInProgress}}
-                <div class="method-precheck-message checking">
-                  {{view App.SpinnerView message="admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking"}}
-                </div>
-              {{else}}
-                <div {{bindAttr class=":method-precheck-message method.precheckResultsMessageClass"}}>
-                  <i {{bindAttr class="method.precheckResultsMessageIconClass"}}></i>
-                  <b>{{method.precheckResultsTitle}}</b>&nbsp;
-                  <a {{action runAction method target="view"}}>
-                    {{method.precheckResultsMessage}}
-                  </a>
-                  {{#if method.bypassedFailures}}
-                    <div class="alert-danger">{{t admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed}}</div>
+      {{#each method in view.upgradeMethods}}
+          {{#unless method.cantBeStarted}}
+            <div class="method-option span5">
+              <div {{bindAttr class="method.allowed::not-allowed method.allowed::not-allowed-by-version
+                    method.isPrecheckFailed:not-allowed method.isPrecheckFailed:check-failed
+                    method.selected:selected method.type :thumbnail"}}
+                  {{action selectMethod method target="view"}}>
+                <div {{bindAttr class="method.icon :method-icon"}}></div>
+                <div class="method-name">{{method.displayName}}</div>
+                <div class="method-description">{{{method.description}}}</div>
+                  {{#if view.showPreUpgradeChecks}}
+                      {{#if method.isCheckRequestInProgress}}
+                        <div class="method-precheck-message checking">
+                            {{view App.SpinnerView message="admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking"}}
+                        </div>
+                      {{else}}
+                        <div {{bindAttr class=":method-precheck-message method.precheckResultsMessageClass"}}>
+                          <i {{bindAttr class="method.precheckResultsMessageIconClass"}}></i>
+                          <b>{{method.precheckResultsTitle}}</b>&nbsp;
+                          <a {{action runAction method target="view"}}>
+                              {{method.precheckResultsMessage}}
+                          </a>
+                            {{#if method.bypassedFailures}}
+                              <div
+                                class="alert-danger">{{t admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed}}</div>
+                            {{/if}}
+                        </div>
+                      {{/if}}
                   {{/if}}
-                </div>
-              {{/if}}
-            {{/if}}
-        </div>
-      </div>
-    {{/each}}
+              </div>
+            </div>
+          {{/unless}}
+      {{/each}}
   </div>
 
   <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
