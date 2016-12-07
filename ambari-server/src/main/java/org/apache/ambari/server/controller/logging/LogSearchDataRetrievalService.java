@@ -23,9 +23,9 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariService;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,9 +62,6 @@ import java.util.concurrent.TimeUnit;
 public class LogSearchDataRetrievalService extends AbstractService {
 
   private static Logger LOG = LoggerFactory.getLogger(LogSearchDataRetrievalService.class);
-
-  @Inject
-  private Configuration configuration;
 
   @Inject
   private LoggingRequestHelperFactory loggingRequestHelperFactory;
@@ -288,7 +285,7 @@ public class LogSearchDataRetrievalService extends AbstractService {
             helper.sendGetLogFileNamesRequest(component, host);
 
           // update the cache if result is available
-          if (logFileNamesResult != null) {
+          if (CollectionUtils.isNotEmpty(logFileNamesResult)) {
             LOG.debug("LogSearchFileNameRequestRunnable: request was successful, updating cache");
             final String key = generateKey(component, host);
             // update cache with returned result
