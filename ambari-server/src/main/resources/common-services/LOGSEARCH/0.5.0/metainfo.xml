@@ -36,6 +36,7 @@
           <commandScript>
             <script>scripts/logsearch.py</script>
             <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
           </commandScript>
           <logs>
             <log>
