@@ -642,8 +642,6 @@ Em.I18n.translations = {
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
   'installer.step1.retryRepoUrls': 'Click <b>here</b> to retry.',
-  'installer.step1.error.inappropriateUrlForStackVersion.title':'Inappropriate Url for selected Stack Version',
-  'installer.step1.error.inappropriateUrlForStackVersion.content': 'Your stack version is {0} when version in Url is {1}',
 
   'installer.step2.header':'Install Options',
   'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',

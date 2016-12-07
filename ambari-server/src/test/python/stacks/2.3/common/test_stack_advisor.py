@@ -1466,6 +1466,31 @@ class TestHDP23StackAdvisor(TestCase):
             }
           ]
         },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.3/services/KNOX",
+          "StackServices": {
+            "service_name": "KNOX",
+            "service_version": "0.9.0.2.3",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "href": "/api/v1/stacks/HDP/versions/2.3/services/KNOX/components/KNOX_GATEWAY",
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1+",
+                "component_category": "MASTER",
+                "component_name": "KNOX_GATEWAY",
+                "display_name": "Knox Gateway",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        }
         ],
       "configurations": {
         "admin-properties": {
@@ -1477,6 +1502,7 @@ class TestHDP23StackAdvisor(TestCase):
           "properties": {
             "ranger.service.http.port": "7777",
             "ranger.service.http.enabled": "true",
+            "ranger.sso.providerurl": "",
             }
         }
       },
@@ -1519,7 +1545,8 @@ class TestHDP23StackAdvisor(TestCase):
       'ranger-admin-site': {
         'properties': {
           "ranger.audit.solr.zookeepers": "NONE",
-          "ranger.audit.source.type": "solr"
+          "ranger.audit.source.type": "solr",
+          "ranger.sso.providerurl": "https://c6401.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso"
         }
       },
       'ranger-env': {

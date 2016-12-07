@@ -36,7 +36,6 @@
     padding-right: 15px;
   }
   .btn-area {
-    margin-top: 20px;
     .btn.btn-info {
       margin-right: 10px;
     }
@@ -433,7 +432,7 @@
     color: #fff;
     cursor: pointer;
     font-weight: bold;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    line-height: 16px;
     &:hover {
       background-color: @green;
     }
@@ -471,6 +470,12 @@
   ul {
     li {
       list-style: none;
+      span.text {
+        line-height: 1.5;
+      }
+      b.service-name {
+        line-height: 2;
+      }
     }
   }
   max-height: 440px;
@@ -490,6 +495,10 @@
   ul {
     li {
       list-style: none;
+      span.text-info,
+      span.text-success {
+        line-height: 1.5;
+      }
     }
   }
   max-height: 440px;

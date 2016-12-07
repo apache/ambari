@@ -46,10 +46,9 @@ App.MainHostAlertsView = App.TableView.extend({
         }
       });
       return [].concat(criticalAlerts, warningAlerts, okAlerts, otherAlerts);
-    } else {
-      return [];
     }
-  }.property('controller.content.@each'),
+    return [];
+  }.property('controller.content.[]'),
 
   willInsertElement: function () {
     var hostName = this.get('parentView.controller.content.hostName');
@@ -223,22 +222,16 @@ App.MainHostAlertsView = App.TableView.extend({
    * @type {string}
    */
   paginationLeftClass: function () {
-    if (this.get("startIndex") > 1) {
-      return "paginate_previous";
-    }
-    return "paginate_disabled_previous";
-  }.property("startIndex", 'filteredCount'),
+    return this.get('startIndex') > 1 ? 'paginate_previous' : 'paginate_disabled_previous';
+  }.property('startIndex', 'filteredCount'),
 
   /**
    * Determines how display "next"-link - as link or text
    * @type {string}
    */
   paginationRightClass: function () {
-    if ((this.get("endIndex")) < this.get("filteredCount")) {
-      return "paginate_next";
-    }
-    return "paginate_disabled_next";
-  }.property("endIndex", 'filteredCount'),
+    return this.get('endIndex') < this.get('filteredCount') ? 'paginate_next' : 'paginate_disabled_next';
+  }.property('endIndex', 'filteredCount'),
 
   /**
    * Show previous-page if user not in the first page
@@ -266,12 +259,12 @@ App.MainHostAlertsView = App.TableView.extend({
    */
   tooltipsUpdater: function () {
     Em.run.once(this,this.tooltipsUpdaterOnce);
-  }.observes('pageContent.@each'),
+  }.observes('pageContent.[]'),
 
   tooltipsUpdaterOnce: function() {
     var self = this;
     Em.run.next(this, function () {
-      App.tooltip(self.$(".enable-disable-button, .timeago, .alert-text"));
+      App.tooltip(self.$('.timeago, .alert-text'));
     });
   },
 
@@ -281,14 +274,24 @@ App.MainHostAlertsView = App.TableView.extend({
   clearFilters: function() {
     this.set('filterConditions', []);
     this.get('childViews').forEach(function(childView) {
-      if (childView['clearFilter']) {
-        childView.clearFilter();
-      }
+      Em.tryInvoke(childView, 'clearFilter');
     });
   },
 
+  /**
+   * Tooltips should be removed if some filter is applied or cleared
+   *
+   * @method clearTooltips
+   */
+  clearTooltips: function () {
+    var $elements = this.$('.timeago, .alert-text');
+    if ($elements) {
+      $elements.tooltip('destroy');
+    }
+  }.observes('filteredCount'),
+
   willDestroyElement: function() {
-    this.$(".enable-disable-button, .timeago, .alert-text").tooltip('destroy');
+    this.clearTooltips();
   }
 
 });

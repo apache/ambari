@@ -188,7 +188,7 @@ def _get_single_version_from_stack_select():
     Logger.error("Could not verify stack version by calling '{0}'. Return Code: {1}, Output: {2}.".format(get_stack_versions_cmd, str(code), str(out)))
     return None
 
-  matches = re.findall(r"([\d\.]+\-\d+)", out)
+  matches = re.findall(r"([\d\.]+(?:-\d+)?)", out)
 
   if matches and len(matches) == 1:
     stack_version = matches[0]

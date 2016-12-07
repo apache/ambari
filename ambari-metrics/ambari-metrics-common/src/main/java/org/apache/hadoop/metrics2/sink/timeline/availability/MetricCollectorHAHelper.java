@@ -23,7 +23,6 @@ import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.RetryLoop;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
-import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 

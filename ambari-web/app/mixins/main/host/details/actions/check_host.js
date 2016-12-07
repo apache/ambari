@@ -193,7 +193,8 @@ App.CheckHostMixin = Em.Mixin.create({
    */
   getHostCheckTasksSuccess: function (data) {
     if (!data) {
-      return;
+      //if resolution host check has corrupted data then skip it
+      return this.getGeneralHostCheck();
     }
     if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(data.Requests.request_status)) {
       if (data.Requests.inputs.indexOf("last_agent_env_check") != -1) {

@@ -136,4 +136,5 @@ def check_znode():
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.infra_solr_znode,
-    java64_home=params.java64_home)
+    java64_home=params.java64_home,
+    retry=30, interval=5)

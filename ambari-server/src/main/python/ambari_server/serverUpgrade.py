@@ -163,7 +163,7 @@ def run_stack_upgrade(args, stackName, stackVersion, repo_url, repo_url_os):
                                             "updateStackId",
                                             "'" + json.dumps(stackId) + "'")
   (retcode, stdout, stderr) = run_os_command(command)
-  print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
+  print_info_msg("Return code from stack upgrade command, retcode = {0}".format(str(retcode)))
   if retcode > 0:
     print_error_msg("Error executing stack upgrade, please check the server logs.")
   return retcode
@@ -182,10 +182,9 @@ def run_metainfo_upgrade(args, keyValueMap=None):
                                               'updateMetaInfo',
                                               "'" + json.dumps(keyValueMap) + "'")
     (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
+    print_info_msg("Return code from stack upgrade command, retcode = {0}".format(str(retcode)))
     if retcode > 0:
-      print_error_msg("Error executing metainfo upgrade, please check the "
-                      "server logs.")
+      print_error_msg("Error executing metainfo upgrade, please check the server logs.")
 
   return retcode
 
@@ -195,7 +194,7 @@ def run_metainfo_upgrade(args, keyValueMap=None):
 #
 
 def change_objects_owner(args):
-  print 'Fixing database objects owner'
+  print_info_msg('Fixing database objects owner', True)
 
   properties = Properties()   #Dummy, args contains the dbms name and parameters already
 
@@ -228,8 +227,8 @@ def upgrade_local_repo(args):
 
     repo_file = os.path.join(stack_root, stack_version_local, "repos", "repoinfo.xml")
 
-    print_info_msg("Local repo file: " + repo_file_local)
-    print_info_msg("Repo file: " + repo_file_local)
+    print_info_msg("Local repo file: {0}".format(repo_file_local))
+    print_info_msg("Repo file: {0}".format(repo_file_local))
 
     metainfo_update_items = {}
 
@@ -267,7 +266,7 @@ def run_schema_upgrade(args):
 
   ensure_jdbc_driver_is_installed(args, get_ambari_properties())
 
-  print 'Upgrading database schema'
+  print_info_msg('Upgrading database schema', True)
 
   serverClassPath = ServerClassPath(get_ambari_properties(), args)
   class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell(validate_classpath=True)
@@ -284,19 +283,19 @@ def run_schema_upgrade(args):
   environ = generate_env(args, ambari_user, current_user)
 
   (retcode, stdout, stderr) = run_os_command(command, env=environ)
-  print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
+  print_info_msg("Return code from schema upgrade command, retcode = {0}".format(str(retcode)), True)
   if stdout:
-    print "Console output from schema upgrade command:"
-    print stdout
-    print
-  if stderr:
-    print "Error output from schema upgrade command:"
-    print stderr
+    print_info_msg("Console output from schema upgrade command:", True)
+    print_info_msg(stdout, True)
     print
   if retcode > 0:
     print_error_msg("Error executing schema upgrade, please check the server logs.")
+    if stderr:
+      print_error_msg("Error output from schema upgrade command:")
+      print_error_msg(stderr)
+      print
   else:
-    print_info_msg('Schema upgrade completed')
+    print_info_msg('Schema upgrade completed', True)
   return retcode
 
 
@@ -335,16 +334,17 @@ def move_user_custom_actions():
     raise FatalException(1, err)
 
 def upgrade(args):
-  logger.info("Upgrade ambari-server.")
+  print_info_msg("Upgrade Ambari Server", True)
   if not is_root():
     err = configDefaults.MESSAGE_ERROR_UPGRADE_NOT_ROOT
     raise FatalException(4, err)
-  print 'Updating properties in ' + AMBARI_PROPERTIES_FILE + ' ...'
+  print_info_msg('Updating Ambari Server properties in {0} ...'.format(AMBARI_PROPERTIES_FILE), True)
   retcode = update_ambari_properties()
   if not retcode == 0:
     err = AMBARI_PROPERTIES_FILE + ' file can\'t be updated. Exiting'
     raise FatalException(retcode, err)
 
+  print_info_msg('Updating Ambari Server properties in {0} ...'.format(AMBARI_ENV_FILE), True)
   retcode = update_ambari_env()
   if not retcode == 0:
     err = AMBARI_ENV_FILE + ' file can\'t be updated. Exiting'
@@ -354,7 +354,7 @@ def upgrade(args):
   if retcode == -2:
     pass  # no changes done, let's be silent
   elif retcode == 0:
-    print 'File ' + AMBARI_KRB_JAAS_LOGIN_FILE + ' updated.'
+    print_info_msg("File {0} updated.".format(AMBARI_KRB_JAAS_LOGIN_FILE), True)
   elif not retcode == 0:
     err = AMBARI_KRB_JAAS_LOGIN_FILE + ' file can\'t be updated. Exiting'
     raise FatalException(retcode, err)

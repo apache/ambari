@@ -144,7 +144,7 @@ class AMSServiceCheck(Script):
     Logger.info("Ambari Metrics service check was started.")
     env.set_params(params)
 
-    results = execute_in_parallel(self.service_check_for_single_host, params.ams_collector_hosts, params)
+    results = execute_in_parallel(self.service_check_for_single_host, params.ams_collector_hosts.split(','), params)
 
     for host in str(params.ams_collector_hosts).split(","):
       if host in results:
