@@ -266,6 +266,7 @@
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
             <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
+            <exclude>**/target/surefire-reports/</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
             <exclude>**/.classpath/</exclude>

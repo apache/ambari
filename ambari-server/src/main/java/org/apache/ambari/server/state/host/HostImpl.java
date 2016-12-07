@@ -954,7 +954,7 @@ public class HostImpl implements Host {
   }
 
   @Transactional
-  private void persistEntities(HostEntity hostEntity) {
+  void persistEntities(HostEntity hostEntity) {
     hostDAO.create(hostEntity);
     if (!hostEntity.getClusterEntities().isEmpty()) {
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {

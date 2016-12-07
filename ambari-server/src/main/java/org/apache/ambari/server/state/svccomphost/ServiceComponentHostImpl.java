@@ -1313,7 +1313,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Transactional
-  private void persistEntities(HostEntity hostEntity, HostComponentStateEntity stateEntity,
+  void persistEntities(HostEntity hostEntity, HostComponentStateEntity stateEntity,
       HostComponentDesiredStateEntity desiredStateEntity) {
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         serviceComponent.getClusterId(), serviceComponent.getServiceName(),
