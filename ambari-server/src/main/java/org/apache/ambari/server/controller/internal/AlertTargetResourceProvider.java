@@ -374,7 +374,7 @@ public class AlertTargetResourceProvider extends
    */
   @Transactional
   @SuppressWarnings("unchecked")
-  void updateAlertTargets(long alertTargetId,
+  private void updateAlertTargets(long alertTargetId,
       Map<String, Object> requestMap)
       throws AmbariException {
 

@@ -183,7 +183,7 @@ public class ClustersImpl implements Clusters {
    */
   @Inject
   @Transactional
-  void loadClustersAndHosts() {
+  private void loadClustersAndHosts() {
     List<HostEntity> hostEntities = hostDAO.findAll();
     for (HostEntity hostEntity : hostEntities) {
       Host host = hostFactory.create(hostEntity);

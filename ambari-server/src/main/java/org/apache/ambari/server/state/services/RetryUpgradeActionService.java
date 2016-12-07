@@ -190,7 +190,7 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
    * @param requestId Request Id to search tasks for.
    */
   @Transactional
-  void retryHoldingCommandsInRequest(Long requestId) {
+  private void retryHoldingCommandsInRequest(Long requestId) {
     if (requestId == null) {
       return;
     }

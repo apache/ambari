@@ -972,7 +972,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   @Transactional
-  UpgradeEntity createUpgradeInsideTransaction(Cluster cluster,
+  private UpgradeEntity createUpgradeInsideTransaction(Cluster cluster,
       RequestStageContainer request,
       UpgradeEntity upgradeEntity) throws AmbariException {
 
