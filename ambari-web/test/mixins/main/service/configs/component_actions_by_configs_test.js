@@ -37,6 +37,9 @@ describe('App.ComponentActionsByConfigs', function () {
     beforeEach(function() {
       sinon.stub(mixin, 'doComponentDeleteActions');
       sinon.stub(mixin, 'doComponentAddActions');
+      mixin.set('allConfigs', [Em.Object.create({
+        filename: ''
+      })]);
       mixin.set('stepConfigs', [Em.Object.create({
         serviceName: 'S1',
         configs: [{

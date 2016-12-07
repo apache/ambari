@@ -45,6 +45,9 @@ App.ModalPopup = Ember.View.extend({
     }
     return modalDialogClasses.join(' ');
   }.property('modalDialogClasses.[]'),
+  primaryId: '',
+  secondaryId: '',
+  thirdId: '',
   onPrimary: function () {
     this.hide();
   },

@@ -2351,13 +2351,24 @@ var urls = {
     }
   },
 
-  'request.post': {
+  'restart.staleConfigs': {
     'real': "/clusters/{clusterName}/requests",
     'mock': "",
     'format': function (data) {
       return {
         type: 'POST',
-        data: JSON.stringify(data.data)
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": "Restart all required services",
+            "operation_level": "host_component"
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": "HostRoles/stale_configs=true"
+            }
+          ]
+        })
       }
     }
   },

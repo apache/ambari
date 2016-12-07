@@ -37,8 +37,6 @@ App.ConfigAction = DS.Model.extend({
    */
   fileName: DS.attr('string'),
 
-
-
   /**
    * conditional String which can be evaluated to boolean result.
    * If evaluated result of this staring is true then use the statement provided by `then` attribute.
@@ -47,8 +45,14 @@ App.ConfigAction = DS.Model.extend({
   if: DS.attr('string'),
   then: DS.attr('string'),
   else: DS.attr('string'),
-  hostComponentConfig: DS.attr('object')
-
+  hostComponentConfig: DS.attr('object', {
+    defaultValue: function () { return {}; }
+  }),
+  actionType: DS.attr('string'),
+  popupProperties: DS.attr('object', {
+    defaultValue: function () { return {}; }
+  }),
+  serviceName: DS.attr('string')
 });
 
 App.ConfigAction.FIXTURES = [
@@ -63,6 +67,26 @@ App.ConfigAction.FIXTURES = [
     host_component_config: {
       configName: "hive_server_interactive_host",
       fileName: "hive-interactive-env.xml"
+    }
+  },
+  {
+    id: 2,
+    service_name: 'YARN',
+    component_name: 'RESOURCEMANAGER',
+    config_name: "capacity-scheduler",
+    file_name: "capacity-scheduler.xml",
+    action_type: "showPopup",
+    popup_properties: {
+      primaryButton: {
+        label: Em.I18n.t('popup.confirmation.refreshYarnQueues.buttonText'),
+        metaData: {
+          name: 'service.item.refreshQueueYarnRequest',
+          command: "REFRESHQUEUES",
+          context: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context')
+        }
+      },
+      body: Em.I18n.t('popup.confirmation.refreshYarnQueues.body'),
+      errorMessage: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error')
     }
   }
 ];

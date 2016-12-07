@@ -703,27 +703,4 @@ describe('App.MainServiceController', function () {
       expect(mock.showPopup.calledOnce).to.be.true;
     });
   });
-
-  describe('#restartHostComponents', function () {
-
-    beforeEach(function () {
-      this.mock = sinon.stub(App.HostComponent, 'find');
-    });
-    afterEach(function () {
-      App.HostComponent.find.restore();
-    });
-
-    it('should make batch request to refresh YARN queues', function () {
-      this.mock.returns([Em.Object.create({componentName: 'HIVE_SERVER_INTERACTIVE', staleConfigs: true}), Em.Object.create({componentName: 'RESOURCEMANAGER', staleConfigs: false})]);
-      mainServiceController.restartHostComponents();
-      expect(testHelpers.findAjaxRequest('name', 'common.batch.request_schedules')).not.to.be.undefined;
-    });
-
-    it('should make single request without refresh YARN queues', function () {
-      this.mock.returns([Em.Object.create({componentName: 'HIVE_SERVER_INTERACTIVE', staleConfigs: false}), Em.Object.create({componentName: 'RESOURCEMANAGER', staleConfigs: false})]);
-      mainServiceController.restartHostComponents();
-      expect(testHelpers.findAjaxRequest('name', 'request.post')).not.to.be.undefined;
-    });
-
-  });
 });
