@@ -87,8 +87,8 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -610,6 +610,7 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+    Config config = createNiceMock(Config.class);
 
     // requests
     Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
@@ -632,18 +633,11 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn("clusterOld").anyTimes();
     expect(cluster.getConfigPropertiesTypes(anyObject(String.class))).andReturn(Maps.<PropertyInfo.PropertyType, Set<String>>newHashMap()).anyTimes();
-    expect(cluster.getDesiredConfigByType(anyObject(String.class))).andReturn(new ConfigImpl("config-type") {
-      @Override
-      public Map<String, Map<String, String>> getPropertiesAttributes() {
-        return Maps.newHashMap();
-      }
 
-      @Override
-      public Map<String, String> getProperties() {
-        return configReqProps;
-      }
-
-    }).anyTimes();
+    expect(config.getType()).andReturn("config-type").anyTimes();
+    expect(config.getProperties()).andReturn(configReqProps).anyTimes();
+    expect(config.getPropertiesAttributes()).andReturn(new HashMap<String,Map<String,String>>()).anyTimes();
+    expect(cluster.getDesiredConfigByType(anyObject(String.class))).andReturn(config).anyTimes();
 
     cluster.addSessionAttributes(anyObject(Map.class));
     expectLastCall().once();
@@ -652,7 +646,7 @@ public class AmbariManagementControllerImplTest {
     expectLastCall();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -660,7 +654,7 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    verify(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager);
   }
 
   /**

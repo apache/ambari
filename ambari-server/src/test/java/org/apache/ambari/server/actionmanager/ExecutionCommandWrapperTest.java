@@ -36,7 +36,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
@@ -128,24 +127,16 @@ public class ExecutionCommandWrapperTest {
     CONFIG_ATTRIBUTES = new HashMap<String, Map<String,String>>();
 
     //Cluster level global config
-    Config globalConfig = configFactory.createNew(cluster1, GLOBAL_CONFIG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
-    globalConfig.setTag(CLUSTER_VERSION_TAG);
-    cluster1.addConfig(globalConfig);
+    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Cluster level service config
-    Config serviceSiteConfigCluster = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
-    serviceSiteConfigCluster.setTag(CLUSTER_VERSION_TAG);
-    cluster1.addConfig(serviceSiteConfigCluster);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Service level service config
-    Config serviceSiteConfigService = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
-    serviceSiteConfigService.setTag(SERVICE_VERSION_TAG);
-    cluster1.addConfig(serviceSiteConfigService);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
 
     //Host level service config
-    Config serviceSiteConfigHost = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
-    serviceSiteConfigHost.setTag(HOST_VERSION_TAG);
-    cluster1.addConfig(serviceSiteConfigHost);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
 
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
 

@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -28,8 +30,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * During stack upgrade, update lzo codec path in mapreduce.application.classpath and
@@ -86,7 +87,7 @@ public class FixOozieAdminUsers extends AbstractServerAction {
     oozieProperties.put(OOZIE_ADMIN_USERS_PROP, newOozieAdminUsers);
 
     oozieConfig.setProperties(oozieProperties);
-    oozieConfig.persist(false);
+    oozieConfig.save();
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
             String.format("Set oozie admin users to %s", newOozieAdminUsers), "");

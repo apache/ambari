@@ -451,7 +451,7 @@ public class ConfigureAction extends AbstractServerAction {
     // of creating a whole new history record since it was already done
     if (!targetStack.equals(currentStack) && targetStack.equals(configStack)) {
       config.setProperties(newValues);
-      config.persist(false);
+      config.save();
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputBuffer.toString(), "");
     }
@@ -570,8 +570,9 @@ public class ConfigureAction extends AbstractServerAction {
 
     for(Replace replacement: replacements){
       if(isOperationAllowed(cluster, configType, replacement.key,
-          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState))
+          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState)) {
         allowedReplacements.add(replacement);
+      }
     }
 
     return allowedReplacements;
@@ -582,8 +583,9 @@ public class ConfigureAction extends AbstractServerAction {
 
     for(ConfigurationKeyValue configurationKeyValue: sets){
       if(isOperationAllowed(cluster, configType, configurationKeyValue.key,
-          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState))
+          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState)) {
         allowedSets.add(configurationKeyValue);
+      }
     }
 
     return allowedSets;
@@ -593,14 +595,16 @@ public class ConfigureAction extends AbstractServerAction {
     List<Transfer> allowedTransfers = new ArrayList<>();
     for (Transfer transfer : transfers) {
       String key = "";
-      if(transfer.operation == TransferOperation.DELETE)
+      if(transfer.operation == TransferOperation.DELETE) {
         key = transfer.deleteKey;
-      else
+      } else {
         key = transfer.fromKey;
+      }
 
       if(isOperationAllowed(cluster, configType, key,
-          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState))
+          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState)) {
         allowedTransfers.add(transfer);
+      }
     }
 
     return allowedTransfers;

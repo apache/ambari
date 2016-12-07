@@ -89,8 +89,7 @@ public class ConfigGroupTest {
     Map<String, String> attributes = new HashMap<String, String>();
     attributes.put("a", "true");
     propertiesAttributes.put("final", attributes);
-    Config config = configFactory.createNew(cluster, "hdfs-site", properties, propertiesAttributes);
-    config.setTag("testversion");
+    Config config = configFactory.createNew(cluster, "hdfs-site", "testversion", properties, propertiesAttributes);
 
     Host host = clusters.getHost("h1");
 
@@ -103,7 +102,6 @@ public class ConfigGroupTest {
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "cg-test",
       "HDFS", "New HDFS configs for h1", configs, hosts);
 
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
     return configGroup;
   }
@@ -154,28 +152,28 @@ public class ConfigGroupTest {
     Map<String, String> attributes = new HashMap<String, String>();
     attributes.put("key1", "true");
     propertiesAttributes.put("final", attributes);
-    Config config = new ConfigImpl("test-site");
-    config.setProperties(properties);
-    config.setPropertiesAttributes(propertiesAttributes);
-    config.setTag("version100");
 
-    configGroup.addConfiguration(config);
+    Config config = configFactory.createNew(cluster, "test-site", "version100", properties, propertiesAttributes);
+    Map<String, Config> newConfigurations = new HashMap<>(configGroup.getConfigurations());
+    newConfigurations.put(config.getType(), config);
+
+    configGroup.setConfigurations(newConfigurations);
     Assert.assertEquals(2, configGroup.getConfigurations().values().size());
+
+    // re-request it and verify that the config was added
+    configGroupEntity = configGroupDAO.findById(configGroup.getId());
+    Assert.assertEquals(2, configGroupEntity.getConfigGroupConfigMappingEntities().size());
 
     configGroup.setName("NewName");
     configGroup.setDescription("NewDesc");
     configGroup.setTag("NewTag");
 
     // Save
-    configGroup.persist();
-    configGroup.refresh();
     configGroupEntity = configGroupDAO.findByName("NewName");
 
     Assert.assertNotNull(configGroupEntity);
-    Assert.assertEquals(2, configGroupEntity
-      .getConfigGroupHostMappingEntities().size());
-    Assert.assertEquals(2, configGroupEntity
-      .getConfigGroupConfigMappingEntities().size());
+    Assert.assertEquals(2, configGroupEntity.getConfigGroupHostMappingEntities().size());
+    Assert.assertEquals(2, configGroupEntity.getConfigGroupConfigMappingEntities().size());
     Assert.assertEquals("NewTag", configGroupEntity.getTag());
     Assert.assertEquals("NewDesc", configGroupEntity.getDescription());
     Assert.assertNotNull(cluster.getConfig("test-site", "version100"));

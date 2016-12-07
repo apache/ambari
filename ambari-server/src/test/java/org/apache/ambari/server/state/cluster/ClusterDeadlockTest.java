@@ -124,14 +124,11 @@ public class ClusterDeadlockTest {
     cluster.createClusterVersion(stackId,
         stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
-    Config config1 = configFactory.createNew(cluster, "test-type1", new HashMap<String, String>(), new HashMap<String,
+    Config config1 = configFactory.createNew(cluster, "test-type1", "version1", new HashMap<String, String>(), new HashMap<String,
         Map<String, String>>());
-    Config config2 = configFactory.createNew(cluster, "test-type2", new HashMap<String, String>(), new HashMap<String,
+    Config config2 = configFactory.createNew(cluster, "test-type2", "version1", new HashMap<String, String>(), new HashMap<String,
         Map<String, String>>());
-    config1.persist();
-    config2.persist();
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
+
     cluster.addDesiredConfig("test user", new HashSet<Config>(Arrays.asList(config1, config2)));
 
     // 100 hosts
@@ -186,7 +183,7 @@ public class ClusterDeadlockTest {
     }
 
     DeadlockWarningThread wt = new DeadlockWarningThread(threads);
-    
+
     while (true) {
       if(!wt.isAlive()) {
           break;
@@ -221,7 +218,7 @@ public class ClusterDeadlockTest {
     }
 
     DeadlockWarningThread wt = new DeadlockWarningThread(threads);
-    
+
     while (true) {
       if(!wt.isAlive()) {
           break;
@@ -267,7 +264,7 @@ public class ClusterDeadlockTest {
       clusterWriterThread.start();
       schWriterThread.start();
     }
-    
+
     DeadlockWarningThread wt = new DeadlockWarningThread(threads, 20, 1000);
     while (true) {
       if(!wt.isAlive()) {
@@ -337,7 +334,7 @@ public class ClusterDeadlockTest {
     @Override
     public void run() {
       for (int i =0; i<300; i++) {
-        config.persist(false);
+        config.save();
       }
     }
   }

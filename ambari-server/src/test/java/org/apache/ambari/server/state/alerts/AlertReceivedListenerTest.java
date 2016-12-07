@@ -56,12 +56,12 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
-import org.junit.experimental.categories.Category;
 
 /**
  * Tests the {@link AlertReceivedListener}.
@@ -835,17 +835,13 @@ public class AlertReceivedListenerTest {
   @SuppressWarnings("serial")
   public void testAlertFirmnessUsingGlobalValueHigherThanOverride() throws Exception {
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
-    Config config = cf.createNew(m_cluster, ConfigHelper.CLUSTER_ENV,
+    Config config = cf.createNew(m_cluster, ConfigHelper.CLUSTER_ENV, "version2",
         new HashMap<String, String>() {
           {
             put(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "3");
           }
         }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    m_cluster.addConfig(config);
     m_cluster.addDesiredConfig("user", Collections.singleton(config));
 
     String definitionName = ALERT_DEFINITION + "1";

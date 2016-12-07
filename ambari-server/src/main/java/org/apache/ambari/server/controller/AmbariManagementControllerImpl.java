@@ -55,7 +55,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,10 +79,10 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
@@ -895,17 +894,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public Config createConfig(Cluster cluster, String type, Map<String, String> properties,
                              String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
-    Config config = configFactory.createNew(cluster, type,
-      properties, propertiesAttributes);
 
-    if (!StringUtils.isEmpty(versionTag)) {
-      config.setTag(versionTag);
-    }
-
-    config.persist();
+    Config config = configFactory.createNew(cluster, type, versionTag, properties,
+        propertiesAttributes);
 
     cluster.addConfig(config);
-
     return config;
   }
 

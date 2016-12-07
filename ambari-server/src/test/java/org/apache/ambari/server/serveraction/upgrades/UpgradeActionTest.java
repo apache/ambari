@@ -67,7 +67,7 @@ import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -153,6 +153,8 @@ public class UpgradeActionTest {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private FinalizeUpgradeAction finalizeUpgradeAction;
+  @Inject
+  private ConfigFactory configFactory;
 
   @Before
   public void setup() throws Exception {
@@ -1043,24 +1045,22 @@ public class UpgradeActionTest {
     properties.put("a", "a1");
     properties.put("b", "b1");
 
-    Config c1 = new ConfigImpl(cluster, "zookeeper-env", properties, propertiesAttributes, m_injector);
+    configFactory.createNew(cluster, "zookeeper-env", "version-" + System.currentTimeMillis(),
+        properties, propertiesAttributes);
+
     properties.put("zookeeper_a", "value_1");
     properties.put("zookeeper_b", "value_2");
 
-    Config c2 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, m_injector);
+    configFactory.createNew(cluster, "hdfs-site", "version-" + System.currentTimeMillis(),
+        properties, propertiesAttributes);
+
     properties.put("hdfs_a", "value_3");
     properties.put("hdfs_b", "value_4");
 
-    Config c3 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, m_injector);
-    Config c4 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, m_injector);
+    configFactory.createNew(cluster, "core-site", "version-" + System.currentTimeMillis(),
+        properties, propertiesAttributes);
 
-    cluster.addConfig(c1);
-    cluster.addConfig(c2);
-    cluster.addConfig(c3);
-    cluster.addConfig(c4);
-    c1.persist();
-    c2.persist();
-    c3.persist();
-    c4.persist();
+    configFactory.createNew(cluster, "foo-site", "version-" + System.currentTimeMillis(),
+        properties, propertiesAttributes);
   }
 }
