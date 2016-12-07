@@ -19,8 +19,6 @@ package org.apache.ambari.server.agent;
 
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,6 +99,8 @@ public class HeartbeatProcessor extends AbstractService{
   //TODO rewrite to correlate with heartbeat frequency, hardcoded in agent as of now
   private long delay = 5000;
   private long period = 1000;
+  private long logIntervalSeconds = 30;
+  private long lastStatusMessage = 0;
 
   private int poolSize = 1;
 
@@ -179,12 +179,19 @@ public class HeartbeatProcessor extends AbstractService{
 
     @Override
     public void run() {
+
       while (shouldRun) {
         try {
+          long now = System.currentTimeMillis();
+          if ((now - lastStatusMessage) > (logIntervalSeconds * 1000)) {
+            LOG.info("Queue size: {}", heartBeatsQueue.size());
+            lastStatusMessage = now;
+          }
           HeartBeat heartbeat = pollHeartbeat();
           if (heartbeat == null) {
             break;
           }
+
           processHeartbeat(heartbeat);
         } catch (Exception e) {
           LOG.error("Exception received while processing heartbeat", e);
@@ -201,21 +208,19 @@ public class HeartbeatProcessor extends AbstractService{
   /**
    * Incapsulates logic for processing data from agent heartbeat
    * @param heartbeat Agent heartbeat object
+   * @param now
    * @throws AmbariException
    */
   public void processHeartbeat(HeartBeat heartbeat) throws AmbariException {
     long now = System.currentTimeMillis();
 
     processAlerts(heartbeat);
-
     //process status reports before command reports to prevent status override immediately after task finish
     processStatusReports(heartbeat);
     processCommandReports(heartbeat, now);
     //host status calculation are based on task and status reports, should be performed last
     processHostStatus(heartbeat);
   }
-
-
 
   /**
    * Extracts all of the {@link Alert}s from the heartbeat and fires
