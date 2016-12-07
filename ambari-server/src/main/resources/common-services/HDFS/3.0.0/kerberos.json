@@ -101,7 +101,7 @@
             {
               "name": "/HDFS/NAMENODE/namenode_nn",
               "principal": {
-                "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.principal"                
+                "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.principal"
               },
               "keytab": {
                 "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.keyTab"

@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +19,105 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="true" supports_adding_forbidden="true">
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>yarn_log_dir_prefix</name>
+    <value>/var/log/hadoop-yarn</value>
+    <display-name>YARN Log Dir Prefix</display-name>
+    <description>YARN Log Dir Prefix</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn_pid_dir_prefix</name>
+    <value>/var/run/hadoop-yarn</value>
+    <display-name>YARN PID Dir Prefix</display-name>
+    <description>YARN PID Dir Prefix</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn_user</name>
+    <display-name>Yarn User</display-name>
+    <value>yarn</value>
+    <property-type>USER</property-type>
+    <description>YARN User</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn_heapsize</name>
+    <value>1024</value>
+    <display-name>YARN Java heap size</display-name>
+    <description>Max heapsize for all YARN components using a numerical value in the scale of MB</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>resourcemanager_heapsize</name>
+    <value>1024</value>
+    <display-name>ResourceManager Java heap size</display-name>
+    <description>Max heapsize for ResourceManager using a numerical value in the scale of MB</description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nodemanager_heapsize</name>
+    <value>1024</value>
+    <display-name>NodeManager Java heap size</display-name>
+    <description>Max heapsize for NodeManager using a numerical value in the scale of MB</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>min_user_id</name>
+    <value>1000</value>
+    <display-name>Minimum user ID for submitting job</display-name>
+    <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>is_supported_yarn_ranger</name>
+    <value>true</value>
+    <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn_user_nofile_limit</name>
+    <value>32768</value>
+    <description>Max open files limit setting for YARN user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn_user_nproc_limit</name>
+    <value>65536</value>
+    <description>Max number of processes limit setting for YARN user.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
   <!-- These properties were inherited from HDP 2.1 -->
   <property>
     <name>apptimelineserver_heapsize</name>
@@ -56,13 +155,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
 
-  <!-- These properties were inherited from HDP 2.3 -->
-  <property>
-    <name>is_supported_yarn_ranger</name>
-    <value>true</value>
-    <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>
@@ -81,7 +173,7 @@
       # daemons. This is restrict the EWMA appender to daemons only.
       INVOKER="${0##*/}"
       if [ "$INVOKER" == "yarn-daemon.sh" ]; then
-        export YARN_ROOT_LOGGER=${YARN_ROOT_LOGGER:-INFO,EWMA,RFA}
+      export YARN_ROOT_LOGGER=${YARN_ROOT_LOGGER:-INFO,EWMA,RFA}
       fi
 
       # User for YARN daemons
@@ -196,5 +288,19 @@
       <type>content</type>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>service_check.queue.name</name>
+    <value>default</value>
+    <description>
+      The queue that used by service check.
+    </description>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

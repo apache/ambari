@@ -18,6 +18,16 @@
 -->
 <!-- Put site-specific property overrides in this file. -->
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <property>
+    <name>mapreduce.application.classpath</name>
+    <value>$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:$PWD/mr-framework/hadoop/share/hadoop/tools/lib/*:/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar:/etc/hadoop/conf/secure</value>
+    <description>
+      CLASSPATH for MR applications. A comma-separated list of CLASSPATH
+      entries.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
   <!-- These configs were inherited from HDP 2.2 -->
   <property>
     <name>mapreduce.admin.user.env</name>
@@ -26,15 +36,6 @@
       Additional execution environment entries for map and reduce task processes.
       This is not an additive property. You must preserve the original value if
       you want your map and reduce tasks to have access to native libraries (compression, etc)
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.application.classpath</name>
-    <value>$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:$PWD/mr-framework/hadoop/share/hadoop/tools/lib/*:/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar:/etc/hadoop/conf/secure</value>
-    <description>
-      CLASSPATH for MR applications. A comma-separated list of CLASSPATH
-      entries.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -72,63 +73,6 @@
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.reduce.shuffle.fetch.retry.enabled</name>
-    <value>1</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.reduce.shuffle.fetch.retry.interval-ms</name>
-    <value>1000</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.reduce.shuffle.fetch.retry.timeout-ms</name>
-    <value>30000</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.job.emit-timeline-data</name>
-    <value>false</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.jobhistory.bind-host</name>
-    <value>0.0.0.0</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-
-  <!-- These configs were inherited from HDP 2.3 -->
-  <property>
-    <name>mapreduce.jobhistory.recovery.enable</name>
-    <value>true</value>
-    <description>Enable the history server to store server state and recover
-      server state upon startup.  If enabled then
-      mapreduce.jobhistory.recovery.store.class must be specified.
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.jobhistory.recovery.store.class</name>
-    <value>org.apache.hadoop.mapreduce.v2.hs.HistoryServerLeveldbStateStoreService</value>
-    <description>The HistoryServerStateStoreService class to store history server
-      state for recovery.
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>mapreduce.jobhistory.recovery.store.leveldb.path</name>
-    <value>/hadoop/mapreduce/jhs</value>
-    <description>The URI where history server state will be stored if HistoryServerLeveldbSystemStateStoreService
-      is configured as the recovery storage class.
-    </description>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
