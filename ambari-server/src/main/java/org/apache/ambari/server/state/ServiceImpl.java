@@ -451,7 +451,7 @@ public class ServiceImpl implements Service {
   }
 
   @Transactional
-  void persistEntities(ClusterServiceEntity serviceEntity) {
+  private void persistEntities(ClusterServiceEntity serviceEntity) {
     long clusterId = cluster.getClusterId();
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
     serviceEntity.setClusterEntity(clusterEntity);
