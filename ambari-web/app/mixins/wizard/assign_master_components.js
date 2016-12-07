@@ -1236,6 +1236,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       },
       onSecondary: function () {
         this._super();
+        App.router.set('nextBtnClickInProgress', false);
         self.set('submitButtonClicked', false);
       },
       onClose: function () {
