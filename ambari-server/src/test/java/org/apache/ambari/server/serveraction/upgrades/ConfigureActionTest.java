@@ -132,13 +132,10 @@ public class ConfigureActionTest {
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -196,16 +193,13 @@ public class ConfigureActionTest {
 
     // create a config for zoo.cfg with two values; one is a stack value and the
     // other is custom
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("tickTime", "2000");
         put("foo", "bar");
       }
     }, new HashMap<String, Map<String, String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -262,16 +256,13 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("copyIt", "10");
           put("moveIt", "10");
           put("deleteIt", "10");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -402,15 +393,12 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("zoo.server.csv", "c6401,c6402,  c6403");
       }
     }, new HashMap<String, Map<String, String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -468,16 +456,13 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("key_to_replace", "My New Cat");
         put("key_with_no_match", "WxyAndZ");
       }
     }, new HashMap<String, Map<String, String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -543,16 +528,13 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("existing", "This exists!");
         put("missing", null);
       }
     }, new HashMap<String, Map<String, String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -604,16 +586,12 @@ public class ConfigureActionTest {
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("fooKey", "barValue");
       }
     }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -671,7 +649,7 @@ public class ConfigureActionTest {
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("set.key.1", "s1");
         put("set.key.2", "s2");
@@ -680,10 +658,6 @@ public class ConfigureActionTest {
       }
     }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -769,7 +743,7 @@ public class ConfigureActionTest {
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("set.key.1", "s1");
         put("set.key.2", "s2");
@@ -778,10 +752,6 @@ public class ConfigureActionTest {
       }
     }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -855,7 +825,7 @@ public class ConfigureActionTest {
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("replace.key.1", "r1");
         put("replace.key.2", "r2");
@@ -865,10 +835,6 @@ public class ConfigureActionTest {
       }
     }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -951,7 +917,7 @@ public class ConfigureActionTest {
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
       {
         put("replace.key.1", "r1");
         put("replace.key.2", "r2");
@@ -961,10 +927,6 @@ public class ConfigureActionTest {
       }
     }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1041,15 +1003,12 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("copy.key.1", "c1");
           put("copy.key.2", "c2");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1157,15 +1116,12 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("copy.key.1", "c1");
           put("copy.key.2", "c2");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1253,17 +1209,14 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("move.key.1", "m1");
           put("move.key.2", "m2");
           put("move.key.3", "m3");
           put("move.key.4", "m4");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1362,17 +1315,15 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2",
+        new HashMap<String, String>() {{
           put("initLimit", "10");
           put("move.key.1", "m1");
           put("move.key.2", "m2");
           put("move.key.3", "m3");
           put("move.key.4", "m4");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1466,17 +1417,14 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("delete.key.1", "d1");
           put("delete.key.2", "d2");
           put("delete.key.3", "d3");
           put("delete.key.4", "d4");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1567,17 +1515,14 @@ public class ConfigureActionTest {
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("delete.key.1", "d1");
           put("delete.key.2", "d2");
           put("delete.key.3", "d3");
           put("delete.key.4", "d4");
         }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version2");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
@@ -1674,15 +1619,12 @@ public class ConfigureActionTest {
     // service properties will not run!
     installService(c, "ZOOKEEPER");
 
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+    Config config = cf.createNew(c, "zoo.cfg", "version1", new HashMap<String, String>() {
       {
         put("initLimit", "10");
       }
     }, new HashMap<String, Map<String, String>>());
-    config.setTag("version1");
-    config.persist();
 
-    c.addConfig(config);
     c.addDesiredConfig("user", Collections.singleton(config));
 
     // add a host component

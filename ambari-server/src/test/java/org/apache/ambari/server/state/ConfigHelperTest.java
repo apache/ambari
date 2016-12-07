@@ -38,7 +38,6 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -88,6 +87,7 @@ public class ConfigHelperTest {
     private static ConfigHelper configHelper;
     private static AmbariManagementController managementController;
     private static AmbariMetaInfo metaInfo;
+    private static ConfigFactory configFactory;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -102,6 +102,7 @@ public class ConfigHelperTest {
       configHelper = injector.getInstance(ConfigHelper.class);
       managementController = injector.getInstance(AmbariManagementController.class);
       metaInfo = injector.getInstance(AmbariMetaInfo.class);
+      configFactory = injector.getInstance(ConfigFactory.class);
 
       clusterName = "c1";
       clusters.addCluster(clusterName, new StackId("HDP-2.0.6"));
@@ -251,7 +252,6 @@ public class ConfigHelperTest {
       LOG.info("Config group created with tag " + tag);
       configGroup.setTag(tag);
 
-      configGroup.persist();
       cluster.addConfigGroup(configGroup);
 
       return configGroup.getId();
@@ -339,14 +339,11 @@ public class ConfigHelperTest {
         add(clusterRequest6);
       }}, null);
 
-      final Config config = new ConfigImpl("ams-env");
-      config.setTag("version122");
-
       Map<String, String> properties = new HashMap<String, String>();
       properties.put("a", "b");
       properties.put("c", "d");
-      config.setProperties(properties);
 
+      final Config config = configFactory.createNew(cluster, "ams-env", "version122", properties, null);
       Long groupId = addConfigGroup("g1", "t1", new ArrayList<String>() {{
         add("h1");
       }}, new ArrayList<Config>() {{
@@ -419,19 +416,14 @@ public class ConfigHelperTest {
         add(clusterRequest3);
       }}, null);
 
-      final Config config1 = new ConfigImpl("core-site2");
-      config1.setTag("version122");
-
       Map<String, String> properties = new HashMap<String, String>();
       properties.put("a", "b");
       properties.put("c", "d");
-      config1.setProperties(properties);
+      final Config config1 = configFactory.createNew(cluster, "core-site2", "version122", properties, null);
 
-      final Config config2 = new ConfigImpl("global2");
-      config2.setTag("version122");
       Map<String, String> properties2 = new HashMap<String, String>();
       properties2.put("namenode_heapsize", "1111");
-      config2.setProperties(properties2);
+      final Config config2 = configFactory.createNew(cluster, "global2", "version122", properties2, null);
 
       Long groupId = addConfigGroup("g2", "t1", new ArrayList<String>() {{
         add("h1");
@@ -511,24 +503,23 @@ public class ConfigHelperTest {
       }}, null);
 
 
-      final Config config1 = new ConfigImpl("core-site3");
-      config1.setTag("version122");
-
       Map<String, String> attributes = new HashMap<String, String>();
       attributes.put("fs.trash.interval", "11");
       attributes.put("b", "y");
       Map<String, Map<String, String>> config1Attributes = new HashMap<String, Map<String, String>>();
       config1Attributes.put("attribute1", attributes);
-      config1.setPropertiesAttributes(config1Attributes);
 
-      final Config config2 = new ConfigImpl("global3");
-      config2.setTag("version122");
+      final Config config1 = configFactory.createNew(cluster, "core-site3", "version122",
+          new HashMap<String, String>(), config1Attributes);
+
       attributes = new HashMap<String, String>();
       attributes.put("namenode_heapsize", "z");
       attributes.put("c", "q");
       Map<String, Map<String, String>> config2Attributes = new HashMap<String, Map<String, String>>();
       config2Attributes.put("attribute2", attributes);
-      config2.setPropertiesAttributes(config2Attributes);
+
+      final Config config2 = configFactory.createNew(cluster, "global3", "version122",
+          new HashMap<String, String>(), config2Attributes);
 
       Long groupId = addConfigGroup("g3", "t1", new ArrayList<String>() {{
         add("h3");
@@ -690,7 +681,8 @@ public class ConfigHelperTest {
       confGroupProperties.put("b", "any");
       confGroupProperties.put("c", "any");
 
-      Config overrideConfig = new ConfigImpl(cluster, "type", confGroupProperties, confGroupAttributes, injector);
+      Config overrideConfig = configFactory.createNew(cluster, "type", null,
+          confGroupProperties, confGroupAttributes);
 
       Map<String, Map<String, String>> result
           = configHelper.overrideAttributes(overrideConfig, persistedAttributes);
@@ -718,7 +710,8 @@ public class ConfigHelperTest {
       confGroupProperties.put("b", "any");
       confGroupProperties.put("c", "any");
 
-      Config overrideConfig = new ConfigImpl(cluster, "type", confGroupProperties, confGroupAttributes, injector);
+      Config overrideConfig = configFactory.createNew(cluster, "type", null,
+          confGroupProperties, confGroupAttributes);
 
       Map<String, Map<String, String>> result
           = configHelper.overrideAttributes(overrideConfig, persistedAttributes);
@@ -744,7 +737,8 @@ public class ConfigHelperTest {
       confGroupProperties.put("b", "any");
       confGroupProperties.put("c", "any");
 
-      Config overrideConfig = new ConfigImpl(cluster, "type", confGroupProperties, null, injector);
+      Config overrideConfig = configFactory.createNew(cluster, "type", null,
+          confGroupProperties, null);
 
       Map<String, Map<String, String>> result
           = configHelper.overrideAttributes(overrideConfig, persistedAttributes);
@@ -772,7 +766,8 @@ public class ConfigHelperTest {
       confGroupFinalAttrs.put("b", "true");
       confGroupAttributes.put("final", confGroupFinalAttrs);
 
-      Config overrideConfig = new ConfigImpl(cluster, "type", null, confGroupAttributes, injector);
+      Config overrideConfig = configFactory.createNew(cluster, "type", "version122",
+          new HashMap<String,String>(), confGroupAttributes);
 
       Map<String, Map<String, String>> result
           = configHelper.overrideAttributes(overrideConfig, persistedAttributes);
@@ -921,8 +916,10 @@ public class ConfigHelperTest {
       List<String> hosts = new ArrayList<String>();
       hosts.add("h1");
       List<Config> configs = new ArrayList<Config>();
-      ConfigImpl configImpl = new ConfigImpl("flume-conf");
-      configImpl.setTag("FLUME1");
+
+      Config configImpl = configFactory.createNew(cluster, "flume-conf", "FLUME1",
+          new HashMap<String,String>(), null);
+
       configs.add(configImpl);
       addConfigGroup("configGroup1", "FLUME", hosts, configs);
 

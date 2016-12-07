@@ -53,8 +53,8 @@ import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.commons.lang.StringUtils;
@@ -234,12 +234,12 @@ public class HostUpdateHelper {
           boolean configUpdated;
 
           // going through all cluster configs and update property values
+          ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
           for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
-            ConfigImpl config = new ConfigImpl(cluster, clusterConfigEntity, injector);
+            Config config = configFactory.createExisting(cluster, clusterConfigEntity);
             configUpdated = false;
 
             for (Map.Entry<String,String> property : config.getProperties().entrySet()) {
-
               updatedPropertyValue = replaceHosts(property.getValue(), currentHostNames, hostMapping);
 
               if (updatedPropertyValue != null) {
@@ -249,8 +249,9 @@ public class HostUpdateHelper {
                 configUpdated = true;
               }
             }
+
             if (configUpdated) {
-              config.persist(false);
+              config.save();
             }
           }
         }
@@ -317,6 +318,7 @@ public class HostUpdateHelper {
   * */
   public class StringComparator implements Comparator<String> {
 
+    @Override
     public int compare(String s1, String s2) {
       return s2.length() - s1.length();
     }

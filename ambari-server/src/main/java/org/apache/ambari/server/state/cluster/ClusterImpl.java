@@ -326,8 +326,11 @@ public class ClusterImpl implements Cluster {
     loadStackVersion();
     loadServices();
     loadServiceHostComponents();
-    loadConfigGroups();
+
+    // cache configurations before loading configuration groups
     cacheConfigurations();
+    loadConfigGroups();
+
     loadRequestExecutions();
 
     if (desiredStackVersion != null && !StringUtils.isEmpty(desiredStackVersion.getStackName()) && !
@@ -2566,7 +2569,6 @@ public class ClusterImpl implements Cluster {
           }
         }
         configGroup.setHosts(groupDesiredHosts);
-        configGroup.persist();
       } else {
         throw new IllegalArgumentException("Config group {} doesn't exist");
       }

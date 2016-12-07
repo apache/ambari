@@ -122,7 +122,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
@@ -408,7 +407,6 @@ public class AmbariManagementControllerTest {
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
       tag, "", configMap, hostMap);
 
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     return configGroup.getId();
@@ -1940,10 +1938,8 @@ public class AmbariManagementControllerTest {
     Map<String, String> properties = new HashMap<String, String>();
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
 
-    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, injector);
-    c1.setTag("v1");
-    cluster.addConfig(c1);
-    c1.persist();
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+    Config c1 = configFactory.createNew(cluster, "hdfs-site", "v1",  properties, propertiesAttributes);
     configs.put(c1.getType(), c1);
 
     ServiceRequest r = new ServiceRequest(cluster1, serviceName, State.INSTALLED.toString());
@@ -1983,25 +1979,16 @@ public class AmbariManagementControllerTest {
     properties.put("a", "a1");
     properties.put("b", "b1");
 
-    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, injector);
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+    Config c1 = configFactory.createNew(cluster, "hdfs-site", "v1", properties, propertiesAttributes);
     properties.put("c", cluster1);
     properties.put("d", "d1");
-    Config c2 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, injector);
-    Config c3 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, injector);
+
+    Config c2 = configFactory.createNew(cluster, "core-site", "v1", properties, propertiesAttributes);
+    Config c3 = configFactory.createNew(cluster, "foo-site", "v1", properties, propertiesAttributes);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
-
-    c1.setTag("v1");
-    c2.setTag("v1");
-    c3.setTag("v1");
-
-    cluster.addConfig(c1);
-    cluster.addConfig(c2);
-    cluster.addConfig(c3);
-    c1.persist();
-    c2.persist();
-    c3.persist();
 
     configs.put(c1.getType(), c1);
     configs.put(c2.getType(), c2);
@@ -4210,27 +4197,20 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-2.0.6"));
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "global",
+    Config config1 = cf.createNew(cluster, "global", "version1",
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String, String>>());
-    config1.setTag("version1");
 
-    Config config2 = cf.createNew(cluster, "core-site",
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("version1");
 
-    Config config3 = cf.createNew(cluster, "yarn-site",
+    Config config3 = cf.createNew(cluster, "yarn-site", "version1",
         new HashMap<String, String>() {{
           put("test.password", "supersecret");
         }}, new HashMap<String, Map<String,String>>());
-    config3.setTag("version1");
-
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
-    cluster.addConfig(config3);
 
     Service hdfs = cluster.addService("HDFS");
     Service mapred = cluster.addService("YARN");
@@ -4383,20 +4363,15 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-2.0.7"));
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "global",
+    Config config1 = cf.createNew(cluster, "global", "version1",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("version1");
 
-    Config config2 = cf.createNew(cluster, "core-site",
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("version1");
-
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
 
@@ -4488,19 +4463,15 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-2.0.7"));
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "global",
+    Config config1 = cf.createNew(cluster, "global", "version1",
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("version1");
 
-    Config config2 = cf.createNew(cluster, "core-site",
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
         new HashMap<String, String>() {{
           put("key1", "value1");
         }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("version1");
-    config1.persist();
-    config2.persist();
 
     cluster.addConfig(config1);
     cluster.addConfig(config2);
@@ -4776,18 +4747,14 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "global",
+    Config config1 = cf.createNew(cluster, "global", "version1",
         new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("version1");
     config1.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr1", new HashMap<String, String>()); }});
 
-    Config config2 = cf.createNew(cluster, "core-site",
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
         new HashMap<String, String>(){{ put("key1", "value1"); }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("version1");
     config2.setPropertiesAttributes(new HashMap<String, Map<String, String>>(){{ put("attr2", new HashMap<String, String>()); }});
 
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
@@ -5522,11 +5489,8 @@ public class AmbariManagementControllerTest {
       configs3, null);
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "kerberos-env",
+    Config config1 = cf.createNew(cluster, "kerberos-env", "version1",
         new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
-    config1.setTag("version1");
-
-    cluster.addConfig(config1);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
@@ -6448,20 +6412,15 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-2.0.6"));
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "global",
+    Config config1 = cf.createNew(cluster, "global", "version1",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("version1");
 
-    Config config2 = cf.createNew(cluster, "core-site",
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("version1");
-
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
     Service mapred = cluster.addService("YARN");
@@ -6554,20 +6513,15 @@ public class AmbariManagementControllerTest {
     cluster.setCurrentStackVersion(new StackId("HDP-2.0.6"));
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config1 = cf.createNew(cluster, "global",
+    Config config1 = cf.createNew(cluster, "global", "version1",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("version1");
 
-    Config config2 = cf.createNew(cluster, "core-site",
+    Config config2 = cf.createNew(cluster, "core-site", "version1",
       new HashMap<String, String>() {{
         put("key1", "value1");
       }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("version1");
-
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
     Service mapred = cluster.addService("YARN");
@@ -6981,13 +6935,13 @@ public class AmbariManagementControllerTest {
     String group2 = getUniqueName();
     String tag2 = getUniqueName();
 
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+
     // Create Config group for core-site
     configs = new HashMap<String, String>();
     configs.put("a", "c");
     cluster = clusters.getCluster(cluster1);
-    final Config config = new ConfigImpl("core-site");
-    config.setProperties(configs);
-    config.setTag("version122");
+    final Config config =  configFactory.createReadOnly("core-site", "version122", configs, null);
     Long groupId = createConfigGroup(cluster, group1, tag1,
       new ArrayList<String>() {{ add(host1); }},
       new ArrayList<Config>() {{ add(config); }});
@@ -6998,9 +6952,7 @@ public class AmbariManagementControllerTest {
     configs = new HashMap<String, String>();
     configs.put("a", "c");
 
-    final Config config2 = new ConfigImpl("mapred-site");
-    config2.setProperties(configs);
-    config2.setTag("version122");
+    final Config config2 =  configFactory.createReadOnly("mapred-site", "version122", configs, null);
     groupId = createConfigGroup(cluster, group2, tag2,
       new ArrayList<String>() {{ add(host1); }},
       new ArrayList<Config>() {{ add(config2); }});
@@ -7065,7 +7017,6 @@ public class AmbariManagementControllerTest {
     ConfigGroup configGroup = cluster.getConfigGroups().get(groupId);
     configGroup.setHosts(new HashMap<Long, Host>() {{ put(3L,
       clusters.getHost(host3)); }});
-    configGroup.persist();
 
     requestId = startService(cluster1, serviceName2, false, false);
     mapredInstall = null;
@@ -7143,9 +7094,8 @@ public class AmbariManagementControllerTest {
     String group1 = getUniqueName();
     String tag1 = getUniqueName();
 
-    final Config config = new ConfigImpl("hdfs-site");
-    config.setProperties(configs);
-    config.setTag("version122");
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+    final Config config = configFactory.createReadOnly("hdfs-site", "version122", configs, null);
     Long groupId = createConfigGroup(clusters.getCluster(cluster1), group1, tag1,
         new ArrayList<String>() {{
           add(host1);
@@ -7253,9 +7203,8 @@ public class AmbariManagementControllerTest {
     configs = new HashMap<String, String>();
     configs.put("a", "c");
 
-    final Config config = new ConfigImpl("hdfs-site");
-    config.setProperties(configs);
-    config.setTag("version122");
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+    final Config config = configFactory.createReadOnly("hdfs-site", "version122", configs, null);
     Long groupId = createConfigGroup(clusters.getCluster(cluster1), group1, tag1,
       new ArrayList<String>() {{ add(host1); add(host2); }},
       new ArrayList<Config>() {{ add(config); }});

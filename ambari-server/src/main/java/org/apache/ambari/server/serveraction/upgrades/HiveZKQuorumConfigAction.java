@@ -85,7 +85,7 @@ public class HiveZKQuorumConfigAction extends AbstractServerAction {
     hiveSiteProperties.put(HIVE_SITE_ZK_CONNECT_STRING, zookeeperQuorum);
 
     hiveSite.setProperties(hiveSiteProperties);
-    hiveSite.persist(false);
+    hiveSite.save();
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
         String.format("Successfully set %s and %s in %s", HIVE_SITE_ZK_QUORUM,
