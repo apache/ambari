@@ -442,7 +442,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
   @Transactional
-  private void createHostVersions(Cluster cluster, List<Host> hosts, StackId stackId,
+  void createHostVersions(Cluster cluster, List<Host> hosts, StackId stackId,
       String desiredRepoVersion, RepositoryVersionState repoState)
       throws AmbariException, SystemException {
     final String clusterName = cluster.getClusterName();
@@ -482,7 +482,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
   @Transactional
-  private RequestStageContainer createOrchestration(Cluster cluster, StackId stackId,
+  RequestStageContainer createOrchestration(Cluster cluster, StackId stackId,
       List<Host> hosts, RepositoryVersionEntity repoVersionEnt, Map<String, Object> propertyMap)
       throws AmbariException, SystemException {
     final AmbariManagementController managementController = getManagementController();
