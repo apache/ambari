@@ -138,14 +138,15 @@ dfs_data_mirroring_dir = "/apps/data-mirroring"
 ########################################################
 #region Atlas Hooks
 falcon_atlas_application_properties = default('/configurations/falcon-atlas-application.properties', {})
+atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+enable_atlas_hook = default('/configurations/falcon-env/falcon.atlas.hook', False)
 
 # Calculate atlas_hook_cp to add to FALCON_EXTRA_CLASS_PATH
 falcon_atlas_support = False
 
 # Path to add to environment variable
 atlas_hook_cp = ""
-if has_atlas_in_cluster():
-  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+if enable_atlas_hook:
 
   # stack_version doesn't contain a minor number of the stack (only first two numbers: 2.3). Get it from current_version_formatted
   falcon_atlas_support = current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, current_version_formatted) \

@@ -30,6 +30,8 @@
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
     <jetty.version>8.1.19.v20160209</jetty.version>
+    <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
+    <checkstyle.skip>false</checkstyle.skip>
   </properties>
   <profiles>
     <profile>
@@ -477,6 +479,11 @@
         <artifactId>jline</artifactId>
         <version>2.11</version>
       </dependency>
+      <dependency>
+        <groupId>com.puppycrawl.tools</groupId>
+        <artifactId>checkstyle</artifactId>
+        <version>${checkstyle.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>
@@ -485,6 +492,40 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.17</version>
+          <executions>
+            <execution>
+              <id>checkstyle</id>
+              <phase>test</phase>
+              <configuration>
+                <configLocation>${project.basedir}/checkstyle.xml</configLocation>
+                <encoding>UTF-8</encoding>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <linkXRef>false</linkXRef>
+                <skip>${checkstyle.skip}</skip>
+              </configuration>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${checkstyle.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>utility</groupId>
+              <artifactId>utility</artifactId>
+              <version>1.0.0.0-SNAPSHOT</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>

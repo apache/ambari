@@ -226,17 +226,18 @@ App.WizardStep1View = Em.View.extend({
     checkedBinding: 'controller.selectedStack.useRedhatSatellite',
     disabledBinding: 'controller.selectedStack.usePublicRepo',
     click: function () {
-      // click triggered before value is toggled, so if-statement is inverted
-      if (this.get('disabled')) return;
-      if (!this.get('controller.selectedStack.useRedhatSatellite')) {
-        App.ModalPopup.show({
-          header: Em.I18n.t('common.important'),
-          secondary: false,
-          bodyClass: Ember.View.extend({
-            template: Ember.Handlebars.compile(Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning'))
-          })
-        });
+      if (!this.get('disabled')) {
+        this.toggleProperty('controller.selectedStack.useRedhatSatellite');
+        if (this.get('controller.selectedStack.useRedhatSatellite')) {
+          App.ModalPopup.show({
+            header: Em.I18n.t('common.important'),
+            encodeBody: false,
+            secondary: false,
+            body: Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning')
+          });
+        }
       }
+      return false;
     }
   }),
 

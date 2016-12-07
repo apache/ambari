@@ -82,7 +82,7 @@
   </property>
   <property>
     <name>failover_strategy_blacklisted_interval</name>
-    <value>600</value>
+    <value>300</value>
     <description>
       Metrics collector host will be blacklisted for specified number of seconds if metric monitor failed to connect to it.
     </description>

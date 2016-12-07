@@ -21,6 +21,23 @@
 -->
 <configuration supports_adding_forbidden="true">
   <property>
+    <name>hive.atlas.hook</name>
+    <value>false</value>
+    <display-name>Enable Atlas Hook</display-name>
+    <description>Enable Atlas Hook</description>
+    <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.rest.address</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
     <name>hive.client.heapsize</name>
     <value>512</value>
     <description>Hive Client Java heap size</description>

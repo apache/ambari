@@ -70,6 +70,7 @@ stack_supports_usersync_passwd = check_stack_feature(StackFeature.RANGER_USERSYN
 stack_supports_infra_client = check_stack_feature(StackFeature.RANGER_INSTALL_INFRA_CLIENT, version_for_stack_feature_checks)
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_admin_password_change = check_stack_feature(StackFeature.RANGER_ADMIN_PASSWD_CHANGE, version_for_stack_feature_checks)
+stack_supports_ranger_setup_db_on_start = check_stack_feature(StackFeature.RANGER_SETUP_DB_ON_START, version_for_stack_feature_checks)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)

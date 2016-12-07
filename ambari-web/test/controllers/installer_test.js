@@ -75,8 +75,8 @@ describe('App.InstallerController', function () {
       Em.Object.create({
         isSelected: true,
         reload: false,
-        id: 'nn-2.5',
-        stackNameVersion: 'nn-2.5',
+        id: 'nn-cc',
+        stackNameVersion: 'nn-cc',
         repositories: Em.A([
           Em.Object.create({
             isSelected: true,
@@ -89,7 +89,6 @@ describe('App.InstallerController', function () {
             isEmpty: false,
             repositories: Em.A([
               Em.Object.create({
-                baseUrl: 'url/2.5',
                 isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
@@ -101,8 +100,7 @@ describe('App.InstallerController', function () {
       })
     ]);
     var wizard = Em.Object.create({
-      skipValidationChecked: true,
-      inappropriateUrlForStackVersion: App.WizardStep1Controller.create().inappropriateUrlForStackVersion
+      skipValidationChecked: true
     });
     it ('Should reload installed stacks', function() {
 
@@ -116,8 +114,8 @@ describe('App.InstallerController', function () {
         {
           "isSelected": true,
           "reload": true,
-          "id": "nn-2.5",
-          "stackNameVersion": 'nn-2.5',
+          "id": "nn-cc",
+          "stackNameVersion": 'nn-cc',
           "repositories": [
             {
               "isSelected": true,
@@ -130,7 +128,6 @@ describe('App.InstallerController', function () {
               "isEmpty": false,
               "repositories": [
                 {
-                  "baseUrl": "url/2.5",
                   "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",

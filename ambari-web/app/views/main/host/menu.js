@@ -95,9 +95,9 @@ App.MainHostMenuView = Em.CollectionView.extend({
   activateView: function () {
     var defaultRoute = App.router.get('currentState.name') || "summary";
     $.each(this._childViews, function () {
-      this.set('active', (this.get('content.routing') == defaultRoute ? "active" : ""));
+      this.set('active', this.get('content.routing') === defaultRoute ? 'active' : '');
     });
-  },
+  }.observes('App.router.currentState.name'),
 
   deactivateChildViews: function () {
     this.get('_childViews').setEach('active', '');

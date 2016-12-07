@@ -62,8 +62,8 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
     if (!this.get('categoryConfigsAll.length')) return;
     this.set('createNotification', this.get('categoryConfigsAll').findProperty('name', 'create_notification').get('value'));
     this.set('tlsOrSsl', this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.starttls.enable').get('value') ? 'tls' : 'ssl');
-    var smtp_use_auth = this.get('categoryConfigsAll').findProperty('name', 'smtp_use_auth');
-    smtp_use_auth.set('value', Boolean(smtp_use_auth.get('value') === 'true'));
+    var smtpUseAuth = this.get('categoryConfigsAll').findProperty('name', 'smtp_use_auth');
+    smtpUseAuth.set('value', Boolean(smtpUseAuth.get('value') === 'true'));
     this.updateCategoryConfigs();
   },
 
@@ -74,8 +74,8 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
    */
   onTlsOrSslChanged: function () {
     var tlsOrSsl = this.get('tlsOrSsl');
-    this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.starttls.enable').set('value', tlsOrSsl == 'tls');
-    this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.startssl.enable').set('value', tlsOrSsl == 'ssl');
+    this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.starttls.enable').set('value', tlsOrSsl === 'tls');
+    this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.startssl.enable').set('value', tlsOrSsl === 'ssl');
   }.observes('tlsOrSsl'),
 
   /**
@@ -122,6 +122,16 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
   updateConfig: function (config, flag) {
     config.set('isRequired', flag);
     config.set('isEditable', flag);
+  },
+
+  /**
+   * No sense to store config to <code>serviceConfigs</code> and <code>categoryConfigsAll</code> because
+   * <code>categoryConfigsAll</code> is a subset of <code>serviceConfigs</code>
+   *
+   * @override
+   */
+  _appendConfigToCollection: function (serviceConfigProperty) {
+    this.get('serviceConfigs').pushObject(serviceConfigProperty);
   }
 
 });

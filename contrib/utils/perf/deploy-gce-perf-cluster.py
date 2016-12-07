@@ -28,7 +28,7 @@ import re
 import socket
 
 cluster_prefix = "perf"
-ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos6/2.x/latest/trunk/ambaribn.repo"
+ambari_repo_file_url = "http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos6/2.x/updates/2.5.0.0/ambaribn.repo"
 
 public_hostname_script = "foo"
 hostname_script = "foo"
@@ -285,8 +285,8 @@ def create_vms(args, number_of_nodes):
   time.sleep(10)
 
   # trying to create cluster with needed params
-  print "Creating agent VMs {0}-agent-{1} with {2} large nodes on centos6...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes))
-  execute_command(args, args.controller, "/usr/sbin/gce up {0}-agent-{1} {2} --centos6 --large".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
+  print "Creating agent VMs {0}-agent-{1} with {2} xlarge nodes on centos6...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes))
+  execute_command(args, args.controller, "/usr/sbin/gce up {0}-agent-{1} {2} --centos6 --xlarge".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
                   "Failed to create cluster VMs, probably not enough resources!", "-tt")
 
   # VMs are not accessible immediately
@@ -331,7 +331,7 @@ def create_server_script(server_host_name):
   contents = "#!/bin/bash\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
   "yum clean all; yum install git ambari-server -y\n" + \
-  "mkdir /home ; cd /home ; git clone https://github.com/apache/ambari.git\n" + \
+  "mkdir /home ; cd /home ; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-server/resources/stacks/PERF\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
   "\n" + \
@@ -384,7 +384,7 @@ def create_agent_script(server_host_name):
   contents = "#!/bin/bash\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
   "yum clean all; yum install git ambari-agent -y\n" + \
-  "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git\n" + \
+  "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
   "sed -i -e 's/hostname=localhost/hostname={0}/g' /etc/ambari-agent/conf/ambari-agent.ini\n".format(server_host_name) + \
   "sed -i -e 's/agent]/agent]\\nhostname_script={0}\\npublic_hostname_script={1}\\n/1' /etc/ambari-agent/conf/ambari-agent.ini\n".format(hostname_script, public_hostname_script) + \

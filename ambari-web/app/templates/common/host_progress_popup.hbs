@@ -266,9 +266,11 @@
           <div class="col-sm-12">
             {{#if App.supports.logSearch}}
               {{#if view.isLogSearchInstalled}}
-                <button type="button" class="btn btn-link pull-right" {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}}>
-                  <i class="glyphicon glyphicon-file"></i>&nbsp;{{t common.host}} {{t common.logs}}
-                </button>
+                {{#isAuthorized "SERVICE.VIEW_OPERATIONAL_LOGS"}}
+                  <button type="button" class="btn btn-link pull-right" {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}}>
+                    <i class="glyphicon glyphicon-file"></i>&nbsp;{{t common.host}} {{t common.logs}}
+                  </button>
+                {{/isAuthorized}}
               {{/if}}
             {{/if}}
             <button type="button" class="btn btn-link pull-right" {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}}>

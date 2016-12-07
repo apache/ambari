@@ -121,12 +121,12 @@ class HostInfo(object):
     return False
 
 def get_ntp_service():
-  if OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7:
-    return ("chronyd", "ntpd",)
-  elif OSCheck.is_redhat_family():
-    return ("ntpd",)
-  elif OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-    return ("ntp",)
+  if OSCheck.is_redhat_family():
+    return ("ntpd", "chronyd",)
+  elif OSCheck.is_suse_family():
+    return ("ntpd", "ntp",)
+  elif OSCheck.is_ubuntu_family():
+    return ("ntp", "chrony",)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

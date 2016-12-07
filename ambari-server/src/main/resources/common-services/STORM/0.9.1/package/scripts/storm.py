@@ -99,7 +99,7 @@ def storm(name=None):
   )
 
   # Generate atlas-application.properties.xml file and symlink the hook jars
-  if has_atlas_in_cluster():
+  if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.conf_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.STORM, params.storm_atlas_application_properties, atlas_hook_filepath, params.storm_user, params.user_group)
     storm_extlib_dir = os.path.join(params.storm_component_home_dir, "extlib")

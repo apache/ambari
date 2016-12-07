@@ -23,7 +23,7 @@
   <services>
     <service>
       <name>RANGER_KMS</name>
-      <version>0.6.0.2.5</version>
+      <version>0.7.0.2.6</version>
     </service>
   </services>
 </metainfo>
