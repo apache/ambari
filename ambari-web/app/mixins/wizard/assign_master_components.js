@@ -1202,6 +1202,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       },
       onSecondary: function () {
         this._super();
+        App.router.set('nextBtnClickInProgress', false);
         self.set('submitButtonClicked', false);
       },
       onClose: function () {
