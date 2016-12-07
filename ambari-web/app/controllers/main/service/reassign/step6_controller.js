@@ -99,25 +99,6 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     }
   },
 
-  /**
-   * remove tasks by command name
-   */
-  removeTasks: function(commands) {
-    var tasks = this.get('tasks');
-
-    commands.forEach(function(command) {
-      var index;
-      tasks.forEach(function(_task, _index) {
-        if (_task.get('command') === command) {
-          index = _index;
-        }
-      });
-      if (!Em.isNone(index)) {
-        tasks.splice(index, 1);
-      }
-    }, this);
-  },
-
   hideRollbackButton: function () {
     var failedTask = this.get('tasks').findProperty('showRollback');
     if (failedTask) {

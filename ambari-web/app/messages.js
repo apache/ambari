@@ -1404,9 +1404,10 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step5.task4.title':'Start JournalNodes',
   'admin.highAvailability.wizard.step5.task5.title':'Disable Secondary NameNode',
 
-  'admin.highAvailability.wizard.step7.task0.title':'Start Ranger',
-  'admin.highAvailability.wizard.step7.task1.title':'Start ZooKeeper Servers',
-  'admin.highAvailability.wizard.step7.task2.title':'Start NameNode',
+  'admin.highAvailability.wizard.step7.task0.title':'Start ZooKeeper Servers',
+  'admin.highAvailability.wizard.step7.task1.title':'Start Ambari Infra',
+  'admin.highAvailability.wizard.step7.task2.title':'Start Ranger',
+  'admin.highAvailability.wizard.step7.task3.title':'Start NameNode',
 
   'admin.highAvailability.wizard.step9.task0.title':'Start Additional NameNode',
   'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
