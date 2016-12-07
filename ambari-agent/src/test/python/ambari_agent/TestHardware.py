@@ -25,6 +25,7 @@ from mock.mock import patch, MagicMock, Mock
 import unittest
 import platform
 import socket
+import os
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
@@ -372,6 +373,75 @@ SwapFree:        1598676 kB
     self.assertEquals(2, open_mock.call_count)
     self.assertEquals(2, json_mock.call_count)
     self.assertEquals('value', result['key'])
+
+  @patch.object(Hardware, "_chk_writable_mount")
+  @patch("ambari_agent.Hardware.path_isfile")
+  def test_osdisks_blacklist(self, isfile_mock, chk_writable_mount_mock):
+    df_output = \
+      """Filesystem                                                                                        Type  1024-blocks     Used Available Capacity Mounted on
+      /dev/mapper/docker-253:0-4980899-d45c264d37ab18c8ed14f890f4d59ac2b81e1c52919eb36a79419787209515f3 xfs      31447040  1282384  30164656       5% /
+      tmpfs                                                                                             tmpfs    32938336        4  32938332       1% /dev
+      tmpfs                                                                                             tmpfs    32938336        0  32938336       0% /sys/fs/cgroup
+      /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /etc/resolv.conf
+      /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /etc/hostname
+      /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /etc/hosts
+      shm                                                                                               tmpfs       65536        0     65536       0% /dev/shm
+      /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /run/secrets
+      /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /mnt/blacklisted_mount
+      /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /mnt/blacklisted_mount/sub-dir
+      """
+
+    def isfile_side_effect(path):
+      assume_files = ["/etc/resolv.conf", "/etc/hostname", "/etc/hosts"]
+      return path in assume_files
+
+    def chk_writable_mount_side_effect(path):
+      assume_read_only = ["/run/secrets"]
+      return path not in assume_read_only
+
+    isfile_mock.side_effect = isfile_side_effect
+    chk_writable_mount_mock.side_effect = chk_writable_mount_side_effect
+
+    config_dict = {
+      "agent": {
+        "ignore_mount_points": "/mnt/blacklisted_mount"
+      }
+    }
+
+    with patch("subprocess.Popen") as open_mock:
+      proc_mock = Mock()
+      attr = {
+        'communicate.return_value': [
+          df_output
+        ]
+      }
+      proc_mock.configure_mock(**attr)
+      open_mock.return_value = proc_mock
+
+      def conf_get(section, key, default=""):
+        if section in config_dict and key in config_dict[section]:
+          return config_dict[section][key]
+
+        return default
+
+      def has_option(section, key):
+        return section in config_dict and key in config_dict[section]
+
+      conf = Mock()
+      attr = {
+        'get.side_effect': conf_get,
+        'has_option.side_effect': has_option
+      }
+      conf.configure_mock(**attr)
+
+      result = Hardware.osdisks(conf)
+
+    self.assertEquals(1, len(result))
+
+    expected_mounts_left = ["/"]
+    mounts_left = [item["mountpoint"] for item in result]
+
+    self.assertEquals(expected_mounts_left, mounts_left)
 
 
 if __name__ == "__main__":

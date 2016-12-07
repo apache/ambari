@@ -68,7 +68,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_add_reg_listener_to_controller(self, FileCache_mock):
     FileCache_mock.return_value = None
     dummy_controller = MagicMock()
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     CustomServiceOrchestrator(config, dummy_controller)
@@ -204,7 +204,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_resolve_script_path(self, FileCache_mock, exists_mock):
     FileCache_mock.return_value = None
     dummy_controller = MagicMock()
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     orchestrator = CustomServiceOrchestrator(config, dummy_controller)
     # Testing existing path
     exists_mock.return_value = True
