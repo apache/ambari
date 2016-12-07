@@ -406,26 +406,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   /**
-   * remove tasks by command name
-   */
-  removeTasks: function(commands) {
-    var tasks = this.get('tasks');
-
-    commands.forEach(function(command) {
-      var cmd = tasks.filterProperty('command', command);
-      var index = null;
-
-      if (cmd.length === 0) {
-        return false;
-      } else {
-        index = tasks.indexOf( cmd[0] );
-      }
-
-      tasks.splice( index, 1 );
-    });
-  },
-
-  /**
    * initialize tasks
    */
   initializeTasks: function () {
