@@ -56,9 +56,11 @@
             <td>
               {{template "templates/main/alerts/alert_instance/status"}}
             </td>
-            <td><span
-                    class="alert-text" {{bindAttr data-original-title="instance.escapeSpecialCharactersFromTooltip"}}
-                    class="alert-text">{{instance.text}}</span></td>
+            <td>
+              <span class="alert-text" {{bindAttr data-original-title="instance.escapeSpecialCharactersFromTooltip"}}>
+                {{instance.text}}
+              </span>
+            </td>
           </tr>
         {{/each}}
       {{else}}
