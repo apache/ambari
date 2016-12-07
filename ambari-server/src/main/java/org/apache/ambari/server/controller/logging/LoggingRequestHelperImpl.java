@@ -26,6 +26,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -39,11 +40,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,6 +79,10 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private static final String DEFAULT_PAGE_SIZE = "50";
 
   private static final String PAGE_SIZE_QUERY_PARAMETER_NAME = "pageSize";
+
+  private static final String COOKIE_HEADER = "Cookie";
+
+  private static final String SET_COOKIES_HEADER = "Set-Cookie";
 
   private static final int DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS = 5000;
 
@@ -109,20 +117,20 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       // use the Apache builder to create the correct URI
       URI logSearchURI = createLogSearchQueryURI("http", queryParameters);
       LOG.debug("Attempting to connect to LogSearch server at " + logSearchURI);
-
-      HttpURLConnection httpURLConnection  = (HttpURLConnection)logSearchURI.toURL().openConnection();
+      HttpURLConnection httpURLConnection  = (HttpURLConnection) logSearchURI.toURL().openConnection();
       httpURLConnection.setRequestMethod("GET");
       httpURLConnection.setConnectTimeout(DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS);
       httpURLConnection.setReadTimeout(DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS);
 
+      addCookiesFromCookieStore(httpURLConnection);
 
       setupCredentials(httpURLConnection);
 
       StringBuffer buffer = networkConnection.readQueryResponseFromServer(httpURLConnection);
+      addCookiesToCookieStoreFromResponse(httpURLConnection);
 
       // setup a reader for the JSON response
-      StringReader stringReader =
-        new StringReader(buffer.toString());
+      StringReader stringReader = new StringReader(buffer.toString());
 
       ObjectReader logQueryResponseReader =
         createObjectReader(LogQueryResponse.class);
@@ -135,6 +143,27 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     }
 
     return null;
+  }
+
+  private void addCookiesFromCookieStore(HttpURLConnection httpURLConnection) {
+    if (LoggingCookieStore.INSTANCE.getCookiesMap().size() > 0) {
+      List<String> cookiesStrList = new ArrayList<>();
+      for (Map.Entry<String, String> entry : LoggingCookieStore.INSTANCE.getCookiesMap().entrySet()) {
+        cookiesStrList.add(String.format("%s=%s", entry.getKey(), entry.getValue()));
+      }
+      httpURLConnection.setRequestProperty(COOKIE_HEADER, StringUtils.join(cookiesStrList, "; "));
+    }
+  }
+
+  private void addCookiesToCookieStoreFromResponse(HttpURLConnection httpURLConnection) {
+    Map<String, List<String>> headerFields = httpURLConnection.getHeaderFields();
+    List<String> cookiesHeader = headerFields.get(SET_COOKIES_HEADER);
+    if (cookiesHeader != null) {
+      for (String cookie : cookiesHeader) {
+        HttpCookie cookie1 = HttpCookie.parse(cookie).get(0);
+        LoggingCookieStore.INSTANCE.addCookie(cookie1.getName(), cookie1.getValue());
+      }
+    }
   }
 
 
@@ -224,9 +253,13 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       HttpURLConnection httpURLConnection = (HttpURLConnection) logLevelQueryURI.toURL().openConnection();
       httpURLConnection.setRequestMethod("GET");
 
+      addCookiesFromCookieStore(httpURLConnection);
+
       setupCredentials(httpURLConnection);
 
       StringBuffer buffer = networkConnection.readQueryResponseFromServer(httpURLConnection);
+
+      addCookiesToCookieStoreFromResponse(httpURLConnection);
 
       // setup a reader for the JSON response
       StringReader stringReader =
@@ -373,6 +406,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
         resultStream = httpURLConnection.getInputStream();
         BufferedReader reader = new BufferedReader(new InputStreamReader(resultStream));
         LOG.debug("Response code from LogSearch Service is = " + httpURLConnection.getResponseCode());
+
 
         String line = reader.readLine();
         StringBuffer buffer = new StringBuffer();

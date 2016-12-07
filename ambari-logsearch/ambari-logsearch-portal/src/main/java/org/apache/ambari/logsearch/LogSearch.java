@@ -30,6 +30,7 @@ import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.ApplicationConfig;
 import org.apache.ambari.logsearch.util.SSLUtil;
+import org.apache.ambari.logsearch.web.listener.LogSearchSessionListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Connector;
@@ -66,7 +67,7 @@ public class LogSearch {
 
   private static final String WEB_RESOURCE_FOLDER = "webapps/app";
   private static final String ROOT_CONTEXT = "/";
-  private static final Integer SESSION_TIMEOUT = 30;
+  private static final Integer SESSION_TIMEOUT = 60 * 30;
 
 
   public static void main(String[] argv) {
@@ -136,6 +137,7 @@ public class LogSearch {
     context.setBaseResource(Resource.newResource(webResourceBase));
     context.setContextPath(ROOT_CONTEXT);
     context.setParentLoaderPriority(true);
+    context.addEventListener(new LogSearchSessionListener());
 
     // Configure Spring
     context.addEventListener(new ContextLoaderListener());
