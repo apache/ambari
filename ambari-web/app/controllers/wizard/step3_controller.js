@@ -1081,7 +1081,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   getHostCheckTasksSuccess: function (data) {
     if (!data) {
-      return;
+      return this.getGeneralHostCheck();
     }
     if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(data.Requests.request_status)) {
       if (data.Requests.inputs.indexOf("last_agent_env_check") != -1) {
