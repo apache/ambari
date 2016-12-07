@@ -364,6 +364,7 @@ def ams(name=None, action=None):
     Directory(params.ams_monitor_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               mode=0755,
               create_parents = True
     )
