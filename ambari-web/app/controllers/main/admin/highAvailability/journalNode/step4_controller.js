@@ -60,11 +60,7 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
 
   reconfigureHDFS: function () {
     var data = this.get('content.serviceConfigProperties');
-    if (App.get('isKerberosEnabled')) {
-      // TODO this.reconfigureSecureHDFS();
-    } else {
-      this.updateConfigProperties(data);
-    }
+    this.updateConfigProperties(data);
   },
 
   /**
