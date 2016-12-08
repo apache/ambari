@@ -154,12 +154,7 @@ class CustomServiceOrchestrator():
         self.file_cache.get_host_scripts_base_dir(server_url_prefix)          
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
-        from ActionQueue import ActionQueue  # To avoid cyclic dependency
-        if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
-          logger.info("Found it - " + str(command[self.COMMAND_TYPE]) + " yeah")
-          # limiting to only EXECUTION_COMMANDs for now
-          # TODO need a design for limiting to specific role/component such as METRICS_GRAFANA
-          self.file_cache.get_dashboard_base_dir(server_url_prefix)
+        self.file_cache.get_custom_resources_subdir(command, server_url_prefix)
 
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)

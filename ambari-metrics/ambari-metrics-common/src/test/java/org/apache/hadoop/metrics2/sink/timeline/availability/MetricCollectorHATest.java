@@ -49,7 +49,6 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 @PrepareForTest({AbstractTimelineMetricsSink.class, URL.class, HttpURLConnection.class, MetricCollectorHAHelper.class})
 public class MetricCollectorHATest {
 
-  @Ignore
   @Test
   public void findCollectorUsingZKTest() throws Exception {
     InputStream is = createNiceMock(InputStream.class);

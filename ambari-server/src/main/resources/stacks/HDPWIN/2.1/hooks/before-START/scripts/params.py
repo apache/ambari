@@ -22,7 +22,7 @@ import nturl2path
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 
 config = Script.get_config()
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \

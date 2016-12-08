@@ -66,6 +66,11 @@
   <xs:simpleType name="config-condition-comparison-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="equals" />
+      <xs:enumeration value="not-equals" />
+      <xs:enumeration value="contains" />
+      <xs:enumeration value="not-contains" />
+      <xs:enumeration value="exists" />
+      <xs:enumeration value="not-exists" />
     </xs:restriction>
   </xs:simpleType>
   
@@ -76,7 +81,8 @@
       <xs:extension base="abstract-condition-type">  
         <xs:attribute name="type" type="xs:Name" use="required"/>
         <xs:attribute name="property" type="xs:Name" use="required"/>
-        <xs:attribute name="value" type="xs:string" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="optional"/>
+        <xs:attribute name="return_value_if_config_missing" type="xs:boolean" use="optional"/>
         <xs:attribute name="comparison" type="config-condition-comparison-type" use="required"/>
       </xs:extension>
     </xs:complexContent>
@@ -392,7 +398,15 @@
         <xs:element name="type" type="upgrade-kind-type" />
         <xs:element name="prerequisite-checks" type="prerequisite-check-type" minOccurs="0" />
         <xs:element name="upgrade-path" type="upgrade-path-type" minOccurs="0" /> 
-        <xs:element name="order" type="order-type" />
+        <xs:element name="order" type="order-type">
+          <xs:unique name="unique-by-group">
+            <xs:annotation>
+              <xs:documentation>Ensures that the element "processing" does not have duplicate services</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="group" />
+            <xs:field xpath="@name" />
+          </xs:unique>
+        </xs:element>
         <xs:element name="processing" type="processing-type">
           <xs:unique name="unique-by-service">
             <xs:annotation>

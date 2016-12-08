@@ -25,6 +25,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
@@ -54,7 +55,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,10 +79,10 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
@@ -894,17 +894,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public Config createConfig(Cluster cluster, String type, Map<String, String> properties,
                              String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
-    Config config = configFactory.createNew(cluster, type,
-      properties, propertiesAttributes);
 
-    if (!StringUtils.isEmpty(versionTag)) {
-      config.setTag(versionTag);
-    }
-
-    config.persist();
+    Config config = configFactory.createNew(cluster, type, versionTag, properties,
+        propertiesAttributes);
 
     cluster.addConfig(config);
-
     return config;
   }
 
@@ -1253,7 +1247,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
 
-            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
+            MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, host);
+            if(filterByMaintenanceState(request, effectiveMaintenanceState)) {
+              continue;
+            }
+            r.setMaintenanceState(effectiveMaintenanceState.name());
+
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() == null || request.getComponentName() == null) {
@@ -1304,13 +1303,36 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
 
-            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
+            MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, host);
+            if(filterByMaintenanceState(request, effectiveMaintenanceState)) {
+              continue;
+            }
+            r.setMaintenanceState(effectiveMaintenanceState.name());
+
             response.add(r);
           }
         }
       }
     }
     return response;
+  }
+
+  private boolean filterByMaintenanceState(ServiceComponentHostRequest request, MaintenanceState effectiveMaintenanceState) {
+    if (request.getMaintenanceState() != null) {
+      MaintenanceState desiredMaintenanceState = MaintenanceState.valueOf(request.getMaintenanceState());
+      if (desiredMaintenanceState.equals(MaintenanceState.ON)) {
+        /*
+         * if we want components with ON state it can be one of IMPLIED_FROM_SERVICE,
+         * IMPLIED_FROM_SERVICE_AND_HOST, IMPLIED_FROM_HOST, ON, ro simply - not OFF
+         */
+        if (effectiveMaintenanceState.equals(MaintenanceState.OFF)) {
+          return true;
+        }
+      } else if (!desiredMaintenanceState.equals(effectiveMaintenanceState)){
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -2216,6 +2238,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     commandParams.put(SERVICE_PACKAGE_FOLDER,
       serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+
+    String customCacheDirectory = componentInfo.getCustomFolder();
+    if (customCacheDirectory != null) {
+      File customCache = new File(configs.getResourceDirPath(), customCacheDirectory);
+      if (customCache.exists() && customCache.isDirectory()) {
+        commandParams.put(CUSTOM_FOLDER, customCacheDirectory);
+      }
+    }
 
     String clusterName = cluster.getClusterName();
     if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {

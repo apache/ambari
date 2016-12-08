@@ -133,6 +133,9 @@ public class ComponentInfo {
 
   private String timelineAppid;
 
+  @XmlElement(name="customFolder")
+  private String customFolder;
+
   public ComponentInfo() {
   }
 
@@ -158,6 +161,7 @@ public class ComponentInfo {
     clientConfigFiles = prototype.clientConfigFiles;
     timelineAppid = prototype.timelineAppid;
     reassignAllowed = prototype.reassignAllowed;
+    customFolder = prototype.customFolder;
   }
 
   public String getName() {
@@ -396,6 +400,14 @@ public class ComponentInfo {
     this.reassignAllowed = reassignAllowed;
   }
 
+  public String getCustomFolder() {
+    return customFolder;
+  }
+
+  public void setCustomFolder(String customFolder) {
+    this.customFolder = customFolder;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -426,6 +438,7 @@ public class ComponentInfo {
     if (name != null ? !name.equals(that.name) : that.name != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) :
         that.clientConfigFiles != null) return false;
+    if (customFolder != null ? !customFolder.equals(that.customFolder) : that.customFolder != null) return false;
 
     return true;
   }
@@ -450,6 +463,7 @@ public class ComponentInfo {
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
     // NULL = 0, TRUE = 2, FALSE = 1
     result = 31 * result + (versionAdvertisedField != null ? (versionAdvertisedField.booleanValue() ? 2 : 1) : 0);
+    result = 31 * result + (customFolder != null ? customFolder.hashCode() : 0);
     return result;
   }
 

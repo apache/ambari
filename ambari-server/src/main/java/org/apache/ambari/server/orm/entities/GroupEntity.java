@@ -101,7 +101,7 @@ public class GroupEntity {
     return ldapGroup == 0 ? Boolean.FALSE : Boolean.TRUE;
   }
 
-  public void setLdapGroup(Boolean ldapGroup) {
+  private void setLdapGroup(Boolean ldapGroup) {
     if (ldapGroup == null) {
       this.ldapGroup = null;
     } else {
@@ -113,8 +113,9 @@ public class GroupEntity {
     return groupType;
   }
 
-  public void setgroupType(GroupType groupType) {
+  public void setGroupType(GroupType groupType) {
     this.groupType = groupType;
+    setLdapGroup(groupType == GroupType.LDAP);
   }
 
   public Set<MemberEntity> getMemberEntities() {

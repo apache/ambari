@@ -25,7 +25,7 @@ limitations under the License.
   </appender>
 
   <appender name="rolling_file" class="org.apache.log4j.RollingFileAppender">
-    <param name="file" value="{{logsearch_log_dir}}/logsearch.err" />
+    <param name="file" value="{{logsearch_log_dir}}/logsearch.log" />
     <param name="Threshold" value="info" />
     <param name="append" value="true" />
     <param name="maxFileSize" value="10MB" />
@@ -74,7 +74,7 @@ limitations under the License.
   </category>
 
   <root>
-    <priority value="warn"/>
+    <priority value="info"/>
     <!-- <appender-ref ref="console" /> -->
     <appender-ref ref="rolling_file" />
     <appender-ref ref="rolling_file_json"/>

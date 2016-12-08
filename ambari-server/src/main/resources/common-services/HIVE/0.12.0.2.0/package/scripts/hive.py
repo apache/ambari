@@ -229,7 +229,7 @@ def hive(name=None):
             mode=0644)
 
   # Generate atlas-application.properties.xml file
-  if has_atlas_in_cluster():
+  if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
   

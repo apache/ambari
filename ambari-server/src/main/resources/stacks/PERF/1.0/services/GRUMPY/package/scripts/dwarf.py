@@ -33,6 +33,10 @@ class Grumpy(Dummy):
   def __init__(self):
     super(Grumpy, self).__init__()
     self.component_name = "GRUMPY"
+    self.principal_conf_name = "grumpy-site"
+    self.principal_name = "grumpy.grumpy.kerberos.principal"
+    self.keytab_conf_name = "grumpy-site"
+    self.keytab_name = "grumpy.grumpy.keytab.file"
 
 if __name__ == "__main__":
   Grumpy().execute()

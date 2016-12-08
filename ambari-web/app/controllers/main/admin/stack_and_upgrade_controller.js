@@ -52,6 +52,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeType: null,
 
   /**
+   * @type {Em.Object}
+   */
+  upgradeTypeConfig: Em.computed.findByKey('upgradeMethods', 'type', 'upgradeType'),
+
+  /**
+   * @type {boolean}
+   */
+  cantBeStarted: Em.computed.alias('upgradeTypeConfig.cantBeStarted'),
+
+  /**
    * @type {boolean}
    * @default true
    */
@@ -160,7 +170,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       precheckResultsMessage: '',
       precheckResultsTitle: '',
       action: '',
-      isWizardRestricted: !App.supports.enabledWizardForHostOrderedUpgrade
+      isWizardRestricted: !App.supports.enabledWizardForHostOrderedUpgrade,
+      cantBeStarted: true
     })
   ],
 

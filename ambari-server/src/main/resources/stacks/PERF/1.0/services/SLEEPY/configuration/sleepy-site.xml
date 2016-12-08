@@ -33,4 +33,16 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>sleepy_user</name>
+    <display-name>sleepy User</display-name>
+    <value>sleepy</value>
+    <property-type>USER</property-type>
+    <description>sleepy Username.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

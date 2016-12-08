@@ -33,6 +33,10 @@ class HistoryServer(Dummy):
   def __init__(self):
     super(HistoryServer, self).__init__()
     self.component_name = "HISTORYSERVER"
+    self.principal_conf_name = "mapred-site"
+    self.principal_name = "mapreduce.jobhistory.principal"
+    self.keytab_conf_name = "mapred-site"
+    self.keytab_name = "mapreduce.jobhistory.keytab"
 
 if __name__ == "__main__":
   HistoryServer().execute()

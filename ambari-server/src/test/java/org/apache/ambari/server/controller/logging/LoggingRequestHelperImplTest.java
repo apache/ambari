@@ -122,6 +122,7 @@ public class LoggingRequestHelperImplTest {
 
   @Test
   public void testLogQueryRequestBasic() throws Exception {
+    LoggingCookieStore.INSTANCE.getCookiesMap().clear();
     EasyMockSupport mockSupport =
       new EasyMockSupport();
 
@@ -301,6 +302,7 @@ public class LoggingRequestHelperImplTest {
 
   @Test
   public void testLogLevelRequestBasic() throws Exception {
+    LoggingCookieStore.INSTANCE.getCookiesMap().clear();
     EasyMockSupport mockSupport =
       new EasyMockSupport();
 
@@ -391,6 +393,7 @@ public class LoggingRequestHelperImplTest {
 
   @Test
   public void testLogFileNameRequestBasic() throws Exception {
+    LoggingCookieStore.INSTANCE.getCookiesMap().clear();
     final String expectedComponentName = "hdfs_namenode";
 
     EasyMockSupport mockSupport =
@@ -478,6 +481,7 @@ public class LoggingRequestHelperImplTest {
    */
   @Test
   public void testLogQueryRequestBasicCredentialsNotInConfig() throws Exception {
+    LoggingCookieStore.INSTANCE.getCookiesMap().clear();
     final String expectedClusterName = "my-test-cluster";
 
     EasyMockSupport mockSupport =
@@ -656,6 +660,7 @@ public class LoggingRequestHelperImplTest {
 
   @Test
   public void testCreateLogFileTailURI() throws Exception {
+    LoggingCookieStore.INSTANCE.getCookiesMap().clear();
     final String expectedHostName = "c6401.ambari.apache.org";
     final String expectedPort = "61888";
     final String expectedComponentName = "hdfs_namenode";

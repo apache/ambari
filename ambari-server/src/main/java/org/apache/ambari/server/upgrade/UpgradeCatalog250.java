@@ -19,14 +19,6 @@ package org.apache.ambari.server.upgrade;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -39,6 +31,14 @@ import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -137,6 +137,8 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHIVEInteractiveConfigs();
     updateTEZInteractiveConfigs();
     updateHiveLlapConfigs();
+    updateTablesForZeppelinViewRemoval();
+    updateAtlasConfigs();
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -178,6 +180,11 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateTablesForZeppelinViewRemoval() throws SQLException {
+    dbAccessor.executeQuery("DELETE from viewinstance WHERE view_name='ZEPPELIN{1.0.0}'", true);
+    dbAccessor.executeQuery("DELETE from viewmain WHERE view_name='ZEPPELIN{1.0.0}'", true);
+    dbAccessor.executeQuery("DELETE from viewparameter WHERE view_name='ZEPPELIN{1.0.0}'", true);
+  }
 
   protected String updateAmsEnvContent(String content) {
     if (content == null) {
@@ -374,5 +381,33 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
       }
     }
   }
-}
 
+  protected void updateAtlasConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          updateAtlasHookConfig(cluster, "HIVE", "hive-env", "hive.atlas.hook");
+          updateAtlasHookConfig(cluster, "STORM", "storm-env", "storm.atlas.hook");
+          updateAtlasHookConfig(cluster, "FALCON", "falcon-env", "falcon.atlas.hook");
+          updateAtlasHookConfig(cluster, "SQOOP", "sqoop-env", "sqoop.atlas.hook");
+        }
+      }
+    }
+  }
+
+  protected void updateAtlasHookConfig(Cluster cluster, String serviceName, String configType, String propertyName) throws AmbariException {
+      Set<String> installedServices = cluster.getServices().keySet();
+      if (installedServices.contains("ATLAS") && installedServices.contains(serviceName)) {
+        Config configEnv = cluster.getDesiredConfigByType(configType);
+        if (configEnv != null) {
+          Map<String, String> newProperties = new HashMap<>();
+          newProperties.put(propertyName, "true");
+          boolean updateProperty = configEnv.getProperties().containsKey(propertyName);
+          updateConfigurationPropertiesForCluster(cluster, configType, newProperties, updateProperty, true);
+        }
+      }
+    }
+}

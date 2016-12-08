@@ -23,7 +23,6 @@ import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -51,8 +50,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
 
     LoggingRequestHelper helperMock =
       mockSupport.createMock(LoggingRequestHelper.class);
@@ -62,8 +60,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     mockSupport.replayAll();
 
-    LogSearchDataRetrievalService retrievalService =
-      new LogSearchDataRetrievalService();
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
@@ -71,8 +68,7 @@ public class LogSearchDataRetrievalServiceTest {
     String resultTailFileURI =
       retrievalService.getLogFileTailURI("http://localhost", expectedComponentName, expectedHostName, expectedClusterName);
 
-    assertEquals("TailFileURI was not returned as expected",
-                 expectedResultURI, resultTailFileURI);
+    assertEquals("TailFileURI was not returned as expected", expectedResultURI, resultTailFileURI);
 
     mockSupport.verifyAll();
   }
@@ -85,8 +81,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
 
     // return null, to simulate the case where LogSearch Server is
     // not available for some reason
@@ -94,8 +89,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     mockSupport.replayAll();
 
-    LogSearchDataRetrievalService retrievalService =
-      new LogSearchDataRetrievalService();
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
@@ -103,11 +97,9 @@ public class LogSearchDataRetrievalServiceTest {
     String resultTailFileURI =
       retrievalService.getLogFileTailURI("http://localhost", expectedComponentName, expectedHostName, expectedClusterName);
 
-    assertNull("TailFileURI should be null in this case",
-               resultTailFileURI);
+    assertNull("TailFileURI should be null in this case", resultTailFileURI);
 
     mockSupport.verifyAll();
-
   }
 
   @Test
@@ -118,11 +110,9 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
 
-    Executor executorMock =
-      mockSupport.createMock(Executor.class);
+    Executor executorMock = mockSupport.createMock(Executor.class);
 
     // expect the executor to be called to execute the LogSearch request
     executorMock.execute(isA(LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable.class));
@@ -131,24 +121,19 @@ public class LogSearchDataRetrievalServiceTest {
 
     mockSupport.replayAll();
 
-    LogSearchDataRetrievalService retrievalService =
-      new LogSearchDataRetrievalService();
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
     retrievalService.setExecutor(executorMock);
 
 
-    assertEquals("Default request set should be empty",
-                 0, retrievalService.getCurrentRequests().size());
+    assertEquals("Default request set should be empty", 0, retrievalService.getCurrentRequests().size());
 
-    Set<String> resultSet =
-      retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
+    Set<String> resultSet = retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
 
-    assertNull("Inital query on the retrieval service should be null, since cache is empty by default",
-                resultSet);
-    assertEquals("Incorrect number of entries in the current request set",
-                 1, retrievalService.getCurrentRequests().size());
+    assertNull("Inital query on the retrieval service should be null, since cache is empty by default", resultSet);
+    assertEquals("Incorrect number of entries in the current request set", 1, retrievalService.getCurrentRequests().size());
     assertTrue("Incorrect HostComponent set on request set",
                 retrievalService.getCurrentRequests().contains(expectedComponentName + "+" + expectedHostName));
 
@@ -163,16 +148,13 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
 
-    Executor executorMock =
-      mockSupport.createMock(Executor.class);
+    Executor executorMock = mockSupport.createMock(Executor.class);
 
     mockSupport.replayAll();
 
-    LogSearchDataRetrievalService retrievalService =
-      new LogSearchDataRetrievalService();
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
@@ -184,16 +166,15 @@ public class LogSearchDataRetrievalServiceTest {
     // but is not yet completed.
     retrievalService.getCurrentRequests().add(expectedComponentName + "+" + expectedHostName);
 
-    Set<String> resultSet =
-      retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
+    Set<String> resultSet = retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
 
-    assertNull("Inital query on the retrieval service should be null, since cache is empty by default",
-      resultSet);
+    assertNull("Inital query on the retrieval service should be null, since cache is empty by default", resultSet);
 
     mockSupport.verifyAll();
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testRunnableWithSuccessfulCall() throws Exception {
     final String expectedHostName = "c6401.ambari.apache.org";
     final String expectedComponentName = "DATANODE";
@@ -202,17 +183,12 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
-    AmbariManagementController controllerMock =
-      mockSupport.createMock(AmbariManagementController.class);
-    LoggingRequestHelper helperMock =
-      mockSupport.createMock(LoggingRequestHelper.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+    AmbariManagementController controllerMock = mockSupport.createMock(AmbariManagementController.class);
+    LoggingRequestHelper helperMock = mockSupport.createMock(LoggingRequestHelper.class);
 
-    Cache cacheMock =
-      mockSupport.createMock(Cache.class);
-    Set currentRequestsMock =
-      mockSupport.createMock(Set.class);
+    Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
+    Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.singleton("/this/is/just/a/test/directory"));
@@ -225,14 +201,14 @@ public class LogSearchDataRetrievalServiceTest {
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-                                                                         cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
     loggingRunnable.run();
 
     mockSupport.verifyAll();
-
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testRunnableWithFailedCallNullHelper() throws Exception {
     final String expectedHostName = "c6401.ambari.apache.org";
     final String expectedComponentName = "DATANODE";
@@ -241,15 +217,11 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
-    AmbariManagementController controllerMock =
-      mockSupport.createMock(AmbariManagementController.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+    AmbariManagementController controllerMock = mockSupport.createMock(AmbariManagementController.class);
 
-    Cache cacheMock =
-      mockSupport.createMock(Cache.class);
-    Set currentRequestsMock =
-      mockSupport.createMock(Set.class);
+    Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
+    Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
 
     // return null to simulate an error during helper instance creation
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(null);
@@ -261,7 +233,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-        cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
     loggingRunnable.run();
 
     mockSupport.verifyAll();
@@ -269,6 +241,7 @@ public class LogSearchDataRetrievalServiceTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testRunnableWithFailedCallNullResult() throws Exception {
     final String expectedHostName = "c6401.ambari.apache.org";
     final String expectedComponentName = "DATANODE";
@@ -277,17 +250,12 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
-    AmbariManagementController controllerMock =
-      mockSupport.createMock(AmbariManagementController.class);
-    LoggingRequestHelper helperMock =
-      mockSupport.createMock(LoggingRequestHelper.class);
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+    AmbariManagementController controllerMock = mockSupport.createMock(AmbariManagementController.class);
+    LoggingRequestHelper helperMock = mockSupport.createMock(LoggingRequestHelper.class);
 
-    Cache cacheMock =
-      mockSupport.createMock(Cache.class);
-    Set currentRequestsMock =
-      mockSupport.createMock(Set.class);
+    Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
+    Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
@@ -300,11 +268,43 @@ public class LogSearchDataRetrievalServiceTest {
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-        cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
     loggingRunnable.run();
 
     mockSupport.verifyAll();
-
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testRunnableWithFailedCallEmptyResult() throws Exception {
+    final String expectedHostName = "c6401.ambari.apache.org";
+    final String expectedComponentName = "DATANODE";
+    final String expectedClusterName = "clusterone";
+    final String expectedComponentAndHostName = expectedComponentName + "+" + expectedHostName;
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+    AmbariManagementController controllerMock = mockSupport.createMock(AmbariManagementController.class);
+    LoggingRequestHelper helperMock = mockSupport.createMock(LoggingRequestHelper.class);
+
+    Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
+    Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
+
+    expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
+    // return null to simulate an error occurring during the LogSearch data request
+    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.EMPTY_SET);
+    // expect that the completed request is removed from the current request set,
+    // even in the event of a failure to obtain the LogSearch data
+    expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
+
+    mockSupport.replayAll();
+
+    LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
+      new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
+          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+    loggingRunnable.run();
+
+    mockSupport.verifyAll();
+  }
 }

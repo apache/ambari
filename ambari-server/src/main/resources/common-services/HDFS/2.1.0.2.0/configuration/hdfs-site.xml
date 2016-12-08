@@ -395,7 +395,7 @@
   <property>
     <name>dfs.cluster.administrators</name>
     <value> hdfs</value>
-    <description>ACL for who all can view the default servlets in the HDFS</description>
+    <description>ACL for the admins, this configuration is used to control who can access the default servlets in the namenode, etc. The value should be a comma separated list of users and groups. The user list comes first and is separated by a space followed by the group list, e.g. "user1,user2 group1,group2". Both users and groups are optional, so "user1", " group1", "", "user1 group1", "user1,user2 group1,group2" are all valid (note the leading space in " group1"). '*' grants access to all users and groups, e.g. '*', '* ' and ' *' are all valid.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

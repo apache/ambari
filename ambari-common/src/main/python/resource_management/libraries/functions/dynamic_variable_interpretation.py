@@ -185,7 +185,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, stack_select_component_name, component
                    (get_stack_version_cmd, str(code), str(out)))
     return 1
 
-  matches = re.findall(r"([\d\.]+\-\d+)", out)
+  matches = re.findall(r"([\d\.]+(?:-\d+)?)", out)
   stack_version = matches[0] if matches and len(matches) > 0 else None
 
   if not stack_version:

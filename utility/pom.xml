@@ -20,6 +20,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-project</artifactId>
+    <version>2.5.0.0.0</version>
+    <relativePath>../ambari-project</relativePath>
+  </parent>
+
   <artifactId>utility</artifactId>
   <groupId>utility</groupId>
   <version>1.0.0.0-SNAPSHOT</version>
@@ -28,8 +35,24 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
       <scope>compile</scope>    <!-- has to be compile-time dependency on junit -->
+    </dependency>
+    <dependency>
+      <groupId>com.puppycrawl.tools</groupId>
+      <artifactId>checkstyle</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.puppycrawl.tools</groupId>
+      <artifactId>checkstyle</artifactId>
+      <type>test-jar</type>
+      <version>${checkstyle.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>19.0</version> <!-- required for checkstyle -->
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -42,6 +65,14 @@
           <source>1.7</source>
           <target>1.7</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>${project.parent.basedir}/src/main/assemblies/empty.xml</descriptor>
+          </descriptors>
         </configuration>
       </plugin>
       <plugin>

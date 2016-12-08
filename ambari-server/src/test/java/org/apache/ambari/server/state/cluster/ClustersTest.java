@@ -405,19 +405,15 @@ public class ClustersTest {
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 
-    final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
+    final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "1",
         new HashMap<String, String>() {{
           put("prop1", "val1");
         }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("1");
-    config1.persist();
 
-    Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
+    Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "2",
         new HashMap<String, String>() {{
           put("prop2", "val2");
         }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("2");
-    config2.persist();
 
     // cluster desired config
     cluster.addDesiredConfig("_test", Collections.singleton(config1));

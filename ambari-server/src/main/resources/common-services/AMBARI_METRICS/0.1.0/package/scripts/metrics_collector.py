@@ -38,6 +38,8 @@ class AmsCollector(Script):
   def configure(self, env, action = None):
     import params
     env.set_params(params)
+    if action == 'start' and params.embedded_mode_multiple_instances:
+      raise Fail("AMS in embedded mode cannot have more than 1 instance. Delete all but 1 instances or switch to Distributed mode ")
     hbase('master', action)
     hbase('regionserver', action)
     ams(name='collector')

@@ -289,6 +289,11 @@
       "min_version": "2.5.0.0"
     },
     {
+      "name": "ranger_setup_db_on_start",
+      "description": "Allows setup of ranger db and java patches to be called multiple times on each START",
+      "min_version": "2.6.0.0"
+    },
+    {
       "name": "storm_metrics_apache_classes",
       "description": "Metrics sink for Storm that uses Apache class names",
       "min_version": "2.5.0.0"

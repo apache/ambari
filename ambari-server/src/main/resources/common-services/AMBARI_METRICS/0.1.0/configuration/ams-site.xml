@@ -716,4 +716,16 @@
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>cluster.zookeeper.quorum</name>
+    <value>{{cluster_zookeeper_quorum_hosts}}</value>
+    <description>Comma separated list of servers in the cluster ZooKeeper Quorum.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>cluster.zookeeper.property.clientPort</name>
+    <value>{{cluster_zookeeper_clientPort}}</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

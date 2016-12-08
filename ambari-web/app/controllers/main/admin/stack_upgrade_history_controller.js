@@ -213,5 +213,5 @@ App.MainAdminStackUpgradeHistoryController = Em.ArrayController.extend({
     } else {
       return ''
     }
-  }.property('upgradeData.Upgrade.request_status'),
+  }.property('upgradeData.Upgrade.request_status')
 });

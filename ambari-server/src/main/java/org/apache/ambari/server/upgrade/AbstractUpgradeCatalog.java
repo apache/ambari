@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -41,11 +46,6 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -447,11 +447,16 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     Config hdfsSiteConfig = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_HDFS_SITE);
     if (hdfsSiteConfig != null) {
       Map<String, String> properties = hdfsSiteConfig.getProperties();
+      if (properties.containsKey("dfs.internal.nameservices")) {
+        return true;
+      }
       String nameServices = properties.get(PROPERTY_DFS_NAMESERVICES);
       if (!StringUtils.isEmpty(nameServices)) {
-        String namenodes = properties.get(String.format("dfs.ha.namenodes.%s", nameServices));
-        if (!StringUtils.isEmpty(namenodes)) {
-          return (namenodes.split(",").length > 1);
+        for (String nameService : nameServices.split(",")) {
+          String namenodes = properties.get(String.format("dfs.ha.namenodes.%s", nameService));
+          if (!StringUtils.isEmpty(namenodes)) {
+            return (namenodes.split(",").length > 1);
+          }
         }
       }
     }
@@ -580,8 +585,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
 
         if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
-          LOG.info("Applying configuration with tag '{}' to " +
-            "cluster '{}'", newTag, cluster.getClusterName());
+          LOG.info("Applying configuration with tag '{}' and configType '{}' to " +
+            "cluster '{}'", newTag, configType, cluster.getClusterName());
 
           Map<String, Map<String, String>> propertiesAttributes = null;
           if (oldConfig != null) {

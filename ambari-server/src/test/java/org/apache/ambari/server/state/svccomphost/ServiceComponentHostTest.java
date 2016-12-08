@@ -221,11 +221,8 @@ public class ServiceComponentHostTest {
 
     Cluster c = clusters.getCluster(clusterName);
     if (c.getConfig("time", String.valueOf(timestamp)) == null) {
-      Config config = configFactory.createNew (c, "time",
+      Config config = configFactory.createNew (c, "time", String.valueOf(timestamp),
           new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
-      config.setTag(String.valueOf(timestamp));
-      c.addConfig(config);
-      config.persist();
     }
 
     switch (eventType) {
@@ -564,7 +561,6 @@ public class ServiceComponentHostTest {
     final ConfigGroup configGroup = configGroupFactory.createNew(cluster,
       "cg1", "t1", "", new HashMap<String, Config>(), new HashMap<Long, Host>());
 
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     Map<String, Map<String,String>> actual =
@@ -815,17 +811,14 @@ public class ServiceComponentHostTest {
     final Host host = clusters.getHostsForCluster(clusterName).get(hostName);
     Assert.assertNotNull(host);
 
-    final Config c = configFactory.createNew(cluster, "hdfs-site",
+    final Config c = configFactory.createNew(cluster, "hdfs-site", "version3",
         new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://goo"); }},
         new HashMap<String, Map<String,String>>());
-    c.setTag("version3");
-    c.persist();
-    cluster.addConfig(c);
+
     host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "g1",
       "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     // HDP-x/HDFS/hdfs-site updated host to changed property
@@ -876,16 +869,12 @@ public class ServiceComponentHostTest {
 
     sch1.updateActualConfigs(actual);
 
-    final Config c1 = configFactory.createNew(cluster, "core-site",
+    final Config c1 = configFactory.createNew(cluster, "core-site", "version2",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
       new HashMap<String, Map<String,String>>());
-    c1.setTag("version2");
-    c1.persist();
-    cluster.addConfig(c1);
     configGroup = configGroupFactory.createNew(cluster, "g2",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -1039,10 +1028,7 @@ public class ServiceComponentHostTest {
    * @param values the values for the config
    */
   private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) {
-    Config config = configFactory.createNew(cluster, type, values, attributes);
-    config.setTag(tag);
-    config.persist();
-    cluster.addConfig(config);
+    Config config = configFactory.createNew(cluster, type, tag, values, attributes);
     cluster.addDesiredConfig("user", Collections.singleton(config));
   }
 

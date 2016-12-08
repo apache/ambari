@@ -294,6 +294,7 @@ class ActionQueue(threading.Thread):
 
     logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}, log_output = {log_command_output}".
                  format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration, log_command_output=log_command_output))
+    command_canceled = False
     while retryDuration >= 0:
       numAttempts += 1
       start = 0
@@ -322,6 +323,7 @@ class ActionQueue(threading.Thread):
           status = self.FAILED_STATUS
           if (commandresult['exitcode'] == -signal.SIGTERM) or (commandresult['exitcode'] == -signal.SIGKILL):
             logger.info('Command with taskId = {cid} was canceled!'.format(cid=taskId))
+            command_canceled = True
             break
 
       if status != self.COMPLETED_STATUS and retryAble and retryDuration > 0:
@@ -337,6 +339,15 @@ class ActionQueue(threading.Thread):
         logger.info("Quit retrying for command with taskId = {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
                     .format(cid=taskId, status=status, retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         break
+
+    # do not fail task which was rescheduled from server
+    if command_canceled:
+      with self.commandQueue.mutex:
+        for com in self.commandQueue.queue:
+          if com['taskId'] == command['taskId']:
+            logger.info('Command with taskId = {cid} was rescheduled by server. '
+                        'Fail report on cancelled command won\'t be sent with heartbeat.'.format(cid=taskId))
+            return
 
     # final result to stdout
     commandresult['stdout'] += '\n\nCommand completed successfully!\n' if status == self.COMPLETED_STATUS else '\n\nCommand failed after ' + str(numAttempts) + ' tries\n'

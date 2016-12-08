@@ -876,6 +876,8 @@ public class UpgradeCatalog210Test {
 
     final Map<String, String> propertiesExpectedHdfs = new HashMap<String, String>();
     final Map<String, String> propertiesExpectedCoreSite = new HashMap<String, String>();
+    propertiesExpectedHdfs.put("dfs.nameservices", "nncl1,nncl2");
+    propertiesExpectedHdfs.put("dfs.ha.namenodes.nncl2", "nn1,nn2");
     propertiesExpectedCoreSite.put("fs.defaultFS", "hdfs://EXAMPLE.COM:8020");
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override

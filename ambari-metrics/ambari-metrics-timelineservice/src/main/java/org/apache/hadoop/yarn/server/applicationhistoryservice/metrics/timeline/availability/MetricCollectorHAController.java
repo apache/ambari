@@ -81,8 +81,8 @@ public class MetricCollectorHAController {
     }
 
     try {
-      String zkClientPort = configuration.getZKClientPort();
-      String zkQuorum = configuration.getZKQuorum();
+      String zkClientPort = configuration.getClusterZKClientPort();
+      String zkQuorum = configuration.getClusterZKQuorum();
 
       if (StringUtils.isEmpty(zkClientPort) || StringUtils.isEmpty(zkQuorum)) {
         throw new Exception("Unable to parse zookeeper quorum. clientPort = "

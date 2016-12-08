@@ -101,6 +101,7 @@
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
           <versionAdvertised>false</versionAdvertised>
+          <customFolder>dashboards</customFolder>
           <commandScript>
             <script>scripts/metrics_grafana.py</script>
             <scriptType>PYTHON</scriptType>

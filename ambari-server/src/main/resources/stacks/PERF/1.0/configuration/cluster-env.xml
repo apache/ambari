@@ -71,5 +71,30 @@
     <description>Security</description>
     <on-ambari-upgrade add="false"/>
   </property>
-
+  <property>
+    <name>user_group</name>
+    <display-name>Hadoop Group</display-name>
+    <value>hadoop</value>
+    <property-type>GROUP</property-type>
+    <description>Hadoop user group.</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>smokeuser</name>
+    <display-name>Smoke User</display-name>
+    <value>ambari-qa</value>
+    <property-type>USER</property-type>
+    <description>User executing service checks</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

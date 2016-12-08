@@ -85,8 +85,8 @@ import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryActio
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -144,6 +144,7 @@ public class UpgradeResourceProviderTest {
   private StackDAO stackDAO;
   private AmbariMetaInfo ambariMetaInfo;
   private TopologyManager topologyManager;
+  private ConfigFactory configFactory;
 
   @Before
   public void before() throws Exception {
@@ -174,6 +175,7 @@ public class UpgradeResourceProviderTest {
 
     amc = injector.getInstance(AmbariManagementController.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
 
     Field field = AmbariServer.class.getDeclaredField("clusterController");
     field.setAccessible(true);
@@ -1046,15 +1048,8 @@ public class UpgradeResourceProviderTest {
     }
 
 
-    Config config = new ConfigImpl("zoo.cfg");
-    config.setProperties(new HashMap<String, String>() {{
-      put("a", "b");
-    }});
-    config.setTag("abcdefg");
-
-    cluster.addConfig(config);
+    Config config = configFactory.createNew(cluster, "zoo.cfg", "abcdefg", Collections.singletonMap("a", "b"), null);
     cluster.addDesiredConfig("admin", Collections.singleton(config));
-
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");

@@ -53,4 +53,16 @@ Ember.Application.initializer({
   }
 });
 
-module.exports = Em.Application.create();
+module.exports = Em.Application.create({
+  Resolver: Ember.DefaultResolver.extend({
+    resolveTemplate: function(parsedName) {
+      var resolvedTemplate = this._super(parsedName);
+      var templateName = 'templates/' + parsedName.fullNameWithoutType.replace(/\./g, '/');
+      if (resolvedTemplate) {
+        return resolvedTemplate;
+      } else {
+        return Ember.TEMPLATES[templateName];
+      }
+    }
+  })
+});

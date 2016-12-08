@@ -49,8 +49,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -112,6 +111,9 @@ public class ComponentVersionCheckActionTest {
 
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
+
+  @Inject
+  private ConfigFactory configFactory;
 
   @Before
   public void setup() throws Exception {
@@ -399,18 +401,11 @@ public class ComponentVersionCheckActionTest {
     properties.put("a", "a1");
     properties.put("b", "b1");
 
-    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, m_injector);
+    configFactory.createNew(cluster, "hdfs-site", "version1", properties, propertiesAttributes);
     properties.put("c", "c1");
     properties.put("d", "d1");
 
-    Config c2 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, m_injector);
-    Config c3 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, m_injector);
-
-    cluster.addConfig(c1);
-    cluster.addConfig(c2);
-    cluster.addConfig(c3);
-    c1.persist();
-    c2.persist();
-    c3.persist();
+    configFactory.createNew(cluster, "core-site", "version1", properties, propertiesAttributes);
+    configFactory.createNew(cluster, "foo-site", "version1", properties, propertiesAttributes);
   }
 }

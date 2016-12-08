@@ -22,11 +22,16 @@
       <li class="alert-list-wrap">
         <div class="row-fluid">
           <div class="span8 name-text">
-            <div>
-              <a href="#" {{action "gotoAlertDetails" alert target="view"}}>{{alert.label}}</a>
-            </div>
-            <div class="definition-latest-text">
-              {{alert.latestText}}
+            <div class="accordion-group block">
+              <div class="accordion-heading" {{action "onToggleBlock" alert target="view"}}>
+                <i {{bindAttr class=":pull-left :accordion-toggle alert.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+                <a class="accordion-toggle" href="#" {{action "gotoAlertDetails" alert target="view"}}>{{alert.label}}</a>
+              </div>
+              <div id="{{unbound alert.clientId}}" class="accordion-body collapse in" style="display: none">
+                <div class="accordion-inner definition-latest-text">
+                  {{alert.latestText}}
+                </div>
+              </div>
             </div>
           </div>
           <div class="span4 status-col" rel="alert-status-tooltip" >

@@ -104,7 +104,7 @@ case "$1" in
 
     # Prepare environment
     # mkdir -p "$LOG_DIR" "$DATA_DIR" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$LOG_DIR" "$DATA_DIR"
-    # touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
+    touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
 
     # if [ -n "$MAX_OPEN_FILES" ]; then
     #   ulimit -n $MAX_OPEN_FILES
@@ -116,10 +116,10 @@ case "$1" in
     return=$?
     if [ $return -eq 0 ]
     then
-      sleep 1
+      sleep 5
       # check if pid file has been written two
       if ! [[ -s $PID_FILE ]]; then
-        echo "Start FAILED" >> $LOG_FILE
+        echo "Start FAILED because daemon did not write pid in pid_file" >> $LOG_FILE
         exit 1
       fi
       i=0

@@ -238,7 +238,7 @@
   </property>
   <property>
     <name>logsearch.spnego.kerberos.enabled</name>
-    <value/>
+    <value>false</value>
     <display-name>Http Spnego enabled</display-name>
     <description>Enable SPNEGO based authentication on the Log Search UI</description>
     <value-attributes>

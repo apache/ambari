@@ -2526,9 +2526,10 @@ public class BlueprintConfigurationProcessor {
         }
 
         boolean isAtlasInCluster = topology.getBlueprint().getServices().contains("ATLAS");
+        boolean isAtlasHiveHookEnabled = Boolean.parseBoolean(properties.get("hive-env").get("hive.atlas.hook"));
 
         // Append atlas hook if not already present.
-        if (isAtlasInCluster) {
+        if (isAtlasInCluster || isAtlasHiveHookEnabled) {
           if (!hiveHooksClean.contains(atlasHookClass)) {
             hiveHooksClean.add(atlasHookClass);
           }

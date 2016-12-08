@@ -29,7 +29,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
 
@@ -83,7 +82,7 @@ public class RangerKmsProxyConfig extends AbstractServerAction {
       targetValues.put(groupProp, "*");
       targetValues.put(hostProp, "*");
       kmsSite.setProperties(targetValues);
-      kmsSite.persist(false);
+      kmsSite.save();
       outputMsg = outputMsg + MessageFormat.format("Successfully added properties to {0}", RANGER_KMS_SITE_CONFIG_TYPE);
     } else {
       outputMsg = outputMsg +  MessageFormat.format("Kerberos not enable, not setting proxy properties to {0}", RANGER_KMS_SITE_CONFIG_TYPE);

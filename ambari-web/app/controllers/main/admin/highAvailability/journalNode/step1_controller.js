@@ -28,8 +28,6 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
 
   mastersToShow: ['JOURNALNODE'],
 
-  mastersToAdd: [],
-
   showInstalledMastersFirst: true,
 
   JOURNALNODES_COUNT_MINIMUM: 3, // TODO get this from stack
@@ -41,18 +39,26 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
    * @param masterComponents
    */
   renderComponents: function(masterComponents) {
-    var jns = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE');
-    var count = jns.get('length');
-    this.set('mastersToAdd', []);
-    if (masterComponents.filterProperty('component_name', 'JOURNALNODE').length == 0) {
-      for (var i = 0; i < count; i++) {
-        this.get('mastersToAdd').push('JOURNALNODE');
-      }
-    }
+    //check if we are restoring components assignment by checking existing of JOURNALNODE component in array
+    var restoringComponents = masterComponents.someProperty('component_name', 'JOURNALNODE');
+    masterComponents = restoringComponents ? masterComponents : masterComponents.concat(this.generateJournalNodeComponents());
     this._super(masterComponents);
     this.updateJournalNodeInfo();
     this.showHideJournalNodesAddRemoveControl();
     this.toggleProperty('nextButtonCheckTrigger');
+  },
+
+  /**
+   * Create JOURNALNODE components to add them to masters array
+   */
+  generateJournalNodeComponents: function () {
+    var journalNodes = [];
+    App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').forEach(function (jn) {
+      var jnComponent = this.createComponentInstallationObject(Em.Object.create({serviceName: jn.get('service.serviceName'), componentName: jn.get('componentName')}), jn.get('hostName'));
+      jnComponent.isInstalled = true;
+      journalNodes.push(jnComponent);
+    }, this);
+    return journalNodes;
   },
 
   /**

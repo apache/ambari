@@ -28,6 +28,7 @@ from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, prin
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import is_root, run_os_command
+from ambari_server.ambariPath import AmbariPath
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
@@ -120,6 +121,8 @@ AMBARI_SERVER_NOT_STARTED_MSG = "Ambari Server java process hasn't been started 
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
 ULIMIT_OPEN_FILES_DEFAULT = 10000
 
+AMBARI_ENV_FILE = AmbariPath.get("/var/lib/ambari-server/ambari-env.sh")
+
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def ensure_server_security_is_configured():
   pass
@@ -178,9 +181,10 @@ def generate_child_process_param_list(ambari_user, java_exe, class_path,
     # from subprocess, we have to skip --login option of su command. That's why
     # we change dir to / (otherwise subprocess can face with 'permission denied'
     # errors while trying to list current directory
-    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c '{command}'".format(ulimit_cmd=ulimit_cmd, 
+    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c 'source {ambari_env_file} ; {command}'".format(ulimit_cmd=ulimit_cmd,
                                                                                 su=locate_file('su', '/bin'), ambari_user=ambari_user,
-                                                                                sh_shell=locate_file('sh', '/bin'), command=command)
+                                                                                sh_shell=locate_file('sh', '/bin'), command=command,
+                                                                                ambari_env_file=AMBARI_ENV_FILE)
   else:
     cmd = "{ulimit_cmd} ; {command}".format(ulimit_cmd=ulimit_cmd, command=command)
     

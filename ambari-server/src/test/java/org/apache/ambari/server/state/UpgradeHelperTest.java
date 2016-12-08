@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -1921,25 +1922,27 @@ public class UpgradeHelperTest {
     ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
     ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
 
-    UpgradePack upgradePack = new UpgradePack() {
-      @Override
-      public List<Grouping> getGroups(Direction direction) {
-        HostOrderItem hostItem = new HostOrderItem(HostOrderActionType.HOST_UPGRADE,
-            Lists.newArrayList("h1", "h2"));
-        HostOrderItem checkItem = new HostOrderItem(HostOrderActionType.SERVICE_CHECK,
-            Lists.newArrayList("ZOOKEEPER", "STORM"));
+    // !!! make a custom grouping
+    HostOrderItem hostItem = new HostOrderItem(HostOrderActionType.HOST_UPGRADE,
+        Lists.newArrayList("h1", "h2"));
+    HostOrderItem checkItem = new HostOrderItem(HostOrderActionType.SERVICE_CHECK,
+        Lists.newArrayList("ZOOKEEPER", "STORM"));
 
-        Grouping g = new HostOrderGrouping();
-        ((HostOrderGrouping) g).setHostOrderItems(Lists.newArrayList(hostItem, checkItem));
-        g.title = "Some Title";
-        return Lists.newArrayList(g);
-      }
+    Grouping g = new HostOrderGrouping();
+    ((HostOrderGrouping) g).setHostOrderItems(Lists.newArrayList(hostItem, checkItem));
+    g.title = "Some Title";
 
-      @Override
-      public Map<String, Map<String, ProcessingComponent>> getTasks() {
-        return new HashMap<>();
-      }
-    };
+    UpgradePack upgradePack = new UpgradePack();
+
+    // !!! set the groups directly; allow the logic in getGroups(Direction) to happen
+    Field field = UpgradePack.class.getDeclaredField("groups");
+    field.setAccessible(true);
+    field.set(upgradePack, Lists.newArrayList(g));
+
+    field = UpgradePack.class.getDeclaredField("type" );
+    field.setAccessible(true);
+    field.set(upgradePack, UpgradeType.HOST_ORDERED);
+
 
     MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
     UpgradeContext context = new UpgradeContext(c, UpgradeType.HOST_ORDERED, Direction.UPGRADE, new HashMap<String, Object>());

@@ -236,10 +236,10 @@ public class CheckDescription {
 
   public static CheckDescription HARDCODED_STACK_VERSION_PROPERTIES_CHECK = new CheckDescription("HARDCODED_STACK_VERSION_PROPERTIES_CHECK",
     PrereqCheckType.CLUSTER,
-    "Found hardcoded hdp stack version in property value.",
+    "Found hardcoded stack version in property value.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "Some properties seem to contain hardcoded hdp version string \"%s\"." +
+          "Some properties seem to contain hardcoded stack version string \"%s\"." +
           " That is a potential problem when doing stack update.").build());
 
   public static CheckDescription VERSION_MISMATCH = new CheckDescription("VERSION_MISMATCH",

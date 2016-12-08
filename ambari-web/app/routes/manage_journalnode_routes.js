@@ -117,7 +117,7 @@ module.exports = App.WizardRoute.extend({
       controller.saveConfigTag(stepController.get("hdfsSiteTag"));
       controller.saveNameServiceId(stepController.get('content.nameServiceId'));
       App.set('router.nextBtnClickInProgress', false);
-      if (controller.isDeleteOnly()) {
+      if (controller.get('isDeleteOnly')) {
         router.transitionTo('step4');
       } else {
         router.transitionTo('step3');
@@ -166,7 +166,7 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var controller = router.get('manageJournalNodeWizardController');
       controller.clearTasksData();
-      if (controller.isDeleteOnly()) {
+      if (controller.get('isDeleteOnly')) {
         router.transitionTo('step8');
       } else {
         router.transitionTo('step5');

@@ -18,27 +18,29 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -49,52 +51,113 @@ public class ConfigImpl implements Config {
    */
   private final static Logger LOG = LoggerFactory.getLogger(ConfigImpl.class);
 
+  /**
+   * A label for {@link #hostLock} to use with the {@link LockFactory}.
+   */
+  private static final String PROPERTY_LOCK_LABEL = "configurationPropertyLock";
+
   public static final String GENERATED_TAG_PREFIX = "generatedTag_";
 
-  private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+  private final long configId;
+  private final Cluster cluster;
+  private final StackId stackId;
+  private final String type;
+  private final String tag;
+  private final Long version;
 
-  private Cluster cluster;
-  private StackId stackId;
-  private String type;
-  private volatile String tag;
-  private volatile Long version;
-  private volatile Map<String, String> properties;
-  private volatile Map<String, Map<String, String>> propertiesAttributes;
-  private ClusterConfigEntity entity;
-  private volatile Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes;
+  /**
+   * The properties of this configuration. This cannot be a
+   * {@link ConcurrentMap} since we allow null values. Therefore, it must be
+   * synchronized externally.
+   */
+  private Map<String, String> properties;
 
-  @Inject
-  private ClusterDAO clusterDAO;
+  /**
+   * A lock for reading/writing of {@link #properties} concurrently.
+   *
+   * @see #properties
+   */
+  private final ReadWriteLock propertyLock;
 
-  @Inject
-  private Gson gson;
+  /**
+   * The property attributes for this configuration.
+   */
+  private Map<String, Map<String, String>> propertiesAttributes;
+
+  private Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes;
+
+  private final ClusterDAO clusterDAO;
+
+  private final Gson gson;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
 
-  @Inject
-  private AmbariEventPublisher eventPublisher;
+  private final AmbariEventPublisher eventPublisher;
 
   @AssistedInject
-  public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties,
-      @Assisted Map<String, Map<String, String>> propertiesAttributes, Injector injector) {
+  ConfigImpl(@Assisted Cluster cluster, @Assisted("type") String type,
+      @Assisted("tag") @Nullable String tag,
+      @Assisted Map<String, String> properties,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+
+    propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
+
     this.cluster = cluster;
     this.type = type;
     this.properties = properties;
-    this.propertiesAttributes = propertiesAttributes;
+
+    // only set this if it's non-null
+    this.propertiesAttributes = null == propertiesAttributes ? null
+        : new HashMap<>(propertiesAttributes);
+
+    this.clusterDAO = clusterDAO;
+    this.gson = gson;
+    this.eventPublisher = eventPublisher;
+    version = cluster.getNextConfigVersion(type);
+
+    // tag is nullable from factory but not in the DB, so ensure we generate something
+    tag = StringUtils.isBlank(tag) ? GENERATED_TAG_PREFIX + version : tag;
+    this.tag = tag;
+
+    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+
+    ClusterConfigEntity entity = new ClusterConfigEntity();
+    entity.setClusterEntity(clusterEntity);
+    entity.setClusterId(cluster.getClusterId());
+    entity.setType(type);
+    entity.setVersion(version);
+    entity.setTag(this.tag);
+    entity.setTimestamp(System.currentTimeMillis());
+    entity.setStack(clusterEntity.getDesiredStack());
+    entity.setData(gson.toJson(properties));
+
+    if (null != propertiesAttributes) {
+      entity.setAttributes(gson.toJson(propertiesAttributes));
+    }
 
     // when creating a brand new config without a backing entity, use the
     // cluster's desired stack as the config's stack
     stackId = cluster.getDesiredStackVersion();
-
-    injector.injectMembers(this);
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
+    persist(entity);
+
+    configId = entity.getConfigId();
   }
 
-
   @AssistedInject
-  public ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity, Injector injector) {
+  ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
+      ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
+      LockFactory lockFactory) {
+    propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
+
     this.cluster = cluster;
+    this.clusterDAO = clusterDAO;
+    this.gson = gson;
+    this.eventPublisher = eventPublisher;
+    configId = entity.getConfigId();
+
     type = entity.getType();
     tag = entity.getTag();
     version = entity.getVersion();
@@ -102,16 +165,71 @@ public class ConfigImpl implements Config {
     // when using an existing entity, use the actual value of the entity's stack
     stackId = new StackId(entity.getStack());
 
-    this.entity = entity;
-    injector.injectMembers(this);
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
+
+    // incur the hit on deserialization since this business object is stored locally
+    try {
+      Map<String, String> deserializedProperties = gson.<Map<String, String>> fromJson(
+          entity.getData(), Map.class);
+
+      if (null == deserializedProperties) {
+        deserializedProperties = new HashMap<>();
+      }
+
+      properties = deserializedProperties;
+    } catch (JsonSyntaxException e) {
+      LOG.error("Malformed configuration JSON stored in the database for {}/{}", entity.getType(),
+          entity.getTag());
+    }
+
+    // incur the hit on deserialization since this business object is stored locally
+    try {
+      Map<String, Map<String, String>> deserializedAttributes = gson.<Map<String, Map<String, String>>> fromJson(
+          entity.getAttributes(), Map.class);
+
+      if (null != deserializedAttributes) {
+        propertiesAttributes = new HashMap<>(deserializedAttributes);
+      }
+    } catch (JsonSyntaxException e) {
+      LOG.error("Malformed configuration attribute JSON stored in the database for {}/{}",
+          entity.getType(), entity.getTag());
+    }
   }
 
   /**
-   * Constructor for clients not using factory.
+   * Constructor. This will create an instance suitable only for
+   * representation/serialization as it is incomplete.
+   *
+   * @param type
+   * @param tag
+   * @param properties
+   * @param propertiesAttributes
+   * @param clusterDAO
+   * @param gson
+   * @param eventPublisher
    */
-  public ConfigImpl(String type) {
+  @AssistedInject
+  ConfigImpl(@Assisted("type") String type,
+      @Assisted("tag") @Nullable String tag,
+      @Assisted Map<String, String> properties,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+
+    propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
+
+    this.tag = tag;
     this.type = type;
+    this.properties = new HashMap<>(properties);
+    this.propertiesAttributes = null == propertiesAttributes ? null
+        : new HashMap<>(propertiesAttributes);
+    this.clusterDAO = clusterDAO;
+    this.gson = gson;
+    this.eventPublisher = eventPublisher;
+
+    cluster = null;
+    configId = 0;
+    version = 0L;
+    stackId = null;
   }
 
   /**
@@ -119,294 +237,100 @@ public class ConfigImpl implements Config {
    */
   @Override
   public StackId getStackId() {
-    readWriteLock.readLock().lock();
-    try {
-      return stackId;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return stackId;
   }
 
   @Override
   public Map<PropertyInfo.PropertyType, Set<String>> getPropertiesTypes() {
-    readWriteLock.readLock().lock();
-    try {
-      return propertiesTypes;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
+    return propertiesTypes;
   }
 
   @Override
   public void setPropertiesTypes(Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.propertiesTypes = propertiesTypes;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-  }
-
-  @Override
-  public void setStackId(StackId stackId) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.stackId = stackId;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+    this.propertiesTypes = propertiesTypes;
   }
 
   @Override
   public String getType() {
-    readWriteLock.readLock().lock();
-    try {
-      return type;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return type;
   }
 
   @Override
   public String getTag() {
-    if (tag == null) {
-      readWriteLock.writeLock().lock();
-      try {
-        if (tag == null) {
-          tag = GENERATED_TAG_PREFIX + getVersion();
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    }
-
-    readWriteLock.readLock().lock();
-    try {
-
-      return tag;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return tag;
   }
 
   @Override
   public Long getVersion() {
-    if (version == null && cluster != null) {
-      readWriteLock.writeLock().lock();
-      try {
-        if (version == null) {
-          version = cluster.getNextConfigVersion(type); //pure DB calculation call, no cluster locking required
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    }
-
-    readWriteLock.readLock().lock();
-    try {
-      return version;
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return version;
   }
 
   @Override
   public Map<String, String> getProperties() {
-    if (null != entity && null == properties) {
-      readWriteLock.writeLock().lock();
-      try {
-        if (properties == null) {
-          properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    }
-
-    readWriteLock.readLock().lock();
+    propertyLock.readLock().lock();
     try {
-      return null == properties ? new HashMap<String, String>()
-          : new HashMap<String, String>(properties);
+      return properties == null ? new HashMap<String, String>() : new HashMap<>(properties);
     } finally {
-      readWriteLock.readLock().unlock();
+      propertyLock.readLock().unlock();
     }
-
   }
 
   @Override
   public Map<String, Map<String, String>> getPropertiesAttributes() {
-    if (null != entity && null == propertiesAttributes) {
-      readWriteLock.writeLock().lock();
-      try {
-        if (propertiesAttributes == null) {
-          propertiesAttributes = gson.<Map<String, Map<String, String>>>fromJson(entity.getAttributes(), Map.class);
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    }
-
-    readWriteLock.readLock().lock();
-    try {
-      return null == propertiesAttributes ? null : new HashMap<String, Map<String, String>>(propertiesAttributes);
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
-  }
-
-  @Override
-  public void setTag(String tag) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.tag = tag;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
-  }
-
-  @Override
-  public void setVersion(Long version) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.version = version;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+    return null == propertiesAttributes ? null
+        : new HashMap<String, Map<String, String>>(propertiesAttributes);
   }
 
   @Override
   public void setProperties(Map<String, String> properties) {
-    readWriteLock.writeLock().lock();
+    propertyLock.writeLock().lock();
     try {
       this.properties = properties;
     } finally {
-      readWriteLock.writeLock().unlock();
+      propertyLock.writeLock().unlock();
     }
-
   }
 
   @Override
   public void setPropertiesAttributes(Map<String, Map<String, String>> propertiesAttributes) {
-    readWriteLock.writeLock().lock();
-    try {
-      this.propertiesAttributes = propertiesAttributes;
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
-
+    this.propertiesAttributes = propertiesAttributes;
   }
 
   @Override
-  public void updateProperties(Map<String, String> properties) {
-    readWriteLock.writeLock().lock();
+  public void updateProperties(Map<String, String> propertiesToUpdate) {
+    propertyLock.writeLock().lock();
     try {
-      this.properties.putAll(properties);
+      properties.putAll(propertiesToUpdate);
     } finally {
-      readWriteLock.writeLock().unlock();
+      propertyLock.writeLock().unlock();
     }
-
   }
 
   @Override
   public List<Long> getServiceConfigVersions() {
-    readWriteLock.readLock().lock();
-    try {
-      if (cluster == null || type == null || version == null) {
-        return Collections.emptyList();
-      }
-      return serviceConfigDAO.getServiceConfigVersionsByConfig(cluster.getClusterId(), type, version);
-    } finally {
-      readWriteLock.readLock().unlock();
-    }
-
+    return serviceConfigDAO.getServiceConfigVersionsByConfig(cluster.getClusterId(), type, version);
   }
 
   @Override
-  public void deleteProperties(List<String> properties) {
-    readWriteLock.writeLock().lock();
+  public void deleteProperties(List<String> propertyKeysToRemove) {
+    propertyLock.writeLock().lock();
     try {
-      for (String key : properties) {
-        this.properties.remove(key);
-      }
+      Set<String> keySet = properties.keySet();
+      keySet.removeAll(propertyKeysToRemove);
     } finally {
-      readWriteLock.writeLock().unlock();
+      propertyLock.writeLock().unlock();
     }
-
-  }
-
-  @Override
-  public void persist() {
-    persist(true);
   }
 
   /**
-   * {@inheritDoc}
+   * Persist the entity and update the internal state relationships once the
+   * transaction has been committed.
    */
-  @Override
-  @Transactional
-  public void persist(boolean newConfig) {
-    readWriteLock.writeLock().lock();
-    try {
-      ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+  private void persist(ClusterConfigEntity entity) {
+    persistEntitiesInTransaction(entity);
 
-      if (newConfig) {
-        ClusterConfigEntity entity = new ClusterConfigEntity();
-        entity.setClusterEntity(clusterEntity);
-        entity.setClusterId(cluster.getClusterId());
-        entity.setType(getType());
-        entity.setVersion(getVersion());
-        entity.setTag(getTag());
-        entity.setTimestamp(new Date().getTime());
-        entity.setStack(clusterEntity.getDesiredStack());
-        entity.setData(gson.toJson(getProperties()));
-
-        if (null != getPropertiesAttributes()) {
-          entity.setAttributes(gson.toJson(getPropertiesAttributes()));
-        }
-
-        clusterDAO.createConfig(entity);
-        clusterEntity.getClusterConfigEntities().add(entity);
-
-        // save the entity, forcing a flush to ensure the refresh picks up the
-        // newest data
-        clusterDAO.merge(clusterEntity, true);
-      } else {
-        // only supporting changes to the properties
-        ClusterConfigEntity entity = null;
-
-        // find the existing configuration to update
-        for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
-          if (getTag().equals(cfe.getTag()) && getType().equals(cfe.getType())
-              && getVersion().equals(cfe.getVersion())) {
-            entity = cfe;
-            break;
-          }
-        }
-
-        // if the configuration was found, then update it
-        if (null != entity) {
-          LOG.debug(
-              "Updating {} version {} with new configurations; a new version will not be created",
-              getType(), getVersion());
-
-          entity.setData(gson.toJson(getProperties()));
-
-          // save the entity, forcing a flush to ensure the refresh picks up the
-          // newest data
-          clusterDAO.merge(clusterEntity, true);
-        }
-      }
-    } finally {
-      readWriteLock.writeLock().unlock();
-    }
+    // ensure that the in-memory state of the cluster is kept consistent
+    cluster.addConfig(this);
 
     // re-load the entity associations for the cluster
     cluster.refresh();
@@ -415,6 +339,52 @@ public class ConfigImpl implements Config {
     ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
         getType(), getTag(), getVersion());
 
+    eventPublisher.publish(event);
+  }
+
+  /**
+   * Persist the cluster and configuration entities in their own transaction.
+   */
+  @Transactional
+  void persistEntitiesInTransaction(ClusterConfigEntity entity) {
+    ClusterEntity clusterEntity = entity.getClusterEntity();
+
+    clusterDAO.createConfig(entity);
+    clusterEntity.getClusterConfigEntities().add(entity);
+
+    // save the entity, forcing a flush to ensure the refresh picks up the
+    // newest data
+    clusterDAO.merge(clusterEntity, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void save() {
+    ClusterConfigEntity entity = clusterDAO.findConfig(configId);
+    ClusterEntity clusterEntity = clusterDAO.findById(entity.getClusterId());
+
+    // if the configuration was found, then update it
+    if (null != entity) {
+      LOG.debug("Updating {} version {} with new configurations; a new version will not be created",
+          getType(), getVersion());
+
+      entity.setData(gson.toJson(getProperties()));
+
+      // save the entity, forcing a flush to ensure the refresh picks up the
+      // newest data
+      clusterDAO.merge(clusterEntity, true);
+
+      // re-load the entity associations for the cluster
+      cluster.refresh();
+
+      // broadcast the change event for the configuration
+      ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
+          getType(), getTag(), getVersion());
+
       eventPublisher.publish(event);
+    }
   }
 }

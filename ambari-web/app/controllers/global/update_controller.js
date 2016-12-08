@@ -249,11 +249,10 @@ App.UpdateController = Em.Controller.extend({
         ]);
       }
       else {
-        // clusterController.isHostsLoaded may be changed in callback, that is why it's value is cached before calling callback
-        isHostsLoaded = App.router.get('clusterController.isHostsLoaded');
-        callback();
         // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
+        isHostsLoaded = App.router.get('clusterController.isHostsLoaded');
         if (isHostsLoaded) {
+          callback();
           return;
         }
       }

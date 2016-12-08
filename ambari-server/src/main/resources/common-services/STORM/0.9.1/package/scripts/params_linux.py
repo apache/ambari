@@ -170,7 +170,7 @@ if stack_supports_storm_kerberos:
   else:
     storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
 
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 metric_collector_port = None
 if has_metric_collector:
@@ -214,10 +214,10 @@ jar_jvm_opts = ''
 ########################################################
 #region Atlas Hooks
 storm_atlas_application_properties = default('/configurations/storm-atlas-application.properties', {})
+enable_atlas_hook = default('/configurations/storm-env/storm.atlas.hook', False)
+atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
 
-if has_atlas_in_cluster():
-  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
-
+if enable_atlas_hook:
   # Only append /etc/atlas/conf to classpath if on HDP 2.4.*
   if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
     atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'

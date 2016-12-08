@@ -34,9 +34,8 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.SecurityType;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,34 +54,19 @@ public class RangerKmsProxyConfigTest {
     m_clusters = EasyMock.createMock(Clusters.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
-    Config rangerEnv = new ConfigImpl("ranger-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
+    Map<String, String> mockProperties = new HashMap<String, String>() {
+      {
         put("ranger_user", "ranger");
-      }};
-
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
       }
     };
 
-    Config kmsSite = new ConfigImpl("kms-site") {
-      Map<String, String> mockProperties = new HashMap<String, String>();
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
+    Config rangerEnv = EasyMock.createNiceMock(Config.class);
+    expect(rangerEnv.getType()).andReturn("ranger-env").anyTimes();
+    expect(rangerEnv.getProperties()).andReturn(mockProperties).anyTimes();
 
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
+    Config kmsSite = EasyMock.createNiceMock(Config.class);
+    expect(kmsSite.getType()).andReturn("kms-site").anyTimes();
+    expect(kmsSite.getProperties()).andReturn(mockProperties).anyTimes();
 
     expect(cluster.getDesiredConfigByType("ranger-env")).andReturn(rangerEnv).atLeastOnce();
     expect(cluster.getDesiredConfigByType("kms-site")).andReturn(kmsSite).atLeastOnce();
@@ -90,7 +74,7 @@ public class RangerKmsProxyConfigTest {
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
-    replay(m_injector, m_clusters, cluster);
+    replay(m_injector, m_clusters, cluster, rangerEnv, kmsSite);
 
     m_clusterField = RangerKmsProxyConfig.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);

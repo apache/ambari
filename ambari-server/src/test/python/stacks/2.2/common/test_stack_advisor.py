@@ -3068,7 +3068,9 @@ class TestHDP22StackAdvisor(TestCase):
           'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
           'dfs.namenode.handler.count': '25',
-          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4'
+          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4',
+          'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+          'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary'
         },
         'property_attributes': {
           'dfs.datanode.failed.volumes.tolerated': {'maximum': '4'},
@@ -3681,12 +3683,9 @@ class TestHDP22StackAdvisor(TestCase):
             "cpu_count" : 6,
             "total_mem" : 50331648,
             "disk_info" : [
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"},
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"}
+              {"mountpoint" : "/", "type": "ext3"},
+              {"mountpoint" : "/dev/shm", "type": "tmpfs"},
+              {"mountpoint" : "/vagrant", "type": "vboxsf"}
             ],
             "public_host_name" : "c6401.ambari.apache.org",
             "host_name" : "c6401.ambari.apache.org"
@@ -3736,15 +3735,19 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
-          "yarn.nodemanager.resource.memory-mb": "39424",
-          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.nodemanager.resource.memory-mb": "43008",
+          "yarn.scheduler.minimum-allocation-mb": "14336",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
-          "yarn.scheduler.maximum-allocation-mb": "39424",
+          "yarn.scheduler.maximum-allocation-mb": "43008",
           "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false"
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
+          "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
+          "yarn.nodemanager.local-dirs": "/hadoop/yarn/local",
+          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log"
         },
         "property_attributes": {
           "yarn.scheduler.minimum-allocation-vcores": {
@@ -3757,18 +3760,19 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "49152"
           },
           "yarn.scheduler.minimum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
             "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           }
         }
       }
     }
 
+    hosts = self.stackAdvisor.filterHostMounts(hosts, services)
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
@@ -3792,15 +3796,19 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.group": "hadoop",
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
-          "yarn.nodemanager.resource.memory-mb": "39424",
-          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.nodemanager.resource.memory-mb": "43008",
+          "yarn.scheduler.minimum-allocation-mb": "14336",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
-          "yarn.scheduler.maximum-allocation-mb": "39424",
+          "yarn.scheduler.maximum-allocation-mb": "43008",
           "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false"
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
+          "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
+          "yarn.nodemanager.local-dirs": "/hadoop/yarn/local",
+          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log"
         },
         "property_attributes": {
           "yarn.nodemanager.container-executor.cgroups.mount": {
@@ -3822,13 +3830,13 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "49152"
           },
           "yarn.scheduler.minimum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
             "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           },
           "yarn.nodemanager.container-executor.resources-handler.class": {
             "delete": "true"

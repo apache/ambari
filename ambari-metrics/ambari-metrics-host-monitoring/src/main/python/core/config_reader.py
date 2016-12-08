@@ -102,7 +102,7 @@ config_content = """
 [default]
 debug_level = INFO
 hostname = localhost
-metrics_servers = ['localhost','host1','host2']
+metrics_servers = localhost
 enable_time_threshold = false
 enable_value_threshold = false
 
@@ -217,16 +217,13 @@ class Configuration:
 
   def get_metrics_collector_hosts(self):
     hosts = self.get("default", "metrics_servers", "localhost")
-    if hosts is not "localhost":
-      return ast.literal_eval(hosts)
-    else:
-      return hosts
+    return hosts.split(",")
 
   def get_failover_strategy(self):
     return self.get("collector", "failover_strategy", ROUND_ROBIN_FAILOVER_STRATEGY)
 
   def get_failover_strategy_blacklisted_interval_seconds(self):
-    return self.get("collector", "failover_strategy_blacklisted_interval_seconds", 600)
+    return self.get("collector", "failover_strategy_blacklisted_interval_seconds", 300)
 
   def get_hostname_script(self):
     if self.hostname_script:

@@ -218,7 +218,7 @@ public class RecoveryConfigHelperTest {
     config.updateProperties(new HashMap<String, String>() {{
       put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "false");
     }});
-    config.persist(false);
+    config.save();
 
     // Recovery config should be stale because of the above change.
     boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,

@@ -344,6 +344,7 @@ Em.I18n.translations = {
   'common.end.time': 'End Time',
   'common.rolling': 'Rolling',
   'common.express': 'Express',
+  'common.hostOrdered': 'Host Ordered',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
 
@@ -1403,9 +1404,10 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step5.task4.title':'Start JournalNodes',
   'admin.highAvailability.wizard.step5.task5.title':'Disable Secondary NameNode',
 
-  'admin.highAvailability.wizard.step7.task0.title':'Start Ranger',
-  'admin.highAvailability.wizard.step7.task1.title':'Start ZooKeeper Servers',
-  'admin.highAvailability.wizard.step7.task2.title':'Start NameNode',
+  'admin.highAvailability.wizard.step7.task0.title':'Start ZooKeeper Servers',
+  'admin.highAvailability.wizard.step7.task1.title':'Start Ambari Infra',
+  'admin.highAvailability.wizard.step7.task2.title':'Start Ranger',
+  'admin.highAvailability.wizard.step7.task3.title':'Start NameNode',
 
   'admin.highAvailability.wizard.step9.task0.title':'Start Additional NameNode',
   'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
@@ -3155,7 +3157,6 @@ Em.I18n.translations = {
   'config.infoMessage.wrong.value.for.combobox.widget': '"{0}" is not available in the list of valid values',
   'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
   'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
-  'config.warnMessage.llap_queue_capacity.max': 'LLAP will consume entire Yarn queue',
 
   'errorMessage.config.required': 'This is required',
   'errorMessage.config.number.integer': 'Must contain digits only',

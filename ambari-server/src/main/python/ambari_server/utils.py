@@ -125,17 +125,18 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
   """
   pid_saved = False
   try:
-    pfile = open(pidfile, "w")
-    for item in pids:
-      if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
-        pfile.write("%s\n" % item["pid"])
-        pid_saved = True
-        logger.info("Ambari server started with PID " + str(item["pid"]))
-      if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
-        try:
-          os.kill(int(item["pid"]), signal.SIGKILL)
-        except:
-          pass
+    if pids:
+      pfile = open(pidfile, "w")
+      for item in pids:
+        if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
+          pfile.write("%s\n" % item["pid"])
+          pid_saved = True
+          logger.info("Ambari server started with PID " + str(item["pid"]))
+        if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
+          try:
+            os.kill(int(item["pid"]), signal.SIGKILL)
+          except:
+            pass
   except IOError as e:
     logger.error("Failed to write PID to " + pidfile + " due to " + str(e))
     pass

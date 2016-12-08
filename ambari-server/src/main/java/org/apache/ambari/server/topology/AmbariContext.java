@@ -67,11 +67,10 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
@@ -91,8 +90,13 @@ public class AmbariContext {
   @Inject
   private PersistedState persistedState;
 
+  /**
+   * Used for creating read-only instances of existing {@link Config} in order
+   * to send them to the {@link ConfigGroupResourceProvider} to create
+   * {@link ConfigGroup}s.
+   */
   @Inject
-  private org.apache.ambari.server.configuration.Configuration configs;
+  ConfigFactory configFactory;
 
   private static AmbariManagementController controller;
   private static ClusterController clusterController;
@@ -458,11 +462,13 @@ public class AmbariContext {
         SortedSet<DesiredConfig> desiredConfigsOrderedByVersion = new TreeSet<>(new Comparator<DesiredConfig>() {
           @Override
           public int compare(DesiredConfig o1, DesiredConfig o2) {
-            if (o1.getVersion() < o2.getVersion())
+            if (o1.getVersion() < o2.getVersion()) {
               return -1;
+            }
 
-            if (o1.getVersion() > o2.getVersion())
+            if (o1.getVersion() > o2.getVersion()) {
               return 1;
+            }
 
             return 0;
           }
@@ -473,9 +479,9 @@ public class AmbariContext {
         int tagMatchState = 0; // 0 -> INITIAL -> tagMatchState = 1 -> TOPLOGY_RESOLVED -> tagMatchState = 2
 
         for (DesiredConfig config: desiredConfigsOrderedByVersion) {
-          if (config.getTag().equals(TopologyManager.INITIAL_CONFIG_TAG) && tagMatchState == 0)
+          if (config.getTag().equals(TopologyManager.INITIAL_CONFIG_TAG) && tagMatchState == 0) {
             tagMatchState = 1;
-          else if (config.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG) && tagMatchState == 1) {
+          } else if (config.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG) && tagMatchState == 1) {
             tagMatchState = 2;
             break;
           }
@@ -551,7 +557,6 @@ public class AmbariContext {
           addedHost = true;
           if (! group.getHosts().containsKey(host.getHostId())) {
             group.addHost(host);
-            group.persistHostMapping();
           }
 
         } catch (AmbariException e) {
@@ -585,9 +590,7 @@ public class AmbariContext {
     for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {
       String type = entry.getKey();
       String service = stack.getServiceForConfigType(type);
-      Config config = new ConfigImpl(type);
-      config.setTag(groupName);
-      config.setProperties(entry.getValue());
+      Config config = configFactory.createReadOnly(type, groupName, entry.getValue(), null);
       //todo: attributes
       Map<String, Config> serviceConfigs = groupConfigs.get(service);
       if (serviceConfigs == null) {
