@@ -1015,27 +1015,50 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
     putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
+    putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
+    putLogsearchEnvProperty = self.putProperty(configurations, "logsearch-env", services)
+    putLogsearchEnvAttribute = self.putPropertyAttribute(configurations, "logsearch-env")
+    putLogfeederEnvAttribute = self.putPropertyAttribute(configurations, "logfeeder-env")
+
     infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
 
-    if infraSolrHosts is not None and len(infraSolrHosts) > 0 \
-      and "logsearch-properties" in services["configurations"]:
+    if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
+      replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
+      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
+      
       recommendedMinShards = len(infraSolrHosts)
       recommendedShards = 2 * len(infraSolrHosts)
       recommendedMaxShards = 3 * len(infraSolrHosts)
-      # recommend number of shard
-      putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
-      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
-      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+    else:
+      recommendedReplicationFactor = 2
+      
+      recommendedMinShards = 1
+      recommendedShards = 1
+      recommendedMaxShards = 100
+      
+      putLogsearchEnvProperty('logsearch_use_external_solr', 'true')
+      putLogsearchEnvAttribute('logsearch_use_external_solr', 'visible', 'false')
 
-      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
-      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
-      # recommend replication factor
-      replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
-      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
-      putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
-      putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
+    # recommend number of shard
+    putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
+    putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
+    putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+
+    putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
+    putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
+    putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
+    # recommend replication factor
+    putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
+    putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
+    
+    kerberos_authentication_enabled = self.isSecurityEnabled(services)
+    if not kerberos_authentication_enabled:
+       putLogsearchEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
+       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_enabled', 'visible', 'false')
+       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_keytab', 'visible', 'false')
+       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_principal', 'visible', 'false')
+       putLogfeederEnvAttribute('logfeeder_external_solr_kerberos_keytab', 'visible', 'false')
+       putLogfeederEnvAttribute('logfeeder_external_solr_kerberos_principal', 'visible', 'false')
 
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},

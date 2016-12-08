@@ -38,7 +38,6 @@ def get_port_from_url(address):
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
@@ -56,16 +55,10 @@ logfeeder_pid_dir = status_params.logfeeder_pid_dir
 logfeeder_pid_file = status_params.logfeeder_pid_file
 
 user_group = config['configurations']['cluster-env']['user_group']
-fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
 java64_home = config['hostLevelParams']['java_home']
-zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
-zookeeper_hosts_list.sort()
-# get comma separated list of zookeeper hosts from clusterHostInfo
-zookeeper_hosts = ",".join(zookeeper_hosts_list)
 cluster_name = str(config['clusterName'])
-availableServices = config['availableServices']
 
 configurations = config['configurations'] # need reference inside logfeeder jinja templates
 logserch_meta_configs = get_logsearch_meta_configs(configurations)
@@ -84,30 +77,31 @@ else:
 #####################################
 # Infra Solr configs
 #####################################
-infra_solr_znode = default('/configurations/infra-solr-env/infra_solr_znode', '/infra-solr')
-infra_solr_instance_count = len(config['clusterHostInfo']['infra_solr_hosts'])
-infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
-infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
+infra_solr_znode = '/infra-solr'
+infra_solr_ssl_enabled = False
+infra_solr_jmx_port = ''
 
-zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-index = 0
-zookeeper_quorum = ""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
-    zookeeper_quorum += ","
-
+if 'infra-solr-env' in config['configurations']:
+  infra_solr_znode = default('/configurations/infra-solr-env/infra_solr_znode', '/infra-solr')
+  infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
+  infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
 
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   _hostname_lowercase = config['hostname'].lower()
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
   logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
-  logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_kerberos_keytab']
-  logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
-  logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
-  logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  use_external_solr_with_kerberos = default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
+  if use_external_solr_with_kerberos:
+    logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_keytab']
+    logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+    logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_external_solr_kerberos_keytab']
+    logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_external_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  else:
+    logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_kerberos_keytab']
+    logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+    logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
+    logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
 
 #####################################
 # Logsearch configs
@@ -120,10 +114,29 @@ logsearch_service_logs_merge_factor = config['configurations']['logsearch-servic
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
 logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
 
-logsearch_solr_audit_logs_zk_node = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_node', infra_solr_znode)
-logsearch_solr_audit_logs_zk_quorum = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_quorum', zookeeper_quorum)
-logsearch_solr_audit_logs_zk_node = format(logsearch_solr_audit_logs_zk_node)
-logsearch_solr_audit_logs_zk_quorum = format(logsearch_solr_audit_logs_zk_quorum)
+logsearch_use_external_solr = default('/configurations/logsearch-env/logsearch_use_external_solr', False)
+
+if logsearch_use_external_solr:
+  logsearch_solr_zk_znode = config['configurations']['logsearch-env']['logsearch_external_solr_zk_znode']
+  logsearch_solr_zk_quorum = config['configurations']['logsearch-env']['logsearch_external_solr_zk_quorum']
+  logsearch_solr_ssl_enabled = default('configurations/logsearch-env/logsearch_external_solr_ssl_enabled', False)
+  logsearch_solr_kerberos_enabled = security_enabled and default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
+else:
+  logsearch_solr_zk_znode = infra_solr_znode
+
+  logsearch_solr_zk_quorum = ""
+  zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
+  if 'zookeeper_hosts' in config['clusterHostInfo']:
+    for host in config['clusterHostInfo']['zookeeper_hosts']:
+      if logsearch_solr_zk_quorum:
+        logsearch_solr_zk_quorum += ','
+      logsearch_solr_zk_quorum += host + ":" + str(zookeeper_port)
+  
+  logsearch_solr_ssl_enabled = infra_solr_ssl_enabled
+  logsearch_solr_kerberos_enabled = security_enabled
+
+zookeeper_quorum = logsearch_solr_zk_quorum
+
 
 
 # logsearch-env configs
@@ -179,8 +192,8 @@ logsearch_properties = {}
 
 # default values
 
-logsearch_properties['logsearch.solr.zk_connect_string'] = zookeeper_quorum + infra_solr_znode
-logsearch_properties['logsearch.solr.audit.logs.zk_connect_string'] = logsearch_solr_audit_logs_zk_quorum + logsearch_solr_audit_logs_zk_node
+logsearch_properties['logsearch.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
+logsearch_properties['logsearch.solr.audit.logs.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
 
 logsearch_properties['logsearch.solr.collection.history'] = 'history'
 logsearch_properties['logsearch.solr.history.config.name'] = 'history'
@@ -210,7 +223,7 @@ del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
 logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
 logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
 
-if security_enabled:
+if logsearch_solr_kerberos_enabled:
   logsearch_properties['logsearch.solr.kerberos.enable'] = 'true'
   logsearch_properties['logsearch.solr.jaas.file'] = logsearch_jaas_file
 
@@ -293,9 +306,9 @@ logfeeder_properties = dict(logfeeder_properties.items() + dict(config['configur
 
 logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_properties['logfeeder.metrics.collector.hosts'])
 logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['logfeeder.config.files'])
-logfeeder_properties['logfeeder.solr.zk_connect_string'] = zookeeper_quorum + infra_solr_znode
+logfeeder_properties['logfeeder.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
 
-if security_enabled:
+if logsearch_solr_kerberos_enabled:
   if 'logfeeder.solr.kerberos.enable' not in logfeeder_properties:
     logfeeder_properties['logfeeder.solr.kerberos.enable'] = 'true'
   if 'logfeeder.solr.jaas.file' not in logfeeder_properties:

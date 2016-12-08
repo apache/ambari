@@ -2066,95 +2066,81 @@ var hdp2properties = [
     "index": 5
   },
   {
-    "name": "logsearch_solr_audit_logs_zk_node",
+    "name": "logsearch_debug_enabled",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 6
   },
   {
-    "name": "logsearch_solr_audit_logs_zk_quorum",
+    "name": "logsearch_debug_port",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 7
   },
   {
-    "name": "logsearch_debug_enabled",
+    "name": "logsearch_truststore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 8
   },
   {
-    "name": "logsearch_debug_port",
+    "name": "logsearch_truststore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 9
   },
   {
-    "name": "logsearch_truststore_location",
+    "name": "logsearch_truststore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 10
   },
   {
-    "name": "logsearch_truststore_type",
+    "name": "logsearch_keystore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 11
   },
   {
-    "name": "logsearch_truststore_password",
+    "name": "logsearch_keystore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 12
   },
   {
-    "name": "logsearch_keystore_location",
+    "name": "logsearch_keystore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 13
   },
   {
-    "name": "logsearch_keystore_type",
+    "name": "logsearch_kerberos_keytab",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 14
   },
   {
-    "name": "logsearch_keystore_password",
+    "name": "logsearch_kerberos_principal",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 15
   },
   {
-    "name": "logsearch_kerberos_keytab",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-env.xml",
-    "category": "Advanced logsearch-env",
-    "index": 16
-  },
-  {
-    "name": "logsearch_kerberos_principal",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-env.xml",
-    "category": "Advanced logsearch-env",
-    "index": 17
-  },
-  {
     "name": "content",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
-    "index": 18
+    "index": 16
   },
   /*logsearch-log4j*/
   {
