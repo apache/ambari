@@ -2467,6 +2467,101 @@ public class ClusterTest {
   }
 
   /**
+   * Tests that {@link Cluster#applyLatestConfigurations(StackId)} sets the
+   * right configs to enabled when there are duplicate mappings for type/tag.
+   * Only the most recent should be enabled.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testApplyLatestConfigurationsWithMultipleMappings() throws Exception {
+    createDefaultCluster();
+    Cluster cluster = clusters.getCluster("c1");
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    StackId stackId = cluster.getCurrentStackVersion();
+
+    StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
+    String configType = "foo-type";
+    String configTag = "version-1";
+
+    // create the config for the mappings
+    ClusterConfigEntity clusterConfig = new ClusterConfigEntity();
+    clusterConfig.setClusterEntity(clusterEntity);
+    clusterConfig.setConfigId(1L);
+    clusterConfig.setStack(currentStack);
+    clusterConfig.setTag(configTag);
+    clusterConfig.setData("{}");
+    clusterConfig.setType(configType);
+    clusterConfig.setTimestamp(1L);
+    clusterConfig.setVersion(1L);
+
+    clusterDAO.createConfig(clusterConfig);
+    clusterEntity.getClusterConfigEntities().add(clusterConfig);
+    clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // create 3 mappings for the same type/tag, each with a different time
+
+    // config mapping 1
+    ClusterConfigMappingEntity configMapping = new ClusterConfigMappingEntity();
+    configMapping.setClusterEntity(clusterEntity);
+    configMapping.setCreateTimestamp(1L);
+    configMapping.setSelected(0);
+    configMapping.setTag(configTag);
+    configMapping.setType(configType);
+    configMapping.setUser("admin");
+    clusterDAO.persistConfigMapping(configMapping);
+    clusterEntity.getConfigMappingEntities().add(configMapping);
+
+    // config mapping 2
+    configMapping = new ClusterConfigMappingEntity();
+    configMapping.setClusterEntity(clusterEntity);
+    configMapping.setCreateTimestamp(2L);
+    configMapping.setSelected(0);
+    configMapping.setTag(configTag);
+    configMapping.setType(configType);
+    configMapping.setUser("admin");
+    clusterDAO.persistConfigMapping(configMapping);
+    clusterEntity.getConfigMappingEntities().add(configMapping);
+
+    // config mapping 3
+    configMapping = new ClusterConfigMappingEntity();
+    configMapping.setClusterEntity(clusterEntity);
+    configMapping.setCreateTimestamp(3L);
+    configMapping.setSelected(0);
+    configMapping.setTag(configTag);
+    configMapping.setType(configType);
+    configMapping.setUser("admin");
+    clusterDAO.persistConfigMapping(configMapping);
+    clusterEntity.getConfigMappingEntities().add(configMapping);
+
+    clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // check all 3 mappings are disabled
+    Collection<ClusterConfigMappingEntity> clusterConfigMappings = clusterEntity.getConfigMappingEntities();
+    Assert.assertEquals(3, clusterConfigMappings.size());
+    for (ClusterConfigMappingEntity clusterConfigMapping : clusterConfigMappings) {
+      Assert.assertEquals(0, clusterConfigMapping.isSelected());
+    }
+
+    // apply configurations and check to see we've set the one with the latest
+    // timestamp ONLY
+    cluster.applyLatestConfigurations(cluster.getCurrentStackVersion());
+    clusterEntity = clusterDAO.findByName("c1");
+
+    // now check that the new config mapping is enabled
+    clusterConfigMappings = clusterEntity.getConfigMappingEntities();
+    Assert.assertEquals(3, clusterConfigMappings.size());
+    for (ClusterConfigMappingEntity clusterConfigMapping : clusterConfigMappings) {
+      if (clusterConfigMapping.getCreateTimestamp() < 3) {
+        Assert.assertEquals(0, clusterConfigMapping.isSelected());
+      } else {
+        Assert.assertEquals(1, clusterConfigMapping.isSelected());
+      }
+    }
+  }
+
+  /**
    * Tests that applying configurations for a given stack correctly sets
    * {@link DesiredConfig}s.
    */

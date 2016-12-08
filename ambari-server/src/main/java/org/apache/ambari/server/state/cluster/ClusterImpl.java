@@ -22,6 +22,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -144,8 +145,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -3072,6 +3075,7 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
+  @Transactional
   public void applyLatestConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
 
@@ -3079,36 +3083,33 @@ public class ClusterImpl implements Cluster {
       ClusterEntity clusterEntity = getClusterEntity();
       Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
 
+      // hash them for easier retrieval later - these are the same entity
+      // instances which exist on the cluster entity, so modification of the CCM
+      // entity here will affect the cluster CCM entities as well
+      ImmutableMap<Object, ClusterConfigMappingEntity> ccmMap = Maps.uniqueIndex(configMappingEntities, Functions.identity());
+
       // disable all configs
       for (ClusterConfigMappingEntity e : configMappingEntities) {
         LOG.debug("{} with tag {} is unselected", e.getType(), e.getTag());
         e.setSelected(0);
       }
 
-      List<ClusterConfigMappingEntity> clusterConfigMappingsForStack = clusterDAO.getClusterConfigMappingsByStack(
+      // work through the in-memory list, finding only the most recent mapping per type
+      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMappingsForStack(
           clusterEntity.getClusterId(), stackId);
 
-      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMapping(
-          clusterConfigMappingsForStack);
+      for( ClusterConfigMappingEntity latestConfigMapping : latestConfigMappingByStack ){
+        ClusterConfigMappingEntity mapping = ccmMap.get(latestConfigMapping);
+        mapping.setSelected(1);
 
-      // loop through all configs and set the latest to enabled for the
-      // specified stack
-      for(ClusterConfigMappingEntity configMappingEntity: configMappingEntities){
-        String type = configMappingEntity.getType();
-        String tag =  configMappingEntity.getTag();
-
-        for (ClusterConfigMappingEntity latest : latestConfigMappingByStack) {
-          String latestType = latest.getType();
-          String latestTag = latest.getTag();
-
-          // find the latest config of a given mapping entity
-          if (StringUtils.equals(type, latestType) && StringUtils.equals(tag, latestTag)) {
-            LOG.info("{} with version tag {} is selected for stack {}", type, tag, stackId.toString());
-            configMappingEntity.setSelected(1);
-          }
-        }
+        LOG.info("Settting {} with version tag {} created on {} to selected for stack {}",
+            mapping.getType(), mapping.getTag(), new Date(mapping.getCreateTimestamp()),
+            stackId.toString());
       }
 
+      // since the entities which were modified came from the cluster entity's
+      // list to begin with, we can just save them right back - no need for a
+      // new collection since the CCM entity instances were modified directly
       clusterEntity.setConfigMappingEntities(configMappingEntities);
       clusterEntity = clusterDAO.merge(clusterEntity);
       clusterDAO.mergeConfigMappings(configMappingEntities);
@@ -3130,23 +3131,60 @@ public class ClusterImpl implements Cluster {
     jpaEventPublisher.publish(event);
   }
 
-  public Collection<ClusterConfigMappingEntity> getLatestConfigMapping(List<ClusterConfigMappingEntity> clusterConfigMappingEntities){
-    Map<String, ClusterConfigMappingEntity> temp = new HashMap<String, ClusterConfigMappingEntity>();
-    for (ClusterConfigMappingEntity e : clusterConfigMappingEntities) {
-      String type = e.getType();
-      if(temp.containsKey(type)){
-        ClusterConfigMappingEntity entityStored = temp.get(type);
-        Long timestampStored = entityStored.getCreateTimestamp();
-        Long timestamp = e.getCreateTimestamp();
-        if(timestamp > timestampStored){
-          temp.put(type, e); //find a newer config for the given type
-        }
-      } else {
-        temp.put(type, e); //first time encounter a type, add it
+  /**
+   * Retrieves all of the configuration mappings (selected and unselected) for
+   * the specified stack and then iterates through them, returning the most
+   * recent mapping for every type/tag combination.
+   * <p/>
+   * Because of how configuration revert works, mappings can be created for the
+   * same type/tag combinations. The only difference being that the timestamp
+   * reflects when each mapping was created.
+   * <p/>
+   * JPQL cannot be used directly here easily because some databases cannot
+   * support the necessary grouping and IN clause. For example: <br/>
+   *
+   * <pre>
+   * SELECT mapping FROM clusterconfigmappingentity mapping
+   *   WHERE (mapping.typename, mapping.createtimestamp) IN
+   *     (SELECT latest.typename, MAX(latest.createtimestamp)
+   *      FROM clusterconfigmappingentity latest
+   *      GROUP BY latest.typename)
+   * </pre>
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @param stackId
+   *          the stack to retrieve the mappings for (not {@code null}).
+   * @return the most recent mapping (selected or unselected) for the specified
+   *         stack for every type.
+   */
+  public Collection<ClusterConfigMappingEntity> getLatestConfigMappingsForStack(long clusterId,
+      StackId stackId) {
+
+    // get all mappings for the specified stack (which could include
+    // duplicates since a config revert creates a duplicate mapping with a
+    // different timestamp)
+    List<ClusterConfigMappingEntity> clusterConfigMappingsForStack = clusterDAO.getClusterConfigMappingsByStack(
+        clusterId, stackId);
+
+    Map<String, ClusterConfigMappingEntity> latestMappingsByType = new HashMap<String, ClusterConfigMappingEntity>();
+    for (ClusterConfigMappingEntity mapping : clusterConfigMappingsForStack) {
+      String type = mapping.getType();
+
+      if (!latestMappingsByType.containsKey(type)) {
+        latestMappingsByType.put(type, mapping);
+        continue;
+      }
+
+      ClusterConfigMappingEntity entityStored = latestMappingsByType.get(type);
+      Long timestampStored = entityStored.getCreateTimestamp();
+      Long timestamp = mapping.getCreateTimestamp();
+      if (timestamp > timestampStored) {
+        latestMappingsByType.put(type, mapping);
       }
     }
 
-    return temp.values();
+    return latestMappingsByType.values();
   }
 
   /**
