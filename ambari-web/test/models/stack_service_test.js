@@ -283,7 +283,76 @@ describe('App.StackService', function () {
     });
   });
 
-  App.TestAliases.testAsComputedOr(ss, 'isDisabled', ['isMandatory', 'isInstalled']);
+  describe('#isDisabled', function () {
+
+    var cases = [
+      {
+        isInstalled: true,
+        isMandatory: true,
+        clusterInstallCompleted: true,
+        isDisabled: true
+      },
+      {
+        isInstalled: true,
+        isMandatory: true,
+        clusterInstallCompleted: false,
+        isDisabled: true
+      },
+      {
+        isInstalled: true,
+        isMandatory: false,
+        clusterInstallCompleted: true,
+        isDisabled: true
+      },
+      {
+        isInstalled: true,
+        isMandatory: false,
+        clusterInstallCompleted: false,
+        isDisabled: true
+      },
+      {
+        isInstalled: false,
+        isMandatory: true,
+        clusterInstallCompleted: true,
+        isDisabled: false
+      },
+      {
+        isInstalled: false,
+        isMandatory: true,
+        clusterInstallCompleted: false,
+        isDisabled: true
+      },
+      {
+        isInstalled: false,
+        isMandatory: false,
+        clusterInstallCompleted: true,
+        isDisabled: false
+      },
+      {
+        isInstalled: false,
+        isMandatory: false,
+        clusterInstallCompleted: false,
+        isDisabled: false
+      }
+    ];
+
+    cases.forEach(function (testCase) {
+
+      var title = 'isInstalled: {0}, isMandatory: {1}, clusterInstallCompleted: {2}, isDisabled: {3}'
+        .format(testCase.isInstalled, testCase.isMandatory, testCase.clusterInstallCompleted, testCase.isDisabled);
+
+      it(title, function () {
+        ss.setProperties({
+          isInstalled: testCase.isInstalled,
+          isMandatory: testCase.isMandatory
+        });
+        App.set('router.clusterInstallCompleted', testCase.clusterInstallCompleted);
+        expect(ss.get('isDisabled')).to.equal(testCase.isDisabled);
+      });
+
+    });
+
+  });
 
 
 });
