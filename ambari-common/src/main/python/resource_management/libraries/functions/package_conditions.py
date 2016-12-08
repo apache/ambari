@@ -70,7 +70,7 @@ def should_install_infra_solr():
 
 def should_install_infra_solr_client():
   config = Script.get_config()
-  return _has_applicable_local_component(config, ['INFRA_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN'])
+  return _has_applicable_local_component(config, ['INFRA_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN', 'LOGSEARCH_SERVER'])
 
 def should_install_logsearch_portal():
   config = Script.get_config()

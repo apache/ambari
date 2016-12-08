@@ -118,10 +118,10 @@ def setup_logsearch():
 
 def upload_conf_set(config_set, solrconfig_content = None):
   import params
-  jaas_file = params.logsearch_jaas_file if params.security_enabled else None
+  jaas_file = params.logsearch_jaas_file if params.logsearch_solr_kerberos_enabled else None
   solr_cloud_util.upload_configuration_to_zk(
-    zookeeper_quorum=params.zookeeper_quorum,
-    solr_znode=params.infra_solr_znode,
+    zookeeper_quorum=params.logsearch_solr_zk_quorum,
+    solr_znode=params.logsearch_solr_zk_znode,
     config_set_dir=format("{logsearch_server_conf}/solr_configsets/{config_set}/conf"),
     config_set=config_set,
     tmp_dir=params.tmp_dir,
@@ -134,7 +134,7 @@ def upload_conf_set(config_set, solrconfig_content = None):
 def check_znode():
   import params
   solr_cloud_util.check_znode(
-    zookeeper_quorum=params.zookeeper_quorum,
-    solr_znode=params.infra_solr_znode,
+    zookeeper_quorum=params.logsearch_solr_zk_quorum,
+    solr_znode=params.logsearch_solr_zk_znode,
     java64_home=params.java64_home,
     retry=30, interval=5)
