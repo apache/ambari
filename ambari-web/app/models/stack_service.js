@@ -46,7 +46,9 @@ App.StackService = DS.Model.extend({
   configs: DS.attr('array'),
   requiredServices: DS.attr('array', {defaultValue: []}),
 
-  isDisabled: Em.computed.or('isMandatory', 'isInstalled'),
+  isDisabled: function () {
+    return this.get('isInstalled') || (this.get('isMandatory') && !App.get('router.clusterInstallCompleted'));
+  }.property('isMandatory', 'isInstalled', 'App.router.clusterInstallCompleted'),
 
   /**
    * @type {String[]}
