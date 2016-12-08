@@ -222,6 +222,11 @@ public abstract class AbstractTimelineMetricsSink {
       collectorHost = findPreferredCollectHost();
     }
 
+    if (collectorHost == null) {
+      LOG.warn("No live collector to send metrics to. Metrics to be sent will be discarded.");
+      return false;
+    }
+
     String connectUrl = getCollectorUri(collectorHost);
     String jsonData = null;
     LOG.debug("EmitMetrics connectUrl = "  + connectUrl);
