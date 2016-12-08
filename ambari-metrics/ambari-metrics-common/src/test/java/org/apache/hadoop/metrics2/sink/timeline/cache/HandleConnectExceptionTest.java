@@ -130,6 +130,10 @@ public class HandleConnectExceptionTest {
       return super.emitMetrics(metrics);
     }
 
+    @Override
+    protected synchronized String findPreferredCollectHost() {
+      return "localhost";
+    }
 
   }
 }
