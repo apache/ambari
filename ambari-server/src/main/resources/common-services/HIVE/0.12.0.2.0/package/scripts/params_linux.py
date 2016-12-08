@@ -134,6 +134,13 @@ if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, version_for_stack_f
 hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
 hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
 
+# Heap dump related
+heap_dump_enabled = default('/configurations/hive-env/enable_heap_dump', None)
+heap_dump_opts = "" # Empty if 'heap_dump_enabled' is False.
+if heap_dump_enabled:
+  heap_dump_path = default('/configurations/hive-env/heap_dump_location', "/tmp")
+  heap_dump_opts = " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath="+heap_dump_path
+
 # Hive Interactive related paths
 hive_interactive_var_lib = '/var/lib/hive2'
 
