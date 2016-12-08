@@ -1247,7 +1247,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
 
-            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
+            MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, host);
+            if(filterByMaintenanceState(request, effectiveMaintenanceState)) {
+              continue;
+            }
+            r.setMaintenanceState(effectiveMaintenanceState.name());
+
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() == null || request.getComponentName() == null) {
@@ -1298,13 +1303,36 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
 
-            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
+            MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, host);
+            if(filterByMaintenanceState(request, effectiveMaintenanceState)) {
+              continue;
+            }
+            r.setMaintenanceState(effectiveMaintenanceState.name());
+
             response.add(r);
           }
         }
       }
     }
     return response;
+  }
+
+  private boolean filterByMaintenanceState(ServiceComponentHostRequest request, MaintenanceState effectiveMaintenanceState) {
+    if (request.getMaintenanceState() != null) {
+      MaintenanceState desiredMaintenanceState = MaintenanceState.valueOf(request.getMaintenanceState());
+      if (desiredMaintenanceState.equals(MaintenanceState.ON)) {
+        /*
+         * if we want components with ON state it can be one of IMPLIED_FROM_SERVICE,
+         * IMPLIED_FROM_SERVICE_AND_HOST, IMPLIED_FROM_HOST, ON, ro simply - not OFF
+         */
+        if (effectiveMaintenanceState.equals(MaintenanceState.OFF)) {
+          return true;
+        }
+      } else if (!desiredMaintenanceState.equals(effectiveMaintenanceState)){
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
