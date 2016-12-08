@@ -105,12 +105,16 @@ def create_users_and_groups(user_and_groups):
 
   import params
 
-  parts = re.split('\s', user_and_groups)
+  parts = re.split('\s+', user_and_groups)
   if len(parts) == 1:
     parts.append("")
 
   users_list = parts[0].split(",") if parts[0] else []
   groups_list = parts[1].split(",") if parts[1] else []
+
+  # skip creating groups and users if * is provided as value.
+  users_list = filter(lambda x: x != '*' , users_list)
+  groups_list = filter(lambda x: x != '*' , groups_list)
 
   if users_list:
     User(users_list,
