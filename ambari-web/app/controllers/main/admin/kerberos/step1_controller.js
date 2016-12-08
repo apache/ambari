@@ -138,8 +138,9 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
     if (App.get('supports.enableIpa')) {
       var ipaOption = this.get('ipaOption');
       var options = this.get('options');
-
-      options.pushObject(ipaOption);
+      if (options.indexOf(ipaOption) === -1){
+        options.pushObject(ipaOption);
+      }
     }
   },
 
