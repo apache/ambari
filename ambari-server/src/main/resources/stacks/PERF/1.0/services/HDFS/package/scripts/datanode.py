@@ -33,6 +33,10 @@ class DataNode(Dummy):
   def __init__(self):
     super(DataNode, self).__init__()
     self.component_name = "DATANODE"
+    self.principal_conf_name = "hdfs-site"
+    self.principal_name = "dfs.datanode.kerberos.principal"
+    self.keytab_conf_name = "hdfs-site"
+    self.keytab_name = "dfs.datanode.keytab.file"
 
 if __name__ == "__main__":
   DataNode().execute()

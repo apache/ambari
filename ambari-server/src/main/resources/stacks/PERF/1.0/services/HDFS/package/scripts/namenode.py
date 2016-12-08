@@ -34,6 +34,10 @@ class NameNode(Dummy):
   def __init__(self):
     super(NameNode, self).__init__()
     self.component_name = "NAMENODE"
+    self.principal_conf_name = "hdfs-site"
+    self.principal_name = "dfs.namenode.kerberos.principal"
+    self.keytab_conf_name = "hdfs-site"
+    self.keytab_name = "dfs.namenode.keytab.file"
 
   def rebalancehdfs(self, env):
     print "Rebalance HDFS"

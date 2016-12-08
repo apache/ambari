@@ -33,6 +33,10 @@ class SnowWhite(Dummy):
   def __init__(self):
     super(SnowWhite, self).__init__()
     self.component_name = "SNOW_WHITE"
+    self.principal_conf_name = "snow-site"
+    self.principal_name = "snow.white.kerberos.principal"
+    self.keytab_conf_name = "snow-site"
+    self.keytab_name = "snow.white.keytab.file"
 
 if __name__ == "__main__":
   SnowWhite().execute()

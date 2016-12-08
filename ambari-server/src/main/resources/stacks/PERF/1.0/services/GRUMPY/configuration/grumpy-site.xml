@@ -33,4 +33,16 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>grumpy_user</name>
+    <display-name>grumpy User</display-name>
+    <value>grumpy</value>
+    <property-type>USER</property-type>
+    <description>grumpy Username.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

@@ -33,6 +33,10 @@ class Sleepy(Dummy):
   def __init__(self):
     super(Sleepy, self).__init__()
     self.component_name = "SLEEPY"
+    self.principal_conf_name = "sleepy-site"
+    self.principal_name = "sleepy.sleepy.kerberos.principal"
+    self.keytab_conf_name = "sleepy-site"
+    self.keytab_name = "sleepy.sleepy.keytab.file"
 
 if __name__ == "__main__":
   Sleepy().execute()
