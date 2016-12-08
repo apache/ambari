@@ -33,6 +33,10 @@ class Nodemanager(Dummy):
   def __init__(self):
     super(Nodemanager, self).__init__()
     self.component_name = "NODEMANAGER"
+    self.principal_conf_name = "yarn-site"
+    self.principal_name = "yarn.nodemanager.principal"
+    self.keytab_conf_name = "yarn-site"
+    self.keytab_name = "yarn.nodemanager.keytab"
 
 if __name__ == "__main__":
   Nodemanager().execute()

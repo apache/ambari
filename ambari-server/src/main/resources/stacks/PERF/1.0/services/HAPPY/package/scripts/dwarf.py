@@ -33,6 +33,10 @@ class Happy(Dummy):
   def __init__(self):
     super(Happy, self).__init__()
     self.component_name = "HAPPY"
+    self.principal_conf_name = "happy-site"
+    self.principal_name = "happy.happy.kerberos.principal"
+    self.keytab_conf_name = "happy-site"
+    self.keytab_name = "happy.happy.keytab.file"
 
 if __name__ == "__main__":
   Happy().execute()

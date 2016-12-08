@@ -15,28 +15,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
-# Python Imports
+from resource_management import *
 
-# Local Imports
-from resource_management.libraries.script.dummy import Dummy
+config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
+hostname = config['hostname']
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
-class HistoryServer(Dummy):
-  """
-  Dummy script that simulates a master component.
-  """
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-  def __init__(self):
-    super(HistoryServer, self).__init__()
-    self.component_name = "HISTORYSERVER"
-    self.principal_conf_name = "mapred-site"
-    self.principal_name = "mapreduce.jobhistory.principal"
-    self.keytab_conf_name = "mapred-site"
-    self.keytab_name = "mapreduce.jobhistory.keytab"
-
-if __name__ == "__main__":
-  HistoryServer().execute()
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smoke_user = config['configurations']['cluster-env']['smokeuser']
+smoke_user_principal = config['configurations']['cluster-env']['smokeuser_principal_name']

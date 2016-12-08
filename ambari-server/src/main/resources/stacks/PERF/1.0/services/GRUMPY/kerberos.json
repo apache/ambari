@@ -1,0 +1,78 @@
+{
+  "services": [
+    {
+      "name": "GRUMPY",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "grumpy",
+          "principal": {
+            "value": "${grumpy-site/grumpy_user}-${cluster_name|toLower()}@${realm}",
+            "type" : "user",
+            "configuration": "grumpy-site/grumpy_principal_name",
+            "local_username": "${grumpy-site/grumpy_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/grumpy.headless.keytab",
+            "owner": {
+              "name": "${grumpy-site/grumpy_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "grumpy-site/grumpy_user_keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+      ],
+      "components": [
+        {
+          "name": "GRUMPY",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "grumpy_grumpy",
+              "principal": {
+                "value": "grumpy/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "grumpy-site/grumpy.grumpy.kerberos.principal",
+                "local_username": "${grumpy-site/grumpy_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/grumpy.service.keytab",
+                "owner": {
+                  "name": "${grumpy-site/grumpy_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "grumpy-site/grumpy.grumpy.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "grumpy-site/grumpy.security.authentication.spnego.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "grumpy-site/grumpy.security.authentication.spnego.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

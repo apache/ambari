@@ -33,6 +33,10 @@ class JournalNode(Dummy):
   def __init__(self):
     super(JournalNode, self).__init__()
     self.component_name = "JOURNALNODE"
+    self.principal_conf_name = "hdfs-site"
+    self.principal_name = "dfs.journalnode.kerberos.principal"
+    self.keytab_conf_name = "hdfs-site"
+    self.keytab_name = "dfs.journalnode.keytab.file"
 
 if __name__ == "__main__":
   JournalNode().execute()

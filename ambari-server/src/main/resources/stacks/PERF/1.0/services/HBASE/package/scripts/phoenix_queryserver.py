@@ -33,6 +33,10 @@ class PhoenixQueryServer(Dummy):
   def __init__(self):
     super(PhoenixQueryServer, self).__init__()
     self.component_name = "PHOENIX_QUERY_SERVER"
+    self.principal_conf_name = "hbase-site"
+    self.principal_name = "phoenix.queryserver.kerberos.principal"
+    self.keytab_conf_name = "hbase-site"
+    self.keytab_name = "phoenix.queryserver.keytab.file"
 
 if __name__ == "__main__":
   PhoenixQueryServer().execute()

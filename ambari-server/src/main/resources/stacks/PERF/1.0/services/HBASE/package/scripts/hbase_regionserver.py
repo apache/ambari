@@ -33,6 +33,10 @@ class HBaseRegionServer(Dummy):
   def __init__(self):
     super(HBaseRegionServer, self).__init__()
     self.component_name = "HBASE_REGIONSERVER"
+    self.principal_conf_name = "hbase-site"
+    self.principal_name = "hbase.regionserver.kerberos.principal"
+    self.keytab_conf_name = "hbase-site"
+    self.keytab_name = "hbase.regionserver.keytab.file"
 
   def decommission(self, env):
     print "Decommission"
