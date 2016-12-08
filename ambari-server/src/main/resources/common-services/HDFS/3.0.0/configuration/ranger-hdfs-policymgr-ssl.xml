@@ -19,9 +19,10 @@
  */
 -->
 <configuration>
+  <!-- These configs were inherited from HDP 2.3 -->
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
-    <value>/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-keystore.jks</value>
+    <value>{{stack_root}}/current/hadoop-client/conf/ranger-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -37,7 +38,7 @@
   </property>
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
-    <value>/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-truststore.jks</value>
+    <value>{{stack_root}}/current/hadoop-client/conf/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
     <on-ambari-upgrade add="false"/>
   </property>

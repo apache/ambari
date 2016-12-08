@@ -21,39 +21,8 @@
     <service>
       <name>HDFS</name>
       <displayName>HDFS</displayName>
-      <comment>Apache Hadoop Distributed File System</comment>
-      <version>2.7.1.3.0</version>
-      <extends>common-services/HDFS/2.1.0.2.0</extends>
-
-      <components>
-        <!-- NFS Gateway was added in HDP 2.3. -->
-        <component>
-          <name>NFS_GATEWAY</name>
-          <displayName>NFSGateway</displayName>
-          <cardinality>0+</cardinality>
-          <versionAdvertised>true</versionAdvertised>
-          <category>SLAVE</category>
-          <commandScript>
-            <script>scripts/nfsgateway.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
-          </commandScript>
-          <dependencies>
-            <dependency>
-              <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-        </component>
-
-        <component>
-          <name>ZKFC</name>
-          <versionAdvertised>true</versionAdvertised>
-        </component>
-      </components>
+      <version>3.0.0.3.0</version>
+      <extends>common-services/HDFS/3.0.0</extends>
 
       <osSpecifics>
         <osSpecific>
@@ -170,20 +139,6 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-
-      <quickLinksConfigurations>
-        <quickLinksConfiguration>
-          <fileName>quicklinks.json</fileName>
-          <default>true</default>
-        </quickLinksConfiguration>
-      </quickLinksConfigurations>
-
-      <themes>
-        <theme>
-          <fileName>theme.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
 
     </service>
   </services>

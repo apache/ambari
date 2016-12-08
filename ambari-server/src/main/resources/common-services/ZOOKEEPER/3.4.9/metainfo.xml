@@ -20,9 +20,8 @@
   <services>
     <service>
       <name>ZOOKEEPER</name>
-      <version>3.4.9.3.0</version>
-      <extends>common-services/ZOOKEEPER/3.4.9</extends>
-
+      <extends>common-services/ZOOKEEPER/3.4.6</extends>
+      <version>3.4.9</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>

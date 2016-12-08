@@ -20,63 +20,8 @@
   <services>
     <service>
       <name>YARN</name>
-      <displayName>YARN</displayName>
-      <version>2.7.1.3.0</version>
-      <extends>common-services/YARN/2.1.0.2.0</extends>
-
-      <components>
-        <component>
-          <name>APP_TIMELINE_SERVER</name>
-          <displayName>App Timeline Server</displayName>
-          <category>MASTER</category>
-          <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
-          <reassignAllowed>true</reassignAllowed>
-
-          <commandScript>
-            <script>scripts/application_timeline_server.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
-          </commandScript>
-
-          <dependencies>
-            <dependency>
-              <name>TEZ/TEZ_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>SPARK/SPARK_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-        </component>
-
-        <component>
-          <name>RESOURCEMANAGER</name>
-          <category>MASTER</category>
-          <cardinality>1-2</cardinality>
-          <versionAdvertised>true</versionAdvertised>
-
-          <dependencies>
-            <dependency>
-              <name>TEZ/TEZ_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-          <configuration-dependencies>
-            <config-type>capacity-scheduler</config-type>
-          </configuration-dependencies>
-        </component>
-      </components>
+      <version>3.0.0.3.0</version>
+      <extends>common-services/YARN/3.0.0</extends>
 
       <osSpecifics>
         <osSpecific>
@@ -105,34 +50,12 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-
-      <themes>
-        <theme>
-          <fileName>theme.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-
-      <quickLinksConfigurations>
-        <quickLinksConfiguration>
-          <fileName>quicklinks.json</fileName>
-          <default>true</default>
-        </quickLinksConfiguration>
-      </quickLinksConfigurations>
-
-      <configuration-dependencies>
-        <config-type>yarn-site</config-type>
-        <config-type>yarn-env</config-type>
-        <config-type>core-site</config-type>
-        <config-type>yarn-log4j</config-type>
-      </configuration-dependencies>
     </service>
 
     <service>
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <version>2.7.1.3.0</version>
-      <configuration-dir>configuration-mapred</configuration-dir>
 
       <osSpecifics>
         <osSpecific>
@@ -153,21 +76,6 @@
         </osSpecific>
       </osSpecifics>
 
-      <themes-dir>themes-mapred</themes-dir>
-      <themes>
-        <theme>
-          <fileName>theme.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-
-      <quickLinksConfigurations-dir>quicklinks-mapred</quickLinksConfigurations-dir>
-      <quickLinksConfigurations>
-        <quickLinksConfiguration>
-          <fileName>quicklinks.json</fileName>
-          <default>true</default>
-        </quickLinksConfiguration>
-      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>
