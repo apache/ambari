@@ -17,14 +17,10 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import static org.easymock.EasyMock.createMockBuilder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -40,9 +36,12 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -393,7 +392,7 @@ public class ServiceConfigDAOTest {
     serviceConfigs = serviceConfigDAO.getLatestServiceConfigs(clusterId, HDP_02);
     Assert.assertEquals(2, serviceConfigs.size());
   }
-  
+
   @Test
   public void testConfiguration() throws Exception{
     initClusterEntities();
@@ -401,17 +400,17 @@ public class ServiceConfigDAOTest {
 
     Assert.assertTrue(!clusterEntity.getClusterConfigEntities().isEmpty());
     Assert.assertTrue(!clusterEntity.getConfigMappingEntities().isEmpty());
-    
+
     Assert.assertEquals(5, clusterEntity.getClusterConfigEntities().size());
     Assert.assertEquals(3, clusterEntity.getConfigMappingEntities().size());
   }
-  
+
   @Test
   public void testGetClusterConfigMappingByStack() throws Exception{
     initClusterEntities();
-    
+
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    
+
     List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), HDP_01);
     Assert.assertEquals(2, clusterConfigMappingEntities .size());
 
@@ -420,14 +419,14 @@ public class ServiceConfigDAOTest {
     Assert.assertEquals("version1", tag1);
     String type1 = e1.getType();
     Assert.assertEquals("oozie-site", type1);
-    
+
     ClusterConfigMappingEntity e2 = clusterConfigMappingEntities.get(1);
     String tag2 = e2.getTag();
     Assert.assertEquals("version2", tag2);
     String type2 = e2.getType();
     Assert.assertEquals("oozie-site", type2);
   }
-  
+
   /**
    * Test the get latest configuration query against clusterconfig table with configuration groups inserted
    * */
@@ -435,9 +434,9 @@ public class ServiceConfigDAOTest {
   public void testGetClusterConfigMappingByStackCG() throws Exception{
     initClusterEntitiesWithConfigGroups();
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    
+
     List<ConfigGroupEntity> configGroupEntities = configGroupDAO.findAllByTag("OOZIE");
-    
+
     Assert.assertNotNull(configGroupEntities);
     ConfigGroupEntity configGroupEntity = configGroupEntities.get(0);
     Assert.assertNotNull(configGroupEntity);
@@ -447,7 +446,7 @@ public class ServiceConfigDAOTest {
     Assert.assertEquals("oozie_server", configGroupEntity.getGroupName());
     Assert.assertEquals("OOZIE", configGroupEntity.getTag());
     Assert.assertEquals("oozie server", configGroupEntity.getDescription());
-    
+
     List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), HDP_01);
     Assert.assertEquals(2, clusterConfigMappingEntities .size());
 
@@ -456,97 +455,95 @@ public class ServiceConfigDAOTest {
     Assert.assertEquals("version1", tag1);
     String type1 = e1.getType();
     Assert.assertEquals("oozie-site", type1);
-    
+
     ClusterConfigMappingEntity e2 = clusterConfigMappingEntities.get(1);
     String tag2 = e2.getTag();
     Assert.assertEquals("version2", tag2);
     String type2 = e2.getType();
     Assert.assertEquals("oozie-site", type2);
   }
-  
+
   /**
-   * Test  
+   * Test
    *
-   * When the last configuration of a given configuration type to be stored into the clusterconfig table is 
+   * When the last configuration of a given configuration type to be stored into the clusterconfig table is
    * for a configuration group, there is no corresponding entry generated in the clusterconfigmapping.
    *
    * Therefore, the getlatestconfiguration query should skip configuration groups stored in the clusterconfig table.
    *
-   * Test to determine the latest configuration of a given type whose version_tag 
+   * Test to determine the latest configuration of a given type whose version_tag
    * exists in the clusterconfigmapping table.
    *
    * */
   @Test
-  public void testGetLatestClusterConfigMappingByStack() throws Exception{
-    ClusterImpl cluster =
-        createMockBuilder(ClusterImpl.class).
-          addMockedMethod("getSessionManager").
-          addMockedMethod("getClusterName").
-          addMockedMethod("getSessionAttributes").
-          createMock();
-    
+  public void testGetLatestClusterConfigMappingByStack() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1", HDP_01);
+
+    Cluster cluster = clusters.getCluster("c1");
+
     initClusterEntities();
-    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), HDP_01);
-    Collection<ClusterConfigMappingEntity> latestMapingEntities = cluster.getLatestConfigMapping(clusterConfigMappingEntities);
+
+    Collection<ClusterConfigMappingEntity> latestMapingEntities = ((ClusterImpl) cluster).getLatestConfigMappingsForStack(
+        cluster.getClusterId(), HDP_01);
+
     Assert.assertEquals(1, latestMapingEntities.size());
     for(ClusterConfigMappingEntity e: latestMapingEntities){
       Assert.assertEquals("version2", e.getTag());
       Assert.assertEquals("oozie-site", e.getType());
     }
   }
-  
+
   /**
-   * Test  
+   * Test
    *
-   * When the last configuration of a given configuration type to be stored into the clusterconfig table is 
+   * When the last configuration of a given configuration type to be stored into the clusterconfig table is
    * for a configuration group, there is no corresponding entry generated in the clusterconfigmapping.
    *
    * Therefore, the getlatestconfiguration query should skip configuration groups stored in the clusterconfig table.
    *
-   * Test to determine the latest configuration of a given type whose version_tag 
+   * Test to determine the latest configuration of a given type whose version_tag
    * exists in the clusterconfigmapping table.
    *
    * */
   @Test
   public void testGetLatestClusterConfigMappingByStackCG() throws Exception{
-    ClusterImpl cluster =
-        createMockBuilder(ClusterImpl.class).
-          addMockedMethod("getSessionManager").
-          addMockedMethod("getClusterName").
-          addMockedMethod("getSessionAttributes").
-          createMock();
-    
+    Clusters clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1", HDP_01);
+
+    Cluster cluster = clusters.getCluster("c1");
+
     initClusterEntitiesWithConfigGroups();
-    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), HDP_01);
-    Collection<ClusterConfigMappingEntity> latestMapingEntities = cluster.getLatestConfigMapping(clusterConfigMappingEntities);
+
+    Collection<ClusterConfigMappingEntity> latestMapingEntities = ((ClusterImpl) cluster).getLatestConfigMappingsForStack(
+        cluster.getClusterId(), HDP_01);
+
     Assert.assertEquals(1, latestMapingEntities.size());
     for(ClusterConfigMappingEntity e: latestMapingEntities){
       Assert.assertEquals("version2", e.getTag());
       Assert.assertEquals("oozie-site", e.getType());
     }
   }
-  
+
   private void initClusterEntities() throws Exception{
     String userName = "admin";
-    
+
     ServiceConfigEntity oozieServiceConfigEntity = createServiceConfig("OOZIE", userName, 1L, 1L, System.currentTimeMillis(), null);
     ClusterEntity  clusterEntity = oozieServiceConfigEntity.getClusterEntity();
-    
+
     Long clusterId = clusterEntity.getClusterId();
-    
+
     if(null == clusterId){
       clusterId = 1L;
       clusterEntity.setClusterId(clusterId);
       clusterEntity = clusterDAO.merge(clusterEntity);
     }
-    
+
     StackEntity stackEntityHDP01 = stackDAO.find(HDP_01.getStackName(),HDP_01.getStackVersion());
     StackEntity stackEntityHDP02 = stackDAO.find(HDP_02.getStackName(),HDP_02.getStackVersion());
-    
+
     String oozieSite = "oozie-site";
-    
+
     for (int i = 1; i < 6; i++){
       ClusterConfigEntity entity = new ClusterConfigEntity();
       entity.setClusterEntity(clusterEntity);
@@ -555,22 +552,23 @@ public class ServiceConfigDAOTest {
       entity.setVersion(Long.valueOf(i));
       entity.setTag("version"+i);
       entity.setTimestamp(new Date().getTime());
-      if(i < 4)
+      if(i < 4) {
         entity.setStack(stackEntityHDP01);
-      else
+      } else {
         entity.setStack(stackEntityHDP02);
+      }
       entity.setData("");
       clusterDAO.createConfig(entity);
       clusterEntity.getClusterConfigEntities().add(entity);
       clusterDAO.merge(clusterEntity);
     }
-    
+
     Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
     if(null == entities){
       entities = new ArrayList<ClusterConfigMappingEntity>();
       clusterEntity.setConfigMappingEntities(entities);
-    }  
-    
+    }
+
     ClusterConfigMappingEntity e1 = new ClusterConfigMappingEntity();
     e1.setClusterEntity(clusterEntity);
     e1.setClusterId(clusterEntity.getClusterId());
@@ -581,7 +579,7 @@ public class ServiceConfigDAOTest {
     e1.setTag("version1");
     entities.add(e1);
     clusterDAO.merge(clusterEntity);
-    
+
     ClusterConfigMappingEntity e2 = new ClusterConfigMappingEntity();
     e2.setClusterEntity(clusterEntity);
     e2.setClusterId(clusterEntity.getClusterId());
@@ -592,7 +590,7 @@ public class ServiceConfigDAOTest {
     e2.setTag("version2");
     entities.add(e2);
     clusterDAO.merge(clusterEntity);
-    
+
     ClusterConfigMappingEntity e3 = new ClusterConfigMappingEntity();
     e3.setClusterEntity(clusterEntity);
     e3.setClusterId(clusterEntity.getClusterId());
@@ -603,25 +601,25 @@ public class ServiceConfigDAOTest {
     e3.setTag("version4");
     entities.add(e3);
     clusterDAO.merge(clusterEntity);
-  } 
-  
+  }
+
   private void initClusterEntitiesWithConfigGroups() throws Exception{
     String userName = "admin";
-    
+
     ServiceConfigEntity oozieServiceConfigEntity = createServiceConfig("OOZIE", userName, 1L, 1L, System.currentTimeMillis(), null);
     ClusterEntity  clusterEntity = oozieServiceConfigEntity.getClusterEntity();
-    
+
     Long clusterId = clusterEntity.getClusterId();
-    
+
     if(null == clusterId){
       clusterId = 1L;
       clusterEntity.setClusterId(clusterId);
       clusterEntity = clusterDAO.merge(clusterEntity);
     }
-    
+
     StackEntity stackEntityHDP01 = stackDAO.find(HDP_01.getStackName(),HDP_01.getStackVersion());
     String oozieSite = "oozie-site";
-    
+
     int count = 3;
     for (int i = 1; i < count; i++){
       ClusterConfigEntity entity = new ClusterConfigEntity();
@@ -637,13 +635,13 @@ public class ServiceConfigDAOTest {
       clusterEntity.getClusterConfigEntities().add(entity);
       clusterDAO.merge(clusterEntity);
     }
-    
+
     Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
     if(null == entities){
       entities = new ArrayList<ClusterConfigMappingEntity>();
       clusterEntity.setConfigMappingEntities(entities);
-    }  
-    
+    }
+
     ClusterConfigMappingEntity e1 = new ClusterConfigMappingEntity();
     e1.setClusterEntity(clusterEntity);
     e1.setClusterId(clusterEntity.getClusterId());
@@ -654,7 +652,7 @@ public class ServiceConfigDAOTest {
     e1.setTag("version1");
     entities.add(e1);
     clusterDAO.merge(clusterEntity);
-    
+
     ClusterConfigMappingEntity e2 = new ClusterConfigMappingEntity();
     e2.setClusterEntity(clusterEntity);
     e2.setClusterId(clusterEntity.getClusterId());
@@ -665,7 +663,7 @@ public class ServiceConfigDAOTest {
     e2.setTag("version2");
     entities.add(e2);
     clusterDAO.merge(clusterEntity);
-    
+
     ConfigGroupEntity configGroupEntity = new ConfigGroupEntity();
 
     ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
@@ -695,9 +693,9 @@ public class ServiceConfigDAOTest {
     List<ClusterConfigEntity> configEntities = new
       ArrayList<ClusterConfigEntity>();
     configEntities.add(configEntity);
-    
+
     configGroupDAO.create(configGroupEntity);
-    
+
     if (configEntities != null && !configEntities.isEmpty()) {
       List<ConfigGroupConfigMappingEntity> configMappingEntities = new
         ArrayList<ConfigGroupConfigMappingEntity>();
@@ -719,7 +717,7 @@ public class ServiceConfigDAOTest {
         configMappingEntities.add(configMappingEntity);
         configGroupConfigMappingDAO.create(configMappingEntity);
       }
-      
+
       configGroupEntity.setConfigGroupConfigMappingEntities(configMappingEntities);
       configGroupDAO.merge(configGroupEntity);
     }
