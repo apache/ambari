@@ -663,6 +663,9 @@ public class AmbariServer {
       System.out.println("Database consistency check started");
       Logger DB_CHECK_LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
       try{
+        if (System.getProperty("fixDatabaseConsistency") != null ){
+          DatabaseConsistencyCheckHelper.fixDatabaseConsistency();
+        }
         DatabaseConsistencyCheckHelper.runAllDBChecks();
       } catch(Throwable e) {
         System.out.println("Database consistency check: failed");

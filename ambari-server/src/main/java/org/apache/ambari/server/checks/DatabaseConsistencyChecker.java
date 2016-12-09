@@ -134,6 +134,7 @@ public class DatabaseConsistencyChecker {
 
           if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
             System.out.print(String.format("DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " +
+                  "You may try --auto-fix-database flag to attempt to fix issues automatically. " +
                   "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " +
                   "or perform a cluster upgrade until you correct the database consistency issues. See \"%s\" " +
                   "for more details on the consistency issues.", ambariDBConsistencyCheckLog));

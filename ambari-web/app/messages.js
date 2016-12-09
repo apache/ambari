@@ -1756,6 +1756,8 @@ Em.I18n.translations = {
   'admin.stackVersions.upgradeHistory.filter.successful.downgrade': 'Successful Downgrade ({0})',
   'admin.stackVersions.upgradeHistory.filter.aborted.upgrade': 'Aborted Upgrade ({0})',
   'admin.stackVersions.upgradeHistory.filter.aborted.downgrade': 'Aborted Downgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.failed.upgrade': 'Failed Upgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.failed.downgrade': 'Failed Downgrade ({0})',
   'admin.stackVersions.upgradeHistory.no.history': 'No upgrade/downgrade history available',
   'admin.stackVersions.upgradeHistory.record.title': '{0} {1} to {2}',
 

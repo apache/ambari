@@ -1966,6 +1966,12 @@ class TestHDP23StackAdvisor(TestCase):
       "ramPerContainer": 256
     }
     expected = {
+      'logfeeder-env': {'property_attributes': {'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'},
+                                                'logfeeder_external_solr_kerberos_principal': {'visible': 'false'}}},
+      'logsearch-env': {'properties': {'logsearch_external_solr_kerberos_enabled': 'false'},
+                        'property_attributes': {'logsearch_external_solr_kerberos_enabled': {'visible': 'false'},
+                                                'logsearch_external_solr_kerberos_keytab': {'visible': 'false'},
+                                                'logsearch_external_solr_kerberos_principal': {'visible': 'false'}}},
       'logsearch-properties': {
         'properties': {
           "logsearch.collection.service.logs.numshards" : "2",

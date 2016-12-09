@@ -19,12 +19,15 @@
 package org.apache.ambari.server.controller;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.servlet.DispatcherType;
 import javax.servlet.SessionCookieConfig;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.partialMockBuilder;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -34,6 +37,7 @@ import java.net.PasswordAuthentication;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 import org.apache.ambari.server.AmbariException;
@@ -220,6 +224,16 @@ public class AmbariServerTest {
     AmbariServer ambariServer = new AmbariServer();
 
 
+    final Configuration mockConfiguration = partialMockBuilder(Configuration.class).withConstructor()
+        .addMockedMethod("getDatabaseType").createMock();
+    final TypedQuery mockQuery = easyMockSupport.createNiceMock(TypedQuery.class);
+
+    expect(mockConfiguration.getDatabaseType()).andReturn(null).anyTimes();
+    expect(mockEntityManager.createNamedQuery(anyString(),anyObject(Class.class))).andReturn(mockQuery);
+    expect(mockQuery.getResultList()).andReturn(new ArrayList());
+
+    replay(mockConfiguration);
+
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -229,6 +243,7 @@ public class AmbariServerTest {
         bind(OsFamily.class).toInstance(mockOSFamily);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(Clusters.class).toInstance(mockClusters);
+        bind(Configuration.class).toInstance(mockConfiguration);
       }
     });
 
@@ -281,6 +296,16 @@ public class AmbariServerTest {
     AmbariServer ambariServer = new AmbariServer();
 
 
+    final Configuration mockConfiguration = partialMockBuilder(Configuration.class).withConstructor()
+        .addMockedMethod("getDatabaseType").createMock();
+    final TypedQuery mockQuery = easyMockSupport.createNiceMock(TypedQuery.class);
+
+    expect(mockConfiguration.getDatabaseType()).andReturn(null).anyTimes();
+    expect(mockEntityManager.createNamedQuery(anyString(),anyObject(Class.class))).andReturn(mockQuery);
+    expect(mockQuery.getResultList()).andReturn(new ArrayList());
+
+    replay(mockConfiguration);
+
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -290,6 +315,7 @@ public class AmbariServerTest {
         bind(OsFamily.class).toInstance(mockOSFamily);
         bind(EntityManager.class).toInstance(mockEntityManager);
         bind(Clusters.class).toInstance(mockClusters);
+        bind(Configuration.class).toInstance(mockConfiguration);
       }
     });
 
