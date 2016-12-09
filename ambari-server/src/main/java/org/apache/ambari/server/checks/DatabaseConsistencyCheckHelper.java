@@ -20,23 +20,40 @@ package org.apache.ambari.server.checks;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+
+import javax.inject.Provider;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -46,6 +63,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 public class DatabaseConsistencyCheckHelper {
 
@@ -103,8 +121,17 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
+
+  public static void fixDatabaseConsistency() {
+    fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
+    fixClusterConfigsNotMappedToAnyService();
+  }
+
   public static void runAllDBChecks() {
     LOG.info("******************************* Check database started *******************************");
+    checkSchemaName();
+    checkMySQLEngine();
+    checkForConfigsNotMappedToService();
     checkForNotMappedConfigsToCluster();
     checkForConfigsSelectedMoreThanOnce();
     checkForHostsWithoutState();
@@ -200,7 +227,7 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-  /*
+  /**
   * This method checks if any config type in clusterconfigmapping table, has
   * more than one versions selected. If config version is selected(in selected column = 1),
   * it means that this version of config is actual. So, if any config type has more
@@ -260,7 +287,7 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-  /*
+  /**
   * This method checks if all hosts from hosts table
   * has related host state info in hoststate table.
   * If not then we are showing error.
@@ -315,7 +342,7 @@ public class DatabaseConsistencyCheckHelper {
     }
   }
 
-  /*
+  /**
   * This method checks if count of host component states equals count
   * of desired host component states. According to ambari logic these
   * two tables should have the same count of rows. If not then we are
@@ -392,8 +419,218 @@ public class DatabaseConsistencyCheckHelper {
 
   }
 
+  /**
+  * Remove configs that are not mapped to any service.
+  */
+  @Transactional
+  public static void fixClusterConfigsNotMappedToAnyService() {
+    LOG.info("Checking for configs not mapped to any Service");
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
-  /*
+    for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
+      List<String> types = new ArrayList<>();
+      String type = clusterConfigEntity.getType();
+      types.add(type);
+      LOG.error("Removing cluster config mapping of type {} that is not mapped to any service", type);
+      clusterDAO.removeClusterConfigMappingEntityByTypes(clusterConfigEntity.getClusterId(),types);
+      LOG.error("Removing config that is not mapped to any service", clusterConfigEntity);
+      clusterDAO.removeConfig(clusterConfigEntity);
+    }
+  }
+
+
+  /**
+   * Find ClusterConfigs that are not mapped to Service
+   * @return ClusterConfigs that are not mapped to Service
+   */
+  private static List<ClusterConfigEntity> getNotMappedClusterConfigsToService() {
+    Provider<EntityManager> entityManagerProvider = injector.getProvider(EntityManager.class);
+    EntityManager entityManager = entityManagerProvider.get();
+
+    Query query = entityManager.createNamedQuery("ClusterConfigEntity.findNotMappedClusterConfigsToService",ClusterConfigEntity.class);
+
+    return (List<ClusterConfigEntity>) query.getResultList();
+  }
+
+  /**
+   * Look for configs that are not mapped to any service.
+   */
+  public static void checkForConfigsNotMappedToService() {
+    LOG.info("Checking for configs that are not mapped to any service");
+    List<ClusterConfigEntity> notMappedClasterConfigs = getNotMappedClusterConfigsToService();
+
+    if (!notMappedClasterConfigs.isEmpty()){
+      LOG.error("Found configs that are not mapped to any service!");
+      errorsFound = true;
+    }
+  }
+
+  /**
+  * This method checks if count of host component states equals count
+  * of desired host component states. According to ambari logic these
+  * two tables should have the same count of rows. If not then we are
+  * adding missed host components.
+  */
+  @Transactional
+  public static void fixHostComponentStatesCountEqualsHostComponentsDesiredStates() {
+    LOG.info("Checking that there are the same number of actual and desired host components");
+
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+
+    List<HostComponentDesiredStateEntity> hostComponentDesiredStates = hostComponentDesiredStateDAO.findAll();
+    List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findAll();
+
+    Set<HostComponentDesiredStateEntity> missedHostComponentDesiredStates = new HashSet<>();
+    missedHostComponentDesiredStates.addAll(hostComponentDesiredStates);
+    Set<HostComponentStateEntity> missedHostComponentStates = new HashSet<>();
+    missedHostComponentStates.addAll(hostComponentStates);
+
+    for (Iterator<HostComponentStateEntity> stateIterator = missedHostComponentStates.iterator(); stateIterator.hasNext();){
+      HostComponentStateEntity hostComponentStateEntity = stateIterator.next();
+      for (Iterator<HostComponentDesiredStateEntity> desiredStateIterator = missedHostComponentDesiredStates.iterator(); desiredStateIterator.hasNext();) {
+        HostComponentDesiredStateEntity hostComponentDesiredStateEntity = desiredStateIterator.next();
+        if (hostComponentStateEntity.getComponentName().equals(hostComponentDesiredStateEntity.getComponentName()) &&
+            hostComponentStateEntity.getServiceName().equals(hostComponentDesiredStateEntity.getServiceName()) &&
+            hostComponentStateEntity.getHostId().equals(hostComponentDesiredStateEntity.getHostId())){
+          desiredStateIterator.remove();
+          stateIterator.remove();
+          break;
+        }
+      }
+    }
+
+    for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : missedHostComponentDesiredStates) {
+      HostComponentStateEntity stateEntity = new HostComponentStateEntity();
+      stateEntity.setClusterId(hostComponentDesiredStateEntity.getClusterId());
+      stateEntity.setComponentName(hostComponentDesiredStateEntity.getComponentName());
+      stateEntity.setServiceName(hostComponentDesiredStateEntity.getServiceName());
+      stateEntity.setVersion(State.UNKNOWN.toString());
+      stateEntity.setHostEntity(hostComponentDesiredStateEntity.getHostEntity());
+      stateEntity.setCurrentState(State.UNKNOWN);
+      stateEntity.setUpgradeState(UpgradeState.NONE);
+      stateEntity.setCurrentStack(hostComponentDesiredStateEntity.getDesiredStack());
+      stateEntity.setSecurityState(SecurityState.UNKNOWN);
+      stateEntity.setServiceComponentDesiredStateEntity(hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity());
+
+      LOG.error("Trying to add missing record in hostcomponentstate: {}", stateEntity);
+      hostComponentStateDAO.create(stateEntity);
+    }
+
+    for (HostComponentStateEntity missedHostComponentState : missedHostComponentStates) {
+
+      HostComponentDesiredStateEntity stateEntity = new HostComponentDesiredStateEntity();
+      stateEntity.setClusterId(missedHostComponentState.getClusterId());
+      stateEntity.setComponentName(missedHostComponentState.getComponentName());
+      stateEntity.setServiceName(missedHostComponentState.getServiceName());
+      stateEntity.setHostEntity(missedHostComponentState.getHostEntity());
+      stateEntity.setDesiredState(State.UNKNOWN);
+      stateEntity.setDesiredStack(missedHostComponentState.getCurrentStack());
+      stateEntity.setServiceComponentDesiredStateEntity(missedHostComponentState.getServiceComponentDesiredStateEntity());
+
+      LOG.error("Trying to add missing record in hostcomponentdesiredstate: {}", stateEntity);
+      hostComponentDesiredStateDAO.create(stateEntity);
+    }
+  }
+
+  /**
+  * This method checks db schema name for Postgres.
+  * */
+  public static void checkSchemaName () {
+    Configuration conf = injector.getInstance(Configuration.class);
+    if(conf.getDatabaseType()!=Configuration.DatabaseType.POSTGRES) {
+      return;
+    }
+    LOG.info("Ensuring that the schema set for Postgres is correct");
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+    ResultSet rs = null;
+    try {
+      DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+      rs = databaseMetaData.getSchemas();
+
+      boolean ambariSchemaPresent = false;
+      if (rs != null) {
+        while (rs.next()) {
+          if(StringUtils.equals(rs.getString("TABLE_SCHEM"),conf.getDatabaseSchema())){
+            ambariSchemaPresent = true;
+            break;
+          }
+        }
+      }
+      if (!ambariSchemaPresent){
+        LOG.error("The schema %s defined for Ambari from ambari.properties has not been found in the database. " +
+          "This means that the Ambari tables are stored under the public schema which can lead to problems.", conf.getDatabaseSchema());
+        warningsFound = true;
+      }
+
+    } catch (SQLException e) {
+      LOG.error("Exception occurred during checking db schema name.: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+    }
+  }
+
+  /**
+  * This method checks tables engine type to be innodb for MySQL.
+  * */
+  public static void checkMySQLEngine () {
+    Configuration conf = injector.getInstance(Configuration.class);
+    if(conf.getDatabaseType()!=Configuration.DatabaseType.MYSQL) {
+      return;
+    }
+    LOG.info("Checking to ensure that the MySQL DB engine type is set to InnoDB");
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
+    String GET_INNODB_ENGINE_SUPPORT = "select TABLE_NAME, ENGINE from information_schema.tables where TABLE_SCHEMA = '%s' and LOWER(ENGINE) != 'innodb';";
+
+    ResultSet rs = null;
+    Statement statement;
+
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      rs = statement.executeQuery(String.format(GET_INNODB_ENGINE_SUPPORT, conf.getDatabaseSchema()));
+      if (rs != null) {
+        List<String> tablesInfo = new ArrayList<>();
+        while (rs.next()) {
+          errorsFound = true;
+          tablesInfo.add(rs.getString("TABLE_NAME"));
+        }
+        if (!tablesInfo.isEmpty()){
+          LOG.error("Found tables with engine type that is not InnoDB : %s", StringUtils.join(tablesInfo, ','));
+        }
+      }
+    } catch (SQLException e) {
+      LOG.error("Exception occurred during checking MySQL engine to be innodb: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+    }
+  }
+
+  /**
   * This method checks several potential problems for services:
   * 1) Check if we have services in cluster which doesn't have service config id(not available in serviceconfig table).
   * 2) Check if service has no mapped configs to it's service config id.
