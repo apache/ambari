@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.logging;
 
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -35,7 +36,14 @@ import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,6 +52,8 @@ import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,19 +104,24 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private final String portNumber;
 
+  private final String protocol;
+
   private final CredentialStoreService credentialStoreService;
 
   private final Cluster cluster;
 
   private final NetworkConnection networkConnection;
 
-  public LoggingRequestHelperImpl(String hostName, String portNumber, CredentialStoreService credentialStoreService, Cluster cluster) {
-    this(hostName, portNumber, credentialStoreService, cluster, new DefaultNetworkConnection());
+  private SSLSocketFactory sslSocketFactory;
+
+  public LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster) {
+    this(hostName, portNumber, protocol, credentialStoreService, cluster, new DefaultNetworkConnection());
   }
 
-  protected LoggingRequestHelperImpl(String hostName, String portNumber, CredentialStoreService credentialStoreService, Cluster cluster, NetworkConnection networkConnection) {
+  protected LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster, NetworkConnection networkConnection) {
     this.hostName = hostName;
     this.portNumber = portNumber;
+    this.protocol = protocol;
     this.credentialStoreService = credentialStoreService;
     this.cluster = cluster;
     this.networkConnection = networkConnection;
@@ -115,9 +130,10 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters) {
     try {
       // use the Apache builder to create the correct URI
-      URI logSearchURI = createLogSearchQueryURI("http", queryParameters);
+      URI logSearchURI = createLogSearchQueryURI(protocol, queryParameters);
       LOG.debug("Attempting to connect to LogSearch server at " + logSearchURI);
       HttpURLConnection httpURLConnection  = (HttpURLConnection) logSearchURI.toURL().openConnection();
+      secure(httpURLConnection, protocol);
       httpURLConnection.setRequestMethod("GET");
       httpURLConnection.setConnectTimeout(DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS);
       httpURLConnection.setReadTimeout(DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS);
@@ -143,6 +159,41 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     }
 
     return null;
+  }
+
+  private void secure(HttpURLConnection connection, String protocol) {
+    if ("https".equals(protocol)) {
+      HttpsURLConnection secureConnection = (HttpsURLConnection) connection;
+      loadTrustStore();
+      secureConnection.setSSLSocketFactory(this.sslSocketFactory);
+    }
+  }
+
+  private void loadTrustStore() {
+    if (this.sslSocketFactory == null) {
+      ComponentSSLConfiguration sslConfig = ComponentSSLConfiguration.instance();
+      String trustStorePath = sslConfig.getTruststorePath();
+      String trustStoreType = sslConfig.getTruststoreType();
+      String trustStorePassword = sslConfig.getTruststorePassword();
+
+      if (trustStorePath == null || trustStorePassword == null) {
+        String trustStoreErrorMsg = "Can\'t load TrustStore. Truststore path or password is not set.";
+        LOG.error(trustStoreErrorMsg);
+        throw new IllegalStateException(trustStoreErrorMsg);
+      }
+
+      try (FileInputStream in = new FileInputStream(new File(trustStorePath))) {
+        KeyStore e = KeyStore.getInstance(trustStoreType == null ? KeyStore.getDefaultType() : trustStoreType);
+        e.load(in, trustStorePassword.toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(e);
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init((KeyManager[]) null, tmf.getTrustManagers(), (SecureRandom) null);
+        this.sslSocketFactory = context.getSocketFactory();
+      } catch (Exception ex) {
+        LOG.error("Unable to load TrustStore", ex);
+      }
+    }
   }
 
   private void addCookiesFromCookieStore(HttpURLConnection httpURLConnection) {
@@ -247,10 +298,11 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   public LogLevelQueryResponse sendLogLevelQueryRequest(String componentName, String hostName) {
     try {
       // use the Apache builder to create the correct URI
-      URI logLevelQueryURI = createLogLevelQueryURI("http", componentName, hostName);
+      URI logLevelQueryURI = createLogLevelQueryURI(protocol, componentName, hostName);
       LOG.debug("Attempting to connect to LogSearch server at " + logLevelQueryURI);
 
-      HttpURLConnection httpURLConnection = (HttpURLConnection) logLevelQueryURI.toURL().openConnection();
+      HttpURLConnection httpURLConnection  = (HttpURLConnection) logLevelQueryURI.toURL().openConnection();
+      secure(httpURLConnection, protocol);
       httpURLConnection.setRequestMethod("GET");
 
       addCookiesFromCookieStore(httpURLConnection);

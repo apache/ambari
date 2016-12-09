@@ -115,6 +115,8 @@ public class LoggingRequestHelperImplTest {
 
   private static final String EXPECTED_ADMIN_PASSWORD = "admin-pwd";
 
+  private static final String EXPECTED_PROTOCOL = "http";
+
   private static final String EXPECTED_ENCODED_CREDENTIALS =
     Base64.encodeBase64String((EXPECTED_USER_NAME + ":" + EXPECTED_ADMIN_PASSWORD).getBytes());
 
@@ -158,7 +160,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
 
     // invoke query request
     LogQueryResponse result =
@@ -339,7 +341,7 @@ public class LoggingRequestHelperImplTest {
 
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
 
     // invoke query request
     LogLevelQueryResponse result =
@@ -430,7 +432,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
 
     // invoke query request
     Set<String> result =
@@ -516,7 +518,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
 
     // invoke query request
     LogQueryResponse result =
@@ -685,7 +687,7 @@ public class LoggingRequestHelperImplTest {
     mockSupport.replayAll();
 
     LoggingRequestHelper helper =
-      new LoggingRequestHelperImpl("c6401.ambari.apache.org", "61888", credentialStoreServiceMock, clusterMock, networkConnectionMock);
+      new LoggingRequestHelperImpl("c6401.ambari.apache.org", "61888", "http", credentialStoreServiceMock, clusterMock, networkConnectionMock);
 
     String result = helper.createLogFileTailURI(expectedBaseURI, expectedComponentName, expectedHostName);
 
