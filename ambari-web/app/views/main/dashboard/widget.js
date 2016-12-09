@@ -35,7 +35,7 @@ App.DashboardWidgetView = Em.View.extend({
   /**
    * @type {object} - record from model that serve as data source
    */
-  model : function () {
+  model: function () {
     var model = Em.Object.create();
     if (Em.isNone(this.get('sourceName'))) {
       return model;
@@ -108,59 +108,49 @@ App.DashboardWidgetView = Em.View.extend({
     thresholdMin: '',
     thresholdMax: '',
     hintInfo: Em.computed.i18nFormat('dashboard.widgets.hintInfo.common', 'maxValue'),
-    isThresh1Error: false,
-    isThresh2Error: false,
-    errorMessage1: "",
-    errorMessage2: "",
+    thresholdMinError: false,
+    thresholdMaxError: false,
+    thresholdMinErrorMessage: "",
+    thresholdMaxErrorMessage: "",
     maxValue: 0,
-    observeThresh1Value: function () {
-      var thresholdMin = this.get('thresholdMin');
-      var thresholdMax = this.get('thresholdMax');
-      var maxValue = this.get('maxValue');
+    validateThreshold: function(thresholdName) {
+      var thresholdMin = this.get('thresholdMin'),
+       thresholdMax = this.get('thresholdMax'),
+       maxValue = this.get('maxValue'),
+       currentThreshold = this.get(thresholdName),
+       isError = false,
+       errorMessage = '';
 
-      if (thresholdMin.trim() !== "") {
-        if (isNaN(thresholdMin) || thresholdMin > maxValue || thresholdMin < 0) {
-          this.set('isThresh1Error', true);
-          this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
-        } else if (this.get('isThresh2Error') === false && parseFloat(thresholdMax) <= parseFloat(thresholdMin)) {
-          this.set('isThresh1Error', true);
-          this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.smaller'));
+      if (currentThreshold.trim() !== "") {
+        if (isNaN(currentThreshold) || currentThreshold > maxValue || currentThreshold < 0) {
+          isError = true;
+          errorMessage = Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue);
+        } else if (parseFloat(thresholdMax) <= parseFloat(thresholdMin)) {
+          isError = true;
+          errorMessage = Em.I18n.t('dashboard.widgets.error.smaller');
         } else {
-          this.set('isThresh1Error', false);
-          this.set('errorMessage1', '');
+          isError = false;
+          errorMessage = '';
         }
       } else {
-        this.set('isThresh1Error', true);
-        this.set('errorMessage1', Em.I18n.t('admin.users.editError.requiredField'));
+        isError = true;
+        errorMessage = Em.I18n.t('admin.users.editError.requiredField');
       }
+      this.set(thresholdName + 'ErrorMessage', errorMessage);
+      this.set(thresholdName + 'Error', isError);
       this.updateSlider();
+    },
+    observeThreshMinValue: function () {
+      this.validateThreshold('thresholdMin');
     }.observes('thresholdMin', 'maxValue'),
-    observeThresh2Value: function () {
-      var thresholdMax = this.get('thresholdMax');
-      var maxValue = this.get('maxValue');
-
-      if (thresholdMax.trim() !== "") {
-        if (isNaN(thresholdMax) || thresholdMax > maxValue || thresholdMax < 0) {
-          this.set('isThresh2Error', true);
-          this.set('errorMessage2', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
-        } else {
-          this.set('isThresh2Error', false);
-          this.set('errorMessage2', '');
-        }
-      } else {
-        this.set('isThresh2Error', true);
-        this.set('errorMessage2', Em.I18n.t('admin.users.editError.requiredField'));
-      }
-      this.updateSlider();
+    observeThreshMaxValue: function () {
+      this.validateThreshold('thresholdMax');
     }.observes('thresholdMax', 'maxValue'),
     updateSlider: function () {
-      var thresholdMin = this.get('thresholdMin');
-      var thresholdMax = this.get('thresholdMax');
-      // update the slider handles and color
-      if (this.get('isThresh1Error') === false && this.get('isThresh2Error') === false) {
+      if (this.get('thresholdMinError') === false && this.get('thresholdMaxError') === false) {
         $("#slider-range")
-          .slider('values', 0, parseFloat(thresholdMin))
-          .slider('values', 1, parseFloat(thresholdMax));
+          .slider('values', 0, parseFloat(this.get('thresholdMin')))
+          .slider('values', 1, parseFloat(this.get('thresholdMax')));
       }
     }
   }),
@@ -172,6 +162,11 @@ App.DashboardWidgetView = Em.View.extend({
     });
   },
 
+  /**
+   *
+   * @param {string} source
+   * @returns {App.Service}
+   */
   findModelBySource: function (source) {
     if (source === 'HOST_METRICS' && App.get('services.hostMetrics').length > 0) {
       return App.get('services.hostMetrics');
@@ -214,7 +209,7 @@ App.DashboardWidgetView = Em.View.extend({
       thresholdMax: this.get('thresholdMax') + '',
       maxValue: parseFloat(this.get('maxValue'))
     });
-    this.showEditDialog(configObj)
+    this.showEditDialog(configObj);
   },
 
   /**
@@ -234,11 +229,13 @@ App.DashboardWidgetView = Em.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
         configPropertyObj: configObj
       }),
+      configObj: configObj,
+      disablePrimary: Em.computed.or('configObj.thresholdMinError', 'configObj.thresholdMaxError'),
       primary: Em.I18n.t('common.apply'),
       onPrimary: function () {
-        configObj.observeThresh1Value();
-        configObj.observeThresh2Value();
-        if (!configObj.isThresh1Error && !configObj.isThresh2Error) {
+        configObj.observeThreshMinValue();
+        configObj.observeThreshMaxValue();
+        if (!configObj.thresholdMinError && !configObj.thresholdMaxError) {
           self.set('thresholdMin', parseFloat(configObj.get('thresholdMin')));
           self.set('thresholdMax', parseFloat(configObj.get('thresholdMax')));
 
@@ -254,96 +251,47 @@ App.DashboardWidgetView = Em.View.extend({
 
       didInsertElement: function () {
         this._super();
-        var browserVersion = self.getInternetExplorerVersion();
+        var self = this;
         var handlers = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
-        var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
 
-        if (browserVersion === -1 || browserVersion > 9) {
-          configObj.set('isIE9', false);
-          configObj.set('isGreenOrangeRed', true);
-          $("#slider-range").slider({
-            range: true,
-            min: 0,
-            max: maxValue,
-            values: handlers,
-            create: function () {
-              updateColors(handlers);
-            },
-            slide: function (event, ui) {
-              updateColors(ui.values);
-              configObj.set('thresholdMin', ui.values[0] + '');
-              configObj.set('thresholdMax', ui.values[1] + '');
-            },
-            change: function (event, ui) {
-              updateColors(ui.values);
-            }
-          });
-
-          function updateColors(handlers) {
-            var colorstops = colors[0] + ", "; // start with the first color
-            for (var i = 0; i < handlers.length; i++) {
-              colorstops += colors[i] + " " + handlers[i] * 100 / maxValue + "%,";
-              colorstops += colors[i + 1] + " " + handlers[i] * 100 / maxValue + "%,";
-            }
-            colorstops += colors[colors.length - 1];
-            var sliderElement = $('#slider-range');
-            var css1 = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari
-            sliderElement.css('background-image', css1);
-            var css2 = '-ms-linear-gradient(left,' + colorstops + ')'; // IE 10+
-            sliderElement.css('background-image', css2);
-            //$('#slider-range').css('filter', 'progid:DXImageTransform.Microsoft.gradient( startColorStr= ' + colors[0] + ', endColorStr= ' + colors[2] +',  GradientType=1 )' ); // IE 10-
-            var css3 = '-moz-linear-gradient(left,' + colorstops + ')'; // Firefox
-            sliderElement.css('background-image', css3);
-
-            sliderElement.find('.ui-widget-header').css({'background-color': '#FF8E00', 'background-image': 'none'}); // change the  original ranger color
+        $("#slider-range").slider({
+          range: true,
+          min: 0,
+          max: maxValue,
+          values: handlers,
+          create: function () {
+            self.updateColors(handlers);
+          },
+          slide: function (event, ui) {
+            self.updateColors(ui.values);
+            configObj.set('thresholdMin', ui.values[0] + '');
+            configObj.set('thresholdMax', ui.values[1] + '');
+          },
+          change: function (event, ui) {
+            self.updateColors(ui.values);
           }
-        } else {
-          configObj.set('isIE9', true);
-          configObj.set('isGreenOrangeRed', true);
+        });
+      },
+      updateColors: function (handlers) {
+        var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed];
+        var colorStops = colors[0] + ", ";
+
+        for (var i = 0; i < handlers.length; i++) {
+          colorStops += colors[i] + " " + handlers[i] * 100 / maxValue + "%,";
+          colorStops += colors[i + 1] + " " + handlers[i] * 100 / maxValue + "%,";
         }
+        colorStops += colors[colors.length - 1];
+        var sliderElement = $('#slider-range');
+        var gradient = 'linear-gradient(left,' + colorStops + ')';
+
+        sliderElement.css('background-image', '-webkit-' + gradient);
+        sliderElement.css('background-image', '-ms-' + gradient);
+        sliderElement.css('background-image', '-moz-' + gradient);
+        sliderElement.find('.ui-widget-header').css({
+          'background-color': '#FF8E00',
+          'background-image': 'none'
+        });
       }
     });
-  },
-
-  /**
-   * @returns {number}
-   */
-  getInternetExplorerVersion: function () {
-    var rv = -1; //return -1 for other browsers
-    if (navigator.appName === 'Microsoft Internet Explorer') {
-      var ua = navigator.userAgent;
-      var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-      if (re.exec(ua) != null) {
-        rv = parseFloat(RegExp.$1); // IE version 1-10
-      }
-    }
-    return rv;
-  },
-
-  /**
-   * for widgets has hidden info(hover info),
-   * calculate the hover content top number
-   * based on how long the hiddenInfo is
-   * @returns {string}
-   */
-  hoverContentTopClass: function () {
-    var lineNum = this.get('hiddenInfo.length');
-    if (lineNum === 2) {
-      return "content-hidden-two-line";
-    }
-    if (lineNum === 3) {
-      return "content-hidden-three-line";
-    }
-    if (lineNum === 4) {
-      return "content-hidden-four-line";
-    }
-    if (lineNum === 5) {
-      return "content-hidden-five-line";
-    }
-    if (lineNum === 6) {
-      return "content-hidden-six-line";
-    }
-    return '';
-  }.property('hiddenInfo.length')
-
+  }
 });

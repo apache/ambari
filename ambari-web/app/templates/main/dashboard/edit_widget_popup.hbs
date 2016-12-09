@@ -24,15 +24,7 @@
 
     <div class="row" id= "min-height-limit">
       <div class="col-md-12">
-       {{#if view.configPropertyObj.isIE9}}
-         <div class="progress">
-           <div {{bindAttr class=":bar view.configPropertyObj.isGreenOrangeRed:bar-success:bar-danger"}} style="width: 33%;"></div>
-           <div class="bar bar-warning" style="width: 33%;"></div>
-           <div {{bindAttr class=":bar view.configPropertyObj.isGreenOrangeRed:bar-danger:bar-success"}} style="width: 34%;"></div>
-         </div>
-       {{else}}
-         <div id="slider-range"></div>
-       {{/if}}
+        <div id="slider-range"></div>
       </div>
     </div>
 
@@ -40,16 +32,16 @@
         <div id="slider-value1" class="value-on-slider col-md-2">
           <input type="text" value="0" disabled="disabled" class="form-control" />
         </div>
-        <div id="slider-value2" {{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh1Error:has-error"}}>
+        <div id="slider-value2" {{bindAttr class="view.configPropertyObj.thresholdMinError:slider-error :value-on-slider :col-md-4 view.configPropertyObj.thresholdMinError:has-error"}}>
           {{view Ember.TextField class="form-control" valueBinding="view.configPropertyObj.thresholdMin"}}
-          {{#if view.configPropertyObj.errorMessage1}}
-            <span class="help-block validation-block">{{view.configPropertyObj.errorMessage1}}</span>
+          {{#if view.configPropertyObj.thresholdMinErrorMessage}}
+            <span class="help-block validation-block">{{view.configPropertyObj.thresholdMinErrorMessage}}</span>
           {{/if}}
         </div>
-        <div id="slider-value3" {{bindAttr class="view.configPropertyObj.isThresh2Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh2Error:has-error"}}>
+        <div id="slider-value3" {{bindAttr class="view.configPropertyObj.thresholdMaxError:slider-error :value-on-slider :col-md-4 view.configPropertyObj.thresholdMaxError:has-error"}}>
           {{view Ember.TextField class="form-control" valueBinding="view.configPropertyObj.thresholdMax"}}
-          {{#if view.configPropertyObj.errorMessage1}}
-            <span class="help-block validation-block">{{view.configPropertyObj.errorMessage2}}</span>
+          {{#if view.configPropertyObj.thresholdMaxErrorMessage}}
+            <span class="help-block validation-block">{{view.configPropertyObj.thresholdMaxErrorMessage}}</span>
           {{/if}}
         </div>
         <div id="slider-value4" class="value-on-slider col-md-2">

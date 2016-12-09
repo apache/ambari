@@ -21,329 +21,269 @@ require('views/main/dashboard/widget');
 
 describe('App.DashboardWidgetView', function () {
 
-  var dashboardWidgetView;
+  var view;
 
-  dashboardWidgetView = App.DashboardWidgetView.create({
-    parentView: Em.Object.create({
-      widgetsMapper: Em.K,
-      getUserPref: function () {
-        return {complete: Em.K}
-      },
-      postUserPref: Em.K,
-      translateToReal: Em.K,
-      visibleWidgets: [],
-      hiddenWidgets: []
-    }),
-    widget: Em.Object.create({
-      id: 5,
-      sourceName: 'HDFS',
-      title: 'Widget'
-    })
-  });
-
-  describe('#viewID', function () {
-    it('viewID is computed with id', function () {
-      expect(dashboardWidgetView.get('viewID')).to.equal('widget-5');
+  beforeEach(function() {
+    view = App.DashboardWidgetView.create({
+      widget: Em.Object.create(),
+      parentView: Em.Object.create({
+        userPreferences: {},
+        saveWidgetsSettings: Em.K,
+        renderWidgets: Em.K
+      })
     });
   });
 
-  describe('#model', function () {
+  describe('#model', function() {
 
     beforeEach(function() {
-      sinon.stub(dashboardWidgetView, 'findModelBySource').returns(Em.Object.create({serviceName: 'HDFS'}));
+      sinon.stub(view, 'findModelBySource').returns(Em.Object.create({
+        serviceName: 'S1'
+      }));
     });
 
     afterEach(function() {
-      dashboardWidgetView.findModelBySource.restore();
+      view.findModelBySource.restore();
     });
 
-    it('sourceName is null', function () {
-      dashboardWidgetView.set('widget.sourceName', null);
-      dashboardWidgetView.propertyDidChange('model');
-      expect(dashboardWidgetView.get('model')).to.be.an.object;
+    it('sourceName is null', function() {
+      view.set('widget.sourceName', null);
+      view.propertyDidChange('model');
+      expect(view.get('model')).to.be.empty;
     });
-    it('sourceName is valid', function () {
-      dashboardWidgetView.set('widget.sourceName', 'HDFS');
-      dashboardWidgetView.propertyDidChange('model');
-      expect(dashboardWidgetView.get('model')).to.eql(Em.Object.create({serviceName: 'HDFS'}));
+
+    it('sourceName is S1', function() {
+      view.set('widget.sourceName', 'S1');
+      view.propertyDidChange('model');
+      expect(view.get('model')).to.not.be.empty;
     });
   });
 
-  describe("#didInsertElement()", function () {
+  describe('#thresholdMin', function() {
 
-    beforeEach(function () {
-      sinon.stub(App, 'tooltip', Em.K);
+    it('threshold is empty', function() {
+      view.set('widget.threshold', null);
+      expect(view.get('thresholdMin')).to.be.equal(0);
     });
-    afterEach(function () {
+
+    it('threshold is set', function() {
+      view.set('widget.threshold', [1, 2]);
+      expect(view.get('thresholdMin')).to.be.equal(1);
+    });
+  });
+
+  describe('#thresholdMax', function() {
+
+    it('threshold is empty', function() {
+      view.set('widget.threshold', null);
+      expect(view.get('thresholdMax')).to.be.equal(0);
+    });
+
+    it('threshold is set', function() {
+      view.set('widget.threshold', [1, 2]);
+      expect(view.get('thresholdMax')).to.be.equal(2);
+    });
+  });
+
+  describe('#widgetConfig', function () {
+    var widgetConfig;
+
+    beforeEach(function() {
+      widgetConfig = view.get('widgetConfig').create();
+    });
+
+    describe('#validateThreshold()', function () {
+
+      beforeEach(function () {
+        sinon.stub(widgetConfig, 'updateSlider');
+      });
+
+      afterEach(function () {
+        widgetConfig.updateSlider.restore();
+      });
+
+      it('updateSlider should be called', function () {
+        widgetConfig.validateThreshold('thresholdMin');
+        expect(widgetConfig.updateSlider).to.be.called;
+      });
+
+      it('thresholdMin is empty', function () {
+        widgetConfig.set('thresholdMin', '');
+        widgetConfig.validateThreshold('thresholdMin');
+        expect(widgetConfig.get('thresholdMinError')).to.be.true;
+        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('admin.users.editError.requiredField'));
+      });
+
+      it('thresholdMin is NaN', function () {
+        widgetConfig.set('thresholdMin', 'a');
+        widgetConfig.validateThreshold('thresholdMin');
+        expect(widgetConfig.get('thresholdMinError')).to.be.true;
+        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.invalid').format(0));
+      });
+
+      it('thresholdMin bigger than maxValue', function () {
+        widgetConfig.set('thresholdMin', '1');
+        widgetConfig.validateThreshold('thresholdMin');
+        expect(widgetConfig.get('thresholdMinError')).to.be.true;
+        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.invalid').format(0));
+      });
+
+      it('thresholdMin less than 0', function () {
+        widgetConfig.set('thresholdMin', '-1');
+        widgetConfig.validateThreshold('thresholdMin');
+        expect(widgetConfig.get('thresholdMinError')).to.be.true;
+        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.invalid').format(0));
+      });
+
+      it('thresholdMin bigger than thresholdMax', function () {
+        widgetConfig.set('thresholdMin', '2');
+        widgetConfig.set('thresholdMax', '1');
+        widgetConfig.set('maxValue', 100);
+        widgetConfig.validateThreshold('thresholdMin');
+        expect(widgetConfig.get('thresholdMinError')).to.be.true;
+        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.smaller'));
+      });
+    });
+
+    describe('#observeThreshMinValue()', function() {
+
+      beforeEach(function() {
+        sinon.stub(widgetConfig, 'validateThreshold');
+      });
+      afterEach(function() {
+        widgetConfig.validateThreshold.restore();
+      });
+
+      it('validateThreshold should be called', function() {
+        widgetConfig.observeThreshMinValue();
+        expect(widgetConfig.validateThreshold.calledWith('thresholdMin')).to.be.true;
+      });
+    });
+
+    describe('#observeThreshMaxValue()', function() {
+
+      beforeEach(function() {
+        sinon.stub(widgetConfig, 'validateThreshold');
+      });
+      afterEach(function() {
+        widgetConfig.validateThreshold.restore();
+      });
+
+      it('validateThreshold should be called', function() {
+        widgetConfig.observeThreshMaxValue();
+        expect(widgetConfig.validateThreshold.calledWith('thresholdMax')).to.be.true;
+      });
+    });
+  });
+
+  describe('#didInsertElement()', function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'tooltip');
+    });
+
+    afterEach(function() {
       App.tooltip.restore();
     });
 
-    it("call App.tooltip", function () {
-      dashboardWidgetView.didInsertElement();
-      expect(App.tooltip.calledOnce).to.be.true;
+    it('App.tooltip should be called', function() {
+      view.didInsertElement();
+      expect(App.tooltip).to.be.calledOnce;
     });
   });
 
-  describe("#editWidget()", function () {
+  describe('#findModelBySource()', function() {
 
-    beforeEach(function () {
-      sinon.stub(dashboardWidgetView, 'showEditDialog', Em.K);
-    });
-    afterEach(function () {
-      dashboardWidgetView.showEditDialog.restore();
+    beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({serviceName: 'S1'}));
+      sinon.stub(App.HDFSService, 'find').returns(Em.Object.create({serviceName: 'HDFS'}));
+      this.mockGet = sinon.stub(App, 'get');
     });
 
-    it("call showEditDialog", function () {
-      dashboardWidgetView.editWidget();
-      expect(dashboardWidgetView.showEditDialog.calledOnce).to.be.true;
+    afterEach(function() {
+      App.Service.find.restore();
+      App.HDFSService.find.restore();
+      this.mockGet.restore();
     });
-  });
 
-  describe('#hoverContentTopClass', function () {
-    var tests = [
-      {
-        h: ['', ''],
-        e: 'content-hidden-two-line',
-        m: '2 lines'
-      },
-      {
-        h: ['', '', ''],
-        e: 'content-hidden-three-line',
-        m: '3 lines'
-      },
-      {
-        h: [''],
-        e: '',
-        m: '1 line'
-      },
-      {
-        h: [],
-        e: '',
-        m: '0 lines'
-      },
-      {
-        h: ['', '', '', '', ''],
-        e: 'content-hidden-five-line',
-        m: '5 lines'
-      },
-      {
-        h: ['', '', '', ''],
-        e: 'content-hidden-four-line',
-        m: '4 lines'
-      },
-      {
-        h: ['', '', '', '', '', ''],
-        e: 'content-hidden-six-line',
-        m: '6 lines'
-      }
-    ];
-    tests.forEach(function (test) {
-      it(test.m, function () {
-        dashboardWidgetView.set('hiddenInfo', test.h);
-        expect(dashboardWidgetView.get('hoverContentTopClass')).to.equal(test.e);
-      });
+    it('source = HOST_METRICS', function() {
+      this.mockGet.returns([{}]);
+      expect(view.findModelBySource('HOST_METRICS')).to.be.eql([{}]);
+    });
+
+    it('source = S1', function() {
+      expect(view.findModelBySource('S1')).to.be.eql(Em.Object.create({serviceName: 'S1'}));
+    });
+
+    it('source = HDFS', function() {
+      expect(view.findModelBySource('HDFS')).to.be.eql(Em.Object.create({serviceName: 'HDFS'}));
     });
   });
 
-  describe("#widgetConfig", function() {
-    var widget = dashboardWidgetView.get('widgetConfig').create();
-    describe("#hintInfo", function() {
-      it("is formatted with maxValue", function() {
-        widget.set('maxValue', 1);
-        widget.propertyDidChange('hintInfo');
-        expect(widget.get('hintInfo')).to.equal(Em.I18n.t('dashboard.widgets.hintInfo.common').format(1));
+  describe('#deleteWidget()', function() {
+
+    beforeEach(function() {
+      sinon.stub(view.get('parentView'), 'saveWidgetsSettings');
+      sinon.stub(view.get('parentView'), 'renderWidgets');
+      view.set('widget.id', 1);
+      view.set('parentView.userPreferences', {
+        visible: [1],
+        hidden: [],
+        threshold: []
       });
+      view.deleteWidget();
     });
-    describe("#observeThresh1Value", function() {
-      beforeEach(function () {
-        sinon.stub(widget, 'updateSlider', Em.K);
-      });
-      afterEach(function () {
-        widget.updateSlider.restore();
-      });
-      var testCases = [
-        {
-          data: {
-            thresholdMin: '',
-            maxValue: 0
-          },
-          result: {
-            isThresh1Error: true,
-            errorMessage1: Em.I18n.t('admin.users.editError.requiredField')
-          }
-        },
-        {
-          data: {
-            thresholdMin: 'NaN',
-            maxValue: 0
-          },
-          result: {
-            isThresh1Error: true,
-            errorMessage1: Em.I18n.t('dashboard.widgets.error.invalid').format(0)
-          }
-        },
-        {
-          data: {
-            thresholdMin: '-1',
-            maxValue: 0
-          },
-          result: {
-            isThresh1Error: true,
-            errorMessage1: Em.I18n.t('dashboard.widgets.error.invalid').format(0)
-          }
-        },
-        {
-          data: {
-            thresholdMin: '2',
-            maxValue: 1
-          },
-          result: {
-            isThresh1Error: true,
-            errorMessage1: Em.I18n.t('dashboard.widgets.error.invalid').format(1)
-          }
-        },
-        {
-          data: {
-            thresholdMin: '1',
-            thresholdMax: '1',
-            maxValue: 2
-          },
-          result: {
-            isThresh1Error: true,
-            errorMessage1: Em.I18n.t('dashboard.widgets.error.smaller')
-          }
-        },
-        {
-          data: {
-            thresholdMin: '1',
-            thresholdMax: '0',
-            maxValue: 2
-          },
-          result: {
-            isThresh1Error: true,
-            errorMessage1: Em.I18n.t('dashboard.widgets.error.smaller')
-          }
-        },
-        {
-          data: {
-            thresholdMin: '1',
-            thresholdMax: '2',
-            maxValue: 2
-          },
-          result: {
-            isThresh1Error: false,
-            errorMessage1: ''
-          }
-        }
-      ];
-      testCases.forEach(function (test) {
-        describe("thresholdMin - " + test.data.thresholdMin + ', maxValue - ' + test.data.maxValue, function () {
 
-          beforeEach(function () {
-            widget.set('isThresh2Error', false);
-            widget.set('thresholdMax', test.data.thresholdMax || "");
-            widget.set('thresholdMin', test.data.thresholdMin);
-            widget.set('maxValue', test.data.maxValue);
-            widget.observeThresh1Value();
-          });
+    afterEach(function() {
+      view.get('parentView').saveWidgetsSettings.restore();
+      view.get('parentView').renderWidgets.restore();
+    });
 
-          it('isThresh1Error is ' + test.result.isThresh1Error, function () {
-            expect(widget.get('isThresh1Error')).to.equal(test.result.isThresh1Error);
-          });
-
-          it('errorMessage1 is ' + test.result.errorMessage1, function () {
-            expect(widget.get('errorMessage1')).to.equal(test.result.errorMessage1);
-          });
-
-          it('updateSlider is called', function () {
-            expect(widget.updateSlider.called).to.be.true;
-          });
-
-        });
+    it('saveWidgetsSettings should be called', function() {
+      expect(view.get('parentView').saveWidgetsSettings.getCall(0).args[0]).to.be.eql({
+        visible: [],
+        hidden: [1],
+        threshold: []
       });
     });
 
-    describe("#observeThresh2Value", function() {
-      beforeEach(function () {
-        sinon.stub(widget, 'updateSlider', Em.K);
+    it('renderWidgets should be called', function() {
+      expect(view.get('parentView').renderWidgets).to.be.calledOnce;
+    });
+  });
+
+  describe('#editWidget()', function() {
+
+    beforeEach(function() {
+      sinon.stub(view, 'showEditDialog');
+    });
+
+    afterEach(function() {
+      view.showEditDialog.restore();
+    });
+
+    it('showEditDialog should be called', function() {
+      view.reopen({
+        widgetConfig: Em.Object.extend()
       });
-      afterEach(function () {
-        widget.updateSlider.restore();
-      });
-      var testCases = [
-        {
-          data: {
-            thresholdMax: '',
-            maxValue: 0
-          },
-          result: {
-            isThresh2Error: true,
-            errorMessage2: Em.I18n.t('admin.users.editError.requiredField')
-          }
-        },
-        {
-          data: {
-            thresholdMax: 'NaN',
-            maxValue: 0
-          },
-          result: {
-            isThresh2Error: true,
-            errorMessage2: Em.I18n.t('dashboard.widgets.error.invalid').format(0)
-          }
-        },
-        {
-          data: {
-            thresholdMax: '-1',
-            maxValue: 0
-          },
-          result: {
-            isThresh2Error: true,
-            errorMessage2: Em.I18n.t('dashboard.widgets.error.invalid').format(0)
-          }
-        },
-        {
-          data: {
-            thresholdMax: '2',
-            maxValue: 1
-          },
-          result: {
-            isThresh2Error: true,
-            errorMessage2: Em.I18n.t('dashboard.widgets.error.invalid').format(1)
-          }
-        },
-        {
-          data: {
-            thresholdMax: '2',
-            maxValue: 2
-          },
-          result: {
-            isThresh2Error: false,
-            errorMessage2: ''
-          }
-        }
-      ];
-      testCases.forEach(function (test) {
-        describe("thresholdMax - " + test.data.thresholdMax + ', maxValue - ' + test.data.maxValue, function () {
+      view.editWidget();
+      expect(view.showEditDialog).to.be.calledOnce;
+    });
+  });
 
-          beforeEach(function () {
-            widget.set('thresholdMax', test.data.thresholdMax || "");
-            widget.set('maxValue', test.data.maxValue);
-            widget.observeThresh2Value();
-          });
+  describe('#showEditDialog()', function() {
 
-          it('isThresh2Error is ' + test.result.isThresh2Error, function () {
-            expect(widget.get('isThresh2Error')).to.equal(test.result.isThresh2Error);
-          });
+    beforeEach(function() {
+      sinon.stub(App.ModalPopup, 'show');
+    });
 
-          it('errorMessage2 is ' + JSON.stringify(test.result.errorMessage2), function () {
-            expect(widget.get('errorMessage2')).to.equal(test.result.errorMessage2);
-          });
+    afterEach(function() {
+      App.ModalPopup.show.restore();
+    });
 
-          it('updateSlider is called', function () {
-            expect(widget.updateSlider.called).to.be.true;
-          });
-        });
-      });
+    it('App.ModalPopup.show should be called', function() {
+      view.showEditDialog();
+      expect(App.ModalPopup.show).to.be.calledOnce;
     });
   });
 
