@@ -40,6 +40,8 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
 
   private static final String LOGSEARCH_UI_PORT_PROPERTY_NAME = "logsearch_ui_port";
 
+  private static final String LOGSEARCH_UI_PROTOCOL = "logsearch_ui_protocol";
+
 
   @Override
   public LoggingRequestHelper getHelper(AmbariManagementController ambariManagementController, String clusterName) {
@@ -85,8 +87,10 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
         final String logSearchHostName = serviceComponentHost.getHostName();
         final String logSearchPortNumber =
           logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PORT_PROPERTY_NAME);
+        final String logSearchProtocol =
+          logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PROTOCOL);
 
-        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, ambariManagementController.getCredentialStoreService(), cluster);
+        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, logSearchProtocol, ambariManagementController.getCredentialStoreService(), cluster);
       }
     } catch (AmbariException ambariException) {
       LOG.error("Error occurred while trying to obtain the cluster, cluster name = " + clusterName, ambariException);
