@@ -46,7 +46,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   heapsizeException: ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize',
     'apptimelineserver_heapsize', 'jobhistory_heapsize', 'nfsgateway_heapsize', 'accumulo_master_heapsize',
     'accumulo_tserver_heapsize', 'accumulo_monitor_heapsize', 'accumulo_gc_heapsize', 'accumulo_other_heapsize',
-    'hbase_master_heapsize', 'hbase_regionserver_heapsize', 'metrics_collector_heapsize'],
+    'hbase_master_heapsize', 'hbase_regionserver_heapsize', 'metrics_collector_heapsize', 'hive_heapsize'],
 
   /**
    * Regular expression for heapsize properties detection

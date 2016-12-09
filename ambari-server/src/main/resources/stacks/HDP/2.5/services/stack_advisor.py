@@ -1509,7 +1509,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     hive_tez_container_size = self.get_hive_tez_container_size(services)
     tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_cap))
     normalized_val = self._normalizeUp(slider_am_size, yarn_min_container_size) + self._normalizeUp\
-      (hive_tez_container_size, yarn_min_container_size) + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
+      (long(hive_tez_container_size), yarn_min_container_size) + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 
     min_required = max(total_queue_size_at_20_perc, normalized_val)
 
