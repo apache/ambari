@@ -141,11 +141,13 @@ App.InstallerController = App.WizardController.extend({
     var dfd = $.Deferred();
     var self = this;
     var stackServices = App.StackService.find().mapProperty('serviceName');
-    if (!(stackServices && !!stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') == App.get('currentStackVersionNumber'))) {
+    if (!(stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') === App.get('currentStackVersionNumber'))) {
       this.loadServiceComponents().complete(function () {
         self.set('content.services', App.StackService.find().forEach(function (item) {
           // user the service version from VersionDefinition
-          item.set('serviceVersionDisplay', App.Stack.find().findProperty('isSelected', true).get('stackServices').findProperty('name', item.get('serviceName')).get('latestVersion'));
+          var serviceInStack = App.Stack.find().findProperty('isSelected').get('stackServices').findProperty('name', item.get('serviceName'));
+          var serviceVersionDisplay = serviceInStack ? serviceInStack.get('latestVersion') : item.get('serviceVersion');
+          item.set('serviceVersionDisplay', serviceVersionDisplay);
         }));
         dfd.resolve();
       });
