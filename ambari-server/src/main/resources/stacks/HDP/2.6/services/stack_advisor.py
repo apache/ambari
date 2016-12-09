@@ -53,6 +53,10 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
   def recommendDruidConfigurations(self, configurations, clusterData, services, hosts):
 
+      # druid is not in list of services to be installed
+      if 'druid-common' not in services['configurations']:
+        return
+
       componentsListList = [service["components"] for service in services["services"]]
       componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
       servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
