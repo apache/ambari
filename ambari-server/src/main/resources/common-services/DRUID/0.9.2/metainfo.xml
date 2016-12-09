@@ -127,8 +127,8 @@
         <component>
           <name>DRUID_ROUTER</name>
           <displayName>Druid Router</displayName>
-          <category>SLAVE</category>
-          <cardinality>0+</cardinality>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
