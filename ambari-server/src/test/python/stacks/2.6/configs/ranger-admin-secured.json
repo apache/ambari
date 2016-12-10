@@ -35,9 +35,10 @@
                 "dfs.webhdfs.enabled": "true"
             }
         }, 
-        "ranger-tagsync-site": {}, 
-        "zoo.cfg": {}, 
-        "hadoop-policy": {}, 
+        "ranger-tagsync-site": {},
+        "ranger-tagsync-policymgr-ssl": {}, 
+        "zoo.cfg": {},
+        "hadoop-policy": {},
         "hdfs-log4j": {}, 
         "krb5-conf": {}, 
         "core-site": {
@@ -147,7 +148,10 @@
         }, 
         "tagsync-log4j": {
             "tag": "version1466705299949"
-        }, 
+        },
+        "ranger-tagsync-policymgr-ssl": {
+            "tag": "version1479216811014"
+        },
         "ranger-hdfs-security": {
             "tag": "version1466705299922"
         }, 
@@ -171,26 +175,26 @@
     "hostLevelParams": {
         "agent_stack_retry_on_unavailability": "false", 
         "stack_name": "HDP", 
-        "package_version": "2_5_0_0_*", 
+        "package_version": "2_6_0_0_*",
         "custom_mysql_jdbc_name": "mysql-connector-java.jar",
         "previous_custom_mysql_jdbc_name": "mysql-connector-java-old.jar",
         "host_sys_prepped": "false", 
         "ambari_db_rca_username": "mapred", 
         "current_version": "2.6.0.0-801",
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar", 
-        "agent_stack_retry_count": "5", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "agent_stack_retry_count": "5",
         "stack_version": "2.6",
         "jdk_name": "jdk-8u60-linux-x64.tar.gz", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",
-        "repository_version_id": "1", 
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "repository_version_id": "1",
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
         "not_managed_hdfs_path_list": "[\"/tmp\"]", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
         "java_version": "8", 
-        "repo_info": "[{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.5.0.0-801\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.5\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.5.0.0\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.5.0.0-801\",\"baseSaved\":true},{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.21\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"baseSaved\":true}]", 
-        "package_list": "[{\"name\":\"ranger_${stack_version}-admin\",\"condition\":\"\",\"skipUpgrade\":false},{\"name\":\"ranger_${stack_version}-usersync\",\"condition\":\"\",\"skipUpgrade\":false},{\"name\":\"ranger_${stack_version}-tagsync\",\"condition\":\"should_install_ranger_tagsync\",\"skipUpgrade\":false},{\"name\":\"ambari-logsearch-solr-client\",\"condition\":\"should_install_logsearch_solr_client\",\"skipUpgrade\":false}]", 
-        "db_name": "ambari", 
+        "repo_info": "[{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.0.0-801\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.6\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.0\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.0.0-801\",\"baseSaved\":true},{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.21\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"baseSaved\":true}]",
+        "package_list": "[{\"name\":\"ranger_${stack_version}-admin\",\"condition\":\"\",\"skipUpgrade\":false},{\"name\":\"ranger_${stack_version}-usersync\",\"condition\":\"\",\"skipUpgrade\":false},{\"name\":\"ranger_${stack_version}-tagsync\",\"condition\":\"should_install_ranger_tagsync\",\"skipUpgrade\":false},{\"name\":\"ambari-logsearch-solr-client\",\"condition\":\"should_install_logsearch_solr_client\",\"skipUpgrade\":false}]",
+        "db_name": "ambari",
         "group_list": "[\"ranger\",\"hadoop\",\"users\"]", 
         "agentCacheDir": "/var/lib/ambari-agent/cache", 
         "ambari_db_rca_password": "mapred", 
@@ -205,8 +209,8 @@
         "script": "scripts/ranger_admin.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
         "version": "2.6.0.0-801",
-        "max_duration_for_retries": "0", 
-        "command_retry_enabled": "false", 
+        "max_duration_for_retries": "0",
+        "command_retry_enabled": "false",
         "command_timeout": "600", 
         "script_type": "PYTHON"
     }, 
@@ -270,7 +274,23 @@
             "xasecure.audit.provider.summary.enabled": "false", 
             "xasecure.audit.destination.hdfs.dir": "hdfs://c6401.ambari.apache.org:8020/ranger/audit", 
             "xasecure.audit.is.enabled": "true"
-        }, 
+        },
+        "ranger-tagsync-policymgr-ssl": {
+            "xasecure.policymgr.clientssl.keystore": "/etc/security/serverKeys/ranger-tagsync-keystore.jks", 
+            "xasecure.policymgr.clientssl.truststore.password": "changeit", 
+            "xasecure.policymgr.clientssl.keystore.credential.file": "jceks://file{{ranger_tagsync_credential_file}}",
+            "xasecure.policymgr.clientssl.truststore": "/etc/security/serverKeys/ranger-tagsync-mytruststore.jks", 
+            "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{ranger_tagsync_credential_file}}",
+            "xasecure.policymgr.clientssl.keystore.password": "myKeyFilePassword"
+        },
+        "atlas-tagsync-ssl": {
+            "xasecure.policymgr.clientssl.keystore": "/etc/security/serverKeys/atlas-tagsync-keystore.jks",
+            "xasecure.policymgr.clientssl.truststore.password": "changeit",
+            "xasecure.policymgr.clientssl.keystore.credential.file": "jceks://file{{atlas_tagsync_credential_file}}",
+            "xasecure.policymgr.clientssl.truststore": "/etc/security/serverKeys/atlas-tagsync-mytruststore.jks",
+            "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{atlas_tagsync_credential_file}}",
+            "xasecure.policymgr.clientssl.keystore.password": "myKeyFilePassword"
+        },
         "ssl-client": {
             "ssl.client.truststore.reload.interval": "10000", 
             "ssl.client.keystore.password": "bigdata", 
@@ -579,9 +599,9 @@
             "dfs.namenode.name.dir": "/grid/0/hadoop/hdfs/namenode"
         }, 
         "ranger-tagsync-site": {
-            "ranger.tagsync.dest.ranger.ssl.config.filename": "/usr/hdp/current/ranger-tagsync/conf/mytruststore.jks", 
-            "ranger.tagsync.source.atlasrest.username": "", 
-            "ranger.tagsync.logdir": "/var/log/ranger/tagsync", 
+            "ranger.tagsync.dest.ranger.ssl.config.filename": "{{stack_root}}/current/ranger-tagsync/conf/ranger-policymgr-ssl.xml",
+            "ranger.tagsync.source.atlasrest.username": "",
+            "ranger.tagsync.logdir": "/var/log/ranger/tagsync",
             "ranger.tagsync.source.atlasrest.download.interval.millis": "", 
             "ranger.tagsync.keystore.filename": "/usr/hdp/current/ranger-tagsync/conf/rangertagsync.jceks", 
             "ranger.tagsync.source.file.check.interval.millis": "", 

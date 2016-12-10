@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -18,17 +18,17 @@
  * limitations under the License.
  */
 -->
-<metainfo>
-  <schemaVersion>2.0</schemaVersion>
-  <services>
-    <service>
-      <name>RANGER</name>
-      <extends>common-services/RANGER/0.7.0</extends>
-      <version>0.7.0.2.6</version>
-      <credential-store>
-        <supported>true</supported>
-        <enabled>false</enabled>
-      </credential-store>
-    </service>
-  </services>
-</metainfo>
+<configuration supports_final="true">
+  <property>
+    <name>ranger.tagsync.dest.ranger.ssl.config.filename</name>
+    <value>/etc/ranger/tagsync/conf/ranger-policymgr-ssl.xml</value>
+    <description>Keystore and truststore information used for tagsync, required if tagsync to ranger admin communication is SSL enabled</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger.tagsync.source.atlasrest.ssl.config.filename</name>
+    <value>/etc/ranger/tagsync/conf/atlas-tagsync-ssl.xml</value>
+    <description>Keystore and truststore information used for tagsync, required if tagsync to atlas communication is SSL enabled</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>
