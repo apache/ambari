@@ -518,6 +518,14 @@
       </component>
 
       <component name="RANGER_TAGSYNC">
+
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="all">
+            <script>scripts/ranger_tagsync.py</script>
+            <function>configure_atlas_user_for_tagsync</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

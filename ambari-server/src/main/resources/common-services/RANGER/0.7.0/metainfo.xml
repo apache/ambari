@@ -23,12 +23,10 @@
   <services>
     <service>
       <name>RANGER</name>
-      <extends>common-services/RANGER/0.7.0</extends>
-      <version>0.7.0.2.6</version>
-      <credential-store>
-        <supported>true</supported>
-        <enabled>false</enabled>
-      </credential-store>
+      <displayName>Ranger</displayName>
+      <comment>Comprehensive security for Hadoop</comment>
+      <extends>common-services/RANGER/0.6.0</extends>
+      <version>0.7.0</version>
     </service>
   </services>
 </metainfo>

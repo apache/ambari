@@ -71,6 +71,7 @@ stack_supports_infra_client = check_stack_feature(StackFeature.RANGER_INSTALL_IN
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_admin_password_change = check_stack_feature(StackFeature.RANGER_ADMIN_PASSWD_CHANGE, version_for_stack_feature_checks)
 stack_supports_ranger_setup_db_on_start = check_stack_feature(StackFeature.RANGER_SETUP_DB_ON_START, version_for_stack_feature_checks)
+stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature.RANGER_TAGSYNC_SSL_XML_SUPPORT, version_for_stack_feature_checks)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -81,6 +82,14 @@ ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
 ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
 tagsync_bin = '/usr/bin/ranger-tagsync'
 tagsync_services_file = format('{stack_root}/current/ranger-tagsync/ranger-tagsync-services.sh')
+security_store_path = '/etc/security/serverKeys'
+tagsync_etc_path = '/etc/ranger/tagsync/'
+ranger_tagsync_credential_file= os.path.join(tagsync_etc_path,'rangercred.jceks')
+atlas_tagsync_credential_file= os.path.join(tagsync_etc_path,'atlascred.jceks')
+ranger_tagsync_keystore_password = config['configurations']['ranger-tagsync-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']
+ranger_tagsync_truststore_password = config['configurations']['ranger-tagsync-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']
+atlas_tagsync_keystore_password = config['configurations']['atlas-tagsync-ssl']['xasecure.policymgr.clientssl.keystore.password']
+atlas_tagsync_truststore_password = config['configurations']['atlas-tagsync-ssl']['xasecure.policymgr.clientssl.truststore.password']
 
 if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
   stack_supports_rolling_upgrade = True
@@ -250,6 +259,7 @@ has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
 
 tagsync_log_dir = default("/configurations/ranger-tagsync-site/ranger.tagsync.logdir", "/var/log/ranger/tagsync")
 tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.keystore.filename"]
+atlas_tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.source.atlasrest.keystore.filename"]
 tagsync_application_properties = dict(config["configurations"]["tagsync-application-properties"]) if has_ranger_tagsync else None
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")

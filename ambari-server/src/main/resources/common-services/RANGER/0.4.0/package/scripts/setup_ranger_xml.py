@@ -542,6 +542,11 @@ def setup_tagsync(upgrade_type=None):
     owner=params.unix_user,
     group=params.unix_group,
     mode=0644)
+  if params.stack_supports_ranger_tagsync_ssl_xml_support:
+    Logger.info("Stack supports tagsync-ssl configurations, performing the same.")
+    setup_tagsync_ssl_configs()
+  else:
+    Logger.info("Stack doesnt support tagsync-ssl configurations, skipping the same.")
 
   PropertiesFile(format('{ranger_tagsync_conf}/atlas-application.properties'),
     properties = params.tagsync_application_properties,
@@ -648,3 +653,52 @@ def check_znode():
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.solr_znode,
     java64_home=params.java_home)
+
+
+def setup_tagsync_ssl_configs():
+  import params
+  Directory(params.security_store_path,
+            cd_access="a",
+            create_parents=True)
+
+  Directory(params.tagsync_etc_path,
+            cd_access="a",
+            owner=params.unix_user,
+            group=params.unix_group,
+            mode=0775,
+            create_parents=True)
+
+  XmlConfig("ranger-policymgr-ssl.xml",
+            conf_dir=params.ranger_tagsync_conf,
+            configurations=params.config['configurations']['ranger-tagsync-policymgr-ssl'],
+            configuration_attributes=params.config['configuration_attributes']['ranger-tagsync-policymgr-ssl'],
+            owner=params.unix_user,
+            group=params.unix_group,
+            mode=0644)
+
+  ranger_credential_helper(params.tagsync_cred_lib, 'sslKeyStore', params.ranger_tagsync_keystore_password, params.ranger_tagsync_credential_file)
+  ranger_credential_helper(params.tagsync_cred_lib, 'sslTrustStore', params.ranger_tagsync_truststore_password, params.ranger_tagsync_credential_file)
+
+  File(params.ranger_tagsync_credential_file,
+       owner = params.unix_user,
+       group = params.unix_group,
+       mode = 0640
+       )
+
+  XmlConfig("atlas-tagsync-ssl.xml",
+            conf_dir=params.ranger_tagsync_conf,
+            configurations=params.config['configurations']['atlas-tagsync-ssl'],
+            configuration_attributes=params.config['configuration_attributes']['atlas-tagsync-ssl'],
+            owner=params.unix_user,
+            group=params.unix_group,
+            mode=0644)
+
+  ranger_credential_helper(params.tagsync_cred_lib, 'sslKeyStore', params.atlas_tagsync_keystore_password, params.atlas_tagsync_credential_file)
+  ranger_credential_helper(params.tagsync_cred_lib, 'sslTrustStore', params.atlas_tagsync_truststore_password, params.atlas_tagsync_credential_file)
+
+  File(params.atlas_tagsync_credential_file,
+       owner = params.unix_user,
+       group = params.unix_group,
+       mode = 0640
+       )
+  Logger.info("Configuring tagsync-ssl configurations done successfully.")
