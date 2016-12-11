@@ -134,6 +134,13 @@ if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, version_for_stack_f
 hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
 hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
 
+# Heap dump related
+heap_dump_enabled = default('/configurations/hive-env/enable_heap_dump', None)
+heap_dump_opts = "" # Empty if 'heap_dump_enabled' is False.
+if heap_dump_enabled:
+  heap_dump_path = default('/configurations/hive-env/heap_dump_location', "/tmp")
+  heap_dump_opts = " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath="+heap_dump_path
+
 # Hive Interactive related paths
 hive_interactive_var_lib = '/var/lib/hive2'
 
@@ -587,6 +594,7 @@ if has_hive_interactive:
   hive_interactive_env_sh_template = config['configurations']['hive-interactive-env']['content']
   hive_interactive_enabled = default('/configurations/hive-interactive-env/enable_hive_interactive', False)
   llap_app_java_opts = default('/configurations/hive-interactive-env/llap_java_opts', '-XX:+AlwaysPreTouch {% if java_version > 7 %}-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200{% else %}-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{% endif %}')
+  hive_interactive_heapsize = config['configurations']['hive-interactive-env']['hive_heapsize']
 
   # Service check related
   if hive_transport_mode.lower() == "http":
@@ -598,6 +606,7 @@ if has_hive_interactive:
   tez_interactive_user = config['configurations']['tez-env']['tez_user']
   num_retries_for_checking_llap_status = default('/configurations/hive-interactive-env/num_retries_for_checking_llap_status', 10)
   # Used in LLAP slider package creation
+  yarn_nm_mem = config['configurations']['yarn-site']['yarn.nodemanager.resource.memory-mb']
   num_llap_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes']
   llap_daemon_container_size = config['configurations']['hive-interactive-site']['hive.llap.daemon.yarn.container.mb']
   llap_log_level = config['configurations']['hive-interactive-env']['llap_log_level']

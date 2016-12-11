@@ -1548,12 +1548,11 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
     expected["hive-site"]["properties"]["hive.server2.enable.doAs"]="false"
-    expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
-      "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+    expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]="org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"]="true"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"]="org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
     expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"]="org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
-    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role"
+    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled"
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -1646,7 +1645,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"] = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"] = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"] = "true"
-    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager"
+    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hiveserver2-site'], expected["hiveserver2-site"])
 

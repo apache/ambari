@@ -2450,7 +2450,6 @@ public class Configuration {
           "log4j.monitor.delay", TimeUnit.MINUTES.toMillis(5));
 
   /**
-<<<<<<< a5fdae802210ae1f8d4fed2234f1651cbe61c2b5
    * Indicates whether parallel topology task creation is enabled for blueprint cluster provisioning.
    * Defaults to <code>false</code>.
    * @see #TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT

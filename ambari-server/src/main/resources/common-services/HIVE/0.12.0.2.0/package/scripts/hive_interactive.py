@@ -58,6 +58,7 @@ Sets up the configs, jdbc connection and tarball copy to HDFS for Hive Server In
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive_interactive(name=None):
   import params
+  MB_TO_BYTES = 1048576
 
   # Create Hive User Dir
   params.HdfsResource(params.hive_hdfs_user_dir,
@@ -106,6 +107,17 @@ def hive_interactive(name=None):
   for item in exclude_list:
     if item in merged_hive_interactive_site.keys():
       del merged_hive_interactive_site[item]
+
+  '''
+  Config 'hive.llap.io.memory.size' calculated value in stack_advisor is in MB as of now. We need to
+  convert it to bytes before we write it down to config file.
+  '''
+  if 'hive.llap.io.memory.size' in merged_hive_interactive_site.keys():
+    hive_llap_io_mem_size_in_mb = merged_hive_interactive_site.get("hive.llap.io.memory.size")
+    hive_llap_io_mem_size_in_bytes = long(hive_llap_io_mem_size_in_mb) * MB_TO_BYTES
+    merged_hive_interactive_site['hive.llap.io.memory.size'] = hive_llap_io_mem_size_in_bytes
+    Logger.info("Converted 'hive.llap.io.memory.size' value from '{0} MB' to '{1} Bytes' before writing "
+                "it to config file.".format(hive_llap_io_mem_size_in_mb, hive_llap_io_mem_size_in_bytes))
 
   '''
   Hive2 doesn't have support for Atlas, we need to remove the Hook 'org.apache.atlas.hive.hook.HiveHook',

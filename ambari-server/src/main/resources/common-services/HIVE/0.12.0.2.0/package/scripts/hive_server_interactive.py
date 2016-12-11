@@ -269,15 +269,29 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           Logger.info("LLAP app '{0}' is not running. llap will be started.".format(LLAP_APP_NAME))
         pass
 
+      # Call for cleaning up the earlier run(s) LLAP package folders.
+      self._cleanup_past_llap_package_dirs()
+
       Logger.info("Starting LLAP")
       LLAP_PACKAGE_CREATION_PATH = Script.get_tmp_dir()
 
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
+      # Figure out the Slider Anti-affinity to be used.
+      # YARN does not support anti-affinity, and therefore Slider implements AA by the means of exclusion lists, i.e, it
+      # starts containers one by one and excludes the nodes it gets (adding a delay of ~2sec./machine). When the LLAP
+      # container memory size configuration is more than half of YARN node memory, AA is implicit and should be avoided.
+      slider_placement = 4
+      if long(params.llap_daemon_container_size) > (0.5 * long(params.yarn_nm_mem)):
+        slider_placement = 0
+        Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
+                    "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
                    " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m"
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
-                   " {params.llap_extra_slider_opts} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
+                   " --slider-placement {slider_placement} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}"
+                   " {params.llap_extra_slider_opts} --skiphadoopversion --skiphbasecp --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
@@ -340,6 +354,38 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         # throw the original exception
         raise
+
+    """
+    Checks and deletes previous run 'LLAP package' folders, ignoring three latest packages.
+    Last three are are ignore for debugging/reference purposes.
+    Helps in keeping check on disk space used.
+    """
+    def _cleanup_past_llap_package_dirs(self):
+      try:
+        import params
+        Logger.info("Determining previous run 'LLAP package' folder(s) to be deleted ....")
+        llap_package_folder_name_prefix = "llap-slider" # Package name is like : llap-sliderYYYY-MM-DD-HH:MM:SS
+        num_folders_to_retain = 3  # Hardcoding it as of now, as no considerable use was found to provide an env param.
+        file_names = [dir_name for dir_name in os.listdir(Script.get_tmp_dir())
+                      if dir_name.startswith(llap_package_folder_name_prefix)]
+
+        file_names.sort()
+        del file_names[-num_folders_to_retain:] # Ignore 'num_folders_to_retain' latest package folders.
+        Logger.info("Previous run 'LLAP package' folder(s) to be deleted = {0}".format(file_names))
+
+        if file_names:
+          for path in file_names:
+            abs_path = Script.get_tmp_dir()+"/"+path
+            if os.path.isdir(abs_path):
+              shutil.rmtree(abs_path)
+              Logger.info("Deleted previous run 'LLAP package' folder : {0}".format(abs_path))
+        else:
+          Logger.info("No '{0}*' folder deleted.".format(llap_package_folder_name_prefix))
+      except Exception as e:
+        Logger.info("Exception while doing cleanup for past 'LLAP package(s)'.")
+        traceback.print_exc()
+
+
 
     """
     Does kinit and copies keytab for Hive/LLAP to HDFS.
