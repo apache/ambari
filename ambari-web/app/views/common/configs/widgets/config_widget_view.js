@@ -529,6 +529,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
     var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
     var valueAttributes = action.property_value_attributes;
+    this.set('controller.isChangingConfigAttributes', true);
     for (var key in valueAttributes) {
       if (valueAttributes.hasOwnProperty(key)) {
         var valueAttribute = App.StackConfigValAttributesMap[key] || key;
@@ -541,6 +542,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         }
       }
     }
+    this.set('controller.isChangingConfigAttributes', false);
   },
 
   /**

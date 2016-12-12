@@ -95,7 +95,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   setVisibleCategoryConfigsOnce: function () {
-    Em.run.once(this, 'addConfigToCategoryConfigs');
+    if (this.get('controller.isChangingConfigAttributes')) {
+      this.setVisibleCategoryConfigs();
+    } else {
+      Em.run.once(this, 'addConfigToCategoryConfigs');
+    }
   }.observes('categoryConfigsAll.@each.isVisible'),
 
   setCategoryConfigsAll: function () {
