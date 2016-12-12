@@ -51,11 +51,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
   }.property('App.router.backgroundOperationsController.serviceTimestamp'),
 
   /**
-   * version is upgrading
+   * version is upgrading or downgrading
    * @type {boolean}
    */
   isUpgrading: function () {
-    return (this.get('controller.upgradeVersion') === this.get('content.displayName') && App.get('upgradeState') !== 'INIT');
+    return (this.get('controller.upgradeVersion') === this.get('content.displayName') ||
+            this.get('controller.fromVersion') === this.get('content.repositoryVersion'))
+            && App.get('upgradeState') !== 'INIT';
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
   isRepoUrlsEditDisabled: function () {
