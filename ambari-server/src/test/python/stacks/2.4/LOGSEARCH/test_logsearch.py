@@ -94,7 +94,8 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.solr.history.config.name': 'history',
                                             'logsearch.solr.metrics.collector.hosts': '',
                                             'logsearch.solr.jmx.port': '1',
-                                            'logsearch.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
+                                            'logsearch.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr',
+                                            'logsearch.spnego.kerberos.host': 'localhost'
                               }
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/HadoopServiceConfig.json',
