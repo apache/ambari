@@ -18,17 +18,6 @@
           }
         },
         {
-          "webhcat-site": {
-            "templeton.kerberos.secret": "secret",
-            "templeton.hive.properties": "hive.metastore.local=false,hive.metastore.uris=${clusterHostInfo/hive_metastore_host|each(thrift://%s:9083, \\\\,, \\s*\\,\\s*)},hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}"
-          }
-        },
-        {
-          "core-site": {
-            "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_host}"
-          }
-        },
-        {
           "ranger-hive-audit": {
             "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
             "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
@@ -64,7 +53,7 @@
               "name": "hive_server_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",
-                "type" : "service",
+                "type": "service",
                 "configuration": "hive-site/hive.server2.authentication.kerberos.principal",
                 "local_username": "${hive-env/hive_user}"
               },
@@ -139,6 +128,19 @@
               },
               "keytab": {
                 "configuration": "webhcat-site/templeton.kerberos.keytab"
+              }
+            }
+          ],
+          "configurations": [
+            {
+              "core-site": {
+                "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_host|append(core-site/hadoop.proxyuser.HTTP.hosts, \\\\,, true)}"
+              }
+            },
+            {
+              "webhcat-site": {
+                "templeton.kerberos.secret": "secret",
+                "templeton.hive.properties": "hive.metastore.local=false,hive.metastore.uris=${clusterHostInfo/hive_metastore_host|each(thrift://%s:9083, \\\\,, \\s*\\,\\s*)},hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}"
               }
             }
           ]
