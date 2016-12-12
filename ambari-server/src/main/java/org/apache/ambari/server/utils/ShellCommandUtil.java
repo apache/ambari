@@ -436,23 +436,27 @@ public class ShellCommandUtil {
 
       interactiveHandler.start();
 
-      while (!interactiveHandler.done()) {
-        StringBuilder query = new StringBuilder();
+      try {
+        while (!interactiveHandler.done()) {
+          StringBuilder query = new StringBuilder();
 
-        while (reader.ready()) {
-          query.append((char) reader.read());
+          while (reader.ready()) {
+            query.append((char) reader.read());
+          }
+
+          String response = interactiveHandler.getResponse(query.toString());
+
+            if (response != null) {
+              writer.write(response);
+              writer.newLine();
+              writer.flush();
+            }
         }
-
-        String response = interactiveHandler.getResponse(query.toString());
-
-        if (response != null) {
-          writer.write(response);
-          writer.newLine();
-          writer.flush();
-        }
+      } catch (IOException ex){
+        // ignore exception as command possibly can be finished before writer.flush() or writer.write() called
+      } finally {
+        writer.close();
       }
-
-      writer.close();
     }
 
     //TODO: not sure whether output buffering will work properly
