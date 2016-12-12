@@ -379,7 +379,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     self.updateMountProperties("hdfs-site", hdfs_mount_properties, configurations, services, hosts)
 
-    dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
+    if hdfsSiteProperties and "dfs.datanode.data.dir" in hdfsSiteProperties and\
+      hdfsSiteProperties["dfs.datanode.data.dir"] is not None:
+
+      dataDirs = hdfsSiteProperties["dfs.datanode.data.dir"].split(",")
+    else:
+      dataDirs = configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"].split(",")
 
     # dfs.datanode.du.reserved should be set to 10-15% of volume size
     # For each host selects maximum size of the volume. Then gets minimum for all hosts.
