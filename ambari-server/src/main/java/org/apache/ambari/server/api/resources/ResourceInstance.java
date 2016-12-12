@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Map;
+
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.Map;
 
 /**
  * Resource instance which contains request specific state.

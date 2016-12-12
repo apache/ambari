@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.GreaterEqualsPredicate;
@@ -26,9 +29,6 @@ import org.apache.ambari.server.controller.predicate.LessPredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Builder for predicates.

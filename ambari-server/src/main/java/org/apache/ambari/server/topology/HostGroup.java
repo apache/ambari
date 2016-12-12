@@ -18,14 +18,11 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Collection;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.entities.HostGroupEntity;
-import org.apache.ambari.server.state.DependencyInfo;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Host Group representation.

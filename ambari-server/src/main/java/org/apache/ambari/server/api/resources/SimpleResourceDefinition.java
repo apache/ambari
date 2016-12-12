@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Simple concrete resource definition.

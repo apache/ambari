@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Map;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Operation level is specified along with some requests. It identifies

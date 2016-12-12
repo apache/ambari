@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
+import static org.easymock.EasyMock.expect;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
@@ -26,10 +30,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
-
-import javax.servlet.http.HttpServletRequest;
-
-import static org.easymock.EasyMock.expect;
 
 public class AmbariKerberosAuthenticationFilterTest extends EasyMockSupport {
   @Test

@@ -32,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.ambari.server.controller.AmbariServer;
 
 @Singleton
 public class BootStrapImpl {

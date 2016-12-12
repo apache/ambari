@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.audit;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.junit.Test;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
 
 public class ActionDBAAccessorAuditlogTest {
 

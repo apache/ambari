@@ -18,12 +18,14 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.AmbariException;
+
+import com.google.inject.Singleton;
 
 /**
  * Helper class to provide variable replacement services

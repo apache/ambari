@@ -21,7 +21,6 @@ package org.apache.ambari.server.orm.entities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
-
 import java.util.Collection;
 import java.util.Collections;
 

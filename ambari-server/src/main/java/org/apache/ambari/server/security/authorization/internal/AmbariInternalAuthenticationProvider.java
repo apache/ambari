@@ -18,11 +18,12 @@
 
 package org.apache.ambari.server.security.authorization.internal;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.security.authorization.InvalidUsernamePasswordCombinationException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+
+import com.google.inject.Inject;
 
 public class AmbariInternalAuthenticationProvider implements AuthenticationProvider {
 

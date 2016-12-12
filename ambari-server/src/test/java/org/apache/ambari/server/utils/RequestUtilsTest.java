@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.junit.Test;
 
 public class RequestUtilsTest {

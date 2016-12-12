@@ -18,18 +18,18 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
 import org.apache.ambari.server.controller.predicate.CategoryPredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
-import org.apache.ambari.server.controller.predicate.PropertyPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
+import org.apache.ambari.server.controller.predicate.PropertyPredicate;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Predicate visitor for extracting property values from the {@link PropertyPredicate}s of a predicate graph.

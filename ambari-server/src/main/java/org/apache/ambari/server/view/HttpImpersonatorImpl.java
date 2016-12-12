@@ -18,21 +18,21 @@
 package org.apache.ambari.server.view;
 
 
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.proxy.ProxyService;
-import org.apache.ambari.view.ImpersonatorSetting;
-import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.HttpImpersonator;
-import org.apache.http.client.utils.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.proxy.ProxyService;
+import org.apache.ambari.view.HttpImpersonator;
+import org.apache.ambari.view.ImpersonatorSetting;
+import org.apache.ambari.view.ViewContext;
+import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**

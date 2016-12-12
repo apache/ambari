@@ -18,14 +18,16 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.utils.CollectionPresentationUtils;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
+import org.junit.Test;
 
 public class AuthToLocalBuilderTest {
 

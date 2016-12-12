@@ -18,6 +18,16 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.verify;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -28,17 +38,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.verify;
 
 public class AsyncCallableServiceTest extends EasyMockSupport {
   public static final Logger LOGGER = LoggerFactory.getLogger(AsyncCallableService.class);

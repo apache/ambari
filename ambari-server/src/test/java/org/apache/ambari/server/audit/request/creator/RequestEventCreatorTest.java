@@ -18,10 +18,8 @@
 
 package org.apache.ambari.server.audit.request.creator;
 
-import junit.framework.Assert;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.Request;
@@ -34,6 +32,8 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 public class RequestEventCreatorTest extends AuditEventCreatorTestBase{
 

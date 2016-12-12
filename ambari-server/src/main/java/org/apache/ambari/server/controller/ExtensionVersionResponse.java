@@ -18,11 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.stack.Validable;

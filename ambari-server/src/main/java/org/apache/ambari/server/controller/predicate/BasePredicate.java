@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.Predicate;
-
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Predicate;
 
 /**
  * An extended predicate interface which allows for the retrieval of any

@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.inject.Singleton;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.inject.Singleton;
 
 /**
  * Creates the Setting object from the parsed blueprint. Expects the settings JSON

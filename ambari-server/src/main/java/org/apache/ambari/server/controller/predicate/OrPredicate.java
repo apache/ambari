@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Predicate which evaluates to true if any of the predicates in a predicate

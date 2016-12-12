@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
-import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class ServiceDesiredStateEntityPK implements Serializable {

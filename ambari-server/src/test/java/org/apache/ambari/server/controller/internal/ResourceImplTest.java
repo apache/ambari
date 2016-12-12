@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
-import java.util.Map;
+import junit.framework.Assert;
 
 /**
  *

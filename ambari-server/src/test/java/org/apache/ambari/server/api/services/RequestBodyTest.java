@@ -18,9 +18,13 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+
 import java.util.HashMap;
-import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * RequestBody unit tests.

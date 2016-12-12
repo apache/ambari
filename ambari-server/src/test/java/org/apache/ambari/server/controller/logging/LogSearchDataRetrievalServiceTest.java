@@ -17,19 +17,22 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import com.google.common.cache.Cache;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.junit.Assert.*;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
+
+import com.google.common.cache.Cache;
 
 /**
  * This test verifies the basic behavior of the

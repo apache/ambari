@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 
 import com.google.inject.name.Named;
-import java.util.Set;
 
 public interface ResourceProviderFactory {
   @Named("host")

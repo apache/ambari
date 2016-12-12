@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.state.stack.upgrade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.annotation.XmlType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used for a group that restarts services.

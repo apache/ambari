@@ -18,41 +18,39 @@
 
 package org.apache.ambari.server.proxy;
 
-import com.google.gson.Gson;
-import com.sun.jersey.core.spi.factory.ResponseBuilderImpl;
-import com.sun.jersey.core.spi.factory.ResponseImpl;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-
-import org.apache.ambari.server.api.services.BaseServiceTest;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.assertSame;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertSame;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.Map;
-import java.util.LinkedList;
-import java.util.HashMap;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+
+import org.apache.ambari.server.api.services.BaseServiceTest;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.gson.Gson;
+import com.sun.jersey.core.spi.factory.ResponseBuilderImpl;
+import com.sun.jersey.core.spi.factory.ResponseImpl;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ProxyServiceTest.class, ProxyService.class, URLStreamProvider.class, Response.class,

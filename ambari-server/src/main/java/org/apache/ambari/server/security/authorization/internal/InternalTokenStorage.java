@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.security.authorization.internal;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 import java.math.BigInteger;
 import java.security.SecureRandom;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 /**

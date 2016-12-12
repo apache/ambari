@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class Batch {
   private final List<BatchRequest> batchRequests = new ArrayList<BatchRequest>();

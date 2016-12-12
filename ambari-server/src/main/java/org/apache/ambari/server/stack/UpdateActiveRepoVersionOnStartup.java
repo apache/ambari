@@ -19,6 +19,7 @@
 package org.apache.ambari.server.stack;
 
 import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;

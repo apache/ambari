@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.api;
 
-import org.springframework.http.HttpMethod;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -29,9 +31,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.springframework.http.HttpMethod;
 
 public class MethodOverrideFilter implements Filter {
   private static final String HEADER_NAME = "X-Http-Method-Override";

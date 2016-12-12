@@ -18,7 +18,8 @@
 
 package org.apache.ambari.server;
 
-import com.google.inject.Inject;
+import java.util.List;
+
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -27,7 +28,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import com.google.inject.Inject;
 
 /**
  * Is executed on server start.

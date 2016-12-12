@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.controller.metrics.ganglia;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.server.controller.metrics.ganglia.GangliaMetric;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *

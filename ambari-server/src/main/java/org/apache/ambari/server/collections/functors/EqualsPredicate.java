@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.collections.functors;
 
-import org.apache.ambari.server.collections.Predicate;
-import org.apache.commons.collections.functors.EqualPredicate;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.apache.ambari.server.collections.Predicate;
+import org.apache.commons.collections.functors.EqualPredicate;
 
 /**
  * {@link EqualsPredicate} wraps {@link org.apache.commons.collections.functors.EqualPredicate} to

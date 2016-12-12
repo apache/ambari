@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
 
 /**
  * The default predicate evaluator.

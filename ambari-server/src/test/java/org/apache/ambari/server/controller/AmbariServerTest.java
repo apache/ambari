@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.servlet.DispatcherType;
-import javax.servlet.SessionCookieConfig;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
@@ -39,6 +34,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.EnumSet;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.servlet.DispatcherType;
+import javax.servlet.SessionCookieConfig;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;

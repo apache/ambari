@@ -23,8 +23,7 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.util.Modules;
+
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
@@ -35,6 +34,8 @@ import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.util.Modules;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
 

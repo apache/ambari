@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.controller.gsinstaller;
 
-import org.apache.ambari.server.controller.internal.AbstractProviderModule;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.internal.AbstractProviderModule;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 
 /**
  * A provider module implementation that uses the GSInstaller resource provider.

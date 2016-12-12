@@ -17,17 +17,15 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Arrays;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.google.inject.Singleton;
-
-import java.util.Arrays;
 
 /**
  * Checks that YARN has work-preserving restart enabled.

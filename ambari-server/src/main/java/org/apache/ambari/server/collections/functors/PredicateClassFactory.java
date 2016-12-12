@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.collections.functors;
 
-import org.apache.ambari.server.collections.Predicate;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.ambari.server.collections.Predicate;
 
 /**
  * {@link PredicateClassFactory} is a factory class used to derive a {@link Predicate} implementation

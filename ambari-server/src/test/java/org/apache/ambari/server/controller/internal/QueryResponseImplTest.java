@@ -17,13 +17,14 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.Set;
+import junit.framework.Assert;
 
 /**
  * QueryResponseImpl tests

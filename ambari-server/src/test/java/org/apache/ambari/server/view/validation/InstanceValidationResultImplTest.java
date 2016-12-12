@@ -18,13 +18,14 @@
 
 package org.apache.ambari.server.view.validation;
 
-import junit.framework.Assert;
-import org.apache.ambari.view.validation.ValidationResult;
-import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.apache.ambari.view.validation.ValidationResult;
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * InstanceValidationResultImpl tests.

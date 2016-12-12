@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.api.query.render;
 
-import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.api.services.serializers.CsvSerializer;
-import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.serializers.CsvSerializer;
+import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Renderer which updates a KerberosHostIdentity resource so it may be serialized using a CSV serializer.

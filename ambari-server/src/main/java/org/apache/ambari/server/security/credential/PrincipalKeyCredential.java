@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.security.credential;
 
+import java.util.Arrays;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-
-import java.util.Arrays;
 
 /**
  * PrincipalKeyCredential encapsulates a credential consisting of a principal (or username) and

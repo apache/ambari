@@ -28,13 +28,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.google.inject.Singleton;
-
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ClassUtils;
+
+import com.google.inject.Singleton;
 
 /**
  * The {@link UpgradeCheckRegistry} contains the ordered list of all pre-upgrade

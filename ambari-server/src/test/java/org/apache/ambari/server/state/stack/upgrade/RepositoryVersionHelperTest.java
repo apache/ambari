@@ -20,8 +20,6 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +28,8 @@ import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 /**
  * Tests the {@link RepositoryVersionHelper} class

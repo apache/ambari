@@ -20,12 +20,11 @@ package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-
 import org.apache.ambari.server.api.services.DeleteResultMetadata;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;

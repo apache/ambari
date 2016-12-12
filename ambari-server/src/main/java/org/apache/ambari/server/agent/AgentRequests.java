@@ -18,13 +18,14 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.inject.Singleton;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.Singleton;
 
 
 /**

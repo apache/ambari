@@ -18,12 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Provider;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -34,10 +28,17 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.Collections;
 import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.inject.Provider;
 
 /**
  * BlueprintDAO unit tests.

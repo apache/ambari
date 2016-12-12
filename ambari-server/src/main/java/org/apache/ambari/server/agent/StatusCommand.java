@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.agent;
 
-import com.google.gson.annotations.SerializedName;
-import org.apache.ambari.server.state.State;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.ambari.server.state.State;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Command to report the status of a list of services in roles.

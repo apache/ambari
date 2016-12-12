@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import com.google.common.base.Objects;
-
 import java.util.Collection;
 
 import javax.persistence.Basic;
@@ -40,6 +38,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
+
+import com.google.common.base.Objects;
 
 @Entity
 @Table(name = "clusterconfig",

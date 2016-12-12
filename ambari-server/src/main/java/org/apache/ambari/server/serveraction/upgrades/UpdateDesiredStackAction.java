@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.serveraction.upgrades;
+
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.io.PrintWriter;
@@ -38,10 +39,10 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-
-import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 /**
  * Action that represents updating the Desired Stack Id during the middle of a stack upgrade (typically NonRolling).

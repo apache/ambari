@@ -19,13 +19,13 @@
 
 package org.apache.ambari.server.state.host;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class HostHealthyHeartbeatEvent extends HostEvent {
 

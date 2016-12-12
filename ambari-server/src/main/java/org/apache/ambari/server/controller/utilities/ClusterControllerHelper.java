@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.controller.utilities;
 
-import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.view.ViewProviderModule;
 
 /**

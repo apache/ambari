@@ -18,21 +18,20 @@
 
 package org.apache.ambari.server.serveraction;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.utils.StageUtils;
 
-import java.util.Collections;
-import java.util.Map;
-
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * AbstractServerAction is an abstract implementation of a ServerAction.

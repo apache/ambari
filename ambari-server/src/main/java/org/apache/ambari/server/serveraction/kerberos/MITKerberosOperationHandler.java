@@ -18,15 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.Inject;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
-import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -36,6 +27,16 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 /**
  * MITKerberosOperationHandler is an implementation of a KerberosOperationHandler providing

@@ -18,13 +18,6 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.apache.ambari.server.state.stack.LatestRepoCallable;
-import org.apache.ambari.server.state.stack.OsFamily;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +25,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
+import org.apache.ambari.server.state.stack.OsFamily;
 
 /**
  * Provides external functionality to the Stack framework.

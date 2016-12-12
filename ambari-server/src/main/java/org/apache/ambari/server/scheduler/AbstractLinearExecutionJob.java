@@ -17,24 +17,22 @@
  */
 package org.apache.ambari.server.scheduler;
 
+import static org.quartz.DateBuilder.futureDate;
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
+
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.scheduler.BatchRequestJob;
 import org.quartz.DateBuilder;
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
-import org.quartz.PersistJobDataAfterExecution;
 import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-
-import static org.quartz.DateBuilder.futureDate;
-import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
-import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
  * Job that knows how to get the job name and group out of the JobDataMap using

@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.spi;
 
-import org.apache.ambari.server.controller.internal.SortRequestImpl;
-
 import java.util.List;
 
 /**

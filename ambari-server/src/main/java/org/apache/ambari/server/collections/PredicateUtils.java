@@ -18,16 +18,17 @@
 
 package org.apache.ambari.server.collections;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import org.apache.ambari.server.collections.functors.PredicateClassFactory;
-import org.apache.commons.lang.StringUtils;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Map;
+
+import org.apache.ambari.server.collections.functors.PredicateClassFactory;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 
 /**
  * PredicateUtils is a utility class providing methods to help perform tasks on {@link Predicate}s.

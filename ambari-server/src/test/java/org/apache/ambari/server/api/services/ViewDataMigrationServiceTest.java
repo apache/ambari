@@ -17,16 +17,22 @@
  */
 package org.apache.ambari.server.api.services;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import javax.ws.rs.WebApplicationException;
+
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewDataMigrationUtility;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import javax.ws.rs.WebApplicationException;
-
-import static org.easymock.EasyMock.*;
 
 /**
  * ViewDataMigrationService tests.

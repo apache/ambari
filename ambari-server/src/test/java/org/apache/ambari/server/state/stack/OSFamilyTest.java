@@ -18,17 +18,22 @@
 package org.apache.ambari.server.state.stack;
 
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.lang.reflect.Method;
-import java.util.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 
 @Category({ category.StackUpgradeTest.class})

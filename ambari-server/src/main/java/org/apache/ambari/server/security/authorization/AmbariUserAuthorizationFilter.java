@@ -18,12 +18,8 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Inject;
-import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
-import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
-import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
-import org.apache.commons.lang.math.NumberUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
+import java.io.IOException;
+import java.util.Collection;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -33,8 +29,14 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collection;
+
+import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
+import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
+import org.apache.commons.lang.math.NumberUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.inject.Inject;
 
 public class AmbariUserAuthorizationFilter implements Filter {
 

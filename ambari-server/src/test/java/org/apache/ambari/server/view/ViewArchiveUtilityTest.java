@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.view;
 
-import org.junit.Test;
-
 import java.io.InputStream;
+
+import org.junit.Test;
 
 /**
  * ViewArchiveUtility tests.

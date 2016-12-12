@@ -21,9 +21,11 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
+
 import org.apache.commons.collections.CollectionUtils;
 
 /**

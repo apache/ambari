@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.api.predicate.expressions;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.operators.LogicalOperator;
 import org.apache.ambari.server.controller.spi.Predicate;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Logical expression implementation.

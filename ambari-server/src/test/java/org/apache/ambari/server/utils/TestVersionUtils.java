@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.utils;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.ExpectedException;
+
+import junit.framework.Assert;
 
 public class TestVersionUtils {
 

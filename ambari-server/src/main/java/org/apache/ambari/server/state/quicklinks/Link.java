@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.quicklinks;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;

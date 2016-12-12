@@ -17,14 +17,13 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 public class MetricsDataTransferMethodFactory {
   private static final Set<String> PERCENTAGE_METRIC;

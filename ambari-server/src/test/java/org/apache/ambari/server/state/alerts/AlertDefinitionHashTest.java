@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import junit.framework.TestCase;
-
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.agent.AlertExecutionCommand;
@@ -56,13 +54,15 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.junit.experimental.categories.Category;
+
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link AlertDefinitionHash}.

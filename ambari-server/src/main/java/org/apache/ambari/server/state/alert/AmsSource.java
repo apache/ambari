@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.state.alert;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Alert when the source type is defined as {@link org.apache.ambari.server.state.alert.SourceType#METRIC}

@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.ivory.IvoryService;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Extension of the default provider module that registers the mirroring resources with a test Ivory service.

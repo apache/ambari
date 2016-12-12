@@ -1,6 +1,13 @@
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.assistedinject.Assisted;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -19,12 +26,7 @@ import org.apache.ambari.server.topology.KerberosDescriptorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.assistedinject.Assisted;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one

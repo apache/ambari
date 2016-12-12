@@ -18,7 +18,12 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.gson.Gson;
+import static org.easymock.EasyMock.capture;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.orm.dao.KerberosDescriptorDAO;
 import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
 import org.apache.ambari.server.state.SecurityType;
@@ -33,11 +38,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.capture;
-import static org.junit.Assert.assertTrue;
+import com.google.gson.Gson;
 
 public class SecurityConfigurationFactoryTest {
   private static final String TEST_KERBEROS_DESCRIPTOR_REFERENCE = "test-kd-reference";

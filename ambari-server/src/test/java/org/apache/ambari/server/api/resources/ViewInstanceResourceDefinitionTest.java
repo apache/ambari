@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * ViewInstanceResourceDefinition tests.

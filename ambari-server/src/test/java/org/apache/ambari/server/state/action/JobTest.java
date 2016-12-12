@@ -18,16 +18,6 @@
 
 package org.apache.ambari.server.state.action;
 
-import org.apache.ambari.server.state.action.Action;
-import org.apache.ambari.server.state.action.ActionCompletedEvent;
-import org.apache.ambari.server.state.action.ActionEvent;
-import org.apache.ambari.server.state.action.ActionFailedEvent;
-import org.apache.ambari.server.state.action.ActionId;
-import org.apache.ambari.server.state.action.ActionImpl;
-import org.apache.ambari.server.state.action.ActionProgressUpdateEvent;
-import org.apache.ambari.server.state.action.ActionState;
-import org.apache.ambari.server.state.action.ActionType;
-import org.apache.ambari.server.state.action.ActionInitEvent;
 import org.junit.Assert;
 import org.junit.Test;
 

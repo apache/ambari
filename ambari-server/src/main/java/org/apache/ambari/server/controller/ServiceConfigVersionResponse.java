@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller;
 
 
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.orm.dao.HostDAO;

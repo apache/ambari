@@ -18,10 +18,9 @@
 
 package org.apache.ambari.server.view;
 
-import junit.framework.Assert;
-
-import org.apache.ambari.server.view.DefaultMasker;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * DefaultMasker test.

@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
+import java.util.Map;
+
 import org.apache.ambari.server.metrics.system.AmbariMetricSink;
 import org.apache.ambari.server.metrics.system.MetricsSource;
-
-import java.util.Map;
 
 public abstract class AbstractMetricsSource implements MetricsSource {
   protected AmbariMetricSink sink;

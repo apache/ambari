@@ -17,10 +17,11 @@
  */
 package org.apache.ambari.server.api.predicate.operators;
 
-import org.apache.ambari.server.controller.predicate.FilterPredicate;
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+
+import org.apache.ambari.server.controller.predicate.FilterPredicate;
+import org.junit.Test;
 
 public class FilterOperatorTest {
   @Test

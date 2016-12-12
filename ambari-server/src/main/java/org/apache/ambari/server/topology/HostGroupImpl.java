@@ -19,19 +19,20 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.gson.Gson;
-import org.apache.ambari.server.controller.internal.ProvisionAction;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
-import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
-import org.apache.ambari.server.orm.entities.HostGroupEntity;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
+import org.apache.ambari.server.orm.entities.HostGroupEntity;
+
+import com.google.gson.Gson;
 
 /**
  * Host Group implementation.

@@ -18,20 +18,25 @@
 
 package org.apache.ambari.server.state;
 
-import com.google.common.collect.Lists;
-import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
  * ServiceInfo tests.

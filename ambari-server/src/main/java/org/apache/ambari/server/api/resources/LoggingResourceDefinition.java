@@ -21,9 +21,6 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-import java.util.Set;
-
 public class LoggingResourceDefinition extends BaseResourceDefinition {
 
   public LoggingResourceDefinition() {

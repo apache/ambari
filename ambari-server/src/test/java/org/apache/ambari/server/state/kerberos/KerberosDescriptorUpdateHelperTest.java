@@ -18,12 +18,15 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.expect;
+
+import java.util.Collections;
+import java.util.Properties;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -40,13 +43,13 @@ import org.easymock.EasyMockSupport;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.Collections;
-import java.util.Properties;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
+import junit.framework.Assert;
 
 @Category({ category.KerberosTest.class})
 public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {

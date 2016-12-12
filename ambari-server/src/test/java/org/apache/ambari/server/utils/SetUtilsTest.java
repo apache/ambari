@@ -17,15 +17,14 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Collections;
+
+import org.junit.Test;
 
 import junit.framework.Assert;
-import org.junit.Test;
 
 /**
  * Tests {@link org.apache.ambari.server.utils.SetUtils}

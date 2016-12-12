@@ -18,11 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
-import static org.easymock.EasyMock.aryEq;
-
 import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -42,6 +39,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -84,6 +83,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog242} unit tests.
  */

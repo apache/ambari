@@ -18,13 +18,6 @@
 
 package org.apache.ambari.server.security.encryption;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.security.credential.Credential;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.security.KeyStore;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +25,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.security.credential.Credential;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * InMemoryCredentialStore is a CredentialStore implementation that creates and manages

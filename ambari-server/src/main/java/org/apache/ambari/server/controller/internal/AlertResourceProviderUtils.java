@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
@@ -29,9 +32,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * AlertResourceProviderUtils provides utility methods used to help perform tasks within alert-specific

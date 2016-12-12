@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.request.creator;
 
-import junit.framework.Assert;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +32,8 @@ import org.apache.ambari.server.audit.request.eventcreator.MemberEventCreator;
 import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 public class MemberEventCreatorTest extends AuditEventCreatorTestBase{
 

@@ -20,7 +20,6 @@ package org.apache.ambari.server.view;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Thread.sleep;
-import javax.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.zip.ZipFile;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.logging.Log;

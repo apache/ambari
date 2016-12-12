@@ -18,16 +18,17 @@
 
 package org.apache.ambari.server.api;
 
-import com.sun.jersey.core.header.InBoundHeaders;
-import com.sun.jersey.spi.container.ContainerRequest;
-import org.junit.Test;
-
-import javax.ws.rs.WebApplicationException;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import javax.ws.rs.WebApplicationException;
+
+import org.junit.Test;
+
+import com.sun.jersey.core.header.InBoundHeaders;
+import com.sun.jersey.spi.container.ContainerRequest;
 
 public class AmbariCsrfProtectionFilterTest {
 

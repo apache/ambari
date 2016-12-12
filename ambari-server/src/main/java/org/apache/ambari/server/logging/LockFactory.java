@@ -17,19 +17,20 @@
  */
 package org.apache.ambari.server.logging;
 
-import com.google.common.base.Ticker;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.configuration.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Ticker;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Factory to create locks depending on configuration.  If lock profiling is enabled,

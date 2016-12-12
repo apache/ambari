@@ -17,10 +17,11 @@
  */
 package org.apache.ambari.server.state;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-
-import javax.xml.bind.annotation.*;
 
 /**
  * Represents the customCommand tag at service/component metainfo

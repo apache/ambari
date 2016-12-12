@@ -17,15 +17,12 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
-import com.google.common.collect.Iterators;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 public class MetricsDownsamplingMethodFactory {
   private static final MetricsDownsamplingMethod perSecondDownsampling = new MetricsAveragePerSecondDownsampling();

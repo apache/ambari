@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.api.query;
 
-import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
-import org.apache.ambari.server.api.resources.ResourceDefinition;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
+import org.apache.ambari.server.api.resources.ResourceDefinition;
+import org.junit.Test;
 
 /**
  * QueryInfo unit tests.

@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Provider;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -30,14 +32,12 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.Provider;
 
 /**
  * Tests for {@link org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheckTest}

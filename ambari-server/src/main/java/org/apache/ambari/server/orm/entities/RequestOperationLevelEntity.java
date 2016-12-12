@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;

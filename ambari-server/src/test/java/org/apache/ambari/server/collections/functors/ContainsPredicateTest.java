@@ -18,9 +18,8 @@
 
 package org.apache.ambari.server.collections.functors;
 
-import org.easymock.EasyMockSupport;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +29,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
+import org.easymock.EasyMockSupport;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ContainsPredicateTest extends EasyMockSupport {
 

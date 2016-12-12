@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.api.resources;
 
-import java.util.*;
+import java.util.List;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;

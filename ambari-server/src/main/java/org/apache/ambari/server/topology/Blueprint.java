@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.orm.entities.BlueprintEntity;
-
 import java.util.Collection;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
 /**
  * Blueprint representation.

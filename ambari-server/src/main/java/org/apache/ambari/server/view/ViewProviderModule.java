@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.view;
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Module which allows for discovery of view resource providers.

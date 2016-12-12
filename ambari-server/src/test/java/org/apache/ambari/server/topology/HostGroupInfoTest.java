@@ -18,22 +18,18 @@
 
 package org.apache.ambari.server.topology;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.api.predicate.PredicateCompiler;
-import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.junit.Test;
-
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.junit.Test;
 
 /**
  * HostGroupInfo unit tests

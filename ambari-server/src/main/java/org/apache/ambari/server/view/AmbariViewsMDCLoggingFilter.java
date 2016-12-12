@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.inject.Singleton;
-import org.slf4j.MDC;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -28,9 +29,10 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.slf4j.MDC;
+
+import com.google.inject.Singleton;
 
 /**
  * Inserts view name, view version and view instance name into MDC info for views REST for logging in views.

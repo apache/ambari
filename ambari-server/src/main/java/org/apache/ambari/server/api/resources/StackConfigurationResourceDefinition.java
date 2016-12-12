@@ -19,11 +19,11 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 
 public class StackConfigurationResourceDefinition extends BaseResourceDefinition {
 

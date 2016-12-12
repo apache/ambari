@@ -17,8 +17,13 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Provider;
+import static org.apache.ambari.server.state.UpgradeState.IN_PROGRESS;
+import static org.apache.ambari.server.state.UpgradeState.VERSION_MISMATCH;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Map;
+
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -31,12 +36,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Map;
-
-import static org.apache.ambari.server.state.UpgradeState.IN_PROGRESS;
-import static org.apache.ambari.server.state.UpgradeState.VERSION_MISMATCH;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.Provider;
 
 /**
  * Checks VersionMismatchCheck pre-upgrade check. Includes tests that emulate both

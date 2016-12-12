@@ -17,13 +17,6 @@
  */
 package org.apache.ambari.server.security.encryption;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.credential.Credential;
-import org.apache.ambari.server.security.credential.GenericKeyCredential;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,6 +24,13 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.security.credential.Credential;
+import org.apache.ambari.server.security.credential.GenericKeyCredential;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CredentialProvider {
   public static final Pattern PASSWORD_ALIAS_PATTERN = Pattern.compile("\\$\\{alias=[\\w\\.]+\\}");

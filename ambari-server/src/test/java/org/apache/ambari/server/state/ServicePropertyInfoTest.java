@@ -18,17 +18,19 @@
 
 package org.apache.ambari.server.state;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayInputStream;
 
-import static junit.framework.Assert.assertEquals;
+import org.junit.Test;
+
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 
 public class ServicePropertyInfoTest {
   private static final String XML =

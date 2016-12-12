@@ -18,10 +18,11 @@
 package org.apache.ambari.server.orm;
 
 
-import com.google.inject.Inject;
-import com.google.inject.persist.jpa.AmbariJpaPersistService;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
+import com.google.inject.Inject;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 /**
  * AOP interceptor to provide session borders

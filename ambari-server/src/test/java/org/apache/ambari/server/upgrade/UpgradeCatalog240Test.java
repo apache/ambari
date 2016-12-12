@@ -19,8 +19,6 @@
 package org.apache.ambari.server.upgrade;
 
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -121,8 +119,12 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
@@ -133,7 +135,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
+import junit.framework.Assert;
 
 public class UpgradeCatalog240Test {
   private static final String CAPACITY_SCHEDULER_CONFIG_TYPE = "capacity-scheduler";

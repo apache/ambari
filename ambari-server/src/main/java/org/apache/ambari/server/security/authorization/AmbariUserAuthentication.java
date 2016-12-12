@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import org.springframework.security.core.Authentication;
-
 import java.util.Collection;
+
+import org.springframework.security.core.Authentication;
 
 public class AmbariUserAuthentication implements Authentication, UserIdAuthentication {
 

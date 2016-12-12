@@ -18,18 +18,19 @@
 
 package org.apache.ambari.server.view;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.URL;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+
+import java.io.File;
+import java.net.URL;
+
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * ViewClassLoader test.

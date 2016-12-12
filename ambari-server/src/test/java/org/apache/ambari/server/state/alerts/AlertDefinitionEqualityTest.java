@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state.alerts;
 
-import junit.framework.TestCase;
-
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AggregateSource;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -33,6 +31,8 @@ import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
+import junit.framework.TestCase;
 
 /**
  * Tests equality of {@link AlertDefinition} for hashing and merging purposes.

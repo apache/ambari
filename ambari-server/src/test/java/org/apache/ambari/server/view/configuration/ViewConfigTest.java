@@ -18,6 +18,17 @@
 
 package org.apache.ambari.server.view.configuration;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServlet;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 import org.apache.ambari.view.NoSuchResourceException;
 import org.apache.ambari.view.ReadRequest;
 import org.apache.ambari.view.ResourceAlreadyExistsException;
@@ -31,16 +42,6 @@ import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.servlet.http.HttpServlet;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * ViewConfig tests.

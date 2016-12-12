@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.view.events;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.events.Event;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * View event implementation.

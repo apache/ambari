@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.utils;
 
-import junit.framework.Assert;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 public class HostUtilsTest {
   @Test

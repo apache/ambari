@@ -18,15 +18,16 @@
 
 package org.apache.ambari.server.serveraction;
 
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Clusters;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * The MockServerAction is an implementation of a ServerAction strictly used to testing purposes.

@@ -19,12 +19,8 @@
 package org.apache.ambari.server.controller.spi;
 
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * The resource object represents a requested resource.  The resource

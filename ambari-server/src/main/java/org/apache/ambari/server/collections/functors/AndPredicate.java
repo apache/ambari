@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.collections.functors;
 
-import org.apache.ambari.server.collections.PredicateUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.functors.PredicateDecorator;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.apache.ambari.server.collections.PredicateUtils;
+import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections.functors.PredicateDecorator;
 
 /**
  * {@link AndPredicate} wraps {@link org.apache.commons.collections.functors.AndPredicate} to

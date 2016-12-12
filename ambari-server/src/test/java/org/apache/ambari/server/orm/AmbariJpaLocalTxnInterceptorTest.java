@@ -17,18 +17,19 @@
  */
 package org.apache.ambari.server.orm;
 
-import com.google.inject.persist.Transactional;
-import org.easymock.EasyMockSupport;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.persistence.EntityTransaction;
+import static org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor.rollbackIfNecessary;
+import static org.easymock.EasyMock.expect;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import static org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor.rollbackIfNecessary;
-import static org.easymock.EasyMock.expect;
+import javax.persistence.EntityTransaction;
+
+import org.easymock.EasyMockSupport;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.inject.persist.Transactional;
 
 public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
 

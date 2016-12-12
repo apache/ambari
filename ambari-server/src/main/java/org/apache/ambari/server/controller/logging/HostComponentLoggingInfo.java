@@ -19,9 +19,9 @@
 package org.apache.ambari.server.controller.logging;
 
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.List;
+
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class HostComponentLoggingInfo {
 

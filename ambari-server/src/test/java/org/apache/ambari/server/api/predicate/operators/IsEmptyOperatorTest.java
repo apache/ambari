@@ -19,12 +19,13 @@
 package org.apache.ambari.server.api.predicate.operators;
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * IsEmpty operator test.

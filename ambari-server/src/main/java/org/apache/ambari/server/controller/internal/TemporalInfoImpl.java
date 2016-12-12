@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-
 import java.util.Date;
+
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 /**
 * Temporal query data.

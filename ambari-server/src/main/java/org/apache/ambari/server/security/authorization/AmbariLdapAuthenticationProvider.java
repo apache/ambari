@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Inject;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -35,6 +34,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
+
+import com.google.inject.Inject;
 
 
 /**

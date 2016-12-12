@@ -18,7 +18,22 @@
 
 package org.apache.ambari.server.view;
 
-import junit.framework.Assert;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -30,9 +45,7 @@ import org.apache.ambari.view.migration.EntityConverter;
 import org.easymock.Capture;
 import org.junit.Test;
 
-import java.util.*;
-
-import static org.easymock.EasyMock.*;
+import junit.framework.Assert;
 
 /**
  * ViewDataMigrationContextImpl tests.

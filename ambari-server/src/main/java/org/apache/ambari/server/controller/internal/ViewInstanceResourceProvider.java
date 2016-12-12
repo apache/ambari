@@ -18,8 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Strings;
-import com.google.inject.persist.Transactional;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -44,13 +50,7 @@ import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.validation.Validator;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for view instances.

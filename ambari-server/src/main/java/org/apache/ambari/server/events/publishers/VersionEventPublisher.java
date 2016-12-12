@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.events.publishers;
 
+import org.apache.ambari.server.events.ClusterEvent;
+
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Singleton;
-
-import org.apache.ambari.server.events.ClusterEvent;
 
 /**
  * The {@link VersionEventPublisher} is used to publish instances of

@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.security.encryption;
 
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.security.credential.Credential;
-
-import java.util.Set;
 
 public interface CredentialStore {
   /**

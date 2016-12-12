@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.security.authorization.jwt;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Class describes parameters of external JWT authentication provider

@@ -19,11 +19,11 @@
 package org.apache.ambari.server.controller.internal;
 
 
-import org.apache.ambari.server.state.ValueAttributesInfo;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.state.ValueAttributesInfo;
 
 public class PropertyValueTrimmingStrategyDefiner {
   static final Set<String> setOfUrlProperties = new HashSet<>();

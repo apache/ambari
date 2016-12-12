@@ -17,14 +17,15 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
-import junit.framework.Assert;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
-import java.util.Set;
+import junit.framework.Assert;
 
 /**
  * Equals predicate tests.

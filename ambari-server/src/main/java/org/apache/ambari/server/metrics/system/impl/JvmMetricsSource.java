@@ -17,6 +17,14 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
+import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ambari.server.metrics.system.AmbariMetricSink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
@@ -24,13 +32,6 @@ import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
-import org.apache.ambari.server.metrics.system.AmbariMetricSink;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.management.ManagementFactory;
-import java.util.HashMap;
-import java.util.Map;
 
 public class JvmMetricsSource extends AbstractMetricsSource {
   static final MetricRegistry registry = new MetricRegistry();

@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * NamedPropertySet unit tests.

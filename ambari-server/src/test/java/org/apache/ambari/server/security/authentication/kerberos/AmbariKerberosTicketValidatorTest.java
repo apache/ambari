@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
+import static org.easymock.EasyMock.expect;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
-
-import static org.easymock.EasyMock.expect;
 
 public class AmbariKerberosTicketValidatorTest extends EasyMockSupport {
 

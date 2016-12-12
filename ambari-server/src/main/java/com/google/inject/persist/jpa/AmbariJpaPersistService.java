@@ -18,10 +18,10 @@
 package com.google.inject.persist.jpa;
 
 
+import java.util.Properties;
+
 import com.google.inject.Inject;
 import com.google.inject.internal.util.$Nullable;
-
-import java.util.Properties;
 
 /**
  * Override non-public class limitations as we need non-interface method

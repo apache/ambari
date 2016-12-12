@@ -23,9 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.ambari.server.audit.request.eventcreator.RequestAuditEventCreator;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
+import org.apache.ambari.server.audit.request.eventcreator.RequestAuditEventCreator;
 import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 
 import com.google.inject.AbstractModule;

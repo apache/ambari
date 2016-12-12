@@ -18,19 +18,19 @@
 
 package org.apache.ambari.server.api.query;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-
-import java.util.Map;
-import java.util.Set;
 
 
 /**

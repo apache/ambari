@@ -17,24 +17,23 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
-import com.google.inject.persist.PersistService;
-import javax.persistence.EntityManager;
 import static org.easymock.EasyMock.expect;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashSet;
+
+import org.apache.ambari.server.orm.DBAccessor;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 /**
  * Unit tests for {@link MpackInstallChecker}

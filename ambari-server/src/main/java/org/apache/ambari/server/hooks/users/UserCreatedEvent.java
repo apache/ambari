@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.hooks.users;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.HookContext;
 

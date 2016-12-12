@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import javax.annotation.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 /**
  * DeconstructedPrincipal manages the different parts of a principal and can be used to get a

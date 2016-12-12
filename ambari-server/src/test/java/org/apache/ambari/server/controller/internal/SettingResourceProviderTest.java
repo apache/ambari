@@ -17,7 +17,23 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.collect.Lists;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_CONTENT_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_SETTING_TYPE_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_UPDATED_BY_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_UPDATE_TIMESTAMP_PROPERTY_ID;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createControl;
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
+
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
@@ -38,23 +54,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_NAME_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_SETTING_TYPE_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_CONTENT_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_UPDATED_BY_PROPERTY_ID;
-import static org.apache.ambari.server.controller.internal.SettingResourceProvider.SETTING_UPDATE_TIMESTAMP_PROPERTY_ID;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.createControl;
-
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Lists;
 
 public class SettingResourceProviderTest {
   IMocksControl mockControl;

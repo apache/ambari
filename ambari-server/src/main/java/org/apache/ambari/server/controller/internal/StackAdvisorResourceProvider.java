@@ -39,10 +39,9 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.ChangedConfigInfo;
 
 import com.google.inject.Inject;
-import org.apache.ambari.server.state.ChangedConfigInfo;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
 
 /**
  * Abstract superclass for recommendations and validations.

@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.api.predicate;
 
-import org.apache.ambari.server.controller.spi.Predicate;
-
 import java.util.Collection;
+
+import org.apache.ambari.server.controller.spi.Predicate;
 
 /**
  * Compiler which takes a query expression as input and produces a predicate instance as output.

@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  *

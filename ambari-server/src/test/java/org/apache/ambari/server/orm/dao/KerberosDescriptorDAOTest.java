@@ -1,6 +1,12 @@
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Provider;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -13,12 +19,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
+import com.google.inject.Provider;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one

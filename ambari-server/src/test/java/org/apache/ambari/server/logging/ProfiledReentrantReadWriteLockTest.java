@@ -17,17 +17,18 @@
  */
 package org.apache.ambari.server.logging;
 
-import com.google.common.base.Ticker;
-import org.easymock.EasyMockSupport;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
 
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.easymock.EasyMock.expect;
+import org.easymock.EasyMockSupport;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.common.base.Ticker;
 
 public class ProfiledReentrantReadWriteLockTest extends EasyMockSupport {
 

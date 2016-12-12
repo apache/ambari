@@ -18,12 +18,14 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import java.util.Map;
+
+import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.RequestBody;
+import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -33,8 +35,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 /**
  * Responsible for read requests.

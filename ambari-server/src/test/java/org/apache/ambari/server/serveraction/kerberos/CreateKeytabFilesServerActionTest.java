@@ -18,12 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import junit.framework.Assert;
-import org.junit.Assume;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,6 +26,12 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.junit.Assume;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import junit.framework.Assert;
 
 public class CreateKeytabFilesServerActionTest {
 

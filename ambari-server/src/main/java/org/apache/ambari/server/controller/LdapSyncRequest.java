@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 
 /**
  * Request for LDAP synchronization.

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.logging;
 
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.Cluster;
@@ -25,8 +27,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.log4j.Logger;
-
-import java.util.List;
 
 public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFactory {
 
