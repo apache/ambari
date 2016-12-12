@@ -13,5 +13,7 @@
 <module name="Checker">
   <module name="TreeWalker">
     <module name="AvoidTransactionalOnPrivateMethodsCheck"/>
+
+    <module name="FallThrough"/>
   </module>
 </module>

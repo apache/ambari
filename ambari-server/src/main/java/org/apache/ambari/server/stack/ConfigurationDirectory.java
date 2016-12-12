@@ -148,23 +148,28 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
         if (propertyFile.exists() && propertyFile.isFile()) {
           try {
             String propertyValue = FileUtils.readFileToString(propertyFile);
+            boolean valid = true;
             switch (propertyFileType.toLowerCase()) {
               case "xml" :
                 if (!XmlUtils.isValidXml(propertyValue)) {
+                  valid = false;
                   LOG.error("Failed to load value from property file. Property file {} is not a valid XML file", propertyFilePath);
-                  break;
                 }
-                pi.setValue(propertyValue);
                 break;
               case "json":
-                if(!JsonUtils.isValidJson(propertyValue)) {
+                if (!JsonUtils.isValidJson(propertyValue)) {
+                  valid = false;
                   LOG.error("Failed to load value from property file. Property file {} is not a valid JSON file", propertyFilePath);
-                  break;
                 }
-              case "text":
-              default:
-                pi.setValue(propertyValue);
                 break;
+              case "text":
+                // fallthrough
+              default:
+                // no validity check
+                break;
+            }
+            if (valid) {
+              pi.setValue(propertyValue);
             }
           } catch (IOException e) {
             LOG.error("Failed to load value from property file {}. Error Message {}", propertyFilePath, e.getMessage());

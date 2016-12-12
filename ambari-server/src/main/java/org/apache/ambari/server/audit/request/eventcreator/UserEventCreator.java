@@ -137,6 +137,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
               .withAffectedUsername(getUsername(request))
             .build();
         }
+        break;
       default:
         break;
     }

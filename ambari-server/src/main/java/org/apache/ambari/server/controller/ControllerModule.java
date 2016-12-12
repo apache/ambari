@@ -228,6 +228,7 @@ public class ControllerModule extends AbstractModule {
         properties.setProperty(JDBC_DRIVER, Configuration.JDBC_IN_MEMORY_DRIVER);
         properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
         properties.setProperty(THROW_EXCEPTIONS, "true");
+        break;
       case REMOTE:
         properties.setProperty(JDBC_URL, configuration.getDatabaseUrl());
         properties.setProperty(JDBC_DRIVER, configuration.getDatabaseDriver());

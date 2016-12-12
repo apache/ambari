@@ -75,19 +75,21 @@ public class TestActionQueue {
     public void run() {
       try {
         switch (operation) {
-        case ENQUEUE:
-          enqueueOp();
-          break;
-        case DEQUEUE:
-          dequeueOp();
-          break;
+          case ENQUEUE:
+            enqueueOp();
+            break;
+          case DEQUEUE:
+            dequeueOp();
+            break;
           case DEQUEUEALL:
             dequeueAllOp();
+            break;
           case CHECKPENDING:
             checkPending();
+            break;
           case UPDATEHOSTLIST:
             updateHostList();
-          break;
+            break;
         }
       } catch (Exception ex) {
         LOG.error("Failure", ex);

@@ -1247,6 +1247,7 @@ public class DBAccessorImpl implements DBAccessor {
       case POSTGRES:
       case SQL_ANYWHERE:
         builder.append(String.format("ALTER %s SET DEFAULT %s", column.getName(), defaultValue));
+        break;
       case ORACLE:
         builder.append(String.format("MODIFY %s DEFAULT %s", column.getName(), defaultValue));
         break;
