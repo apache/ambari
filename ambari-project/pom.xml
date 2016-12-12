@@ -497,18 +497,18 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>2.17</version>
+          <configuration>
+            <configLocation>${project.basedir}/checkstyle.xml</configLocation>
+            <encoding>UTF-8</encoding>
+            <consoleOutput>true</consoleOutput>
+            <failsOnError>true</failsOnError>
+            <linkXRef>false</linkXRef>
+            <skip>${checkstyle.skip}</skip>
+          </configuration>
           <executions>
             <execution>
               <id>checkstyle</id>
               <phase>test</phase>
-              <configuration>
-                <configLocation>${project.basedir}/checkstyle.xml</configLocation>
-                <encoding>UTF-8</encoding>
-                <consoleOutput>true</consoleOutput>
-                <failsOnError>true</failsOnError>
-                <linkXRef>false</linkXRef>
-                <skip>${checkstyle.skip}</skip>
-              </configuration>
               <goals>
                 <goal>check</goal>
               </goals>
