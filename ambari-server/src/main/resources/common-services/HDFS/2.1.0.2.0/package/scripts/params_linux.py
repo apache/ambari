@@ -43,10 +43,13 @@ from resource_management.libraries.functions.format_jvm_option import format_jvm
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
+from resource_management.libraries.functions.get_architecture import get_architecture
 
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+architecture = get_architecture()
 
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()

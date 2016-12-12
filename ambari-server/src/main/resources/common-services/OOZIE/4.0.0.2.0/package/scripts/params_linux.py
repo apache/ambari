@@ -33,6 +33,7 @@ from resource_management.libraries.script.script import Script
 
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.get_architecture import get_architecture
 
 from urlparse import urlparse
 
@@ -43,6 +44,8 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
+
+architecture = get_architecture()
 
 
 # Needed since this writes out the Atlas Hive Hook config file.

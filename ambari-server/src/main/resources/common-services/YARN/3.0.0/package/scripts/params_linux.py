@@ -34,6 +34,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
+from resource_management.libraries.functions.get_architecture import get_architecture
 
 import status_params
 
@@ -54,6 +55,8 @@ YARN_SERVER_ROLE_DIRECTORY_MAP = {
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+architecture = get_architecture()
 
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
