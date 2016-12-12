@@ -86,9 +86,9 @@ if 'infra-solr-env' in config['configurations']:
   infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
   infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
 
+_hostname_lowercase = config['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
-  _hostname_lowercase = config['hostname'].lower()
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
   logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
   use_external_solr_with_kerberos = default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
@@ -102,6 +102,8 @@ if security_enabled:
     logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
     logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
     logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+
+logsearch_spnego_host = config['configurations']['logsearch-properties']['logsearch.spnego.kerberos.host'].replace('_HOST', _hostname_lowercase)
 
 #####################################
 # Logsearch configs
@@ -222,6 +224,7 @@ del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
 
 logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
 logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
+logsearch_properties['logsearch.spnego.kerberos.host'] = logsearch_spnego_host
 
 if logsearch_solr_kerberos_enabled:
   logsearch_properties['logsearch.solr.kerberos.enable'] = 'true'
