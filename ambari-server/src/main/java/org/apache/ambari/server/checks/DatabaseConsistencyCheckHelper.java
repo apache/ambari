@@ -460,9 +460,13 @@ public class DatabaseConsistencyCheckHelper {
     LOG.info("Checking for configs that are not mapped to any service");
     List<ClusterConfigEntity> notMappedClasterConfigs = getNotMappedClusterConfigsToService();
 
+    Set<String> nonMappedConfigs = new HashSet<>();
+    for (ClusterConfigEntity clusterConfigEntity : notMappedClasterConfigs) {
+      nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
+    }
     if (!notMappedClasterConfigs.isEmpty()){
-      LOG.error("Found configs that are not mapped to any service!");
-      errorsFound = true;
+      LOG.warn("You have config(s): {} that is(are) not mapped (in serviceconfigmapping table) to any service!", StringUtils.join(nonMappedConfigs, ","));
+      warningsFound = true;
     }
   }
 
