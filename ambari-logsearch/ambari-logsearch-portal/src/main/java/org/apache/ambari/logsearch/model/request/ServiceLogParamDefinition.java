@@ -23,14 +23,26 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_PARAMS_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.LEVEL_D;
+import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_NAME_D;
+import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.COMPONENT_NAME_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.FILE_NAME_D;
 
-public interface ServiceLogParamDefinition extends HostComponentParamDefinition {
+public interface ServiceLogParamDefinition {
 
   String getLevel();
 
   @ApiParam(value = LEVEL_D, name = LogSearchConstants.REQUEST_PARAM_LEVEL)
   void setLevel(String level);
+
+  String getHostName();
+
+  @ApiParam(value = HOST_NAME_D, name = LogSearchConstants.REQUEST_PARAM_HOST_NAME)
+  void setHostName(String hostName);
+
+  String getComponentName();
+
+  @ApiParam(value = COMPONENT_NAME_D, name = LogSearchConstants.REQUEST_PARAM_COMPONENT_NAME)
+  void setComponentName(String componentName);
 
   String getFileName();
 

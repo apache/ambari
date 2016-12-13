@@ -45,7 +45,7 @@ import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
-import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
+import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogAggregatedInfoRequest;
@@ -60,7 +60,6 @@ import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.CountDataListResponse;
 import org.apache.ambari.logsearch.model.response.GraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.GroupListResponse;
-import org.apache.ambari.logsearch.model.response.HostLogFilesResponse;
 import org.apache.ambari.logsearch.model.response.LogData;
 import org.apache.ambari.logsearch.model.response.LogListResponse;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
@@ -69,7 +68,6 @@ import org.apache.ambari.logsearch.model.response.ServiceLogData;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.converter.BaseServiceLogRequestQueryConverter;
 import org.apache.ambari.logsearch.converter.ServiceLogTruncatedRequestQueryConverter;
-import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
@@ -113,7 +111,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   @Inject
   private ServiceLogsSolrDao serviceLogsSolrDao;
   @Inject
-  private ResponseDataGenerator responseDataGenerator;
+  private GraphDataGenerator graphDataGenerator;
   @Inject
   private ConversionService conversionService;
   @Inject
@@ -159,11 +157,11 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     solrQuery.setQuery("*:*");
     SolrUtil.setFacetPivot(solrQuery, 1, hierarchy);
     QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-    return responseDataGenerator.generateSimpleGraphResponse(response, hierarchy);
+    return graphDataGenerator.generateSimpleGraphResponse(response, hierarchy);
   }
 
   public CountDataListResponse getFieldCount(String field) {
-    return responseDataGenerator.generateCountResponseByField(serviceLogsSolrDao.process(conversionService.convert(field, SimpleFacetQuery.class)), field);
+    return graphDataGenerator.generateCountResponseByField(serviceLogsSolrDao.process(conversionService.convert(field, SimpleFacetQuery.class)), field);
   }
 
   public CountDataListResponse getComponentsCount() {
@@ -184,7 +182,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     QueryResponse response = serviceLogsSolrDao.process(solrQuery, "/service/logs/tree");
     String firstHierarchy = String.format("%s,%s,%s", HOST, COMPONENT, LEVEL);
     String secondHierarchy = String.format("%s,%s", HOST, LEVEL);
-    return responseDataGenerator.generateServiceNodeTreeFromFacetResponse(response, firstHierarchy, secondHierarchy,
+    return graphDataGenerator.generateServiceNodeTreeFromFacetResponse(response, firstHierarchy, secondHierarchy,
       LogSearchConstants.HOST, LogSearchConstants.COMPONENT);
   }
 
@@ -201,7 +199,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
       QueryResponse response = serviceLogsSolrDao.process(solrQuery, "/service/logs/hosts/components");
       String firstHierarchy = String.format("%s,%s,%s", COMPONENT, HOST, LEVEL);
       String secondHierarchy = String.format("%s,%s", COMPONENT, LEVEL);
-      return responseDataGenerator.generateServiceNodeTreeFromFacetResponse(response, firstHierarchy, secondHierarchy,
+      return graphDataGenerator.generateServiceNodeTreeFromFacetResponse(response, firstHierarchy, secondHierarchy,
         LogSearchConstants.COMPONENT, LogSearchConstants.HOST);
     } else {
       return list;
@@ -211,14 +209,15 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   public NameValueDataListResponse getLogsLevelCount(ServiceLogLevelCountRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse response = serviceLogsSolrDao.process(facetQuery, "/service/logs/levels/counts");
-    return responseDataGenerator.getNameValueDataListResponseWithDefaults(response, LogSearchConstants.SUPPORTED_LOG_LEVELS, false);
+    return graphDataGenerator.getNameValueDataListResponseWithDefaults(response, LogSearchConstants.SUPPORTED_LOG_LEVELS, false);
   }
 
   public BarGraphDataListResponse getHistogramData(ServiceGraphRequest request) {
     SolrQuery solrQuery = conversionService.convert(request, SolrQuery.class);
     QueryResponse response = serviceLogsSolrDao.process(solrQuery, "/service/logs/histogram");
-    return responseDataGenerator.generateBarGraphDataResponseWithRanges(response, LEVEL, true);
+    return graphDataGenerator.generateBarGraphDataResponseWithRanges(response, LEVEL, true);
   }
+
 
   public LogListResponse getPageByKeyword(ServiceLogRequest request, String event)
     throws SolrServerException {
@@ -417,7 +416,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(facetQuery);
     solrQuery.setFacetSort(StringUtils.isEmpty(request.getSortBy()) ? COMPONENT: request.getSortBy());
     QueryResponse response = serviceLogsSolrDao.process(facetQuery, "/service/logs/components/levels/counts");
-    return responseDataGenerator.generateOneLevelServiceNodeTree(response, String.format("%s,%s", COMPONENT, LEVEL));
+    return graphDataGenerator.generateOneLevelServiceNodeTree(response, String.format("%s,%s", COMPONENT, LEVEL));
   }
 
   public String getServiceLogsSchemaFieldsName() {
@@ -427,7 +426,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   public BarGraphDataListResponse getAnyGraphCountData(ServiceAnyGraphRequest request) {
     SimpleFacetQuery solrDataQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse queryResponse = serviceLogsSolrDao.process(solrDataQuery);
-    return responseDataGenerator.getGraphDataWithDefaults(queryResponse, LEVEL, LogSearchConstants.SUPPORTED_LOG_LEVELS);
+    return graphDataGenerator.getGraphDataWithDefaults(queryResponse, LEVEL, LogSearchConstants.SUPPORTED_LOG_LEVELS);
   }
 
   public ServiceLogResponse getAfterBeforeLogs(ServiceLogTruncatedRequest request) {
@@ -582,11 +581,5 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
       throw RESTErrorUtil.createRESTException("Could not load HadoopServiceConfig.json", MessageEnums.ERROR_SYSTEM);
     }
     return hadoopServiceConfigJSON;
-  }
-
-  public HostLogFilesResponse getHostLogFileData(HostLogFilesRequest request) {
-    SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
-    QueryResponse queryResponse = serviceLogsSolrDao.process(facetQuery, "/service/logs/hostlogfiles");
-    return responseDataGenerator.generateHostLogFilesResponse(queryResponse);
   }
 }

@@ -20,6 +20,7 @@ package org.apache.ambari.logsearch.model.request.impl;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.BundleIdParamDefinition;
+import org.apache.ambari.logsearch.model.request.DateRangeParamDefinition;
 import org.apache.ambari.logsearch.model.request.ServiceLogParamDefinition;
 
 import javax.ws.rs.QueryParam;

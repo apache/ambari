@@ -20,8 +20,6 @@ package org.apache.ambari.logsearch.rest;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.validation.Valid;
-import javax.validation.executable.ValidateOnExecution;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,8 +28,6 @@ import javax.ws.rs.core.Response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
-import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogAggregatedInfoRequest;
@@ -46,7 +42,6 @@ import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.CountDataListResponse;
 import org.apache.ambari.logsearch.model.response.GraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.GroupListResponse;
-import org.apache.ambari.logsearch.model.response.HostLogFilesResponse;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
 import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
@@ -197,14 +192,5 @@ public class ServiceLogsResource {
   public String cancelRequest() {
     // TODO: create function that cancels an ongoing solr request
     return "{\"endpoint status\": \"not supported yet\"}";
-  }
-
-  @GET
-  @Path("/files")
-  @Produces({"application/json"})
-  @ApiOperation(GET_HOST_LOGFILES_OD)
-  @ValidateOnExecution
-  public HostLogFilesResponse getHostLogFiles(@Valid @BeanParam HostLogFilesRequest request) {
-    return serviceLogsManager.getHostLogFileData(request);
   }
 }

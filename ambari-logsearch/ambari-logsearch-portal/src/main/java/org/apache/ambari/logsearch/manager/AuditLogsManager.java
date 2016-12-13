@@ -41,6 +41,7 @@ import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
+import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
@@ -51,7 +52,6 @@ import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.response.LogData;
-import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
 import org.apache.ambari.logsearch.solr.SolrConstants;
 import org.apache.ambari.logsearch.solr.model.SolrAuditLogData;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
@@ -77,7 +77,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   @Inject
   private AuditSolrDao auditSolrDao;
   @Inject
-  private ResponseDataGenerator responseDataGenerator;
+  private GraphDataGenerator graphDataGenerator;
   @Inject
   private ConversionService conversionService;
   @Inject
@@ -93,7 +93,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     List<LogData> docList = new ArrayList<>();
     QueryResponse queryResponse = auditSolrDao.process(facetQuery);
-    List<Count> componentsCount = responseDataGenerator.generateCount(queryResponse);
+    List<Count> componentsCount = graphDataGenerator.generateCount(queryResponse);
 
     for (Count component : componentsCount) {
       SolrComponentTypeLogData logData = new SolrComponentTypeLogData();
@@ -113,13 +113,13 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   public BarGraphDataListResponse getAuditBarGraphData(AuditBarGraphRequest request) {
     SolrQuery solrQuery = conversionService.convert(request, SolrQuery.class);
     QueryResponse response = auditSolrDao.process(solrQuery);
-    return responseDataGenerator.generateBarGraphDataResponseWithRanges(response, SolrConstants.AuditLogConstants.AUDIT_COMPONENT, true);
+    return graphDataGenerator.generateBarGraphDataResponseWithRanges(response, SolrConstants.AuditLogConstants.AUDIT_COMPONENT, true);
   }
 
   public BarGraphDataListResponse topResources(FieldAuditLogRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse queryResponse = auditSolrDao.process(facetQuery);
-    return responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);
+    return graphDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);
   }
 
   public String getAuditLogsSchemaFieldsName() {
@@ -129,7 +129,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   public BarGraphDataListResponse getServiceLoad(AuditServiceLoadRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse response = auditSolrDao.process(facetQuery);
-    return responseDataGenerator.generateBarGraphFromFieldFacet(response, AUDIT_COMPONENT);
+    return graphDataGenerator.generateBarGraphFromFieldFacet(response, AUDIT_COMPONENT);
   }
 
   public Response export(UserExportRequest request) throws TemplateException {
@@ -150,8 +150,8 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
         response.setMsgDesc("Query was not able to execute " + facetQuery);
         throw RESTErrorUtil.createRESTException(response);
       }
-      BarGraphDataListResponse vBarUserDataList = responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);
-      BarGraphDataListResponse vBarResourceDataList = responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 1);
+      BarGraphDataListResponse vBarUserDataList = graphDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);
+      BarGraphDataListResponse vBarResourceDataList = graphDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 1);
       String data = "";
       if ("text".equals(dataFormat)) {
         StringWriter stringWriter = new StringWriter();
