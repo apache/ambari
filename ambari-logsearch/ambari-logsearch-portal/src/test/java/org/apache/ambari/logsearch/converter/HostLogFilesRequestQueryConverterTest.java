@@ -18,7 +18,7 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogHostComponentRequest;
+import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,39 +26,37 @@ import org.springframework.data.solr.core.DefaultQueryParser;
 
 import static org.junit.Assert.assertEquals;
 
-public class ServiceLogTreeRequestFacetQueryConverterTest extends AbstractRequestConverterTest {
-  private ServiceLogTreeRequestFacetQueryConverter underTest;
+public class HostLogFilesRequestQueryConverterTest extends AbstractRequestConverterTest {
+
+  private HostLogFilesRequestQueryConverter underTest;
 
   @Before
   public void setUp() {
-    underTest = new ServiceLogTreeRequestFacetQueryConverter();
+    underTest = new HostLogFilesRequestQueryConverter();
   }
 
   @Test
-  public void testConvert() {
+  public void testConvertHostNameOnly() {
     // GIVEN
-    ServiceLogHostComponentRequest request = new ServiceLogHostComponentRequest();
-    fillBaseLogRequestWithTestData(request);
-    request.setLevel("WARN,ERROR,FATAL");
+    HostLogFilesRequest request = new HostLogFilesRequest();
+    request.setHostName("hostName");
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
-    assertEquals("?q=*%3A*&rows=0&fq=logtime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D&fq=log_message%3Amyincludemessage" +
-      "&fq=-log_message%3Amyexcludemessage&fq=type%3A%28logsearch_app+secure_log%29&fq=-type%3A%28hst_agent+system_message%29&fq=level%3A%28WARN+ERROR+FATAL%29" +
-      "&facet=true&facet.mincount=1&facet.limit=-1&facet.sort=index&facet.pivot=host%2Ctype%2Clevel&facet.pivot=host%2Clevel",
+    assertEquals("?q=host%3A%28hostName%29&rows=0&facet=true&facet.mincount=1&facet.limit=-1&facet.pivot=type%2Cpath",
       query.toQueryString());
   }
 
   @Test
-  public void testConvertWithoutData() {
+  public void testConvertHostNameAndComponentName() {
     // GIVEN
-    ServiceLogHostComponentRequest request = new ServiceLogHostComponentRequest();
-    request.setLevel("WARN,ERROR,FATAL");
+    HostLogFilesRequest request = new HostLogFilesRequest();
+    request.setHostName("hostName");
+    request.setComponentName("componentName");
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
-    assertEquals("?q=*%3A*&rows=0&fq=logtime%3A%5B*+TO+*%5D&fq=level%3A%28WARN+ERROR+FATAL%29&facet=true&facet.mincount=1" +
-      "&facet.limit=-1&facet.sort=index&facet.pivot=host%2Ctype%2Clevel&facet.pivot=host%2Clevel",
-      query.toQueryString());
+    assertEquals("?q=host%3A%28hostName%29+AND+type%3A%28componentName%29&rows=0&facet=true&facet.mincount=1&facet.limit=-1" +
+        "&facet.pivot=type%2Cpath", query.toQueryString());
   }
 }
