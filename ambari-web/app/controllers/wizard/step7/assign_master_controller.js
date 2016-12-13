@@ -398,19 +398,8 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         self.clearComponentsToBeDeleted(configActionComponent.componentName);
       }
 
-      var hostComponentConfig = context.get('config.configAction.hostComponentConfig');
-      var serviceConfigs = context.get('controller.stepConfigs').findProperty('serviceName', context.get('config.serviceName')).get('configs');
-      var config = serviceConfigs.filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
-      var oldValue = config.get('value');
-      config.set('value', componentHostName);
-      config.set('recommendedValue', componentHostName);
       configActionComponent.hostName = componentHostName;
       self.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
-      context.get('controller').loadConfigRecommendations([{
-        "type": App.config.getConfigTagFromFileName(config.get('filename')),
-        "name": config.get('name'),
-        "old_value": oldValue
-      }])
     });
   },
 

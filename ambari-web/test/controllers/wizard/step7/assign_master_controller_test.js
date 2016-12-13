@@ -405,14 +405,5 @@ describe('App.AssignMasterOnStep7Controller', function () {
         hostName: 'host1'
       });
     });
-
-    it("config should be set", function() {
-      expect(config.get('value')).to.be.equal('host1');
-      expect(config.get('recommendedValue')).to.be.equal('host1');
-    });
-
-    it("config should be set (loadConfigRecommendations is called once)", function() {
-      expect(mock.loadConfigRecommendations.calledOnce).to.be.true;
-    });
   });
 });

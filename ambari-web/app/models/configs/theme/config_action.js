@@ -59,10 +59,6 @@ App.ConfigAction.FIXTURES = [
     file_name: "hive-interactive-env.xml",
     if:'${hive-interactive-env/enable_hive_interactive}',
     then:'add',
-    else: 'delete',
-    host_component_config: {
-      configName: "hive_server_interactive_host",
-      fileName: "hive-interactive-env.xml"
-    }
+    else: 'delete'
   }
 ];
