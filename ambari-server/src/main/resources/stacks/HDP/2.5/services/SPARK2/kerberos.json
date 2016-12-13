@@ -1,0 +1,121 @@
+{
+  "services": [
+    {
+      "name": "SPARK",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "spark2user",
+          "principal": {
+            "value": "${spark2-env/spark_user}-${cluster_name|toLower()}@${realm}",
+            "type" : "user",
+            "configuration": "spark2-defaults/spark.history.kerberos.principal",
+            "local_username" : "${spark2-env/spark_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/spark.headless.keytab",
+            "owner": {
+              "name": "${spark2-env/spark_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "spark2-defaults/spark.history.kerberos.keytab"
+          }
+        },
+        {
+          "name": "livy2user",
+          "principal": {
+            "value": "${livy2-env/livy2_user}/_HOST@${realm}",
+            "type" : "service",
+            "configuration": "livy2-conf/livy2.server.kerberos.principal",
+            "local_username": "${livy2-env/livy2_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/livy2.service.keytab",
+            "owner": {
+              "name": "${livy2-env/livy2_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "livy2-conf/livy2.server.kerberos.keytab"
+          }
+        },
+        {
+          "name": "/spnego",
+          "principal": {
+            "configuration": "livy2-conf/livy2.server.auth.kerberos.principal"
+          },
+          "keytab": {
+            "configuration": "livy2-conf/livy2.server.auth.kerberos.keytab"
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "spark-defaults": {
+            "spark.history.kerberos.enabled": "true"
+          }
+        },
+        {
+          "spark-thrift-sparkconf": {
+            "spark.yarn.keytab": "${spark2-env/hive_kerberos_keytab}",
+            "spark.yarn.principal": "${spark2-env/hive_kerberos_principal}"
+          }
+        },
+        {
+          "livy2-conf": {
+            "livy2.server.auth.type": "kerberos",
+            "livy2.impersonation.enabled": "true",
+            "livy2.superusers": "zeppelin-${cluster_name}"
+          }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.${livy2-env/livy2_user}.groups": "*",
+            "hadoop.proxyuser.${livy2-env/livy2_user}.hosts": "*"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "SPARK2_JOBHISTORYSERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        },
+        {
+          "name": "SPARK2_CLIENT"
+        },
+        {
+          "name": "SPARK2_THRIFTSERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
+            }
+          ]
+        },
+        {
+          "name": "LIVY2_SERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
