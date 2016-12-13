@@ -20,6 +20,9 @@
 package org.apache.ambari.logsearch.common;
 
 public class LogSearchConstants {
+
+  public static final String LOGSEARCH_SESSION_ID = "LOGSEARCHSESSIONID";
+
   // Log Levels
   public static final String INFO = "INFO";
   public static final String WARN = "WARN";

@@ -56,6 +56,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 
 import javax.servlet.DispatcherType;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
+
 public class LogSearch {
   private static final Logger logger = Logger.getLogger(LogSearch.class);
 
@@ -152,6 +154,7 @@ public class LogSearch {
     jerseyServlet.setInitParameter("jersey.config.server.provider.packages","org.apache.ambari.logsearch.rest,io.swagger.jaxrs.listing");
 
     context.getSessionHandler().getSessionManager().setMaxInactiveInterval(SESSION_TIMEOUT);
+    context.getSessionHandler().getSessionManager().getSessionCookieConfig().setName(LOGSEARCH_SESSION_ID);
 
     return context;
   }
