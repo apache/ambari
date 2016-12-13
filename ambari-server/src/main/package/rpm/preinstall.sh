@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-ROOT="${RPM_INSTALL_PREFIX}"
+ROOT=`echo "${RPM_INSTALL_PREFIX}" | sed 's|/$||g'`
 
 STACKS_FOLDER="${ROOT}/var/lib/ambari-server/resources/stacks"
 STACKS_FOLDER_OLD="${ROOT}/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%M').old"
