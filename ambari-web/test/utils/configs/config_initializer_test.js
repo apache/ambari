@@ -950,23 +950,4 @@ describe('App.ConfigInitializer', function () {
     });
 
   });
-
-  describe('winReplacersMap', function () {
-
-    var winReplacersMap = App.ConfigInitializer.get('winReplacersMap');
-    var winReplacerNames = Em.keys(winReplacersMap).map(function (key) {
-      return winReplacersMap[key];
-    });
-
-    it('should contains only unique methods', function () {
-      expect(winReplacerNames.length).to.equal(winReplacerNames.uniq().length);
-    });
-
-    winReplacerNames.forEach(function (name) {
-      it(name, function () {
-        expect(App.ConfigInitializer[name]).to.be.a.function;
-      });
-    });
-  });
-
 });
