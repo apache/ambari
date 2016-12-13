@@ -269,6 +269,9 @@ xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ra
 xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_knox'
+repo_name_value = config['configurations']['ranger-knox-security']['ranger.plugin.knox.service.name']
+if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+  repo_name = repo_name_value
 
 knox_home = config['configurations']['ranger-knox-plugin-properties']['KNOX_HOME']
 common_name_for_certificate = config['configurations']['ranger-knox-plugin-properties']['common.name.for.certificate']

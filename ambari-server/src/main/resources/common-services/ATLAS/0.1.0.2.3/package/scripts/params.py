@@ -313,6 +313,9 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   )
 
   repo_name = str(config['clusterName']) + '_atlas'
+  repo_name_value = config['configurations']['ranger-atlas-security']['ranger.plugin.atlas.service.name']
+  if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+    repo_name = repo_name_value
   ssl_keystore_password = unicode(config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
   ssl_truststore_password = unicode(config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks')

@@ -637,6 +637,9 @@ xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ra
 xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_hive'
+repo_name_value = config['configurations']['ranger-hive-security']['ranger.plugin.hive.service.name']
+if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+  repo_name = repo_name_value
 
 jdbc_driver_class_name = config['configurations']['ranger-hive-plugin-properties']['jdbc.driverClassName']
 common_name_for_certificate = config['configurations']['ranger-hive-plugin-properties']['common.name.for.certificate']
