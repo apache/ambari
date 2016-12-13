@@ -95,7 +95,7 @@ def allInstalledPackages(allInstalledPackages):
 
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["sudo", "zypper", "search", "--installed-only", "--details"],
+      ["sudo", "zypper", "--no-gpg-checks", "search", "--installed-only", "--details"],
       allInstalledPackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
@@ -113,7 +113,7 @@ def allAvailablePackages(allAvailablePackages):
 
   if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
-      ["sudo", "zypper", "search", "--uninstalled-only", "--details"],
+      ["sudo", "zypper", "--no-gpg-checks", "search", "--uninstalled-only", "--details"],
       allAvailablePackages)
   elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
