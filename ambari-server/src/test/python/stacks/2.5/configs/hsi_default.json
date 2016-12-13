@@ -542,7 +542,7 @@
             "yarn.nodemanager.address": "0.0.0.0:45454",
             "yarn.nodemanager.container-monitor.interval-ms": "3000",
             "yarn.nodemanager.log-aggregation.compression-type": "gz",
-            "yarn.nodemanager.log.retain-second": "604800",
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.nodemanager.delete.debug-delay-sec": "0",
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log,/hadoop/yarn/log1",
             "yarn.nodemanager.health-checker.interval-ms": "135000",

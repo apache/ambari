@@ -375,7 +375,7 @@
           "yarn.nodemanager.log-aggregation.num-log-files-per-app": "30",
           "yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds": "-1",
           "yarn.nodemanager.log-dirs": "/hadoop/yarn/log",
-          "yarn.nodemanager.log.retain-second": "604800",
+          "yarn.nodemanager.log.retain-seconds": "604800",
           "yarn.nodemanager.recovery.dir": "/var/log/hadoop-yarn/nodemanager/recovery-state",
           "yarn.nodemanager.recovery.enabled": "false",
           "yarn.nodemanager.remote-app-log-dir": "/app-logs",

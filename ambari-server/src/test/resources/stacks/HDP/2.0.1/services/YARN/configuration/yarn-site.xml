@@ -134,7 +134,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>yarn.nodemanager.log.retain-second</name>
+    <name>yarn.nodemanager.log.retain-seconds</name>
     <value>604800</value>
     <on-ambari-upgrade add="true"/>
   </property>

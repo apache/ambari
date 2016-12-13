@@ -198,7 +198,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>yarn.nodemanager.log.retain-second</name>
+    <name>yarn.nodemanager.log.retain-seconds</name>
     <value>604800</value>
     <description>
       Time in seconds to retain user logs. Only applicable if
