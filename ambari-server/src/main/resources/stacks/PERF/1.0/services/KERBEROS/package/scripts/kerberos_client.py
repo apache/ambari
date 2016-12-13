@@ -40,8 +40,6 @@ class KerberosClient(KerberosScript):
     #delete krb cache to prevent using old krb tickets on fresh kerberos setup
     self.clear_tmp_cache()
 
-    self.setup_jce()
-
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
@@ -73,7 +71,7 @@ class KerberosClient(KerberosScript):
     self.delete_keytab_file()
 
   def download_install_jce(self, env):
-    self.setup_jce()
+    pass
 
 
 if __name__ == "__main__":

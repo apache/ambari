@@ -70,43 +70,6 @@
                     </configFiles>
                 </component>
             </components>
-
-            <osSpecifics>
-                <osSpecific>
-                    <osFamily>redhat7,amazon2015,redhat6</osFamily>
-                    <packages>
-                        <package>
-                            <name>krb5-workstation</name>
-                            <skipUpgrade>true</skipUpgrade>
-                        </package>
-                    </packages>
-                </osSpecific>
-
-                <osSpecific>
-                    <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
-                    <packages>
-                        <package>
-                            <name>krb5-user</name>
-                            <skipUpgrade>true</skipUpgrade>
-                        </package>
-                        <package>
-                            <name>krb5-config</name>
-                            <skipUpgrade>true</skipUpgrade>
-                        </package>
-                    </packages>
-                </osSpecific>
-
-                <osSpecific>
-                    <osFamily>suse11,suse12</osFamily>
-                    <packages>
-                        <package>
-                            <name>krb5-client</name>
-                            <skipUpgrade>true</skipUpgrade>
-                        </package>
-                    </packages>
-                </osSpecific>
-            </osSpecifics>
-
             <commandScript>
                 <script>scripts/service_check.py</script>
                 <scriptType>PYTHON</scriptType>

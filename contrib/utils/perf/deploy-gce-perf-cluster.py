@@ -384,7 +384,7 @@ def create_agent_script(server_host_name):
   # TODO, instead of cloning Ambari repo on each VM, do it on the server once and distribute to all of the agents.
   contents = "#!/bin/bash\n" + \
   "wget -O /etc/yum.repos.d/ambari.repo {0}\n".format(ambari_repo_file_url) + \
-  "yum clean all; yum install git ambari-agent -y\n" + \
+  "yum clean all; yum install krb5-workstation git ambari-agent -y\n" + \
   "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
   "sed -i -e 's/hostname=localhost/hostname={0}/g' /etc/ambari-agent/conf/ambari-agent.ini\n".format(server_host_name) + \
