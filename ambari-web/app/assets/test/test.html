@@ -41,6 +41,7 @@
 <script>
     $.mocho = true;
     $.hostName = 'localhost:3333';
+    window.initMochaPhantomJS && window.initMochaPhantomJS();
     mocha.ui('bdd');
     mocha.reporter('html');
     expect = chai.expect;

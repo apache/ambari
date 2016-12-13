@@ -19,25 +19,26 @@
     "cssstyle": "0.2.3"
   },
   "devDependencies": {
-    "phantomjs": "^1.9.2",
-    "mocha":"1.9.0",
-    "mocha-phantomjs": "~3.1.6",
-    "chai":"~1.9.0",
+    "phantomjs": "~2.1.0",
+    "mocha":"2.5.3",
+    "mocha-phantomjs": "~4.1.0",
+    "mocha-phantomjs-core": "~2.1.0",
+    "chai":"~3.5.0",
     "sinon":"=1.7.3",
-    "sinon-chai":"~2.5.0",
+    "sinon-chai":"~2.8.0",
     "express":"2.5.8",
     "karma": ">=0.11.14",
     "karma-mocha": "0.1.1",
     "karma-chai": "~0.1.0",
     "karma-sinon": "~1.0.2",
-    "karma-phantomjs-launcher": "0.1.3",
+    "karma-phantomjs-launcher": "1.0.2",
     "karma-coverage": "~0.2.0",
     "karma-commonjs-require": "~0.0.1",
     "karma-ember-precompile-brunch": "^0.0.1"
   },
   "scripts": {
     "start": "brunch watch --server",
-    "test": "mocha-phantomjs -R min public/test/test.html"
+    "test": "mocha-phantomjs -R min -p ./node_modules/.bin/phantomjs public/test/test.html"
   },
   "engines": {
     "node": "^4.0.0"

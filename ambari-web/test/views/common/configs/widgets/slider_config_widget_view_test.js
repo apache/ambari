@@ -636,29 +636,6 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewInt.get('issueMessage')).to.equal('');
     });
 
-    describe('llap_queue_capacity property', function() {
-      beforeEach(function() {
-        viewInt.set('config.name', 'llap_queue_capacity');
-      });
-      it('should validate and warn about llap issue when value is 100%', function() {
-        viewInt.set('config.stackConfigProperty.valueAttributes.maximum', 100);
-        viewInt.set('config.value', '100');
-        viewInt.set('config.errorMessage', '');
-        viewInt.set('config.warnMessage', '');
-        viewInt.set('config.widgetType', 'slider');
-        assert.isTrue(viewInt.isValueCompatibleWithWidget(), 'value should be compatible with widget');
-        assert.equal(viewInt.get('config.warnMessage'), Em.I18n.t('config.warnMessage.llap_queue_capacity.max'), 'warn message validation');
-      });
-
-      it('should pass validation because llap < 100', function() {
-        viewInt.set('config.stackConfigProperty.valueAttributes.maximum', 100);
-        viewInt.set('config.value', '99');
-        viewInt.set('config.errorMessage', '');
-        viewInt.set('config.warnMessage', '');
-        assert.isTrue(viewInt.isValueCompatibleWithWidget(), 'value should be compatible with widget');
-        assert.equal(viewInt.get('config.warnMessage'), '', 'warn message validation');
-      });
-    });
   });
 
   describe('#formatTickLabel', function () {
