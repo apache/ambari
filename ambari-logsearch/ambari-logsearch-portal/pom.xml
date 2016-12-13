@@ -778,5 +778,10 @@
       <artifactId>jersey-bean-validation</artifactId>
       <version>2.25</version>
     </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.55</version>
+    </dependency>
   </dependencies>
 </project>

@@ -194,7 +194,7 @@
   </property>
   <property>
     <name>logsearch_truststore_location</name>
-    <value>/etc/security/serverKeys/logsearch.trustStore.jks</value>
+    <value>/etc/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search trust store location</display-name>
     <description>Location of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
@@ -219,7 +219,7 @@
   </property>
   <property>
     <name>logsearch_keystore_location</name>
-    <value>/etc/security/serverKeys/logsearch.keyStore.jks</value>
+    <value>/etc/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search key store location</display-name>
     <description>Location of the key store file.</description>
     <on-ambari-upgrade add="true"/>
