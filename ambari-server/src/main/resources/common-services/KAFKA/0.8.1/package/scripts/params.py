@@ -187,6 +187,9 @@ if has_ranger_admin and is_supported_kafka_ranger:
     xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   xa_db_host = config['configurations']['admin-properties']['db_host']
   repo_name = str(config['clusterName']) + '_kafka'
+  repo_name_value = config['configurations']['ranger-kafka-security']['ranger.plugin.kafka.service.name']
+  if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+    repo_name = repo_name_value
 
   ranger_env = config['configurations']['ranger-env']
   ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
