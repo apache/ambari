@@ -88,7 +88,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'HIVE_METASTORE': ['HIVE', 'PIG', 'FALCON', 'ATLAS', 'OOZIE'],
     'WEBHCAT_SERVER': ['HIVE'],
     'OOZIE_SERVER': ['OOZIE', 'FALCON', 'KNOX'],
-    'MYSQL_SERVER': ['HIVE', 'OOZIE', 'RANGER', 'RANGER_KMS']
+    'MYSQL_SERVER': ['HIVE', 'OOZIE', 'RANGER', 'RANGER_KMS'],
+    'METRICS_COLLECTOR': ['AMBARI_METRICS']
   },
 
   dbPropertyMap: {
