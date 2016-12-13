@@ -77,14 +77,17 @@ import com.google.inject.Injector;
     name = "UQ_viewinstance_name", columnNames = {"view_name", "name"}
   )
 )
-@NamedQueries({
-  @NamedQuery(name = "allViewInstances",
-      query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance"),
-  @NamedQuery(name = "viewInstanceByResourceId", query =
-      "SELECT viewInstance " +
-          "FROM ViewInstanceEntity viewInstance " +
-          "WHERE viewInstance.resource.id=:resourceId")
-})
+@NamedQueries({ @NamedQuery(
+    name = "allViewInstances",
+    query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance"),
+    @NamedQuery(
+        name = "viewInstanceByResourceId",
+        query = "SELECT viewInstance FROM ViewInstanceEntity viewInstance "
+            + "WHERE viewInstance.resource.id=:resourceId"),
+    @NamedQuery(
+        name = "getResourceIdByViewInstance",
+        query = "SELECT viewInstance.resource FROM ViewInstanceEntity viewInstance "
+            + "WHERE viewInstance.viewName = :viewName AND viewInstance.name = :instanceName"), })
 
 @TableGenerator(name = "view_instance_id_generator",
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
@@ -247,7 +250,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   public ViewInstanceEntity() {
     instanceConfig = null;
-    this.alterNames = 1;
+    alterNames = 1;
   }
 
   /**
@@ -257,15 +260,15 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @param instanceConfig the associated configuration
    */
   public ViewInstanceEntity(ViewEntity view, InstanceConfig instanceConfig) {
-    this.name = instanceConfig.getName();
+    name = instanceConfig.getName();
     this.instanceConfig = instanceConfig;
     this.view = view;
-    this.viewName = view.getName();
-    this.description = instanceConfig.getDescription();
-    this.clusterHandle = null;
-    this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
-    this.alterNames = 1;
-    this.clusterType = ClusterType.LOCAL_AMBARI;
+    viewName = view.getName();
+    description = instanceConfig.getDescription();
+    clusterHandle = null;
+    visible = instanceConfig.isVisible() ? 'Y' : 'N';
+    alterNames = 1;
+    clusterType = ClusterType.LOCAL_AMBARI;
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
@@ -296,13 +299,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public ViewInstanceEntity(ViewEntity view, String name, String label) {
     this.name = name;
-    this.instanceConfig = null;
+    instanceConfig = null;
     this.view = view;
-    this.viewName = view.getName();
-    this.description = null;
-    this.clusterHandle = null;
-    this.visible = 'Y';
-    this.alterNames = 1;
+    viewName = view.getName();
+    description = null;
+    clusterHandle = null;
+    visible = 'Y';
+    alterNames = 1;
     this.label = label;
   }
 
@@ -461,6 +464,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    *
    * @return clusterType the type of cluster for cluster handle
    */
+  @Override
   public ClusterType getClusterType() {
     return clusterType;
   }
@@ -962,8 +966,12 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ViewInstanceEntity that = (ViewInstanceEntity) o;
 
@@ -997,7 +1005,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * Remove the URL associated with this entity
    */
   public void clearUrl() {
-    this.viewUrl = null;
+    viewUrl = null;
   }
 
   //----- ViewInstanceVersionDTO inner class --------------------------------------------------

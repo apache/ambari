@@ -25,6 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 
@@ -90,6 +91,28 @@ public class ViewInstanceDAO {
         createNamedQuery("allViewInstances", ViewInstanceEntity.class);
 
     return query.getResultList();
+  }
+
+  /**
+   * Gets the associated {@link ResourceEntity} for a given instance.
+   *
+   * @param viewName
+   *          the name of the view
+   * @param instanceName
+   *          the name of the view instance
+   *
+   * @return the associated resource entity or {@code null}.
+   */
+  @RequiresSession
+  public ResourceEntity findResourceForViewInstance(String viewName,
+      String instanceName) {
+    TypedQuery<ResourceEntity> query = entityManagerProvider.get().createNamedQuery(
+        "getResourceIdByViewInstance", ResourceEntity.class);
+
+    query.setParameter("viewName", viewName);
+    query.setParameter("instanceName", instanceName);
+
+    return daoUtils.selectOne(query);
   }
 
   /**
