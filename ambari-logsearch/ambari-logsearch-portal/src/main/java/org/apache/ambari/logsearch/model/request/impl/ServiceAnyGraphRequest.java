@@ -18,10 +18,8 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.AnyGraphParamDefinition;
-import org.apache.ambari.logsearch.model.request.DateRangeParamDefinition;
 import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 
 import javax.ws.rs.QueryParam;

@@ -21,24 +21,18 @@ package org.apache.ambari.logsearch.model.request;
 import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_PARAMS_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.LEVEL_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.FILE_NAME_D;
+import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_NAME_D;
+import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.COMPONENT_NAME_D;
 
-public interface ServiceLogParamDefinition extends HostComponentParamDefinition {
+public interface HostComponentParamDefinition {
 
-  String getLevel();
+  String getHostName();
 
-  @ApiParam(value = LEVEL_D, name = LogSearchConstants.REQUEST_PARAM_LEVEL)
-  void setLevel(String level);
+  @ApiParam(value = HOST_NAME_D, name = LogSearchConstants.REQUEST_PARAM_HOST_NAME)
+  void setHostName(String hostName);
 
-  String getFileName();
+  String getComponentName();
 
-  @ApiParam(value = FILE_NAME_D, name = LogSearchConstants.REQUEST_PARAM_FILE_NAME)
-  void setFileName(String fileName);
-
-  String getHostList();
-
-  @ApiParam(value = HOST_PARAMS_D, name = LogSearchConstants.REQUEST_PARAM_HOSTS)
-  void setHostList(String hostList);
+  @ApiParam(value = COMPONENT_NAME_D, name = LogSearchConstants.REQUEST_PARAM_COMPONENT_NAME)
+  void setComponentName(String componentName);
 }

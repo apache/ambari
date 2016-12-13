@@ -773,5 +773,10 @@
       <artifactId>jjwt</artifactId>
       <version>${jjwt.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext</groupId>
+      <artifactId>jersey-bean-validation</artifactId>
+      <version>2.25</version>
+    </dependency>
   </dependencies>
 </project>

@@ -18,42 +18,21 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.model.request.BundleIdParamDefinition;
-import org.apache.ambari.logsearch.model.request.ServiceLogParamDefinition;
-
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.QueryParam;
 
-public class BaseServiceLogRequest extends BaseLogRequest
-  implements ServiceLogParamDefinition, BundleIdParamDefinition {
+import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.model.request.HostComponentParamDefinition;
+import org.apache.ambari.logsearch.model.request.SearchRequest;
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_LEVEL)
-  private String level;
+public class HostLogFilesRequest implements HostComponentParamDefinition, SearchRequest {
 
+  @NotNull
   @QueryParam(LogSearchConstants.REQUEST_PARAM_HOST_NAME)
   private String hostName;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_COMPONENT_NAME)
   private String componentName;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FILE_NAME)
-  private String fileName;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_BUNDLE_ID)
-  private String bundleId;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_HOSTS)
-  private String hostList;
-
-  @Override
-  public String getLevel() {
-    return level;
-  }
-
-  @Override
-  public void setLevel(String level) {
-    this.level = level;
-  }
 
   @Override
   public String getHostName() {
@@ -73,35 +52,5 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @Override
   public void setComponentName(String componentName) {
     this.componentName = componentName;
-  }
-
-  @Override
-  public String getFileName() {
-    return fileName;
-  }
-
-  @Override
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-  }
-
-  @Override
-  public String getBundleId() {
-    return bundleId;
-  }
-
-  @Override
-  public void setBundleId(String bundleId) {
-    this.bundleId = bundleId;
-  }
-
-  @Override
-  public String getHostList() {
-    return hostList;
-  }
-
-  @Override
-  public void setHostList(String hostList) {
-    this.hostList = hostList;
   }
 }

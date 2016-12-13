@@ -17,21 +17,27 @@
  * under the License.
  */
 
-package org.apache.ambari.logsearch.graph;
+package org.apache.ambari.logsearch.solr;
+
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.PATH;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.apache.ambari.logsearch.model.response.BarGraphData;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.CountData;
 import org.apache.ambari.logsearch.model.response.CountDataListResponse;
 import org.apache.ambari.logsearch.model.response.GraphData;
 import org.apache.ambari.logsearch.model.response.GraphDataListResponse;
+import org.apache.ambari.logsearch.model.response.HostLogFilesResponse;
 import org.apache.ambari.logsearch.model.response.NameValueData;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
 import org.apache.ambari.logsearch.model.response.NodeData;
@@ -48,7 +54,7 @@ import org.apache.solr.common.util.NamedList;
 import javax.inject.Named;
 
 @Named
-public class GraphDataGenerator {
+public class ResponseDataGenerator {
 
   public BarGraphDataListResponse generateBarGraphDataResponseWithRanges(QueryResponse response, String typeField, boolean typeUppercase) {
     BarGraphDataListResponse dataList = new BarGraphDataListResponse();
@@ -421,5 +427,26 @@ public class GraphDataGenerator {
       }
     }
     return logList;
+  }
+  
+
+  public HostLogFilesResponse generateHostLogFilesResponse(QueryResponse queryResponse) {
+    HostLogFilesResponse response = new HostLogFilesResponse();
+    Map<String, List<String>> componentLogFiles = response.getHostLogFiles();
+    
+    NamedList<List<PivotField>> facetPivot = queryResponse.getFacetPivot();
+    List<PivotField> componentFields = facetPivot.get(COMPONENT + "," + PATH);
+    for (PivotField componentField : componentFields) {
+      String component = (String)componentField.getValue();
+      LinkedList<String> logFileList = new LinkedList<>();
+      componentLogFiles.put(component, logFileList);
+      
+      for (PivotField logField : componentField.getPivot()) {
+        // the log file names are in increasing order of their cardinality, using addFirst reverses the list
+        logFileList.addFirst((String)logField.getValue());
+      }
+    }
+    
+    return response;
   }
 }
