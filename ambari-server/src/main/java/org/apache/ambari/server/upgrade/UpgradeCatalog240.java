@@ -1552,7 +1552,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    *
    * @throws SQLException
    */
-  @Transactional
   void updateServiceComponentDesiredStateTableDDL() throws SQLException {
     if (dbAccessor.tableHasPrimaryKey(SERVICE_COMPONENT_DS_TABLE, ID)) {
       LOG.info("Skipping {} table Primary Key modifications since the new {} column already exists",
@@ -2754,7 +2753,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    *  Update view instance table's cluster_handle column to have cluster_id
    *  instead of cluster_name
    */
-  @Transactional
   void updateViewInstanceTable() throws SQLException {
     try {
       if (Long.class.equals(dbAccessor.getColumnClass(VIEWINSTANCE_TABLE, CLUSTER_HANDLE_COLUMN))) {
