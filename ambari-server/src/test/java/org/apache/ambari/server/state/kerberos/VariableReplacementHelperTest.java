@@ -19,14 +19,19 @@
 package org.apache.ambari.server.state.kerberos;
 
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
-@Category({ category.KerberosTest.class})
+@Category({category.KerberosTest.class})
 public class VariableReplacementHelperTest {
   VariableReplacementHelper helper = new VariableReplacementHelper();
 
@@ -163,6 +168,13 @@ public class VariableReplacementHelperTest {
         put("clusterHostInfo", new HashMap<String, String>() {{
           put("hive_metastore_host", "host1.unit.test, host2.unit.test , host3.unit.test"); // spaces are there on purpose.
         }});
+
+        put("foobar-site", new HashMap<String, String>() {{
+          put("data", "one, two, three,    four"); // spaces are there on purpose.
+          put("hello", "hello");
+          put("hello_there", "hello, there");
+          put("hello_there_one", "hello, there, one");
+        }});
       }
     };
 
@@ -171,6 +183,42 @@ public class VariableReplacementHelperTest {
 
     Assert.assertEquals("hive.metastore.local=false,hive.metastore.uris=thrift://host1.unit.test:9083\\,thrift://host2.unit.test:9083\\,thrift://host3.unit.test:9083,hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@UNIT.TEST",
         helper.replaceVariables("hive.metastore.local=false,hive.metastore.uris=${clusterHostInfo/hive_metastore_host | each(thrift://%s:9083, \\\\,, \\s*\\,\\s*)},hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}", configurations));
+
+    List<String> expected;
+    List<String> actual;
+
+    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "three", "two"));
+    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello | append(foobar-site/data, \\,, true)}", configurations).split(",")));
+    Collections.sort(expected);
+    Collections.sort(actual);
+    Assert.assertEquals(expected, actual);
+
+    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "there", "three", "two"));
+    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there | append(foobar-site/data, \\,, true)}", configurations).split(",")));
+    Collections.sort(expected);
+    Collections.sort(actual);
+    Assert.assertEquals(expected, actual);
+
+    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "there", "three", "two"));
+    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,, true)}", configurations).split(",")));
+    Collections.sort(expected);
+    Collections.sort(actual);
+    Assert.assertEquals(expected, actual);
+
+    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "one", "there", "three", "two"));
+    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,, false)}", configurations).split(",")));
+    Collections.sort(expected);
+    Collections.sort(actual);
+    Assert.assertEquals(expected, actual);
+
+    // Test invalid number of arguments.
+    try {
+      helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,)}", configurations);
+      Assert.fail("Expected IllegalArgumentException");
+    }
+    catch (IllegalArgumentException e) {
+      // Ignore this is expected.
+    }
 
     Assert.assertEquals("test=unit.test", helper.replaceVariables("test=${realm|toLower()}", configurations));
   }
