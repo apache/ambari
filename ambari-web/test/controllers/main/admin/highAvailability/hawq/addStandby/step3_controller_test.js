@@ -82,7 +82,6 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
 
     var cases = [
         {
-          'title': 'should set properties from load config success callback',
           'items': [
             {
               'type': 'hawq-site',
@@ -171,7 +170,7 @@ describe('App.AddHawqStandbyWizardStep3Controller', function () {
             newHawqStandby: 'h1'
           }
         })
-      });
+      })
       controller.setDynamicConfigValues(configs, data);
     });
 

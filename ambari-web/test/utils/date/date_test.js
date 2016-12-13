@@ -22,13 +22,13 @@ var date = require('utils/date/date');
 describe('date', function () {
 
   var incorrectTests = Em.A([
-    {m: 'null', t: null},
-    {m: 'empty', t: ''},
-    {m: 'false', t: false},
-    {m:'[]' , t: []},
-    {m: '{}', t: {}},
-    {m: 'undefined', t: undefined},
-    {m: 'empty function', t: function(){}}
+    {t: null},
+    {t: ''},
+    {t: false},
+    {t: []},
+    {t: {}},
+    {t: undefined},
+    {t: function(){}}
   ]);
 
   describe('#dateFormatZeroFirst()', function() {
@@ -88,7 +88,7 @@ describe('date', function () {
 
     describe('Correct data', function(){
       tests.forEach(function(test) {
-        it(test.i, function() {
+        it(test.t, function() {
           expect(date.timingFormat(test.i)).to.equal(test.e);
         });
       });
@@ -96,7 +96,7 @@ describe('date', function () {
 
     describe('Incorrect data', function(){
       incorrectTests.forEach(function(test) {
-        it(test.m, function() {
+        it(test.t, function() {
           expect(date.timingFormat(test.t)).to.equal(null);
         });
       });

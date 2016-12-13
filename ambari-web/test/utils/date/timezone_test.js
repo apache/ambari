@@ -97,7 +97,7 @@ describe('timezoneUtils', function () {
     var result = timezoneUtils.getAllTimezoneNames();
 
     it('timezone names are parsed', function () {
-      expect(result).to.have.length.above(0);
+      expect(this.result).to.have.length.above(0);
     });
 
     describe('Etc/* are excluded', function () {
