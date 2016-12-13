@@ -16,7 +16,8 @@
 #########################################postinstall.sh#########################
 #                      SERVER INSTALL HELPER                     #
 ##################################################################
-ROOT="${RPM_INSTALL_PREFIX}" # Customized folder, which ambari-server files are installed into ('/' or '' are default).
+ROOT_DIR_PATH="${RPM_INSTALL_PREFIX}"
+ROOT=`echo "${RPM_INSTALL_PREFIX}" | sed 's|/$||g'` # Customized folder, which ambari-server files are installed into ('/' or '' are default).
 
 COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_commons"
 RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
@@ -100,9 +101,9 @@ do_install(){
     ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
   fi
 
-  sed -i "s|ambari.root.dir\s*=\s*/|ambari.root.dir=${ROOT}|g" "$AMBARI_LOG4J"
-  sed -i "s|root_dir\s*=\s*/|root_dir = ${ROOT}|g" "$CA_CONFIG"
-  sed -i "s|^ROOT=\"/\"$|ROOT=\"${ROOT}\"|g" "$AMBARI_SERVER_EXECUTABLE"
+  sed -i "s|ambari.root.dir\s*=\s*/|ambari.root.dir=${ROOT_DIR_PATH}|g" "$AMBARI_LOG4J"
+  sed -i "s|root_dir\s*=\s*/|root_dir = ${ROOT_DIR_PATH}|g" "$CA_CONFIG"
+  sed -i "s|^ROOT=\"/\"$|ROOT=\"${ROOT_DIR_PATH}\"|g" "$AMBARI_SERVER_EXECUTABLE"
 
   AUTOSTART_SERVER_CMD="" 
   which chkconfig > /dev/null 2>&1
