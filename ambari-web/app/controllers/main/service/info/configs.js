@@ -607,21 +607,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
         serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
       }
     }, this);
-
-    App.ConfigAction.find().forEach(function(item){
-      var hostComponentConfig = item.get('hostComponentConfig');
-      var config = serviceConfig.get('configs').filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
-      if (config){
-        var componentHostName = App.HostComponent.find().findProperty('componentName', item.get('componentName')) ;
-        if (componentHostName) {
-          var setConfigValue = !config.get('value');
-          if (setConfigValue) {
-            config.set('value', componentHostName.get('hostName'));
-            config.set('recommendedValue', componentHostName.get('hostName'));
-          }
-        }
-      }
-    }, this);
   },
 
   /**

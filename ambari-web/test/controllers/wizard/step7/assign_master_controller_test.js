@@ -325,8 +325,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       mock = {
         saveMasterComponentHosts: Em.K,
         loadMasterComponentHosts: Em.K,
-        setDBProperty: Em.K,
-        loadConfigRecommendations: Em.K
+        setDBProperty: Em.K
       },
       config = Em.Object.create({
         filename: 'file1',
@@ -339,7 +338,6 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(mock, 'saveMasterComponentHosts');
       sinon.stub(mock, 'loadMasterComponentHosts');
       sinon.stub(mock, 'setDBProperty');
-      sinon.stub(mock, 'loadConfigRecommendations');
       view.reopen({
         content: Em.Object.create({
           controllerName: 'ctrl1',
@@ -388,7 +386,6 @@ describe('App.AssignMasterOnStep7Controller', function () {
       mock.saveMasterComponentHosts.restore();
       mock.loadMasterComponentHosts.restore();
       mock.setDBProperty.restore();
-      mock.loadConfigRecommendations.restore();
     });
 
     it("saveMasterComponentHosts should be called", function() {
@@ -404,15 +401,6 @@ describe('App.AssignMasterOnStep7Controller', function () {
         componentName: 'C1',
         hostName: 'host1'
       });
-    });
-
-    it("config should be set", function() {
-      expect(config.get('value')).to.be.equal('host1');
-      expect(config.get('recommendedValue')).to.be.equal('host1');
-    });
-
-    it("config should be set (loadConfigRecommendations is called once)", function() {
-      expect(mock.loadConfigRecommendations.calledOnce).to.be.true;
     });
   });
 });
