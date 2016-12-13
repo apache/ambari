@@ -950,5 +950,4 @@ describe('App.ConfigInitializer', function () {
     });
 
   });
-
 });

@@ -629,7 +629,7 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         expected: [],
-        text: 'should return server info',
+        message: 'should return server info',
         controllerName: 'addServiceController',
         services: Em.A([
           Em.Object.create({
@@ -646,7 +646,7 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         expected: [],
-        text: 'should return default data',
+        message: 'should return default data',
         controllerName: 'addHostContro',
         hosts: Em.A([
           Em.Object.create({
@@ -1687,6 +1687,7 @@ describe('App.InstallerStep9Controller', function () {
     });
     Em.A([
         {
+          m: 'Launch start service after install services completed',
           jsonData: {Requests: {id: 2}},
           e: {
             hostHasClientsOnly: false,

@@ -333,11 +333,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
     var hostInfo = this.getDBProperty('hosts');
     for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
-      hostInfo[index].message = 'Waiting';
-      hostInfo[index].logTasks = [];
-      hostInfo[index].tasks = [];
-      hostInfo[index].progress = '0';
+      if (hostInfo.hasOwnProperty(index)) {
+        hostInfo[index].status = "pending";
+        hostInfo[index].message = 'Waiting';
+        hostInfo[index].logTasks = [];
+        hostInfo[index].tasks = [];
+        hostInfo[index].progress = '0';
+      }
     }
     this.setDBProperty('hosts', hostInfo);
   },
