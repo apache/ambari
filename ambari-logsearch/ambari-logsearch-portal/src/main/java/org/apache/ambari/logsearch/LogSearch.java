@@ -18,12 +18,17 @@
  */
 package org.apache.ambari.logsearch;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
@@ -31,8 +36,12 @@ import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.ApplicationConfig;
 import org.apache.ambari.logsearch.util.SSLUtil;
 import org.apache.ambari.logsearch.web.listener.LogSearchSessionListener;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Chmod;
+import org.apache.tools.ant.types.FileSet;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -49,6 +58,8 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -59,9 +70,11 @@ import javax.servlet.DispatcherType;
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
 
 public class LogSearch {
-  private static final Logger logger = Logger.getLogger(LogSearch.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LogSearch.class);
 
   private static final String LOGSEARCH_PROTOCOL_PROP = "logsearch.protocol";
+  private static final String LOGSEARCH_CERT_FOLDER_LOCATION = "logsearch.cert.folder.location";
+  private static final String LOGSEARCH_CERT_ALGORITHM = "logsearch.cert.algorithm";
   private static final String HTTPS_PROTOCOL = "https";
   private static final String HTTP_PROTOCOL = "http";
   private static final String HTTPS_PORT = "61889";
@@ -71,6 +84,13 @@ public class LogSearch {
   private static final String ROOT_CONTEXT = "/";
   private static final Integer SESSION_TIMEOUT = 60 * 30;
 
+  private static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
+  private static final String LOGSEARCH_CERT_FILENAME = "logsearch.crt";
+  private static final String LOGSEARCH_KEYSTORE_FILENAME = "logsearch.jks";
+  private static final String LOGSEARCH_KEYSTORE_PRIVATE_KEY = "logsearch.private.key";
+  private static final String LOGSEARCH_KEYSTORE_PUBLIC_KEY = "logsearch.public.key";
+  private static final String LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD = "bigdata";
+  private static final String LOGSEARCH_CERT_DEFAULT_ALGORITHM = "sha256WithRSAEncryption";
 
   public static void main(String[] argv) {
     LogSearch logSearch = new LogSearch();
@@ -78,11 +98,12 @@ public class LogSearch {
     try {
       logSearch.run(argv);
     } catch (Throwable e) {
-      logger.error("Error running logsearch server", e);
+      LOG.error("Error running logsearch server", e);
     }
   }
 
   public void run(String[] argv) throws Exception {
+    loadKeystore();
     Server server = buildSever(argv);
     HandlerList handlers = new HandlerList();
     handlers.addHandler(createSwaggerContext());
@@ -91,10 +112,10 @@ public class LogSearch {
     server.setHandler(handlers);
     server.start();
 
-    logger
+    LOG
         .debug("============================Server Dump=======================================");
-    logger.debug(server.dump());
-    logger
+    LOG.debug(server.dump());
+    LOG
         .debug("==============================================================================");
     server.join();
   }
@@ -110,7 +131,7 @@ public class LogSearch {
     }
     String port = null;
     if (HTTPS_PROTOCOL.equals(protcolProperty) && SSLUtil.isKeyStoreSpecified()) {
-      logger.info("Building https server...........");
+      LOG.info("Building https server...........");
       port = portSpecified ? argv[0] : HTTPS_PORT;
       checkPort(Integer.parseInt(port));
       httpConfiguration.addCustomizer(new SecureRequestCustomizer());
@@ -121,7 +142,7 @@ public class LogSearch {
       sslConnector.setPort(Integer.parseInt(port));
       server.setConnectors(new Connector[] { sslConnector });
     } else {
-      logger.info("Building http server...........");
+      LOG.info("Building http server...........");
       port = portSpecified ? argv[0] : HTTP_PORT;
       checkPort(Integer.parseInt(port));
       ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfiguration));
@@ -129,7 +150,7 @@ public class LogSearch {
       server.setConnectors(new Connector[] { connector });
     }
     URI logsearchURI = URI.create(String.format("%s://0.0.0.0:%s", protcolProperty, port));
-    logger.info("Starting logsearch server URI=" + logsearchURI);
+    LOG.info("Starting logsearch server URI=" + logsearchURI);
     return server;
   }
 
@@ -185,11 +206,11 @@ public class LogSearch {
       try {
         return fileCompleteUrl.toURI().normalize();
       } catch (URISyntaxException e) {
-        logger.error(errorMessage, e);
+        LOG.error(errorMessage, e);
         System.exit(1);
       }
     } else {
-      logger.error(errorMessage);
+      LOG.error(errorMessage);
       System.exit(1);
     }
     throw new IllegalStateException(errorMessage);
@@ -202,7 +223,7 @@ public class LogSearch {
       serverSocket = new ServerSocket(port);
     } catch (IOException ex) {
       portBusy = true;
-      logger.error(ex.getLocalizedMessage() + " PORT :" + port);
+      LOG.error(ex.getLocalizedMessage() + " PORT :" + port);
     } finally {
       if (serverSocket != null) {
         try {
@@ -217,4 +238,69 @@ public class LogSearch {
     }
   }
 
+  /**
+   * Create keystore with keys and certificate (only if the keystore does not exist or if you have no permissions on the keystore file)
+   */
+  void loadKeystore() {
+    try {
+      String certFolder = PropertiesHelper.getProperty(LOGSEARCH_CERT_FOLDER_LOCATION, LOGSEARCH_CERT_DEFAULT_FOLDER);
+      String certAlgorithm = PropertiesHelper.getProperty(LOGSEARCH_CERT_ALGORITHM, LOGSEARCH_CERT_DEFAULT_ALGORITHM);
+      String certLocation = String.format("%s/%s", LOGSEARCH_CERT_DEFAULT_FOLDER, LOGSEARCH_CERT_FILENAME);
+      String keyStoreLocation = StringUtils.isNotEmpty(SSLUtil.getKeyStoreLocation()) ? SSLUtil.getKeyStoreLocation()
+        : String.format("%s/%s", LOGSEARCH_CERT_DEFAULT_FOLDER, LOGSEARCH_KEYSTORE_FILENAME);
+      char[] password = StringUtils.isNotEmpty(SSLUtil.getKeyStorePassword()) ?
+        SSLUtil.getKeyStorePassword().toCharArray() : LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD.toCharArray();
+      boolean keyStoreFileExists = new File(keyStoreLocation).exists();
+      if (!keyStoreFileExists) {
+        createDefaultKeyFolder(certFolder);
+        LOG.warn("Keystore file ('{}') does not exist, creating new one. " +
+          "If the file exists, make sure you have proper permissions on that.", keyStoreLocation);
+        if (SSLUtil.isKeyStoreSpecified() && !"JKS".equalsIgnoreCase(SSLUtil.getKeyStoreType())) {
+          throw new RuntimeException(String.format("Keystore does not exist. Only JKS keystore can be auto generated. (%s)", keyStoreLocation));
+        }
+        LOG.info("SSL keystore is not specified. Generating it with certificate ... (using default format: JKS)");
+        Security.addProvider(new BouncyCastleProvider());
+        KeyPair keyPair = SSLUtil.createKeyPair("RSA", 2048);
+        File privateKeyFile = new File(String.format("%s/%s", certFolder, LOGSEARCH_KEYSTORE_PRIVATE_KEY));
+        if (!privateKeyFile.exists()) {
+          FileUtils.writeByteArrayToFile(privateKeyFile, keyPair.getPrivate().getEncoded());
+        }
+        File file = new File(String.format("%s/%s", certFolder, LOGSEARCH_KEYSTORE_PUBLIC_KEY));
+        if (!file.exists()) {
+          FileUtils.writeByteArrayToFile(file, keyPair.getPublic().getEncoded());
+        }
+        X509Certificate cert = SSLUtil.generateCertificate(certLocation, keyPair, certAlgorithm);
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, password);
+        SSLUtil.setKeyAndCertInKeystore(cert, keyPair, keyStore, keyStoreLocation, password);
+        setPermissionOnCertFolder(certFolder);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void createDefaultKeyFolder(String certFolder) {
+    File keyFolderDirectory = new File(certFolder);
+    if (!keyFolderDirectory.exists()) {
+      LOG.info("Default key dir does not exist ({}). Creating ...", certFolder);
+      boolean mkDirSuccess = keyFolderDirectory.mkdirs();
+      if (!mkDirSuccess) {
+        String errorMessage = String.format("Could not create directory %s", certFolder);
+        LOG.error(errorMessage);
+        throw new RuntimeException(errorMessage);
+      }
+    }
+  }
+
+  private void setPermissionOnCertFolder(String certFolder) {
+    Chmod chmod = new Chmod();
+    chmod.setProject(new Project());
+    FileSet fileSet = new FileSet();
+    fileSet.setDir(new File(certFolder));
+    fileSet.setIncludes("**");
+    chmod.addFileset(fileSet);
+    chmod.setPerm("640");
+    chmod.execute();
+  }
 }
