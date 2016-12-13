@@ -373,8 +373,8 @@ class HostCleanup:
 
   def do_kill_processes_by_identifier(self, identifierList):
     pidList = []
-    cmd = "ps aux"
-    (returncode, stdoutdata, stderrdata) = self.run_os_command(cmd, True)
+    cmd = "ps auxww"
+    (returncode, stdoutdata, stderrdata) = self.run_os_command(cmd)
 
     if 0 == returncode and stdoutdata:
       lines = stdoutdata.split('\n')
