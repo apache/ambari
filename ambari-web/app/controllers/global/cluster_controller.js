@@ -306,20 +306,19 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
 
       //completed upgrade shouldn't be restored
-      if (lastUpgradeData && lastUpgradeData.Upgrade.request_status === "COMPLETED") {
-        return;
+      if (lastUpgradeData) {
+        if (lastUpgradeData.Upgrade.request_status !== "COMPLETED") {
+          upgradeController.restoreLastUpgrade(lastUpgradeData);
+        }
+      } else {
+        upgradeController.initDBProperties();
+        upgradeController.loadUpgradeData(true);
       }
 
       if (!Em.isNone(dbUpgradeState)) {
         App.set('upgradeState', dbUpgradeState);
       }
 
-      if (lastUpgradeData) {
-        upgradeController.restoreLastUpgrade(lastUpgradeData);
-      } else {
-        upgradeController.initDBProperties();
-        upgradeController.loadUpgradeData(true);
-      }
       upgradeController.loadStackVersionsToModel(true).done(function () {
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });

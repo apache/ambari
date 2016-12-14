@@ -533,8 +533,8 @@ describe('App.clusterController', function () {
         expect(upgradeController.restoreLastUpgrade.called).to.be.false;
       });
 
-      it('loadStackVersionsToModel should not be called', function () {
-        expect(upgradeController.loadStackVersionsToModel.called).to.be.false;
+      it('loadStackVersionsToModel should be called', function () {
+        expect(upgradeController.loadStackVersionsToModel).to.be.calledOnce;
       });
     });
 
