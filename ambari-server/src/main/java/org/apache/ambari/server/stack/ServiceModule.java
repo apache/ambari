@@ -585,8 +585,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
         allStacks, commonServices, extensions, componentModules, parent.componentModules);
     componentModules.clear();
     for (ComponentModule module : mergedModules) {
-      componentModules.put(module.getId(), module);
-      serviceInfo.getComponents().add(module.getModuleInfo());
+      if (!module.isDeleted()){
+        componentModules.put(module.getId(), module);
+        serviceInfo.getComponents().add(module.getModuleInfo());
+      }
     }
   }
 

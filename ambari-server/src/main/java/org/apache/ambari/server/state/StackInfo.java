@@ -76,6 +76,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private Set<String> errorSet = new HashSet<String>();
   private RepositoryXml repoXml = null;
 
+  /**
+   * List of services removed from current stack
+   * */
+  private List<String> removedServices = new ArrayList<String>();
+
   public String getMinJdk() {
     return minJdk;
   }
@@ -561,4 +566,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     return repoXml;
   }
 
+  public List<String> getRemovedServices() {
+    return removedServices;
+  }
+
+  public void setRemovedServices(List<String> removedServices) {
+    this.removedServices = removedServices;
+  }
 }
