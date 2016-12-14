@@ -208,21 +208,17 @@
           {{view App.CheckboxView disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS"}}
         </div>
       </div>
-    {{else}}
+    {{/if}}
+    {{! alert-notification email end }}
+
+    {{! alert-notification SNMP }}
+    {{#if view.isSNMPMethodSelected}}
       <div class="form-group">
         <label class="control-label col-md-2">{{controller.inputFields.version.label}}</label>
 
         <div class="col-md-10">
           {{view Em.Select selectionBinding="controller.inputFields.version.value" contentBinding="controller.SNMPVersions" classNames="form-control"}}
         </div>
-      </div>
-
-      <div class="form-group">
-          <label class="control-label col-md-2">{{controller.inputFields.OIDs.label}}</label>
-
-          <div class="col-md-10">
-            {{view Em.TextField valueBinding="controller.inputFields.OIDs.value" classNames="form-control"}}
-          </div>
       </div>
 
       <div class="form-group">
@@ -261,7 +257,63 @@
         {{/if}}
       </div>
     {{/if}}
-    {{! alert-notification email end }}
+    {{! alert-notification SNMP end }}
+
+    {{! alert-notification Custom SNMP }}
+    {{#if view.isCustomSNMPMethodSelected}}
+      <div class="form-group">
+        <label class="control-label col-md-2">{{controller.inputFields.version.label}}</label>
+
+        <div class="col-md-10">
+          {{view Em.Select selectionBinding="controller.inputFields.version.value" contentBinding="controller.SNMPVersions" classNames="form-control"}}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-md-2">{{controller.inputFields.OIDs.label}}</label>
+
+        <div class="col-md-10">
+          {{view Em.TextField valueBinding="controller.inputFields.OIDs.value" classNames="form-control"}}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-md-2">{{controller.inputFields.community.label}}</label>
+
+        <div class="col-md-10">
+          {{view Em.TextField valueBinding="controller.inputFields.community.value" classNames="form-control"}}
+        </div>
+      </div>
+
+      <div {{bindAttr class=":form-group controller.inputFields.host.errorMsg:has-error"}}>
+        <label class="control-label col-md-2">{{controller.inputFields.host.label}}</label>
+
+        <div class="col-md-10">
+          {{view Em.TextField valueBinding="controller.inputFields.host.value" classNames="form-control"}}
+        </div>
+
+        {{#if controller.inputFields.host.errorMsg}}
+          <div class="col-md-10 col-md-offset-2 help-block validation-block error-msg">
+            {{controller.inputFields.host.errorMsg}}
+          </div>
+        {{/if}}
+      </div>
+
+      <div {{bindAttr class=":form-group controller.inputFields.port.errorMsg:has-error"}}>
+        <label class="control-label col-md-2">{{controller.inputFields.port.label}}</label>
+
+        <div class="col-md-10">
+          {{view Em.TextField valueBinding="controller.inputFields.port.value" classNames="form-control"}}
+        </div>
+
+        {{#if controller.inputFields.port.errorMsg}}
+          <div class="col-md-10 col-md-offset-2 help-block validation-block error-msg">
+            {{controller.inputFields.port.errorMsg}}
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
+    {{! alert-notification Custom SNMP end }}
 
     {{! alert-notification custom properties }}
     {{#each customProperty in controller.inputFields.customProperties}}
