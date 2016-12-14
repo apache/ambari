@@ -41,15 +41,13 @@
     <div id="serviceConfig">
       {{view App.ServicesConfigView}}
     </div>
-    {{#if isEditMode}}
-      <div class="btn-area pull-right">
-        <button id="cancel-kerberos-reconfigure-identities" {{action makeConfigsUneditable target="controller"}}
-                class="btn">{{t common.cancel}}</button>
-        <button id="save-kerberos-reconfigure-identities"
-                class="btn btn-success" {{bindAttr disabled="isSaveButtonDisabled"}}
-          {{action submit target="controller"}}>{{t common.save}}</button>
-      </div>
-    {{/if}}
+    <div {{bindAttr class=":btn-area :pull-right isEditMode::hidden"}}>
+      <button id="cancel-kerberos-reconfigure-identities" {{action makeConfigsUneditable target="controller"}}
+              class="btn">{{t common.cancel}}</button>
+      <button id="save-kerberos-reconfigure-identities"
+              class="btn btn-success" {{bindAttr disabled="isSaveButtonDisabled"}}
+        {{action submit target="controller"}}>{{t common.save}}</button>
+    </div>
   {{else}}
     <div>
       <p class="muted background-text">{{t admin.security.disabled}}
