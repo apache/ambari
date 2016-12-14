@@ -23,7 +23,6 @@ import ConfigParser
 import StringIO
 import hostname
 import ambari_simplejson as json
-from NetUtil import NetUtil
 import os
 
 from ambari_commons import OSConst
@@ -156,7 +155,6 @@ class AmbariConfig:
   def __init__(self):
     global content
     self.config = ConfigParser.RawConfigParser()
-    self.net = NetUtil(self)
     self.config.readfp(StringIO.StringIO(content))
 
   def get(self, section, value, default=None):
@@ -182,13 +180,22 @@ class AmbariConfig:
   def getConfig(self):
     return self.config
 
-  @staticmethod
-  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def getConfigFile(home_dir=""):
-    if 'AMBARI_AGENT_CONF_DIR' in os.environ:
-      return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
-    else:
-      return "ambari-agent.ini"
+  @classmethod
+  def get_resolved_config(cls, home_dir=""):
+    if hasattr(cls, "_conf_cache"):
+      return getattr(cls, "_conf_cache")
+    config = cls()
+    configPath = os.path.abspath(cls.getConfigFile(home_dir))
+    try:
+      if os.path.exists(configPath):
+        config.read(configPath)
+      else:
+        raise Exception("No config found at {0}, use default".format(configPath))
+
+    except Exception, err:
+      logger.warn(err)
+    setattr(cls, "_conf_cache", config)
+    return config
 
   @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -256,7 +263,8 @@ class AmbariConfig:
     self.config.read(filename)
 
   def getServerOption(self, url, name, default=None):
-    status, response = self.net.checkURL(url)
+    from ambari_agent.NetUtil import NetUtil
+    status, response = NetUtil(self).checkURL(url)
     if status is True:
       try:
         data = json.loads(response)
@@ -292,6 +300,9 @@ class AmbariConfig:
         self.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, k, v)
         logger.info("Updating config property (%s) with value (%s)", k, v)
     pass
+
+  def get_force_https_protocol(self):
+    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1")
 
 def isSameHostList(hostlist1, hostlist2):
   is_same = True

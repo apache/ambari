@@ -54,8 +54,8 @@ class TestCustomServiceOrchestrator(TestCase):
     # generate sample config
     tmpdir = tempfile.gettempdir()
     exec_tmp_dir = os.path.join(tmpdir, 'tmp')
-    self.config = ConfigParser.RawConfigParser()
-    self.config.get = AmbariConfig().get
+    self.config = AmbariConfig()
+    self.config.config = ConfigParser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
