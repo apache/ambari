@@ -53,7 +53,7 @@ describe('App.KerberosWizardStep1Controller', function() {
       expect(controller.get('options')).to.not.be.empty;
       controller.loadStep();
       var options = controller.get('options');
-      expect(options.length == 1).to.be.true;
+      expect(options.length).to.be.equal(1);
     });
 
     it("enableIpa is false", function() {
