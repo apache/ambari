@@ -154,6 +154,27 @@ public class StackManagerTest {
   }
 
   @Test
+  public void testServiceRemoved() {
+    StackInfo stack = stackManager.getStack("HDP", "2.0.8");
+    ServiceInfo service = stack.getService("SPARK");
+    assertNull(service);
+    service = stack.getService("SPARK2");
+    assertNull(service);
+    List<String> removedServices = stack.getRemovedServices();
+    assertEquals(removedServices.size(), 2);
+
+    HashSet<String> expectedServices = new HashSet<String>();
+    expectedServices.add("SPARK");
+    expectedServices.add("SPARK2");
+
+    for (String s : removedServices) {
+      assertTrue(expectedServices.remove(s));
+    }
+    assertTrue(expectedServices.isEmpty());
+
+  }
+
+  @Test
   public void testGetStack() {
     StackInfo stack = stackManager.getStack("HDP", "0.1");
     assertNotNull(stack);
@@ -239,8 +260,17 @@ public class StackManagerTest {
     assertEquals("2.1.1", stack.getVersion());
     Collection<ServiceInfo> services = stack.getServices();
 
+    ServiceInfo si = stack.getService("SPARK");
+    assertNull(si);
+
+    si = stack.getService("SPARK2");
+    assertNull(si);
+
+    si = stack.getService("SPARK3");
+    assertNotNull(si);
+
     //should include all stacks in hierarchy
-    assertEquals(16, services.size());
+    assertEquals(17, services.size());
     HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
@@ -258,6 +288,7 @@ public class StackManagerTest {
     expectedServices.add("FAKENAGIOS");
     expectedServices.add("TEZ");
     expectedServices.add("AMBARI_METRICS");
+    expectedServices.add("SPARK3");
 
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {
@@ -462,7 +493,7 @@ public class StackManagerTest {
   public void testMonitoringServicePropertyInheritance() throws Exception{
     StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
-    assertEquals(13, allServices.size());
+    assertEquals(14, allServices.size());
 
     boolean monitoringServiceFound = false;
 
@@ -483,7 +514,7 @@ public class StackManagerTest {
     StackInfo stack = stackManager.getStack("HDP", "2.0.6");
     Collection<ServiceInfo> allServices = stack.getServices();
 
-    assertEquals(11, allServices.size());
+    assertEquals(12, allServices.size());
     HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
@@ -493,6 +524,7 @@ public class StackManagerTest {
     expectedServices.add("MAPREDUCE2");
     expectedServices.add("OOZIE");
     expectedServices.add("PIG");
+    expectedServices.add("SPARK");
     expectedServices.add("ZOOKEEPER");
     expectedServices.add("FLUME");
     expectedServices.add("YARN");

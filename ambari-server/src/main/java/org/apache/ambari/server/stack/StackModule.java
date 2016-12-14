@@ -316,10 +316,18 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     stackInfo.getServices().clear();
     Collection<ServiceModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, serviceModules, parentStack.serviceModules);
+
+    List<String> removedServices = new ArrayList<String>();
+
     for (ServiceModule module : mergedModules) {
-      serviceModules.put(module.getId(), module);
-      stackInfo.getServices().add(module.getModuleInfo());
+      if (module.isDeleted()){
+        removedServices.add(module.getId());
+      } else {
+        serviceModules.put(module.getId(), module);
+        stackInfo.getServices().add(module.getModuleInfo());
+      }
     }
+    stackInfo.setRemovedServices(removedServices);
   }
 
   /**
@@ -667,9 +675,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
     for (ConfigurationModule module : mergedModules) {
-      configurationModules.put(module.getId(), module);
-      stackInfo.getProperties().addAll(module.getModuleInfo().getProperties());
-      stackInfo.setConfigTypeAttributes(module.getConfigType(), module.getModuleInfo().getAttributes());
+      if(!module.isDeleted()){
+        configurationModules.put(module.getId(), module);
+        stackInfo.getProperties().addAll(module.getModuleInfo().getProperties());
+        stackInfo.setConfigTypeAttributes(module.getConfigType(), module.getModuleInfo().getAttributes());
+      }
     }
   }
 

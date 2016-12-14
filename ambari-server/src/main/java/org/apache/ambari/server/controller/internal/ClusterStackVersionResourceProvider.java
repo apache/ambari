@@ -626,6 +626,15 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
     List<String> blacklistedPackagePrefixes = configuration.getRollingUpgradeSkipPackagesPrefixes();
     for (String serviceName : servicesOnHost) {
+      try{
+        if(ami.isServiceRemovedInStack(stackId.getStackName(), stackId.getStackVersion(), serviceName)){
+          LOG.info(String.format("%s has been removed from stack %s-%s. Skip calculating its installation packages", stackId.getStackName(), stackId.getStackVersion(), serviceName));
+          continue; //No need to calculate install packages for removed services
+        }
+      } catch (AmbariException e1) {
+        throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e1);
+      }
+
       ServiceInfo info;
       try {
         info = ami.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
