@@ -561,7 +561,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           return;
         } else if (oldConfig == null) {
           oldConfigProperties = new HashMap<String, String>();
-          newTag = "version1";
         } else {
           oldConfigProperties = oldConfig.getProperties();
         }
