@@ -20,6 +20,8 @@ import httplib
 import sys
 from ssl import SSLError
 from HeartbeatHandlers import HeartbeatStopHandlers
+from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_commons.inet_utils import ensure_ssl_using_protocol
 
 ERROR_SSL_WRONG_VERSION = "SSLError: Failed to connect. Please check openssl library versions. \n" +\
               "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
@@ -27,6 +29,7 @@ LOG_REQUEST_MESSAGE = "GET %s -> %s, body: %s"
 
 logger = logging.getLogger(__name__)
 
+ensure_ssl_using_protocol(AmbariConfig.get_resolved_config().get_force_https_protocol())
 
 class NetUtil:
 
