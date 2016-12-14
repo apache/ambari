@@ -43,16 +43,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hive_server_interactive_host</name>
-    <value>localhost</value>
-    <description>The host that has been assigned to run HiveServer2 Interactive</description>
-    <display-name>HiveServer2 Interactive Host</display-name>
-    <value-attributes>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>num_llap_nodes</name>
     <value>1</value>
     <description>The number of Hive LLAP daemons to run.</description>
