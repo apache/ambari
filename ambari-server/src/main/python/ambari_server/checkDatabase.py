@@ -80,9 +80,8 @@ def check_database(options):
 
 
   if retcode > 0:
-    print str(stdout)
-    raise FatalException(1, 'Database check failed to complete. Please check ' + configDefaults.SERVER_LOG_FILE +
-                            ' and ' + configDefaults.DB_CHECK_LOG + ' for more information.')
+    raise FatalException(int(retcode), "Database check failed to complete: {0}. \nPlease check {1} and {2} for more "
+                                       "information.".format(stdout+stderr, configDefaults.SERVER_LOG_FILE, configDefaults.DB_CHECK_LOG))
   else:
     print str(stdout)
     if not stdout.startswith("No errors"):
