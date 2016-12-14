@@ -72,6 +72,8 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.metrics.system.MetricsService;
+import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.AmbariSNMPDispatcher;
@@ -378,6 +380,8 @@ public class ControllerModule extends AbstractModule {
 
     // factory to create LoggingRequestHelper instances for LogSearch integration
     bind(LoggingRequestHelperFactory.class).to(LoggingRequestHelperFactoryImpl.class);
+
+    bind(MetricsService.class).to(MetricsServiceImpl.class).in(Scopes.SINGLETON);
 
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);
