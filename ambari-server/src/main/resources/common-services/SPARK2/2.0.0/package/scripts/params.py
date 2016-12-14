@@ -181,32 +181,16 @@ if has_spark_thriftserver and 'spark2-thrift-sparkconf' in config['configuration
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
+hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore"
+
+ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
+has_ats = len(ats_host) > 0
 
 dfs_type = default("/commandParams/dfs_type", "")
 
-import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir,
-  principal_name = hdfs_principal_name,
-  hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
-)
-
-
 # livy related config
 
-# livy is only supported from HDP 2.5
+# livy for spark2 is only supported from HDP 2.6
 has_livyserver = False
 
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
@@ -247,4 +231,24 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, sta
       livy2_principal = livy2_kerberos_principal.replace('_HOST', config['hostname'].lower())
 
   livy2_livyserver_port = default('configurations/livy2-conf/livy2.server.port',8998)
+
+
+import functools
+#create partial functions with common arguments for every HdfsResource call
+#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
+  hdfs_resource_ignore_file = hdfs_resource_ignore_file,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs,
+  immutable_paths = get_not_managed_resources(),
+  dfs_type = dfs_type
+)
 
