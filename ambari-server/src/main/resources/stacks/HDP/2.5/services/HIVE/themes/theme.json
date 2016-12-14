@@ -19,28 +19,6 @@
           "subsection-name": "interactive-query-row1-col1"
         },
         {
-          "config": "hive-interactive-env/hive_server_interactive_host",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
           "config": "hive-interactive-site/hive.llap.daemon.queue.name",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
@@ -203,12 +181,6 @@
         "config": "hive-interactive-env/enable_hive_interactive",
         "widget": {
           "type": "toggle"
-        }
-      },
-      {
-        "config": "hive-interactive-env/hive_server_interactive_host",
-        "widget": {
-          "type": "label"
         }
       },
       {

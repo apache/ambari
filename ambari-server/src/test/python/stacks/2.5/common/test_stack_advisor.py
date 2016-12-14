@@ -445,13 +445,12 @@ class TestHDP25StackAdvisor(TestCase):
 
   def test_validateYarnConfigurations(self):
     properties = {'enable_hive_interactive': 'true',
-                  'hive_server_interactive_host': 'c6401.ambari.apache.org',
                   'hive.tez.container.size': '2048', "yarn.nodemanager.linux-container-executor.group": "hadoop"}
     recommendedDefaults = {'enable_hive_interactive': 'true',
-                           "hive_server_interactive_host": "c6401.ambari.apache.org", "yarn.nodemanager.linux-container-executor.group": "hadoop"}
+                           "yarn.nodemanager.linux-container-executor.group": "hadoop"}
     configurations = {
       "hive-interactive-env": {
-        "properties": {'enable_hive_interactive': 'true', "hive_server_interactive_host": "c6401.ambari.apache.org"}
+        "properties": {'enable_hive_interactive': 'true'}
       },
       "hive-site": {
         "properties": {"hive.security.authorization.enabled": "true", 'hive.tez.java.opts': '-server -Djava.net.preferIPv4Stack=true'}
@@ -479,13 +478,11 @@ class TestHDP25StackAdvisor(TestCase):
 
   def test_validateHiveInteractiveEnvConfigurations(self):
     properties = {'enable_hive_interactive': 'true',
-                  'hive_server_interactive_host': 'c6401.ambari.apache.org',
                   'hive.tez.container.size': '2048'}
-    recommendedDefaults = {'enable_hive_interactive': 'true',
-                           "hive_server_interactive_host": "c6401.ambari.apache.org"}
+    recommendedDefaults = {'enable_hive_interactive': 'true'}
     configurations = {
       "hive-interactive-env": {
-        "properties": {'enable_hive_interactive': 'true', 'hive_server_interactive_host': 'c6401.ambari.apache.org'}
+        "properties": {'enable_hive_interactive': 'true'}
       },
       "hive-site": {
         "properties": {"hive.security.authorization.enabled": "true", 'hive.tez.java.opts': '-server -Djava.net.preferIPv4Stack=true'}
@@ -511,20 +508,6 @@ class TestHDP25StackAdvisor(TestCase):
         "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
       }
     }
-    configurations3 = {
-      "hive-interactive-env": {
-        "properties": {'enable_hive_interactive': 'true', "hive_server_interactive_host": "c6402.ambari.apache.org"}
-      },
-      "hive-site": {
-        "properties": {"hive.security.authorization.enabled": "true", 'hive.tez.java.opts': '-server -Djava.net.preferIPv4Stack=true'}
-      },
-      "hive-env": {
-        "properties": {"hive_security_authorization": "None"}
-      },
-      "yarn-site": {
-        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
-      }
-    }
     services = self.load_json("services-normal-his-valid.json")
 
     res_expected = [
@@ -534,16 +517,9 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(res, res_expected)
 
     res_expected = [
-      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.', 'type': 'configuration', 'config-name': 'enable_hive_interactive', 'level': 'ERROR'},
-      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.', 'type': 'configuration', 'config-name': 'hive_server_interactive_host', 'level': 'ERROR'}
+      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.', 'type': 'configuration', 'config-name': 'enable_hive_interactive', 'level': 'ERROR'}
     ]
     res = self.stackAdvisor.validateHiveInteractiveEnvConfigurations(properties, recommendedDefaults, configurations2, services, {})
-    self.assertEquals(res, res_expected)
-
-    res_expected = [
-      {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.', 'type': 'configuration', 'config-name': 'hive_server_interactive_host', 'level': 'ERROR'}
-    ]
-    res = self.stackAdvisor.validateHiveInteractiveEnvConfigurations(properties, recommendedDefaults, configurations3, services, {})
     self.assertEquals(res, res_expected)
     pass
 

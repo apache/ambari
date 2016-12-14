@@ -387,17 +387,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         validationItems.append({"config-name": "enable_hive_interactive",
                                 "item": self.getErrorItem(
                                   "HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.")})
-      if 'hive_server_interactive_host' in hive_site_env_properties:
-        hsi_host = hsi_hosts[0]
-        if hive_site_env_properties['hive_server_interactive_host'].lower() != hsi_host.lower():
-          validationItems.append({"config-name": "hive_server_interactive_host",
-                                  "item": self.getErrorItem(
-                                    "HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.")})
-        pass
-      if 'hive_server_interactive_host' not in hive_site_env_properties:
-        validationItems.append({"config-name": "hive_server_interactive_host",
-                                "item": self.getErrorItem(
-                                  "HIVE_SERVER_INTERACTIVE requires hive_server_interactive_host in hive-interactive-env set to its host name.")})
         pass
 
     else:
@@ -700,7 +689,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if len(hsi_hosts) > 0:
       hsi_host = hsi_hosts[0]
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'true')
-      putHiveInteractiveEnvProperty('hive_server_interactive_host', hsi_host)
 
       # Update 'hive.llap.daemon.queue.name' property attributes if capacity scheduler is changed.
       if self.HIVE_INTERACTIVE_SITE in services['configurations']:
@@ -1092,8 +1080,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       hive_server_interactive_heapsize =  None
       hive_server_interactive_hosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER_INTERACTIVE", services, hosts)
       if hive_server_interactive_hosts is None:
-        # If its None, read the base service HDFS's DATANODE node memory, as are host are considered homogenous.
-        hive_server_interactive_hosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
+        # If its None, read the base service YARN's NODEMANAGER node memory, as are host are considered homogenous.
+        hive_server_interactive_hosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
       if hive_server_interactive_hosts is not None and len(hive_server_interactive_hosts) > 0:
         host_mem = long(hive_server_interactive_hosts[0]["Hosts"]["total_mem"])
         hive_server_interactive_heapsize = min(max(2048.0, 400.0*llap_concurrency), 3.0/8 * host_mem)
