@@ -31,7 +31,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.source import InlineTemplate
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Directory
 
 # Imports needed for Rolling/Express Upgrade
 from resource_management.libraries.functions import StackFeature
@@ -345,12 +345,11 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       except:
         # Attempt to clean up the packaged application, or potentially rename it with a .bak
         if run_file_path is not None and cleanup:
-          try:
-            parent_dir = os.path.dirname(run_file_path)
-            if os.path.isdir(parent_dir):
-              shutil.rmtree(parent_dir)
-          except Exception, e:
-            Logger.error("Could not cleanup LLAP app package. Error: " + str(e))
+          parent_dir = os.path.dirname(run_file_path)
+          Directory(parent_dir,
+                    action = "delete",
+                    ignore_failures = True,
+          )
 
         # throw the original exception
         raise
@@ -376,14 +375,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         if file_names:
           for path in file_names:
             abs_path = Script.get_tmp_dir()+"/"+path
-            if os.path.isdir(abs_path):
-              shutil.rmtree(abs_path)
-              Logger.info("Deleted previous run 'LLAP package' folder : {0}".format(abs_path))
+            Directory(abs_path,
+                      action = "delete",
+                      ignore_failures = True
+            )
         else:
           Logger.info("No '{0}*' folder deleted.".format(llap_package_folder_name_prefix))
-      except Exception as e:
-        Logger.info("Exception while doing cleanup for past 'LLAP package(s)'.")
-        traceback.print_exc()
+      except:
+        Logger.exception("Exception while doing cleanup for past 'LLAP package(s)':")
 
 
 
