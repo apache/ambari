@@ -60,94 +60,80 @@
     <name>zeppelin_env_content</name>
     <description>This is the jinja template for zeppelin-env.sh file</description>
     <value>
-# Spark master url. eg. spark://master_addr:7077. Leave empty if you want to use local mode
+# export JAVA_HOME=
+export JAVA_HOME={{java64_home}}
+# export MASTER=                              # Spark master url. eg. spark://master_addr:7077. Leave empty if you want to use local mode.
 export MASTER=yarn-client
 export SPARK_YARN_JAR={{spark_jar}}
-
-
-# Where log files are stored.  PWD by default.
-export ZEPPELIN_LOG_DIR={{zeppelin_log_dir}}
-
-# The pid files are stored. /tmp by default.
-export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
-
-
-export JAVA_HOME={{java64_home}}
-
-# Additional jvm options. for example, export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory=8g -Dspark.cores.max=16"
+# export ZEPPELIN_JAVA_OPTS                   # Additional jvm options. for example, export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory=8g -Dspark.cores.max=16"
 export ZEPPELIN_JAVA_OPTS="-Dspark.executor.memory={{executor_mem}} -Dspark.executor.instances={{executor_instances}} -Dspark.yarn.queue={{spark_queue}}"
+# export ZEPPELIN_MEM                         # Zeppelin jvm mem options Default -Xms1024m -Xmx1024m -XX:MaxPermSize=512m
+# export ZEPPELIN_INTP_MEM                    # zeppelin interpreter process jvm mem options. Default -Xms1024m -Xmx1024m -XX:MaxPermSize=512m
+# export ZEPPELIN_INTP_JAVA_OPTS              # zeppelin interpreter process jvm options.
+# export ZEPPELIN_SSL_PORT                    # ssl port (used when ssl environment variable is set to true)
 
-
-# Zeppelin jvm mem options Default -Xmx1024m -XX:MaxPermSize=512m
-# export ZEPPELIN_MEM
-
-# zeppelin interpreter process jvm mem options. Defualt = ZEPPELIN_MEM
-# export ZEPPELIN_INTP_MEM
-
-# zeppelin interpreter process jvm options. Default = ZEPPELIN_JAVA_OPTS
-# export ZEPPELIN_INTP_JAVA_OPTS
-
-# Where notebook saved
-# export ZEPPELIN_NOTEBOOK_DIR
-
-# Id of notebook to be displayed in homescreen. ex) 2A94M5J1Z
-# export ZEPPELIN_NOTEBOOK_HOMESCREEN
-
-# hide homescreen notebook from list when this value set to "true". default "false"
-# export ZEPPELIN_NOTEBOOK_HOMESCREEN_HIDE
-
-# Bucket where notebook saved
-# export ZEPPELIN_NOTEBOOK_S3_BUCKET
-
-# User in bucket where notebook saved. For example bucket/user/notebook/2A94M5J1Z/note.json
-# export ZEPPELIN_NOTEBOOK_S3_USER
-
-# A string representing this instance of zeppelin. $USER by default
-# export ZEPPELIN_IDENT_STRING
-
-# The scheduling priority for daemons. Defaults to 0.
-# export ZEPPELIN_NICENESS
-
+# export ZEPPELIN_LOG_DIR                     # Where log files are stored.  PWD by default.
+export ZEPPELIN_LOG_DIR={{zeppelin_log_dir}}
+# export ZEPPELIN_PID_DIR                     # The pid files are stored. ${ZEPPELIN_HOME}/run by default.
+export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
+# export ZEPPELIN_WAR_TEMPDIR                 # The location of jetty temporary directory.
+# export ZEPPELIN_NOTEBOOK_DIR                # Where notebook saved
+# export ZEPPELIN_NOTEBOOK_HOMESCREEN         # Id of notebook to be displayed in homescreen. ex) 2A94M5J1Z
+# export ZEPPELIN_NOTEBOOK_HOMESCREEN_HIDE    # hide homescreen notebook from list when this value set to "true". default "false"
+# export ZEPPELIN_NOTEBOOK_S3_BUCKET          # Bucket where notebook saved
+# export ZEPPELIN_NOTEBOOK_S3_ENDPOINT        # Endpoint of the bucket
+# export ZEPPELIN_NOTEBOOK_S3_USER            # User in bucket where notebook saved. For example bucket/user/notebook/2A94M5J1Z/note.json
+# export ZEPPELIN_IDENT_STRING                # A string representing this instance of zeppelin. $USER by default.
+# export ZEPPELIN_NICENESS                    # The scheduling priority for daemons. Defaults to 0.
+# export ZEPPELIN_INTERPRETER_LOCALREPO       # Local repository for interpreter's additional dependency loading
+# export ZEPPELIN_NOTEBOOK_STORAGE            # Refers to pluggable notebook storage class, can have two classes simultaneously with a sync between them (e.g. local and remote).
+# export ZEPPELIN_NOTEBOOK_ONE_WAY_SYNC       # If there are multiple notebook storages, should we treat the first one as the only source of truth?
+# export ZEPPELIN_NOTEBOOK_PUBLIC             # Make notebook public by default when created, private otherwise
 
 #### Spark interpreter configuration ####
 
 ## Use provided spark installation ##
 ## defining SPARK_HOME makes Zeppelin run spark interpreter process using spark-submit
 ##
-# (required) When it is defined, load it instead of Zeppelin embedded Spark libraries
+# export SPARK_HOME                           # (required) When it is defined, load it instead of Zeppelin embedded Spark libraries
 #export SPARK_HOME={{spark_home}}
-
-# (optional) extra options to pass to spark submit. eg) "--driver-memory 512M --executor-memory 1G".
-# export SPARK_SUBMIT_OPTIONS
+# export SPARK_SUBMIT_OPTIONS                 # (optional) extra options to pass to spark submit. eg) "--driver-memory 512M --executor-memory 1G".
+# export SPARK_APP_NAME                       # (optional) The name of spark application.
 
 ## Use embedded spark binaries ##
 ## without SPARK_HOME defined, Zeppelin still able to run spark interpreter process using embedded spark binaries.
 ## however, it is not encouraged when you can define SPARK_HOME
 ##
 # Options read in YARN client mode
-# yarn-site.xml is located in configuration directory in HADOOP_CONF_DIR.
+# export HADOOP_CONF_DIR                      # yarn-site.xml is located in configuration directory in HADOOP_CONF_DIR.
 export HADOOP_CONF_DIR=/etc/hadoop/conf
-
 # Pyspark (supported with Spark 1.2.1 and above)
 # To configure pyspark, you need to set spark distribution's path to 'spark.home' property in Interpreter setting screen in Zeppelin GUI
-# path to the python command. must be the same path on the driver(Zeppelin) and all workers.
-# export PYSPARK_PYTHON
+# export PYSPARK_PYTHON                       # path to the python command. must be the same path on the driver(Zeppelin) and all workers.
+# export PYTHONPATH
 
 export PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.8.2.1-src.zip"
 export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 
 ## Spark interpreter options ##
 ##
-# Use HiveContext instead of SQLContext if set true. true by default.
-# export ZEPPELIN_SPARK_USEHIVECONTEXT
+# export ZEPPELIN_SPARK_USEHIVECONTEXT        # Use HiveContext instead of SQLContext if set true. true by default.
+# export ZEPPELIN_SPARK_CONCURRENTSQL         # Execute multiple SQL concurrently if set true. false by default.
+# export ZEPPELIN_SPARK_IMPORTIMPLICIT        # Import implicits, UDF collection, and sql if set true. true by default.
+# export ZEPPELIN_SPARK_MAXRESULT             # Max number of Spark SQL result to display. 1000 by default.
+# export ZEPPELIN_WEBSOCKET_MAX_TEXT_MESSAGE_SIZE       # Size in characters of the maximum text message to be received by websocket. Defaults to 1024000
 
-# Execute multiple SQL concurrently if set true. false by default.
-# export ZEPPELIN_SPARK_CONCURRENTSQL
 
-# Max number of SparkSQL result to display. 1000 by default.
-# export ZEPPELIN_SPARK_MAXRESULT
+#### HBase interpreter configuration ####
 
-  </value>
+## To connect to HBase running on a cluster, either HBASE_HOME or HBASE_CONF_DIR must be set
+
+# export HBASE_HOME=                          # (require) Under which HBase scripts and configuration should be
+# export HBASE_CONF_DIR=                      # (optional) Alternatively, configuration directory can be set to point to the directory that has hbase-site.xml
+
+# export ZEPPELIN_IMPERSONATE_CMD             # Optional, when user want to run interpreter as end web user. eg) 'sudo -H -u ${ZEPPELIN_IMPERSONATE_USER} bash -c '
+
+    </value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -157,37 +143,64 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 [users]
 # List of users with their password allowed to access Zeppelin.
 # To use a different strategy (LDAP / Database / ...) check the shiro doc at http://shiro.apache.org/configuration.html#Configuration-INISections
-#admin = password1
+#admin = password1, admin
 #user1 = password2, role1, role2
 #user2 = password3, role3
 #user3 = password4, role2
 
 # Sample LDAP configuration, for user Authentication, currently tested for single Realm
 [main]
-#activeDirectoryRealm = org.apache.zeppelin.server.ActiveDirectoryGroupRealm
-#activeDirectoryRealm.systemUsername = CN=Administrator,CN=Users,DC=HW,DC=EXAMPLE,DC=COM
-#activeDirectoryRealm.systemPassword = Password1!
-#activeDirectoryRealm.hadoopSecurityCredentialPath = jceks://user/zeppelin/zeppelin.jceks
-#activeDirectoryRealm.searchBase = CN=Users,DC=HW,DC=TEST,DC=COM
-#activeDirectoryRealm.url = ldap://ad-nano.test.example.com:389
-#activeDirectoryRealm.groupRolesMap = ""
-#activeDirectoryRealm.authorizationCachingEnabled = true
+### A sample for configuring Active Directory Realm
+#activeDirectoryRealm = org.apache.zeppelin.realm.ActiveDirectoryGroupRealm
+#activeDirectoryRealm.systemUsername = userNameA
 
-#ldapRealm = org.apache.shiro.realm.ldap.JndiLdapRealm
-#ldapRealm.userDnTemplate = uid={0},cn=users,cn=accounts,dc=example,dc=com
-#ldapRealm.contextFactory.url = ldap://ldaphost:389
+#use either systemPassword or hadoopSecurityCredentialPath, more details in http://zeppelin.apache.org/docs/latest/security/shiroauthentication.html
+#activeDirectoryRealm.systemPassword = passwordA
+#activeDirectoryRealm.hadoopSecurityCredentialPath = jceks://file/user/zeppelin/zeppelin.jceks
+#activeDirectoryRealm.searchBase = CN=Users,DC=SOME_GROUP,DC=COMPANY,DC=COM
+#activeDirectoryRealm.url = ldap://ldap.test.com:389
+#activeDirectoryRealm.groupRolesMap = "CN=admin,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"admin","CN=finance,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"finance","CN=hr,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"hr"
+#activeDirectoryRealm.authorizationCachingEnabled = false
+
+### A sample for configuring LDAP Directory Realm
+#ldapRealm = org.apache.zeppelin.realm.LdapGroupRealm
+## search base for ldap groups (only relevant for LdapGroupRealm):
+#ldapRealm.contextFactory.environment[ldap.searchBase] = dc=COMPANY,dc=COM
+#ldapRealm.contextFactory.url = ldap://ldap.test.com:389
+#ldapRealm.userDnTemplate = uid={0},ou=Users,dc=COMPANY,dc=COM
 #ldapRealm.contextFactory.authenticationMechanism = SIMPLE
-#sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
-#securityManager.sessionManager = $sessionManager
+
+### A sample PAM configuration
+#pamRealm=org.apache.zeppelin.realm.PamRealm
+#pamRealm.service=sshd
+
+sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+
+### If caching of user is required then uncomment below lines
+#cacheManager = org.apache.shiro.cache.MemoryConstrainedCacheManager
+#securityManager.cacheManager = $cacheManager
+
+securityManager.sessionManager = $sessionManager
 # 86,400,000 milliseconds = 24 hour
-#securityManager.sessionManager.globalSessionTimeout = 86400000
+securityManager.sessionManager.globalSessionTimeout = 86400000
 shiro.loginUrl = /api/login
 
+[roles]
+#role1 = *
+#role2 = *
+#role3 = *
+#admin = *
+
 [urls]
+# This section is used for url-based security.
+# You can secure interpreter, configuration and credential information by urls. Comment or uncomment the below urls that you want to hide.
 # anon means the access is anonymous.
-# authcBasic means Basic Auth Security
+# authc means Form based Auth Security
 # To enfore security, comment the line below and uncomment the next one
 /api/version = anon
+#/api/interpreter/** = authc, roles[admin]
+#/api/configurations/** = authc, roles[admin]
+#/api/credential/** = authc, roles[admin]
 /** = anon
 #/** = authc
     </value>
