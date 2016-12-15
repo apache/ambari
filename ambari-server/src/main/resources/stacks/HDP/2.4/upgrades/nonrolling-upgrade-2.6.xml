@@ -297,11 +297,13 @@
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
           <summary>Adjusting Oozie properties</summary>
         </task>
+      </execute-stage>
+
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixOozieAdminUsers">
           <summary>Fix oozie admin users</summary>
         </task>
       </execute-stage>
-
 
     <!--FALCON-->
       <execute-stage service="FALCON" component="FALCON_SERVER" title="Apply config changes for Falcon">
@@ -401,6 +403,9 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
         <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply security changes for Storm">
         <!-- Add nimbus.impersonation acls . -->
         <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
       </execute-stage>
