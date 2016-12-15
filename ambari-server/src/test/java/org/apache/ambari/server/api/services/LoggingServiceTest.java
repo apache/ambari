@@ -125,7 +125,8 @@ public class LoggingServiceTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     LoggingService loggingService =
-      new LoggingService(expectedClusterName, controllerFactoryMock, helperFactoryMock);
+      new LoggingService(expectedClusterName, controllerFactoryMock);
+    loggingService.setLoggingRequestHelperFactory(helperFactoryMock);
 
     Response resource = loggingService.getSearchEngine("", null, uriInfoMock);
 

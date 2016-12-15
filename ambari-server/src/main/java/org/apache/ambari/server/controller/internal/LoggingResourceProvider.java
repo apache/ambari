@@ -22,8 +22,6 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,28 +109,6 @@ public class LoggingResourceProvider extends AbstractControllerResourceProvider 
     resource.setProperty("logList", response.getListOfResults());
 
     return Collections.singleton(resource);
-  }
-
-  private static List<Map<String, String>> createTestData(Resource resource) {
-    // just create some test data for verifying basic resource code, not an actual result
-    Map<String, String> levelCounts = new HashMap<String, String>();
-    levelCounts.put("INFO", "100");
-    levelCounts.put("WARN", "250");
-    levelCounts.put("DEBUG", "300");
-
-    resource.setProperty("logLevels", levelCounts);
-
-    List<Map <String, String>> listOfResults = new LinkedList<Map<String, String>>();
-    Map<String, String> resultOne = new HashMap<String, String>();
-    resultOne.put("data", "This is a test sentence.");
-    resultOne.put("score", "100");
-    resultOne.put("level", "INFO");
-    resultOne.put("type", "hdfs_namenode");
-    resultOne.put("host", "c6401.ambari.apache.org");
-    resultOne.put("LoggerName", "NameNodeLogger");
-
-    listOfResults.add(resultOne);
-    return listOfResults;
   }
 
   @Override

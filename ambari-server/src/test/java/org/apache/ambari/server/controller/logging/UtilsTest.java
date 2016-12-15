@@ -24,10 +24,10 @@ import static org.junit.Assert.assertSame;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
+import org.slf4j.Logger;
 
 public class UtilsTest {
 
