@@ -67,9 +67,9 @@ spark_jar = format("{spark_jar_dir}/zeppelin-spark-0.5.5-SNAPSHOT.jar")
 setup_view = True
 temp_file = config['configurations']['zeppelin-env']['zeppelin.temp.file']
 
-spark_home = None
+spark_home = ""
 spark_version = None
-spark2_home = None
+spark2_home = ""
 spark2_version = None
 if 'spark-defaults' in config['configurations']:
   spark_home = os.path.join(stack_root, "current", 'spark-client')
