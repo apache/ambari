@@ -111,13 +111,27 @@
                 </xs:simpleContent>
               </xs:complexType>
             </xs:element>
-            <xs:element name="check-properties" minOccurs="0" maxOccurs="unbounded">
-            </xs:element>
+            <xs:element name="check-properties" type="check-properties-type" minOccurs="0" maxOccurs="unbounded"/>
           </xs:sequence>
           <xs:attribute name="name" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="check-properties-type">
+    <xs:sequence>
+      <xs:element name="property" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="name" type="xs:string"/>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
   </xs:complexType>
   
   <xs:complexType name="abstract-group-type" abstract="true">
@@ -158,11 +172,11 @@
       <xs:extension base="abstract-group-type">
         <xs:sequence>
           <xs:element name="execute-stage" minOccurs="1" maxOccurs="unbounded">
-            <xs:complexType>              
-              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
                 <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="direction" type="direction-type" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="scope" type="scope-type" minOccurs="0" maxOccurs="1"/>                
+                <xs:element name="scope" type="scope-type" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="task" type="abstract-task-type" minOccurs="1" maxOccurs="1"/>
               </xs:sequence>              
               <xs:attribute name="title" type="xs:string" />
