@@ -69,7 +69,6 @@ App.EditableWidgetMixin = Em.Mixin.create({
 
     });
 
-    var browserVersion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'modal-edit-widget'],
@@ -97,23 +96,16 @@ App.EditableWidgetMixin = Em.Mixin.create({
         var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
         var handlers = [33, 66]; //fixed value
 
-        if (browserVersion === -1 || browserVersion > 9) {
-          configObj.set('isIE9', false);
-          configObj.set('isGreenOrangeRed', true);
-          $("#slider-range").slider({
-            range:true,
-            disabled:true, //handlers cannot move
-            min: 0,
-            max: 100,
-            values: handlers,
-            create: function (event, ui) {
-              self.updateColors(handlers, colors);
-            }
-          });
-        } else {
-          configObj.set('isIE9', true);
-          configObj.set('isGreenOrangeRed', true);
-        }
+        $("#slider-range").slider({
+          range: true,
+          disabled: true, //handlers cannot move
+          min: 0,
+          max: 100,
+          values: handlers,
+          create: function (event, ui) {
+            self.updateColors(handlers, colors);
+          }
+        });
       }
     });
   }

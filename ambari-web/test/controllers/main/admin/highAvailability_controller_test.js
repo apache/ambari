@@ -221,7 +221,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       expect(controller.showErrorPopup.calledOnce).to.be.true;
     });
 
-    it('should show error popup if there is no NNs', function () {
+    it('should show error popup if there is no NNs (2)', function () {
       this.mock.returns([
         Em.Object.create({
           componentName: 'NAMENODE',

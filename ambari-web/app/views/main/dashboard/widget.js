@@ -174,9 +174,8 @@ App.DashboardWidgetView = Em.View.extend({
     var extendedModel = App.Service.extendedModel[source];
     if (extendedModel) {
       return App[extendedModel].find(source);
-    } else {
-      return App.Service.find(source);
     }
+    return App.Service.find(source);
   },
 
   willDestroyElement : function() {
@@ -201,9 +200,8 @@ App.DashboardWidgetView = Em.View.extend({
 
   /**
    * edit widget
-   * @param {object} event
    */
-  editWidget: function (event) {
+  editWidget: function () {
     var configObj = this.get('widgetConfig').create({
       thresholdMin: this.get('thresholdMin') + '',
       thresholdMax: this.get('thresholdMax') + '',
@@ -251,7 +249,7 @@ App.DashboardWidgetView = Em.View.extend({
 
       didInsertElement: function () {
         this._super();
-        var self = this;
+        var _this = this;
         var handlers = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
 
         $("#slider-range").slider({
@@ -260,15 +258,15 @@ App.DashboardWidgetView = Em.View.extend({
           max: maxValue,
           values: handlers,
           create: function () {
-            self.updateColors(handlers);
+            _this.updateColors(handlers);
           },
           slide: function (event, ui) {
-            self.updateColors(ui.values);
+            _this.updateColors(ui.values);
             configObj.set('thresholdMin', ui.values[0] + '');
             configObj.set('thresholdMax', ui.values[1] + '');
           },
           change: function (event, ui) {
-            self.updateColors(ui.values);
+            _this.updateColors(ui.values);
           }
         });
       },
