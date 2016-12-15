@@ -1269,6 +1269,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
   'admin.manageJournalNode.label': 'Manage JournalNodes',
+  'admin.manageJournalNode.warning': 'Manage JournalNodes Wizard requires all NameNodes be started and have Active/Standby state defined',
   'admin.manageJournalNode.wizard.header': 'Manage JournalNodes Wizard',
   'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
   'admin.manageJournalNode.wizard.step2.header': 'Review',
