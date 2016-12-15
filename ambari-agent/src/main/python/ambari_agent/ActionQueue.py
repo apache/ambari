@@ -95,8 +95,13 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put_status(self, commands):
-    #Was supposed that we got all set of statuses, we don't need to keep old ones
-    self.statusCommandQueue.queue.clear()
+    if not self.statusCommandQueue.empty():
+      #Clear all status commands. Was supposed that we got all set of statuses, we don't need to keep old ones
+      statusCommandQueueSize = 0
+      while not self.statusCommandQueue.empty():
+        self.statusCommandQueue.get()
+        statusCommandQueueSize = statusCommandQueueSize + 1
+      logger.info("Number of status commands removed from queue : " + str(statusCommandQueueSize))
 
     for command in commands:
       logger.info("Adding " + command['commandType'] + " for component " + \
