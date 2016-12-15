@@ -40,7 +40,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -165,13 +164,14 @@ public class ServiceComponentImpl implements ServiceComponent {
     updateComponentInfo();
 
     for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
-      HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
-      pk.setClusterId(hostComponentStateEntity.getClusterId());
-      pk.setServiceName(hostComponentStateEntity.getServiceName());
-      pk.setComponentName(hostComponentStateEntity.getComponentName());
-      pk.setHostId(hostComponentStateEntity.getHostId());
 
-      HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(pk);
+      HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByIndex(
+        hostComponentStateEntity.getClusterId(),
+        hostComponentStateEntity.getServiceName(),
+        hostComponentStateEntity.getComponentName(),
+        hostComponentStateEntity.getHostId()
+      );
+
       try {
         hostComponents.put(hostComponentStateEntity.getHostName(),
           serviceComponentHostFactory.createExisting(this,

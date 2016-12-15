@@ -26,7 +26,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 
 import com.google.inject.Inject;
@@ -46,8 +45,8 @@ public class HostComponentDesiredStateDAO {
   DaoUtils daoUtils;
 
   @RequiresSession
-  public HostComponentDesiredStateEntity findByPK(HostComponentDesiredStateEntityPK primaryKey) {
-    return entityManagerProvider.get().find(HostComponentDesiredStateEntity.class, primaryKey);
+  public HostComponentDesiredStateEntity findById(long id) {
+    return entityManagerProvider.get().find(HostComponentDesiredStateEntity.class, id);
   }
 
   @RequiresSession
@@ -74,6 +73,29 @@ public class HostComponentDesiredStateDAO {
     query.setParameter("serviceName", serviceName);
     query.setParameter("componentName", componentName);
     query.setParameter("hostName", hostName);
+
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Retrieve the single Host Component Desired State for the given unique cluster, service, component, and host.
+   *
+   * @param clusterId Cluster ID
+   * @param serviceName Service Name
+   * @param componentName Component Name
+   * @param hostId Host ID
+   * @return Return the Host Component Desired State entity that match the criteria.
+   */
+  @RequiresSession
+  public HostComponentDesiredStateEntity findByIndex(Long clusterId, String serviceName,
+                                                     String componentName, Long hostId) {
+    final TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
+      .createNamedQuery("HostComponentDesiredStateEntity.findByIndex", HostComponentDesiredStateEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("hostId", hostId);
 
     return daoUtils.selectSingle(query);
   }
@@ -109,8 +131,8 @@ public class HostComponentDesiredStateDAO {
   }
 
   @Transactional
-  public void removeByPK(HostComponentDesiredStateEntityPK primaryKey) {
-    remove(findByPK(primaryKey));
+  public void removeId(long id) {
+    remove(findById(id));
   }
 
 }

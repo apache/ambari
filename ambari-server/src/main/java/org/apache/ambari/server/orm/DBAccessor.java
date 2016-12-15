@@ -71,6 +71,17 @@ public interface DBAccessor {
                           String... columnNames) throws SQLException;
 
   /**
+   * Create new index
+   * @param indexName The name of the index to be created
+   * @param tableName The database table the index to be created on
+   * @param columnNames The columns included into the index
+   * @param isUnique Specifies whether unique index is to be created.
+   * @throws SQLException Exception in case the index creation fails.
+   */
+  void createIndex(String indexName, String tableName, boolean isUnique,
+                   String... columnNames) throws SQLException;
+
+  /**
    * Add foreign key for a relation
    * @param tableName
    * @param constraintName

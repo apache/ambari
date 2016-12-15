@@ -46,7 +46,6 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -140,9 +139,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private final StackDAO stackDAO;
 
   /**
-   * The desired component state entity PK.
+   * The desired component state entity id.
    */
-  private final HostComponentDesiredStateEntityPK desiredStateEntityPK;
+  private final Long desiredStateEntityId;
 
   /**
    * Cache the generated id for host component state for fast lookups.
@@ -799,8 +798,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       desiredStateEntity.setAdminState(null);
     }
 
-    desiredStateEntityPK = getHostComponentDesiredStateEntityPK(desiredStateEntity);
-
     persistEntities(hostEntity, stateEntity, desiredStateEntity);
 
     // publish the service component installed event
@@ -810,6 +807,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     eventPublisher.publish(event);
 
+    desiredStateEntityId = desiredStateEntity.getId();
     hostComponentStateId = stateEntity.getId();
 
     resetLastOpInfo();
@@ -836,7 +834,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.hostComponentDesiredStateDAO = hostComponentDesiredStateDAO;
     this.eventPublisher = eventPublisher;
 
-    desiredStateEntityPK = getHostComponentDesiredStateEntityPK(desiredStateEntity);
+    desiredStateEntityId = desiredStateEntity.getId();
     hostComponentStateId = stateEntity.getId();
 
     //TODO implement State Machine init as now type choosing is hardcoded in above code
@@ -1580,7 +1578,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @return
    */
   private HostComponentDesiredStateEntity getDesiredStateEntity() {
-    return hostComponentDesiredStateDAO.findByPK(desiredStateEntityPK);
+    return hostComponentDesiredStateDAO.findById(desiredStateEntityId);
   }
 
   /**
@@ -1593,15 +1591,4 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return hostComponentStateDAO.findById(hostComponentStateId);
   }
 
-  // create a PK object from the given desired component state entity.
-  private static HostComponentDesiredStateEntityPK getHostComponentDesiredStateEntityPK(
-      HostComponentDesiredStateEntity desiredStateEntity) {
-
-    HostComponentDesiredStateEntityPK dpk = new HostComponentDesiredStateEntityPK();
-    dpk.setClusterId(desiredStateEntity.getClusterId());
-    dpk.setComponentName(desiredStateEntity.getComponentName());
-    dpk.setServiceName(desiredStateEntity.getServiceName());
-    dpk.setHostId(desiredStateEntity.getHostId());
-    return dpk;
-  }
 }

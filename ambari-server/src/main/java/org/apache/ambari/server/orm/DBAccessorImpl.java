@@ -427,12 +427,18 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public void createIndex(String indexName, String tableName,
           String... columnNames) throws SQLException {
-   if (!tableHasIndex(tableName, false, indexName)) {
-     String query = dbmsHelper.getCreateIndexStatement(indexName, tableName, columnNames);
-     executeQuery(query);
-   } else {
-     LOG.info("Index {} already exist, skipping creation, table = {}", indexName, tableName);
-   }
+    createIndex(indexName, tableName, false, columnNames);
+  }
+
+  @Override
+  public void createIndex(String indexName, String tableName, boolean isUnique,
+                          String... columnNames) throws SQLException {
+    if (!tableHasIndex(tableName, false, indexName)) {
+      String query = dbmsHelper.getCreateIndexStatement(indexName, tableName, isUnique, columnNames);
+      executeQuery(query);
+    } else {
+      LOG.info("Index {} already exist, skipping creation, table = {}", indexName, tableName);
+    }
   }
 
   @Override
@@ -1177,6 +1183,7 @@ public class DBAccessorImpl implements DBAccessor {
 
         break;
       }
+      case MYSQL:
       case POSTGRES: {
         String lookupPrimaryKeyNameSql = String.format(
             "SELECT constraint_name FROM information_schema.table_constraints AS tc WHERE tc.constraint_type = 'PRIMARY KEY' AND table_name = '%s'",
@@ -1195,6 +1202,7 @@ public class DBAccessorImpl implements DBAccessor {
 
         break;
       }
+
       default:
         break;
     }

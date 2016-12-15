@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -1057,20 +1056,24 @@ public class ServiceComponentHostTest {
     //ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
     //ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
 
-    HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
-    pk.setClusterId(Long.valueOf(cluster.getClusterId()));
-    pk.setComponentName(sch1.getServiceComponentName());
-    pk.setServiceName(sch1.getServiceName());
-    pk.setHostId(hostEntity.getHostId());
-
-    HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByPK(pk);
+    HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByIndex(
+      cluster.getClusterId(),
+      sch1.getServiceName(),
+      sch1.getServiceComponentName(),
+      hostEntity.getHostId()
+    );
     Assert.assertEquals(MaintenanceState.OFF, entity.getMaintenanceState());
     Assert.assertEquals(MaintenanceState.OFF, sch1.getMaintenanceState());
 
     sch1.setMaintenanceState(MaintenanceState.ON);
     Assert.assertEquals(MaintenanceState.ON, sch1.getMaintenanceState());
 
-    entity = hostComponentDesiredStateDAO.findByPK(pk);
+    entity = hostComponentDesiredStateDAO.findByIndex(
+      cluster.getClusterId(),
+      sch1.getServiceName(),
+      sch1.getServiceComponentName(),
+      hostEntity.getHostId()
+    );
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
   }
 
@@ -1097,12 +1100,6 @@ public class ServiceComponentHostTest {
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
 
     HostComponentDesiredStateEntity entityHostComponentDesiredState;
-    HostComponentDesiredStateEntityPK pkHostComponentDesiredState = new HostComponentDesiredStateEntityPK();
-    pkHostComponentDesiredState.setClusterId(cluster.getClusterId());
-    pkHostComponentDesiredState.setComponentName(sch1.getServiceComponentName());
-    pkHostComponentDesiredState.setServiceName(sch1.getServiceName());
-    pkHostComponentDesiredState.setHostId(hostEntity.getHostId());
-
     HostComponentStateEntity entityHostComponentState;
 
     for(SecurityState state: SecurityState.values()) {
@@ -1116,7 +1113,12 @@ public class ServiceComponentHostTest {
       try {
         sch1.setDesiredSecurityState(state);
         Assert.assertTrue(state.isEndpoint());
-        entityHostComponentDesiredState = hostComponentDesiredStateDAO.findByPK(pkHostComponentDesiredState);
+        entityHostComponentDesiredState = hostComponentDesiredStateDAO.findByIndex(
+          cluster.getClusterId(),
+          sch1.getServiceName(),
+          sch1.getServiceComponentName(),
+          hostEntity.getHostId()
+        );
         Assert.assertNotNull(entityHostComponentDesiredState);
         Assert.assertEquals(state, entityHostComponentDesiredState.getSecurityState());
       } catch (AmbariException e) {
