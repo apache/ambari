@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import org.apache.log4j.Logger;
-
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
 
 /**
  * Utility class to hold static convenience methods for

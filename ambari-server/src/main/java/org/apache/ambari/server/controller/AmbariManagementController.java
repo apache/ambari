@@ -28,6 +28,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
@@ -871,6 +872,17 @@ public interface AmbariManagementController {
    * @return the injected {@link LoggingSearchPropertyProvider}
    */
   LoggingSearchPropertyProvider getLoggingSearchPropertyProvider();
+
+
+  /**
+   * Gets the LoggingService instance from the dependency injection framework.
+   *
+   * @param clusterName the cluster name associated with this LoggingService instance
+   *
+   * @return an instance of LoggingService associated with the specified cluster.
+   */
+  LoggingService getLoggingService(String clusterName);
+
 
   /**
    * Returns KerberosHelper instance

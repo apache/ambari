@@ -106,6 +106,9 @@ public class LoggingRequestHelperImplTest {
       "{\"name\":\"WARN\",\"value\":\"41\"},{\"name\":\"INFO\",\"value\":\"186\"},{\"name\":\"DEBUG\",\"value\":\"0\"}," +
       "{\"name\":\"TRACE\",\"value\":\"0\"}]}";
 
+  private static final String TEST_JSON_INPUT_NULL_LOG_LIST =
+    "{\"startIndex\":0,\"pageSize\":0,\"totalCount\":0,\"resultSize\":0,\"sortType\":null,\"sortBy\":null,\"queryTimeMS\":1479850014987,\"logList\":null,\"listSize\":0}";
+
 
   private final String EXPECTED_HOST_NAME = "c6401.ambari.apache.org";
 
@@ -472,6 +475,87 @@ public class LoggingRequestHelperImplTest {
     assertEquals("Response did not include the expected file name",
       "/var/log/hadoop/hdfs/hadoop-hdfs-namenode-c6401.ambari.apache.org.log",
       result.iterator().next());
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testLogFileNameRequestWithNullLogList() throws Exception {
+    final String expectedComponentName = "hdfs_namenode";
+
+    EasyMockSupport mockSupport =
+      new EasyMockSupport();
+
+    CredentialStoreService credentialStoreServiceMock =
+      mockSupport.createMock(CredentialStoreService.class);
+
+    Cluster clusterMock =
+      mockSupport.createMock(Cluster.class);
+
+    LoggingRequestHelperImpl.NetworkConnection networkConnectionMock =
+      mockSupport.createMock(LoggingRequestHelperImpl.NetworkConnection.class);
+
+    Config adminPropertiesConfigMock =
+      mockSupport.createMock(Config.class);
+
+    Map<String, String> testConfigProperties =
+      new HashMap<String, String>();
+    testConfigProperties.put("logsearch_admin_username", "admin-user");
+    testConfigProperties.put("logsearch_admin_password", "admin-pwd");
+    testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
+
+    Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
+
+    expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
+    expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_NULL_LOG_LIST)).atLeastOnce();
+
+    // expect that basic authentication is setup, with the expected encoded credentials
+    networkConnectionMock.setupBasicAuthentication(capture(captureURLConnectionForAuthentication), eq(EXPECTED_ENCODED_CREDENTIALS));
+
+    mockSupport.replayAll();
+
+    LoggingRequestHelper helper =
+      new LoggingRequestHelperImpl(EXPECTED_HOST_NAME, EXPECTED_PORT_NUMBER, EXPECTED_PROTOCOL, credentialStoreServiceMock, clusterMock, networkConnectionMock);
+
+    // invoke query request
+    Set<String> result =
+      helper.sendGetLogFileNamesRequest(expectedComponentName, EXPECTED_HOST_NAME);
+
+    // verify that the HttpURLConnection was created with the propert values
+    HttpURLConnection httpURLConnection =
+      captureURLConnection.getValue();
+
+    assertEquals("URLConnection did not have the correct hostname information",
+      EXPECTED_HOST_NAME, httpURLConnection.getURL().getHost());
+    assertEquals("URLConnection did not have the correct port information",
+      EXPECTED_PORT_NUMBER, httpURLConnection.getURL().getPort() + "");
+    assertEquals("URLConnection did not have the expected http protocol scheme",
+      "http", httpURLConnection.getURL().getProtocol());
+    assertEquals("URLConnection did not have the expected method set",
+      "GET", httpURLConnection.getRequestMethod());
+
+    assertSame("HttpUrlConnection instances passed into NetworkConnection mock should have been the same instance",
+      httpURLConnection, captureURLConnectionForAuthentication.getValue());
+
+    final String resultQuery =
+      httpURLConnection.getURL().getQuery();
+
+    // verify that the query contains the three required parameters
+    assertTrue("host_name parameter was not included in query",
+      resultQuery.contains("host_name=c6401.ambari.apache.org"));
+    assertTrue("component_name parameter was not included in the query",
+      resultQuery.contains("component_name=" + expectedComponentName));
+    assertTrue("pageSize parameter was not included in query",
+      resultQuery.contains("pageSize=1"));
+
+    assertNotNull("Response object should not be null",
+      result);
+    assertEquals("Response Set was not of the expected size, expected an empty set",
+      0, result.size());
+
+    mockSupport.verifyAll();
   }
 
   /**

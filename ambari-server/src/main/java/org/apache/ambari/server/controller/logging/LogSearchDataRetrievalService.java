@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.AbstractService;
-import com.google.inject.Inject;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -29,10 +29,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.AbstractService;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * The {@link LogSearchDataRetrievalService} is an Ambari Service that
@@ -63,8 +66,15 @@ public class LogSearchDataRetrievalService extends AbstractService {
 
   private static Logger LOG = LoggerFactory.getLogger(LogSearchDataRetrievalService.class);
 
+  /**
+   * Factory instance used to handle URL string generation requests on the
+   *   main request thread.
+   */
   @Inject
   private LoggingRequestHelperFactory loggingRequestHelperFactory;
+
+  @Inject
+  private Injector injector;
 
   /**
    * A Cache of host+component names to a set of log files associated with
@@ -200,6 +210,15 @@ public class LogSearchDataRetrievalService extends AbstractService {
   }
 
   /**
+   * Package-level setter to facilitate simpler unit testing
+   *
+   * @param injector
+   */
+  void setInjector(Injector injector) {
+    this.injector = injector;
+  }
+
+  /**
    * This protected method provides a way for unit-tests to insert a
    * mock executor for simpler unit-testing.
    *
@@ -219,7 +238,14 @@ public class LogSearchDataRetrievalService extends AbstractService {
   }
 
   private void startLogSearchFileNameRequest(String host, String component, String cluster) {
-    executor.execute(new LogSearchFileNameRequestRunnable(host, component, cluster, logFileNameCache, currentRequests));
+    // Create a separate instance of LoggingRequestHelperFactory for
+    // each task launched, since these tasks will occur on a separate thread
+    // TODO: In a future patch, this should be refactored, to either remove the need
+    // TODO: for the separate factory instance at the level of this class, or to make
+    // TODO: the LoggingRequestHelperFactory implementation thread-safe, so that
+    // TODO: a single factory instance can be shared across multiple threads safely
+    executor.execute(new LogSearchFileNameRequestRunnable(host, component, cluster, logFileNameCache, currentRequests,
+                                                          injector.getInstance(LoggingRequestHelperFactory.class)));
   }
 
   private AmbariManagementController getController() {
@@ -257,8 +283,8 @@ public class LogSearchDataRetrievalService extends AbstractService {
 
     private AmbariManagementController controller;
 
-    LogSearchFileNameRequestRunnable(String host, String component, String cluster, Cache<String, Set<String>> logFileNameCache, Set<String> currentRequests) {
-      this(host, component, cluster, logFileNameCache, currentRequests, new LoggingRequestHelperFactoryImpl(), AmbariServer.getController());
+    LogSearchFileNameRequestRunnable(String host, String component, String cluster, Cache<String, Set<String>> logFileNameCache, Set<String> currentRequests, LoggingRequestHelperFactory loggingRequestHelperFactory) {
+      this(host, component, cluster, logFileNameCache, currentRequests, loggingRequestHelperFactory, AmbariServer.getController());
     }
 
     LogSearchFileNameRequestRunnable(String host, String component, String cluster, Cache<String, Set<String>> logFileNameCache, Set<String> currentRequests,

@@ -2479,6 +2479,22 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> SRVR_API_ACCEPTOR_THREAD_COUNT = new ConfigurationProperty<>(
       "client.api.acceptor.count", null);
 
+  /**
+   * The time, in milliseconds, that the Ambari Server will wait while attempting to connect to the
+   * LogSearch Portal service.
+   */
+  @Markdown(description = "The time, in milliseconds, that the Ambari Server will wait while attempting to connect to the LogSearch Portal service.")
+  public static final ConfigurationProperty<Integer> LOGSEARCH_PORTAL_CONNECT_TIMEOUT = new ConfigurationProperty<>(
+          "logsearch.portal.connect.timeout", 5000);
+
+  /**
+   * The time, in milliseconds, that the Ambari Server will wait while attempting to read a response from the
+   * LogSearch Portal service.
+   */
+  @Markdown(description = "The time, in milliseconds, that the Ambari Server will wait while attempting to read a response from the LogSearch Portal service.")
+  public static final ConfigurationProperty<Integer> LOGSEARCH_PORTAL_READ_TIMEOUT = new ConfigurationProperty<>(
+    "logsearch.portal.read.timeout", 5000);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -5110,6 +5126,24 @@ public class Configuration {
    */
   public boolean isParallelTopologyTaskCreationEnabled() {
     return Boolean.parseBoolean(getProperty(TOPOLOGY_TASK_PARALLEL_CREATION_ENABLED));
+  }
+
+  /**
+   * Get the connect timeout used for connecting to the LogSearch Portal Service
+   *
+   * @return
+   */
+  public int getLogSearchPortalConnectTimeout() {
+    return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_CONNECT_TIMEOUT));
+  }
+
+  /**
+   * Get the read timeout used for connecting to the LogSearch Portal Service
+   *
+   * @return
+   */
+  public int getLogSearchPortalReadTimeout() {
+    return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_READ_TIMEOUT));
   }
 
   /**

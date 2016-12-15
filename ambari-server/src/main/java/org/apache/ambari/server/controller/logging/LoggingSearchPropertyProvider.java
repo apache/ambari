@@ -17,7 +17,15 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import com.google.inject.Inject;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -35,20 +43,14 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.LogDefinition;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.inject.Inject;
 
 public class LoggingSearchPropertyProvider implements PropertyProvider {
 
-  private static final Logger LOG = Logger.getLogger(LoggingSearchPropertyProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LoggingSearchPropertyProvider.class);
 
   private static final String CLUSTERS_PATH = "/api/v1/clusters";
 
@@ -67,12 +69,9 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
   @Inject
   private LogSearchDataRetrievalService logSearchDataRetrievalService;
 
+  @Inject
   private LoggingRequestHelperFactory loggingRequestHelperFactory;
   
-  public LoggingSearchPropertyProvider() {
-    loggingRequestHelperFactory = new LoggingRequestHelperFactoryImpl();
-  }
-
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws SystemException {
     Map<String, Boolean> isLogSearchRunning = new HashMap<>();
@@ -222,11 +221,11 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
     this.ambariManagementController = ambariManagementController;
   }
 
-  protected void setLogSearchDataRetrievalService(LogSearchDataRetrievalService logSearchDataRetrievalService) {
+  void setLogSearchDataRetrievalService(LogSearchDataRetrievalService logSearchDataRetrievalService) {
     this.logSearchDataRetrievalService = logSearchDataRetrievalService;
   }
 
-  protected void setLoggingRequestHelperFactory(LoggingRequestHelperFactory loggingRequestHelperFactory) {
+  void setLoggingRequestHelperFactory(LoggingRequestHelperFactory loggingRequestHelperFactory) {
     this.loggingRequestHelperFactory = loggingRequestHelperFactory;
   }
 

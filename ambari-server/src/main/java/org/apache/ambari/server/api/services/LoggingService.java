@@ -18,23 +18,11 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.logging.LogQueryResponse;
-import org.apache.ambari.server.controller.logging.LoggingRequestHelper;
-import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
-import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.utils.RetryHelper;
-import org.apache.commons.lang.StringUtils;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -45,11 +33,25 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.logging.LogQueryResponse;
+import org.apache.ambari.server.controller.logging.LoggingRequestHelper;
+import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.inject.Inject;
 
 /**
  * This Service provides access to the LogSearch query services, including:
@@ -67,19 +69,19 @@ public class LoggingService extends BaseService {
 
   private final ControllerFactory controllerFactory;
 
-  private final LoggingRequestHelperFactory helperFactory;
+  @Inject
+  private LoggingRequestHelperFactory helperFactory;
 
 
   private final String clusterName;
 
   public LoggingService(String clusterName) {
-    this(clusterName, new DefaultControllerFactory(), new LoggingRequestHelperFactoryImpl());
+    this(clusterName, new DefaultControllerFactory());
   }
 
-  public LoggingService(String clusterName, ControllerFactory controllerFactory, LoggingRequestHelperFactory helperFactory) {
+  public LoggingService(String clusterName, ControllerFactory controllerFactory) {
     this.clusterName = clusterName;
     this.controllerFactory = controllerFactory;
-    this.helperFactory = helperFactory;
   }
 
   @GET
@@ -206,6 +208,14 @@ public class LoggingService extends BaseService {
     return responseBuilder.build();
   }
 
+  /**
+   * Package-level setter that facilitates simpler unit testing
+   *
+   * @param helperFactory
+   */
+  void setLoggingRequestHelperFactory(LoggingRequestHelperFactory helperFactory) {
+    this.helperFactory = helperFactory;
+  }
 
   /**
    * Internal interface that defines an access factory for the

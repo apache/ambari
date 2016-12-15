@@ -18,29 +18,6 @@
 
 package org.apache.ambari.server.controller.logging;
 
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
-import org.apache.ambari.server.security.credential.Credential;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,13 +39,37 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.security.credential.Credential;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectReader;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Convenience class to handle the connection details of a LogSearch query request.
  *
  */
 public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
-  private static Logger LOG = Logger.getLogger(LoggingRequestHelperImpl.class);
+  private static Logger LOG = LoggerFactory.getLogger(LoggingRequestHelperImpl.class);
 
   private static final String LOGSEARCH_ADMIN_JSON_CONFIG_TYPE_NAME = "logsearch-admin-json";
 
@@ -114,6 +115,11 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private SSLSocketFactory sslSocketFactory;
 
+  private int logSearchConnectTimeoutInMilliseconds = DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS;
+
+  private int logSearchReadTimeoutInMilliseconds = DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS;
+
+
   public LoggingRequestHelperImpl(String hostName, String portNumber, String protocol, CredentialStoreService credentialStoreService, Cluster cluster) {
     this(hostName, portNumber, protocol, credentialStoreService, cluster, new DefaultNetworkConnection());
   }
@@ -127,6 +133,22 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     this.networkConnection = networkConnection;
   }
 
+  public int getLogSearchConnectTimeoutInMilliseconds() {
+    return this.logSearchConnectTimeoutInMilliseconds;
+  }
+
+  public void setLogSearchConnectTimeoutInMilliseconds(int logSearchConnectTimeoutInMilliseconds) {
+    this.logSearchConnectTimeoutInMilliseconds = logSearchConnectTimeoutInMilliseconds;
+  }
+
+  public int getLogSearchReadTimeoutInMilliseconds() {
+    return this.logSearchReadTimeoutInMilliseconds;
+  }
+
+  public void setLogSearchReadTimeoutInMilliseconds(int logSearchReadTimeoutInMilliseconds) {
+    this.logSearchReadTimeoutInMilliseconds = logSearchReadTimeoutInMilliseconds;
+  }
+
   public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters) {
     try {
       // use the Apache builder to create the correct URI
@@ -135,10 +157,12 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
       HttpURLConnection httpURLConnection  = (HttpURLConnection) logSearchURI.toURL().openConnection();
       secure(httpURLConnection, protocol);
       httpURLConnection.setRequestMethod("GET");
-      httpURLConnection.setConnectTimeout(DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS);
-      httpURLConnection.setReadTimeout(DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS);
+      httpURLConnection.setConnectTimeout(logSearchConnectTimeoutInMilliseconds);
+      httpURLConnection.setReadTimeout(logSearchReadTimeoutInMilliseconds);
 
       addCookiesFromCookieStore(httpURLConnection);
+      LOG.debug("Attempting request to LogSearch Portal Server, with connect timeout = {} milliseconds and read timeout = {} milliseconds",
+        logSearchConnectTimeoutInMilliseconds, logSearchReadTimeoutInMilliseconds);
 
       setupCredentials(httpURLConnection);
 
@@ -282,7 +306,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     queryParameters.put("pageSize", "1");
 
     LogQueryResponse response = sendQueryRequest(queryParameters);
-    if ((response != null) && (!response.getListOfResults().isEmpty())) {
+    if ((response != null) && (response.getListOfResults() != null) && (!response.getListOfResults().isEmpty())) {
       LogLineResult lineOne = response.getListOfResults().get(0);
       // this assumes that each component has only one associated log file,
       // which may not always hold true

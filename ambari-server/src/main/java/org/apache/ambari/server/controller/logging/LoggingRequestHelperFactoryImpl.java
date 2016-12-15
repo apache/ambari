@@ -17,7 +17,12 @@
  */
 package org.apache.ambari.server.controller.logging;
 
+import java.util.List;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -25,8 +30,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.log4j.Logger;
-
-import java.util.List;
 
 public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFactory {
 
@@ -42,9 +45,17 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
 
   private static final String LOGSEARCH_UI_PROTOCOL = "logsearch_ui_protocol";
 
+  @Inject
+  private Configuration ambariServerConfiguration;
 
   @Override
   public LoggingRequestHelper getHelper(AmbariManagementController ambariManagementController, String clusterName) {
+
+    if (ambariServerConfiguration == null) {
+      LOG.error("Ambari Server configuration object not available, cannot create request helper");
+      return null;
+    }
+
     Clusters clusters =
       ambariManagementController.getClusters();
 
@@ -90,7 +101,11 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
         final String logSearchProtocol =
           logSearchEnvConfig.getProperties().get(LOGSEARCH_UI_PROTOCOL);
 
-        return new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, logSearchProtocol, ambariManagementController.getCredentialStoreService(), cluster);
+        final LoggingRequestHelperImpl loggingRequestHelper = new LoggingRequestHelperImpl(logSearchHostName, logSearchPortNumber, logSearchProtocol, ambariManagementController.getCredentialStoreService(), cluster);
+        // set configured timeouts for the Ambari connection to the LogSearch Portal service
+        loggingRequestHelper.setLogSearchConnectTimeoutInMilliseconds(ambariServerConfiguration.getLogSearchPortalConnectTimeout());
+        loggingRequestHelper.setLogSearchReadTimeoutInMilliseconds(ambariServerConfiguration.getLogSearchPortalReadTimeout());
+        return loggingRequestHelper;
       }
     } catch (AmbariException ambariException) {
       LOG.error("Error occurred while trying to obtain the cluster, cluster name = " + clusterName, ambariException);
@@ -98,5 +113,14 @@ public class LoggingRequestHelperFactoryImpl implements LoggingRequestHelperFact
 
 
     return null;
+  }
+
+  /**
+   * Package-level setter to facilitate simpler unit testing
+   *
+   * @param ambariServerConfiguration the Ambari Server configuration properties
+   */
+  void setAmbariServerConfiguration(Configuration ambariServerConfiguration) {
+    this.ambariServerConfiguration = ambariServerConfiguration;
   }
 }

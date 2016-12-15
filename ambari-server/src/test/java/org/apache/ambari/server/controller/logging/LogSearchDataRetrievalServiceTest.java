@@ -17,19 +17,33 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import com.google.common.cache.Cache;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.junit.Assert.*;
+
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
+
+import com.google.common.cache.Cache;
+import com.google.inject.Injector;
+
+
+
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
+
+import com.google.common.cache.Cache;
+
 
 /**
  * This test verifies the basic behavior of the
@@ -114,15 +128,21 @@ public class LogSearchDataRetrievalServiceTest {
 
     Executor executorMock = mockSupport.createMock(Executor.class);
 
+    Injector injectorMock =
+      mockSupport.createMock(Injector.class);
+
     // expect the executor to be called to execute the LogSearch request
     executorMock.execute(isA(LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable.class));
     // executor should only be called once
     expectLastCall().once();
 
+    expect(injectorMock.getInstance(LoggingRequestHelperFactory.class)).andReturn(helperFactoryMock);
+
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setInjector(injectorMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
     retrievalService.setExecutor(executorMock);
@@ -134,6 +154,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     assertNull("Inital query on the retrieval service should be null, since cache is empty by default", resultSet);
     assertEquals("Incorrect number of entries in the current request set", 1, retrievalService.getCurrentRequests().size());
+
     assertTrue("Incorrect HostComponent set on request set",
                 retrievalService.getCurrentRequests().contains(expectedComponentName + "+" + expectedHostName));
 
