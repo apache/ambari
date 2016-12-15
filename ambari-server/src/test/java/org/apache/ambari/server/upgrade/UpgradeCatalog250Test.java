@@ -40,10 +40,14 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.persistence.EntityManager;
 import java.lang.reflect.Method;
@@ -58,8 +62,6 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -72,17 +74,66 @@ import static org.junit.Assert.assertTrue;
 /**
  * {@link UpgradeCatalog250} unit tests.
  */
+@RunWith(EasyMockRunner.class)
 public class UpgradeCatalog250Test {
 
   //  private Injector injector;
-  private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
-  private EntityManager entityManager = createNiceMock(EntityManager.class);
+  @Mock(type = MockType.STRICT)
+  private Provider<EntityManager> entityManagerProvider;
+
+  @Mock(type = MockType.NICE)
+  private EntityManager entityManager;
+
+  @Mock(type = MockType.NICE)
+  private DBAccessor dbAccessor;
+
+  @Mock(type = MockType.NICE)
+  private Configuration configuration;
+
+  @Mock(type = MockType.NICE)
+  private Connection connection;
+
+  @Mock(type = MockType.NICE)
+  private Statement statement;
+
+  @Mock(type = MockType.NICE)
+  private ResultSet resultSet;
+
+  @Mock(type = MockType.NICE)
+  private OsFamily osFamily;
+
+  @Mock(type = MockType.NICE)
+  private KerberosHelper kerberosHelper;
+
+  @Mock(type = MockType.NICE)
+  private ActionManager actionManager;
+
+  @Mock(type = MockType.NICE)
+  private Config config;
+
+  @Mock(type = MockType.STRICT)
+  private Service service;
+
+  @Mock(type = MockType.NICE)
+  private Clusters clusters;
+
+  @Mock(type = MockType.NICE)
+  private  Cluster cluster;
+
+  @Mock(type = MockType.NICE)
+  private Injector injector;
 
   @Before
   public void init() {
-    reset(entityManagerProvider);
+    reset(entityManagerProvider, injector);
+
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
-    replay(entityManagerProvider);
+
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper).anyTimes();
+
+    replay(entityManagerProvider, injector);
   }
 
   @After
@@ -91,14 +142,6 @@ public class UpgradeCatalog250Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
-
-    Configuration configuration = createNiceMock(Configuration.class);
-    Connection connection = createNiceMock(Connection.class);
-    Statement statement = createNiceMock(Statement.class);
-    ResultSet resultSet = createNiceMock(ResultSet.class);
-
-
     // !!! setup capture for host_version
     dbAccessor.addUniqueConstraint("host_version", "UQ_host_repo", "repo_version_id", "host_id");
 
@@ -129,9 +172,10 @@ public class UpgradeCatalog250Test {
     dbAccessor.addColumn(eq(UpgradeCatalog250.SERVICE_DESIRED_STATE_TABLE), capture(capturedCredentialStoreSupportedCol));
     dbAccessor.addColumn(eq(UpgradeCatalog250.SERVICE_DESIRED_STATE_TABLE), capture(capturedCredentialStoreEnabledCol));
 
-    expect(dbAccessor.getConnection()).andReturn(connection);
-    expect(connection.createStatement()).andReturn(statement);
-    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
+    expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();
+    expect(connection.createStatement()).andReturn(statement).anyTimes();
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet).anyTimes();
+    expect(configuration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -139,8 +183,9 @@ public class UpgradeCatalog250Test {
       @Override
       public void configure(Binder binder) {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
-        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(OsFamily.class).toInstance(osFamily);
         binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(Configuration.class).toInstance(configuration);
       }
     };
 
@@ -292,28 +337,22 @@ public class UpgradeCatalog250Test {
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
-    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
-    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
     Config mockAmsEnv = easyMockSupport.createNiceMock(Config.class);
 
+    reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).once();
     expect(cluster.getDesiredConfigByType("ams-env")).andReturn(mockAmsEnv).atLeastOnce();
     expect(mockAmsEnv.getProperties()).andReturn(oldPropertiesAmsEnv).anyTimes();
 
-    Injector injector = easyMockSupport.createNiceMock(Injector.class);
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+    replay(clusters, mockAmsEnv, cluster);
 
-    replay(injector, clusters, mockAmsEnv, cluster);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
-      .addMockedMethod("getClusters", new Class[]{})
+      .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(actionManager, clusters, injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -322,7 +361,7 @@ public class UpgradeCatalog250Test {
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      anyObject(Map.class))).andReturn(config).once();
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateAMSConfigs();
@@ -332,8 +371,9 @@ public class UpgradeCatalog250Test {
     assertTrue(Maps.difference(newPropertiesAmsEnv, updatedProperties).areEqual());
   }
 
+
   @Test
-  public void testKafkaUpdateConfigs() throws Exception {
+  public void testKafkaUpdateConfigs() throws Exception{
 
     Map<String, String> oldProperties = new HashMap<String, String>() {
       {
@@ -347,29 +387,22 @@ public class UpgradeCatalog250Test {
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-
-    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
-    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
     Config mockKafkaBroker = easyMockSupport.createNiceMock(Config.class);
 
+    reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).once();
     expect(cluster.getDesiredConfigByType("kafka-broker")).andReturn(mockKafkaBroker).atLeastOnce();
     expect(mockKafkaBroker.getProperties()).andReturn(oldProperties).anyTimes();
 
-    Injector injector = easyMockSupport.createNiceMock(Injector.class);
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+    replay(clusters, mockKafkaBroker, cluster);
 
-    replay(injector, clusters, mockKafkaBroker, cluster);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
-      .addMockedMethod("getClusters", new Class[]{})
+      .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(actionManager, clusters, injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -378,7 +411,7 @@ public class UpgradeCatalog250Test {
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      anyObject(Map.class))).andReturn(config).once();
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateKafkaConfigs();
@@ -431,10 +464,7 @@ public class UpgradeCatalog250Test {
 
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
-    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
-    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
-    final Service service = createStrictMock(Service.class);
-
+    reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).once();
@@ -445,18 +475,13 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType(configType)).andReturn(mockAtlasConfig).atLeastOnce();
     expect(mockAtlasConfig.getProperties()).andReturn(oldProperties).anyTimes();
 
-    Injector injector = easyMockSupport.createNiceMock(Injector.class);
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+    replay(clusters, mockAtlasConfig, cluster);
 
-    replay(injector, clusters, mockAtlasConfig, cluster);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .withConstructor(actionManager, clusters, injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
@@ -465,7 +490,7 @@ public class UpgradeCatalog250Test {
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      anyObject(Map.class))).andReturn(config).once();
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateAtlasConfigs();

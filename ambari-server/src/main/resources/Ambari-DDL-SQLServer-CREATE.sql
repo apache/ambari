@@ -210,6 +210,7 @@ CREATE TABLE servicecomponentdesiredstate (
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
+  id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   desired_stack_id BIGINT NOT NULL,
@@ -220,10 +221,12 @@ CREATE TABLE hostcomponentdesiredstate (
   maintenance_state VARCHAR(32) NOT NULL,
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required BIT NOT NULL DEFAULT 0,
-  CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name),
+  CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY CLUSTERED (id),
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE NONCLUSTERED (component_name, service_name, host_id, cluster_id),
   CONSTRAINT FK_hcds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id),
   CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (host_id));
+
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
@@ -1128,7 +1131,8 @@ BEGIN TRANSACTION
     ('ambari_operation_history_id_seq', 0),
     ('remote_cluster_id_seq', 0),
     ('remote_cluster_service_id_seq', 0),
-    ('servicecomponent_version_id_seq', 0);
+    ('servicecomponent_version_id_seq', 0),
+    ('hostcomponentdesiredstate_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
   values

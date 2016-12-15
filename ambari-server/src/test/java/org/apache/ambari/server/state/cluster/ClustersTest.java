@@ -54,7 +54,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
@@ -453,18 +452,16 @@ public class ClustersTest {
     ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
     serviceCheckNodeHost.setState(State.UNKNOWN);
 
-    HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();
-
-    hkdspk.setClusterId(nameNodeHost.getClusterId());
-    hkdspk.setHostId(nameNodeHostEntity.getHostId());
-    hkdspk.setServiceName(nameNodeHost.getServiceName());
-    hkdspk.setComponentName(nameNodeHost.getServiceComponentName());
-
     Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
       nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()));
 
-    Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(
+      nameNodeHost.getClusterId(),
+      nameNodeHost.getServiceName(),
+      nameNodeHost.getServiceComponentName(),
+      nameNodeHostEntity.getHostId()
+    ));
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
@@ -502,7 +499,10 @@ public class ClustersTest {
       nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()));
 
-    Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(
+      nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
+      nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()
+    ));
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());

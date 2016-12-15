@@ -17,10 +17,20 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -31,14 +41,10 @@ import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.support.JdbcUtils;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -61,6 +67,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
   protected static final String CREDENTIAL_STORE_SUPPORTED_COL = "credential_store_supported";
   protected static final String CREDENTIAL_STORE_ENABLED_COL = "credential_store_enabled";
+
+  protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
+  protected static final String HOST_COMPONENT_DESIREDSTATE_ID_COL = "id";
+  protected static final String HOST_COMPONENT_DESIREDSTATE_INDEX = "UQ_hcdesiredstate_name";
 
   /**
    * Logger.
@@ -116,6 +126,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
       new DBAccessor.DBColumnInfo("command_execution_type", String.class, 32, CommandExecutionType.STAGE.toString(),
         false));
     updateServiceDesiredStateTable();
+    updateHostComponentDesiredStateTable();
   }
 
   /**
@@ -328,6 +339,101 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
       new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
+  }
+
+
+  /**
+   * Removes the compound PK from hostcomponentdesiredstate table
+   * and replaces it with a surrogate PK, but only if the table doesn't have it's new PK set.
+   * Create index and unqiue constraint on the columns that originally formed the compound PK.
+   *
+   * @throws SQLException
+   */
+  private void updateHostComponentDesiredStateTable() throws SQLException {
+    if (dbAccessor.tableHasPrimaryKey(HOST_COMPONENT_DESIREDSTATE_TABLE, HOST_COMPONENT_DESIREDSTATE_ID_COL)) {
+      LOG.info("Skipping {} table Primary Key modifications since the new {} column already exists",
+        HOST_COMPONENT_DESIREDSTATE_TABLE, HOST_COMPONENT_DESIREDSTATE_ID_COL);
+
+      return;
+    }
+    // add the new ID column as nullable until we populate
+    dbAccessor.addColumn(HOST_COMPONENT_DESIREDSTATE_TABLE,
+      new DBColumnInfo(HOST_COMPONENT_DESIREDSTATE_ID_COL, Long.class, null, null, true));
+
+    // insert sequence values
+    AtomicLong id = new AtomicLong(1);
+    Statement statement = null;
+    ResultSet resultSet = null;
+
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+
+      if (statement != null) {
+        // Select records by old PK
+        String selectSQL = String.format(
+          "SELECT cluster_id, component_name, host_id, service_name FROM %s", HOST_COMPONENT_DESIREDSTATE_TABLE);
+
+        resultSet = statement.executeQuery(selectSQL);
+
+        while (resultSet.next()) {
+          final Long clusterId = resultSet.getLong("cluster_id");
+          final String componentName = resultSet.getString("component_name");
+          final Long hostId = resultSet.getLong("host_id");
+          final String serviceName = resultSet.getString("service_name");
+
+          String updateSQL = String.format(
+            "UPDATE %s SET %s = %s WHERE cluster_id = %d AND component_name = '%s' AND service_name = '%s' AND host_id = %d",
+            HOST_COMPONENT_DESIREDSTATE_TABLE, HOST_COMPONENT_DESIREDSTATE_ID_COL, id.getAndIncrement(),
+            clusterId, componentName, serviceName, hostId);
+
+          dbAccessor.executeQuery(updateSQL);
+        }
+
+        // Add sequence for hostcomponentdesiredstate table ids
+        addSequence("hostcomponentdesiredstate_id_seq", id.get(), false);
+      }
+
+    }
+    finally {
+      JdbcUtils.closeResultSet(resultSet);
+      JdbcUtils.closeStatement(statement);
+    }
+
+    // make the ID column NON NULL now
+    dbAccessor.alterColumn(HOST_COMPONENT_DESIREDSTATE_TABLE,
+      new DBColumnInfo(HOST_COMPONENT_DESIREDSTATE_ID_COL, Long.class, null, null, false));
+
+    // drop existing PK and create new one on ID column
+    String primaryKeyConstraintName = null;
+    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+
+    switch (databaseType) {
+      case POSTGRES:
+      case MYSQL:
+      case ORACLE:
+      case SQL_SERVER:
+        primaryKeyConstraintName = dbAccessor.getPrimaryKeyConstraintName(HOST_COMPONENT_DESIREDSTATE_TABLE);
+        break;
+
+      default:
+        throw new UnsupportedOperationException(String.format("Invalid database type '%s'", databaseType));
+
+    }
+
+    // warn if we can't find it
+    if (null == primaryKeyConstraintName) {
+      LOG.warn("Unable to determine the primary key constraint name for {}", HOST_COMPONENT_DESIREDSTATE_TABLE);
+    }
+    else {
+      dbAccessor.dropPKConstraint(HOST_COMPONENT_DESIREDSTATE_TABLE, primaryKeyConstraintName, true);
+    }
+
+    // create a new PK, matching the name of the constraint found in the SQL files
+    dbAccessor.addPKConstraint(HOST_COMPONENT_DESIREDSTATE_TABLE, "PK_hostcomponentdesiredstate", "id");
+
+    // create index, ensuring column order matches that of the SQL files
+    dbAccessor.addUniqueConstraint(HOST_COMPONENT_DESIREDSTATE_TABLE, HOST_COMPONENT_DESIREDSTATE_INDEX,
+      "component_name", "service_name", "host_id", "cluster_id");
   }
 
   protected void updateAtlasConfigs() throws AmbariException {

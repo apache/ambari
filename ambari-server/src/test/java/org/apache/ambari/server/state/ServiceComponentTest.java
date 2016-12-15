@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -245,16 +244,14 @@ public class ServiceComponentTest {
     HostComponentStateDAO liveStateDAO = injector.getInstance(
         HostComponentStateDAO.class);
 
-    HostComponentDesiredStateEntityPK dPK =
-        new HostComponentDesiredStateEntityPK();
-
-    dPK.setClusterId(cluster.getClusterId());
-    dPK.setComponentName(componentName);
-    dPK.setHostId(hostEntity1.getHostId());
-    dPK.setServiceName(serviceName);
 
     HostComponentDesiredStateEntity desiredStateEntity =
-        desiredStateDAO.findByPK(dPK);
+        desiredStateDAO.findByIndex(
+          cluster.getClusterId(),
+          serviceName,
+          componentName,
+          hostEntity1.getHostId()
+        );
 
     HostComponentStateEntity stateEntity = liveStateDAO.findByIndex(cluster.getClusterId(),
         serviceName, componentName, hostEntity1.getHostId());

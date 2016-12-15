@@ -197,6 +197,7 @@ CREATE TABLE servicecomponentdesiredstate (
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
+  id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   desired_stack_id BIGINT NOT NULL,
@@ -207,10 +208,12 @@ CREATE TABLE hostcomponentdesiredstate (
   maintenance_state VARCHAR(32) NOT NULL,
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required SMALLINT NOT NULL DEFAULT 0,
-  CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (cluster_id, component_name, host_id, service_name),
+  CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
+  CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
   CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_hcds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
+
 
 CREATE TABLE hostcomponentstate (
   id BIGINT NOT NULL,
@@ -1158,7 +1161,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'remote_cluster_service_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'servicecomponent_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
+  select 'servicecomponent_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'hostcomponentdesiredstate_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
 
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)
