@@ -21,6 +21,7 @@
     <service>
       <name>LOGSEARCH</name>
       <extends>common-services/LOGSEARCH/0.5.0</extends>
+      <selection>TECH_PREVIEW</selection>
     </service>
   </services>
 </metainfo>
