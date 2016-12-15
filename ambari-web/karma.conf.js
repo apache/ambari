@@ -29,7 +29,8 @@ module.exports = function(config) {
       'karma-phantomjs-launcher',
       'karma-coverage',
       'karma-ember-precompiler-brunch',
-      'karma-commonjs-require'
+      'karma-commonjs-require',
+      'karma-babel-preprocessor'
     ],
 
     // frameworks to use
@@ -114,8 +115,20 @@ module.exports = function(config) {
     preprocessors: {
       '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
       'app/templates/**/*.hbs': ['ember-precompiler-brunch', 'common-require'],
-      'app!(assets)/**/!(karma_setup|tests).js': ['common-require'],
-      'test/**/*.js': ['common-require']
+      'app!(assets)/**/!(karma_setup|tests).js': ['common-require', 'babel'],
+      'test/**/*.js': ['common-require', 'babel']
+    },
+
+    babelPreprocessor: {
+      options: {
+        presets: ['es2015']
+      },
+      filename: function (file) {
+        return file.originalPath.replace(/\.js$/, '.js');
+      },
+      sourceFileName: function (file) {
+        return file.originalPath;
+      }
     },
 
     // list of files to exclude
