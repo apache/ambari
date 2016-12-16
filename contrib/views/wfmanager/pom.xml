@@ -213,12 +213,11 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
-							<executable>node/node</executable>
+							<workingDirectory>${ui.directory}</workingDirectory>
+							<executable>${ui.directory}/node_modules/.bin/${ember.executable}</executable>
 							<arguments>
-								<argument>node_modules/.bin/ember</argument>
 								<argument>build</argument>
-
+								<argument>-prod</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -303,6 +302,7 @@
         </activation>
         <properties>
           <node.executable>node.exe</node.executable>
+          <ember.executable>ember.cmd</ember.executable>
           <skip.nodegyp.chmod>true</skip.nodegyp.chmod>
         </properties>
       </profile>
@@ -315,6 +315,7 @@
         </activation>
         <properties>
           <node.executable>node</node.executable>
+          <ember.executable>ember</ember.executable>
           <skip.nodegyp.chmod>false</skip.nodegyp.chmod>
         </properties>
       </profile>

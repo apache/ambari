@@ -59,7 +59,8 @@ export default Ember.Component.extend({
       var self=this;
       var $elem=this.$('input[name="selectedPath"]');
       //$elem.val($elem.val()+"/");
-
+      var folderHint="<enter folder here>";
+      this.set("selectedPath",this.get("selectedPath")+"/"+folderHint);
       setTimeout(function(){
         $elem[0].selectionStart = $elem[0].selectionEnd = self.get("selectedPath").length-folderHint.length;
       },10);

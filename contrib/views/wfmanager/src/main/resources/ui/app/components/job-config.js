@@ -142,7 +142,7 @@ export default Ember.Component.extend(Validations, {
     }
     this.set("alertDetails", data.details);
     this.set("alertMessage", data.message);
-    if(data.stackTrace.length){
+    if(data.stackTrace && data.stackTrace.length){
       this.set("stackTrace", data.stackTrace);
       this.set("isStackTraceAvailable", true);
     } else {

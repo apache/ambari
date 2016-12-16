@@ -24,16 +24,58 @@
           <label for="wf_title">Name</label>
             {{input class="form-control job-title" type="text" name="wf_title" value=workflow.name title="Workflow Name" placeholder="Workflow Name"}}
         </div>
+        {{#if workflowFilePath}}
+          <div class="form-group wf-path marginleft20" title={{workflowFilePath}}>
+              Path:{{ workflowFilePath}}
+          </div>
+        {{/if}}
       </div>
-      {{#if workflowFilePath}}
-        <div class="wf-path padding20" title={{workflowFilePath}}>
-            Path:{{ workflowFilePath}}
-        </div>
-      {{/if}}
-      <div class="navbar-brand pull-right paddingtop8 col-xs-18">     
-        <button  type="button" class="btn btn-default" title="Import workflow" {{action "showFileBrowser"}}>
+      <div class="navbar-brand pull-right paddingtop8 col-xs-18">
+          <div class="btn-group">
+            <div class="dropdown">
+              <button class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown">Workflow
+              <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li>
+                  <!--a class="pointer" title="Save Draft" {{action "saveAsDraft"}}>
+                      <i class="fa fa-download marginright5"></i>Save As Draft
+                  </a-->
+                  <a class="pointer" title="Import workflow from HDFS" {{action "showFileBrowser"}}>
+                      <i class="fa fa-download marginright5"></i>Import from HDFS
+                  </a>
+                  <a class="pointer" title="Import workflow from Local File System">
+                    {{#file-picker fileLoaded="fileLoaded" preview=false}}
+                        <i class="fa fa-download marginright5"></i>Import from Local FS
+                    {{/file-picker}}
+                  </a>
+                  <!--a class="pointer" title="Save workflow" {{action "saveWorkflow" "save"}}>
+                      <i class="fa fa-floppy-o marginright5"></i>Save
+                  </a>
+                  <a class="pointer" title="Save workflow" {{action "saveWorkflow" }}>
+                      <i class="fa fa-floppy-o marginright5"></i>Save As
+                  </a-->
+                </li>
+                <li>
+                  <a class="pointer" data-toggle="modal" title="Save workflow to local file system" {{action "downloadWorkflowXml"}}>
+                    <i class="fa fa-download marginright5"></i>Export
+                  </a>
+                </li>
+                <li>
+                  <a class="pointer" data-toggle="modal" data-target="#previewModal"  title="Preview workflow" {{action "previewWorkflow"}}>
+                    <i class="fa fa-eye marginright5"></i>Preview xml
+                  </a>
+                </li>
+                <!--li>
+                  <a class="pointer" title="Create a coordinator with the workflow" {{action "scheduleWorkflow"}}>
+                    <i class="fa fa-eye marginright5"></i>Schedule
+                  </a>
+                </li-->
+              </ul>
+            </div>
+          </div>
+        <!--button  type="button" class="btn btn-default" title="Import workflow" {{action "showFileBrowser"}}>
             <i class="fa fa-download marginright5"></i>Import
-        </button>
+        </button-->
         <button  id="import-workflow-test" type="button" class="btn btn-default hide" title="Import workflow Test" {{action "importWorkflowTest"}}>
             <i class="fa fa-download"></i>
         </button>
@@ -43,13 +85,13 @@
             <span class="caret"></span></button>
             <ul class="dropdown-menu">
               <li>
-                <a  data-toggle="modal" data-target="#ConfirmDialog" title="Reset Workflow" {{action "conirmCreatingNewWorkflow"}}>
+                <a  class="pointer" data-toggle="modal" data-target="#ConfirmDialog" title="Reset Workflow" {{action "conirmCreatingNewWorkflow"}}>
                   Reset Workflow
                 </a>
               </li>
               {{#if useCytoscape}}
               <li>
-                <a title="Reset Layout" {{action "resetLayout"}}>
+                <a class="pointer" title="Reset Layout" {{action "resetLayout"}}>
                   Reset Layout
                 </a>
               </li>
@@ -64,10 +106,10 @@
               <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li>
-                  <a data-toggle="modal" title="Create Kill Node" {{action "showCreateKillNode" true}}>
+                  <a class="pointer" data-toggle="modal" title="Create Kill Node" {{action "showCreateKillNode" true}}>
                       Create Kill Node
                   </a>
-                  <a data-toggle="modal" title="Manage Kill Nodes" {{action "showKillNodeManager" true}}>
+                  <a class="pointer" data-toggle="modal" title="Manage Kill Nodes" {{action "showKillNodeManager" true}}>
                       Manage Kill Nodes
                   </a>
                 </li>
@@ -101,13 +143,13 @@
               </ul>
             </div>
           </div>
-          <div class="btn-group">
+          <!--div class="btn-group">
             <div class="dropdown">
               <button class="btn btn-default dropdown-toggle borderRadiusNone" type="button" data-toggle="dropdown"><i class="marginright5"></i>More
               <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li>
-                  <a href="javascript:void(0)" data-toggle="modal" data-target="#previewModal"  title="Preview workflow" {{action "previewWorkflow"}}>
+                  <a href="#" data-toggle="modal" data-target="#previewModal"  title="Preview workflow" {{action "previewWorkflow"}}>
                     <i class="fa fa-eye marginright5"></i>Preview xml
                   </a>
                 </li>
@@ -118,12 +160,9 @@
                 </li>
               </ul>
             </div>
-          </div>
-          <button type="button" class="btn btn-default" title="Submit workflow" {{action "saveWorkflow"}}>
-              <i class="fa fa-floppy-o marginright5"></i>Save
-          </button>           
-          <button type="button" class="btn btn-primary" title="Dry run workflow" {{action "dryRunWorkflow"}}>
-              <i class="fa fa-play marginright5"></i> Test Run
+          </div-->
+          <button type="button" class="btn btn-default" title="Validate workflow" {{action "dryRunWorkflow"}}>
+              <i class="fa fa-play marginright5"></i>Validate
           </button>
           <button type="button" class="btn btn-primary" title="Submit workflow" {{action "submitWorkflow"}}>
               <i class="fa fa-upload marginright5"></i>Submit
@@ -137,7 +176,7 @@
      {{component hoveredWidget hoveredAction=hoveredAction hideNotification="hideNotification"}}
   {{/if}}
   <div  id="content" class="panel panel-default designer-main-panel col-xs-20">
-    <div class="panel-body designer-panel designer-canvas">
+    <div class="designer-panel designer-canvas">
       {{designer-errors errors=errors validationErrors=validationErrors}}
       {{#if undoAvailable}}
         <div id="alert"class="alert alert-warning" role="alert">
@@ -156,20 +195,34 @@
       </div>
       {{/if}}
       {{#unless isImportingSuccess}}
-      <div id="loader">
-          <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
-              There is some problem while importing.Please try again.
-              {{#if isStackTraceAvailable}}
-                {{#if isStackTraceVisible}}
-                  <a href="#" {{action "hideStackTrace"}}>Hide Log</a>
-                  <div id="stackTrace">{{{stackTrace}}}</div>
+        <div id="loader">
+            <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
+                {{errorMsg}}
+                {{#if isStackTraceAvailable}}
+                  {{#if isStackTraceVisible}}
+                    <a href="#" {{action "hideStackTrace"}}>Hide Log</a>
+                    <div id="stackTrace">{{{stackTrace}}}</div>
+                  {{/if}}
+                  {{#unless isStackTraceVisible}}
+                    <a href="#" {{action "showStackTrace"}}>Show Log</a>
+                  {{/unless}}
                 {{/if}}
-                {{#unless isStackTraceVisible}}  
-                  <a href="#" {{action "showStackTrace"}}>Show Log</a>
-                {{/unless}}
-              {{/if}}
-          </div>
-      </div>
+            </div>
+        </div>
+      {{/unless}}
+      {{#if isAssetPublishing}}
+        <div id="loader">
+            <div id="alert"class="alert alert-info alert-dismissible" role="alert">
+              Publishing asset. Please wait...
+            </div>
+        </div>
+      {{/if}}
+      {{#unless isPublishingSuccess}}
+        <div id="loader">
+            <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
+                {{errorMsg}}
+            </div>
+        </div>
       {{/unless}}
       <div id="flow-designer">
         {{#each flattenedNodes as |node|}}
@@ -224,6 +277,19 @@
             <span class="overlay-paste-icon" title="Replace Node from Clipboard">
               <i class="fa fa-paste"></i>
             </span>
+            <span class="overlay-local-fs-import-icon" title="Copy action settings from Local File System">
+              <div class="action-file-picker">
+                {{#file-picker fileLoaded="importActionSettings" preview=false}}
+                    <i class="fa fa-download"></i>
+                {{/file-picker}}
+              </div>
+            </span>
+            <span class="overlay-hdfs-import-icon" title="Import action" {{action "showActionSettingsFileBrowser"}}>
+                <i class="fa fa-download"></i>
+            </span>
+            <span class="overlay-hdfs-export-icon" title="Export action" {{action "showExportActionNodeFileBrowser"}}>
+                <i class="fa fa-upload"></i>
+            </span>
           </div>
           {{decision-add-branch node=node registerAddBranchAction="registerAddBranchAction" addDecisionBranch="addDecisionBranch" workflow=workflow}}
         </div>
@@ -233,16 +299,20 @@
         {{/if}}
       </div>
       <div id="workflow-actions" class="hidden">
-        {{workflow-actions element=popOverElement addNode="addNode" pasteNode="pasteNode" clipboard=clipboard}}
+        {{workflow-actions element=popOverElement addNode="addNode" pasteNode="pasteNode" showImportActionNodeFileBrowser="showImportActionNodeFileBrowser" importActionNodeLocalFS="importActionNodeLocalFS" clipboard=clipboard}}
       </div>
     </div>
   </div>
 </div>
+
+
+
+
 {{#if showActionEditor}}
   {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" setNodeTransitions="setNodeTransitions" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes credentials=workflow.credentials}}
 {{/if}}
 {{#if showingSaveWorkflow}}
-  {{save-wf type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs setFilePath="setFilePath" isDryrun=dryrun}}
+  {{save-wf type='wf' saveFileinfo="saveFileinfo" closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs setFilePath="setFilePath" isDryrun=dryrun isDraft=isDraft jobXmlJSONStr=jobXmlJSONStr}}
 {{/if}}
 {{#if showingWorkflowConfigProps}}
   {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
@@ -252,6 +322,15 @@
 {{/if}}
 {{#if showingFileBrowser}}
   {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=workflowFilePath}}
+{{/if}}
+{{#if showingActionSettingsFileBrowser}}
+  {{hdfs-browser closeFileBrowser="closeActionSettingsFileBrowser" selectFileCallback=selectFileCallback filePath=actionSettingsFilePath}}
+{{/if}}
+{{#if showingImportActionNodeFileBrowser}}
+  {{hdfs-browser closeFileBrowser="closeImportActionNodeFileBrowser" selectFileCallback=selectFileCallback filePath=actionNodeFilePath}}
+{{/if}}
+{{#if showingExportActionNodeFileBrowser}}
+  {{hdfs-browser closeFileBrowser="closeExportActionNodeFileBrowser" selectFileCallback=selectFileCallback filePath=exportActionNodeFilePath}}
 {{/if}}
 {{#if showingPreview}}
   {{#preview-dialog title="Workflow XML Preview" previewXml=previewXml}}{{/preview-dialog}}
@@ -315,6 +394,9 @@
 {{/if}}
 {{#if showParameterSettings}}
   {{#workflow-parameters type='wf' closeWorkFlowParam="closeWorkFlowParam" saveWorkFlowParam="saveWorkFlowParam" parameters=parameters}}{{/workflow-parameters}}
+{{/if}}
+{{#if showingStreamImport}}
+  {{import-from-stream type='wf' importWorkflowStream="importWorkflowStream" hideStreamImport="hideStreamImport" showingStreamImport=showingStreamImport workflowStream=workflowStream}}
 {{/if}}
 {{#if showKillNodeManager}}
   {{#killnode-manager killNodes=workflow.killNodes killNode=killNode createKillnodeError=createKillnodeError createKillNode="createKillNode" deleteNode="deleteNode" addKillNodeMode=addKillNodeMode editMode=editMode closeKillNodeManager="closeKillNodeManager"}}{{/killnode-manager}}

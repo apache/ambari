@@ -63,6 +63,9 @@ a {
 .marginright5{
   margin-right: 5px !important;
 }
+.padding15pcnt {
+  padding:15%;
+}
 #arrow{
     top: 24%;
     left: -22px;
@@ -417,10 +420,6 @@ input:invalid {
     white-space: nowrap;
 }
 
-.breadcrumb {
-    margin: 0;
-}
-
 .collapse.width {
     height: auto;
     -webkit-transition: width 0.35s ease;
@@ -698,7 +697,7 @@ input:invalid {
   display: none !important;
 }
 #search-bar .bootstrap-tagsinput {
-    width: 260px;
+    width: 300px;
     border-radius: 0px;
     line-height: 20px;
     vertical-align: top;
@@ -716,7 +715,7 @@ input:invalid {
     border: 1px solid rgba(0,0,0,0.2);
     margin-top: 7px;
     background-color: white;
-    width: 60% !important;
+    width: auto;
     padding: 0 5px;
 }
 #job-detail-app-path{
@@ -741,6 +740,7 @@ input:invalid {
   height: 24px;
   margin-left: 10px;
   line-height: 30px;
+  display: inline-block;
 }
 
 .info {
@@ -869,11 +869,11 @@ input:invalid {
 
 #loading {
     position: absolute;
-    top: 90px;
-    left: 0;
+    top: 20%;
+    left: 30%;
     display: none;
-    width: 100vw;
-    height: 80vh;
+    width: 50vw;
+    height: 40vh;
     overflow: hidden;
     z-index: 1;
 }
@@ -1188,9 +1188,7 @@ input:invalid {
 }
 .wf-path {
     font-size: 12px;
-    float: left;
     color: gray;
-    margin-top: 17px;
     max-width: 150px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1318,6 +1316,9 @@ input:invalid {
   border: 1px solid @defaultRed;
 }
 
+.cy-panzoom-panner{
+  display:none;
+}
 .decision-condition-label {
   border-bottom: 1px solid #D0D0D0;
   padding: 3px;
@@ -1494,4 +1495,51 @@ input:invalid {
   max-width: 100%;
   max-height: 400px;
   overflow: scroll;
+}
+.jobIdClass {
+  width: 50px;
+}
+.width50 {
+    white-space: nowrap;
+    width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.twitter-typeahead .tt-input {
+  width:250px;
+}
+
+.breadcrumb {
+  padding: 0px;
+  margin: 0px;
+}
+
+.breadcrumb-item {
+  color: #777;
+  font-size: 11px;
+}
+
+.breadcrumb-item a {
+  color: #777;
+}
+
+.action-file-picker {
+  display: inline-block;
+}
+.prettyprint .CodeMirror {
+  height:auto;
+}
+#id{
+  width: 500px;
+}
+#xmlCodeStream{
+  width: 580px;
+  border: 1px solid #dddd;
+}
+.create-wf-menu{
+  display: inline-block;
+}
+.inlineBlock{
+  display:inline-block;
 }

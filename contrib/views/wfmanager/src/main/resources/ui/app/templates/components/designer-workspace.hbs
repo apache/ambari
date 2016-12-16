@@ -26,81 +26,98 @@
         </div>
         <div class="col-sm-8">
           <div class="text-right pull-right paddingtop7">
-            <div class="btn-group btn-group" role="group" aria-label="buttons">
-              <button id="wfs_btn" {{action 'show' 'wf'}} type="button" class="btn btn-default">
-                <i class="fa fa-sitemap marginright5"></i>
-                {{#if hasMultitabSupport}}
-                New Workflow
-                {{else}}
-                Workflow
-                {{/if}}
-              </button>
-              <button id="coords_btn" {{action 'show' 'coord'}} type="button" class="btn btn-default">
-                <i class="fa fa-history marginright5"></i>
-                {{#if hasMultitabSupport}}
-                New Coordinator
-                {{else}}
-                Coordinator
-                {{/if}}
-              </button>
-              <button id="bundles_btn" {{action 'show' 'bundle'}} type="button" class="btn btn-default">
-                <i class="fa fa-cubes marginright5"></i>
-                {{#if hasMultitabSupport}}
-                New Bundle
-                {{else}}
-                Bundle
-                {{/if}}
-              </button>
-              {{#link-to 'dashboard' class="backto-dashboard btn btn-default" title="Workflow Dashboard"}}
+            <div class="dropdown create-wf-menu">
+              <button class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown">Create
+                <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a id="wfs_btn" class="pointer" {{action 'show' 'wf'}}>
+                      <i class="fa fa-sitemap marginright5"></i>
+                      {{#if hasMultitabSupport}}
+                      Workflow
+                      {{else}}
+                      Workflow
+                      {{/if}}
+                    </a>
+                  </li>
+                  <li>
+                    <a id="coords_btn" class="pointer" {{action 'show' 'coord'}}>
+                      <i class="fa fa-history marginright5"></i>
+                      {{#if hasMultitabSupport}}
+                      Coordinator
+                      {{else}}
+                      Coordinator
+                      {{/if}}
+                    </a>
+                  </li>
+                  <li>
+                    <a id="bundles_btn" class="pointer" {{action 'show' 'bundle'}}>
+                      <i class="fa fa-cubes marginright5"></i>
+                      {{#if hasMultitabSupport}}
+                      Bundle
+                      {{else}}
+                      Bundle
+                      {{/if}}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <button {{action 'showDashboard'}} class="backto-dashboard btn btn-default" title="Workflow Dashboard">
                 <i class="fa fa-th marginright5"></i>Dashboard
-              {{/link-to}}
+              </button>
+              {{help-icon}}
             </div>
-            {{help-icon}}
           </div>
         </div>
       </div>
-    </div>
-  </nav>
-  <ul class="nav nav-tabs tab-panel-heading">
-    {{#each tabs as |tab index|}}
-      <li class="{{if (eq index currentIndex) 'active'}}" title="{{tab.filePath}}">
-        <a href="#{{tab.id}}" data-toggle="tab" {{action 'interceptShow' tab}}>
+    </nav>
+    <ul class="nav nav-tabs tab-panel-heading">
+      {{#each tabs as |tab index|}}
+      <li class="{{if (eq index currentIndex) 'active'}}" title="{{tab.filePath}}" data-type="{{tab.type}}">
+        <a href="#{{tab.id}}" data-toggle="tab" {{action 'interceptShow' tab preventDefault=true}}>
           {{#if (eq tab.type 'wf')}}
-            <i class="fa fa-sitemap marginright5"></i>
+          <i class="fa fa-sitemap marginright5"></i>
           {{else if (eq tab.type 'coord')}}
-            <i class="fa fa-history marginright5"></i>
+          <i class="fa fa-history marginright5"></i>
           {{else if (eq tab.type 'bundle')}}
-            <i class="fa fa-cubes marginright5"></i>
+          <i class="fa fa-cubes marginright5"></i>
+          {{else}}
+          <i class="fa fa-th marginright5"></i>
           {{/if}}
           {{tab.name}}
           <span class="closeTab" {{action "closeTab" index bubbles=false }}>x</span>
         </a>
       </li>
-    {{/each}}
-  </ul>
-  <div class="tab-content">
-    {{#each tabs as |tab index|}}
+      {{/each}}
+    </ul>
+    <div class="tab-content">
+      {{#each tabs as |tab index|}}
       <div class="tab-pane {{if (eq index currentIndex) 'active'}}" id="{{tab.id}}">
         {{#if (eq tab.type 'wf')}}
-          {{flow-designer xmlAppPath=tab.path register="register" openTab="openTab" changeTabName="changeTabName" changeFilePath="changeFilePath" tabInfo=tab}}
+          {{flow-designer xmlAppPath=tab.path register="register" openTab="openTab" changeTabName="changeTabName"
+          changeFilePath="changeFilePath" tabInfo=tab}}
         {{else if (eq tab.type 'coord')}}
-          {{coord-config xmlAppPath=tab.path register="register" openTab="openTab" changeTabName="changeTabName" changeFilePath="changeFilePath" tabInfo=tab}}
+          {{coord-config xmlAppPath=tab.path register="register" openTab="openTab" changeTabName="changeTabName"
+          changeFilePath="changeFilePath" tabInfo=tab}}
         {{else if (eq tab.type 'bundle')}}
-          {{bundle-config register="register" openTab="openTab" changeTabName="changeTabName" changeFilePath="changeFilePath" tabInfo=tab}}
+          {{bundle-config register="register" openTab="openTab" changeTabName="changeTabName"
+          changeFilePath="changeFilePath" tabInfo=tab}}
+        {{else if (eq tab.type 'dashboard')}}
+          {{outlet}}
         {{else}}
           {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
         {{/if}}
       </div>
-    {{/each}}
+      {{/each}}
+    </div>
   </div>
-</div>
-<!--
+  <!--
   {{#if (eq type 'wf')}}
-    {{flow-designer xmlAppPath=appPath isNew=isNew}}
+  {{flow-designer xmlAppPath=appPath isNew=isNew}}
   {{else if (eq type 'coord')}}
-    {{coord-config}}
+  {{coord-config}}
   {{else if (eq type 'bundle')}}
-    {{bundle-config}}
+  {{bundle-config}}
   {{else}}
-    {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
+  {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
   {{/if}} -->

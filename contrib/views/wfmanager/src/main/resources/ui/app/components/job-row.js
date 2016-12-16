@@ -19,6 +19,10 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
   tagName: 'tr',
+  targetParentId: Ember.computed('job', function() {
+    var parentID = this.get('job').parentId;
+    return parentID.split("@")[0];
+  }),
   onRender : function(){
     this.$('#actions').hide();
   }.on('didInsertElement'),

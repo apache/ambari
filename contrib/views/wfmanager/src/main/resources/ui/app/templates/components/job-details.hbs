@@ -18,19 +18,35 @@
 <div id="job-details" class="panel panel-default">
   <div class="panel-heading">
     <div class="pull-right">
-      {{#if from}}
-      <button type="button" class="btn btn-default" title="Back" {{action 'back'}}>
-          <i class="fa fa-arrow-left"></i>
-      </button>
-      {{/if}}
-      {{#link-to 'dashboard' class="backto-dashboard"}}
+      {{#link-to 'design.dashboardtab' class="backto-dashboard"}}
       <button type="button" class="btn btn-default" title="Workflow Dashboard">
           <i class="fa fa-th"></i>
       </button>
       {{/link-to}}
     </div>
     <div class="pull-left">
-      <span class="jobTitle">{{displayType}} Job : {{name}} </span>
+      <div class="jobTitle">
+        <!-- {{displayType}} Job : {{name}}  -->
+        <ol class="breadcrumb">
+          {{#if fromBundleId}}
+            <li class="breadcrumb-item">
+              <a href="#" {{action 'back' 'bundles' fromBundleId}}>
+                {{#workflow-icon workflowType="bundles"}}{{/workflow-icon}} [ <span title="{{fromBundleId}}">{{dashboardContext.currentBundleName}}</span> ]
+              </a>
+            </li>
+          {{/if}}
+          {{#if fromCoordId}}
+            <li class="breadcrumb-item">
+              <a href="#" {{action 'back' 'coords' fromCoordId}}>
+                {{#workflow-icon workflowType="coords"}}{{/workflow-icon}} [ <span title="{{fromCoordId}}">{{dashboardContext.currentCoordName}}</span> ]
+              </a>
+            </li>
+          {{/if}}
+          <li class="breadcrumb-item">
+            {{#workflow-icon workflowType=model.jobType}}{{/workflow-icon}} [ <span title="{{id}}">{{name}}</span> ]
+          </li>
+        </ol>
+      </div>
       <span class="fa fa-refresh fa-1 pointer btn btn-default" title="Refresh" {{action 'doRefresh'}} aria-hidden="true"></span>
     </div>
     <div class="clearfix"></div>
@@ -39,7 +55,7 @@
     {{#if model.error}}<span class="messageDiv label label-danger">{{model.error}}</span>{{/if}}
     {{#if error}}<span class="messageDiv label label-danger">{{errorMessage}}</span>{{/if}}
     {{#if (eq model.jobType "wf")}}
-      {{#workflow-job-details model=model getJobLog="getJobLog" getActionDetails="getActionDetails" id=id}}
+      {{#workflow-job-details model=model jobDefinition=jobDefinition configurationProperties=configurationProperties getJobLog="getJobLog" getActionDetails="getActionDetails" id=id}}
         <div>
           <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="active"><a href="#jobInfo" aria-controls="job-info" role="tab" data-toggle="tab">Info</a></li>
@@ -77,7 +93,7 @@
         </div>
       {{/coord-job-details}}
     {{else}}
-      {{#bundle-job-details model=model getJobLog="getJobLog" id=id showCoord="showCoord"}}
+      {{#bundle-job-details model=model jobDefinition=jobDefinition configurationProperties=configurationProperties getJobLog="getJobLog" id=id showCoord="showCoord"}}
         <div>
           <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="active"><a href="#jobInfo" aria-controls="job-info" role="tab" data-toggle="tab">Info</a></li>

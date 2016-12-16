@@ -17,6 +17,7 @@
  */
 package org.apache.oozie.ambari.view;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.ambari.view.ViewContext;
@@ -24,6 +25,7 @@ import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +38,10 @@ public class HDFSFileUtils {
 		super();
 		this.viewContext = viewContext;
 	}
+
 	public boolean fileExists(String path) {
-		boolean fileExists;
 		try {
-			fileExists = getHdfsgetApi().exists(path);
+			return getHdfsgetApi().exists(path);
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage(), e);
 			throw new RuntimeException(e);
@@ -47,11 +49,9 @@ public class HDFSFileUtils {
 			LOGGER.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		}
-		LOGGER.info("FILE exists for [" + path + "] returned [" + fileExists
-				+ "]");
-		return fileExists;
 	}
-	public FSDataInputStream read(String filePath)throws IOException{
+
+	public FSDataInputStream read(String filePath) throws IOException {
 		FSDataInputStream is;
 		try {
 			is = getHdfsgetApi().open(filePath);
@@ -60,19 +60,28 @@ public class HDFSFileUtils {
 		}
 		return is;
 	}
-	public String createWorkflowFile( String workflowFile,String postBody,
-			boolean overwrite) throws IOException {
+
+	public String writeToFile(String filePath, String content, boolean overwrite)
+			throws IOException {
 		FSDataOutputStream fsOut;
 		try {
-			fsOut = getHdfsgetApi().create(workflowFile,
-					overwrite);
+			fsOut = getHdfsgetApi().create(filePath, overwrite);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		fsOut.write(postBody.getBytes());
+		fsOut.write(content.getBytes());
 		fsOut.close();
-		return workflowFile;
+		return filePath;
 	}
+
+	public void deleteFile(String filePath) throws IOException {
+		try {
+			getHdfsgetApi().delete(filePath, false);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private HdfsApi getHdfsgetApi() {
 		try {
 			return HdfsUtil.connectToHDFSApi(viewContext);
@@ -82,6 +91,19 @@ public class HDFSFileUtils {
 					"HdfsApi connection failed. Check \"webhdfs.url\" property",
 					ex);
 		}
+	}
+
+	public FileStatus getFileStatus(String filePath) {
+		try {
+			return getHdfsgetApi().getFileStatus(filePath);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 }

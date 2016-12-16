@@ -79,7 +79,7 @@ var CytoscapeRenderer= Ember.Object.extend({
         return 'roundrectangle';
       case 'fork' :
       case 'join' :
-        return 'rectangle';
+        return 'roundrectangle';
       case 'decision' :
         return 'diamond';
       default :
@@ -199,6 +199,8 @@ var CytoscapeRenderer= Ember.Object.extend({
       if (node.data().type === 'action') {
         this.get("context").$(".overlay-copy-icon").show();
         this.get("context").$(".overlay-cut-icon").show();
+        this.get("context").$(".overlay-hdfs-import-icon").show();
+        this.get("context").$(".overlay-hdfs-export-icon").show();
         if(this.get('context').get('clipboard')){
           this.get("context").$(".overlay-paste-icon").show();
         }
@@ -317,6 +319,15 @@ var CytoscapeRenderer= Ember.Object.extend({
     this._initCY(settings);
     callback();
   },
+
+  fitWorkflow() {
+    this.cy.fit();
+  },
+
+  hideOverlayNodeActions() {
+    this.get("context").$('.overlay-node-actions').hide();
+  },
+
   reset(){
 
   },

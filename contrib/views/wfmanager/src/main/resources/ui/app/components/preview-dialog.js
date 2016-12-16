@@ -1,3 +1,4 @@
+
 /*
 *    Licensed to the Apache Software Foundation (ASF) under one or more
 *    contributor license agreements.  See the NOTICE file distributed with
@@ -17,4 +18,10 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+  elementsInserted :function(){
+  	var self = this;
+	  this.$('#previewModal').on('shown.bs.modal', function (e) {
+	    self.$('.CodeMirror')[0].CodeMirror.refresh();
+	  }); 
+  }.on('didInsertElement'),
 });

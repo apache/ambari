@@ -128,7 +128,9 @@
   <div role="tabpanel" class="tab-pane" id="jobDefinition">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <pre class="prettyprint">{{model.jobDefinition}}</pre>
+        <pre class="prettyprint">
+          {{ivy-codemirror value=jobDefinition options=(hash lineNumbers=false mode="xml" indentWithTabs=true readOnly=true)}}
+        </pre>
       </div>
     </div>
   </div>
@@ -143,7 +145,7 @@
             </tr>
           </thead>
           <tbody>
-            {{#each model.configurationProperties as |configurationProperty|}}
+            {{#each configurationProperties as |configurationProperty|}}
               <tr>
                 <td class="propertyName">{{configurationProperty.name}}</td>
                 <td class="propertyValue">{{configurationProperty.value}}</td>
@@ -231,20 +233,20 @@
               </div>
             </div>
             {{#if model.actionDetails}}
-            <div class="modal fade" role="dialog" id="actionDetailsModal">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Job Action Details</h4>
-                  </div>
-                  <div class="modal-body">
-                    {{#workflow-job-action-info actionInfo=model.actionDetails}}
-                    {{/workflow-job-action-info}}
+              <div class="modal fade" role="dialog" id="actionDetailsModal">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      <h4 class="modal-title">Job Action Details</h4>
+                    </div>
+                    <div class="modal-body">
+                      {{#workflow-job-action-info actionInfo=model.actionDetails}}
+                      {{/workflow-job-action-info}}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             {{/if}}
             {{/if}}
           </div>
