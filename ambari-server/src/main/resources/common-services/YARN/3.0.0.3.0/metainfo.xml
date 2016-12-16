@@ -23,7 +23,7 @@
       <name>YARN</name>
       <displayName>YARN</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-      <version>2.1.0.2.0</version>
+      <version>3.0.0.3.0</version>
       <components>
 
         <component>

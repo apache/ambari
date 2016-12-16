@@ -34,11 +34,10 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.script.script import Script
-from ambari_commons.inet_utils import ensure_ssl_using_protocol
+from ambari_commons.inet_utils import ensure_ssl_using_tls_v1
 from zkfc_slave import ZkfcSlaveDefault
 
-ensure_ssl_using_protocol(Script.get_force_https_protocol())
+ensure_ssl_using_tls_v1()
 
 def safe_zkfc_op(action, env):
   """
