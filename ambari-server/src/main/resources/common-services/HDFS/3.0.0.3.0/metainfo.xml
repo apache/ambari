@@ -22,7 +22,7 @@
       <name>HDFS</name>
       <displayName>HDFS</displayName>
       <comment>Apache Hadoop Distributed File System</comment>
-      <version>3.0.0</version>
+      <version>3.0.0.3.0</version>
 
       <components>
         <component>

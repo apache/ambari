@@ -21,7 +21,7 @@
     <service>
       <name>YARN</name>
       <version>3.0.0.3.0</version>
-      <extends>common-services/YARN/3.0.0</extends>
+      <extends>common-services/YARN/3.0.0.3.0</extends>
 
       <osSpecifics>
         <osSpecific>
