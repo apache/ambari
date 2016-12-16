@@ -16,7 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+from resource_management.core import sudo
 from resource_management import Script
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -49,6 +52,27 @@ class DruidBase(Script):
     env.set_params(params)
     self.configure(env, upgrade_type=upgrade_type)
     daemon_cmd = get_daemon_cmd(params, self.nodeType, "start")
+    # Verify Database connection on Druid start
+    if params.metadata_storage_type == 'mysql':
+      if not params.jdbc_driver_jar or not os.path.isfile(params.connector_download_dir + os.path.sep + params.jdbc_driver_jar):
+        path_to_jdbc =  params.druid_extensions_dir + os.path.sep + "*"
+        error_message = "Error! Sorry, but we can't find jdbc driver for mysql.So, db connection check can fail." + \
+                        "Please run 'ambari-server setup --jdbc-db=mysql --jdbc-driver={path_to_jdbc} on server host.'"
+        Logger.error(error_message)
+      else:
+        path_to_jdbc = params.connector_download_dir + os.path.sep + params.jdbc_driver_jar
+      db_connection_check_command = format("{params.java8_home}/bin/java -cp {params.check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{params.metadata_storage_url}' {params.metadata_storage_user} {params.metadata_storage_password!p} com.mysql.jdbc.Driver")
+    else:
+      db_connection_check_command = None
+
+    if db_connection_check_command:
+      sudo.chmod(params.check_db_connection_jar, 0755)
+      Execute( db_connection_check_command,
+               tries=5,
+               try_sleep=10,
+               user=params.druid_user
+               )
+
     try:
       Execute(daemon_cmd,
               user=params.druid_user

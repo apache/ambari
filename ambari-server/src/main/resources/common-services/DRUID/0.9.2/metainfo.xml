@@ -170,46 +170,6 @@
             </package>
           </packages>
         </osSpecific>
-        <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>mysql</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
-          <packages>
-            <package>
-              <name>mysql-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat7</osFamily>
-          <packages>
-            <package>
-              <name>mysql-community-release</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>mysql-community-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>mysql-client</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
       </osSpecifics>
       <commandScript>
         <script>scripts/service_check.py</script>

@@ -71,6 +71,7 @@ druid_user = config['configurations']['druid-env']['druid_user']
 druid_log_dir = config['configurations']['druid-env']['druid_log_dir']
 druid_classpath = config['configurations']['druid-env']['druid_classpath']
 druid_extensions = config['configurations']['druid-common']['druid.extensions.pullList']
+druid_repo_list = config['configurations']['druid-common']['druid.extensions.repositoryList']
 
 # status params
 druid_pid_dir = status_params.druid_pid_dir
@@ -89,6 +90,18 @@ logrotate_props = config['configurations']['druid-logrotate']['content']
 metadata_storage_user = config['configurations']['druid-common']['druid.metadata.storage.connector.user']
 metadata_storage_password = config['configurations']['druid-common']['druid.metadata.storage.connector.password']
 metadata_storage_db_name = config['configurations']['druid-common']['database_name']
+metadata_storage_db_name = config['configurations']['druid-common']['database_name']
+metadata_storage_type = config['configurations']['druid-common']['druid.metadata.storage.type']
+metadata_storage_url = config['configurations']['druid-common']['druid.metadata.storage.connector.connectURI']
+jdk_location = config['hostLevelParams']['jdk_location']
+if 'mysql' == metadata_storage_type:
+  jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  connector_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
+  connector_download_dir=format("{druid_extensions_dir}/mysql-metadata-storage")
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
+
+check_db_connection_jar_name = "DBConnectionVerification.jar"
+check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
 # HDFS
 security_enabled = config['configurations']['cluster-env']['security_enabled']

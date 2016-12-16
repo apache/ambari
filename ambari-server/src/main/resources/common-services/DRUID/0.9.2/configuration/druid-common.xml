@@ -24,12 +24,12 @@
     <name>druid.extensions.pullList</name>
     <value>[]</value>
     <description>A comma-separated list of one or more druid extensions to download from maven.</description>
-    <depends-on>
-      <property>
-        <type>druid-common</type>
-        <name>druid.metadata.storage.type</name>
-      </property>
-    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.extensions.repositoryList</name>
+    <value>[]</value>
+    <description>A comma-separated list of maven repositories to download extensions.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>

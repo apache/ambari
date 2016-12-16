@@ -72,20 +72,16 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       metastore_hostname = services['configurations']["druid-common"]["properties"]["metastore_hostname"]
       database_type = services['configurations']["druid-common"]["properties"]["druid.metadata.storage.type"]
       metadata_storage_port = "1527"
-      mysql_extension_name = "io.druid.extensions:mysql-metadata-storage"
       mysql_module_name = "mysql-metadata-storage"
       postgres_module_name = "postgresql-metadata-storage"
       extensions_load_list = services['configurations']['druid-common']['properties']['druid.extensions.loadList']
-      extensions_pull_list = services['configurations']['druid-common']['properties']['druid.extensions.pullList']
       putDruidCommonProperty = self.putProperty(configurations, "druid-common", services)
 
-      extensions_pull_list = self.removeFromList(extensions_pull_list, mysql_extension_name)
       extensions_load_list = self.removeFromList(extensions_load_list, mysql_module_name)
       extensions_load_list = self.removeFromList(extensions_load_list, postgres_module_name)
 
       if database_type == 'mysql':
           metadata_storage_port = "3306"
-          extensions_pull_list = self.addToList(extensions_pull_list, mysql_extension_name)
           extensions_load_list = self.addToList(extensions_load_list, mysql_module_name)
 
       if database_type == 'postgres':
@@ -110,7 +106,6 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           extensions_load_list = self.addToList(extensions_load_list, "druid-kafka-indexing-service")
 
       putCommonProperty('druid.extensions.loadList', extensions_load_list)
-      putCommonProperty('druid.extensions.pullList', extensions_pull_list)
 
       # JVM Configs go to env properties
       putEnvProperty = self.putProperty(configurations, "druid-env", services)
