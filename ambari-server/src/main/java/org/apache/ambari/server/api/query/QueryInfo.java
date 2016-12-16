@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.api.query;
 
-import org.apache.ambari.server.api.resources.ResourceDefinition;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.ambari.server.api.resources.ResourceDefinition;
 
 /**
  * Query related information.

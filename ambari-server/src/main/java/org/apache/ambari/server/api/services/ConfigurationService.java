@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.api.services;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -29,9 +32,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Service responsible for services resource requests.

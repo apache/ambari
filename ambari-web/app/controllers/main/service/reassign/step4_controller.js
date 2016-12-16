@@ -88,7 +88,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'HIVE_METASTORE': ['HIVE', 'PIG', 'FALCON', 'ATLAS', 'OOZIE'],
     'WEBHCAT_SERVER': ['HIVE'],
     'OOZIE_SERVER': ['OOZIE', 'FALCON', 'KNOX'],
-    'MYSQL_SERVER': ['HIVE', 'OOZIE', 'RANGER', 'RANGER_KMS']
+    'MYSQL_SERVER': ['HIVE', 'OOZIE', 'RANGER', 'RANGER_KMS'],
+    'METRICS_COLLECTOR': ['AMBARI_METRICS']
   },
 
   dbPropertyMap: {
@@ -403,26 +404,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (!this.get('content.reassignComponentsInMM.length')) {
       this.removeTasks(['stopHostComponentsInMaintenanceMode']);
     }
-  },
-
-  /**
-   * remove tasks by command name
-   */
-  removeTasks: function(commands) {
-    var tasks = this.get('tasks');
-
-    commands.forEach(function(command) {
-      var cmd = tasks.filterProperty('command', command);
-      var index = null;
-
-      if (cmd.length === 0) {
-        return false;
-      } else {
-        index = tasks.indexOf( cmd[0] );
-      }
-
-      tasks.splice( index, 1 );
-    });
   },
 
   /**

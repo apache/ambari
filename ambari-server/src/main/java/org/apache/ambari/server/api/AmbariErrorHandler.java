@@ -18,9 +18,13 @@
 
 package org.apache.ambari.server.api;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.eclipse.jetty.http.HttpStatus;
@@ -29,11 +33,9 @@ import org.eclipse.jetty.server.AbstractHttpConnection;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 /**
  * Custom error handler for Jetty to return response as JSON instead of stub http page

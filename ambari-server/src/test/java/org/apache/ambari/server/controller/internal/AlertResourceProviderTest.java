@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
 import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_DRIVER;
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;

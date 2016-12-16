@@ -17,7 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
@@ -27,7 +28,7 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
-import java.util.Map;
+import junit.framework.Assert;
 
 /**
  * Tests for the property predicate visitor.

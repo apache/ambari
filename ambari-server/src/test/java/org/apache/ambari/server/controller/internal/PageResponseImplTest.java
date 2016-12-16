@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
+import java.util.HashSet;
+
 import org.apache.ambari.server.controller.spi.PageResponse;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
-import java.util.HashSet;
+import junit.framework.Assert;
 
 /**
  * PageResponseImpl tests.

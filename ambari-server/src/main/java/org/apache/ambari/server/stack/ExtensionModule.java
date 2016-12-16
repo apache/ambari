@@ -27,14 +27,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ExtensionInfo;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
-import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,8 +248,10 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
     Collection<ServiceModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, serviceModules, parentExtension.serviceModules);
     for (ServiceModule module : mergedModules) {
-      serviceModules.put(module.getId(), module);
-      extensionInfo.getServices().add(module.getModuleInfo());
+      if(!module.isDeleted()){
+        serviceModules.put(module.getId(), module);
+        extensionInfo.getServices().add(module.getModuleInfo());
+      }
     }
   }
 
@@ -523,7 +520,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
   private Set<String> errorSet = new HashSet<String>();
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
   }
 

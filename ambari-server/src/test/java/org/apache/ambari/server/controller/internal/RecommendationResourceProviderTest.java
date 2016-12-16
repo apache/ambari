@@ -20,8 +20,6 @@ package org.apache.ambari.server.controller.internal;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class RecommendationResourceProviderTest {
 
   @Test

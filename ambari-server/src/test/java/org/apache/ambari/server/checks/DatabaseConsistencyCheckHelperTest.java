@@ -18,8 +18,6 @@
 package org.apache.ambari.server.checks;
 
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
 import static org.easymock.EasyMock.expect;
 
 import java.sql.Connection;
@@ -27,6 +25,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -40,6 +40,8 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 public class DatabaseConsistencyCheckHelperTest {
 

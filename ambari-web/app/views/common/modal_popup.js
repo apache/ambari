@@ -45,6 +45,9 @@ App.ModalPopup = Ember.View.extend({
     }
     return modalDialogClasses.join(' ');
   }.property('modalDialogClasses.[]'),
+  primaryId: '',
+  secondaryId: '',
+  thirdId: '',
   onPrimary: function () {
     this.hide();
   },
@@ -116,7 +119,7 @@ App.ModalPopup = Ember.View.extend({
 
   enterKeyPressed: function (event) {
     var primaryButton = this.$().find('.modal-footer > .btn-success').last();
-    if ((!$("*:focus").is("textarea")) && primaryButton.length > 0 && primaryButton.attr('disabled') !== 'disabled') {
+    if (!$("*:focus").is('textarea') && primaryButton.length > 0 && primaryButton.attr('disabled') !== 'disabled') {
       event.preventDefault();
       event.stopPropagation();
       primaryButton.click();
@@ -158,7 +161,9 @@ App.ModalPopup = Ember.View.extend({
       'marginTop': 0
     });
 
-    block.css('max-height', $(window).height() - top * 2 - (popup.height() - block.height()));
+    var newMaxHeight = $(window).height() - top * 2 - (popup.height() - block.height());
+    newMaxHeight = Math.max(newMaxHeight, 500);
+    block.css('max-height', newMaxHeight);
   }
 });
 

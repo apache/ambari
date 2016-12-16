@@ -41,6 +41,7 @@ class Hardware:
   CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT = '10'
   IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys"]
   IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
+  LINUX_PATH_SEP = "/"
 
   def __init__(self, config):
     self.hardware = {
@@ -88,6 +89,37 @@ class Hardware:
     return True
 
   @classmethod
+  def _is_mount_blacklisted(cls, blacklist, mount_point):
+    """
+    Verify if particular mount point is in the black list.
+
+    :return True if mount_point or a part of mount point is in the blacklist, otherwise return False
+
+     Example:
+       Mounts: /, /mnt/my_mount, /mnt/my_mount/sub_mount
+       Blacklist: /mnt/my_mount
+       Result: /
+
+    :type blacklist list
+    :type mount_point str
+    :rtype bool
+    """
+
+    if not blacklist or not mount_point:
+      return False
+
+    mount_point_elements = mount_point.split(cls.LINUX_PATH_SEP)
+
+    for el in blacklist:
+      el_list = el.split(cls.LINUX_PATH_SEP)
+      # making patch elements comparision
+      if el_list == mount_point_elements[:len(el_list)]:
+        return True
+
+    return False
+
+
+  @classmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
   def osdisks(cls, config=None):
     """ Run df to find out the disks on the host. Only works on linux
@@ -95,6 +127,11 @@ class Hardware:
     and any mounts with spaces. """
     timeout = cls._get_mount_check_timeout(config)
     command = ["timeout", timeout, "df", "-kPT"]
+    blacklisted_mount_points = []
+
+    if config:
+      ignore_mount_value = config.get("agent", "ignore_mount_points", default="")
+      blacklisted_mount_points = [item.strip() for item in ignore_mount_value.split(",")]
 
     if not cls._check_remote_mounts(config):
       command.append("-l")
@@ -103,6 +140,7 @@ class Hardware:
     dfdata = df.communicate()[0]
     mounts = [cls._parse_df_line(line) for line in dfdata.splitlines() if line]
     result_mounts = []
+    ignored_mounts = []
 
     for mount in mounts:
       if not mount:
@@ -113,13 +151,21 @@ class Hardware:
        - mounted device is not in the ignored list
        - is accessible to user under which current process running
        - it is not file-mount (docker environment)
+       - mount path or a part of mount path is not in the blacklist
       """
-      if mount["device"] not in cls.IGNORE_DEVICES and \
+      if mount["device"] not in cls.IGNORE_DEVICES and\
          mount["mountpoint"].split("/")[0] not in cls.IGNORE_ROOT_MOUNTS and\
-         cls._chk_writable_mount(mount['mountpoint']) and \
-         not path_isfile(mount["mountpoint"]):
+         cls._chk_writable_mount(mount['mountpoint']) and\
+         not path_isfile(mount["mountpoint"]) and\
+         not cls._is_mount_blacklisted(blacklisted_mount_points, mount["mountpoint"]):
 
         result_mounts.append(mount)
+      else:
+        ignored_mounts.append(mount)
+
+      if len(ignored_mounts) > 0:
+        ignore_list = [el["mountpoint"] for el in ignored_mounts]
+        logger.info("Some mount points was ignored: {0}".format(', '.join(ignore_list)))
 
     return result_mounts
 

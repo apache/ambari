@@ -65,7 +65,7 @@ var MappingMixin= Ember.Mixin.create({
     var domain={};
     if (json._xmlns){
       var version=CommonUtils.extractSchemaVersion(json._xmlns);
-      this.schemaVersions.setActionVersion(actionNode.actionType,version);
+      //this.schemaVersions.setActionVersion(actionNode.actionType,version);
     }
     actionNode.set("domain",domain);
     mappings.forEach(function(mapping){

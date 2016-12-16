@@ -19,8 +19,8 @@
 package org.apache.ambari.server.api.services;
 
 
-import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Represents a result from a request handler invocation.

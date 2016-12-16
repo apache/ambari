@@ -17,17 +17,19 @@
  */
 package org.apache.ambari.server.api;
 
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.api.services.serializers.JsonSerializer;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+
+import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.api.services.serializers.JsonSerializer;
+
+import com.sun.jersey.spi.container.ContainerRequest;
+import com.sun.jersey.spi.container.ContainerRequestFilter;
 
 public class AmbariCsrfProtectionFilter implements ContainerRequestFilter {
   private static final Set<String> IGNORED_METHODS;

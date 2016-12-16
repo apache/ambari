@@ -501,10 +501,10 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#addComponent()', function () {
     beforeEach(function () {
-      sinon.spy(App, "showConfirmationPopup");
       sinon.stub(controller, "addClientComponent", Em.K);
       sinon.stub(controller, "installHostComponentCall", Em.K);
       sinon.stub(controller, "checkComponentDependencies", Em.K);
+      sinon.stub(controller, "showAddComponentConfirmation", Em.K);
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: "HDFS_CLIENT"
@@ -516,10 +516,10 @@ describe('App.MainHostDetailsController', function () {
     });
 
     afterEach(function () {
-      App.showConfirmationPopup.restore();
       controller.addClientComponent.restore();
       controller.installHostComponentCall.restore();
       controller.checkComponentDependencies.restore();
+      controller.showAddComponentConfirmation.restore();
     });
 
     it('add ZOOKEEPER_SERVER', function () {
@@ -529,7 +529,7 @@ describe('App.MainHostDetailsController', function () {
         })
       };
       controller.addComponent(event);
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.showAddComponentConfirmation.calledOnce).to.be.true;
     });
     it('add WEBHCAT_SERVER', function () {
       var event = {
@@ -538,7 +538,7 @@ describe('App.MainHostDetailsController', function () {
         })
       };
       controller.addComponent(event);
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.showAddComponentConfirmation.calledOnce).to.be.true;
     });
     it('add slave component', function () {
       var event = {
@@ -647,12 +647,15 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {
+        configs: {}
+      });
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=storm-site&tag=tag)'
+        urlParams: '(type=storm-site&tag=tag)',
+        configs: {}
       });
     });
   });
@@ -673,7 +676,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
       controller.set('nimbusHost', 'host2');
-      controller.onLoadStormConfigs(data);
+      controller.onLoadStormConfigs(data, null, {});
     });
     afterEach(function () {
       controller.getStormNimbusHosts.restore();
@@ -718,12 +721,15 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {
+        configs: {}
+      });
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=hive-site&tag=tag)|(type=webhcat-site&tag=tag)|(type=hive-env&tag=tag)|(type=core-site&tag=tag)'
+        urlParams: '(type=hive-site&tag=tag)|(type=webhcat-site&tag=tag)|(type=hive-env&tag=tag)|(type=core-site&tag=tag)',
+        configs: {}
       });
     });
   });
@@ -742,12 +748,15 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {
+        configs: {}
+      });
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)'
+        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)',
+        configs: {}
       });
     });
   });
@@ -1075,7 +1084,7 @@ describe('App.MainHostDetailsController', function () {
         ];
       });
 
-      controller.saveZkConfigs(data);
+      controller.saveZkConfigs(data, null, {});
       this.groups = controller.saveConfigsBatch.args[0][0];
     });
     afterEach(function () {
@@ -3440,7 +3449,7 @@ describe('App.MainHostDetailsController', function () {
         beforeEach(function () {
           controller.set('rangerKMSServerHost', item.hostToInstall);
           sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.kmsHosts);
-          controller.onLoadRangerConfigs(data);
+          controller.onLoadRangerConfigs(data, null, {});
         });
 
         it('saveConfigsBatch is called with valid arguments', function () {

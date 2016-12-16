@@ -18,7 +18,16 @@
 
 package org.apache.ambari.server.stack;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.quicklinks.Check;
 import org.apache.ambari.server.state.quicklinks.Link;
@@ -28,13 +37,7 @@ import org.apache.ambari.server.state.quicklinks.QuickLinks;
 import org.apache.ambari.server.state.quicklinks.QuickLinksConfiguration;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 public class QuickLinksConfigurationModuleTest {
 

@@ -92,7 +92,7 @@ def setup_logfeeder():
          )
 
 
-  if params.security_enabled:
+  if params.logsearch_solr_kerberos_enabled:
     File(format("{logfeeder_jaas_file}"),
          content=Template("logfeeder_jaas.conf.j2")
          )

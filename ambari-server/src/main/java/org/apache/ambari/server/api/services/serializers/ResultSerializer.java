@@ -19,8 +19,8 @@
 package org.apache.ambari.server.api.services.serializers;
 
 
-import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultStatus;
 
 /**
  * Format internal result to format expected by client.

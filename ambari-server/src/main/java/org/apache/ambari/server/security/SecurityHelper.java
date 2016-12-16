@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.security;
 
-import org.springframework.security.core.GrantedAuthority;
-
 import java.util.Collection;
+
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Security related utilities.

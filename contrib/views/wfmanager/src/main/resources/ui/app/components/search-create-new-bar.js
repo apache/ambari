@@ -98,6 +98,7 @@ export default Ember.Component.extend(Ember.Evented,{
           }
           strs.push('Name:'+ searchTerm);
           strs.push('User:'+ searchTerm);
+          strs.push('Job id:'+ searchTerm);
           var newLength = strs.length;
           var matches, substrRegex;
           matches = [];
@@ -115,19 +116,20 @@ export default Ember.Component.extend(Ember.Evented,{
           typeaheadjs: {
             name: 'source',
             source: substringMatcher(source),
-            highlight : true,
-            limit : 10
+            highlight : true
           }
       });
       this.get('tags').forEach(function(value){
         this.$('#search-field').tagsinput('add', value);
       }.bind(this));
       this.$('#search-field').tagsinput('refresh');
+
       this.$('#search-field').on('itemAdded itemRemoved',function(){
         var searchTerms = this.$('#search-field').tagsinput('items');
         var filter = searchTerms.map(function(value){
+
           var eachTag = value.split(":");
-          return eachTag[0].toLowerCase()+"="+eachTag[1];
+          return self.mapSearchItems(eachTag[0])+"="+eachTag[1];
         });
         if(filter.length > 0){
           this.filter.tags = filter.join(";");
@@ -144,7 +146,14 @@ export default Ember.Component.extend(Ember.Evented,{
         }
       }.bind(this));
     }.on('didInsertElement'),
-
+    mapSearchItems(key){
+      key = key.replace(" ", "_").toLowerCase();
+      var keys = {"job_id":"id"};
+      if(keys[key]){
+        return keys[key];
+      }
+      return key;
+    },
     filterByDate(date, dateType){
       var queryParam;
       if(dateType === 'start'){

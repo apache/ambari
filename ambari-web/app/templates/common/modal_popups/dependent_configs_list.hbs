@@ -17,7 +17,10 @@
 }}
 
 <div class="alert alert-warning">
-  {{t popup.dependent.configs.title}}
+  {{#if view.isAfterRecommendation}}
+    <div>{{t popup.dependent.configs.title.recommendation}}</div>
+  {{/if}}
+  <div>{{t popup.dependent.configs.title.values}}</div>
 </div>
 <span id="config-dependencies" class="limited-height-2">
   <table class="table table-hover">
@@ -39,7 +42,7 @@
     </tr>
     </thead>
     <tbody>
-    {{#each recommendation in view.parentView.recommendations}}
+    {{#each recommendation in view.recommendations}}
       <tr {{bindAttr class="recommendation.saveRecommended:active"}}>
         <td class="config-dependency-name">{{recommendation.propertyName}}</td>
         <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>

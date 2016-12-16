@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 /**
  * StackConfigurationResourceDefinition unit tests.

@@ -18,18 +18,22 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.api.services.NamedPropertySet;
-import org.apache.ambari.server.api.services.RequestBody;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import org.apache.ambari.server.api.services.NamedPropertySet;
+import org.apache.ambari.server.api.services.RequestBody;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * Unit tests for JsonPropertyParser.

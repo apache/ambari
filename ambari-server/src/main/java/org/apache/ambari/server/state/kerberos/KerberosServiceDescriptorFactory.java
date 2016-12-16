@@ -18,14 +18,15 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
+
+import com.google.inject.Singleton;
 
 /**
  * KerberosServiceDescriptorFactory is a factory class used to create KerberosServiceDescriptor

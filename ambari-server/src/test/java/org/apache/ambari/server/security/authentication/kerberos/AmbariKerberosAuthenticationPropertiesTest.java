@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import org.apache.ambari.server.security.authorization.UserType;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+
+import org.apache.ambari.server.security.authorization.UserType;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class AmbariKerberosAuthenticationPropertiesTest {
   @Test

@@ -18,16 +18,16 @@
 
 package org.apache.ambari.server.api.services;
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Provides information on the current request.

@@ -19,9 +19,9 @@
 package org.apache.ambari.server.stack;
 
 
-import org.apache.ambari.server.AmbariException;
-
 import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
 
 /**
  * Stack Definition Module.

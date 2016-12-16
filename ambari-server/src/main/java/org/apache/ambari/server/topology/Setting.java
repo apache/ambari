@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 

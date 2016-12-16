@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.security.authorization.jwt;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import org.junit.Test;
 
 public class JwtAuthenticationPropertiesTest {
 

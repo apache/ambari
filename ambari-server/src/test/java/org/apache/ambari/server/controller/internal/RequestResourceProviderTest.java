@@ -612,7 +612,7 @@ public class RequestResourceProviderTest {
     expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = EasyMock.newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -692,7 +692,7 @@ public class RequestResourceProviderTest {
     expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = EasyMock.newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -1124,10 +1124,10 @@ public class RequestResourceProviderTest {
   public void testCreateResourcesForCommandWithHostPredicate() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
-    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
-    Capture<Request> requestCapture = new Capture<>();
-    Capture<Predicate> predicateCapture = new Capture<>();
+    Capture<ExecuteActionRequest> actionRequest = EasyMock.newCapture();
+    Capture<HashMap<String, String>> propertyMap = EasyMock.newCapture();
+    Capture<Request> requestCapture = EasyMock.newCapture();
+    Capture<Predicate> predicateCapture = EasyMock.newCapture();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);

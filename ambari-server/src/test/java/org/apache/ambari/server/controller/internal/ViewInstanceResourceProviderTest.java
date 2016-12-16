@@ -18,8 +18,28 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.DuplicateResourceException;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
@@ -34,22 +54,13 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewDefinition;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
 
 public class ViewInstanceResourceProviderTest {
 
@@ -163,12 +174,12 @@ public class ViewInstanceResourceProviderTest {
     expect(viewregistry.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(viewregistry.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
 
-    Capture<Map<String, String>> captureProperties = new Capture<Map<String, String>>();
+    Capture<Map<String, String>> captureProperties = EasyMock.newCapture();
 
     viewregistry.setViewInstanceProperties(eq(viewInstanceEntity), capture(captureProperties),
         anyObject(ViewConfig.class), anyObject(ClassLoader.class));
 
-    Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
+    Capture<ViewInstanceEntity> instanceEntityCapture = EasyMock.newCapture();
     viewregistry.installViewInstance(capture(instanceEntityCapture));
     expectLastCall().anyTimes();
 

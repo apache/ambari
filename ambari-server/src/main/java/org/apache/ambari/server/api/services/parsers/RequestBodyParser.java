@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
-import org.apache.ambari.server.api.services.RequestBody;
-
 import java.util.Set;
+
+import org.apache.ambari.server.api.services.RequestBody;
 
 /**
  * Parse the provided String into a map of properties and associated values.

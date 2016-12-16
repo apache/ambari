@@ -141,13 +141,13 @@ public class RangerConfigCalculation extends AbstractServerAction {
     targetValues.put("ranger.jpa.audit.jdbc.dialect", dialect);
 
     config.setProperties(targetValues);
-    config.persist(false);
+    config.save();
 
     config = cluster.getDesiredConfigByType(RANGER_ENV_CONFIG_TYPE);
     targetValues = config.getProperties();
     targetValues.put("ranger_privelege_user_jdbc_url", userJDBCUrl);
     config.setProperties(targetValues);
-    config.persist(false);
+    config.save();
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", stdout.toString(), "");
   }

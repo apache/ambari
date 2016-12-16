@@ -17,15 +17,14 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Collections;
+
+import org.junit.Test;
 
 import junit.framework.Assert;
-import org.junit.Test;
 
 /**
  * Tests {@link org.apache.ambari.server.utils.SetUtils}
@@ -46,7 +45,7 @@ public class SetUtilsTest {
     List<Set<Integer>> subsets = SetUtils.split(null, size);
     Assert.assertEquals(0, subsets.size());
 
-    subsets = SetUtils.split(Collections.EMPTY_SET, size);
+    subsets = SetUtils.split(Collections.<Integer>emptySet(), size);
     Assert.assertEquals(0, subsets.size());
 
     subsets = SetUtils.split(Collections.singleton(0), size);

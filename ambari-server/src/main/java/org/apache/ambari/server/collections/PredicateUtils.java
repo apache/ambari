@@ -18,16 +18,18 @@
 
 package org.apache.ambari.server.collections;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import org.apache.ambari.server.collections.functors.PredicateClassFactory;
-import org.apache.commons.lang.StringUtils;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
+
+import org.apache.ambari.server.collections.functors.PredicateClassFactory;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 
 /**
  * PredicateUtils is a utility class providing methods to help perform tasks on {@link Predicate}s.
@@ -52,13 +54,13 @@ public class PredicateUtils {
    * @param map a map containing the details of the predicate to create.
    * @return a {@link Predicate}
    */
-  public static Predicate fromMap(Map<String, Object> map) {
+  public static Predicate fromMap(Map<?, ?> map) {
     Predicate predicate = null;
 
     if ((map != null) && !map.isEmpty()) {
       if (map.size() == 1) {
-        Map.Entry<String, Object> entry = map.entrySet().iterator().next();
-        String name = entry.getKey();
+        Map.Entry<?, ?> entry = map.entrySet().iterator().next();
+        String name = Objects.toString(entry.getKey());
 
         Class<? extends Predicate> predicateClass = PredicateClassFactory.getPredicateClass(name);
 

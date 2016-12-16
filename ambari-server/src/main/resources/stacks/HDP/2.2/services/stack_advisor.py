@@ -307,6 +307,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putWebhcatSiteProperty = self.putProperty(configurations, "webhcat-site", services)
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
     putHiveEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hive-env")
+    putHiveServerPropertyAttributes = self.putPropertyAttribute(configurations, "hiveserver2-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     #  Storage
@@ -527,7 +528,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveServerProperty("hive.security.authorization.enabled", "true")
       putHiveServerProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory")
       putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
-      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role")
+      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,"
+                                                         "hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled")
       putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
       if sqlstdauth_class not in auth_manager_values:
         auth_manager_values.append(sqlstdauth_class)
@@ -543,7 +545,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveServerProperty("hive.security.authorization.enabled", "true")
       putHiveServerProperty("hive.security.authorization.manager", "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory")
       putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
-      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager")
+      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,"
+                                                         "hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled")
+
+    # hive_security_authorization == 'None'
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "None":
+      putHiveSiteProperty("hive.server2.enable.doAs", "true")
+      putHiveServerProperty("hive.security.authorization.enabled", "false")
+      putHiveServerPropertyAttributes("hive.security.authorization.manager", 'delete', 'true')
+      putHiveServerPropertyAttributes("hive.security.authenticator.manager", 'delete', 'true')
+      putHiveServerPropertyAttributes("hive.conf.restricted.list", 'delete', 'true')
 
     putHiveSiteProperty("hive.server2.use.SSL", "false")
 
@@ -1015,27 +1026,50 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
     putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
+    putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
+    putLogsearchEnvProperty = self.putProperty(configurations, "logsearch-env", services)
+    putLogsearchEnvAttribute = self.putPropertyAttribute(configurations, "logsearch-env")
+    putLogfeederEnvAttribute = self.putPropertyAttribute(configurations, "logfeeder-env")
+
     infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
 
-    if infraSolrHosts is not None and len(infraSolrHosts) > 0 \
-      and "logsearch-properties" in services["configurations"]:
+    if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
+      replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
+      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
+      
       recommendedMinShards = len(infraSolrHosts)
       recommendedShards = 2 * len(infraSolrHosts)
       recommendedMaxShards = 3 * len(infraSolrHosts)
-      # recommend number of shard
-      putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
-      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
-      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+    else:
+      recommendedReplicationFactor = 2
+      
+      recommendedMinShards = 1
+      recommendedShards = 1
+      recommendedMaxShards = 100
+      
+      putLogsearchEnvProperty('logsearch_use_external_solr', 'true')
+      putLogsearchEnvAttribute('logsearch_use_external_solr', 'visible', 'false')
 
-      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
-      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
-      # recommend replication factor
-      replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
-      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
-      putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
-      putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
+    # recommend number of shard
+    putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
+    putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
+    putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+
+    putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
+    putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
+    putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
+    # recommend replication factor
+    putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
+    putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
+    
+    kerberos_authentication_enabled = self.isSecurityEnabled(services)
+    if not kerberos_authentication_enabled:
+       putLogsearchEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
+       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_enabled', 'visible', 'false')
+       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_keytab', 'visible', 'false')
+       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_principal', 'visible', 'false')
+       putLogfeederEnvAttribute('logfeeder_external_solr_kerberos_keytab', 'visible', 'false')
+       putLogfeederEnvAttribute('logfeeder_external_solr_kerberos_principal', 'visible', 'false')
 
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},

@@ -54,10 +54,10 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.UpgradeHelper;
-
-import com.google.inject.Inject;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
+
+import com.google.inject.Inject;
 
 /**
  * Manages the ability to get the status of upgrades.

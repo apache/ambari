@@ -19,9 +19,6 @@
 package org.apache.ambari.server.controller;
 
 
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -34,6 +31,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
+
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
@@ -100,10 +100,10 @@ import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
+import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
@@ -682,6 +682,9 @@ public class AmbariServer {
       System.out.println("Database consistency check started");
       Logger DB_CHECK_LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
       try{
+        if (System.getProperty("fixDatabaseConsistency") != null ){
+          DatabaseConsistencyCheckHelper.fixDatabaseConsistency();
+        }
         DatabaseConsistencyCheckHelper.runAllDBChecks();
       } catch(Throwable e) {
         System.out.println("Database consistency check: failed");

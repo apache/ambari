@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.ServiceInfo;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.ServiceInfo;
 
 public class StackServiceResponse {
 

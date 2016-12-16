@@ -19,15 +19,13 @@
 package org.apache.ambari.server.controller;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Multimap;
+import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.ClusterHealthReport;
 
 public class ClusterResponse {
 

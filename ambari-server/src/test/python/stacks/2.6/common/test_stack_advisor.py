@@ -164,8 +164,7 @@ class TestHDP26StackAdvisor(TestCase):
             "database_name": "druid",
             "metastore_hostname": "c6401.ambari.apache.org",
             "druid.metadata.storage.type": "mysql",
-            "druid.extensions.loadList": "[\"postgresql-metadata-storage\"]",
-            "druid.extensions.pullList": "[]"
+            "druid.extensions.loadList": "[\"postgresql-metadata-storage\"]"
           }
         }
       }
@@ -195,8 +194,7 @@ class TestHDP26StackAdvisor(TestCase):
                         'druid-common': {'properties': {'druid.extensions.loadList': '["mysql-metadata-storage"]',
                                                         'druid.metadata.storage.connector.port': '3306',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:mysql://c6401.ambari.apache.org:3306/druid?createDatabaseIfNotExist=true',
-                                                        'druid.zk.service.host': '',
-                                                        'druid.extensions.pullList': '["io.druid.extensions:mysql-metadata-storage"]'}},
+                                                        'druid.zk.service.host': ''}},
                         'druid-env': {'properties': {},
                                       'property_attributes': {'druid.coordinator.jvm.heap.memory': {'maximum': '49152'},
                                                               'druid.overlord.jvm.heap.memory': {'maximum': '49152'},
@@ -304,8 +302,7 @@ class TestHDP26StackAdvisor(TestCase):
                         'druid-common': {'properties': {'druid.extensions.loadList': '["postgresql-metadata-storage"]',
                                                         'druid.metadata.storage.connector.port': '5432',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:postgresql://c6401.ambari.apache.org:5432/druid',
-                                                        'druid.zk.service.host': '',
-                                                        'druid.extensions.pullList': '[]'}},
+                                                        'druid.zk.service.host': ''}},
                         'druid-env': {'properties': {},
                                       'property_attributes': {'druid.coordinator.jvm.heap.memory': {'maximum': '49152'},
                                                               'druid.overlord.jvm.heap.memory': {'maximum': '49152'},
@@ -413,8 +410,7 @@ class TestHDP26StackAdvisor(TestCase):
                         'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                         'druid.metadata.storage.connector.port': '1527',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
-                                                        'druid.zk.service.host': '',
-                                                        'druid.extensions.pullList': '[]'}},
+                                                        'druid.zk.service.host': ''}},
                         'druid-env': {'properties': {},
                                       'property_attributes': {'druid.coordinator.jvm.heap.memory': {'maximum': '49152'},
                                                               'druid.overlord.jvm.heap.memory': {'maximum': '49152'},
@@ -423,6 +419,58 @@ class TestHDP26StackAdvisor(TestCase):
                                                               'druid.historical.jvm.heap.memory': {'maximum': '49152'},
                                                               'druid.broker.jvm.heap.memory': {'maximum': '49152'}}}}
                       )
+
+
+  def test_recommendDruidConfigurations_property_existence_check(self):
+      # Test for https://issues.apache.org/jira/browse/AMBARI-19144
+      hosts = {
+        "items": [
+          {
+            "Hosts": {
+              "cpu_count": 4,
+              "total_mem": 50331648,
+              "disk_info": [
+                {"mountpoint": "/"},
+                {"mountpoint": "/dev/shm"},
+                {"mountpoint": "/vagrant"},
+                {"mountpoint": "/"},
+                {"mountpoint": "/dev/shm"},
+                {"mountpoint": "/vagrant"}
+              ],
+              "public_host_name": "c6401.ambari.apache.org",
+              "host_name": "c6401.ambari.apache.org"
+            }
+          }
+        ]
+      }
+
+      services = {
+        "Versions": {
+          "parent_stack_version": "2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.6",
+          "stack_hierarchy": {
+            "stack_name": "HDP",
+            "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"]
+          }
+        },
+        "services": [{
+        }
+        ],
+        "configurations": {
+        }
+      }
+
+      clusterData = {
+      }
+
+      configurations = {
+      }
+
+      self.stackAdvisor.recommendDruidConfigurations(configurations, clusterData, services, hosts)
+      self.assertEquals(configurations,
+                        {}
+                        )
 
   def test_recommendDruidConfigurations_heterogeneous_hosts(self):
     hosts = {
@@ -556,8 +604,8 @@ class TestHDP26StackAdvisor(TestCase):
                         'druid-common': {'properties': {'druid.extensions.loadList': '[]',
                                                         'druid.metadata.storage.connector.port': '1527',
                                                         'druid.metadata.storage.connector.connectURI': 'jdbc:derby://c6401.ambari.apache.org:1527/druid;create=true',
-                                                        'druid.zk.service.host': '',
-                                                        'druid.extensions.pullList': '[]'}},
+                                                        'druid.zk.service.host': ''
+                                                        }},
                         'druid-env': {'properties': {},
                                       'property_attributes': {'druid.coordinator.jvm.heap.memory': {'maximum': '49152'},
                                                               'druid.overlord.jvm.heap.memory': {'maximum': '49152'},

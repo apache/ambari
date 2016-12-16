@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.collections;
 
-import com.google.gson.Gson;
-
 import java.util.Map;
+
+import com.google.gson.Gson;
 
 /**
  * {@link Predicate} wraps {@link org.apache.commons.collections.Predicate} to

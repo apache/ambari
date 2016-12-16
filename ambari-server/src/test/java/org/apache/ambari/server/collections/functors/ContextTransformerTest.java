@@ -19,12 +19,13 @@
 package org.apache.ambari.server.collections.functors;
 
 
-import junit.framework.Assert;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import junit.framework.Assert;
 
 public class ContextTransformerTest extends EasyMockSupport {
 

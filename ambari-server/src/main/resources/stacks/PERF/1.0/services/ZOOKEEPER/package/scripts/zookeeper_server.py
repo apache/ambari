@@ -33,6 +33,10 @@ class ZookeeperServer(Dummy):
   def __init__(self):
     super(ZookeeperServer, self).__init__()
     self.component_name = "ZOOKEEPER_SERVER"
+    self.principal_conf_name = "zookeeper-env"
+    self.principal_name = "zookeeper_principal_name"
+    self.keytab_conf_name = "zookeeper-env"
+    self.keytab_name = "zookeeper_keytab_path"
 
 if __name__ == "__main__":
   ZookeeperServer().execute()

@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.ivory.IvoryService;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Abstract resource provider implementation that maps to an Ivory service.

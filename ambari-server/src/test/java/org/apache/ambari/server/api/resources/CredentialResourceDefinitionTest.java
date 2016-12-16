@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collection;
+
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Collection;
 
 /**
  * CredentialResourceDefinitionTest tests.

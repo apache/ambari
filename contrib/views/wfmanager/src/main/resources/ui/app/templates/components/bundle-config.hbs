@@ -29,34 +29,32 @@
           </div>
         </div>
         <div class="navbar-brand pull-right paddingtop8 col-xs-18">
+          <div class="dropdown inlineBlock">
+            <button class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown">Bundle
+            <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li>
+              <a  class="pointer" title="Import workflow" {{action "openFileBrowser" "bundleFilePath"}}>
+                <i class="fa fa-download"> Import</i>
+              </a>
+            </li>
+            <li>
+              <a class="pointer" href="#" data-toggle="modal" data-target="#previewModal"  title="Preview Xml" {{action "preview"}}>
+                  <i class="fa fa-eye marginright5"></i>Preview xml
+                </a>
+              </li>
+            </ul>
+          </div>
           <div class="btn-group" role="group" aria-label="...">
             <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#ConfirmDialog" title="New Workflow" {{action "confirmReset"}}>
               <i class="fa fa-refresh"> Reset</i>
             </button>
-            <button  type="button" class="btn btn-default" title="Import workflow" {{action "openFileBrowser" "bundleFilePath"}}>
-              <i class="fa fa-download"> Import</i>
+            <button type="button" class="btn btn-default" title="Bundle Versions" {{action "showVersionSettings" true}}>
+              <i class="fa fa-cog marginright5"></i>Versions
             </button>
             <button  id="import-bundle-test" type="button" class="btn btn-default hide" title="Import Bundle Test" {{action "importBundleTest"}}>
               <i class="fa fa-download"></i>
             </button>
-            <div class="btn-group">
-              <div class="dropdown">
-                <button class="btn btn-default dropdown-toggle borderRadiusNone" type="button" data-toggle="dropdown"><i class="marginright5"></i>More
-                <span class="caret"></span></button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a href="javascript:void(0)" data-toggle="modal" data-target="#previewModal"  title="Preview Xml" {{action "preview"}}>
-                      <i class="fa fa-eye marginright5"></i>Preview xml
-                    </a>
-                  </li>
-                  <!-- <li>
-                    <a href="javascript:void(0)" data-toggle="modal" title="Download workflow" {{action "downloadWorkflowXml"}}>
-                      <i class="fa fa-download marginright5"></i>Download xml
-                    </a>
-                  </li> -->
-                </ul>
-              </div>
-            </div>
             <button type="button" class="btn btn-primary" title="Submit Bundle" {{action "submitBundle"}}>
               <i class="fa fa-upload"> Submit</i>
             </button>
@@ -66,6 +64,7 @@
     </div>
   </nav>
   <div class="container-fluid">
+    {{designer-errors errors=errors}}
     <form class="form-horizontal">
       <div class="col-sm-12 paddingtop10">
         <div class="col-sm-8 centralize-panel">
@@ -126,4 +125,7 @@
 {{/if}}
 {{#if showingPreview}}
   {{#preview-dialog title="Bundle XML Preview" previewXml=previewXml}}{{/preview-dialog}}
+{{/if}}
+{{#if showVersionSettings}}
+  {{bundle-version-settings schemaVersions=bundle.schemaVersions showVersionSettings="showVersionSettings" }}
 {{/if}}

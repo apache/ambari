@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
-import java.io.Serializable;
 
 /**
  * PK class for host config mappings.

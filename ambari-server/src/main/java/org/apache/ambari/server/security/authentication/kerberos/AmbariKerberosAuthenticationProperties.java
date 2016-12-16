@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import org.apache.ambari.server.security.authorization.UserType;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.ambari.server.security.authorization.UserType;
 
 /**
  * AmbariKerberosAuthenticationProperties is a container for Kerberos authentication-related

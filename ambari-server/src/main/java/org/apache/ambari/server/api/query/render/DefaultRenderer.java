@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.query.render;
 
+import java.util.Set;
+
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
@@ -25,7 +27,6 @@ import org.apache.ambari.server.api.services.ResultPostProcessor;
 import org.apache.ambari.server.api.services.ResultPostProcessorImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
-import java.util.Set;
 
 /**
  * Default resource renderer.

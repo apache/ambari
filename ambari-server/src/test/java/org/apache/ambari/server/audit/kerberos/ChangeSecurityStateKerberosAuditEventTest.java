@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.audit.kerberos;
 
-import org.apache.ambari.server.audit.event.kerberos.ChangeSecurityStateKerberosAuditEvent;
-import org.junit.Test;
-
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
+
+import org.apache.ambari.server.audit.event.kerberos.ChangeSecurityStateKerberosAuditEvent;
+import org.junit.Test;
 
 public class ChangeSecurityStateKerberosAuditEventTest {
 

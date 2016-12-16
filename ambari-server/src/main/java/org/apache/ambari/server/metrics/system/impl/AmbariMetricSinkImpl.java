@@ -17,13 +17,6 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
-import jline.internal.Log;
-import org.apache.ambari.server.metrics.system.AmbariMetricSink;
-import org.apache.commons.lang.ClassUtils;
-import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,6 +24,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.metrics.system.AmbariMetricSink;
+import org.apache.commons.lang.ClassUtils;
+import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+
+import jline.internal.Log;
 
 public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements AmbariMetricSink {
   private static final String APP_ID = "ambari_server";

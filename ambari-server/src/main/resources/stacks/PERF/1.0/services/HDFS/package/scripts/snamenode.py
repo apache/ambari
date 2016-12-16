@@ -33,6 +33,10 @@ class SNameNode(Dummy):
   def __init__(self):
     super(SNameNode, self).__init__()
     self.component_name = "SECONDARY_NAMENODE"
+    self.principal_conf_name = "hdfs-site"
+    self.principal_name = "dfs.secondary.namenode.kerberos.principal"
+    self.keytab_conf_name = "hdfs-site"
+    self.keytab_name = "dfs.secondary.namenode.keytab.file"
 
 if __name__ == "__main__":
   SNameNode().execute()

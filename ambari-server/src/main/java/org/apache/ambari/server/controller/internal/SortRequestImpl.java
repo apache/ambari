@@ -17,10 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.SortRequest;
-import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
 
 public class SortRequestImpl implements SortRequest {
   List<SortRequestProperty> properties;

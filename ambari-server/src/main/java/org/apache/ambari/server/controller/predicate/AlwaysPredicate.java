@@ -18,10 +18,10 @@ package org.apache.ambari.server.controller.predicate;
  * limitations under the License.
  */
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Collections;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * A predicate that always evaluates to true.

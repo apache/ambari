@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.controller.utilities.state;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
@@ -36,8 +37,8 @@ import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Default calculator of service state.

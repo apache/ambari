@@ -19,9 +19,6 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.Set;
 
-import com.google.inject.Inject;
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -33,8 +30,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 /**
  * Tests host config mapping DAO and Entities

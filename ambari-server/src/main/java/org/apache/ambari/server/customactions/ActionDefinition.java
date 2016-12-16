@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.customactions;
 
+import java.util.Set;
+
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.controller.ActionResponse;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-
-import java.util.Set;
 
 /**
  * The resource describing the definition of an action

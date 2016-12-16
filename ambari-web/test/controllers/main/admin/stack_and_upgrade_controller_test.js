@@ -900,32 +900,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe.skip("#finish()", function() {
-    before(function () {
-      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
-      sinon.stub(controller, 'setDBProperty', Em.K);
-    });
-    after(function () {
-      App.clusterStatus.setClusterStatus.restore();
-      controller.setDBProperty.restore();
-    });
-    it("upgradeState is not COMPLETED", function() {
-      App.set('upgradeState', 'UPGRADING');
-      controller.finish();
-      expect(App.clusterStatus.setClusterStatus.called).to.be.false;
-    });
-    it("upgradeState is COMPLETED", function() {
-      App.set('upgradeState', 'COMPLETED');
-      controller.finish();
-      expect(controller.setDBProperty.calledWith('upgradeId', undefined)).to.be.true;
-      expect(controller.setDBProperty.calledWith('upgradeVersion', undefined)).to.be.true;
-      expect(controller.setDBProperty.calledWith('upgradeState', 'INIT')).to.be.true;
-      expect(controller.setDBProperty.calledWith('currentVersion', undefined)).to.be.true;
-      expect(App.get('upgradeState')).to.equal('INIT');
-      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
-    });
-  });
-
   describe("#confirmDowngrade()", function() {
 
     before(function () {
@@ -1762,6 +1736,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
     var data = {
       Upgrade: {
+        from_version: '1.1',
         request_id: 1,
         direction: 'UPGRADE',
         request_status: 'PENDING',
@@ -1801,6 +1776,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('proper data is saved to the localDB', function () {
       expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
+        fromVersion: '1.1',
         upgradeId: 1,
         isDowngrade: false,
         upgradeState: 'PENDING',
@@ -3059,18 +3035,21 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     beforeEach(function() {
       sinon.stub(controller, 'setDBProperties', Em.K);
       sinon.stub(App.clusterStatus, 'setClusterStatus');
+      sinon.stub(controller, 'initDBProperties');
       App.set('upgradeState', 'COMPLETED');
       controller.set('upgradeVersion', '');
     });
 
     afterEach(function() {
       controller.setDBProperties.restore();
+      controller.initDBProperties.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
 
     it("setDBProperties should be called", function() {
       controller.finish();
       expect(controller.setDBProperties.calledWith({
+        fromVersion: undefined,
         upgradeId: undefined,
         upgradeState: 'INIT',
         upgradeVersion: undefined,
@@ -3082,6 +3061,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         isDowngrade: undefined,
         downgradeAllowed: undefined
       })).to.be.true;
+    });
+
+    it("initDBProperties should be called", function() {
+      controller.finish();
+      expect(controller.initDBProperties).to.be.calledOnce;
     });
 
     it("App.clusterStatus.setClusterStatus should be called", function() {

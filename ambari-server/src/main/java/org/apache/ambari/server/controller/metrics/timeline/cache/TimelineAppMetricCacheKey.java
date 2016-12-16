@@ -17,10 +17,9 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.http.client.utils.URIBuilder;
-
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 /**
  * Cache contents represent metrics for an App / Cluster.

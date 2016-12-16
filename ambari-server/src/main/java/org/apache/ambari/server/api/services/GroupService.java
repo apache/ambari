@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.api.services;
 
+import java.util.Collections;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -30,8 +32,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.Collections;
 
 /**
  * Service responsible for user groups requests.

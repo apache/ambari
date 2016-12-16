@@ -31,9 +31,7 @@ import org.apache.ambari.server.orm.entities.ExtensionEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Cardinality;
-import org.apache.ambari.server.topology.Configuration;
 
 /**
  * Encapsulates extension information.

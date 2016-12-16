@@ -18,12 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.eclipse.jetty.server.SessionManager;
-import org.junit.Test;
-
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.http.HttpSession;
-
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -31,6 +25,12 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import javax.servlet.SessionCookieConfig;
+import javax.servlet.http.HttpSession;
+
+import org.eclipse.jetty.server.SessionManager;
+import org.junit.Test;
 
 public class AmbariSessionManagerTest {
 

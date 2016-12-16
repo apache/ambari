@@ -27,6 +27,7 @@ from resource_management.libraries import functions
 from resource_management.libraries.functions import format
 from resource_management.core.logger import Logger
 
+
 @patch("resource_management.libraries.Script.get_tmp_dir", new=MagicMock(return_value=('/var/lib/ambari-agent/tmp')))
 @patch.object(functions, "get_stack_version", new=MagicMock(return_value="2.0.0.0-1234"))
 class TestDruid(RMFTestCase):
@@ -62,6 +63,11 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-overlord')
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-overlord/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+                              user='druid',
+                              tries=5,
+                              try_sleep=10
+                              )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-overlord/conf/druid-env.sh ; /usr/hdp/current/druid-overlord/bin/node.sh overlord start'),
                               user='druid'
                               )
@@ -103,6 +109,11 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-coordinator')
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-coordinator/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+                              user='druid',
+                              tries=5,
+                              try_sleep=10
+                              )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-coordinator/conf/druid-env.sh ; /usr/hdp/current/druid-coordinator/bin/node.sh coordinator start'),
                               user='druid'
                               )
@@ -144,6 +155,11 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-broker')
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-broker/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+                              user='druid',
+                              tries=5,
+                              try_sleep=10
+                              )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-broker/conf/druid-env.sh ; /usr/hdp/current/druid-broker/bin/node.sh broker start'),
                               user='druid'
                               )
@@ -185,6 +201,11 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-router')
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-router/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+                              user='druid',
+                              tries=5,
+                              try_sleep=10
+                              )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-router/conf/druid-env.sh ; /usr/hdp/current/druid-router/bin/node.sh router start'),
                               user='druid'
                               )
@@ -226,6 +247,11 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-historical')
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-historical/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+                              user='druid',
+                              tries=5,
+                              try_sleep=10
+                              )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-historical/conf/druid-env.sh ; /usr/hdp/current/druid-historical/bin/node.sh historical start'),
                               user='druid'
                               )
@@ -267,6 +293,11 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-middlemanager')
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-middlemanager/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+                              user='druid',
+                              tries=5,
+                              try_sleep=10
+                              )
     self.assertResourceCalled('Execute', format('source /usr/hdp/current/druid-middlemanager/conf/druid-env.sh ; /usr/hdp/current/druid-middlemanager/bin/node.sh middleManager start'),
                               user='druid'
                               )
@@ -617,6 +648,24 @@ class TestDruid(RMFTestCase):
                               mode=0755
                               )
 
+    self.assertResourceCalled('File', format("/usr/lib/ambari-agent/DBConnectionVerification.jar"),
+                              content= DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar')
+                              )
+
+    self.assertResourceCalled('File', format("/tmp/mysql-connector-java.jar"),
+                              content= DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar')
+                              )
+    self.assertResourceCalled('Execute',
+                              ('cp', '--remove-destination', '/tmp/mysql-connector-java.jar', format('/usr/hdp/current/{role}/extensions/mysql-metadata-storage/mysql-connector-java.jar')),
+                              path =  ['/bin', '/usr/bin/'],
+                              sudo =  True
+                              )
+
+    self.assertResourceCalled('File', format("/usr/hdp/current/{role}/extensions/mysql-metadata-storage/mysql-connector-java.jar"),
+                              owner = "druid",
+                              group = "hadoop"
+                              )
+
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/extensions'),
                               mode=0755,
                               cd_access='a',
@@ -635,7 +684,7 @@ class TestDruid(RMFTestCase):
                               recursive_ownership=True
                               )
 
-    self.assertResourceCalled('Execute', format("source /usr/hdp/current/{role}/conf/druid-env.sh ; java -classpath '/usr/hdp/current/{role}/lib/*' -Ddruid.extensions.loadList=[] -Ddruid.extensions.directory=/usr/hdp/current/{role}/extensions -Ddruid.extensions.hadoopDependenciesDir=/usr/hdp/current/{role}/hadoop-dependencies io.druid.cli.Main tools pull-deps -c mysql-metadata-storage --no-default-hadoop"),
+    self.assertResourceCalled('Execute', format("source /usr/hdp/current/{role}/conf/druid-env.sh ; java -classpath '/usr/hdp/current/{role}/lib/*' -Ddruid.extensions.loadList=[] -Ddruid.extensions.directory=/usr/hdp/current/{role}/extensions -Ddruid.extensions.hadoopDependenciesDir=/usr/hdp/current/{role}/hadoop-dependencies io.druid.cli.Main tools pull-deps -c custom-druid-extension --no-default-hadoop -r http://custom-mvn-repo/public/release"),
                               user='druid'
                               )
 

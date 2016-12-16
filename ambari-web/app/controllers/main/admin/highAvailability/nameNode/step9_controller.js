@@ -31,30 +31,27 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   initializeTasks: function () {
     this._super();
-    var numSpliced = 0;
+    var tasksToRemove = [];
 
     // find hostname where second namenode will be installed
     this.set('secondNameNodeHost', this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName);
 
     if (!App.Service.find().someProperty('serviceName', 'PXF') || this.isPxfComponentInstalled()) {
-      this.get('tasks').splice(this.get('tasks').findProperty('command', 'installPXF').get('id'), 1);
-      numSpliced = 1;
+      tasksToRemove.push('installPXF');
     }
     if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
-      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureRanger').get('id') - numSpliced, 1);
-      numSpliced++;
+      tasksToRemove.push('reconfigureRanger');
     }
     if (!App.Service.find().someProperty('serviceName', 'HBASE')) {
-      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHBase').get('id') - numSpliced, 1);
-      numSpliced++;
+      tasksToRemove.push('reconfigureHBase');
     }
     if (!App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
-      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureAccumulo').get('id') - numSpliced, 1);
-      numSpliced++ ;
+      tasksToRemove.push('reconfigureAccumulo');
     }
     if (!App.Service.find().someProperty('serviceName', 'HAWQ')) {
-      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHawq').get('id') - numSpliced, 1);
+      tasksToRemove.push('reconfigureHawq');
     }
+    this.removeTasks(tasksToRemove);
   },
 
   startSecondNameNode: function () {

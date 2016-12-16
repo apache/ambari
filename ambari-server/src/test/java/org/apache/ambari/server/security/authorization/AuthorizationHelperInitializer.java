@@ -18,13 +18,14 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Provider;
-import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
-
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+
+import com.google.inject.Provider;
 
 /**
  * Test helper to set DAO object to static variables and set proper expectation in AuthenticationHelper

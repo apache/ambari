@@ -19,6 +19,10 @@
 package org.apache.ambari.server.state.svccomphost;
 
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -28,10 +32,6 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**

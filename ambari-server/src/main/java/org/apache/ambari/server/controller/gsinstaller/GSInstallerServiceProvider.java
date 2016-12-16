@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.controller.gsinstaller;
 
+import java.util.Set;
+
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
-import java.util.Set;
 
 /**
  * A service resource provider for a gsInstaller defined cluster.

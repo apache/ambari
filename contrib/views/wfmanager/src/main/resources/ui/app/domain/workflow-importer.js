@@ -24,11 +24,12 @@ var WorkflowImporter= Ember.Object.extend({
   x2js : new X2JS(),
   importWorkflow(workflowXml){
     var workflow=Workflow.create({});
+    var errors=[];
     workflow.initialize();
     this.workflowMapper=WorkflowXmlMapper.create({schemaVersions:workflow.schemaVersions});
-    return this.processWorkflowXml(workflowXml,workflow);
+    return this.processWorkflowXml(workflowXml,workflow, errors);
   },
-  processWorkflowXml(workflowXml,workflow){
+  processWorkflowXml(workflowXml,workflow, errors){
     var workflowJson= this.get("x2js").xml_str2json(workflowXml);
     if (!workflowJson["workflow-app"]){
       throw "Invalid workflow";
@@ -36,6 +37,8 @@ var WorkflowImporter= Ember.Object.extend({
     var workflowAppJson=workflowJson["workflow-app"];
     var workflowVersion=CommonUtils.extractSchemaVersion(workflowAppJson._xmlns);
     workflow.schemaVersions.setCurrentWorkflowVersion(workflowVersion);
+    this.processWorkflowActionVersions(workflowAppJson, workflow, errors);
+
     if (workflowAppJson.info && workflowAppJson.info.__prefix==="sla") {
       workflow.slaEnabled=true;
       this.workflowMapper.handleSLAImport(workflow,workflowAppJson.info);
@@ -46,7 +49,33 @@ var WorkflowImporter= Ember.Object.extend({
     this.setupTransitions(workflowAppJson,nodeMap);
     workflow.set("startNode",nodeMap.get("start").node);
     this.populateKillNodes(workflow,nodeMap);
-    return workflow;
+    return {workflow: workflow, errors: errors};
+  },
+  processWorkflowActionVersions(workflowAppJson, workflow, errors) {
+    var importedWfActionVersions = Ember.Map.create();
+    var actions=workflowAppJson.action.length?workflowAppJson.action:[workflowAppJson.action];
+    actions.forEach(function(wfAction) {
+      var wfActionType = Object.keys(wfAction)[0];
+      var wfActionXmlns = wfAction[wfActionType]._xmlns;
+      if (!wfActionXmlns) {
+        return;
+      }
+      var wfActionVersion = CommonUtils.extractSchemaVersion(wfActionXmlns);
+      if (importedWfActionVersions.get(wfActionType)) {
+        importedWfActionVersions.get(wfActionType).push(wfActionVersion);
+      } else {
+        importedWfActionVersions.set(wfActionType, [wfActionVersion]);
+      }
+    });
+
+    importedWfActionVersions._keys.forEach(function(wfActionType){
+      var maxImportedActionVersion = Math.max.apply(Math, importedWfActionVersions.get(wfActionType))
+      if (workflow.schemaVersions.getActionVersion(wfActionType) < maxImportedActionVersion) {
+        errors.push({message: "Unsupported " + wfActionType + " version - " + maxImportedActionVersion});
+      } else {
+        workflow.schemaVersions.setActionVersion(wfActionType, maxImportedActionVersion.toString());
+      }
+    });
   },
   processActionNode(nodeMap,action){
     var actionMapper=this.get("workflowMapper").getNodeHandler("action");

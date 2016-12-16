@@ -18,7 +18,6 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -27,7 +26,6 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ExtensionLinkRequest;
 import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 
 import com.google.inject.Inject;

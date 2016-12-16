@@ -366,9 +366,13 @@ def ams(name=None, action=None):
               create_parents = True
     )
 
+    Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_log_dir}")
+            )
+
     Directory(params.ams_monitor_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               mode=0755,
               create_parents = True
     )

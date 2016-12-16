@@ -55,7 +55,6 @@ export default Ember.Component.extend(Validations, {
         useCurrent: false,
         showClose : true
       });
-      this.set('dateField.displayValue', undefined);
     }else{
       var dateTimePicker = this.$('input[name="'+this.get('inputName')+'"]').data("DateTimePicker");
       if(dateTimePicker){

@@ -18,10 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
@@ -42,13 +46,10 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.validation.ValidationException;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 /**
  * Resource provider for view URLs.

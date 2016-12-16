@@ -45,14 +45,14 @@
 
           {{#each config in view.categoryConfigs}}
             <div {{bindAttr class=":entry-row :row config.rowStyleClass config.isUserProperty:indent-1"}}>
-              <span {{bindAttr class="config.errorMessage:error: :form-group :control-label-span :col-md-3"}}>
+              <span {{bindAttr class="config.errorMessage:has-error :form-group :control-label-span :col-md-3"}}>
                 <label class="control-label">
                   {{formatWordBreak config.displayName}}
                 </label>
               </span>
 
               <div class="col-md-9">
-                <div {{bindAttr class="config.errorMessage:error: config.warnMessage:warning: :form-group"}}>
+                <div {{bindAttr class="config.errorMessage:has-error config.warnMessage:warning: :form-group"}}>
                   <div class="row">
                     <div class="col-md-9">
                         {{view config.viewClass serviceConfigBinding="config" categoryConfigsAllBinding="view.categoryConfigsAll" }}

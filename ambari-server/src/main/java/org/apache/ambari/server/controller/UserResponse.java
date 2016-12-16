@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.security.authorization.UserType;
-
 import java.util.Collections;
 import java.util.Set;
+
+import org.apache.ambari.server.security.authorization.UserType;
 
 /**
  * Represents a user maintenance request.

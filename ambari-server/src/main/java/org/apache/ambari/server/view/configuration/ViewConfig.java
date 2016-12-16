@@ -18,12 +18,8 @@
 
 package org.apache.ambari.server.view.configuration;
 
-import org.apache.ambari.server.view.DefaultMasker;
-import org.apache.ambari.view.migration.ViewDataMigrator;
-import org.apache.ambari.view.validation.Validator;
-import org.apache.ambari.view.Masker;
-import org.apache.ambari.view.View;
-import org.apache.commons.lang.StringUtils;
+import java.util.Collections;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -31,8 +27,12 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import java.util.Collections;
-import java.util.List;
+import org.apache.ambari.server.view.DefaultMasker;
+import org.apache.ambari.view.Masker;
+import org.apache.ambari.view.View;
+import org.apache.ambari.view.migration.ViewDataMigrator;
+import org.apache.ambari.view.validation.Validator;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * View configuration.

@@ -19,12 +19,12 @@
 package org.apache.ambari.server.state.theme;
 
 
+import java.util.List;
+import java.util.Map;
+
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-import java.util.List;
-import java.util.Map;
 
 
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)

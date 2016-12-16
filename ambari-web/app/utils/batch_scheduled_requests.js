@@ -203,16 +203,9 @@ module.exports = {
      */
     var componentToHostsMap = {};
     var hosts = [];
-    var batches, refreshYARNQueues = false;
-
     hostComponentsList.forEach(function(hc) {
       var hostName = hc.get('hostName');
       var componentName = hc.get('componentName');
-
-      if (componentName === 'HIVE_SERVER_INTERACTIVE') {
-        refreshYARNQueues = true;
-      }
-
       if (!componentToHostsMap[componentName]) {
         componentToHostsMap[componentName] = [];
       }
@@ -238,72 +231,21 @@ module.exports = {
 
 
     if (resource_filters.length) {
-      if (refreshYARNQueues) {
-        batches = [
-          {
-            "order_id": 1,
-            "type": "POST",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                "context": "Refresh YARN Capacity Scheduler",
-                "command": "REFRESHQUEUES",
-                "parameters/forceRefreshConfigTags": "capacity-scheduler"
-              },
-              "Requests/resource_filters": [{
-                "service_name": "YARN",
-                "component_name": "RESOURCEMANAGER",
-                "hosts": App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName')
-              }]
-            }
-          },
-          {
-            "order_id": 2,
-            "type": "POST",
-            "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-            "RequestBodyInfo": {
-              "RequestInfo": {
-                "context": context,
-                "command": "RESTART",
-                "operation_level": operation_level
-              },
-              "Requests/resource_filters": resource_filters
-            }
-          }
-        ];
-
-        App.ajax.send({
-          name: 'common.batch.request_schedules',
-          sender: {
-            successCallback: defaultSuccessCallback,
-            errorCallback: defaultErrorCallback
-          },
-          data: {
-            intervalTimeSeconds: 1,
-            tolerateSize: 0,
-            batches: batches,
-            query: query
-          },
-          success: 'successCallback',
-          error: 'errorCallback'
-        });
-      } else {
-        App.ajax.send({
-          name: 'restart.hostComponents',
-          sender: {
-            successCallback: defaultSuccessCallback,
-            errorCallback: defaultErrorCallback
-          },
-          data: {
-            context: context,
-            resource_filters: resource_filters,
-            query: query,
-            operation_level: operation_level
-          },
-          success: 'successCallback',
-          error: 'errorCallback'
-        });
-      }
+      App.ajax.send({
+        name: 'restart.hostComponents',
+        sender: {
+          successCallback: defaultSuccessCallback,
+          errorCallback: defaultErrorCallback
+        },
+        data: {
+          context: context,
+          resource_filters: resource_filters,
+          query: query,
+          operation_level: operation_level
+        },
+        success: 'successCallback',
+        error: 'errorCallback'
+      });
     }
   },
 

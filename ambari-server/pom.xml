@@ -48,6 +48,7 @@
     <hadoop.version>2.7.2</hadoop.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
+    <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
   </properties>
   <build>
     <plugins>
@@ -109,6 +110,11 @@
         <version>3.2</version>
         <configuration>
           <useIncrementalCompilation>false</useIncrementalCompilation>
+          <compilerArgs>
+            <arg>-Xlint:${xlint}</arg>
+            <arg>-Xmaxwarns</arg>
+            <arg>50000</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -288,6 +294,8 @@
             <exclude>src/main/resources/common-services/AMBARI_METRICS/0.1.0/package/files/service-metrics/*.txt</exclude>
             <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer.log</exclude>
+            <exclude>src/main/resources/common-services/HDFS/3.0.0.3.0/package/scripts/balancer-emulator/balancer-err.log</exclude>
+            <exclude>src/main/resources/common-services/HDFS/3.0.0.3.0/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
@@ -695,6 +703,27 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <id>configuration-markdown</id>
+            <phase>site</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>org.apache.ambari.server.configuration.Configuration</mainClass>
+          <arguments>
+            <argument>-output</argument>
+            <argument>${basedir}/../ambari-server/docs/configuration/index.md</argument>
+          </arguments>
+        </configuration>
       </plugin>
     </plugins>
     <resources>

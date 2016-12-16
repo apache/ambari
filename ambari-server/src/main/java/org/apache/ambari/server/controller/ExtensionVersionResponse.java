@@ -18,11 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.stack.Validable;
@@ -40,7 +37,7 @@ public class ExtensionVersionResponse implements Validable{
   private String parentVersion;
 
   public ExtensionVersionResponse(String extensionVersion, String parentVersion,
-                              boolean valid, Collection errorSet) {
+                              boolean valid, Collection<String> errorSet) {
     setExtensionVersion(extensionVersion);
     setParentVersion(parentVersion);
     setValid(valid);

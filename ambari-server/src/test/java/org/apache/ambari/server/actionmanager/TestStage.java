@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -31,8 +31,9 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Map;
-import java.util.TreeMap;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class TestStage {
 

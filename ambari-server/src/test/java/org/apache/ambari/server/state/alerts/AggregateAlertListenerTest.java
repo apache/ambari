@@ -39,6 +39,7 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -48,7 +49,6 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
-import org.junit.experimental.categories.Category;
 
 /**
  * Tests the {@link AlertAggregateListener}.

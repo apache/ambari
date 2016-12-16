@@ -93,7 +93,7 @@ class HdfsServiceCheck(Script):
       comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
       checkWebUICmd = format(
         "su -s /bin/bash - {smoke_test_user} -c 'python {checkWebUIFilePath} -m "
-        "{comma_sep_jn_hosts} -p {journalnode_port}'")
+        "{comma_sep_jn_hosts} -p {journalnode_port} -o {script_https_protocol}'")
       File(checkWebUIFilePath,
            content=StaticFile(checkWebUIFileName))
 

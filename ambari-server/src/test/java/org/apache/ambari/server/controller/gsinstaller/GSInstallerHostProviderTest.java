@@ -18,7 +18,9 @@
 
 package org.apache.ambari.server.controller.gsinstaller;
 
-import junit.framework.Assert;
+import java.util.HashMap;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -26,8 +28,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Set;
+import junit.framework.Assert;
 
 /**
  *

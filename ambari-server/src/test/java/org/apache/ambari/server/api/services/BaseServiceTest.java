@@ -151,7 +151,7 @@ public abstract class BaseServiceTest {
   private void testMethod_bodyParseException(ServiceTestInvocation testMethod) throws Exception {
     addExpectForInitialRequest(testMethod);
 
-    Capture<Result> resultCapture = new Capture<Result>();
+    Capture<Result> resultCapture = EasyMock.newCapture();
     BodyParseException e = new BodyParseException("TEST MSG");
     expect(bodyParser.parse(testMethod.getBody())).andThrow(e);
     expect(serializer.serialize(capture(resultCapture))).andReturn(serializedResult);

@@ -243,8 +243,22 @@ public class GenericDbmsHelper implements DbmsHelper {
   @Override
   public String getCreateIndexStatement(String indexName, String tableName,
                                         String... columnNames) {
+    return getCreateIndexStatement(indexName, tableName, false, columnNames);
+  }
+
+  /**
+   * get create index statement
+   * @param indexName The name of the index to be created
+   * @param tableName The database table the index to be created on
+   * @param columnNames The columns included into the index
+   * @param  isUnique Specifies whether unique index is to be created.
+   * @return The sql statement for creating the index
+   */
+  @Override
+  public String getCreateIndexStatement(String indexName, String tableName, boolean isUnique,
+                                        String... columnNames) {
     //TODO validateColumnNames()
-    String createIndex = databasePlatform.buildCreateIndex(tableName, indexName, columnNames);
+    String createIndex = databasePlatform.buildCreateIndex(tableName, indexName, "", isUnique, columnNames);
     return createIndex;
   }
 

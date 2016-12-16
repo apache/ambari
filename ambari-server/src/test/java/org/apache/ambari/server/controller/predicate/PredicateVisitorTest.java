@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  *  Tests for predicate visitors.

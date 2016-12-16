@@ -18,6 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -44,16 +54,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.base.Optional;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
 
 public class ViewURLResourceProviderTest {
 
@@ -245,7 +245,7 @@ public class ViewURLResourceProviderTest {
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
     ViewURLEntity viewURLEntity = createNiceMock(ViewURLEntity.class);
     ViewURLDAO viewURLDAO = createNiceMock(ViewURLDAO.class);
-    EqualsPredicate equalsPredicate = new EqualsPredicate(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
+    EqualsPredicate<String> equalsPredicate = new EqualsPredicate<>(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
 
 
     setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);

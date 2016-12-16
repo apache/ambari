@@ -17,6 +17,13 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertSame;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.verify;
+
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,13 +45,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertSame;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.verify;
 
 public class AmbariAuthenticationTest extends EasyMockSupport {
 

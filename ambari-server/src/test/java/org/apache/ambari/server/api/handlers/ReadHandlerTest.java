@@ -18,6 +18,21 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
@@ -26,19 +41,17 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Test;
-
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 /**
  * Unit tests for ReadHandler.
@@ -86,7 +99,7 @@ public class ReadHandlerTest {
     Result result = createStrictMock(Result.class);
     RequestBody body = createStrictMock(RequestBody.class);
     Renderer renderer = new DefaultRenderer();
-    Capture<ResultStatus> resultStatusCapture = new Capture<ResultStatus>();
+    Capture<ResultStatus> resultStatusCapture = EasyMock.newCapture();
 
     Map<String, String> requestInfoProperties = Collections.singletonMap("directive", "value");
 

@@ -28,13 +28,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
 public class PropertiesHelper extends PropertyPlaceholderConfigurer {
-  private static final Logger logger = Logger.getLogger(PropertiesHelper.class);
+  private static final Logger logger = LoggerFactory.getLogger(PropertiesHelper.class);
   
   private static final String LOGSEARCH_PROP_FILE="logsearch.properties";
   

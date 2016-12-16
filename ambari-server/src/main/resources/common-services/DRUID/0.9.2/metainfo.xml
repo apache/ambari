@@ -127,8 +127,8 @@
         <component>
           <name>DRUID_ROUTER</name>
           <displayName>Druid Router</displayName>
-          <category>SLAVE</category>
-          <cardinality>0+</cardinality>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -167,46 +167,6 @@
           <packages>
             <package>
               <name>druid-${stack_version}</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>mysql</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
-          <packages>
-            <package>
-              <name>mysql-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat7</osFamily>
-          <packages>
-            <package>
-              <name>mysql-community-release</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>mysql-community-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>mysql-client</name>
-              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>

@@ -67,14 +67,14 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * {@link AlertGroupResourceProvider} tests.
@@ -308,7 +308,7 @@ public class AlertGroupResourceProviderTest {
 
       // verify definitions and targets come back when requested
       List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
-      List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
+      List<?> targets = (List<?>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
 
       assertNotNull(definitions);
       assertEquals(1, definitions.size());
@@ -433,7 +433,7 @@ public class AlertGroupResourceProviderTest {
    * @throws Exception
    */
   public void testCreateResources(Authentication authentication) throws Exception {
-    Capture<List<AlertGroupEntity>> listCapture = new Capture<List<AlertGroupEntity>>();
+    Capture<List<AlertGroupEntity>> listCapture = EasyMock.newCapture();
 
     // the definition IDs to associate with the group
     List<Long> definitionIds = new ArrayList<Long>();
@@ -525,7 +525,7 @@ public class AlertGroupResourceProviderTest {
    */
   @SuppressWarnings("unchecked")
   public void testUpdateResources(Authentication authentication) throws Exception {
-    Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
+    Capture<AlertGroupEntity> entityCapture = EasyMock.newCapture();
 
     // the definition IDs to associate with the group
     List<Long> definitionIds = new ArrayList<Long>();
@@ -543,7 +543,7 @@ public class AlertGroupResourceProviderTest {
     List<AlertTargetEntity> targetEntities = new ArrayList<AlertTargetEntity>();
     targetEntities.addAll(getMockTargets());
 
-    m_dao.createGroups(EasyMock.anyObject(List.class));
+    m_dao.createGroups(EasyMock.<List<AlertGroupEntity>>anyObject());
     expectLastCall().times(1);
 
     AlertGroupEntity group = new AlertGroupEntity();
@@ -639,7 +639,7 @@ public class AlertGroupResourceProviderTest {
    */
   @SuppressWarnings("unchecked")
   private  void testUpdateDefaultGroup(Authentication authentication) throws Exception {
-    Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
+    Capture<AlertGroupEntity> entityCapture = EasyMock.newCapture();
 
     // the definition IDs to associate with the group
     List<Long> definitionIds = new ArrayList<Long>();
@@ -750,8 +750,8 @@ public class AlertGroupResourceProviderTest {
    * @throws Exception
    */
   private void testDeleteResources(Authentication authentication) throws Exception {
-    Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
-    Capture<List<AlertGroupEntity>> listCapture = new Capture<List<AlertGroupEntity>>();
+    Capture<AlertGroupEntity> entityCapture = EasyMock.newCapture();
+    Capture<List<AlertGroupEntity>> listCapture = EasyMock.newCapture();
 
     m_dao.createGroups(capture(listCapture));
     expectLastCall();

@@ -18,27 +18,24 @@
 
 package org.apache.ambari.server.security;
 
-import java.io.IOException;
-
-
-import com.google.inject.Binder;
-import com.google.inject.Module;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.mock.web.MockFilterChain;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 import static org.easymock.EasyMock.createNiceMock;
 
+import java.io.IOException;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 
 public class SecurityFilterTest {
   

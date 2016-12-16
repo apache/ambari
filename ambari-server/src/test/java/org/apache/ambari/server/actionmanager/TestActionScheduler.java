@@ -420,7 +420,7 @@ public class TestActionScheduler {
             mock(HostRoleCommandDAO.class), mock(HostRoleCommandFactory.class)).
         addMockedMethod("cancelHostRoleCommands").
         createMock();
-    scheduler.cancelHostRoleCommands((Collection<HostRoleCommand>)EasyMock.anyObject(),EasyMock.anyObject(String.class));
+    scheduler.cancelHostRoleCommands(EasyMock.<Collection<HostRoleCommand>>anyObject(),EasyMock.anyObject(String.class));
     EasyMock.expectLastCall();
     EasyMock.replay(scheduler);
     scheduler.setTaskTimeoutAdjustment(false);
@@ -1419,7 +1419,7 @@ public class TestActionScheduler {
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);
 
-    Capture<Collection<HostRoleCommand>> cancelCommandList = new Capture<Collection<HostRoleCommand>>();
+    Capture<Collection<HostRoleCommand>> cancelCommandList = EasyMock.newCapture();
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class).
         withConstructor((long)100, (long)50, db, aq, fsm, 3,
           new HostsMap((String) null),

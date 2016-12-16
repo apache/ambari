@@ -18,7 +18,18 @@
 
 package org.apache.ambari.server.topology;
 
-import junit.framework.Assert;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -28,17 +39,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import junit.framework.Assert;
 
 /**
  * Unit test for the ConfigureClusterTask class.
@@ -73,8 +74,8 @@ public class ConfigureClusterTaskTest {
       Exception {
     // GIVEN
     // is it OK to handle the non existence of hostgroups as a success?!
-    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
-    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
+    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.<String>emptyList());
+    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
 
     // this is only called if the "prerequisites" are satisfied
     clusterConfigurationRequest.process();
@@ -93,8 +94,8 @@ public class ConfigureClusterTaskTest {
   public void testsShouldConfigureClusterTaskExecuteWhenCalledFromAsyncCallableService() throws Exception {
     // GIVEN
     // is it OK to handle the non existence of hostgroups as a success?!
-    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
-    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
+    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.<String>emptyList());
+    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
 
     // this is only called if the "prerequisites" are satisfied
     clusterConfigurationRequest.process();

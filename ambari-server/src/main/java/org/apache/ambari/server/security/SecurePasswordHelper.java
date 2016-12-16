@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.security;
 
-import com.google.inject.Singleton;
-
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.inject.Singleton;
 
 @Singleton
 public class SecurePasswordHelper {

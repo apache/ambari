@@ -31,8 +31,6 @@ import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
 import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 

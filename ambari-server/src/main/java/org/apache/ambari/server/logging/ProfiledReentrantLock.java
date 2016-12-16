@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.logging;
 
-import com.google.common.base.Ticker;
-
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.google.common.base.Ticker;
 
 /**
  * Implements profiling for a ReentrantLock.

@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
-import com.google.inject.assistedinject.Assisted;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.state.Cluster;
+
+import com.google.inject.assistedinject.Assisted;
 
 public interface RequestExecutionFactory {
   RequestExecution createNew(@Assisted("cluster") Cluster cluster,

@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+    <schemaVersion>2.0</schemaVersion>
+    <services>
+        <service>
+            <name>KERBEROS</name>
+            <displayName>Kerberos</displayName>
+            <comment>A computer network authentication protocol which works on
+                the basis of 'tickets' to allow nodes communicating over a
+                non-secure network to prove their identity to one another in a
+                secure manner.
+            </comment>
+            <version>1.10.3-10</version>
+
+            <components>
+                <component>
+                    <name>KERBEROS_CLIENT</name>
+                    <displayName>Kerberos Client</displayName>
+                    <category>CLIENT</category>
+                    <cardinality>ALL</cardinality>
+                    <versionAdvertised>false</versionAdvertised>
+                    <auto-deploy>
+                        <enabled>true</enabled>
+                    </auto-deploy>
+                    <commandScript>
+                        <script>scripts/kerberos_client.py</script>
+                        <scriptType>PYTHON</scriptType>
+                        <timeout>1200</timeout>
+                    </commandScript>
+                    <customCommands>
+                        <customCommand>
+                            <name>SET_KEYTAB</name>
+                            <commandScript>
+                                <script>scripts/kerberos_client.py</script>
+                                <scriptType>PYTHON</scriptType>
+                                <timeout>1000</timeout>
+                            </commandScript>
+                        </customCommand>
+                        <customCommand>
+                            <name>REMOVE_KEYTAB</name>
+                            <commandScript>
+                                <script>scripts/kerberos_client.py</script>
+                                <scriptType>PYTHON</scriptType>
+                                <timeout>1000</timeout>
+                            </commandScript>
+                        </customCommand>
+                    </customCommands>
+                    <configFiles>
+                        <configFile>
+                            <type>env</type>
+                            <fileName>krb5.conf</fileName>
+                            <dictionaryName>krb5-conf</dictionaryName>
+                        </configFile>
+                    </configFiles>
+                </component>
+            </components>
+            <commandScript>
+                <script>scripts/service_check.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>300</timeout>
+            </commandScript>
+
+            <configuration-dependencies>
+                <config-type>krb5-conf</config-type>
+                <config-type>kerberos-env</config-type>
+            </configuration-dependencies>
+            <restartRequiredAfterChange>true</restartRequiredAfterChange>
+        </service>
+    </services>
+</metainfo>

@@ -18,14 +18,17 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import org.junit.Before;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
+
 import javax.persistence.EntityManager;
+
+import org.junit.Before;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * UserDAO unit tests.

@@ -17,20 +17,20 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Inject;
+import java.util.Collection;
+
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collection;
+import com.google.inject.Inject;
 
 public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationProvider {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariLocalUserProvider.class);

@@ -18,13 +18,14 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.inject.Singleton;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.Singleton;
 
 
 /**
@@ -45,9 +46,9 @@ public class AgentRequests {
 
   public void setExecutionDetailsRequest(String host, String component, String requestExecutionCmd) {
     if (StringUtils.isNotBlank(requestExecutionCmd)) {
-      LOG.debug("Setting need for exec command to " + requestExecutionCmd + " for " + component);
       Map<String, Boolean> perHostRequiresExecCmdDetails = getPerHostRequiresExecCmdDetails(host);
       if (Boolean.TRUE.toString().toUpperCase().equals(requestExecutionCmd.toUpperCase())) {
+        LOG.info("Setting need for exec command to " + requestExecutionCmd + " for " + component);
         perHostRequiresExecCmdDetails.put(component, Boolean.TRUE);
       } else {
         perHostRequiresExecCmdDetails.put(component, Boolean.FALSE);

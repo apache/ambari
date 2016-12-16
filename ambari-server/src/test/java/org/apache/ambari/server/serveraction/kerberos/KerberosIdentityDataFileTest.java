@@ -18,14 +18,15 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import junit.framework.Assert;
+import java.io.File;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.util.Iterator;
-import java.util.Map;
+import junit.framework.Assert;
 
 /**
  * This is a test to see how well the KerberosIdentityDataFileWriter and KerberosIdentityDataFileReader

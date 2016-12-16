@@ -18,11 +18,10 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.inject.Binding;
-import com.google.inject.ConfigurationException;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -31,19 +30,17 @@ import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.persistence.DataStoreImpl;
 import org.apache.ambari.server.view.persistence.DataStoreModule;
 import org.apache.ambari.view.DataStore;
-import org.apache.ambari.view.migration.EntityConverter;
 import org.apache.ambari.view.PersistenceException;
+import org.apache.ambari.view.migration.EntityConverter;
 import org.apache.ambari.view.migration.ViewDataMigrationContext;
 import org.apache.ambari.view.migration.ViewDataMigrationException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeanUtils;
 
-import javax.persistence.EntityManagerFactory;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.WeakHashMap;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * View data migration context implementation.

@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import net.sf.ehcache.constructs.blocking.UpdatingCacheEntryFactory;
+import java.io.IOException;
+import java.util.Date;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.timeline.MetricsRequestHelper;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -33,15 +33,10 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import net.sf.ehcache.constructs.blocking.UpdatingCacheEntryFactory;
 
 @Singleton
 public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactory {

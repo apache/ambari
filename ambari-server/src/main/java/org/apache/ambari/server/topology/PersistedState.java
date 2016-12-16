@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.state.Host;
 
 /**

@@ -19,6 +19,9 @@
 package org.apache.ambari.server.metadata;
 
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -38,8 +41,6 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RoleGraphTest {
 

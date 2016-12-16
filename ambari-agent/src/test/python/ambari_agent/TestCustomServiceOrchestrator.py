@@ -54,8 +54,8 @@ class TestCustomServiceOrchestrator(TestCase):
     # generate sample config
     tmpdir = tempfile.gettempdir()
     exec_tmp_dir = os.path.join(tmpdir, 'tmp')
-    self.config = ConfigParser.RawConfigParser()
-    self.config.get = AmbariConfig().get
+    self.config = AmbariConfig()
+    self.config.config = ConfigParser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
@@ -68,7 +68,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_add_reg_listener_to_controller(self, FileCache_mock):
     FileCache_mock.return_value = None
     dummy_controller = MagicMock()
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     CustomServiceOrchestrator(config, dummy_controller)
@@ -204,7 +204,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_resolve_script_path(self, FileCache_mock, exists_mock):
     FileCache_mock.return_value = None
     dummy_controller = MagicMock()
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     orchestrator = CustomServiceOrchestrator(config, dummy_controller)
     # Testing existing path
     exists_mock.return_value = True

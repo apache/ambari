@@ -18,16 +18,16 @@
 
 package org.apache.ambari.server.stack;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.Assert;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 
 /**
  * KerberosDescriptorTest tests the stack- and service-level descriptors for certain stacks

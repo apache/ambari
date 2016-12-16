@@ -18,14 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class RequestOperationLevelTest {
 

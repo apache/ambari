@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.view;
 
-import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ImpersonatorSetting;
+import org.apache.ambari.view.ViewContext;
 
 /**
  * Class that provides default values for impersonating, such as the username and doAs parameter name.

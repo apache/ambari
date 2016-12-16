@@ -17,12 +17,11 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
+import java.util.Date;
+
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-
-import java.util.Date;
-import java.util.Map;
 
 /**
  * Wrapper object for metrics returned from AMS that includes the query time

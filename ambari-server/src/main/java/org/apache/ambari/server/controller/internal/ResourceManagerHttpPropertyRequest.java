@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.state.Cluster;
-
 import java.util.Collections;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.state.Cluster;
 
 /**
  * Resource manager specific HTTP property request.

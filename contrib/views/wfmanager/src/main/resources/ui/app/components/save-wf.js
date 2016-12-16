@@ -38,6 +38,7 @@ export default Ember.Component.extend(Validations, {
   alertDetails : "",
   filePath : "",
   showErrorMessage: false,
+  saveJobService : Ember.inject.service('save-job'),
   displayName : Ember.computed('type', function(){
     if(this.get('type') === 'wf'){
       return "Workflow";
@@ -69,7 +70,7 @@ export default Ember.Component.extend(Validations, {
     }
     this.set("alertDetails", data.details);
     this.set("alertMessage", data.message);
-    if(data.stackTrace.length){
+    if(data.stackTrace && data.stackTrace.length){
       this.set("stackTrace", data.stackTrace);
       this.set("isStackTraceAvailable", true);
     } else {
@@ -77,36 +78,34 @@ export default Ember.Component.extend(Validations, {
     }
   },
   saveJob(){
-    var url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
-    Ember.$.ajax({
-      url: url,
-      method: "POST",
-      dataType: "text",
-      contentType: "text/plain;charset=utf-8",
-      beforeSend: function(request) {
-        request.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
-        request.setRequestHeader("X-Requested-By", "workflow-designer");
-      },
-      data: this.get("jobXml"),
-      success: function(response) {
-        //var result=JSON.parse(response);
-        this.showNotification({
+    var url, workflowData;
+    if(this.get('isDraft')){
+       url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
+       workflowData = this.get("jobXmlJSONStr");
+    } else {
+       url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
+       workflowData = this.get("jobXml");
+    }
+
+    var self = this;
+    this.get("saveJobService").saveWorkflow(url, workflowData).promise.then(function(response){
+        self.showNotification({
           "type": "success",
           "message": "Workflow have been saved"
         });
-        this.set("savingInProgress",false);
-      }.bind(this),
-      error: function(response) {
+        self.set("savingInProgress",false);
+        self.sendAction("saveFileinfo", this.get("filePath"), this.get("overwritePath"));
+    }.bind(this)).catch(function(response){
         console.log(response);
-        this.set("savingInProgress",false);
-        this.set("isStackTraceVisible",true);
-        this.showNotification({
+        self.set("savingInProgress",false);
+        self.set("isStackTraceVisible",true);
+        self.showNotification({
           "type": "error",
-          "message": "Error occurred while saving "+ this.get('displayName').toLowerCase(),
-          "details": this.getParsedErrorResponse(response),
-          "stackTrace": this.getStackTrace(response.responseText)
+          "message": "Error occurred while saving "+ self.get('displayName').toLowerCase(),
+          "details": self.getParsedErrorResponse(response),
+          "stackTrace": self.getStackTrace(response.responseText)
         });
-      }.bind(this)
+        self.sendAction("saveFileinfo", self.get("filePath"), self.get("overwritePath"));
     });
   },
   getStackTrace(data){

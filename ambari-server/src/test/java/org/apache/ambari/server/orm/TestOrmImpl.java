@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.orm;
 
-import javax.persistence.EntityManager;
-import javax.persistence.RollbackException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.RollbackException;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;

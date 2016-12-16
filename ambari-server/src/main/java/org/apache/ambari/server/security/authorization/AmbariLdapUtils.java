@@ -18,15 +18,17 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import com.google.common.base.Preconditions;
+import java.util.regex.Pattern;
+
+import javax.naming.Name;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.security.ldap.LdapUtils;
 
-import javax.naming.Name;
-import java.util.regex.Pattern;
+import com.google.common.base.Preconditions;
 
 /**
  * Provides utility methods for LDAP related functionality

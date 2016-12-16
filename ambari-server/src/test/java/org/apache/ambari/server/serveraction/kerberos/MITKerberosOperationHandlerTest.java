@@ -18,11 +18,17 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
-import junit.framework.Assert;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -37,11 +43,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.*;
+import junit.framework.Assert;
 
 public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
 
@@ -129,7 +135,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
         .addMockedMethod(methodExecuteCommand)
         .createNiceMock();
     injector.injectMembers(handler);
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -192,7 +198,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testCreatePrincipalPrincipalAlreadyNotExists() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -257,7 +263,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsIncorrectAdminPassword() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -288,7 +294,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsIncorrectAdminPrincipal() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -319,7 +325,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsInvalidRealm() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -350,7 +356,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsInvalidRealm2() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -381,7 +387,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsKDCConnectionException() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -412,7 +418,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsKDCConnectionException2() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -443,7 +449,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsNotFound() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {
@@ -474,7 +480,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   public void testTestAdministratorCredentialsSuccess() throws Exception {
     MITKerberosOperationHandler handler = createMock();
 
-    expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
+    expect(handler.executeCommand(anyObject(String[].class), EasyMock.<Map<String, String>>anyObject(), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
           public ShellCommandUtil.Result answer() throws Throwable {

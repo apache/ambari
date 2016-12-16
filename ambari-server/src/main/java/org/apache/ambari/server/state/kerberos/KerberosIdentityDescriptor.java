@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
+import java.util.Map;
+
 import org.apache.ambari.server.collections.Predicate;
 import org.apache.ambari.server.collections.PredicateUtils;
-
-import java.util.Map;
 
 /**
  * KerberosIdentityDescriptor is an implementation of an AbstractKerberosDescriptor that
@@ -150,7 +150,7 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
 
       item = data.get("when");
       if (item instanceof Map) {
-        setWhen(PredicateUtils.fromMap((Map<String, Object>) item));
+        setWhen(PredicateUtils.fromMap((Map<?, ?>) item));
       }
     }
   }

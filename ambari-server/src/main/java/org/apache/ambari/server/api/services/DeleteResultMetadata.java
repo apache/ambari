@@ -18,20 +18,18 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.commons.lang.Validate;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.commons.lang.Validate;
 
 /**
  * Implementation of ResultDetails for DELETE API requests.

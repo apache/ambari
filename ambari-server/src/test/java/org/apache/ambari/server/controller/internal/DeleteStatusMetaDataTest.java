@@ -18,13 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.collect.Sets;
+import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
+import static org.junit.Assert.assertTrue;
+
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.junit.Test;
 
-import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 public class DeleteStatusMetaDataTest {
   private String key1 = "key1";

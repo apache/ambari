@@ -16,8 +16,8 @@
 
     "links": [
       {
-        "name": "falcon_dashboard",
-        "label": "Falcon Dashboard",
+        "name": "falcon_web_ui",
+        "label": "Falcon Web UI",
         "requires_user_name": "true",
         "component_name": "FALCON_SERVER",
         "url": "%@://%@:%@/",

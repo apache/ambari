@@ -17,18 +17,19 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
-import net.sf.ehcache.pool.sizeof.ReflectionSizeOf;
-import net.sf.ehcache.pool.sizeof.SizeOf;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeMap;
+
+import net.sf.ehcache.pool.sizeof.ReflectionSizeOf;
+import net.sf.ehcache.pool.sizeof.SizeOf;
 
 public class TimelineMetricCacheSizingTest {
 

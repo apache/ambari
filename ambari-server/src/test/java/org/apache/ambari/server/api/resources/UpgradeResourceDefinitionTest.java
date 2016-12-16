@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashSet;
 
-import static org.junit.Assert.assertEquals;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Test;
 
 /**
  * UpgradeResourceDefinition tests.

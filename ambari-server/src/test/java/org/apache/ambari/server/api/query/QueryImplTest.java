@@ -74,6 +74,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -290,8 +291,8 @@ public class QueryImplTest {
 
     expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
 
-    TreeNode<Set<String>> treeNode = new TreeNodeImpl<Set<String>>(null, Collections.EMPTY_SET, null);
-    expect(renderer.finalizeProperties(anyObject(TreeNode.class), anyBoolean())).andReturn(treeNode).anyTimes();
+    TreeNode<Set<String>> treeNode = new TreeNodeImpl<>(null, Collections.<String>emptySet(), null);
+    expect(renderer.finalizeProperties(EasyMock.<TreeNode<QueryInfo>>anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
 
     replay(clusterController, queryResponse, schema, renderer);
 
@@ -358,8 +359,8 @@ public class QueryImplTest {
 
     expect(clusterResource.getPropertyValue("Clusters/cluster_name")).andReturn("c1").anyTimes();
 
-    TreeNode<Set<String>> treeNode = new TreeNodeImpl<Set<String>>(null, Collections.EMPTY_SET, null);
-    expect(renderer.finalizeProperties(anyObject(TreeNode.class), anyBoolean())).andReturn(treeNode).anyTimes();
+    TreeNode<Set<String>> treeNode = new TreeNodeImpl<>(null, Collections.<String>emptySet(), null);
+    expect(renderer.finalizeProperties(EasyMock.<TreeNode<QueryInfo>>anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
 
     expect(clusterController.getIterable(eq(Resource.Type.Cluster), anyObject(QueryResponse.class),
       anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class),
@@ -412,9 +413,9 @@ public class QueryImplTest {
     expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
 
     TreeNode<Set<String>> treeNode = new TreeNodeImpl<Set<String>>(null, Collections.<String>emptySet(), null);
-    expect(renderer.finalizeProperties(anyObject(TreeNode.class), anyBoolean())).andReturn(treeNode).anyTimes();
+    expect(renderer.finalizeProperties(EasyMock.<TreeNode<QueryInfo>>anyObject(), anyBoolean())).andReturn(treeNode).anyTimes();
 
-    Capture<Result> resultCapture = new Capture<Result>();
+    Capture<Result> resultCapture = EasyMock.newCapture();
 
     expect(renderer.finalizeResult(capture(resultCapture))).andReturn(null);
 

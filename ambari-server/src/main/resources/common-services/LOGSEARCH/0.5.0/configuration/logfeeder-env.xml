@@ -119,6 +119,20 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logfeeder_external_solr_kerberos_keytab</name>
+    <value></value>
+    <display-name>Logfeeder External Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of Logfeeder e.g. /etc/security/keytabs/logfeeder.service.keytab</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder_external_solr_kerberos_principal</name>
+    <value></value>
+    <display-name>Logfeeder External Solr principal</display-name>
+    <description>The service principal for Logfeeder which will be used to access SolrClient e.g. logfeeder/_HOST@REALM</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logfeeder_kerberos_keytab</name>
     <value>/etc/security/keytabs/logfeeder.service.keytab</value>
     <display-name>Logfeeder Solr keytab</display-name>

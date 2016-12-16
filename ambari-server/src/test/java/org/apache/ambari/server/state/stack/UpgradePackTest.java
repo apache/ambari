@@ -93,6 +93,7 @@ public class UpgradePackTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void findAndValidateUpgradePacks() throws Exception {
 
     IOFileFilter filter = new IOFileFilter() {

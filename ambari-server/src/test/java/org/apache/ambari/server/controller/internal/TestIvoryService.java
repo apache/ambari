@@ -18,16 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.ivory.Cluster;
-import org.apache.ambari.server.controller.ivory.Feed;
-import org.apache.ambari.server.controller.ivory.Instance;
-import org.apache.ambari.server.controller.ivory.IvoryService;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.ivory.Cluster;
+import org.apache.ambari.server.controller.ivory.Feed;
+import org.apache.ambari.server.controller.ivory.Instance;
+import org.apache.ambari.server.controller.ivory.IvoryService;
 
 /**
  * An IvoryService implementation used for testing the DR related resource providers.

@@ -18,22 +18,24 @@
 
 package org.apache.ambari.server.api.services.serializers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.api.services.DeleteResultMetadata;
+import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.api.util.TreeNode;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
-
-import java.io.*;
-import java.nio.charset.Charset;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * JSON serializer.

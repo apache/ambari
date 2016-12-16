@@ -22,7 +22,7 @@ var BundleGenerator= Ember.Object.extend({
     var xmlJson={"bundle-app":{}};
     console.log(this.bundle);
     var bundleApp=xmlJson["bundle-app"];
-    bundleApp._xmlns = "uri:oozie:bundle:0.1";
+    bundleApp._xmlns = "uri:oozie:bundle:"+this.bundle.schemaVersions.bundleVersion;
     bundleApp._name = this.bundle.name;
     if(!Ember.isEmpty(this.bundle.kickOffTime.value)){
       bundleApp["control"] = {};

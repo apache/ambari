@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
-import junit.framework.Assert;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.controller.metrics.MetricsPaddingMethod;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.junit.Test;
-import java.util.TreeMap;
+
+import junit.framework.Assert;
 
 public class MetricsPaddingMethodTest {
 

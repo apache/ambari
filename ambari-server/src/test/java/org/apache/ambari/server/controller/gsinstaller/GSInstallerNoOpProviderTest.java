@@ -18,11 +18,12 @@
 
 package org.apache.ambari.server.controller.gsinstaller;
 
-import junit.framework.Assert;
+import java.util.Collections;
+
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
-import java.util.Collections;
+import junit.framework.Assert;
 
 /**
  * GSInstallerNoOpProvider tests.

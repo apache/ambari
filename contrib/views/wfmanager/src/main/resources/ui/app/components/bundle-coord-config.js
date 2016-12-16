@@ -99,7 +99,7 @@ export default Ember.Component.extend(Validations, {
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var coordJson = x2js.xml_str2json(data);
-        this.set('coordinatorName', coordJson["coordinator-app"]._name);
+        this.set('coordinator.name', coordJson["coordinator-app"]._name);
       }.bind(this)).catch(function(){
         this.set('coordinatorName', null);
       }.bind(this));

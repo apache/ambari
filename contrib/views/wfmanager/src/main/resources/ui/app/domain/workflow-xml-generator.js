@@ -58,6 +58,21 @@ var WorkflowGenerator= Ember.Object.extend({
     var xmlAsStr = this.get("x2js").json2xml_str(reordered);
     return xmlAsStr;
   },
+
+  getActionNodeXml(actionNodeName, actionNodeType) {
+    var workflowObj={"workflow-app":{}};
+    this.visitNode(workflowObj, this.workflow.startNode);
+    var workflowActions = workflowObj["workflow-app"].action;
+    var actionNodes = workflowActions.filter(function (workflowActionNode) {
+        return workflowActionNode._name === actionNodeName;
+      });
+    if (actionNodes.length>0) {
+      var actionNode = {};
+      actionNode[actionNodeType] = actionNodes[0][actionNodeType];
+      return this.get("x2js").json2xml_str(actionNode);
+    }
+    return "";
+  },
   slaInfoExists(workflowApp){
     if (workflowApp.info){
       return true;

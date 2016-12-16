@@ -33,8 +33,9 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 from resource_management.libraries.functions.get_path_from_url import get_path_from_url
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_commons import OSCheck
-from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_tls_v1
+from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_protocol
 from ambari_agent import Constants
+from ambari_agent.AmbariConfig import AmbariConfig
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
 # and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
@@ -54,7 +55,7 @@ DEFAULT_CONNECTION_TIMEOUT = 5
 
 WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
 
-ensure_ssl_using_tls_v1()
+ensure_ssl_using_protocol(AmbariConfig.get_resolved_config().get_force_https_protocol())
 
 class WebAlert(BaseAlert):
 

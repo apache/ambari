@@ -17,7 +17,21 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestScheduleResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -35,23 +49,11 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import junit.framework.Assert;
 
 public class RequestScheduleResourceProviderTest {
 
@@ -90,9 +92,9 @@ public class RequestScheduleResourceProviderTest {
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(managementController.getAuthId()).andReturn(1).anyTimes();
 
-    Capture<Cluster> clusterCapture = new Capture<Cluster>();
-    Capture<Batch> batchCapture = new Capture<Batch>();
-    Capture<Schedule> scheduleCapture = new Capture<Schedule>();
+    Capture<Cluster> clusterCapture = EasyMock.newCapture();
+    Capture<Batch> batchCapture = EasyMock.newCapture();
+    Capture<Schedule> scheduleCapture = EasyMock.newCapture();
 
     expect(executionFactory.createNew(capture(clusterCapture),
       capture(batchCapture), capture(scheduleCapture))).andReturn(requestExecution);

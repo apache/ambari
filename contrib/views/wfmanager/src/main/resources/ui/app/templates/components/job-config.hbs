@@ -21,7 +21,7 @@
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         {{#if isDryrun}}
-          <h4 class="modal-title">Dryrun {{displayName}}</h4>
+          <h4 class="modal-title">Validate {{displayName}}</h4>
         {{else}}
           <h4 class="modal-title">Submit {{displayName}}</h4>
         {{/if}}
@@ -39,14 +39,14 @@
                   <a href="#" {{action "hideStackTrace"}}>Hide Log</a>
                   <div id="stackTrace">{{{stackTrace}}}</div>
                 {{/if}}
-                {{#unless isStackTraceVisible}}  
+                {{#unless isStackTraceVisible}}
                   <a href="#" {{action "showStackTrace"}}>Show Log</a>
                 {{/unless}}
               {{/if}}
             </div>
             {{/if}}
             <div class="row form-group">
-              <div class="col-xs-3"> 
+              <div class="col-xs-3">
                 <label class="control-label" for="{{type}}-path">{{displayName}} path</label><span class="requiredField">&nbsp;*</span>
               </div>
               <div class="col-xs-8">
@@ -111,9 +111,9 @@
         {{/if}}
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         {{#if isDryrun}}
-          <button type="button" class="btn btn-primary" {{action "dryrun"}}>Test Run</button>
+          <button type="button" class="btn btn-primary" {{action "dryrun"}}>Validate</button>
         {{else}}
-          <button type="button" class="btn btn-default" {{action "dryrun"}}>Test Run</button>
+          <button type="button" class="btn btn-default" {{action "dryrun"}}>Validate</button>
           <button type="button" class="btn btn-primary" {{action "save"}}>Submit</button>
         {{/if}}
 

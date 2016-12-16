@@ -222,12 +222,14 @@ describe('App.mainAdminStackVersionsView', function () {
       sinon.stub(App, 'get', function (key) {
         return key === 'supports.displayOlderVersions' ? displayOlderVersions : Em.get(App, key);
       });
-      sinon.stub(App.router, 'get').returns('HDP-2.2')
+      sinon.stub(view, 'isVersionUpgrading', function(v) {
+        return v.get('displayName') === 'HDP-2.2';
+      });
     });
 
     afterEach(function () {
       App.get.restore();
-      App.router.get.restore();
+      view.isVersionUpgrading.restore();
     });
 
     testCases.forEach(function(t) {
@@ -327,6 +329,53 @@ describe('App.mainAdminStackVersionsView', function () {
       view.set('repoVersions', [Em.Object.create({id: 1})]);
       view.filterVersions();
       expect(view.get('repoVersions')[0].get('isVisible')).to.be.true;
+    });
+  });
+
+  describe('#isVersionUpgrading()', function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it('should return false, when version not being upgraded', function() {
+      var version = Em.Object.create({
+        displayName: 'HDP',
+        repositoryVersion: 'HDP'
+      });
+      this.mock.returns(Em.Object.create({
+        upgradeVersion: 'HDP-2',
+        fromVersion: 'HDP-1'
+      }));
+      expect(view.isVersionUpgrading(version)).to.be.false;
+    });
+
+    it('should return true, when version being upgraded', function() {
+      var version = Em.Object.create({
+        displayName: 'HDP-2',
+        repositoryVersion: 'HDP'
+      });
+      this.mock.returns(Em.Object.create({
+        upgradeVersion: 'HDP-2',
+        fromVersion: 'HDP-1'
+      }));
+      expect(view.isVersionUpgrading(version)).to.be.true;
+    });
+
+    it('should return true, when version being downgraded', function() {
+      var version = Em.Object.create({
+        displayName: 'HDP',
+        repositoryVersion: 'HDP-1'
+      });
+      this.mock.returns(Em.Object.create({
+        upgradeVersion: 'HDP-2',
+        fromVersion: 'HDP-1'
+      }));
+      expect(view.isVersionUpgrading(version)).to.be.true;
     });
   });
 

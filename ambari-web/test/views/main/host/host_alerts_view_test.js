@@ -186,7 +186,6 @@ describe('App.MainHostAlertsView', function () {
     });
   });
 
-
   describe("#paginationLeftClass", function() {
 
     it("startIndex is 2", function() {
@@ -271,7 +270,7 @@ describe('App.MainHostAlertsView', function () {
 
     it("tooltip should be called", function() {
       view.willDestroyElement();
-      expect(view.$.calledWith(".enable-disable-button, .timeago, .alert-text")).to.be.true;
+      expect(view.$.calledWith('.timeago, .alert-text')).to.be.true;
       expect(mock.tooltip.calledWith('destroy')).to.be.true;
     });
   });

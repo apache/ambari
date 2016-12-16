@@ -193,11 +193,7 @@ public class HeartbeatTestHelper {
     cluster.setCurrentStackVersion(stackId);
 
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
-    Config config = cf.createNew(cluster, "cluster-env", configProperties, new HashMap<String, Map<String, String>>());
-    config.setTag("version1");
-    config.persist();
-
-    cluster.addConfig(config);
+    Config config = cf.createNew(cluster, "cluster-env", "version1", configProperties, new HashMap<String, Map<String, String>>());
     cluster.addDesiredConfig("user", Collections.singleton(config));
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());

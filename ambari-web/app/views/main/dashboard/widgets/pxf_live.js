@@ -56,7 +56,7 @@ App.PxfUpView = App.TextDashboardSingleThresholdWidgetView.extend(App.SingleNume
     if (this.get('someMetricsNA')) {
       return null;
     }
-    return (this.get('pxfsTotal') - this.get('pxfsStarted') );
+    return this.get('pxfsTotal') - this.get('pxfsStarted');
   }.property('model.pxfsTotal', 'pxfsStarted', 'someMetricsNA'),
 
   /**

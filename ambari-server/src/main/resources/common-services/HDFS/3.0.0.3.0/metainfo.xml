@@ -1,0 +1,405 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HDFS</name>
+      <displayName>HDFS</displayName>
+      <comment>Apache Hadoop Distributed File System</comment>
+      <version>3.0.0.3.0</version>
+
+      <components>
+        <component>
+          <name>NAMENODE</name>
+          <displayName>NameNode</displayName>
+          <category>MASTER</category>
+          <cardinality>1-2</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <dependencies>
+            <dependency>
+              <name>HDFS/ZKFC</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyExists">
+                  <configType>hdfs-site</configType>
+                  <property>dfs.nameservices</property>
+                </condition>
+              </conditions>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyExists">
+                  <configType>hdfs-site</configType>
+                  <property>dfs.nameservices</property>
+                </condition>
+              </conditions>
+            </dependency>
+            <dependency>
+              <name>HDFS/JOURNALNODE</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyExists">
+                  <configType>hdfs-site</configType>
+                  <property>dfs.nameservices</property>
+                </condition>
+              </conditions>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/namenode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_namenode</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>hdfs_audit</logId>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>REBALANCEHDFS</name>
+              <background>true</background>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
+          <name>DATANODE</name>
+          <displayName>DataNode</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
+          <commandScript>
+            <script>scripts/datanode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <bulkCommands>
+            <displayName>DataNodes</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>NAMENODE</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>hdfs_datanode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>SECONDARY_NAMENODE</name>
+          <displayName>SNameNode</displayName>
+          <!-- TODO:  cardinality is conditional on HA usage -->
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/snamenode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_secondarynamenode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>HDFS_CLIENT</name>
+          <displayName>HDFS Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/hdfs_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>hdfs-log4j,yarn-log4j</dictionaryName>
+            </configFile>                          
+            <configFile>
+              <type>env</type>
+              <fileName>hadoop-env.sh</fileName>
+              <dictionaryName>hadoop-env</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+
+        <component>
+          <name>JOURNALNODE</name>
+          <displayName>JournalNode</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/journalnode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_journalnode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+        <component>
+          <name>ZKFC</name>
+          <displayName>ZKFailoverController</displayName>
+          <category>SLAVE</category>
+          <!-- TODO: cardinality is conditional on HA topology -->
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/zkfc_slave.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_zkfc</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>NFS_GATEWAY</name>
+          <displayName>NFSGateway</displayName>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/nfsgateway.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>hadoop</name>
+            </package>
+            <package>
+              <name>hadoop-lzo</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        
+        <osSpecific>
+          <osFamily>amazon2015,redhat6,redhat7,suse11</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-client</name>
+            </package>
+            <package>
+              <name>snappy</name>
+            </package>
+            <package>
+              <name>snappy-devel</name>
+            </package>
+            <package>
+              <name>lzo</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-lzo-native</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-libhdfs</name>
+            </package>
+          </packages>
+        </osSpecific>
+        
+        <osSpecific>
+          <osFamily>suse12</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-client</name>
+            </package>
+            <package>
+              <name>snappy</name>
+            </package>
+            <package>
+              <name>snappy-devel</name>
+            </package>
+            <package>
+              <name>liblzo2-2</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-lzo-native</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-libhdfs</name>
+            </package>
+          </packages>
+        </osSpecific>
+
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-client</name>
+            </package>
+            <package>
+              <name>libsnappy1</name>
+            </package>
+            <package>
+              <name>libsnappy-dev</name>
+            </package>
+            <package>
+              <name>liblzo2-2</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-hdfs</name>
+            </package>
+            <package>
+              <name>libhdfs0</name>
+            </package>
+            <package>
+              <name>libhdfs0-dev</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>core-site</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>hadoop-policy</config-type>
+        <config-type>hdfs-log4j</config-type>
+        <config-type>ranger-hdfs-plugin-properties</config-type>
+        <config-type>ssl-client</config-type>
+        <config-type>ssl-server</config-type>
+        <config-type>ranger-hdfs-audit</config-type>
+        <config-type>ranger-hdfs-policymgr-ssl</config-type>
+        <config-type>ranger-hdfs-security</config-type>
+        <config-type>ams-ssl-client</config-type>
+        <config-type>hadoop-metrics2.properties</config-type>
+      </configuration-dependencies>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+    </service>
+  </services>
+</metainfo>

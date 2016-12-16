@@ -17,19 +17,6 @@
  */
 package org.apache.ambari.server.customactions;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.ActionType;
-import org.apache.ambari.server.actionmanager.TargetHostType;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -38,6 +25,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionType;
+import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages Action definitions read from XML files

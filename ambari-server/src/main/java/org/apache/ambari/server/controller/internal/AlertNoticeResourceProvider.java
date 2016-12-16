@@ -46,9 +46,9 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * ResourceProvider for Alert History

@@ -18,18 +18,18 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.common.base.Optional;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
-import org.apache.ambari.server.orm.entities.ViewURLEntity;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.List;
 
 /**
  * Remote Ambari Cluster Data Access Object.

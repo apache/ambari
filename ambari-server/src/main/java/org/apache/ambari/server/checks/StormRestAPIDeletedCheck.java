@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -30,10 +33,8 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * The {@link StormRestAPIDeletedCheck}

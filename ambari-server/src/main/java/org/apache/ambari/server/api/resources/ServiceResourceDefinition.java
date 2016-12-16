@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.util.*;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service resource definition.

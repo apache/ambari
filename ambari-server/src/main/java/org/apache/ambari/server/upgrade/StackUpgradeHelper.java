@@ -24,8 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.UriInfo;
-
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -153,7 +151,7 @@ public class StackUpgradeHelper {
 
       
       stackUpgradeHelper.startPersistenceService();
-      Map values = gson.fromJson(valueMap, Map.class);
+      Map<String, String> values = gson.<Map<String, String>>fromJson(valueMap, Map.class);
 
       if (action.equals(STACK_ID_UPDATE_ACTION)) {
         stackUpgradeHelper.updateStackVersion(values);

@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.controller.internal.RequestOperationLevel;
-import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 
 /**
  * Helper class to capture details used to create action or custom commands

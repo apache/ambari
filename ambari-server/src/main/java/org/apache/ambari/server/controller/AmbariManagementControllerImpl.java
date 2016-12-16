@@ -55,7 +55,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,14 +79,15 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
@@ -341,6 +341,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
   @Inject
   private AmbariActionExecutionHelper actionExecutionHelper;
+
+  private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
 
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
@@ -895,17 +897,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public Config createConfig(Cluster cluster, String type, Map<String, String> properties,
                              String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
-    Config config = configFactory.createNew(cluster, type,
-      properties, propertiesAttributes);
 
-    if (!StringUtils.isEmpty(versionTag)) {
-      config.setTag(versionTag);
-    }
-
-    config.persist();
+    Config config = configFactory.createNew(cluster, type, versionTag, properties,
+        propertiesAttributes);
 
     cluster.addConfig(config);
-
     return config;
   }
 
@@ -1254,7 +1250,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
 
-            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
+            MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, host);
+            if(filterByMaintenanceState(request, effectiveMaintenanceState)) {
+              continue;
+            }
+            r.setMaintenanceState(effectiveMaintenanceState.name());
+
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() == null || request.getComponentName() == null) {
@@ -1305,13 +1306,36 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
             }
 
-            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
+            MaintenanceState effectiveMaintenanceState = maintenanceStateHelper.getEffectiveState(sch, host);
+            if(filterByMaintenanceState(request, effectiveMaintenanceState)) {
+              continue;
+            }
+            r.setMaintenanceState(effectiveMaintenanceState.name());
+
             response.add(r);
           }
         }
       }
     }
     return response;
+  }
+
+  private boolean filterByMaintenanceState(ServiceComponentHostRequest request, MaintenanceState effectiveMaintenanceState) {
+    if (request.getMaintenanceState() != null) {
+      MaintenanceState desiredMaintenanceState = MaintenanceState.valueOf(request.getMaintenanceState());
+      if (desiredMaintenanceState.equals(MaintenanceState.ON)) {
+        /*
+         * if we want components with ON state it can be one of IMPLIED_FROM_SERVICE,
+         * IMPLIED_FROM_SERVICE_AND_HOST, IMPLIED_FROM_HOST, ON, ro simply - not OFF
+         */
+        if (effectiveMaintenanceState.equals(MaintenanceState.OFF)) {
+          return true;
+        }
+      } else if (!desiredMaintenanceState.equals(effectiveMaintenanceState)){
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -2121,6 +2145,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Get the value of credential store enabled from the DB
     Service clusterService = cluster.getService(serviceName);
     execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
+
+    // Get the map of service config type to password properties for the service
+    Map<String, Map<String, String>> configCredentials;
+    configCredentials = configCredentialsForService.get(clusterService.getName());
+    if (configCredentials == null) {
+      configCredentials = configHelper.getPropertiesWithPropertyType(stackId, clusterService,
+              PropertyType.PASSWORD);
+      configCredentialsForService.put(clusterService.getName(), configCredentials);
+    }
+
+    execCmd.setConfigurationCredentials(configCredentials);
 
     // Create a local copy for each command
     Map<String, String> commandParams = new TreeMap<String, String>();
@@ -3770,7 +3805,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public List<String> selectHealthyHosts(Set<String> hostList) throws AmbariException {
-    List<String> healthyHosts = new ArrayList();
+    List<String> healthyHosts = new ArrayList<>();
 
     for (String candidateHostName : hostList) {
       Host candidateHost = clusters.getHost(candidateHostName);
@@ -5045,6 +5080,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public LoggingSearchPropertyProvider getLoggingSearchPropertyProvider() {
     return injector.getInstance(LoggingSearchPropertyProvider.class);
+  }
+
+  @Override
+  public LoggingService getLoggingService(String clusterName) {
+    LoggingService loggingService = new LoggingService(clusterName);
+    injector.injectMembers(loggingService);
+    return loggingService;
   }
 
   /**

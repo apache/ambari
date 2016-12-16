@@ -18,9 +18,7 @@
 
 package org.apache.ambari.server.collections.functors;
 
-import org.easymock.EasyMockSupport;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +28,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ContainsPredicateTest extends EasyMockSupport {
 
@@ -41,8 +41,8 @@ public class ContainsPredicateTest extends EasyMockSupport {
     Set<String> data2 = new HashSet<String>(Arrays.asList("TWO", "THREE"));
 
     ContextTransformer transformer = createStrictMock(ContextTransformer.class);
-    expect(transformer.transform(anyObject(Map.class))).andReturn(data1).times(1);
-    expect(transformer.transform(anyObject(Map.class))).andReturn(data2).times(1);
+    expect(transformer.transform(EasyMock.<Map<?, ?>>anyObject())).andReturn(data1).times(1);
+    expect(transformer.transform(EasyMock.<Map<?, ?>>anyObject())).andReturn(data2).times(1);
 
     replayAll();
 

@@ -33,6 +33,10 @@ class HBaseMaster(Dummy):
   def __init__(self):
     super(HBaseMaster, self).__init__()
     self.component_name = "HBASE_MASTER"
+    self.principal_conf_name = "hbase-site"
+    self.principal_name = "hbase.master.kerberos.principal"
+    self.keytab_conf_name = "hbase-site"
+    self.keytab_name = "hbase.master.keytab.file"
 
   def decommission(self, env):
     print "Decommission"

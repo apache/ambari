@@ -17,15 +17,16 @@
  */
 package org.apache.ambari.server.state;
 
-import org.apache.ambari.server.stack.StackManager;
-import org.junit.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+
+import javax.xml.validation.Validator;
+
+import org.apache.ambari.server.stack.StackManager;
+import org.junit.Test;
+import org.xml.sax.SAXException;
 
 public class ServicePropertiesTest {
 

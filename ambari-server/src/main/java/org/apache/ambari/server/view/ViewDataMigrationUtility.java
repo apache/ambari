@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.view;
 
+import java.util.Map;
+
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.PersistenceException;
 import org.apache.ambari.view.ViewInstanceDefinition;
@@ -26,7 +28,6 @@ import org.apache.ambari.view.migration.ViewDataMigrationException;
 import org.apache.ambari.view.migration.ViewDataMigrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Map;
 
 /**
  * Helper class for view data migration.

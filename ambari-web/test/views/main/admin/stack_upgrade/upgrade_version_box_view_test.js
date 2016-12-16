@@ -46,6 +46,9 @@ describe('App.UpgradeVersionBoxView', function () {
   });
 
   describe("#isUpgrading", function () {
+    beforeEach(function() {
+      view.set('controller.fromVersion', 'HDP-1');
+    });
     afterEach(function () {
       App.set('upgradeState', 'INIT');
     });
@@ -60,6 +63,14 @@ describe('App.UpgradeVersionBoxView', function () {
       App.set('upgradeState', 'IN_PROGRESS');
       view.set('controller.upgradeVersion', 'HDP-2.2.2');
       view.set('content.displayName', 'HDP-2.2.2');
+      view.propertyDidChange('isUpgrading');
+      expect(view.get('isUpgrading')).to.be.true;
+    });
+    it("fromVersion correct", function () {
+      App.set('upgradeState', 'IN_PROGRESS');
+      view.set('controller.upgradeVersion', 'HDP-2.2.2');
+      view.set('content.displayName', 'HDP-2.2.1');
+      view.set('content.repositoryVersion', 'HDP-1');
       view.propertyDidChange('isUpgrading');
       expect(view.get('isUpgrading')).to.be.true;
     });

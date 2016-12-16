@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * LdapSyncRequest tests.

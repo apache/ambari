@@ -18,12 +18,21 @@
 package org.apache.ambari.server.notifications.dispatchers;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.ambari.server.notifications.*;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.MessagingException;
+import javax.mail.Transport;
+
+import org.apache.ambari.server.notifications.DispatchCallback;
+import org.apache.ambari.server.notifications.DispatchFactory;
+import org.apache.ambari.server.notifications.Notification;
+import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.notifications.Recipient;
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.alert.TargetType;
 import org.easymock.EasyMock;
@@ -36,10 +45,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-
-import javax.mail.AuthenticationFailedException;
-import javax.mail.MessagingException;
-import javax.mail.Transport;
 
 /**
  *

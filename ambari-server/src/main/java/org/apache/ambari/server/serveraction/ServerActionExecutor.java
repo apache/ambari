@@ -41,10 +41,10 @@ import org.apache.ambari.server.security.authorization.internal.InternalAuthenti
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Server Action Executor used to execute server-side actions (or tasks)

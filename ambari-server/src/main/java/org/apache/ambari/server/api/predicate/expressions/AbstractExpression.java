@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.api.predicate.expressions;
 
-import org.apache.ambari.server.api.predicate.operators.Operator;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.ambari.server.api.predicate.operators.Operator;
 
 /**
  * Base class for expressions.

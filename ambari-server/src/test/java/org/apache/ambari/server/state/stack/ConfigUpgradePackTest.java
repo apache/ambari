@@ -17,29 +17,28 @@
  */
 package org.apache.ambari.server.state.stack;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.apache.ambari.server.state.stack.ConfigUpgradePack.AffectedComponent;
+import static org.apache.ambari.server.state.stack.ConfigUpgradePack.AffectedService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Map;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.stack.upgrade.*;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition;
+import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import static org.apache.ambari.server.state.stack.ConfigUpgradePack.AffectedService;
-import static org.apache.ambari.server.state.stack.ConfigUpgradePack.AffectedComponent;
-import static org.junit.Assert.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /**
  * Tests for the config upgrade pack

@@ -33,6 +33,10 @@ class Resourcemanager(Dummy):
   def __init__(self):
     super(Resourcemanager, self).__init__()
     self.component_name = "RESOURCEMANAGER"
+    self.principal_conf_name = "yarn-site"
+    self.principal_name = "yarn.resourcemanager.principal"
+    self.keytab_conf_name = "yarn-site"
+    self.keytab_name = "yarn.resourcemanager.keytab"
 
   def decommission(self, env):
     print "Decommission"

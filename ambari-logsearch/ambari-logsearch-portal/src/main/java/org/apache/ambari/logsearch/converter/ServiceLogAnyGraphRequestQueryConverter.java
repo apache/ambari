@@ -20,20 +20,15 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.FacetOptions;
 import org.springframework.data.solr.core.query.SimpleFacetQuery;
-import org.springframework.data.solr.core.query.SimpleFilterQuery;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
 
 import javax.inject.Named;
-import java.util.Arrays;
-import java.util.List;
 
 @Named
 public class ServiceLogAnyGraphRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<ServiceAnyGraphRequest>{

@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.audit.request;
 
-import junit.framework.Assert;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -68,6 +66,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import junit.framework.Assert;
+
 public class DefaultEventCreatorTest {
 
   private DefaultEventCreator defaultEventCreator;
@@ -96,7 +96,7 @@ public class DefaultEventCreatorTest {
 
           @Override
           public Object getPrincipal() {
-            return new User("testuser", "password", Collections.EMPTY_LIST);
+            return new User("testuser", "password", Collections.<GrantedAuthority>emptyList());
           }
 
           @Override

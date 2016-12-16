@@ -149,7 +149,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
     if (filter && filter.get('value')) {
       versions = versions.filter(function (version) {
         var status = version.get('status');
-        var isUpgrading = App.router.get('mainAdminStackAndUpgradeController.upgradeVersion') === version.get('displayName');
+        var isUpgrading = this.isVersionUpgrading(version);
         if (status === 'INSTALLED' && ['UPGRADE_READY', 'INSTALLED', 'UPGRADING'].contains(filter.get('value'))) {
           if (filter.get('value') === 'UPGRADING') {
             return isUpgrading;
@@ -173,6 +173,16 @@ App.MainAdminStackVersionsView = Em.View.extend({
         return stringUtils.compareVersions(v.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) >= 0;
       }).toArray();
     }
+  },
+
+  /**
+   * is version in upgrading or downgrading state
+   * @param version
+   */
+  isVersionUpgrading: function(version) {
+    var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
+    return upgradeController.get('upgradeVersion') === version.get('displayName') ||
+           upgradeController.get('fromVersion') === version.get('repositoryVersion');
   },
 
   /**

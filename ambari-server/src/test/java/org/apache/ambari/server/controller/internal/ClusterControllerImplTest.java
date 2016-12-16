@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -61,6 +59,8 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.EasyMock;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * Cluster controller tests
@@ -894,7 +894,7 @@ public class ClusterControllerImplTest {
             anyObject(Predicate.class))).andReturn(
         Collections.<Resource> emptySet()).anyTimes();
 
-    expect(resourceProvider.checkPropertyIds(EasyMock.anyObject(Set.class))).andReturn(
+    expect(resourceProvider.checkPropertyIds(EasyMock.<Set<String>>anyObject())).andReturn(
         new HashSet<String>()).anyTimes();
 
     // strict pageRequest mock to ensure that paging is not performed on

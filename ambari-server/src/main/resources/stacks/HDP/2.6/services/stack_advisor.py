@@ -18,6 +18,7 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 import json
+import re
 from resource_management.libraries.functions import format
 
 
@@ -30,7 +31,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       parentRecommendConfDict = super(HDP26StackAdvisor, self).getServiceConfigurationRecommenderDict()
       childRecommendConfDict = {
           "DRUID": self.recommendDruidConfigurations,
-          "ATLAS": self.recommendAtlasConfigurations
+          "ATLAS": self.recommendAtlasConfigurations,
+          "TEZ": self.recommendTezConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
@@ -53,6 +55,10 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
 
   def recommendDruidConfigurations(self, configurations, clusterData, services, hosts):
 
+      # druid is not in list of services to be installed
+      if 'druid-common' not in services['configurations']:
+        return
+
       componentsListList = [service["components"] for service in services["services"]]
       componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
       servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -66,20 +72,16 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       metastore_hostname = services['configurations']["druid-common"]["properties"]["metastore_hostname"]
       database_type = services['configurations']["druid-common"]["properties"]["druid.metadata.storage.type"]
       metadata_storage_port = "1527"
-      mysql_extension_name = "io.druid.extensions:mysql-metadata-storage"
       mysql_module_name = "mysql-metadata-storage"
       postgres_module_name = "postgresql-metadata-storage"
       extensions_load_list = services['configurations']['druid-common']['properties']['druid.extensions.loadList']
-      extensions_pull_list = services['configurations']['druid-common']['properties']['druid.extensions.pullList']
       putDruidCommonProperty = self.putProperty(configurations, "druid-common", services)
 
-      extensions_pull_list = self.removeFromList(extensions_pull_list, mysql_extension_name)
       extensions_load_list = self.removeFromList(extensions_load_list, mysql_module_name)
       extensions_load_list = self.removeFromList(extensions_load_list, postgres_module_name)
 
       if database_type == 'mysql':
           metadata_storage_port = "3306"
-          extensions_pull_list = self.addToList(extensions_pull_list, mysql_extension_name)
           extensions_load_list = self.addToList(extensions_load_list, mysql_module_name)
 
       if database_type == 'postgres':
@@ -104,7 +106,6 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           extensions_load_list = self.addToList(extensions_load_list, "druid-kafka-indexing-service")
 
       putCommonProperty('druid.extensions.loadList', extensions_load_list)
-      putCommonProperty('druid.extensions.pullList', extensions_pull_list)
 
       # JVM Configs go to env properties
       putEnvProperty = self.putProperty(configurations, "druid-env", services)
@@ -221,3 +222,24 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
                                                          "druid.processing.numThreads")}
       ]
       return self.toConfigurationValidationProblems(validationItems, "druid-broker")
+
+  def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
+    putTezProperty = self.putProperty(configurations, "tez-site")
+
+    # TEZ JVM options
+    jvmGCParams = "-XX:+UseParallelGC"
+    if "ambari-server-properties" in services and "java.home" in services["ambari-server-properties"]:
+      # JDK8 needs different parameters
+      match = re.match(".*\/jdk(1\.\d+)[\-\_\.][^/]*$", services["ambari-server-properties"]["java.home"])
+      if match and len(match.groups()) > 0:
+        # Is version >= 1.8
+        versionSplits = re.split("\.", match.group(1))
+        if versionSplits and len(versionSplits) > 1 and int(versionSplits[0]) > 0 and int(versionSplits[1]) > 7:
+          jvmGCParams = "-XX:+UseG1GC -XX:+ResizeTLAB"
+    tez_jvm_opts = "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA "
+    # Append 'jvmGCParams' and 'Heap Dump related option' (({{heap_dump_opts}}) Expanded while writing the
+    # configurations at start/restart time).
+    tez_jvm_updated_opts = tez_jvm_opts + jvmGCParams + "{{heap_dump_opts}}"
+    putTezProperty('tez.task.launch.cmd-opts', tez_jvm_updated_opts)
+    Logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' as : {0}".format(tez_jvm_updated_opts))

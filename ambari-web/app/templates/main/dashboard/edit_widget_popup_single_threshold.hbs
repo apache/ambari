@@ -25,16 +25,7 @@
 
   <div class="row" id= "min-height-limit">
     <div class="col-md-12">
-    {{#if view.configPropertyObj.isIE9}}
-      {{#if view.configPropertyObj.isGreenRed}}
-        <div class="progress">
-          <div {{bindAttr class=":bar view.configPropertyObj.isGreenRed:bar-success:bar-danger"}} style="width: 33%;"></div>
-          <div {{bindAttr class=":bar view.configPropertyObj.isGreenRed:bar-danger:bar-success"}} style="width: 34%;"></div>
-        </div>
-      {{/if}}
-    {{else}}
       <div id="slider-range"></div>
-    {{/if}}
     </div>
   </div>
 

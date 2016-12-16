@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * BodyParseException unit tests.

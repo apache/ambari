@@ -18,7 +18,8 @@
 
 package org.apache.ambari.server.controller.utilities;
 
-import net.sf.ehcache.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.utilities.state.DefaultServiceCalculatedState;
 import org.apache.ambari.server.controller.utilities.state.FlumeServiceCalculatedState;
 import org.apache.ambari.server.controller.utilities.state.HBaseServiceCalculatedState;
@@ -30,7 +31,8 @@ import org.apache.ambari.server.controller.utilities.state.YARNServiceCalculated
 import org.apache.ambari.server.state.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Map;
+
+import net.sf.ehcache.util.concurrent.ConcurrentHashMap;
 
 
 public class ServiceCalculatedStateFactory {

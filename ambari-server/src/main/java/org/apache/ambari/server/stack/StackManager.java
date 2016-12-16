@@ -51,10 +51,10 @@ import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import org.xml.sax.SAXException;
 
 
 /**

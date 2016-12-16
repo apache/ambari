@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.assistedinject.Assisted;
+import java.util.Collection;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 
-import java.util.Collection;
+import com.google.inject.assistedinject.Assisted;
 
 public interface RequestFactory {
 

@@ -31,8 +31,8 @@ export default Ember.Route.extend({
         queryParams : {
           id : params.id,
           jobType : params.type,
-          from: null,
-          fromType: null
+          fromBundleId: null,
+          fromCoordId: null
         }
       });
     },

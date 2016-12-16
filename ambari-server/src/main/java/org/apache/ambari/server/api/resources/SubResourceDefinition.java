@@ -19,10 +19,10 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Collections;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Definition of a sub-resource.

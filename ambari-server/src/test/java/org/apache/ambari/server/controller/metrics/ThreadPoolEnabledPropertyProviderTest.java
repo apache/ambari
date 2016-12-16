@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.controller.metrics;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.ambari.server.controller.jmx.JMXMetricHolder;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ThreadPoolEnabledPropertyProviderTest {
 

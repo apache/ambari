@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.Set;
 
 /**
  * Simple {@link org.apache.ambari.server.controller.spi.QueryResponse} implementation.

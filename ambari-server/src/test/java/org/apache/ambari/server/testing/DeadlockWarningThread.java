@@ -16,8 +16,6 @@
  */
 package org.apache.ambari.server.testing;
 
-import org.apache.commons.lang.ArrayUtils;
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -25,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.lang.ArrayUtils;
 
 /**
  * 

@@ -18,18 +18,20 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.commands;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
-import static org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.*;
+import static org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BindingHostGroup;
+import static org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.HostGroup;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
+import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 
 /**
  * {@link org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand} implementation for

@@ -19,7 +19,6 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -79,7 +78,6 @@ public class ExecutionCommandWrapper {
    * long as it has been instructed to set updated ones at execution time.
    *
    * @return
-   * @see ExecutionCommand#setForceRefreshConfigTagsBeforeExecution(Set)
    */
   public ExecutionCommand getExecutionCommand() {
     if (executionCommand != null) {

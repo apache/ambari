@@ -18,6 +18,15 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import static org.easymock.EasyMock.createNiceMock;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.SecurityHelper;
@@ -40,15 +49,6 @@ import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createNiceMock;
 
 /**
  * ViewInstanceEntity tests.

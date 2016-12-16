@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Set;
 
 /**
  * HostKerberosIdentityResourceDefinition tests.

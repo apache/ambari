@@ -87,8 +87,8 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -105,6 +105,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -152,7 +153,7 @@ public class AmbariManagementControllerImplTest {
   public void testgetAmbariServerURI() throws Exception {
     // create mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     // set expectations
     injector.injectMembers(capture(controllerCapture));
@@ -222,7 +223,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetClusters() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.<String>emptySet());
     Cluster cluster = createNiceMock(Cluster.class);
@@ -383,7 +384,7 @@ public class AmbariManagementControllerImplTest {
     componentsMap.put("component1", component1);
     componentsMap.put("component2", component2);
     expect(service.getServiceComponents()).andReturn(componentsMap);
-    expect(component1.getServiceComponentHosts()).andReturn(Collections.EMPTY_MAP);
+    expect(component1.getServiceComponentHosts()).andReturn(Collections.<String, ServiceComponentHost>emptyMap());
     expect(component2.getServiceComponentHosts()).andReturn(
       Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
 
@@ -421,7 +422,7 @@ public class AmbariManagementControllerImplTest {
     componentsMap.put("component1", component1);
     componentsMap.put("component2", component2);
     expect(service.getServiceComponents()).andReturn(componentsMap);
-    expect(component1.getServiceComponentHosts()).andReturn(Collections.EMPTY_MAP);
+    expect(component1.getServiceComponentHosts()).andReturn(Collections.<String, ServiceComponentHost>emptyMap());
     expect(component2.getServiceComponentHosts()).andReturn(
       Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
 
@@ -447,7 +448,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetClusters___ClusterNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     // requests
     ClusterRequest request1 = new ClusterRequest(null, "cluster1", "1", Collections.<String>emptySet());
@@ -490,7 +491,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetClusters___OR_Predicate_ClusterNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     Cluster cluster = createNiceMock(Cluster.class);
     Cluster cluster2 = createNiceMock(Cluster.class);
@@ -556,7 +557,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClusters() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -576,7 +577,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(1);
 
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     cluster.setClusterName("clusterNew");
@@ -605,11 +606,12 @@ public class AmbariManagementControllerImplTest {
   @Ignore
   public void testUpdateClustersWithNullConfigPropertyValues() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+    Config config = createNiceMock(Config.class);
 
     // requests
     Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
@@ -632,27 +634,20 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn("clusterOld").anyTimes();
     expect(cluster.getConfigPropertiesTypes(anyObject(String.class))).andReturn(Maps.<PropertyInfo.PropertyType, Set<String>>newHashMap()).anyTimes();
-    expect(cluster.getDesiredConfigByType(anyObject(String.class))).andReturn(new ConfigImpl("config-type") {
-      @Override
-      public Map<String, Map<String, String>> getPropertiesAttributes() {
-        return Maps.newHashMap();
-      }
 
-      @Override
-      public Map<String, String> getProperties() {
-        return configReqProps;
-      }
+    expect(config.getType()).andReturn("config-type").anyTimes();
+    expect(config.getProperties()).andReturn(configReqProps).anyTimes();
+    expect(config.getPropertiesAttributes()).andReturn(new HashMap<String,Map<String,String>>()).anyTimes();
+    expect(cluster.getDesiredConfigByType(anyObject(String.class))).andReturn(config).anyTimes();
 
-    }).anyTimes();
-
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     cluster.setClusterName("clusterNew");
     expectLastCall();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -660,7 +655,7 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    verify(actionManager, cluster, clusters, config, injector, clusterRequest, sessionManager);
   }
 
   /**
@@ -670,7 +665,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClustersToggleKerberosNotInvoked() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -689,7 +684,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
 
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     // replay mocks
@@ -712,7 +707,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClustersToggleKerberosReenable() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -733,13 +728,13 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getForceToggleKerberosDirective(anyObject(Map.class)))
+    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.<Map<String, String>>anyObject()))
         .andReturn(false)
         .once();
     // Note: kerberosHelper.toggleKerberos is not called
@@ -762,7 +757,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClustersToggleKerberosEnable() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -783,7 +778,7 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
 
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
@@ -844,7 +839,7 @@ public class AmbariManagementControllerImplTest {
    */
   private void testUpdateClustersToggleKerberosDisable(Boolean manageIdentities) throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -853,7 +848,7 @@ public class AmbariManagementControllerImplTest {
     // requests
     Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
 
-    Capture<Boolean> manageIdentitiesCapture = new Capture<Boolean>();
+    Capture<Boolean> manageIdentitiesCapture = EasyMock.newCapture();
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
     // expectations
@@ -867,16 +862,16 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getForceToggleKerberosDirective(anyObject(Map.class)))
+    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.<Map<String, String>>anyObject()))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getManageIdentitiesDirective(anyObject(Map.class)))
+    expect(kerberosHelper.getManageIdentitiesDirective(EasyMock.<Map<String, String>>anyObject()))
         .andReturn(manageIdentities)
         .once();
     expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class), captureBoolean(manageIdentitiesCapture)))
@@ -903,7 +898,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClustersToggleKerberos_Fail() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -934,16 +929,16 @@ public class AmbariManagementControllerImplTest {
     cluster.setClusterName(anyObject(String.class));
     expectLastCall().once();
 
-    cluster.addSessionAttributes(anyObject(Map.class));
+    cluster.addSessionAttributes(EasyMock.<Map<String, Object>>anyObject());
     expectLastCall().once();
 
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getForceToggleKerberosDirective(anyObject(Map.class)))
+    expect(kerberosHelper.getForceToggleKerberosDirective(EasyMock.<Map<String, String>>anyObject()))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.getManageIdentitiesDirective(anyObject(Map.class)))
+    expect(kerberosHelper.getManageIdentitiesDirective(EasyMock.<Map<String, String>>anyObject()))
         .andReturn(null)
         .once();
     expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class), anyBoolean()))
@@ -975,7 +970,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testUpdateClusters__RollbackException() throws Exception {
     // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -1016,7 +1011,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1090,7 +1085,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___ServiceComponentHostNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1152,7 +1147,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___ServiceComponentHostFilteredByState() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1224,10 +1219,84 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
+  public void testGetHostComponents___ServiceComponentHostFilteredByMaintenanceState() throws Exception {
+    // member state mocks
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    StackId stack = createNiceMock(StackId.class);
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    final Host host = createNiceMock(Host.class);
+    Service service = createNiceMock(Service.class);
+    ServiceComponent component = createNiceMock(ServiceComponent.class);
+    MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
+    final ServiceComponentHost componentHost1 = createNiceMock(ServiceComponentHost.class);
+    ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
+
+    // requests
+    ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
+        "cluster1", null, "component1", "host1", null);
+    request1.setMaintenanceState("ON");
+
+
+    Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
+    setRequests.add(request1);
+
+    // expectations
+    // constructor init
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+    expect(maintHelper.getEffectiveState(
+        anyObject(ServiceComponentHost.class),
+        anyObject(Host.class))).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE).anyTimes();
+
+    // getHostComponent
+    expect(clusters.getCluster("cluster1")).andReturn(cluster);
+    expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster));
+    expect(clusters.getHostsForCluster((String) anyObject())).andReturn(
+        new HashMap<String, Host>() {{
+          put("host1", host);
+        }}).anyTimes();
+
+    expect(cluster.getDesiredStackVersion()).andReturn(stack);
+    expect(cluster.getClusterName()).andReturn("cl1");
+    expect(stack.getStackName()).andReturn("stackName");
+    expect(stack.getStackVersion()).andReturn("stackVersion");
+
+    expect(ambariMetaInfo.getComponentToService("stackName", "stackVersion", "component1")).andReturn("service1");
+    expect(cluster.getService("service1")).andReturn(service);
+    expect(service.getServiceComponent("component1")).andReturn(component);
+    expect(component.getName()).andReturn("component1").anyTimes();
+    expect(component.getServiceComponentHosts()).andReturn(new HashMap<String, ServiceComponentHost>() {{
+      put("host1", componentHost1);
+    }});
+
+    expect(componentHost1.convertToResponse(null)).andReturn(response1);
+    expect(componentHost1.getHostName()).andReturn("host1");
+
+    // replay mocks
+    replay(maintHelper, injector, clusters, cluster, host, stack, ambariMetaInfo,
+        service, component, componentHost1, response1);
+
+    //test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+
+    Set<ServiceComponentHostResponse> responses = controller.getHostComponents(setRequests);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    assertTrue(responses.size() == 1);
+    verify(injector, clusters, cluster, host, stack, ambariMetaInfo, service, component, componentHost1, response1);
+  }
+
+  @Test
   public void testGetHostComponents___OR_Predicate_ServiceComponentHostNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1334,7 +1403,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___OR_Predicate_ServiceNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1437,7 +1506,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___OR_Predicate_ServiceComponentNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1545,7 +1614,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___OR_Predicate_HostNotFoundException_hostProvidedInQuery() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1643,7 +1712,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___OR_Predicate_HostNotFoundException_hostProvidedInURL() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
@@ -1700,7 +1769,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___OR_Predicate_ClusterNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
@@ -1754,7 +1823,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___NullHostName() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1833,7 +1902,7 @@ public class AmbariManagementControllerImplTest {
   public void testGetHostComponents___NullHostName_NullComponentName() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     StackId stack = createNiceMock(StackId.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
@@ -1924,7 +1993,7 @@ public class AmbariManagementControllerImplTest {
 
   @Test
   public void testPopulateServicePackagesInfo() throws Exception {
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Injector injector = createStrictMock(Injector.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
@@ -2087,7 +2156,7 @@ public class AmbariManagementControllerImplTest {
     LdapBatchDto ldapBatchDto = createNiceMock(LdapBatchDto.class);
 
 
-    Capture<LdapBatchDto> ldapBatchDtoCapture = new Capture<LdapBatchDto>();
+    Capture<LdapBatchDto> ldapBatchDtoCapture = EasyMock.newCapture();
 
     // set expectations
     expect(ldapDataPopulator.synchronizeAllLdapUsers(capture(ldapBatchDtoCapture))).andReturn(ldapBatchDto);
@@ -2163,7 +2232,7 @@ public class AmbariManagementControllerImplTest {
   public void testVerifyRepositories() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     // expectations
     // constructor init
@@ -2219,7 +2288,7 @@ public class AmbariManagementControllerImplTest {
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
     ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
     StackId stackId = createNiceMock(StackId.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
 
     // expectations
     // constructor init

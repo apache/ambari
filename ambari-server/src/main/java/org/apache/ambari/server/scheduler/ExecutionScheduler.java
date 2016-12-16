@@ -17,17 +17,13 @@
  */
 package org.apache.ambari.server.scheduler;
 
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.state.scheduler.RequestExecution;
-import org.apache.ambari.server.state.scheduler.Schedule;
-import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-
-import java.util.List;
 
 public interface ExecutionScheduler {
   /**

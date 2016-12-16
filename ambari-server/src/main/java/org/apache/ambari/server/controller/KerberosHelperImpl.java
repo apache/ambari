@@ -57,7 +57,6 @@ import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
 import org.apache.ambari.server.serveraction.kerberos.ConfigureAmbariIdentitiesServerAction;
@@ -792,7 +791,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param kerberosDetails      a KerberosDetails containing information about relevant Kerberos configuration
    * @param updateJAASFile       true to update Ambari's JAAS file; false otherwise
    * @throws AmbariException
-   * @see ConfigureAmbariIdentitiesServerAction#configureJAAS(String, String, ActionLog)
+   * @see ConfigureAmbariIdentitiesServerAction#configureJAAS(String, String, org.apache.ambari.server.serveraction.ActionLog)
    */
   private void installAmbariIdentity(KerberosIdentityDescriptor ambariServerIdentity,
                                      Keytab keytab, Map<String, Map<String, String>> configurations,

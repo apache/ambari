@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 public class RootServiceHostComponentResourceProviderTest {
@@ -78,7 +79,7 @@ public class RootServiceHostComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getHosts()).andReturn(hosts).anyTimes();
 
-    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), (Set<HostResponse>) anyObject())).
+    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), EasyMock.<Set<HostResponse>>anyObject())).
         andReturn(responseSet).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();

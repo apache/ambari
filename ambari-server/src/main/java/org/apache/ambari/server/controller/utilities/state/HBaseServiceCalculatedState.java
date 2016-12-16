@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller.utilities.state;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
@@ -28,9 +31,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Calculator of HBase service state.

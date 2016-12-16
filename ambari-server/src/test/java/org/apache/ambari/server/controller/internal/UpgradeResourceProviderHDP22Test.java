@@ -66,7 +66,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -108,6 +108,7 @@ public class UpgradeResourceProviderHDP22Test {
   private AmbariManagementController amc;
   private StackDAO stackDAO;
   private TopologyManager topologyManager;
+  private ConfigFactory configFactory;
 
   private static final String configTagVersion1 = "version1";
   private static final String configTagVersion2 = "version2";
@@ -136,6 +137,7 @@ public class UpgradeResourceProviderHDP22Test {
     stackDAO = injector.getInstance(StackDAO.class);
     upgradeDao = injector.getInstance(UpgradeDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
 
     AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
     replay(publisher);
@@ -233,11 +235,7 @@ public class UpgradeResourceProviderHDP22Test {
       }
     }
 
-    Config config = new ConfigImpl("hive-site");
-    config.setProperties(configTagVersion1Properties);
-    config.setTag(configTagVersion1);
-
-    cluster.addConfig(config);
+    Config config = configFactory.createNew(cluster, "hive-site", configTagVersion1, configTagVersion1Properties, null);
     cluster.addDesiredConfig("admin", Collections.singleton(config));
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
@@ -286,9 +284,7 @@ public class UpgradeResourceProviderHDP22Test {
     // Hive service checks have generated the ExecutionCommands by now.
     // Change the new desired config tag and verify execution command picks up new tag
     assertEquals(configTagVersion1, cluster.getDesiredConfigByType("hive-site").getTag());
-    final Config newConfig = new ConfigImpl("hive-site");
-    newConfig.setProperties(configTagVersion2Properties);
-    newConfig.setTag(configTagVersion2);
+    final Config newConfig = configFactory.createNew(cluster, "hive-site", configTagVersion2, configTagVersion2Properties, null);
     Set<Config> desiredConfigs = new HashSet<Config>() {
       {
         add(newConfig);

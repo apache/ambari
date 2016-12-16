@@ -34,6 +34,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
+from resource_management.libraries.functions.get_architecture import get_architecture
 
 import status_params
 
@@ -54,6 +55,8 @@ YARN_SERVER_ROLE_DIRECTORY_MAP = {
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+architecture = get_architecture()
 
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
@@ -391,6 +394,9 @@ if has_ranger_admin:
       xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
     xa_db_host = config['configurations']['admin-properties']['db_host']
     repo_name = str(config['clusterName']) + '_yarn'
+    repo_name_value = config['configurations']['ranger-yarn-security']['ranger.plugin.yarn.service.name']
+    if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+      repo_name = repo_name_value
 
     ranger_env = config['configurations']['ranger-env']
     ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']

@@ -18,13 +18,12 @@
 
 package org.apache.ambari.server.view;
 
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.view.ClusterType;
-import org.apache.ambari.view.cluster.Cluster;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.view.cluster.Cluster;
 
 /**
  * View associated cluster implementation.

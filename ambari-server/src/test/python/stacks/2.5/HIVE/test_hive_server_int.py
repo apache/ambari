@@ -384,6 +384,8 @@ class TestHiveServerInteractive(RMFTestCase):
     hive_site_conf['hive.exec.post.hooks'] = 'a,b,org.apache.hadoop.hive.ql.hooks.ATSHook'
     del hive_site_conf['hive.enforce.bucketing']
     del hive_site_conf['hive.enforce.sorting']
+    del hive_site_conf['hive.llap.io.memory.size']
+    hive_site_conf['hive.llap.io.memory.size'] = 357564416L
 
     hiveserver2_site_conf = {}
     hiveserver2_site_conf.update(self.getConfig()['configurations']['hiveserver2-site'])

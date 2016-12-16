@@ -18,12 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -36,6 +30,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * GroupDAO unit tests.

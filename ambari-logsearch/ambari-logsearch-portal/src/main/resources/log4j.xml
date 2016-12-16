@@ -94,20 +94,17 @@
 
 	<logger name="org.apache.ambari.logsearch.audit"
 		additivity="true">
-		<priority value="info" />
 		<!-- <appender-ref ref="audit_rolling_file" />-->
         <appender-ref ref="audit_rolling_file_json" />
 	</logger>
 
 	<logger name="org.apache.ambari.logsearch.performance"
 		additivity="false">
-	  	<priority value="info" />
 		<!-- <appender-ref ref="performance_analyzer" />-->
         <appender-ref ref="performance_analyzer_json" />
 	</logger>
 
 	<logger name="org.apache.ambari.logsearch" additivity="false">
-	  	<priority value="info" />
 		<!-- <appender-ref ref="console" /> -->
 		<!-- <appender-ref ref="rolling_file" />-->
         <appender-ref ref="rolling_file_json" />

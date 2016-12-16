@@ -18,15 +18,27 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.Clob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -91,25 +103,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import java.sql.Clob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.4.0.
@@ -1562,7 +1564,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    *
    * @throws SQLException
    */
-  @Transactional
   void updateServiceComponentDesiredStateTableDDL() throws SQLException {
     if (dbAccessor.tableHasPrimaryKey(SERVICE_COMPONENT_DS_TABLE, ID)) {
       LOG.info("Skipping {} table Primary Key modifications since the new {} column already exists",
@@ -1725,7 +1726,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * @return
    */
   private String sqlStringListFromArrayList(List<String> list) {
-    List sqlList = new ArrayList<String>(list.size());
+    List<String> sqlList = new ArrayList<>(list.size());
 
     for (String item : list) {
       sqlList.add(String.format("'%s'", item.trim()));
@@ -2784,7 +2785,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    *  Update view instance table's cluster_handle column to have cluster_id
    *  instead of cluster_name
    */
-  @Transactional
   void updateViewInstanceTable() throws SQLException {
     try {
       if (Long.class.equals(dbAccessor.getColumnClass(VIEWINSTANCE_TABLE, CLUSTER_HANDLE_COLUMN))) {

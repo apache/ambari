@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.controller.ivory;
 
+import java.util.Collections;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Collections;
 
 /**
  * Cluster tests.

@@ -18,16 +18,17 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
-import org.apache.ambari.server.AmbariException;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * AbstractKerberosDescriptorFactory is an abstract class containing common functionality for

@@ -50,7 +50,6 @@ import java.util.jar.JarInputStream;
 
 import javax.xml.bind.JAXBException;
 
-import com.google.inject.Provider;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -65,7 +64,6 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -78,7 +76,6 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -104,8 +101,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.inject.Provider;
 
 /**
  * ViewRegistry tests.
@@ -404,7 +402,7 @@ public class ViewRegistryTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
     ViewInstanceEntity viewAutoInstanceEntity = createNiceMock(ViewInstanceEntity.class);
-    Capture<ViewInstanceEntity> viewAutoInstanceCapture = new Capture<ViewInstanceEntity>();
+    Capture<ViewInstanceEntity> viewAutoInstanceCapture = EasyMock.newCapture();
 
     ViewInstanceDataEntity autoInstanceDataEntity = createNiceMock(ViewInstanceDataEntity.class);
     expect(autoInstanceDataEntity.getName()).andReturn("p1").anyTimes();
@@ -1596,7 +1594,7 @@ public class ViewRegistryTest {
       expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
     }
 
-    Capture<ViewEntity> viewEntityCapture = new Capture<ViewEntity>();
+    Capture<ViewEntity> viewEntityCapture = EasyMock.newCapture();
     if (System.getProperty("os.name").contains("Windows")) {
       expect(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work")).andReturn(true);
     }
@@ -1846,7 +1844,7 @@ public class ViewRegistryTest {
     expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
 
-    Capture<ViewInstanceEntity> viewInstanceCapture = new Capture<ViewInstanceEntity>();
+    Capture<ViewInstanceEntity> viewInstanceCapture = EasyMock.newCapture();
 
     expect(viewInstanceDAO.merge(capture(viewInstanceCapture))).andReturn(viewInstanceEntity).anyTimes();
     expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", "AUTO-INSTANCE")).andReturn(viewInstanceEntity).anyTimes();

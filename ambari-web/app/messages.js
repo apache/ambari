@@ -429,6 +429,8 @@ Em.I18n.translations = {
 
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
+  'popup.confirmation.refreshYarnQueues.body':'It is strongly recommended to <strong>Refresh Yarn Queues</strong> after making a change to the capacity scheduler configuration. Would you like to proceed?',
+  'popup.confirmation.refreshYarnQueues.buttonText':'Refresh Yarn Queues',
   'popup.prompt.commonHeader':'Prompt',
   'popup.confirmationFeedBack.sending':'Sending...',
   'popup.confirmationFeedBack.query.fail':'Request failed',
@@ -461,7 +463,8 @@ Em.I18n.translations = {
   'popup.invalid.KDC.admin.password': 'Admin password',
 
   'popup.dependent.configs.header': 'Dependent Configurations',
-  'popup.dependent.configs.title': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes. <br/> Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
+  'popup.dependent.configs.title.recommendation': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes.',
+  'popup.dependent.configs.title.values': 'Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.initValue': 'Initial value',
   'popup.dependent.configs.table.currentValue': 'Current Value',
@@ -1292,6 +1295,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
   'admin.manageJournalNode.label': 'Manage JournalNodes',
+  'admin.manageJournalNode.warning': 'Manage JournalNodes Wizard requires all NameNodes be started and have Active/Standby state defined',
   'admin.manageJournalNode.wizard.header': 'Manage JournalNodes Wizard',
   'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
   'admin.manageJournalNode.wizard.step2.header': 'Review',
@@ -1427,9 +1431,10 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step5.task4.title':'Start JournalNodes',
   'admin.highAvailability.wizard.step5.task5.title':'Disable Secondary NameNode',
 
-  'admin.highAvailability.wizard.step7.task0.title':'Start Ranger',
-  'admin.highAvailability.wizard.step7.task1.title':'Start ZooKeeper Servers',
-  'admin.highAvailability.wizard.step7.task2.title':'Start NameNode',
+  'admin.highAvailability.wizard.step7.task0.title':'Start ZooKeeper Servers',
+  'admin.highAvailability.wizard.step7.task1.title':'Start Ambari Infra',
+  'admin.highAvailability.wizard.step7.task2.title':'Start Ranger',
+  'admin.highAvailability.wizard.step7.task3.title':'Start NameNode',
 
   'admin.highAvailability.wizard.step9.task0.title':'Start Additional NameNode',
   'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
@@ -2666,7 +2671,7 @@ Em.I18n.translations = {
   'hosts.host.zooKeeper.configs.save.note': 'This configuration is created by ambari while installing/deleting zookeeper component on a host',
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.addComponent.popup.confirm':'Confirm Add',
-  'hosts.host.manualKerberosWarning': '<br/><strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',
+  'hosts.host.manualKerberosWarning': '<strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',
   'hosts.host.deleteComponent.popup.deleteNimbus':'Deleting <i>Storm Nimbus</i> will reconfigure <b>nimbus.seeds</b>, <b>topology.min.replication.count</b>, <b>topology.max.replication.wait.time.sec</b> properties if they are defined.',
   'hosts.host.storm.configs.save.note': 'This configuration is created by ambari while installing/deleting storm component on a host',
   'hosts.host.datanode.decommission':'Decommission DataNode',

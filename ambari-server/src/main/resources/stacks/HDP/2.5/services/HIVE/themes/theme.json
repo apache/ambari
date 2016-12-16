@@ -19,28 +19,6 @@
           "subsection-name": "interactive-query-row1-col1"
         },
         {
-          "config": "hive-interactive-env/hive_server_interactive_host",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
           "config": "hive-interactive-site/hive.llap.daemon.queue.name",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
@@ -63,11 +41,7 @@
           ]
         },
         {
-          "config": "hive-interactive-env/llap_queue_capacity",
-          "subsection-name": "interactive-query-row1-col1"
-        },
-        {
-          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
+          "config": "hive-interactive-env/num_llap_nodes",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
             {
@@ -89,12 +63,8 @@
           ]
         },
         {
-          "config": "hive-interactive-env/copy_num_llap_nodes",
+          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
           "subsection-name": "interactive-query-row1-col1",
-          "property_value_attributes": {
-            "ui_only_property": true,
-            "copy": "hive-interactive-env/num_llap_nodes"
-          },
           "depends-on": [
             {
               "configs":[
@@ -214,35 +184,18 @@
         }
       },
       {
-        "config": "hive-interactive-env/hive_server_interactive_host",
-        "widget": {
-          "type": "label"
-        }
-      },
-      {
         "config": "hive-interactive-site/hive.llap.daemon.queue.name",
         "widget": {
           "type": "combo"
         }
       },
       {
-        "config": "hive-interactive-env/copy_num_llap_nodes",
-        "widget": {
-          "type": "label",
-          "units": [
-            {
-              "unit-name": "int"
-            }
-          ]
-        }
-      },
-      {
-        "config": "hive-interactive-env/llap_queue_capacity",
+        "config": "hive-interactive-env/num_llap_nodes",
         "widget": {
           "type": "slider",
           "units": [
             {
-              "unit-name": "percent"
+              "unit-name": "int"
             }
           ]
         }

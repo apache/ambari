@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Objects;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -41,9 +40,11 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.SecretReference;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
@@ -481,6 +482,50 @@ public class ConfigHelper {
           String configType = fileNameToConfigType(stackProperty.getFilename());
 
           result.add(configType);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Gets a map of config types to password property names to password property value names.
+   *
+   * @param stackId
+   * @param service
+   * @param propertyType
+   * @return
+   * @throws AmbariException
+     */
+  public Map<String, Map<String, String>> getPropertiesWithPropertyType(StackId stackId, Service service, PropertyType propertyType)
+          throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, Map<String, String>> result = new HashMap<>();
+    Map<String, String> passwordProperties;
+    Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+    for (PropertyInfo serviceProperty : serviceProperties) {
+      if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+        String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+        passwordProperties = result.get(stackPropertyConfigType);
+        if (passwordProperties == null) {
+          passwordProperties = new HashMap<>();
+          result.put(stackPropertyConfigType, passwordProperties);
+        }
+        // If the password property is used by another property, it means the password property
+        // is a password value name while the use is the password alias name. If the user property
+        // is from another config type, include that in the password alias name as name:type.
+        if (serviceProperty.getUsedByProperties().size() > 0) {
+          for (PropertyDependencyInfo usedByProperty : serviceProperty.getUsedByProperties()) {
+            String propertyName = usedByProperty.getName();
+            if (!StringUtils.isEmpty(usedByProperty.getType())) {
+              propertyName += ':' + usedByProperty.getType();
+            }
+            passwordProperties.put(propertyName, serviceProperty.getName());
+          }
+        }
+        else {
+          passwordProperties.put(serviceProperty.getName(), serviceProperty.getName());
         }
       }
     }

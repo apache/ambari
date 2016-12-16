@@ -75,7 +75,7 @@
 <div class="wizard-footer col-md-12">
     <div class="btn-area">
       <a class="btn btn-default" {{action back}}>&larr; {{t common.back}}</a>
-      <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isNextDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
+      <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isNextDisabled"}} {{action next}}>{{t common.next}} &rarr;</button>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="pull-right"}}
       {{/if}}

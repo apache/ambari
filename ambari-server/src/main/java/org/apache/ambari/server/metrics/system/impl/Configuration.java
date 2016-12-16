@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Configuration {
   public static final String CONFIG_FILE = "metrics.properties";

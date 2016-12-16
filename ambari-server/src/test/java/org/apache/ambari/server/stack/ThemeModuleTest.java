@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.state.theme.Theme;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 
-import static org.junit.Assert.*;
+import org.apache.ambari.server.state.theme.Theme;
+import org.junit.Test;
 
 public class ThemeModuleTest {
 

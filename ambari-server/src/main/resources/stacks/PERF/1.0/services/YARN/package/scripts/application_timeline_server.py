@@ -33,6 +33,10 @@ class ApplicationTimelineServer(Dummy):
   def __init__(self):
     super(ApplicationTimelineServer, self).__init__()
     self.component_name = "APP_TIMELINE_SERVER"
+    self.principal_conf_name = "yarn-site"
+    self.principal_name = "yarn.timeline-service.principal"
+    self.keytab_conf_name = "yarn-site"
+    self.keytab_name = "yarn.timeline-service.keytab"
 
 if __name__ == "__main__":
   ApplicationTimelineServer().execute()

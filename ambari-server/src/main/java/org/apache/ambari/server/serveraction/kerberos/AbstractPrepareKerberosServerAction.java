@@ -18,8 +18,17 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -33,16 +42,8 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
 
 public abstract class AbstractPrepareKerberosServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(AbstractPrepareKerberosServerAction.class);

@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.api.services;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.ambari.server.api.handlers.CreateHandler;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.resources.ResourceInstance;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
 
 /**
  * A POST request.

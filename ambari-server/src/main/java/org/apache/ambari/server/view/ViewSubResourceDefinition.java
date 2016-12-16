@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.view;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.ambari.server.api.resources.BaseResourceDefinition;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * View sub-resource definition based on a view resource configuration.

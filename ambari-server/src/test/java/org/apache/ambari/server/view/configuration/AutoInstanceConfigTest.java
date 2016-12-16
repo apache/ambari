@@ -18,14 +18,17 @@
 
 package org.apache.ambari.server.view.configuration;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import javax.xml.bind.JAXBException;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import javax.xml.bind.JAXBException;
+
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * AutoInstanceConfig tests.

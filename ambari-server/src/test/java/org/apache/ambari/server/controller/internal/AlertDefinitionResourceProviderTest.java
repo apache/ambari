@@ -355,7 +355,7 @@ public class AlertDefinitionResourceProviderTest {
       Assert.assertEquals("my_def",
           resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-      Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
+      Map<?, ?> reporting = (Map<?, ?>) resource.getPropertyValue("AlertDefinition/source/reporting");
 
       Assert.assertTrue(reporting.containsKey("ok"));
       Assert.assertTrue(reporting.containsKey("critical"));
@@ -379,7 +379,7 @@ public class AlertDefinitionResourceProviderTest {
           "my_def",
           resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-      Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
+      Map<?, ?> reporting = (Map<?, ?>) resource.getPropertyValue("AlertDefinition/source/reporting");
 
       Assert.assertNull(reporting);
     }
@@ -421,7 +421,7 @@ public class AlertDefinitionResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
-    Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
+    Capture<AlertDefinitionEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -571,7 +571,7 @@ public class AlertDefinitionResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
 
-    Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
+    Capture<AlertDefinitionEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -706,7 +706,7 @@ public class AlertDefinitionResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
 
-    Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
+    Capture<AlertDefinitionEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -789,7 +789,7 @@ public class AlertDefinitionResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
-    Capture<AlertDefinitionEntity> entityCapture = new Capture<AlertDefinitionEntity>();
+    Capture<AlertDefinitionEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 

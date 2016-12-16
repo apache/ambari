@@ -19,14 +19,14 @@
 package org.apache.ambari.server.api.query.render;
 
 
+import java.util.Set;
+
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultPostProcessor;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.SchemaFactory;
-
-import java.util.Set;
 
 /**
  * Responsible for the rendering of a result.

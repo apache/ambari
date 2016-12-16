@@ -128,7 +128,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
     customScriptServerAction.setExecutionCommand(executionCommand);
 
     EasyMock.expect(collectionPersisterServiceFactoryMock.createCsvFilePersisterService(EasyMock.anyString())).andReturn(collectionPersisterService);
-    EasyMock.expect(collectionPersisterService.persistMap(EasyMock.anyObject(Map.class))).andReturn(Boolean.TRUE);
+    EasyMock.expect(collectionPersisterService.persistMap(EasyMock.<Map<String, List<String>>>anyObject())).andReturn(Boolean.TRUE);
 
     replayAll();
 

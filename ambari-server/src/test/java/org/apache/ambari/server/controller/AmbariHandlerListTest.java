@@ -18,6 +18,20 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import javax.inject.Provider;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -25,6 +39,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -33,19 +48,6 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.web.filter.DelegatingFilterProxy;
-
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 /**
  * AmbariHandlerList tests.
@@ -68,9 +70,9 @@ public class AmbariHandlerListTest {
     expect(handler.getServer()).andReturn(server);
     handler.setServer(null);
 
-    Capture<FilterHolder> securityHeaderFilterCapture = new Capture<FilterHolder>();
-    Capture<FilterHolder> persistFilterCapture = new Capture<FilterHolder>();
-    Capture<FilterHolder> securityFilterCapture = new Capture<FilterHolder>();
+    Capture<FilterHolder> securityHeaderFilterCapture = EasyMock.newCapture();
+    Capture<FilterHolder> persistFilterCapture = EasyMock.newCapture();
+    Capture<FilterHolder> securityFilterCapture = EasyMock.newCapture();
 
     handler.addFilter(capture(securityHeaderFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));

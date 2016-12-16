@@ -17,7 +17,12 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
-import com.google.inject.Inject;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -25,12 +30,7 @@ import org.apache.ambari.server.controller.internal.HostStatusHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.inject.Inject;
 
 /*
 Class used to hold the status of metric collector hosts for a cluster.

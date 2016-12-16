@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  *

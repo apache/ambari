@@ -20,7 +20,6 @@ package org.apache.ambari.server.view;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Thread.sleep;
-import javax.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +29,14 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.zip.ZipFile;
+
+import javax.annotation.Nullable;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.logging.Log;
@@ -68,7 +70,7 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
   private static Log LOG = LogFactory.getLog(ViewDirectoryWatcher.class);
 
   // Callbacks to hook into file processing
-  private List<Function<Path, Boolean>> hooks = Lists.newArrayList(loggingHook());
+  private List<Function<Path, Boolean>> hooks = Lists.newArrayList(Collections.singleton(loggingHook()));
 
   public void addHook(Function<Path, Boolean> hook) {
     hooks.add(hook);

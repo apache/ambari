@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import javax.xml.bind.JAXBException;
-
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +37,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -565,7 +565,6 @@ public class ViewRegistry {
         }
 
         instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
-
         setPersistenceEntities(instanceEntity);
 
         ViewInstanceEntity persistedInstance = mergeViewInstance(instanceEntity, viewEntity.getResourceType());
@@ -587,6 +586,7 @@ public class ViewRegistry {
         // add the web app context
         handlerList.addViewInstance(instanceEntity);
       }
+
     } else {
       String message = "Attempt to install an instance for an unknown view " +
           instanceEntity.getViewName() + ".";
@@ -969,6 +969,7 @@ public class ViewRegistry {
         String viewName = viewEntity.getName();
         ViewConfig viewConfig = viewEntity.getConfiguration();
         AutoInstanceConfig autoConfig = viewConfig.getAutoInstance();
+        Collection<String> roles = autoConfig.getRoles();
 
         try {
           if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
@@ -977,6 +978,7 @@ public class ViewRegistry {
             ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
             viewInstanceEntity.setClusterHandle(clusterId);
             installViewInstance(viewInstanceEntity);
+            setViewInstanceRoleAccess(viewInstanceEntity, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
@@ -1725,6 +1727,7 @@ public class ViewRegistry {
           instanceEntity.setXmlDriven(true);
           instanceDefinitions.add(instanceEntity);
         }
+
         persistView(viewDefinition, instanceDefinitions);
 
         // auto instances of loaded old views for doing data migration can not be installed
@@ -1885,6 +1888,12 @@ public class ViewRegistry {
     if ((roles != null) && !roles.isEmpty()) {
       PermissionEntity permissionViewUser = permissionDAO.findViewUsePermission();
 
+      ResourceEntity resourceEntity = viewInstanceEntity.getResource();
+      if (null == resourceEntity) {
+        resourceEntity = instanceDAO.findResourceForViewInstance(viewInstanceEntity.getViewName(),
+            viewInstanceEntity.getInstanceName());
+      }
+
       if (permissionViewUser == null) {
         LOG.error("Missing the {} role.  Access to view cannot be set.",
             PermissionEntity.VIEW_USER_PERMISSION_NAME, viewInstanceEntity.getName());
@@ -1905,7 +1914,7 @@ public class ViewRegistry {
               PrivilegeEntity privilegeEntity = new PrivilegeEntity();
               privilegeEntity.setPermission(permissionViewUser);
               privilegeEntity.setPrincipal(principalRole);
-              privilegeEntity.setResource(viewInstanceEntity.getResource());
+              privilegeEntity.setResource(resourceEntity);
               privilegeDAO.create(privilegeEntity);
             }
           }

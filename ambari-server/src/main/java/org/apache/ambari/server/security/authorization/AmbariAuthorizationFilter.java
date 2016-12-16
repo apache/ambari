@@ -18,9 +18,23 @@
 
 package org.apache.ambari.server.security.authorization;
 
+import java.io.IOException;
+import java.security.Principal;
+import java.util.EnumSet;
+import java.util.regex.Pattern;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
 import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -37,19 +51,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.EnumSet;
-import java.util.regex.Pattern;
 
 public class AmbariAuthorizationFilter implements Filter {
   private static final String REALM_PARAM = "realm";

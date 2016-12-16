@@ -112,7 +112,9 @@
   <div role="tabpanel" class="tab-pane" id="jobDefinition">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <pre class="prettyprint">{{model.jobDefinition}}</pre>
+        <pre class="prettyprint">
+          {{ivy-codemirror value=jobDefinition options=(hash lineNumbers=false mode="xml" indentWithTabs=true readOnly=true)}}
+        </pre>
       </div>
     </div>
   </div>
@@ -127,7 +129,7 @@
             </tr>
           </thead>
           <tbody>
-            {{#each model.configurationProperties as |configurationProperty|}}
+            {{#each configurationProperties as |configurationProperty|}}
               <tr>
                 <td class="propertyName">{{configurationProperty.name}}</td>
                 <td class="propertyValue">{{configurationProperty.value}}</td>

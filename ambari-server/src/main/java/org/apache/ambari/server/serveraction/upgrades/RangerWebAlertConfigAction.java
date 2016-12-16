@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -35,9 +36,9 @@ import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
 
 /**
  * This class is used to update Ranger service alert-check configs in Ambari

@@ -19,10 +19,18 @@
 package org.apache.ambari.server.controller.internal;
 
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -30,19 +38,13 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 
 
@@ -77,7 +79,7 @@ public class StackServiceResourceProviderTest {
     StackServiceResponse stackServiceResponse = createNiceMock(StackServiceResponse.class);
     expect(stackServiceResponse.getServiceProperties()).andReturn(TEST_SERVICE_PROPERTIES);
 
-    expect(managementController.getStackServices(anyObject(Set.class)))
+    expect(managementController.getStackServices(EasyMock.<Set<StackServiceRequest>>anyObject()))
       .andReturn(ImmutableSet.of(stackServiceResponse));
 
     replay(managementController, stackServiceResponse);
@@ -120,7 +122,7 @@ public class StackServiceResourceProviderTest {
 
 
 
-    expect(managementController.getStackServices(anyObject(Set.class)))
+    expect(managementController.getStackServices(EasyMock.<Set<StackServiceRequest>>anyObject()))
       .andReturn(ImmutableSet.of(stackServiceResponse));
 
     replay(managementController);

@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Describes LDAP Server connection parameters

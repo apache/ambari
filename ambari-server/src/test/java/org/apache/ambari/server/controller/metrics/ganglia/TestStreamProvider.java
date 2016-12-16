@@ -18,17 +18,15 @@ package org.apache.ambari.server.controller.metrics.ganglia;
  * limitations under the License.
  */
 
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 
 public class TestStreamProvider extends URLStreamProvider {
   // Allow for filename to be set at runtime

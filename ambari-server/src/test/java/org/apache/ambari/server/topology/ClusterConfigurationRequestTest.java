@@ -18,16 +18,18 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,10 +40,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Maps;
-import org.easymock.EasyMock;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -52,18 +63,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.easymock.EasyMock.capture;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Maps;
 
 /**
  * ClusterConfigurationRequest unit tests
@@ -255,7 +255,7 @@ public class ClusterConfigurationRequestTest {
       .anyTimes();
 
       expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
-    expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
+    expect(ambariContext.createConfigurationRequests(EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
 
     if (kerberosConfig == null) {
@@ -264,10 +264,10 @@ public class ClusterConfigurationRequestTest {
       properties.put("testProperty", "KERBEROStestValue");
       kerberosConfig.put("testConfigType", properties);
      }
-    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Set.class))).andReturn(true).once();
-    expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Map.class), anyObject(Map.class), anyObject(Set.class), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
+    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject(),
+      EasyMock.<Set<String>>anyObject())).andReturn(true).once();
+    expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject(),
+      EasyMock.<Map<String, Set<String>>>anyObject(), EasyMock.<Map<String, Collection<String>>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
 
     Capture<? extends String> captureClusterName = newCapture(CaptureType.ALL);
     Capture<? extends Set<String>> captureUpdatedConfigTypes = newCapture(CaptureType.ALL);
@@ -335,7 +335,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
-    expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
+    expect(ambariContext.createConfigurationRequests(EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
 
 

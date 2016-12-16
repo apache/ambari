@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.controller.metrics;
 
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 public class MetricsPaddingMethod {
   private final PADDING_STRATEGY strategy;

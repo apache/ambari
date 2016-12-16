@@ -18,18 +18,18 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import org.apache.ambari.server.AmbariException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.AmbariException;
 
 /**
  * AbstractKerberosDescriptorContainer is an abstract class implementing AbstractKerberosDescriptor

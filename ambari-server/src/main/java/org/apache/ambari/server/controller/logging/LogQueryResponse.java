@@ -18,12 +18,10 @@
 
 package org.apache.ambari.server.controller.logging;
 
+import java.util.List;
+
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.util.JSONPObject;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * This class respresents the results of a LogSearch query, as returned by

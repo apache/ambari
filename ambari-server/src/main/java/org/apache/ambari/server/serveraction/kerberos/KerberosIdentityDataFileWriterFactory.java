@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.Singleton;
-
 import java.io.File;
 import java.io.IOException;
+
+import com.google.inject.Singleton;
 
 /**
  * KerberosIdentityDataFileWriterFactory creates KerberosIdentityDataFileWriter  instances.

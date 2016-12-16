@@ -17,14 +17,15 @@
  */
 package org.apache.ambari.server.utils;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.ambari.server.api.services.Request;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * The purpose of this helper is to get remote address from an HTTP request

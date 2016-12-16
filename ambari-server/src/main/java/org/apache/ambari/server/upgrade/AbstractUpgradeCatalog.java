@@ -17,11 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -46,6 +41,11 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -561,7 +561,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           return;
         } else if (oldConfig == null) {
           oldConfigProperties = new HashMap<String, String>();
-          newTag = "version1";
         } else {
           oldConfigProperties = oldConfig.getProperties();
         }

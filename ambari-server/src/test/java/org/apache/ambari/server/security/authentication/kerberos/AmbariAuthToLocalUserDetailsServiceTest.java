@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.security.authentication.kerberos;
 
-import junit.framework.Assert;
+import static org.easymock.EasyMock.expect;
+
+import java.util.Collection;
+import java.util.Collections;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.User;
@@ -31,10 +35,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import static org.easymock.EasyMock.expect;
+import junit.framework.Assert;
 
 public class AmbariAuthToLocalUserDetailsServiceTest extends EasyMockSupport {
   @Before

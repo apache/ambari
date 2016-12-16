@@ -18,16 +18,15 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.api.query.render.Renderer;
-import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.api.util.TreeNode;
-
-import org.apache.ambari.server.api.services.ResultPostProcessor;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.ambari.server.api.query.render.Renderer;
+import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.ResultPostProcessor;
+import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Resource Definition.

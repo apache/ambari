@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.state;
 
-import com.google.common.base.Objects;
 import org.apache.ambari.server.controller.RepositoryResponse;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 
 public class RepositoryInfo {

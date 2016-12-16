@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.security.encryption;
 
+import org.junit.Test;
+
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import org.junit.Test;
 
 public class AESEncryptorTest extends TestCase {
 

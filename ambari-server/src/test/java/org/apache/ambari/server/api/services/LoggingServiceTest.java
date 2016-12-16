@@ -17,11 +17,17 @@
  */
 package org.apache.ambari.server.api.services;
 
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.net.HttpURLConnection;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
@@ -33,11 +39,7 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.*;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class LoggingServiceTest {
 
@@ -123,7 +125,8 @@ public class LoggingServiceTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     LoggingService loggingService =
-      new LoggingService(expectedClusterName, controllerFactoryMock, helperFactoryMock);
+      new LoggingService(expectedClusterName, controllerFactoryMock);
+    loggingService.setLoggingRequestHelperFactory(helperFactoryMock);
 
     Response resource = loggingService.getSearchEngine("", null, uriInfoMock);
 

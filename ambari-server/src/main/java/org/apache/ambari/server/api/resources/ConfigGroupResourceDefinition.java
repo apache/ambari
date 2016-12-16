@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class ConfigGroupResourceDefinition extends BaseResourceDefinition {
   /**

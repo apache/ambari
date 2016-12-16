@@ -268,7 +268,7 @@
   </property>
   <property>
     <name>logsearch.spnego.kerberos.host</name>
-    <value>localhost</value>
+    <value>_HOST</value>
     <display-name>Http Spnego hostname</display-name>
     <description>Fully-qualified host name in the Kerberos service principal name (SPN) that is used by SPNEGO</description>
     <value-attributes>

@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.serveraction;
 
-import org.apache.commons.lang.time.FastDateFormat;
-
 import java.util.Date;
+
+import org.apache.commons.lang.time.FastDateFormat;
 
 /**
  * ActionLog is a class for logging progress of ServerAction execution.

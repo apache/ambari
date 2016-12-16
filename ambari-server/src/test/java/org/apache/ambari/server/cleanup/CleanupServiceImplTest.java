@@ -17,6 +17,12 @@
  */
 package org.apache.ambari.server.cleanup;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,12 +35,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import junit.framework.Assert;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 
 
 public class CleanupServiceImplTest {
@@ -51,7 +51,7 @@ public class CleanupServiceImplTest {
   private CleanupServiceImpl cleanupServiceImpl;
   private TimeBasedCleanupPolicy cleanupPolicy;
   private Capture<TimeBasedCleanupPolicy> timeBasedCleanupPolicyCapture;
-  private Set cleanables;
+  private Set<Cleanable> cleanables;
 
   @Before
   public void setUp() throws Exception {

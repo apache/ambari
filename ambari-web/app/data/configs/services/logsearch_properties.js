@@ -252,90 +252,76 @@ module.exports = [
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
     "index": 6,
-    "name": "logsearch_solr_audit_logs_zk_node",
-    "serviceName": "LOGSEARCH"
-  },
-  {
-    "category": "Advanced logsearch-env",
-    "filename": "logsearch-env.xml",
-    "index": 7,
-    "name": "logsearch_solr_audit_logs_zk_quorum",
-    "serviceName": "LOGSEARCH"
-  },
-  {
-    "category": "Advanced logsearch-env",
-    "filename": "logsearch-env.xml",
-    "index": 8,
     "name": "logsearch_debug_enabled",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 9,
+    "index": 7,
     "name": "logsearch_debug_port",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 10,
+    "index": 8,
     "name": "logsearch_truststore_location",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 11,
+    "index": 9,
     "name": "logsearch_truststore_type",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 12,
+    "index": 10,
     "name": "logsearch_truststore_password",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 13,
+    "index": 11,
     "name": "logsearch_keystore_location",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 14,
+    "index": 12,
     "name": "logsearch_keystore_type",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 15,
+    "index": 13,
     "name": "logsearch_keystore_password",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 16,
+    "index": 14,
     "name": "logsearch_kerberos_keytab",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 17,
+    "index": 15,
     "name": "logsearch_kerberos_principal",
     "serviceName": "LOGSEARCH"
   },
   {
     "category": "Advanced logsearch-env",
     "filename": "logsearch-env.xml",
-    "index": 18,
+    "index": 16,
     "name": "content",
     "serviceName": "LOGSEARCH"
   },

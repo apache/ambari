@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.util.Arrays;
 import java.util.Collections;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Upgrade resource definition.

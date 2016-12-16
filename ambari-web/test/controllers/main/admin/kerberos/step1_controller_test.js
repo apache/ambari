@@ -51,6 +51,9 @@ describe('App.KerberosWizardStep1Controller', function() {
       controller.loadStep();
       expect(controller.get('selectedItem')).to.be.equal(Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'));
       expect(controller.get('options')).to.not.be.empty;
+      controller.loadStep();
+      var options = controller.get('options');
+      expect(options.length).to.be.equal(1);
     });
 
     it("enableIpa is false", function() {

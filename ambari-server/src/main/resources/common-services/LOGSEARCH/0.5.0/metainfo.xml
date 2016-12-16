@@ -55,15 +55,6 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
-
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-
           </dependencies>
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>
@@ -95,20 +86,9 @@
             </log>
           </logs>
 
-          <dependencies>
-
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-
-          </dependencies>
-
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>
+            <config-type>logsearch-env</config-type>
             <config-type>logfeeder-properties</config-type>
             <config-type>logfeeder-env</config-type>
             <config-type>logfeeder-grok</config-type>
@@ -135,6 +115,10 @@
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_logsearch_portal</condition>
             </package>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -149,6 +133,10 @@
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_logsearch_portal</condition>
             </package>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
@@ -158,10 +146,6 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-
-      <requiredServices>
-        <service>AMBARI_INFRA</service>
-      </requiredServices>
 
       <quickLinksConfigurations>
         <quickLinksConfiguration>

@@ -44,6 +44,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.inject.Inject;
 import java.util.List;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -77,7 +79,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
         .logoutUrl("/logout.html")
-        .deleteCookies("JSESSIONID")
+        .deleteCookies(LOGSEARCH_SESSION_ID)
         .logoutSuccessHandler(new LogsearchLogoutSuccessHandler());
   }
 

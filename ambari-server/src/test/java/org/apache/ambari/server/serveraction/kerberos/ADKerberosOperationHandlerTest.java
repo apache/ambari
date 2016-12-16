@@ -18,13 +18,17 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
-import org.easymock.Capture;
-import org.easymock.CaptureType;
-import org.easymock.IAnswer;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
@@ -37,13 +41,14 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
+import org.easymock.IAnswer;
+import org.junit.Ignore;
+import org.junit.Test;
 
-import static org.easymock.EasyMock.*;
+import junit.framework.Assert;
 
 public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
   private static final String DEFAULT_ADMIN_PRINCIPAL = "cluser_admin@HDP01.LOCAL";

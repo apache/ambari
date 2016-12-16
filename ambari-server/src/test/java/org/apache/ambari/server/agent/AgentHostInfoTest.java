@@ -21,13 +21,13 @@ package org.apache.ambari.server.agent;
 
 import java.io.IOException;
 
-import junit.framework.Assert;
-
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * This tests makes sure the contract between the server and agent for info

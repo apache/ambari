@@ -29,7 +29,7 @@ var App = require('app');
  * @param {Boolean} isCritical
  * @return {*}
  */
-App.showConfirmationPopup = function (primary, body, secondary, header, primaryText, isCritical) {
+App.showConfirmationPopup = function (primary, body, secondary, header, primaryText, isCritical, staticId) {
   if (!primary) {
     return false;
   }
@@ -39,6 +39,9 @@ App.showConfirmationPopup = function (primary, body, secondary, header, primaryT
     header: header || Em.I18n.t('popup.confirmation.commonHeader'),
     body: body || Em.I18n.t('question.sure'),
     primaryClass: isCritical ? 'btn-danger' : 'btn-success',
+    primaryId: staticId ? staticId + '_primary' : '',
+    secondaryId: staticId ? staticId + '_secondary' : '',
+    thirdId: staticId ? staticId + '_third' : '',
     onPrimary: function () {
       this.hide();
       primary();

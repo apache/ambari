@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.controller.utilities.state;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.State;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Determines the service status for Flume.  Generically, this means that

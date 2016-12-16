@@ -27,15 +27,17 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import com.google.common.base.Objects;
+
 /**
  * Entity that maps to a cluster config mapping.
  */
-@Table(name = "clusterconfigmapping")
 @Entity
+@Table(name = "clusterconfigmapping")
 @IdClass(ClusterConfigMappingEntityPK.class)
-@NamedQueries({
-  @NamedQuery(name = "ClusterConfigMappingEntity.findLatestClusterConfigMappingsByType",
-    query = "SELECT mapping FROM ClusterConfigMappingEntity mapping WHERE mapping.clusterId = :clusterId AND mapping.selectedInd > 0 AND mapping.typeName = :typeName")})
+@NamedQueries({ @NamedQuery(
+    name = "ClusterConfigMappingEntity.findLatestClusterConfigMappingsByType",
+    query = "SELECT mapping FROM ClusterConfigMappingEntity mapping WHERE mapping.clusterId = :clusterId AND mapping.selectedInd > 0 AND mapping.typeName = :typeName") })
 
 public class ClusterConfigMappingEntity {
 
@@ -192,4 +194,14 @@ public class ClusterConfigMappingEntity {
 
     return true;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("clusterId", clusterId).add("type", typeName).add("tag",
+        tag).add("selected", selectedInd).add("created", createTimestamp).toString();
+  }
+
 }

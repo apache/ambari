@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Provider;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -41,8 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.Provider;
 
 
 /**

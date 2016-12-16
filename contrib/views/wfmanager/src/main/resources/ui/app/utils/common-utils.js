@@ -22,5 +22,8 @@ export default Ember.Object.create({
   },
   extractSchema(xmlns){
     return xmlns.substr(0,xmlns.lastIndexOf(":"));
+  },
+  setTestContext(context){
+    window.flowDesignerTestContext=context;
   }
 });

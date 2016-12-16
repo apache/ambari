@@ -18,15 +18,15 @@
 
 package org.apache.ambari.server.state.stack;
 
-import org.apache.commons.collections.map.MultiValueMap;
-import org.slf4j.Logger;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.collections.map.MultiValueMap;
+import org.slf4j.Logger;
 
 /**
  * Represents the stack <code>role_command_order.json</code> file.

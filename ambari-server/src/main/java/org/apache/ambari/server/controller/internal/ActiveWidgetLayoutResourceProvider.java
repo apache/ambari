@@ -17,9 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -47,12 +51,9 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
 
 /**
  * Resource provider for widget layout resources.
@@ -216,7 +217,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
             throw new AuthorizationException();
           }
 
-          Set<HashMap> widgetLayouts = (Set) propertyMap.get(WIDGETLAYOUT);
+          Set<HashMap<String, String>> widgetLayouts = (Set) propertyMap.get(WIDGETLAYOUT);
           for (HashMap<String, String> widgetLayout : widgetLayouts) {
             final Long layoutId;
             try {

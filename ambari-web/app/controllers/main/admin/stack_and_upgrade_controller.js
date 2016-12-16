@@ -40,6 +40,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeId: null,
 
   /**
+   * Start version of upgrade
+   * @type {string}
+   * @default null
+   */
+  fromVersion: null,
+
+  /**
    * @type {string}
    * @default null
    */
@@ -233,6 +240,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * properties that stored to localStorage to resume wizard progress
    */
   wizardStorageProperties: [
+    'fromVersion',
     'upgradeId',
     'upgradeVersion',
     'currentVersion',
@@ -860,6 +868,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeSuccessCallback: function (data, opt, params) {
     this.set('upgradeData', null);
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
+    this.set('fromVersion', data.resources[0].Upgrade.from_version);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
     var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type),
@@ -883,6 +892,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperties({
       upgradeVersion: params.label,
       upgradeId: data.resources[0].Upgrade.request_id,
+      fromVersion: data.resources[0].Upgrade.from_version,
       upgradeState: 'PENDING',
       isDowngrade: !!params.isDowngrade,
       upgradeType: upgradeType,
@@ -1672,6 +1682,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   finish: function () {
     var upgradeVersion = this.get('upgradeVersion') && this.get('upgradeVersion').match(/[a-zA-Z]+\-\d+\.\d+/);
     this.setDBProperties({
+      fromVersion: undefined,
       upgradeId: undefined,
       upgradeState: 'INIT',
       upgradeVersion: undefined,
@@ -1683,6 +1694,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       isDowngrade: undefined,
       downgradeAllowed: undefined
     });
+    this.initDBProperties();
     App.clusterStatus.setClusterStatus({
       localdb: App.db.data
     });
@@ -1913,6 +1925,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
 
     this.setDBProperties({
+      fromVersion: lastUpgradeData.Upgrade.from_version,
       upgradeId: lastUpgradeData.Upgrade.request_id,
       isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
       upgradeState: lastUpgradeData.Upgrade.request_status,

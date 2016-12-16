@@ -18,18 +18,19 @@
 
 package org.apache.ambari.server.security.authentication;
 
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+
+import java.util.Arrays;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
 
 public class AmbariDelegatingAuthenticationFilterTest extends EasyMockSupport {
   @Test

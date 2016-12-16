@@ -37,9 +37,7 @@ import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.Files;
 
@@ -77,6 +75,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
   private Set<String> errorSet = new HashSet<String>();
   private RepositoryXml repoXml = null;
+
+  /**
+   * List of services removed from current stack
+   * */
+  private List<String> removedServices = new ArrayList<String>();
 
   public String getMinJdk() {
     return minJdk;
@@ -563,4 +566,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     return repoXml;
   }
 
+  public List<String> getRemovedServices() {
+    return removedServices;
+  }
+
+  public void setRemovedServices(List<String> removedServices) {
+    this.removedServices = removedServices;
+  }
 }

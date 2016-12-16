@@ -18,11 +18,12 @@
 
 package org.apache.ambari.server.view.configuration;
 
-import org.junit.Assert;
-import org.junit.Test;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
-import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * InstanceConfig tests.

@@ -60,6 +60,7 @@ class Multiplier:
     self.config_dir = "/etc/ambari-agent/conf"
     self.pid_file = "/var/run/ambari-agent/ambari-agent.pid"
     self.prefix_dir = "/var/lib/ambari-agent/data"
+    self.cache_dir = "/var/lib/ambari-agent/cache"
 
     # Ambari Agent config file to use as a template
     # Will change hostname and port after copying
@@ -162,11 +163,12 @@ class Multiplier:
       host_pid_file = host_home_dir + self.pid_file
       host_pid_dir = os.path.dirname(host_pid_file)
       host_prefix = host_home_dir + self.prefix_dir
+      host_cache_dir = host_home_dir + self.cache_dir
 
       if self.verbose:
         print "Analyzing host %s with port %d" % (host_name, host.ping_port)
 
-      for dir in [host_home_dir, host_log_dir, host_config_dir, host_pid_dir, host_prefix]:
+      for dir in [host_home_dir, host_log_dir, host_config_dir, host_pid_dir, host_prefix, host_cache_dir]:
         if not os.path.isdir(dir):
           print "Creating dir %s" % (dir)
           os.makedirs(dir)
@@ -183,6 +185,11 @@ class Multiplier:
         print "Copying version file %s" % str(version_file)
         shutil.copyfile(self.source_version_file, version_file)
 
+      # Copy cache dir content
+      if not os.path.isdir(os.path.join(host_cache_dir, "stacks")):
+        print "Copying cache directory content %s" % str(host_cache_dir)
+        self.copytree(self.cache_dir, host_cache_dir)
+
       # Create hostname.sh script to use custom FQDN for each agent.
       host_name_script = os.path.join(host_config_dir, "hostname.sh")
       self.create_host_name_script(host_name, host_name_script)
@@ -193,11 +200,21 @@ class Multiplier:
                      "public_hostname_script": host_name_script,
                      "logdir": host_log_dir,
                      "piddir": host_pid_dir,
-                     "prefix": host_prefix}
+                     "prefix": host_prefix,
+                     "cache_dir": host_cache_dir}
       self.change_config(host_config_file, config_dict)
 
       # Change /etc/hosts file by appending each hostname.
       self.modify_etc_hosts_file()
+
+  def copytree(self, src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+      s = os.path.join(src, item)
+      d = os.path.join(dst, item)
+      if os.path.isdir(s):
+        shutil.copytree(s, d, symlinks, ignore)
+      else:
+        shutil.copy2(s, d)
 
   def create_host_name_script(self, host_name, host_name_script):
     """

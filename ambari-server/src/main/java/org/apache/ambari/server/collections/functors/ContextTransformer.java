@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.collections.functors;
 
-import org.apache.commons.collections.Transformer;
-
 import java.util.Map;
+
+import org.apache.commons.collections.Transformer;
 
 /**
  * {@link ContextTransformer} is a {@link Transformer} implementation that traverses a {@link Map}

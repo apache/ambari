@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Map;
+
 import org.apache.ambari.server.state.ValueAttributesInfo;
 
 public class AdvisedConfiguration {

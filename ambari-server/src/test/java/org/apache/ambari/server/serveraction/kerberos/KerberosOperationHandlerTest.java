@@ -18,7 +18,14 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import junit.framework.Assert;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
@@ -29,13 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import junit.framework.Assert;
 
 public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
 

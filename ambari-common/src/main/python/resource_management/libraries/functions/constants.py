@@ -104,3 +104,4 @@ class StackFeature:
   RANGER_HIVE_PLUGIN_JDBC_URL = "ranger_hive_plugin_jdbc_url"
   ZKFC_VERSION_ADVERTISED = "zkfc_version_advertised"
   PHOENIX_CORE_HDFS_SITE_REQUIRED = "phoenix_core_hdfs_site_required"
+  RANGER_TAGSYNC_SSL_XML_SUPPORT="ranger_tagsync_ssl_xml_support"

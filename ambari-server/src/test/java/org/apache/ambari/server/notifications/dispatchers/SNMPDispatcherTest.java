@@ -17,11 +17,30 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
-import org.apache.ambari.server.notifications.TargetConfigurationResult;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.notifications.DispatchCallback;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.snmp4j.PDU;
@@ -29,16 +48,6 @@ import org.snmp4j.Snmp;
 import org.snmp4j.Target;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.VariableBinding;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public class SNMPDispatcherTest {
 
@@ -49,7 +58,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     dispatcher.dispatch(notification);
     verify(notification.Callback).onFailure(notification.CallbackIds);
     verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
@@ -61,7 +70,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher.SnmpVersion snmpVersion = SNMPDispatcher.SnmpVersion.SNMPv1;
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -85,7 +94,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     notification.DispatchProperties = new HashMap<String, String>();
     dispatcher.dispatch(notification);
     verify(notification.Callback).onFailure(notification.CallbackIds);
@@ -97,7 +106,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -118,7 +127,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -140,7 +149,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = spy(new SNMPDispatcher(DEFAULT_SNMP_PORT));
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -163,7 +172,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = spy(new SNMPDispatcher(DEFAULT_SNMP_PORT));
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -186,7 +195,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher.SnmpVersion snmpVersion = SNMPDispatcher.SnmpVersion.SNMPv1;
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -210,7 +219,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher.SnmpVersion snmpVersion = SNMPDispatcher.SnmpVersion.SNMPv2c;
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     Map<String, String> properties = new HashMap<String, String>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
@@ -233,7 +242,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = new Notification();
     notification.Callback = mock(DispatchCallback.class);
-    notification.CallbackIds = mock(List.class);
+    notification.CallbackIds = new ArrayList<>();
     notification.Body = "body";
     notification.Subject = "subject";
     Map<String, String> properties = new HashMap<String, String>();

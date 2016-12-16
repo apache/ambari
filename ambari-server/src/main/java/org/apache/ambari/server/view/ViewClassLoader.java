@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.view;
 
+import java.io.IOException;
+import java.net.URL;
+
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.io.IOException;
-import java.net.URL;
 
 /**
  * Class loader used to load classes and resources from a search path of URLs referring to both JAR files

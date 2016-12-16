@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.controller.spi.SystemException;
-
 import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.SystemException;
 
 /**
  * Provider of JMX host information.

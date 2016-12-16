@@ -15,7 +15,7 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-
+import CommonUtils from "../utils/common-utils";
 export default Ember.Component.extend({
   workspaceManager : Ember.inject.service('workspace-manager'),
   xmlAppPath : null,
@@ -42,10 +42,22 @@ export default Ember.Component.extend({
     this.get('tabs').forEach((tab)=>{
       this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
     }, this);
+
+    Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path){
+      this.createNewTab('wf', path);
+    }.bind(this));
+
   }.on('init'),
   elementsInserted : function(){
     this.$('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      this.get('workspaceManager').setLastActiveTab((this.$(e.target).attr('href').slice(1)));
+      var id = this.$(e.target).attr('href').slice(1);
+      this.get('workspaceManager').setLastActiveTab(id);
+      var tab = this.get('tabs').findBy('id', id);
+      if(tab.type === 'dashboard'){
+        this.sendAction('showDashboard');
+      }else{
+        this.sendAction('hideDashboard');
+      }
     }.bind(this));
 
     if(this.get('tabs') && this.get('tabs').length > 0){
@@ -54,19 +66,13 @@ export default Ember.Component.extend({
       if(!activeTab){
         activeTab = this.get('tabs').objectAt(this.get('tabs').length - 1);
       }
-      this.$('.nav-tabs a[href="#' + activeTab.id + '"]').tab('show');
-    }else{
-      if(this.get('hasMultitabSupport')){
-        this.createNewTab(this.get('type'), this.get('xmlAppPath'));
+      if(activeTab.type === 'dashboard'){
+        this.createOrshowDashboard();
       }else{
-         var tab = this.get('tabs').findBy('type', this.get('type'));
-        if(!tab){
-          this.createNewTab(this.get('type'), this.get('xmlAppPath'));
-        }else{
-          Ember.set(tab,'path', this.get('xmlAppPath'));
-          this.$('.nav-tabs a[href="#' + tab.id + '"]').tab('show');
-        }
+        this.$('.nav-tabs a[href="#' + activeTab.id + '"]').tab('show');
       }
+    }else{
+      this.createOrshowDashboard();
     }
   }.on('didInsertElement'),
   onDestroy : function(){
@@ -100,6 +106,23 @@ export default Ember.Component.extend({
     this.get('tabCounter').set(type, ++count);
     return count;
   },
+  createOrshowDashboard(){
+    var dashboardTab = this.get('tabs').findBy('type', 'dashboard');
+    if(dashboardTab && dashboardTab.type === 'dashboard'){
+      this.$('.nav-tabs a[href="#' + dashboardTab.id + '"]').tab('show');
+    }else{
+      var tab = {
+        type : 'dashboard',
+        id : this.generateTabId(),
+        name : 'Dashboard'
+      };
+      this.$('.nav-tabs li').removeClass('active');
+      this.$('.tab-content .tab-pane').removeClass('active');
+      this.get('tabs').pushObject(tab);
+      this.$('.nav-tabs a[href="#' + tab.id + '"]').tab('show');
+    }
+    this.sendAction('showDashboard');
+  },
   generateTabId(){
     return 'tab-'+ Math.ceil(Math.random() * 100000);
   },
@@ -109,6 +132,7 @@ export default Ember.Component.extend({
       Ember.set(tab, 'context', context);
     },
     show(type){
+      this.sendAction('hideDashboard');
       if(this.get('hasMultitabSupport')){
         this.createNewTab(type);
       }else{
@@ -120,6 +144,9 @@ export default Ember.Component.extend({
         }
       }
     },
+    showDashboard(){
+      this.createOrshowDashboard();
+    },
     closeTab(index){
       if(index < this.get('tabs').length - 1){
         var previousTab = this.get('tabs').objectAt(index + 1);
@@ -127,6 +154,13 @@ export default Ember.Component.extend({
       }
       this.get('workspaceManager').deleteWorkInProgress(this.get('tabs').objectAt(index).id);
       this.get('tabs').removeAt(index);
+      Ember.run.later(()=>{
+        var type = this.$('.nav-tabs').find('.active').attr('data-type');
+        console.error(type);
+        if(type === 'dashboard'){
+          this.createOrshowDashboard();
+        }
+      }.bind(this));
     },
     openTab(type, path){
       if(this.get('hasMultitabSupport')){
@@ -151,7 +185,10 @@ export default Ember.Component.extend({
     },
     interceptShow(tab){
       if(tab.type === 'wf' && tab.context){
+        CommonUtils.setTestContext(tab.context);
         tab.context.resize();
+      }else if(tab.type === 'dashboard'){
+        this.sendAction('showDashboard');
       }
     }
   }

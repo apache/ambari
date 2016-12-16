@@ -18,11 +18,12 @@
 package org.apache.ambari.server.utils;
 
 
-import org.apache.commons.lang.StringUtils;
+import java.io.ByteArrayInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Static Helper methods for XML processing.

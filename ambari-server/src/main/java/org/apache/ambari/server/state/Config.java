@@ -30,8 +30,6 @@ public interface Config {
 
   void setPropertiesTypes(Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes);
 
-  void setStackId(StackId stackId);
-
   /**
    * @return Config Type
    */
@@ -66,18 +64,6 @@ public interface Config {
   public Map<String, Map<String, String>> getPropertiesAttributes();
 
   /**
-   * Change the version tag
-   * @param versionTag
-   */
-  public void setTag(String versionTag);
-
-  /**
-   * Set config version
-   * @param version
-   */
-  public void setVersion(Long version);
-
-  /**
    * Replace properties with new provided set
    * @param properties Property Map to replace existing one
    */
@@ -110,11 +96,5 @@ public interface Config {
   /**
    * Persist the configuration.
    */
-  public void persist();
-
-  /**
-   * Persist the configuration, optionally creating a new config entity.
-   */
-  public void persist(boolean newConfig);
-
+  public void save();
 }

@@ -16,12 +16,15 @@
 */
 import Ember from 'ember';
 import { Coordinator } from '../coordinator/coordinator';
+import SchemaVersions from '../schema-versions';
+import CommonUtils from "../../utils/common-utils";
 
 var CoordinatorXmlImporter= Ember.Object.extend({
   x2js : new X2JS(),
-  importCoordinator (xml){
+  schemaVersions: null,
+  importCoordinator (xml, errors){
     var coordinatorJson = this.get("x2js").xml_str2json(xml);
-    return this.processCoordinatorXML(coordinatorJson);
+    return this.processCoordinatorXML(coordinatorJson, errors);
   },
   createNewCoordinator(){
     return Coordinator.create({
@@ -55,13 +58,22 @@ var CoordinatorXmlImporter= Ember.Object.extend({
           property : Ember.A([])
         }
       },
-      controls : Ember.A([])
+      controls : Ember.A([]),
+      schemaVersions : this.get("schemaVersions")
     });
   },
   processCoordinatorXML(coordinatorJson){
+    var errors=Ember.A([]);
     var coordinatorApp = coordinatorJson["coordinator-app"];
     var coordinator = this.createNewCoordinator();
     coordinator.name = coordinatorApp._name;
+    var coordinatorVersion=CommonUtils.extractSchemaVersion(coordinatorApp._xmlns);
+    var maxCoordinatorVersion = Math.max.apply(Math, coordinator.schemaVersions.getCoordinatorVersions());
+    if (coordinatorVersion < maxCoordinatorVersion) {
+      coordinator.schemaVersions.setCurrentCoordinatorVersion(coordinatorVersion);
+    } else {
+      errors.push({message: "Unsupported coordinator version - " + coordinatorVersion});
+    }
     var frequency = coordinatorApp._frequency;
     if(frequency.startsWith('${coord:')){
       coordinator.frequency.type = frequency.substring(frequency.indexOf(':')+1, frequency.indexOf('('));
@@ -77,7 +89,7 @@ var CoordinatorXmlImporter= Ember.Object.extend({
     if(coordinatorApp['input-events'] && coordinatorApp['input-events']['data-in']){
       coordinator.dataInputType = 'simple';
       this.extractInputEvents(coordinatorApp, coordinator);
-    }else{
+    }else if(coordinatorApp['input-events']){
       coordinator.dataInputType = 'logical';
       coordinator.supportsConditionalDataInput = true;
       this.extractLogicalInputEvents(coordinatorApp, coordinator);
@@ -86,7 +98,7 @@ var CoordinatorXmlImporter= Ember.Object.extend({
     this.extractAction(coordinatorApp, coordinator);
     this.extractParameters(coordinatorApp, coordinator);
     this.extractControls(coordinatorApp, coordinator);
-    return coordinator;
+    return {coordinator: coordinator, errors: errors};
   },
   extractDateField(value){
     var dateField = {};

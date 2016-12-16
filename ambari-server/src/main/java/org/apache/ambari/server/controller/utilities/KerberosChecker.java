@@ -18,18 +18,20 @@
 
 package org.apache.ambari.server.controller.utilities;
 
-import com.google.inject.Inject;
-import com.sun.security.auth.callback.TextCallbackHandler;
+import java.io.File;
+import java.util.Map;
+
+import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.login.AppConfigurationEntry;
-import javax.security.auth.login.LoginContext;
-import javax.security.auth.login.LoginException;
-import java.io.File;
-import java.util.Map;
+import com.google.inject.Inject;
+import com.sun.security.auth.callback.TextCallbackHandler;
 
 public class KerberosChecker {
 

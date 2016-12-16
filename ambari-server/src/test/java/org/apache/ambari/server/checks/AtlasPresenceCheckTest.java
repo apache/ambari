@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.checks;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 
 public class AtlasPresenceCheckTest {

@@ -18,6 +18,31 @@
 
 var App = require('app');
 
+App.DependentConfigsListView = Em.View.extend({
+  templateName: require('templates/common/modal_popups/dependent_configs_list'),
+  isAfterRecommendation: true,
+  recommendations: [],
+  toggleAll: App.CheckboxView.extend({
+    didInsertElement: function () {
+      this.set('parentView.toggleAllId', this.get('elementId'));
+      this.updateCheckbox();
+    },
+    click: function () {
+      Em.run.next(this, 'updateSaveRecommended');
+    },
+    updateCheckboxObserver: function () {
+      Em.run.once(this, 'updateCheckbox');
+    }.observes('parentView.parentView.recommendations.@each.saveRecommended'),
+
+    updateCheckbox: function() {
+      this.set('checked', !(this.get('parentView.parentView.recommendations') || []).someProperty('saveRecommended', false));
+    },
+    updateSaveRecommended: function() {
+      this.get('parentView.parentView.recommendations').setEach('saveRecommended', this.get('checked'));
+    }
+  })
+});
+
 /**
  * Show confirmation popup
  * @param {[Object]} recommendations
@@ -32,38 +57,17 @@ App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['common-modal-wrapper','modal-full-width'],
     modalDialogClasses: ['modal-lg'],
-    recommendations: recommendations,
     secondaryClass: 'cancel-button',
-    bodyClass: Em.View.extend({
-      templateName: require('templates/common/modal_popups/dependent_configs_list'),
-      toggleAllId: '',
-      toggleAll: App.CheckboxView.extend({
-        didInsertElement: function () {
-          this.set('parentView.toggleAllId', this.get('elementId'));
-          this.updateCheckbox();
-        },
-        click: function () {
-          Em.run.next(this, 'updateSaveRecommended');
-        },
-        updateCheckboxObserver: function () {
-          Em.run.once(this, 'updateCheckbox');
-        }.observes('parentView.parentView.recommendations.@each.saveRecommended'),
-
-        updateCheckbox: function() {
-          this.set('checked', !(this.get('parentView.parentView.recommendations') || []).someProperty('saveRecommended', false));
-        },
-        updateSaveRecommended: function() {
-          this.get('parentView.parentView.recommendations').setEach('saveRecommended', this.get('checked'));
-        }
-      })
+    bodyClass: App.DependentConfigsListView.extend({
+      recommendations: recommendations
     }),
     saveChanges: function() {
-      this.get('recommendations').forEach(function (c) {
+      recommendations.forEach(function (c) {
         Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
       })
     },
     discardChanges: function() {
-      this.get('recommendations').forEach(function(c) {
+      recommendations.forEach(function(c) {
         Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
       });
     },

@@ -29,7 +29,6 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Objects;

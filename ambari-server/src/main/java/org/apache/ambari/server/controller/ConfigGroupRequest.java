@@ -17,11 +17,10 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.Config;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.state.Config;
 
 public class ConfigGroupRequest {
   private Long id;

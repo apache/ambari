@@ -21,11 +21,12 @@ package org.apache.ambari.server.customactions;
 import java.io.File;
 import java.util.EnumSet;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 public class ActionDefinitionManagerTest {
 

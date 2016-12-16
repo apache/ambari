@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.AmbariException;
-
 import java.io.File;
+
+import org.apache.ambari.server.AmbariException;
 
 /**
  * Encapsulates IO operations on a common services directory.

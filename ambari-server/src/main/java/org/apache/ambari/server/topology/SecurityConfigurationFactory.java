@@ -19,18 +19,19 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.common.base.Enums;
-import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.ambari.server.orm.dao.KerberosDescriptorDAO;
 import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
 import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.UUID;
+import com.google.common.base.Enums;
+import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
 
 public class SecurityConfigurationFactory {
 

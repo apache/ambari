@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
@@ -29,9 +32,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.google.inject.Singleton;
 
 /**
  * Warns about host components whose upgrade state is VERSION_MISMATCH. Never triggers

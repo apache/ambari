@@ -18,38 +18,24 @@
 
 package org.apache.ambari.server.view;
 
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.view.HttpImpersonator;
-import org.apache.ambari.view.ImpersonatorSetting;
-import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.server.controller.internal.AppCookieManager;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import sun.nio.cs.StandardCharsets;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.view.ImpersonatorSetting;
+import org.apache.ambari.view.ViewContext;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 public class HttpImpersonatorImplTest {

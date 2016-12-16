@@ -17,6 +17,16 @@
  */
 package org.apache.ambari.server.security;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,16 +36,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.security.ldap.LdapUtils;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(LdapUtils.class)

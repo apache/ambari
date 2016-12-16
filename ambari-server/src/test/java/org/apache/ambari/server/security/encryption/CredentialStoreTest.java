@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.security.encryption;
 
-import junit.framework.Assert;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.GenericKeyCredential;
 import org.junit.After;
@@ -26,8 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.util.concurrent.TimeUnit;
+import junit.framework.Assert;
 
 public class CredentialStoreTest {
 

@@ -18,8 +18,6 @@
 package org.apache.ambari.server.agent;
 
 import com.google.gson.annotations.SerializedName;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 /**
  * Agent environment data.

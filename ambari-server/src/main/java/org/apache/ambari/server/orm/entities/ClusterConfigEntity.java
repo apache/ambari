@@ -39,6 +39,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import com.google.common.base.Objects;
+
 @Entity
 @Table(name = "clusterconfig",
   uniqueConstraints = {@UniqueConstraint(name = "UQ_config_type_tag", columnNames = {"cluster_id", "type_name", "version_tag"}),
@@ -52,6 +54,7 @@ import javax.persistence.UniqueConstraint;
     @NamedQuery(name = "ClusterConfigEntity.findNextConfigVersion", query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId"),
     @NamedQuery(name = "ClusterConfigEntity.findAllConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.stack=:stack"),
     @NamedQuery(name = "ClusterConfigEntity.findLatestConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.timestamp = (SELECT MAX(clusterConfig2.timestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)"),
+    @NamedQuery(name = "ClusterConfigEntity.findNotMappedClusterConfigsToService", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.serviceConfigEntities IS EMPTY AND clusterConfig.type != 'cluster-env'"),
     @NamedQuery(name = "ClusterConfigEntity.findClusterConfigMappingsByStack",
       query = "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
         "JOIN ClusterConfigEntity config ON mapping.typeName = config.type AND mapping.tag = config.tag " +
@@ -265,5 +268,19 @@ public class ClusterConfigEntity {
 
   public void setServiceConfigEntities(Collection<ServiceConfigEntity> serviceConfigEntities) {
     this.serviceConfigEntities = serviceConfigEntities;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("clusterId", clusterId)
+      .add("type", type)
+      .add("version", version)
+      .add("tag", tag)
+      .add("timestamp", timestamp)
+      .toString();
   }
 }

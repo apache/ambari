@@ -13,5 +13,20 @@
 <module name="Checker">
   <module name="TreeWalker">
     <module name="AvoidTransactionalOnPrivateMethodsCheck"/>
+
+    <module name="FallThrough"/>
+
+    <!-- imports -->
+    <module name="AvoidStarImport"/>
+    <module name="IllegalImport"/>
+    <module name="ImportOrder">
+      <property name="groups" value="java,javax,org,com*"/>
+      <property name="ordered" value="true"/>
+      <property name="separated" value="true"/>
+      <property name="option" value="top"/> <!-- static imports -->
+      <property name="sortStaticImportsAlphabetically" value="true"/>
+    </module>
+    <module name="RedundantImport"/>
+    <module name="UnusedImports"/>
   </module>
 </module>

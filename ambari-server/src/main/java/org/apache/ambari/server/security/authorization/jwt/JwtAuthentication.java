@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.security.authorization.jwt;
 
+import java.util.Collection;
+
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.User;
-
-import java.util.Collection;
 
 /**
  * Internal token which describes JWT authentication

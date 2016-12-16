@@ -17,17 +17,17 @@
  */
 package org.apache.ambari.server.logging;
 
-import org.apache.ambari.server.configuration.Configuration;
-import org.easymock.EasyMockSupport;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.easymock.EasyMock.expect;
+import org.apache.ambari.server.configuration.Configuration;
+import org.easymock.EasyMockSupport;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class LockFactoryTest extends EasyMockSupport {
 

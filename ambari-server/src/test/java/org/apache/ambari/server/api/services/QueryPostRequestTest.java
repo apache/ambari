@@ -18,20 +18,15 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.predicate.PredicateCompiler;
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.junit.Test;
+import static org.junit.Assert.assertSame;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import org.apache.ambari.server.api.handlers.RequestHandler;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.junit.Test;
 
 /**
  * QueryPostRequest unit tests.

@@ -17,6 +17,12 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static org.easymock.EasyMock.expect;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -34,11 +40,6 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.ldap.core.DirContextOperations;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import static org.easymock.EasyMock.*;
 
 @RunWith(PowerMockRunner.class)               // Allow mocking static methods
 @PrepareForTest(AuthorizationHelper.class)    // This class has a static method that will be mocked

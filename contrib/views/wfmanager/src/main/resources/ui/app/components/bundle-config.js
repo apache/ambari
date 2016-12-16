@@ -20,6 +20,7 @@ import {BundleGenerator} from '../domain/bundle/bundle-xml-generator';
 import {BundleXmlImporter} from '../domain/bundle/bundle-xml-importer';
 import { validator, buildValidations } from 'ember-cp-validations';
 import Constants from '../utils/constants';
+import SchemaVersions from '../domain/schema-versions';
 
 const Validations = buildValidations({
   'bundle.name': validator('presence', {
@@ -41,6 +42,8 @@ const Validations = buildValidations({
 
 export default Ember.Component.extend(Ember.Evented, Validations, {
   bundle : null,
+  errors: Ember.A([]),
+  schemaVersions : SchemaVersions.create({}),
   propertyExtractor : Ember.inject.service('property-extractor'),
   fileBrowser : Ember.inject.service('file-browser'),
   workspaceManager : Ember.inject.service('workspace-manager'),
@@ -107,7 +110,8 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
         displayValue : '',
         type : 'date'
       },
-      coordinators : null
+      coordinators : null,
+      schemaVersions : this.get("schemaVersions")
     });
   },
   importSampleBundle (){
@@ -156,9 +160,11 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     return deferred;
   },
   getBundleFromXml(bundleXml){
-    var bundleXmlImporter = BundleXmlImporter.create({});
-    var bundle = bundleXmlImporter.importBundle(bundleXml);
-    this.set("bundle", bundle);
+    var bundleXmlImporter = BundleXmlImporter.create({schemaVersions: this.get("schemaVersions")});
+    var bundleObj = bundleXmlImporter.importBundle(bundleXml, this.get("errors"));
+    this.set("bundle", bundleObj.bundle);
+    this.get("errors").clear();
+    this.get("errors").pushObjects(bundleObj.errors);
   },
   actions : {
     closeFileBrowser(){
@@ -220,6 +226,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     },
     resetBundle(){
       this.set('bundle', this.createBundle());
+      this.set('errors').clear();
     },
     closeBundleSubmitConfig(){
       this.set("showingJobConfig", false);
@@ -257,6 +264,9 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     },
     openTab(type, path){
       this.sendAction('openTab', type, path);
+    },
+    showVersionSettings(value){
+      this.set('showVersionSettings', value);
     }
   }
 });

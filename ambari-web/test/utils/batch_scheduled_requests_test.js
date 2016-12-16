@@ -20,8 +20,6 @@ require('utils/helper');
 require('views/common/rolling_restart_view');
 var batchUtils = require('utils/batch_scheduled_requests');
 var modelSetup = require('test/init_model_test');
-var testHelpers = require('test/helpers');
-
 describe('batch_scheduled_requests', function() {
 
   beforeEach(function(){
@@ -129,27 +127,6 @@ describe('batch_scheduled_requests', function() {
         expect(batchUtils.showRollingRestartPopup.calledOnce).to.equal(test.e.showRollingRestartPopup);
         expect(batchUtils.showWarningRollingRestartPopup.calledOnce).to.equal(test.e.showWarningRollingRestartPopup);
       });
-    });
-
-  });
-
-  describe('#restartHostComponents', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.HostComponent, 'find').returns([Em.Object.create({componentName: 'RESOURCEMANAGER', hostName: '1'})]);
-    });
-    afterEach(function () {
-      App.HostComponent.find.restore();
-    });
-
-    it('should make batch request to refresh YARN queues', function () {
-      batchUtils.restartHostComponents([Em.Object.create({componentName: 'HIVE_SERVER_INTERACTIVE'})]);
-      expect(testHelpers.findAjaxRequest('name', 'common.batch.request_schedules')).to.exists;
-    });
-
-    it('should make single request without refresh YARN queues', function () {
-      batchUtils.restartHostComponents([Em.Object.create({componentName: 'NAMENODE'})]);
-      expect(testHelpers.findAjaxRequest('name', 'restart.hostComponents')).to.exists;
     });
 
   });

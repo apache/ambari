@@ -18,18 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
-import org.apache.ambari.view.AmbariHttpException;
-import org.apache.ambari.view.AmbariStreamProvider;
-import org.apache.ambari.view.cluster.Cluster;
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -40,6 +28,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+import org.apache.ambari.view.AmbariHttpException;
+import org.apache.ambari.view.AmbariStreamProvider;
+import org.apache.ambari.view.cluster.Cluster;
+import org.apache.commons.io.IOUtils;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 /**
  * View associated  Remote cluster implementation.

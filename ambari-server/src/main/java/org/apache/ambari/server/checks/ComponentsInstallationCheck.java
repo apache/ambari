@@ -18,7 +18,6 @@
 package org.apache.ambari.server.checks;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;

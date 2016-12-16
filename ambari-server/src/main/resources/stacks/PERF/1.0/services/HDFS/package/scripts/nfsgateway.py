@@ -33,6 +33,10 @@ class NFSGateway(Dummy):
   def __init__(self):
     super(NFSGateway, self).__init__()
     self.component_name = "NFS_GATEWAY"
+    self.principal_conf_name = "hdfs-site"
+    self.principal_name = "nfs.kerberos.principal"
+    self.keytab_conf_name = "hdfs-site"
+    self.keytab_name = "nfs.keytab.file"
 
 if __name__ == "__main__":
   NFSGateway().execute()

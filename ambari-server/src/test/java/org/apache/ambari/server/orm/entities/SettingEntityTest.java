@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import org.junit.Test;
-
 import static junit.framework.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * SettingEntity unit tests.

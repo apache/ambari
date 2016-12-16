@@ -18,17 +18,18 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import junit.framework.Assert;
-import org.apache.ambari.server.controller.ivory.IvoryService;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.junit.Test;
+import static org.easymock.EasyMock.createMock;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.createMock;
+import org.apache.ambari.server.controller.ivory.IvoryService;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * Tests for AbstractDRResourceProvider.

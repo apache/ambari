@@ -23,8 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,7 +32,6 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.hooks.users.UserHookParams;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
-import org.apache.ambari.server.topology.AsyncCallableService;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -73,7 +70,7 @@ public class PostUserCreationHookServerAction extends AbstractServerAction {
       validateCommandParams(commandParams);
 
       //persist user data to csv
-      CollectionPersisterService csvPersisterService = collectionPersisterServiceFactory.createCsvFilePersisterService(commandParams.get(UserHookParams.CMD_INPUT_FILE.param()));
+      CollectionPersisterService<String, List<String>> csvPersisterService = collectionPersisterServiceFactory.createCsvFilePersisterService(commandParams.get(UserHookParams.CMD_INPUT_FILE.param()));
       csvPersisterService.persistMap(getPayload(commandParams));
 
       String[] cmd = assembleCommand(commandParams);

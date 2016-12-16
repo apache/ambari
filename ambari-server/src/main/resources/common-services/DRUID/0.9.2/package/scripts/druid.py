@@ -16,8 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format
 from resource_management.libraries.resources import XmlConfig
@@ -146,6 +148,7 @@ def druid(upgrade_type=None, nodeType=None):
 
   # All druid nodes have dependency on hdfs_client
   ensure_hadoop_directories()
+  download_database_connector_if_needed()
   # Pull all required dependencies
   pulldeps()
 
@@ -235,6 +238,8 @@ def pulldeps():
   import params
   extensions_list = eval(params.druid_extensions)
   extensions_string = '{0}'.format("-c ".join(extensions_list))
+  repository_list = eval(params.druid_repo_list)
+  repository_string = '{0}'.format("-r ".join(repository_list))
   if len(extensions_list) > 0:
     try:
       # Make sure druid user has permissions to write dependencies
@@ -247,13 +252,44 @@ def pulldeps():
         create_parents=True,
         recursive_ownership=True,
       )
-      Execute(format(
+      pull_deps_command = format(
         "source {params.druid_conf_dir}/druid-env.sh ; java -classpath '{params.druid_home}/lib/*' -Ddruid.extensions.loadList=[] "
         "-Ddruid.extensions.directory={params.druid_extensions_dir} -Ddruid.extensions.hadoopDependenciesDir={params.druid_hadoop_dependencies_dir} "
-        "io.druid.cli.Main tools pull-deps -c {extensions_string} --no-default-hadoop"),
-        user=params.druid_user
-      )
+        "io.druid.cli.Main tools pull-deps -c {extensions_string} --no-default-hadoop")
+
+      if len(repository_list) > 0:
+        pull_deps_command = format("{pull_deps_command} -r {repository_string}")
+
+      Execute(pull_deps_command,
+              user=params.druid_user
+              )
       Logger.info(format("Pull Dependencies Complete"))
     except:
       show_logs(params.druid_log_dir, params.druid_user)
       raise
+
+
+def download_database_connector_if_needed():
+  """
+  Downloads the database connector to use when connecting to the metadata storage
+  """
+  import params
+  if params.metadata_storage_type != 'mysql' or not params.jdbc_driver_jar:
+    return
+
+  File(params.check_db_connection_jar,
+       content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}"))
+       )
+
+  target_jar_with_directory = params.connector_download_dir + os.path.sep + params.jdbc_driver_jar
+
+  if not os.path.exists(target_jar_with_directory):
+    File(params.downloaded_custom_connector,
+         content=DownloadSource(params.connector_curl_source))
+
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, target_jar_with_directory),
+            path=["/bin", "/usr/bin/"],
+            sudo=True)
+
+    File(target_jar_with_directory, owner=params.druid_user,
+         group=params.user_group)
