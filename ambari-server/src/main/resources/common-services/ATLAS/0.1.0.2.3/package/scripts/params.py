@@ -138,6 +138,12 @@ metadata_server_host = atlas_hosts[0] if len(atlas_hosts) > 0 else "UNKNOWN_HOST
 application_properties = dict(config['configurations']['application-properties'])
 application_properties["atlas.server.bind.address"] = metadata_host
 
+# trimming knox_key
+if 'atlas.sso.knox.publicKey' in application_properties:
+  knox_key = application_properties['atlas.sso.knox.publicKey']
+  knox_key_without_new_line = knox_key.replace("\n","")
+  application_properties['atlas.sso.knox.publicKey'] = knox_key_without_new_line
+
 if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
   metadata_server_url = application_properties["atlas.rest.address"]
 else:

@@ -54,6 +54,7 @@
     <value/>
     <description/>
     <value-attributes>
+      <type>multiline</type>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
     <on-ambari-upgrade add="true"/>

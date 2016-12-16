@@ -831,7 +831,7 @@
       {
         "config": "application-properties/atlas.sso.knox.publicKey",
         "widget": {
-          "type": "text-field"
+          "type": "text-area"
         }
       },
       {
