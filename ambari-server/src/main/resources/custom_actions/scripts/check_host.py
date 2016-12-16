@@ -473,6 +473,7 @@ class CheckHost(Script):
     
     failedCount = 0
     failures = []
+    hosts_with_failures = []
    
     if config['commandParams']['hosts'] is not None :
       hosts = config['commandParams']['hosts'].split(",")
@@ -489,7 +490,9 @@ class CheckHost(Script):
       except socket.error,exception:
         successCount -= 1
         failedCount += 1
-        
+
+        hosts_with_failures.append(host)
+
         failure = { "host": host, "type": FORWARD_LOOKUP_REASON, 
           "cause": exception.args }
         
@@ -507,7 +510,8 @@ class CheckHost(Script):
       "message" : message,                                          
       "failed_count" : failedCount, 
       "success_count" : successCount,
-      "failures" : failures
+      "failures" : failures,
+      "hosts_with_failures" : hosts_with_failures
       }
 
     Logger.info("IP address forward resolution check completed.")
