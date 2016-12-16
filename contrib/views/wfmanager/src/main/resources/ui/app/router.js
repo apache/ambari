@@ -24,7 +24,10 @@ const Router = Ember.Router.extend({
 
 Router.map(function () {
   this.route('dashboard');
-  this.route('design');
+  this.route('design', function() {
+    this.route('dashboardtab');
+    this.route('jobtab');
+  });
   this.route('designtest');
   this.route('job');
   this.route('connection-error');

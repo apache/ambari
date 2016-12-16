@@ -28,8 +28,14 @@
       <div class="clearfix"></div>
       <h4>Action Nodes</h4>
       {{#if clipboardHasContents}}
-        <div><span class="paste-action">Paste from clipboard</span><span class="btn paste-action-btn" {{action 'pasteNode'}}><i class="fa fa-paste"></i></span></div>
+        <div>
+           <span class="btn paste-action-btn" {{action 'pasteNode'}}>
+             <i class="fa fa-paste"></i>
+             <span class="paste-action">Paste from clipboard</span>
+           </span>
+        </div>     
       {{/if}}
+      <div {{action 'showImportActionNodeFileBrowser'}} class="btn btn-default"> <i class="fa fa-download"></i> <span class="paste-action">Import action</span></div>
       <div class="clearfix"></div>
       <ul class="actions_list_left actionNodes">
           <li {{action 'addAction' 'hive'}} class="dr_action enabled" data-name="Hive" data-type="hive"> <i class="fa fa-server"></i> Hive </li>

@@ -157,7 +157,7 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>0.0.16</version>
+				<version>1.1</version>
 				<configuration>
 					<nodeVersion>v4.5.0</nodeVersion>
 					<npmVersion>2.15.0</npmVersion>
@@ -213,12 +213,11 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
-							<executable>node/node</executable>
+							<workingDirectory>${ui.directory}</workingDirectory>
+							<executable>${ui.directory}/node_modules/.bin/${ember.executable}</executable>
 							<arguments>
-								<argument>node_modules/.bin/ember</argument>
 								<argument>build</argument>
-
+								<argument>-prod</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -244,24 +243,6 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<includeScope>runtime</includeScope>
-						</configuration>
-					</execution>
-					<execution>
-						<id>copy-artifact</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>${project.groupId}</groupId>
-									<artifactId>${project.artifactId}</artifactId>
-									<version>${project.version}</version>
-									<type>${project.packaging}</type>
-								</artifactItem>
-							</artifactItems>
-							<outputDirectory>${views.jars.dir.rel}</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
@@ -303,6 +284,7 @@
         </activation>
         <properties>
           <node.executable>node.exe</node.executable>
+          <ember.executable>ember.cmd</ember.executable>
           <skip.nodegyp.chmod>true</skip.nodegyp.chmod>
         </properties>
       </profile>
@@ -315,6 +297,7 @@
         </activation>
         <properties>
           <node.executable>node</node.executable>
+          <ember.executable>ember</ember.executable>
           <skip.nodegyp.chmod>false</skip.nodegyp.chmod>
         </properties>
       </profile>

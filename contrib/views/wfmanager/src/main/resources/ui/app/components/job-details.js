@@ -49,15 +49,20 @@ export default Ember.Component.extend({
     }
   }),
   displayType : Ember.computed('model.jobType', function() {
-    if(this.get('jobType') === 'wf'){
+    if(this.get('model.jobType') === 'wf'){
       return "Workflow";
-    }else if(this.get('jobType') === 'coords'){
+    }else if(this.get('model.jobType') === 'coords'){
       return "Coordinator";
     }
-    else if(this.get('jobType') === 'bundles'){
+    else if(this.get('model.jobType') === 'bundles'){
       return "Bundle";
     }
     return "Workflow";
+  }),
+  configurationProperties : Ember.computed('model', function(){
+    var x2js = new X2JS();
+    var configurationObj  = x2js.xml_str2json(this.get('model.conf'));
+    return configurationObj.configuration.property;
   }),
   initialize : function(){
     if(this.get('currentTab')){
@@ -66,11 +71,6 @@ export default Ember.Component.extend({
         this.set('model.actionDetails', this.get('model.actions')[0]);
       }
     }
-
-    var x2js = new X2JS();
-    var configurationObj  = x2js.xml_str2json(this.get('model.conf'));
-    this.set('model.configurationProperties', configurationObj.configuration.property);
-
     this.$('.nav-tabs').on('shown.bs.tab', function(event){
       this.sendAction('onTabChange', this.$(event.target));
     }.bind(this));
@@ -229,7 +229,8 @@ export default Ember.Component.extend({
       this.set('model.actionInfo', actionInfo);
     },
     renderDag(xmlString){
-      var workflow = this.get("workflowImporter").importWorkflow(xmlString);
+      var wfObject = this.get("workflowImporter").importWorkflow(xmlString);
+      var workflow = wfObject.workflow;
       console.log("Workflow Object..", workflow);
       var dataNodes=this.getCyDataNodes(workflow);
       var cy = cytoscape({
@@ -321,8 +322,8 @@ export default Ember.Component.extend({
       });
     },
     actions : {
-      back (){
-        this.sendAction('back');
+      back (jobType, jobId){
+        this.sendAction('back', jobType, jobId);
       },
       close : function(){
         this.sendAction('close');
@@ -332,7 +333,7 @@ export default Ember.Component.extend({
       },
       getJobDefinition : function () {
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=definition&timezone=GMT',function(response){
-          this.set('model.jobDefinition', (new XMLSerializer()).serializeToString(response).trim());
+          this.set('jobDefinition', (new XMLSerializer()).serializeToString(response).trim());
         }.bind(this)).fail(function(error){
           this.set('error',error);
         }.bind(this));
@@ -400,6 +401,9 @@ export default Ember.Component.extend({
       },
       showCoord : function(coordId){
         this.sendAction('showCoord', coordId);
+      },
+      editWorkflow(path){
+        this.sendAction('editWorkflow', path);
       }
     }
   });

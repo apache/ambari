@@ -19,6 +19,7 @@ import {Coordinator} from '../domain/coordinator/coordinator';
 import {CoordinatorGenerator} from '../domain/coordinator/coordinator-xml-generator';
 import {CoordinatorXmlImporter} from '../domain/coordinator/coordinator-xml-importer';
 import {SlaInfo} from '../domain/sla-info';
+import SchemaVersions from '../domain/schema-versions';
 import Constants from '../utils/constants';
 import { validator, buildValidations } from 'ember-cp-validations';
 
@@ -42,6 +43,8 @@ const Validations = buildValidations({
 
 export default Ember.Component.extend(Validations, Ember.Evented, {
   coordinator : null,
+  errors: Ember.A([]),
+  schemaVersions : SchemaVersions.create({}),
   childComponents : new Map(),
   fileBrowser : Ember.inject.service('file-browser'),
   propertyExtractor : Ember.inject.service('property-extractor'),
@@ -204,18 +207,20 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         }
       },
       controls : Ember.A([]),
-      slainfo : SlaInfo.create({})
+      slainfo : SlaInfo.create({}),
+      schemaVersions : this.get("schemaVersions")
     });
   },
   importSampleCoordinator (){
+    var self = this;
     var deferred = Ember.RSVP.defer();
     Ember.$.ajax({
       url: "/sampledata/coordinator.xml",
       dataType: "text",
       cache:false,
       success: function(data) {
-        var coordinatorXmlImporter = CoordinatorXmlImporter.create({});
-        var coordinator = coordinatorXmlImporter.importCoordinator(data);
+        var coordinatorXmlImporter = CoordinatorXmlImporter.create({schemaVersions: self.schemaVersions});
+        var coordinator = coordinatorXmlImporter.importCoordinator(data, self.errors);
         deferred.resolve(coordinator);
       }.bind(this),
       failure : function(data){
@@ -270,9 +275,12 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     return deferred;
   },
   getCoordinatorFromXml(coordinatorXml){
-    var coordinatorXmlImporter = CoordinatorXmlImporter.create({});
-    var coordinator = coordinatorXmlImporter.importCoordinator(coordinatorXml);
+    var coordinatorXmlImporter = CoordinatorXmlImporter.create({schemaVersions: this.get("schemaVersions")});
+    var coordinatorObj = coordinatorXmlImporter.importCoordinator(coordinatorXml, this.errors);
+    var coordinator = coordinatorObj.coordinator;
     this.set("coordinator", coordinator);
+    this.get("errors").clear();
+    this.get("errors").pushObjects(coordinatorObj.errors);
     this.$('input[name="dataInputType"][value="'+ coordinator.get('dataInputType')+'"]').prop('checked', true);
     if(coordinator.get('dataInputType') === 'logical'){
       this.set('conditionalDataInExists', true);
@@ -450,13 +458,16 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     resetCoordinator(){
       this.set('coordinator', this.createNewCoordinator());
+      this.get("errors").clear();
     },
     importCoordinatorTest(){
       var deferred = this.importSampleCoordinator();
       deferred.promise.then(function(data){
-        this.set("coordinator", data);
-        this.$('input[name="dataInputType"][value="'+ data.get('dataInputType')+'"]').prop('checked', true);
-        if(data.get('dataInputType') === 'logical'){
+        this.set("coordinator", data.coordinator);
+        this.get("errors").clear();
+        this.get("errors").pushObjects(data.errors);
+        this.$('input[name="dataInputType"][value="'+ data.coordinator.get('dataInputType')+'"]').prop('checked', true);
+        if(data.coordinator.get('dataInputType') === 'logical'){
           this.set('conditionalDataInExists', true);
         }
         console.error(this.get('coordinator'));
@@ -516,6 +527,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       }.bind(this)).catch(function(){
         this.set('workflowName', null);
       }.bind(this));
+    },
+    showVersionSettings(value){
+      this.set('showVersionSettings', value);
     }
   }
 });

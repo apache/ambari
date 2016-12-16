@@ -45,13 +45,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.security.AccessControlException;
+import org.apache.oozie.ambari.view.workflowmanager.WorkflowManagerService;
+import org.apache.oozie.ambari.view.workflowmanager.WorkflowsManagerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,9 +81,13 @@ public class OozieProxyImpersonator {
 
 	private static final String SERVICE_URI_PROP = "oozie.service.uri";
 	private static final String DEFAULT_SERVICE_URI = "http://sandbox.hortonworks.com:11000/oozie";
-	private Utils utils=new Utils();
-	private OozieUtils oozieUtils=new OozieUtils();
+	private Utils utils = new Utils();
+	private AmbariIOUtil ambariIOUtil;
+	private OozieUtils oozieUtils = new OozieUtils();
 	private HDFSFileUtils hdfsFileUtils;
+	private WorkflowFilesService workflowFilesService;
+	//private WorkflowManagerService workflowManagerService;
+
 	private static enum ErrorCodes {
 		OOZIE_SUBMIT_ERROR("error.oozie.submit", "Oozie Submit error"), OOZIE_IO_ERROR(
 				"error.oozie.io", "Oozie I/O error"), FILE_ACCESS_ACL_ERROR(
@@ -111,10 +115,14 @@ public class OozieProxyImpersonator {
 	@Inject
 	public OozieProxyImpersonator(ViewContext viewContext) {
 		this.viewContext = viewContext;
-		hdfsFileUtils=new HDFSFileUtils(viewContext);
+		hdfsFileUtils = new HDFSFileUtils(viewContext);
+		workflowFilesService = new WorkflowFilesService(hdfsFileUtils);
+		ambariIOUtil=new AmbariIOUtil(viewContext);
+		//workflowManagerService = new WorkflowManagerService(viewContext);
 		LOGGER.info(String.format(
 				"OozieProxyImpersonator initialized for instance: %s",
 				viewContext.getInstanceName()));
+
 	}
 
 	@Path("/fileServices")
@@ -122,6 +130,11 @@ public class OozieProxyImpersonator {
 		return new FileServices(viewContext);
 	}
 
+   @Path("/wfprojects")
+    public WorkflowsManagerResource workflowsManagerResource() {
+        return new WorkflowsManagerResource(viewContext);
+    }
+	
 	@GET
 	@Path("/getCurrentUserName")
 	public Response getCurrentUserName() {
@@ -171,15 +184,137 @@ public class OozieProxyImpersonator {
 		}
 		postBody = utils.formatXml(postBody);
 		try {
-			String filePath = hdfsFileUtils.createWorkflowFile(getWorkflowFileName(appPath),postBody, overwrite);
+			String filePath = workflowFilesService.createWorkflowFile(appPath,
+					postBody, overwrite);
 			LOGGER.info(String.format(
 					"submit workflow job done. filePath=[%s]", filePath));
+		/*	workflowManagerService.saveWorkflow(appPath, JobType.WORKFLOW,
+                    "todo description", viewContext.getUsername());*/
 			return Response.ok().build();
 		} catch (Exception ex) {
 			LOGGER.error(ex.getMessage(), ex);
 			return getRespCodeForException(ex);
 
 		}
+	}
+	
+	@POST
+	@Path("/publishAsset")
+	@Consumes({ MediaType.TEXT_PLAIN + "," + MediaType.TEXT_XML })
+	public Response publishAsset(String postBody, @Context HttpHeaders headers,
+			@Context UriInfo ui, @QueryParam("uploadPath") String uploadPath,
+			@DefaultValue("false") @QueryParam("overwrite") Boolean overwrite) {
+		LOGGER.info("publish asset called");
+		if (StringUtils.isEmpty(uploadPath)) {
+			throw new RuntimeException("upload path can't be empty.");
+		}
+		uploadPath = uploadPath.trim();
+		Response dryRunResponse = validateAsset(headers, postBody, ui.getQueryParameters());
+		if (dryRunResponse.getStatus() == 200) {
+			return saveAsset(postBody, uploadPath, overwrite);
+		}
+		return dryRunResponse;
+	}
+
+	private Response validateAsset(HttpHeaders headers, String postBody, MultivaluedMap<String, String> queryParams) {
+		String workflowXml = oozieUtils.generateWorkflowXml(postBody);	
+		try {
+			String tempWfPath = "/user/"+viewContext.getUsername()+"/tmpooziewfs/tempwf.xml";
+			hdfsFileUtils.writeToFile(tempWfPath, workflowXml, true);
+			queryParams.put("oozieparam.action",getAsList("dryrun"));
+			queryParams.put("oozieconfig.rerunOnFailure",getAsList("false"));
+			queryParams.put("oozieconfig.useSystemLibPath",getAsList("true"));
+			queryParams.put("resourceManager",getAsList("useDefault"));
+			String dryRunResp = submitWorkflowJobToOozie(headers,tempWfPath,queryParams,JobType.WORKFLOW);
+			LOGGER.info(String.format("resp from validating asset=[%s]",dryRunResp));
+			if (dryRunResp != null && dryRunResp.trim().startsWith("{")) {
+				return Response.status(Response.Status.OK).entity(dryRunResp).build();
+			} else {
+				HashMap<String, String> resp = new HashMap<String, String>();
+				resp.put("status", ErrorCodes.OOZIE_SUBMIT_ERROR.getErrorCode());
+				resp.put("message", dryRunResp);
+				//resp.put("stackTrace", dryRunResp);				
+				return Response.status(Response.Status.BAD_REQUEST).entity(resp).build();
+			}			
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private List<String> getAsList(String string) {
+		ArrayList<String> li=new ArrayList<>(1);
+		li.add(string);
+		return li;
+	}
+
+	private Response saveAsset(String postBody, String uploadPath,
+			Boolean overwrite) {
+		uploadPath = workflowFilesService.getAssetFileName(uploadPath);
+		if (!overwrite) {
+			boolean fileExists = hdfsFileUtils.fileExists(uploadPath);
+			if (fileExists) {
+				return getFileExistsResponse();
+			}
+		}
+		postBody = utils.formatXml(postBody);
+		try {
+			String filePath = workflowFilesService.createAssetFile(uploadPath,
+					postBody, overwrite);
+			LOGGER.info(String.format(
+					"publish asset job done. filePath=[%s]", filePath));
+			return Response.ok().build();
+		} catch (Exception ex) {
+			LOGGER.error(ex.getMessage(), ex);
+			return getRespCodeForException(ex);
+		}
+	}
+
+	@POST
+	@Path("/saveWorkflowDraft")
+	@Consumes({ MediaType.TEXT_PLAIN + "," + MediaType.TEXT_XML })
+	public Response saveDraft(String postBody, @Context HttpHeaders headers,
+			@Context UriInfo ui, @QueryParam("app.path") String appPath,
+			@DefaultValue("false") @QueryParam("overwrite") Boolean overwrite)
+			throws IOException {
+		LOGGER.info("save workflow  called");
+		if (StringUtils.isEmpty(appPath)) {
+			throw new RuntimeException("app path can't be empty.");
+		}
+		appPath = appPath.trim();
+		workflowFilesService.saveDraft(appPath, postBody, overwrite);
+	/*	 workflowManagerService.saveWorkflow(appPath, JobType.WORKFLOW,
+	                "todo description", viewContext.getUsername());*/
+		return Response.ok().build();
+	}
+
+	@GET
+	@Path("/readWorkflowDraft")
+	public Response readDraft(@QueryParam("workflowXmlPath") String workflowPath) {
+		if (StringUtils.isEmpty(workflowPath)) {
+			throw new RuntimeException("workflowXmlPath can't be empty.");
+		}
+		try {
+			final InputStream is = workflowFilesService.readDraft(workflowPath);
+			StreamingOutput streamer = new StreamingOutput() {
+				@Override
+				public void write(OutputStream os) throws IOException,
+						WebApplicationException {
+					IOUtils.copy(is, os);
+					is.close();
+					os.close();
+				}
+			};
+			return Response.ok(streamer).status(200).build();
+		} catch (IOException e) {
+			return getRespCodeForException(e);
+		}
+	}
+	
+	@POST
+	@Path("/discardWorkflowDraft")
+	public Response discardDraft(@QueryParam("workflowXmlPath") String workflowPath) throws IOException{
+		 workflowFilesService.discardDraft(workflowPath);
+		return Response.ok().build();
 	}
 
 	private Response submitJobInternal(String postBody, HttpHeaders headers,
@@ -196,7 +331,8 @@ public class OozieProxyImpersonator {
 		}
 		postBody = utils.formatXml(postBody);
 		try {
-			String filePath = hdfsFileUtils.createWorkflowFile(getWorkflowFileName(appPath),postBody,overwrite);
+			String filePath = hdfsFileUtils.writeToFile(appPath, postBody,
+					overwrite);
 			LOGGER.info(String.format(
 					"submit workflow job done. filePath=[%s]", filePath));
 		} catch (Exception ex) {
@@ -204,6 +340,8 @@ public class OozieProxyImpersonator {
 			return getRespCodeForException(ex);
 
 		}
+		/* workflowManagerService.saveWorkflow(appPath, jobType,
+	                "todo description", viewContext.getUsername());*/
 		String response = submitWorkflowJobToOozie(headers, appPath,
 				ui.getQueryParameters(), jobType);
 		if (response != null && response.trim().startsWith("{")) {
@@ -226,21 +364,20 @@ public class OozieProxyImpersonator {
 					ErrorCodes.FILE_ACCESS_ACL_ERROR.getDescription(), ex);
 			return Response.status(Response.Status.BAD_REQUEST)
 					.entity(errorDetails).build();
-		}else if (ex instanceof IOException){
+		} else if (ex instanceof IOException) {
 			HashMap<String, String> errorDetails = getErrorDetails(
 					ErrorCodes.FILE_ACCESS_UNKNOWN_ERROR.getErrorCode(),
 					ErrorCodes.FILE_ACCESS_UNKNOWN_ERROR.getDescription(), ex);
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
 					.entity(errorDetails).build();
-		}else {
+		} else {
 			HashMap<String, String> errorDetails = getErrorDetails(
 					ErrorCodes.FILE_ACCESS_UNKNOWN_ERROR.getErrorCode(),
 					ErrorCodes.FILE_ACCESS_UNKNOWN_ERROR.getDescription(), ex);
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
 					.entity(errorDetails).build();
 		}
-		
-		
+
 	}
 
 	private Response getFileExistsResponse() {
@@ -250,18 +387,14 @@ public class OozieProxyImpersonator {
 		return Response.status(Response.Status.BAD_REQUEST).entity(resp)
 				.build();
 	}
-
-	private String getWorkflowFileName(String appPath) {
-		String workflowFile = null;
-		if (appPath.endsWith(".xml")) {
-			workflowFile = appPath;
-		} else {
-			workflowFile = appPath + (appPath.endsWith("/") ? "" : "/")
-					+ "workflow.xml";
-		}
-		return workflowFile;
+	
+	@GET
+	@Path("/readWorkflowDetail")
+	public Response isDraftAvailable(@QueryParam("workflowXmlPath") String workflowPath){
+		WorkflowFileInfo workflowDetails = workflowFilesService.getWorkflowDetails(workflowPath);
+		return Response.ok(workflowDetails).build();
 	}
-
+	
 	@GET
 	@Path("/readWorkflowXml")
 	public Response readWorkflowXxml(
@@ -270,7 +403,7 @@ public class OozieProxyImpersonator {
 			throw new RuntimeException("workflowXmlPath can't be empty.");
 		}
 		try {
-			final FSDataInputStream is = hdfsFileUtils.read(workflowPath);
+			final InputStream is = workflowFilesService.readWorkflowXml(workflowPath);
 			StreamingOutput streamer = new StreamingOutput() {
 				@Override
 				public void write(OutputStream os) throws IOException,
@@ -281,7 +414,7 @@ public class OozieProxyImpersonator {
 				}
 			};
 			return Response.ok(streamer).status(200).build();
-		} catch(IOException e){
+		} catch (IOException e) {
 			return getRespCodeForException(e);
 		}
 	}
@@ -405,7 +538,7 @@ public class OozieProxyImpersonator {
 			queryParams.put("config.nameNode", nameNodes);
 		}
 
-		HashMap<String, String> workflowConigs = getWorkflowConfigs(filePath,
+		Map<String, String> workflowConigs = getWorkflowConfigs(filePath,
 				queryParams, jobType, nameNode);
 		String configXMl = oozieUtils.generateConfigXml(workflowConigs);
 		LOGGER.info("Config xml==" + configXMl);
@@ -415,7 +548,7 @@ public class OozieProxyImpersonator {
 				+ "/v2/jobs?" + getJobSumbitOozieParams(queryParams),
 				HttpMethod.POST, configXMl, customHeaders);
 
-		LOGGER.info("REsp from oozie status entity=="
+		LOGGER.info("Resp from oozie status entity=="
 				+ serviceResponse.getEntity());
 		if (serviceResponse.getEntity() instanceof String) {
 			return (String) serviceResponse.getEntity();
@@ -425,7 +558,7 @@ public class OozieProxyImpersonator {
 
 	}
 
-	private HashMap<String, String> getWorkflowConfigs(String filePath,
+	private Map<String, String> getWorkflowConfigs(String filePath,
 			MultivaluedMap<String, String> queryParams, JobType jobType,
 			String nameNode) {
 		HashMap<String, String> workflowConigs = new HashMap<String, String>();
@@ -466,7 +599,8 @@ public class OozieProxyImpersonator {
 			workflowConigs.put(OOZIE_WF_RERUN_FAILNODES_CONF_KEY, "true");
 		}
 		workflowConigs.put("user.name", viewContext.getUsername());
-		workflowConigs.put(oozieUtils.getJobPathPropertyKey(jobType), nameNode + filePath);
+		workflowConigs.put(oozieUtils.getJobPathPropertyKey(jobType), nameNode
+				+ filePath);
 		return workflowConigs;
 	}
 
@@ -497,10 +631,13 @@ public class OozieProxyImpersonator {
 		uiURI = uiURI.substring(index);
 		String serviceURI = getServiceUri();
 		serviceURI += uiURI;
-		MultivaluedMap<String, String> params = addOrReplaceUserName(ui.getQueryParameters());
-		return serviceURI+utils.convertParamsToUrl(params);
+		MultivaluedMap<String, String> params = addOrReplaceUserName(ui
+				.getQueryParameters());
+		return serviceURI + utils.convertParamsToUrl(params);
 	}
-	private MultivaluedMap<String, String> addOrReplaceUserName(MultivaluedMap<String, String> parameters){
+
+	private MultivaluedMap<String, String> addOrReplaceUserName(
+			MultivaluedMap<String, String> parameters) {
 		for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
 			if ("user.name".equals(entry.getKey())) {
 				ArrayList<String> vals = new ArrayList<String>(1);
@@ -521,7 +658,7 @@ public class OozieProxyImpersonator {
 			String method, String body) throws Exception {
 		return consumeService(headers, urlToRead, method, body, null);
 	}
-	
+
 	private Response consumeService(HttpHeaders headers, String urlToRead,
 			String method, String body, Map<String, String> customHeaders) {
 		Response response = null;
@@ -539,8 +676,8 @@ public class OozieProxyImpersonator {
 					.entity(stringResponse).type(MediaType.TEXT_PLAIN).build();
 		} else {
 			response = Response.status(Response.Status.OK)
-					.entity(stringResponse).type(utils.deduceType(stringResponse))
-					.build();
+					.entity(stringResponse)
+					.type(utils.deduceType(stringResponse)).build();
 		}
 		return response;
 	}
@@ -558,36 +695,7 @@ public class OozieProxyImpersonator {
 		}
 		LOGGER.info(String.format("Proxy request for url: [%s] %s", method,
 				urlToRead));
-		
-		return readFromUrl(urlToRead, method, body, newHeaders);
+
+		return ambariIOUtil.readFromUrl(urlToRead, method, body, newHeaders);
 	}
-
-	private InputStream readFromUrl(String urlToRead, String method, String body,
-			Map<String, String> newHeaders) {
-		URLStreamProvider streamProvider = viewContext.getURLStreamProvider();
-		InputStream stream = null;
-		try {
-			if (isSecurityEnabled()) {
-				stream = streamProvider.readAsCurrent(urlToRead, method, body,
-						newHeaders);
-
-			} else {
-				stream = streamProvider.readFrom(urlToRead, method, body,
-						newHeaders);
-			}
-		} catch (IOException e) {
-			LOGGER.error("error talking to oozie", e);
-			throw new RuntimeException(e);
-		}
-		return stream;
-	}
-
-	
-	private boolean isSecurityEnabled() {
-		String authType = viewContext.getCluster().getConfigurationValue(
-				"core-site", "hadoop.security.authentication");
-		LOGGER.info("Auth Type=" + authType);
-		return !"simple".equalsIgnoreCase(authType);
-	}
-
 }

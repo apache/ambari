@@ -16,14 +16,18 @@
 */
 import Ember from 'ember';
 import { Bundle } from '../bundle/bundle';
+import SchemaVersions from '../schema-versions';
+import CommonUtils from "../../utils/common-utils";
 
 var BundleXmlImporter= Ember.Object.extend({
   x2js : new X2JS(),
-  importBundle (xml){
+  schemaVersions : null,
+  importBundle (xml, errors){
     var bundleJson = this.get("x2js").xml_str2json(xml);
-    return this.processBundleXML(bundleJson);
+    return this.processBundleXML(bundleJson, errors);
   },
   processBundleXML(bundleJson){
+    var errors=Ember.A([]);
     var bundle = Bundle.create({
       name : '',
       kickOffTime : {
@@ -31,17 +35,25 @@ var BundleXmlImporter= Ember.Object.extend({
         displayValue : '',
         type : 'date'
       },
-      coordinators : Ember.A([])
+      coordinators : Ember.A([]),
+      schemaVersions : this.get("schemaVersions")
     });
     var bundleApp=bundleJson["bundle-app"];
     bundle.name = bundleApp._name;
+    var bundleVersion=CommonUtils.extractSchemaVersion(bundleApp._xmlns);
+    var maxBundleVersion = Math.max.apply(Math, bundle.schemaVersions.getBundleVersions());
+    if (bundleVersion < maxBundleVersion) {
+      bundle.schemaVersions.setCurrentBundleVersion(bundleVersion);
+    } else {
+      errors.push({message: "Unsupported bundle version - " + bundleVersion});
+    }
     if(bundleApp.control && bundleApp.control["kick-off-time"]) {
       bundle.kickOffTime = this.extractDateField(bundleApp["control"]["kick-off-time"]);
     }else{
 
     }
     this.processCoordinatorsJson(bundleApp, bundle);
-    return bundle;
+    return {bundle: bundle, errors: errors};
   },
   processCoordinatorsJson(bundleApp, bundle){
     if (bundleApp.coordinator){

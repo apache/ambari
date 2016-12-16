@@ -17,11 +17,24 @@
 
 import Ember from 'ember';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(Ember.Evented, {
 
   beforeModel: function(transition){
     this.set("xmlAppPath", transition.queryParams.appPath);
     this.controllerFor('design').set("xmlAppPath", transition.queryParams.appPath);
+  },
+  actions : {
+    editWorkflow(path){
+      this.trigger('openNewTab', path);
+    },
+    showDashboard(){
+      this.controller.set('dashboardShown', true);
+      this.transitionTo('design.dashboardtab');
+    },
+    hideDashboard(){
+      this.controller.set('dashboardShown', false);
+      this.transitionTo('design');
+    }
   }
 
 });

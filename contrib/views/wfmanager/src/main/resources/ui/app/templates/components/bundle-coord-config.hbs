@@ -17,13 +17,6 @@
 }}
 <div class="well">
   <div class="form-group">
-    <label class="control-label col-xs-2">Coordinator Name<span class="requiredField">&nbsp;*</span></label>
-    <div class="col-xs-7">
-      {{input type="text" class="form-control" name="name" value=coordinator.name placeholder="Coordinator Name"}}
-      {{#field-error model=this field='coordinator.name' showErrorMessage=showErrorMessage}}{{/field-error}}
-    </div>
-  </div>
-  <div class="form-group">
     <label class="control-label col-xs-2">Coordinator Path<span class="requiredField">&nbsp;*</span></label>
     <div class="col-xs-7">
       <div class="input-group">
@@ -33,10 +26,14 @@
           <button class="btn btn-default" type="button" {{action "openTab" 'coord' coordinator.appPath}} name="button"><i class="fa fa-external-link"></i></button>
         </span>
       </div>
-      {{#if coordinatorName}}
-        <span title="Name of the coordinator">({{coordinatorName}})</span>
-      {{/if}}
       {{#field-error model=this field='coordinator.appPath' showErrorMessage=showErrorMessage}}{{/field-error}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-xs-2">Coordinator Name<span class="requiredField">&nbsp;*</span></label>
+    <div class="col-xs-7">
+      {{input type="text" class="form-control" name="name" value=coordinator.name placeholder="Coordinator Name"}}
+      {{#field-error model=this field='coordinator.name' showErrorMessage=showErrorMessage}}{{/field-error}}
     </div>
   </div>
   <div class="panel panel-default">

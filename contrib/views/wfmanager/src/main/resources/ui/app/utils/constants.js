@@ -37,7 +37,7 @@ export default Ember.Object.create({
     hiveAction:{name : "hive",supportsSchema : true, currentVersion:''},
     hive2Action:{name : "hive2",supportsSchema : true, currentVersion:''},
     javaAction:{name : "java",supportsSchema : false, currentVersion:''},
-    pigAction:{name : "pig",supportsSchema : true, currentVersion:''},
+    pigAction:{name : "pig",supportsSchema : false, currentVersion:''},
     sqoopAction:{name : "sqoop",supportsSchema : true, currentVersion:''},
     shellAction:{name : "shell",supportsSchema : true, currentVersion:''},
     sparkAction:{name : "spark",supportsSchema : true, currentVersion:''},

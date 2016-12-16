@@ -58,7 +58,6 @@
       <thead>
         <tr>
           <th>Name</th>
-          <th>Type</th>
           <th>Status</th>
           <th>User</th>
           <th>Group</th>
@@ -66,13 +65,13 @@
           <th>Time Unit</th>
           <th>Start Time</th>
           <th>End Time</th>
+          <th>Job Id</th>
         </tr>
       </thead>
       <tbody>
         {{#each model.bundleCoordJobs as |coordJob|}}
         <tr {{action 'showCoord' coordJob.coordJobId}} class="{{if (eq actionInfo model.actionDetails) "active"}}">
-          <td class="pointer">{{coordJob.coordJobId}}</td>
-          <td>{{coordJob.coordJobName}}</td>
+          <td class="pointer">{{coordJob.coordJobName}}</td>
           <td>{{coordJob.status}}</td>
           <td>{{coordJob.user}}</td>
           <td>{{coordJob.group}}</td>
@@ -80,6 +79,7 @@
           <td>{{coordJob.timeUnit}}</td>
           <td>{{coordJob.startTime}}</td>
           <td>{{coordJob.endTime}}</td>
+          <td>{{coordJob.coordJobId}}</td>
         </tr>
         {{/each}}
       </tbody>
@@ -88,7 +88,9 @@
   <div role="tabpanel" class="tab-pane" id="jobDefinition">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <pre class="prettyprint">{{model.jobDefinition}}</pre>
+        <pre class="prettyprint">
+          {{ivy-codemirror value=jobDefinition options=(hash lineNumbers=false mode="xml" indentWithTabs=true readOnly=true)}}
+        </pre>
       </div>
     </div>
   </div>
@@ -103,7 +105,7 @@
             </tr>
           </thead>
           <tbody>
-            {{#each model.configurationProperties as |configurationProperty|}}
+            {{#each configurationProperties as |configurationProperty|}}
               <tr>
                 <td class="propertyName">{{configurationProperty.name}}</td>
                 <td class="propertyValue">{{configurationProperty.value}}</td>

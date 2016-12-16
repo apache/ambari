@@ -17,13 +17,23 @@
 }}
 <td class="no-sort first-col">
   <input id="{{job.id}}" name="{{job.appName}}"  data-status ="{{job.status}}" class="cbox" type="checkbox" value="" {{action 'rowSelected' job.status on="change"}}>
+  {{#if job.parentId}}
+     {{#link-to 'design.jobtab' (query-params id=targetParentId jobType="coords")}}
+       <i class="fa fa-history marginright5" title="Go to the corresponding co-ordinator"></i>
+     {{/link-to}}
+  {{else}}
+     <a class="padding15pcnt" href="javascript:void(0);"></a>
+  {{/if}}
+
 </td>
-<td {{action 'showJobDetails' job.id}} class="pointer"> {{job.appName}}</td>
+<td {{action 'showJobDetails' job.id}} class="pointer"> {{job.appName}}
+</td>
 <td class="{{job.status}}"> {{job.status}} </td>
 <td> {{job.user}}</td>
-<td title="{{job.createdTime}}"> {{date-helper job.createdTime}} </td>
+<!--td title="{{job.createdTime}}"> {{date-helper job.createdTime}} </td-->
 <td title="{{job.startTime}}"> {{date-helper job.startTime}}</td>
 <td title="{{job.endTime}}"> {{date-helper job.endTime}}</td>
+<td title="{{job.id}}" class="jobIdClass"> <div class="width50">{{job.id}}</div></td>
 <td class="actions-col no-sort" {{action 'hideActions' on="mouseLeave"}}>
   <div id="actions-div" class="pull-left">
     <button {{action 'showActions' on='mouseEnter'}} type="button" class="btn btn-default isOn">

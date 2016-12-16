@@ -33,7 +33,7 @@ var CoordinatorGenerator= Ember.Object.extend({
     coordinatorApp._start = this.coordinator.start.value;
     coordinatorApp._end = this.coordinator.end.value;
     coordinatorApp._timezone = this.coordinator.timezone;
-    coordinatorApp._xmlns = "uri:oozie:coordinator:0.4";
+    coordinatorApp._xmlns = "uri:oozie:coordinator:"+this.coordinator.schemaVersions.coordinatorVersion;
     this.generateDataSets(coordinatorApp);
     if(this.coordinator.dataInputType === 'simple'){
       this.generateInputEvents(coordinatorApp);

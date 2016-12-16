@@ -30,6 +30,14 @@ export default Ember.Component.extend({
     pasteNode(){
       this.$(this.get('element')).popover('hide');
       this.sendAction("pasteNode");
+    },
+    importActionNodeLocalFS(file) {
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("importActionNodeLocalFS", file);
+    },
+    showImportActionNodeFileBrowser() {
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("showImportActionNodeFileBrowser");
     }
   }
 });
