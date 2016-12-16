@@ -16,7 +16,8 @@
     "jdk_name": "jdk-7u67-linux-x64.tar.gz",
     "ambari_db_rca_username": "mapred",
     "java_home": "/usr/jdk64/jdk1.7.0_45",
-    "db_name": "ambari"
+    "db_name": "ambari",
+    "custom_mysql_jdbc_name": "mysql-connector-java.jar"
   },
   "commandType": "EXECUTION_COMMAND",
   "roleParams": {},
@@ -392,11 +393,15 @@
     },
     "druid-common" : {
       "druid.metadata.storage.type" : "mysql",
+      "druid.metadata.storage.connector.connectURI" : "jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true",
+      "druid.metadata.storage.connector.user" : "druid",
+      "druid.metadata.storage.connector.password" : "diurd",
       "druid.storage.type" : "hdfs",
       "druid.storage.storageDirectory" : "/user/druid/data",
       "druid.indexer.logs.type": "hdfs",
       "druid.indexer.logs.directory": "/user/druid/logs",
-      "druid.extensions.pullList": "[\"mysql-metadata-storage\"]",
+      "druid.extensions.pullList": "[\"custom-druid-extension\"]",
+      "druid.extensions.repositoryList": "[\"http://custom-mvn-repo/public/release\"]",
       "druid.extensions.loadList": "[\"mysql-metadata-storage\", \"druid-datasketches\"]"
     },
     "druid-historical" : {
