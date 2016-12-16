@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.notifications.DispatchCallback;
@@ -75,7 +74,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         dispatcher.dispatch(notification);
         verify(notification.Callback).onFailure(notification.CallbackIds);
         verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
@@ -87,7 +86,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher.SnmpVersion snmpVersion = AmbariSNMPDispatcher.SnmpVersion.SNMPv1;
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -106,7 +105,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         notification.DispatchProperties = new HashMap<String, String>();
         dispatcher.dispatch(notification);
         verify(notification.Callback).onFailure(notification.CallbackIds);
@@ -118,7 +117,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -134,7 +133,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -151,7 +150,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT));
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -169,7 +168,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT));
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -187,7 +186,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher.SnmpVersion snmpVersion = AmbariSNMPDispatcher.SnmpVersion.SNMPv1;
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -206,7 +205,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher.SnmpVersion snmpVersion = AmbariSNMPDispatcher.SnmpVersion.SNMPv2c;
         Notification notification = mock(AlertNotification.class);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "3");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "4");
@@ -224,7 +223,7 @@ public class AmbariSNMPDispatcherTest {
         AmbariSNMPDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
-        notification.CallbackIds = mock(List.class);
+        notification.CallbackIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put(AmbariSNMPDispatcher.PORT_PROPERTY, "162");
         properties.put(AmbariSNMPDispatcher.COMMUNITY_PROPERTY, "public");

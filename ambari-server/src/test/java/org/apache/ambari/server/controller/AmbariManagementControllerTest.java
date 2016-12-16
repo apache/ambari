@@ -9744,7 +9744,7 @@ public class AmbariManagementControllerTest {
   public void testGetServices2() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
@@ -9792,7 +9792,7 @@ public class AmbariManagementControllerTest {
   public void testGetServices___ServiceNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -9839,7 +9839,7 @@ public class AmbariManagementControllerTest {
   public void testGetServices___OR_Predicate_ServiceNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 

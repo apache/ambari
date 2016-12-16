@@ -158,7 +158,7 @@ public class WidgetLayoutResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
-    Capture<WidgetLayoutEntity> entityCapture = new Capture<WidgetLayoutEntity>();
+    Capture<WidgetLayoutEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -178,7 +178,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID, "section_name");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
-    Set widgetsInfo = new LinkedHashSet();
+    Set<Map<String, String>> widgetsInfo = new LinkedHashSet<>();
     Map<String, String> widget = new HashMap<String, String>();
     widget.put("id","1");
     widgetsInfo.add(widget);
@@ -218,7 +218,7 @@ public class WidgetLayoutResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
 
-    Capture<WidgetLayoutEntity> entityCapture = new Capture<WidgetLayoutEntity>();
+    Capture<WidgetLayoutEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -239,7 +239,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID, "section_name");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
-    Set widgetsInfo = new LinkedHashSet();
+    Set<Map<String, String>> widgetsInfo = new LinkedHashSet<>();
     Map<String, String> widget = new HashMap<String, String>();
     widget.put("id","1");
     widgetsInfo.add(widget);
@@ -304,7 +304,7 @@ public class WidgetLayoutResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
-    Capture<WidgetLayoutEntity> entityCapture = new Capture<WidgetLayoutEntity>();
+    Capture<WidgetLayoutEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 

@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 import junit.framework.Assert;
@@ -73,7 +74,7 @@ public class SimplifyingPredicateVisitorTest {
   public void testVisit() {
 
     ResourceProvider provider = createStrictMock(ResourceProvider.class);
-    Capture<Set<String>> propertiesCapture = new Capture<Set<String>>();
+    Capture<Set<String>> propertiesCapture = EasyMock.newCapture();
 
     SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(provider);
 

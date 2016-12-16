@@ -150,7 +150,7 @@ public class RepoUtilTest {
 
   private static ListMultimap<String, RepositoryInfo> serviceRepos(List<String> operatingSystems,
       String repoName, String repoId, String baseUrl) {
-    ArrayListMultimap multimap = ArrayListMultimap.create();
+    ListMultimap<String, RepositoryInfo> multimap = ArrayListMultimap.create();
     for (String os: operatingSystems) {
       RepositoryInfo repoInfo = new RepositoryInfo();
       repoInfo.setOsType(os);

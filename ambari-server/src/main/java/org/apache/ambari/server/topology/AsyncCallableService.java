@@ -72,7 +72,7 @@ public class AsyncCallableService<T> implements Callable<T> {
     LOG.info("Task execution started at: {}", startTimeInMillis);
 
     // task execution started on a new thread
-    Future future = executorService.submit(task);
+    Future<T> future = executorService.submit(task);
 
     while (!taskCompleted(future)) {
       if (!timeoutExceeded(startTimeInMillis)) {

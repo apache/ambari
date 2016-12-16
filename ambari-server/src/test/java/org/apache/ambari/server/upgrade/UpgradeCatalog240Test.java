@@ -762,9 +762,9 @@ public class UpgradeCatalog240Test {
     Capture<Map<String, String>> oozieCapture =  newCapture();
     Capture<Map<String, String>> hiveCapture =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("oozie-env"),
-        capture(oozieCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+        capture(oozieCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("hive-env"),
-            capture(hiveCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+            capture(hiveCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog240.class).removeHiveOozieDBConnectionConfigs();
@@ -846,15 +846,15 @@ public class UpgradeCatalog240Test {
 
     Capture<Map<String, String>> falconCapture =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
-        capture(falconCapture), anyString(), (Map<String, Map<String, String>>) anyObject())).andReturn(null).once();
+        capture(falconCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     Capture<Map<String, String>> falconCapture2 =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
-        capture(falconCapture2), anyString(), (Map<String, Map<String, String>>) anyObject())).andReturn(null).once();
+        capture(falconCapture2), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     Capture<Map<String, String>> falconStartupCapture =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-startup.properties"),
-        capture(falconStartupCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+        capture(falconStartupCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog240.class).updateFalconConfigs();
@@ -935,7 +935,7 @@ public class UpgradeCatalog240Test {
 
     Capture<Map<String, String>> hbaseCapture =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockCluster), eq("hbase-site"),
-        capture(hbaseCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+        capture(hbaseCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog240.class).updateHBaseConfigs();
@@ -1016,12 +1016,12 @@ public class UpgradeCatalog240Test {
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-                                   anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+                                   EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateHDFSConfigs();
@@ -1091,15 +1091,15 @@ public class UpgradeCatalog240Test {
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCaptureHdfsSite = EasyMock.newCapture();
-    Capture<Map> propertiesCaptureHadoopEnv = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCaptureHdfsSite = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCaptureHadoopEnv = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), eq("hdfs-site"), capture(propertiesCaptureHdfsSite), anyString(),
-                                   anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+                                   EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
     expect(controller.createConfig(anyObject(Cluster.class), eq("hadoop-env"), capture(propertiesCaptureHadoopEnv), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateHDFSConfigs();
@@ -1160,12 +1160,12 @@ public class UpgradeCatalog240Test {
             .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-            anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+            EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateYarnEnv();
@@ -1291,15 +1291,15 @@ public class UpgradeCatalog240Test {
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesSparkDefaultsCapture = EasyMock.newCapture();
-    Capture<Map> propertiesSparkJavaOptsCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesSparkDefaultsCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesSparkJavaOptsCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), eq("spark-defaults"), capture(propertiesSparkDefaultsCapture), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
     expect(controller.createConfig(anyObject(Cluster.class), eq("spark-javaopts-properties"), capture(propertiesSparkJavaOptsCapture), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateSparkConfigs();
@@ -1353,12 +1353,12 @@ public class UpgradeCatalog240Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateAMSConfigs();
@@ -1412,12 +1412,12 @@ public class UpgradeCatalog240Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateAMSConfigs();
@@ -1469,12 +1469,12 @@ public class UpgradeCatalog240Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateAMSConfigs();
@@ -1568,9 +1568,9 @@ public class UpgradeCatalog240Test {
 
     Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
     Capture<String> typeCapture = newCapture(CaptureType.ALL);
-    Capture<Map> propertiesCapture = newCapture(CaptureType.ALL);
+    Capture<Map<String, String>> propertiesCapture = newCapture(CaptureType.ALL);
     Capture<String> tagCapture = newCapture(CaptureType.ALL);
-    Capture<Map> attributesCapture = newCapture(CaptureType.ALL);
+    Capture<Map<String, Map<String, String>>> attributesCapture = newCapture(CaptureType.ALL);
 
     expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
         capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
@@ -1615,7 +1615,7 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals("kerberos-env", typeCaptureValues.get(0));
     Assert.assertEquals("krb5-conf", typeCaptureValues.get(1));
 
-    List<Map> propertiesCaptureValues = propertiesCapture.getValues();
+    List<Map<String, String>> propertiesCaptureValues = propertiesCapture.getValues();
     Assert.assertEquals(2, propertiesCaptureValues.size());
 
     Map<String, String> capturedCRProperties;
@@ -1719,9 +1719,9 @@ public class UpgradeCatalog240Test {
 
     Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
     Capture<String> typeCapture = newCapture(CaptureType.ALL);
-    Capture<Map> propertiesCapture = newCapture(CaptureType.ALL);
+    Capture<Map<String, String>> propertiesCapture = newCapture(CaptureType.ALL);
     Capture<String> tagCapture = newCapture(CaptureType.ALL);
-    Capture<Map> attributesCapture = newCapture(CaptureType.ALL);
+    Capture<Map<String, Map<String, String>>> attributesCapture = newCapture(CaptureType.ALL);
 
 
     expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
@@ -1752,7 +1752,7 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(1, typeCaptureValues.size());
     Assert.assertEquals("kerberos-env", typeCaptureValues.get(0));
 
-    List<Map> propertiesCaptureValues = propertiesCapture.getValues();
+    List<Map<String, String>> propertiesCaptureValues = propertiesCapture.getValues();
     Assert.assertEquals(1, propertiesCaptureValues.size());
 
     Map<String, String> capturedCRProperties;
@@ -2549,12 +2549,12 @@ public class UpgradeCatalog240Test {
             .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-            anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+            EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateRangerHbasePluginProperties();

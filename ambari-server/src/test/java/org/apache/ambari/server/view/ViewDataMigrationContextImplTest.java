@@ -295,8 +295,8 @@ public class ViewDataMigrationContextImplTest {
     ViewInstanceDataEntity dataEntity2User2 = new ViewInstanceDataEntity();
     dataEntity2User2.setName("key2");
     dataEntity2User2.setUser("user2");
-    Collection data2 = Arrays.asList(dataEntityUser2, dataEntity2User2);
-    Collection data1 = Arrays.asList(dataEntityUser1, dataEntityUser2, dataEntity2User2);
+    Collection<ViewInstanceDataEntity> data2 = Arrays.asList(dataEntityUser2, dataEntity2User2);
+    Collection<ViewInstanceDataEntity> data1 = Arrays.asList(dataEntityUser1, dataEntityUser2, dataEntity2User2);
 
     ViewInstanceEntity instanceEntity1 = getViewInstanceEntityMock(entity1);
     expect(instanceEntity1.getData()).andReturn(data1);

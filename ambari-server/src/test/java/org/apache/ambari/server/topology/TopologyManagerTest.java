@@ -189,7 +189,7 @@ public class TopologyManagerTest {
     topoConfiguration.setProperty("service2-site", "s2-prop", "s2-prop-value");
     topoConfiguration.setProperty("cluster-env", "g-prop", "g-prop-value");
 
-    //clusterRequestCapture = new Capture<ClusterRequest>();
+    //clusterRequestCapture = EasyMock.newCapture();
     // group 1 has fqdn specified
     group1Info.addHost("host1");
     group1Info.setConfiguration(topoGroup1Config);

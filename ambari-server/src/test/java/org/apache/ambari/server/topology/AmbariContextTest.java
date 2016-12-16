@@ -121,7 +121,7 @@ public class AmbariContextTest {
   private Configuration group1Configuration = null;
   private static final Collection<String> group1Hosts = Arrays.asList(HOST1, HOST2);
 
-  private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = new Capture<Set<ConfigGroupRequest>>();
+  private Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = EasyMock.newCapture();
 
   @Before
   public void setUp() throws Exception {
@@ -266,23 +266,23 @@ public class AmbariContextTest {
   @Test
   public void testCreateAmbariResources() throws Exception {
     // expectations
-    Capture<ClusterRequest> clusterRequestCapture = new Capture<ClusterRequest>();
+    Capture<ClusterRequest> clusterRequestCapture = EasyMock.newCapture();
     controller.createCluster(capture(clusterRequestCapture));
     expectLastCall().once();
     expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
 
-    Capture<Set<ServiceRequest>> serviceRequestCapture = new Capture<Set<ServiceRequest>>();
-    Capture<Set<ServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<ServiceComponentRequest>>();
+    Capture<Set<ServiceRequest>> serviceRequestCapture = EasyMock.newCapture();
+    Capture<Set<ServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
 
     serviceResourceProvider.createServices(capture(serviceRequestCapture));
     expectLastCall().once();
     componentResourceProvider.createComponents(capture(serviceComponentRequestCapture));
     expectLastCall().once();
 
-    Capture<Request> serviceInstallRequestCapture = new Capture<Request>();
-    Capture<Request> serviceStartRequestCapture = new Capture<Request>();
-    Capture<Predicate> installPredicateCapture = new Capture<Predicate>();
-    Capture<Predicate> startPredicateCapture = new Capture<Predicate>();
+    Capture<Request> serviceInstallRequestCapture = EasyMock.newCapture();
+    Capture<Request> serviceStartRequestCapture = EasyMock.newCapture();
+    Capture<Predicate> installPredicateCapture = EasyMock.newCapture();
+    Capture<Predicate> startPredicateCapture = EasyMock.newCapture();
 
     expect(serviceResourceProvider.updateResources(capture(serviceInstallRequestCapture),
         capture(installPredicateCapture))).andReturn(null).once();

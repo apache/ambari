@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -466,7 +467,7 @@ public class UpgradeCatalog212Test {
     public HostRoleCommandDDL() {
       captures = new HashMap<String, Capture<DBColumnInfo>>();
 
-      Capture<DBAccessor.DBColumnInfo> hostRoleCommandAutoSkipColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostRoleCommandAutoSkipColumnCapture = EasyMock.newCapture();
 
       captures.put("host_role_command", hostRoleCommandAutoSkipColumnCapture);
     }

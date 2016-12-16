@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
 
@@ -91,9 +92,9 @@ public class RequestScheduleResourceProviderTest {
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(managementController.getAuthId()).andReturn(1).anyTimes();
 
-    Capture<Cluster> clusterCapture = new Capture<Cluster>();
-    Capture<Batch> batchCapture = new Capture<Batch>();
-    Capture<Schedule> scheduleCapture = new Capture<Schedule>();
+    Capture<Cluster> clusterCapture = EasyMock.newCapture();
+    Capture<Batch> batchCapture = EasyMock.newCapture();
+    Capture<Schedule> scheduleCapture = EasyMock.newCapture();
 
     expect(executionFactory.createNew(capture(clusterCapture),
       capture(batchCapture), capture(scheduleCapture))).andReturn(requestExecution);

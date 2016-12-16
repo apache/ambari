@@ -39,7 +39,7 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     EntityTransaction transaction = createStrictMock(EntityTransaction.class);
 
     expect(transaction.getRollbackOnly()).andReturn(false);
-    expect(transactional.rollbackOn()).andReturn(new Class[0]);
+    expect(transactional.rollbackOn()).andReturn(asArray());
 
     replayAll();
 
@@ -55,7 +55,7 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     EntityTransaction transaction = createStrictMock(EntityTransaction.class);
 
     expect(transaction.getRollbackOnly()).andReturn(false);
-    expect(transactional.rollbackOn()).andReturn(new Class[] { IllegalArgumentException.class });
+    expect(transactional.rollbackOn()).andReturn(asArray(IllegalArgumentException.class));
 
     replayAll();
 
@@ -71,10 +71,8 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     EntityTransaction transaction = createStrictMock(EntityTransaction.class);
 
     expect(transaction.getRollbackOnly()).andReturn(false);
-    expect(transactional.rollbackOn()).andReturn(new Class[] {
-      NullPointerException.class, IllegalArgumentException.class
-    });
-    expect(transactional.ignore()).andReturn(new Class[0]);
+    expect(transactional.rollbackOn()).andReturn(asArray(NullPointerException.class, IllegalArgumentException.class));
+    expect(transactional.ignore()).andReturn(asArray());
     transaction.rollback();
 
     replayAll();
@@ -91,8 +89,8 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     EntityTransaction transaction = createStrictMock(EntityTransaction.class);
 
     expect(transaction.getRollbackOnly()).andReturn(false);
-    expect(transactional.rollbackOn()).andReturn(new Class[] { RuntimeException.class });
-    expect(transactional.ignore()).andReturn(new Class[0]);
+    expect(transactional.rollbackOn()).andReturn(asArray(RuntimeException.class));
+    expect(transactional.ignore()).andReturn(asArray());
     transaction.rollback();
 
     replayAll();
@@ -109,8 +107,8 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     EntityTransaction transaction = createStrictMock(EntityTransaction.class);
 
     expect(transaction.getRollbackOnly()).andReturn(false);
-    expect(transactional.rollbackOn()).andReturn(new Class[] { IllegalArgumentException.class });
-    expect(transactional.ignore()).andReturn(new Class[] { NumberFormatException.class });
+    expect(transactional.rollbackOn()).andReturn(asArray(IllegalArgumentException.class));
+    expect(transactional.ignore()).andReturn(asArray(NumberFormatException.class));
 
     replayAll();
 
@@ -126,8 +124,8 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     EntityTransaction transaction = createStrictMock(EntityTransaction.class);
 
     expect(transaction.getRollbackOnly()).andReturn(false);
-    expect(transactional.rollbackOn()).andReturn(new Class[] { Exception.class });
-    expect(transactional.ignore()).andReturn(new Class[] { IOException.class });
+    expect(transactional.rollbackOn()).andReturn(asArray(Exception.class));
+    expect(transactional.ignore()).andReturn(asArray(IOException.class));
 
     replayAll();
 
@@ -151,6 +149,11 @@ public class AmbariJpaLocalTxnInterceptorTest extends EasyMockSupport {
     Assert.assertFalse("Should be rolled back, since transaction was marked rollback-only", canCommit);
 
     verifyAll();
+  }
+
+  @SafeVarargs
+  private static Class<? extends Exception>[] asArray(Class<? extends Exception>... exceptions) {
+    return exceptions;
   }
 
 }

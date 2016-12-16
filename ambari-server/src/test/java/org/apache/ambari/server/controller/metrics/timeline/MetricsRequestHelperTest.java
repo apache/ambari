@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.replay;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -72,7 +73,7 @@ public class MetricsRequestHelperTest {
 
     URLStreamProvider urlStreamProviderMock = createMock(URLStreamProvider.class);
     expect(urlStreamProviderMock.processURL(EasyMock.isA(String.class), EasyMock.isA(String.class),
-      isNull(String.class), EasyMock.isA(Map.class))).andReturn(httpURLConnectionMock).once();
+      isNull(String.class), EasyMock.<Map<String, List<String>>>anyObject())).andReturn(httpURLConnectionMock).once();
 
     replay(httpURLConnectionMock, urlStreamProviderMock);
 
@@ -103,7 +104,7 @@ public class MetricsRequestHelperTest {
 
     urlStreamProviderMock = createMock(URLStreamProvider.class);
     expect(urlStreamProviderMock.processURL(EasyMock.isA(String.class), EasyMock.isA(String.class),
-      isNull(String.class), EasyMock.isA(Map.class))).andReturn(httpURLConnectionMock).times(2);
+      isNull(String.class), EasyMock.<Map<String, List<String>>>anyObject())).andReturn(httpURLConnectionMock).times(2);
 
     replay(httpURLConnectionMock, urlStreamProviderMock);
 

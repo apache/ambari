@@ -132,7 +132,7 @@ public class CleanupServiceFunctionalTest {
   @Test
   public void testRunCleanup() throws Exception {
     // GIVEN
-    CleanupService cleanupService = injector.getInstance(CleanupServiceImpl.class);
+    CleanupService<TimeBasedCleanupPolicy> cleanupService = injector.getInstance(CleanupServiceImpl.class);
     TimeBasedCleanupPolicy cleanupPolicy = new TimeBasedCleanupPolicy("cluster-1", 1455891250758L);
 
     // WHEN

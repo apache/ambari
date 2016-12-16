@@ -45,7 +45,7 @@ public class SetUtilsTest {
     List<Set<Integer>> subsets = SetUtils.split(null, size);
     Assert.assertEquals(0, subsets.size());
 
-    subsets = SetUtils.split(Collections.EMPTY_SET, size);
+    subsets = SetUtils.split(Collections.<Integer>emptySet(), size);
     Assert.assertEquals(0, subsets.size());
 
     subsets = SetUtils.split(Collections.singleton(0), size);

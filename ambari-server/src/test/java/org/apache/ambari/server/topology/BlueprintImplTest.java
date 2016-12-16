@@ -37,6 +37,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.SecurityType;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -408,10 +409,10 @@ public class BlueprintImplTest {
 //    iter.remove();
 //
 //    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
-//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
-//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
-//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
+//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
+//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
+//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = EasyMock.newCapture();
+//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
 //    Request request = createMock(Request.class);
 //    StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
 //    StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -433,7 +434,7 @@ public class BlueprintImplTest {
 //    serviceComponents.add(component1);
 //    serviceComponents.add(component2);
 //
-//    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+//    Capture<BlueprintEntity> entityCapture = EasyMock.newCapture();
 //
 //    // set expectations
 //    expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
@@ -516,10 +517,10 @@ public class BlueprintImplTest {
 //    setConfigurationProperties(setProperties);
 //
 //    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
-//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
-//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
-//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
+//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
+//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
+//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = EasyMock.newCapture();
+//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
 //    Request request = createMock(Request.class);
 //    StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
 //    StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -548,7 +549,7 @@ public class BlueprintImplTest {
 //    serviceComponents.add(component1);
 //    serviceComponents.add(component2);
 //
-//    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+//    Capture<BlueprintEntity> entityCapture = EasyMock.newCapture();
 //
 //    // set expectations
 //    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
@@ -634,10 +635,10 @@ public class BlueprintImplTest {
 //    iter.remove();
 //
 //    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
-//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
-//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
-//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
+//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
+//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
+//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = EasyMock.newCapture();
+//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
 //    Request request = createMock(Request.class);
 //    StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
 //    StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -667,7 +668,7 @@ public class BlueprintImplTest {
 //    serviceComponents.add(component1);
 //    serviceComponents.add(component2);
 //
-//    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+//    Capture<BlueprintEntity> entityCapture = EasyMock.newCapture();
 //
 //    // set expectations
 //    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(
@@ -752,10 +753,10 @@ public class BlueprintImplTest {
 //    iter.remove();
 //
 //    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
-//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = new Capture<Set<StackServiceComponentRequest>>();
-//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = new Capture<StackConfigurationRequest>();
-//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = new Capture<StackLevelConfigurationRequest>();
+//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
+//    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture = EasyMock.newCapture();
+//    Capture<StackConfigurationRequest> stackConfigurationRequestCapture = EasyMock.newCapture();
+//    Capture<StackLevelConfigurationRequest> stackLevelConfigurationRequestCapture = EasyMock.newCapture();
 //    Request request = createMock(Request.class);
 //    StackServiceResponse stackServiceResponse = createMock(StackServiceResponse.class);
 //    StackServiceComponentResponse stackServiceComponentResponse = createNiceMock(StackServiceComponentResponse.class);
@@ -849,7 +850,7 @@ public class BlueprintImplTest {
 //  {
 //    Request request = createMock(Request.class);
 //    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
+//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = EasyMock.newCapture();
 //
 //    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
 //    ServiceInfo service = new ServiceInfo();
@@ -870,7 +871,7 @@ public class BlueprintImplTest {
 //        BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).iterator().next().get("components")).
 //        iterator().next().put("name", "AMBARI_SERVER");
 //
-//    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+//    Capture<BlueprintEntity> entityCapture = EasyMock.newCapture();
 //
 //    // set expectations
 //    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(

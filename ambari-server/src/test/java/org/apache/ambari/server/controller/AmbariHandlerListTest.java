@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -69,9 +70,9 @@ public class AmbariHandlerListTest {
     expect(handler.getServer()).andReturn(server);
     handler.setServer(null);
 
-    Capture<FilterHolder> securityHeaderFilterCapture = new Capture<FilterHolder>();
-    Capture<FilterHolder> persistFilterCapture = new Capture<FilterHolder>();
-    Capture<FilterHolder> securityFilterCapture = new Capture<FilterHolder>();
+    Capture<FilterHolder> securityHeaderFilterCapture = EasyMock.newCapture();
+    Capture<FilterHolder> persistFilterCapture = EasyMock.newCapture();
+    Capture<FilterHolder> securityFilterCapture = EasyMock.newCapture();
 
     handler.addFilter(capture(securityHeaderFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));

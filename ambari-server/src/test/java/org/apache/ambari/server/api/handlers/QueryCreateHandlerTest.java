@@ -57,6 +57,7 @@ import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 
@@ -92,7 +93,7 @@ public class QueryCreateHandlerTest {
     Resource statusResource2 = createNiceMock(Resource.class);
     RequestHandler readHandler = createStrictMock(RequestHandler.class);
     ResultStatus resultStatus = createNiceMock(ResultStatus.class);
-    Capture<RequestBody> bodyCapture = new Capture<RequestBody>();
+    Capture<RequestBody> bodyCapture = EasyMock.newCapture();
 
     //  test request body
     //    {

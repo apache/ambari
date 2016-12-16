@@ -29,6 +29,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,7 +70,7 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
   private static Log LOG = LogFactory.getLog(ViewDirectoryWatcher.class);
 
   // Callbacks to hook into file processing
-  private List<Function<Path, Boolean>> hooks = Lists.newArrayList(loggingHook());
+  private List<Function<Path, Boolean>> hooks = Lists.newArrayList(Collections.singleton(loggingHook()));
 
   public void addHook(Function<Path, Boolean> hook) {
     hooks.add(hook);

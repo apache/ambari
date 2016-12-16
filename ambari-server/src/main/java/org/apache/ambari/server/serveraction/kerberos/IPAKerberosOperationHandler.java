@@ -996,7 +996,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
    */
   class CredentialsContext {
     private PrincipalKeyCredential credentials;
-    Map<String, String> env = new HashMap();
+    Map<String, String> env = new HashMap<>();
     private String fileName;
     private List<Process> processes = new ArrayList<>();
 

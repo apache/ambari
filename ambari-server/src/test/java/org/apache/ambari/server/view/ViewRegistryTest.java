@@ -96,6 +96,7 @@ import org.apache.ambari.view.events.Listener;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -401,7 +402,7 @@ public class ViewRegistryTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
     ViewInstanceEntity viewAutoInstanceEntity = createNiceMock(ViewInstanceEntity.class);
-    Capture<ViewInstanceEntity> viewAutoInstanceCapture = new Capture<ViewInstanceEntity>();
+    Capture<ViewInstanceEntity> viewAutoInstanceCapture = EasyMock.newCapture();
 
     ViewInstanceDataEntity autoInstanceDataEntity = createNiceMock(ViewInstanceDataEntity.class);
     expect(autoInstanceDataEntity.getName()).andReturn("p1").anyTimes();
@@ -1593,7 +1594,7 @@ public class ViewRegistryTest {
       expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
     }
 
-    Capture<ViewEntity> viewEntityCapture = new Capture<ViewEntity>();
+    Capture<ViewEntity> viewEntityCapture = EasyMock.newCapture();
     if (System.getProperty("os.name").contains("Windows")) {
       expect(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work")).andReturn(true);
     }
@@ -1843,7 +1844,7 @@ public class ViewRegistryTest {
     expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
 
-    Capture<ViewInstanceEntity> viewInstanceCapture = new Capture<ViewInstanceEntity>();
+    Capture<ViewInstanceEntity> viewInstanceCapture = EasyMock.newCapture();
 
     expect(viewInstanceDAO.merge(capture(viewInstanceCapture))).andReturn(viewInstanceEntity).anyTimes();
     expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", "AUTO-INSTANCE")).andReturn(viewInstanceEntity).anyTimes();

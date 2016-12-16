@@ -73,6 +73,7 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewRegistryTest;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
@@ -273,7 +274,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(privilegeDAO.findAll()).andReturn(privilegeEntities).atLeastOnce();
 
     UserDAO userDAO = injector.getInstance(UserDAO.class);
-    expect(userDAO.findUsersByPrincipal(anyObject(List.class))).andReturn(userEntities).atLeastOnce();
+    expect(userDAO.findUsersByPrincipal(EasyMock.<List<PrincipalEntity>>anyObject())).andReturn(userEntities).atLeastOnce();
 
     replayAll();
 

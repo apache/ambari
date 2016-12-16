@@ -78,6 +78,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -282,7 +283,7 @@ public class ClusterTest {
     hostEntities.add(host2);
 
     clusterEntity.setHostEntities(hostEntities);
-    clusterEntity.setClusterConfigEntities(Collections.EMPTY_LIST);
+    clusterEntity.setClusterConfigEntities(Collections.<ClusterConfigEntity>emptyList());
     //both sides of relation should be set when modifying in runtime
     host1.setClusterEntities(Arrays.asList(clusterEntity));
     host2.setClusterEntities(Arrays.asList(clusterEntity));
@@ -300,7 +301,7 @@ public class ClusterTest {
     clusterServiceEntity.setServiceName("HDFS");
     clusterServiceEntity.setClusterEntity(clusterEntity);
     clusterServiceEntity.setServiceComponentDesiredStateEntities(
-        Collections.EMPTY_LIST);
+        Collections.<ServiceComponentDesiredStateEntity>emptyList());
 
     ServiceDesiredStateEntity stateEntity = mock(ServiceDesiredStateEntity.class);
 

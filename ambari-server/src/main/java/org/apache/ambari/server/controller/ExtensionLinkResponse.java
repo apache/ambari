@@ -46,7 +46,7 @@ public class ExtensionLinkResponse implements Validable {
   private Set<String> errorSet = new HashSet<String>();
 
   public ExtensionLinkResponse(String linkId, String stackName, String stackVersion, String extensionName,
-                              String extensionVersion, boolean valid, Collection errorSet) {
+                              String extensionVersion, boolean valid, Collection<String> errorSet) {
 
     setLinkId(linkId);
     setStackName(stackName);

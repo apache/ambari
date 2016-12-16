@@ -87,6 +87,7 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -353,9 +354,9 @@ public class UpgradeCatalog210Test {
       put("normal", mockClusterExpected);
     }}).once();
 
-    Capture<String> configTypeEnv = new Capture<String>();
-    Capture<String> configTypeSite = new Capture<String>();
-    Capture<String> configTypeServerSite = new Capture<String>();
+    Capture<String> configTypeEnv = EasyMock.newCapture();
+    Capture<String> configTypeSite = EasyMock.newCapture();
+    Capture<String> configTypeServerSite = EasyMock.newCapture();
 
     expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hiveserver2-site")).andReturn(mockHiveServerSite).atLeastOnce();
@@ -517,7 +518,7 @@ public class UpgradeCatalog210Test {
       anyString(),
       capture(configCreation),
       anyString(),
-      (Map<String, Map<String, String>>)anyObject())).andReturn(null).atLeastOnce();
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).atLeastOnce();
 
     easyMockSupport.replayAll();
     upgradeCatalog210.updateHiveConfigs();
@@ -602,7 +603,7 @@ public class UpgradeCatalog210Test {
         anyString(),
         capture(configCreation),
         anyString(),
-        (Map<String, Map<String, String>>) anyObject())).andReturn(null).atLeastOnce();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).atLeastOnce();
 
     easyMockSupport.replayAll();
     upgradeCatalog210.updateHiveConfigs();
@@ -792,8 +793,8 @@ public class UpgradeCatalog210Test {
     expect(mockHBaseSite.getProperties()).andReturn(propertiesExpectedHBaseSite).anyTimes();
     expect(mockHBaseEnv.getProperties()).andReturn(propertiesExpectedHBaseEnv).anyTimes();
 
-    Capture<String> configType = new Capture<String>();
-    Capture<String> configTag = new Capture<String>();
+    Capture<String> configType = EasyMock.newCapture();
+    Capture<String> configTag = EasyMock.newCapture();
     expect(mockClusterExpected.getConfig(capture(configType), capture(configTag))).
             andReturn(mockHBaseSite).atLeastOnce();
 
@@ -977,7 +978,7 @@ public class UpgradeCatalog210Test {
 
     UpgradeCatalog210 upgradeMock = createMockBuilder(UpgradeCatalog210.class).createMock();
 
-    Capture<Map<String, Object>> updatedData = new Capture<Map<String, Object>>();
+    Capture<Map<String, Object>> updatedData = EasyMock.newCapture();
 
     ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
     expect(artifactEntity.getArtifactData())
@@ -1029,7 +1030,7 @@ public class UpgradeCatalog210Test {
 
     UpgradeCatalog210 upgradeMock = createMockBuilder(UpgradeCatalog210.class).createMock();
 
-    Capture<Map<String, Object>> updatedData = new Capture<Map<String, Object>>();
+    Capture<Map<String, Object>> updatedData = EasyMock.newCapture();
 
     ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
     expect(artifactEntity.getArtifactData())
@@ -1074,18 +1075,18 @@ public class UpgradeCatalog210Test {
 
       // Column Capture section
       // Hosts
-      Capture<DBAccessor.DBColumnInfo> clusterHostMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> configGroupHostMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostConfigMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostRoleCommandColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> hostVersionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> kerberosPrincipalHostColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> requestOperationLevelColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> serviceConfigHostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> clusterHostMappingColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> configGroupHostMappingColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostConfigMappingColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostRoleCommandColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostStateColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> hostVersionColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> kerberosPrincipalHostColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> requestOperationLevelColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> serviceConfigHostsColumnCapture = EasyMock.newCapture();
 
       captures.put("ClusterHostMapping", clusterHostMappingColumnCapture);
       captures.put("configgrouphostmapping", configGroupHostMappingColumnCapture);
@@ -1156,14 +1157,14 @@ public class UpgradeCatalog210Test {
     public WidgetSectionDDL() {
       captures = new HashMap<String, Capture<List<DBColumnInfo>>>();
 
-      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
-      Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = new Capture<List<DBColumnInfo>>();
-      Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
+      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = EasyMock.newCapture();
+      Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = EasyMock.newCapture();
+      Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = EasyMock.newCapture();
 
       captures.put("widget", userWidgetColumnsCapture);
       captures.put("widget_layout", widgetLayoutColumnsCapture);
       captures.put("widget_layout_user_widget", widgetLayoutUserWidgetColumnsCapture);
-      userActiveLayoutsColumnCapture = new Capture<DBColumnInfo>();
+      userActiveLayoutsColumnCapture = EasyMock.newCapture();
     }
 
     /**
@@ -1220,10 +1221,10 @@ public class UpgradeCatalog210Test {
     public ViewSectionDDL() {
       captures = new HashMap<String, Capture<DBColumnInfo>>();
 
-      Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> viewInstanceAlterNamesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> viewBuildColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> viewInstanceAlterNamesColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = EasyMock.newCapture();
+      Capture<DBAccessor.DBColumnInfo> viewBuildColumnCapture = EasyMock.newCapture();
 
       captures.put("viewinstance", viewInstanceColumnCapture);
       captures.put("viewinstance_alter_names", viewInstanceAlterNamesColumnCapture);
@@ -1295,12 +1296,12 @@ public class UpgradeCatalog210Test {
       stringCaptures = new HashMap<String, Capture<String>>();
       classCaptures = new HashMap<String, Capture<Class>>();
 
-      Capture<String> textCaptureC = new Capture<String>();
-      Capture<String> textCaptureH = new Capture<String>();
-      Capture<Class>  classFromC = new Capture<Class>();
-      Capture<Class>  classFromH = new Capture<Class>();
-      Capture<Class>  classToC = new Capture<Class>();
-      Capture<Class>  classToH = new Capture<Class>();
+      Capture<String> textCaptureC = EasyMock.newCapture();
+      Capture<String> textCaptureH = EasyMock.newCapture();
+      Capture<Class>  classFromC = EasyMock.newCapture();
+      Capture<Class>  classFromH = EasyMock.newCapture();
+      Capture<Class>  classToC = EasyMock.newCapture();
+      Capture<Class>  classToH = EasyMock.newCapture();
 
       stringCaptures.put("textCaptureC", textCaptureC);
       stringCaptures.put("textCaptureH", textCaptureH);

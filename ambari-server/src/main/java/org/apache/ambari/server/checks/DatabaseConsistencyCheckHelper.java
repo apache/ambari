@@ -36,7 +36,7 @@ import java.util.Set;
 
 import javax.inject.Provider;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -466,9 +466,10 @@ public class DatabaseConsistencyCheckHelper {
     Provider<EntityManager> entityManagerProvider = injector.getProvider(EntityManager.class);
     EntityManager entityManager = entityManagerProvider.get();
 
-    Query query = entityManager.createNamedQuery("ClusterConfigEntity.findNotMappedClusterConfigsToService",ClusterConfigEntity.class);
+    String queryName = "ClusterConfigEntity.findNotMappedClusterConfigsToService";
+    TypedQuery<ClusterConfigEntity> query = entityManager.createNamedQuery(queryName, ClusterConfigEntity.class);
 
-    return (List<ClusterConfigEntity>) query.getResultList();
+    return query.getResultList();
   }
 
   /**

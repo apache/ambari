@@ -259,7 +259,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4, group5);
@@ -270,13 +270,13 @@ public class AmbariLdapDataPopulatorTest {
         .withConstructor(configuration, users)
         .createNiceMock();
 
-    expect(populator.getLdapGroups("group2")).andReturn(Collections.EMPTY_SET);
+    expect(populator.getLdapGroups("group2")).andReturn(Collections.<LdapGroupDto>emptySet());
     LdapGroupDto externalGroup1 = createNiceMock(LdapGroupDto.class);
     LdapBatchDto batchInfo = new LdapBatchDto();
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class), anyBoolean());
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), EasyMock.<Map<String, User>>anyObject(), EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
     expectLastCall();
     expect(populator.getLdapGroups("group4")).andReturn(Collections.singleton(externalGroup1));
-    expect(populator.getLdapGroups("group5")).andReturn(Collections.EMPTY_SET);
+    expect(populator.getLdapGroups("group5")).andReturn(Collections.<LdapGroupDto>emptySet());
     replay(populator);
 
     populator.setLdapTemplate(ldapTemplate);
@@ -313,7 +313,7 @@ public class AmbariLdapDataPopulatorTest {
     Configuration configuration = createNiceMock(Configuration.class);
     Users users = createNiceMock(Users.class);
     expect(users.getAllGroups()).andReturn(Arrays.asList(group1, group2));
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
     expect(configuration.getLdapServerProperties()).andReturn(new LdapServerProperties()).anyTimes();
 
     LdapGroupDto group1Dto = new LdapGroupDto();
@@ -324,7 +324,7 @@ public class AmbariLdapDataPopulatorTest {
 
     LdapGroupDto group2Dto = new LdapGroupDto();
     group2Dto.setGroupName("group2");
-    group2Dto.setMemberAttributes(Collections.EMPTY_SET);
+    group2Dto.setMemberAttributes(Collections.<String>emptySet());
     Set<LdapGroupDto> groupDtos2 = Sets.newHashSet();
     groupDtos2.add(group2Dto);
 
@@ -373,7 +373,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4);
@@ -398,14 +398,14 @@ public class AmbariLdapDataPopulatorTest {
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
       populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup),
-        anyObject(Map.class), anyObject(Map.class), anyObject(Set.class), anyBoolean());
+        EasyMock.<Map<String, User>>anyObject(), EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
     populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1),
-      anyObject(Map.class), anyObject(Map.class), anyObject(Set.class), anyBoolean());
+      EasyMock.<Map<String, User>>anyObject(), EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
     expectLastCall();
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class),
-      anyObject(Map.class), anyObject(Set.class), anyBoolean());
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), EasyMock.<Map<String, User>>anyObject(),
+      EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
     expectLastCall();
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
     expect(populator.getLdapGroups("group1")).andReturn(Collections.singleton(externalGroup1));
@@ -458,7 +458,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4);
@@ -483,12 +483,12 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class),
-        anyObject(Set.class), anyBoolean());
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), EasyMock.<Map<String, User>>anyObject(), EasyMock.<Map<String, Group>>anyObject(),
+        EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class),
-      anyObject(Map.class), anyObject(Set.class), anyBoolean());
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), EasyMock.<Map<String, User>>anyObject(),
+      EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
     expectLastCall();
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
     expect(populator.getLdapGroups("group2")).andReturn(Collections.singleton(externalGroup2));
@@ -535,7 +535,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4);
@@ -559,8 +559,8 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2, externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class),
-        anyObject(Map.class), anyObject(Set.class), anyBoolean());
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), EasyMock.<Map<String, User>>anyObject(),
+        EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
     expect(populator.getLdapGroups("group*")).andReturn(externalGroups);
@@ -607,7 +607,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4);
@@ -631,7 +631,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
-    expect(populator.getLdapGroups("group1")).andReturn(Collections.EMPTY_SET);
+    expect(populator.getLdapGroups("group1")).andReturn(Collections.<LdapGroupDto>emptySet());
     expect(populator.getLdapGroups("group2")).andReturn(Collections.singleton(externalGroup2));
     replay(populator);
 
@@ -667,7 +667,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4, group5);
@@ -690,8 +690,8 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2, externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class),
-        anyObject(Map.class), anyObject(Set.class), anyBoolean());
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), EasyMock.<Map<String, User>>anyObject(),
+        EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
 
@@ -734,7 +734,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(Arrays.asList(group1, group2));
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2);
@@ -752,8 +752,8 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class),
-        anyObject(Map.class), anyObject(Set.class), anyBoolean());
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), EasyMock.<Map<String, User>>anyObject(),
+        EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -801,7 +801,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3, group4);
@@ -817,8 +817,8 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class),
-        anyObject(Map.class), anyObject(Set.class), anyBoolean());
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), EasyMock.<Map<String, User>>anyObject(),
+        EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -863,7 +863,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     expect(users.getAllGroups()).andReturn(groupList);
-    expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
+    expect(users.getAllUsers()).andReturn(Collections.<User>emptyList());
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(group1, group2, group3);
@@ -881,8 +881,8 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class),
-        anyObject(Map.class), anyObject(Set.class), anyBoolean());
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), EasyMock.<Map<String, User>>anyObject(),
+        EasyMock.<Map<String, Group>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean());
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -1115,7 +1115,7 @@ public class AmbariLdapDataPopulatorTest {
         .createNiceMock();
 
 
-    expect(populator.getExternalLdapUserInfo()).andReturn(Collections.EMPTY_SET);
+    expect(populator.getExternalLdapUserInfo()).andReturn(Collections.<LdapUserDto>emptySet());
     replay(populator);
 
     populator.setLdapTemplate(ldapTemplate);
@@ -1226,7 +1226,7 @@ public class AmbariLdapDataPopulatorTest {
         .withConstructor(configuration, users)
         .createNiceMock();
 
-    expect(populator.getLdapUsers("synced_user1")).andReturn(Collections.EMPTY_SET);
+    expect(populator.getLdapUsers("synced_user1")).andReturn(Collections.<LdapUserDto>emptySet());
     expect(populator.getLdapUsers("synced_user2")).andReturn(Collections.singleton(createNiceMock(LdapUserDto.class)));
     replay(populator);
 
@@ -1468,7 +1468,7 @@ public class AmbariLdapDataPopulatorTest {
 
     expect(populator.getLdapUsers("xuser*")).andReturn(createSet(externalUser3, externalUser4));
     expect(populator.getLdapUsers("user1")).andReturn(Collections.singleton(externalUser1));
-    expect(populator.getLdapUsers("user2")).andReturn(Collections.EMPTY_SET);
+    expect(populator.getLdapUsers("user2")).andReturn(Collections.<LdapUserDto>emptySet());
     replay(populator);
 
     populator.setLdapTemplate(ldapTemplate);
@@ -1608,7 +1608,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(users.getAllUsers()).andReturn(new ArrayList<User>(allUsers));
 
     final List<User> removedUsers = new ArrayList<User>();
-    final Capture<User> userCapture = new Capture<User>();
+    final Capture<User> userCapture = EasyMock.newCapture();
     users.removeUser(capture(userCapture));
     expectLastCall().andAnswer(new IAnswer<Void>() {
       @Override
@@ -1643,8 +1643,8 @@ public class AmbariLdapDataPopulatorTest {
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
-    Capture<ContextMapper> contextMapperCapture = new Capture<ContextMapper>();
-    Capture<SearchControls> searchControlsCapture = new Capture<SearchControls>();
+    Capture<ContextMapper> contextMapperCapture = EasyMock.newCapture();
+    Capture<SearchControls> searchControlsCapture = EasyMock.newCapture();
     PagedResultsDirContextProcessor processor = createNiceMock(PagedResultsDirContextProcessor.class);
     PagedResultsCookie cookie = createNiceMock(PagedResultsCookie.class);
     LdapUserDto dto = new LdapUserDto();
@@ -1682,8 +1682,8 @@ public class AmbariLdapDataPopulatorTest {
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
-    Capture<ContextMapper> contextMapperCapture = new Capture<ContextMapper>();
-    Capture<SearchControls> searchControlsCapture = new Capture<SearchControls>();
+    Capture<ContextMapper> contextMapperCapture = EasyMock.newCapture();
+    Capture<SearchControls> searchControlsCapture = EasyMock.newCapture();
     PagedResultsDirContextProcessor processor = createNiceMock(PagedResultsDirContextProcessor.class);
     PagedResultsCookie cookie = createNiceMock(PagedResultsCookie.class);
     LdapUserDto dto = new LdapUserDto();

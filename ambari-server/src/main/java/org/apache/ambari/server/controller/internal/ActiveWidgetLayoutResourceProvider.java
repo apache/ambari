@@ -217,7 +217,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
             throw new AuthorizationException();
           }
 
-          Set<HashMap> widgetLayouts = (Set) propertyMap.get(WIDGETLAYOUT);
+          Set<HashMap<String, String>> widgetLayouts = (Set) propertyMap.get(WIDGETLAYOUT);
           for (HashMap<String, String> widgetLayout : widgetLayouts) {
             final Long layoutId;
             try {

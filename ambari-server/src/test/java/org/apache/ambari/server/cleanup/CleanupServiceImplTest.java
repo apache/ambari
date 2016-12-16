@@ -51,7 +51,7 @@ public class CleanupServiceImplTest {
   private CleanupServiceImpl cleanupServiceImpl;
   private TimeBasedCleanupPolicy cleanupPolicy;
   private Capture<TimeBasedCleanupPolicy> timeBasedCleanupPolicyCapture;
-  private Set cleanables;
+  private Set<Cleanable> cleanables;
 
   @Before
   public void setUp() throws Exception {

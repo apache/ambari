@@ -84,6 +84,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
@@ -138,34 +139,34 @@ public class UpgradeCatalog200Test {
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
-    Capture<DBAccessor.DBColumnInfo> alertDefinitionIgnoreColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> alertTargetGlobalColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> hostComponentVersionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> clustersSecurityTypeColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> hostRoleCommandRetryColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> stageSkippableColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> alertDefinitionIgnoreColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> alertTargetGlobalColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> hostComponentVersionColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> clustersSecurityTypeColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> hostRoleCommandRetryColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> stageSkippableColumnCapture = EasyMock.newCapture();
 
-    Capture<DBAccessor.DBColumnInfo> viewparameterLabelColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> viewparameterPlaceholderColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> viewparameterDefaultValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> viewparameterLabelColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> viewparameterPlaceholderColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> viewparameterDefaultValueColumnCapture = EasyMock.newCapture();
 
-    Capture<DBAccessor.DBColumnInfo> serviceDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<List<DBAccessor.DBColumnInfo>> artifactCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<List<DBAccessor.DBColumnInfo>> kerberosPrincipalCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<List<DBAccessor.DBColumnInfo>> kerberosPrincipalHostCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<DBAccessor.DBColumnInfo> serviceDesiredStateSecurityStateColumnCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> clusterVersionCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> hostVersionCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> valueColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> artifactCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> kerberosPrincipalCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> kerberosPrincipalHostCapture = EasyMock.newCapture();
 
-    Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<List<DBAccessor.DBColumnInfo>> upgradeGroupCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
-    Capture<List<DBAccessor.DBColumnInfo>> upgradeItemCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> upgradeGroupCapture = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> upgradeItemCapture = EasyMock.newCapture();
 
     // Alert Definition
     dbAccessor.addColumn(eq("alert_definition"),

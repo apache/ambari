@@ -228,7 +228,8 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("HIVE"));
 
-    expect(group1.getConfiguration()).andReturn(new Configuration(new HashMap(), new HashMap())).anyTimes();
+    Configuration config = new Configuration(new HashMap<String, Map<String, String>>(), new HashMap<String, Map<String, Map<String, String>>>());
+    expect(group1.getConfiguration()).andReturn(config).anyTimes();
 
     expect(stack.getComponents("HIVE")).andReturn(Collections.singleton("HIVE_METASTORE")).anyTimes();
     expect(stack.getVersion()).andReturn("2.2").once();
@@ -251,7 +252,8 @@ public class BlueprintValidatorImplTest {
 
     services.addAll(Arrays.asList("OOZIE"));
 
-    expect(group1.getConfiguration()).andReturn(new Configuration(new HashMap(), new HashMap())).anyTimes();
+    Configuration config = new Configuration(new HashMap<String, Map<String, String>>(), new HashMap<String, Map<String, Map<String, String>>>());
+    expect(group1.getConfiguration()).andReturn(config).anyTimes();
 
     expect(stack.getComponents("OOZIE")).andReturn(Collections.singleton("OOZIE_SERVER")).anyTimes();
     expect(stack.getVersion()).andReturn("2.2").once();
@@ -398,8 +400,8 @@ public class BlueprintValidatorImplTest {
     expect(dependency2.getName()).andReturn("dependency-2").anyTimes();
     expect(dependency2.hasDependencyConditions()).andReturn(false).anyTimes();
 
-    expect(dependencyConditionInfo1.isResolved(EasyMock.anyObject(Map.class))).andReturn(true).anyTimes();
-    expect(dependencyConditionInfo2.isResolved(EasyMock.anyObject(Map.class))).andReturn(false).anyTimes();
+    expect(dependencyConditionInfo1.isResolved(EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(true).anyTimes();
+    expect(dependencyConditionInfo2.isResolved(EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(false).anyTimes();
 
 
     expect(dependencyComponentInfo.isClient()).andReturn(false).anyTimes();

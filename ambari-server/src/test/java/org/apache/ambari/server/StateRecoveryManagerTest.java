@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,14 +77,14 @@ public class StateRecoveryManagerTest {
 
     // Adding all possible host version states
 
-    final Capture<RepositoryVersionState> installFailedHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> installingHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> installedHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> outOfSyncHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> upgradeFailedHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> upgradingHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> upgradedHostVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> currentHostVersionCapture = new Capture<RepositoryVersionState>();
+    final Capture<RepositoryVersionState> installFailedHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> installingHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> installedHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> outOfSyncHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> upgradeFailedHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> upgradingHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> upgradedHostVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> currentHostVersionCapture = EasyMock.newCapture();
 
     expect(hostVersionDAOMock.findAll()).andReturn(new ArrayList<HostVersionEntity>() {{
       add(getHostVersionMock("install_failed_version", RepositoryVersionState.INSTALL_FAILED, installFailedHostVersionCapture));
@@ -95,14 +96,14 @@ public class StateRecoveryManagerTest {
 
     // Adding all possible cluster version states
 
-    final Capture<RepositoryVersionState> installFailedClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> installingClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> installedClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> outOfSyncClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> upgradeFailedClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> upgradingClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> upgradedClusterVersionCapture = new Capture<RepositoryVersionState>();
-    final Capture<RepositoryVersionState> currentClusterVersionCapture = new Capture<RepositoryVersionState>();
+    final Capture<RepositoryVersionState> installFailedClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> installingClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> installedClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> outOfSyncClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> upgradeFailedClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> upgradingClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> upgradedClusterVersionCapture = EasyMock.newCapture();
+    final Capture<RepositoryVersionState> currentClusterVersionCapture = EasyMock.newCapture();
 
     expect(clusterVersionDAOMock.findAll()).andReturn(new ArrayList<ClusterVersionEntity>() {{
       add(getClusterVersionMock("install_failed_version", RepositoryVersionState.INSTALL_FAILED, installFailedClusterVersionCapture));

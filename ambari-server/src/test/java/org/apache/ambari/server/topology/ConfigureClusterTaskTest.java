@@ -74,8 +74,8 @@ public class ConfigureClusterTaskTest {
       Exception {
     // GIVEN
     // is it OK to handle the non existence of hostgroups as a success?!
-    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
-    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
+    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.<String>emptyList());
+    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
 
     // this is only called if the "prerequisites" are satisfied
     clusterConfigurationRequest.process();
@@ -94,8 +94,8 @@ public class ConfigureClusterTaskTest {
   public void testsShouldConfigureClusterTaskExecuteWhenCalledFromAsyncCallableService() throws Exception {
     // GIVEN
     // is it OK to handle the non existence of hostgroups as a success?!
-    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.EMPTY_LIST);
-    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.EMPTY_MAP);
+    expect(clusterConfigurationRequest.getRequiredHostGroups()).andReturn(Collections.<String>emptyList());
+    expect(clusterTopology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
 
     // this is only called if the "prerequisites" are satisfied
     clusterConfigurationRequest.process();

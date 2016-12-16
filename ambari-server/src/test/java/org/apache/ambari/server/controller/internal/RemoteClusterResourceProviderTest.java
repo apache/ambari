@@ -168,7 +168,7 @@ public class RemoteClusterResourceProviderTest {
 
     setField(RemoteClusterResourceProvider.class.getDeclaredField("remoteAmbariClusterDAO"), clusterDAO);
 
-    EqualsPredicate equalsPredicate = new EqualsPredicate(RemoteClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID,"test");
+    EqualsPredicate equalsPredicate = new EqualsPredicate<>(RemoteClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID,"test");
 
     RemoteAmbariClusterRegistry clusterRegistry = createMock(RemoteAmbariClusterRegistry.class);
     setField(RemoteClusterResourceProvider.class.getDeclaredField("remoteAmbariClusterRegistry"), clusterRegistry);

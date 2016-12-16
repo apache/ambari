@@ -318,7 +318,7 @@ public class AmbariMetaInfoTest {
       }
     }
 
-    Capture<MetainfoEntity> c = new Capture<MetainfoEntity>();
+    Capture<MetainfoEntity> c = EasyMock.newCapture();
 
     metainfoDAO = ambariMetaInfo.metaInfoDAO;
     reset(metainfoDAO);
@@ -378,7 +378,7 @@ public class AmbariMetaInfoTest {
       }
     }
 
-    Capture<MetainfoEntity> c = new Capture<MetainfoEntity>();
+    Capture<MetainfoEntity> c = EasyMock.newCapture();
 
     metainfoDAO = ambariMetaInfo.metaInfoDAO;
     reset(metainfoDAO);

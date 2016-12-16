@@ -174,9 +174,9 @@ public class QueryParserTest {
     QueryParser parser = new QueryParser();
     Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
 
-    EqualsPredicate ep1 = new EqualsPredicate("foo", "one");
-    EqualsPredicate ep2 = new EqualsPredicate("foo", "two");
-    EqualsPredicate ep3 = new EqualsPredicate("foo", "3");
+    EqualsPredicate ep1 = new EqualsPredicate<>("foo", "one");
+    EqualsPredicate ep2 = new EqualsPredicate<>("foo", "two");
+    EqualsPredicate ep3 = new EqualsPredicate<>("foo", "3");
 
     OrPredicate orPredicate = new OrPredicate(ep1, ep2, ep3);
 
@@ -195,9 +195,9 @@ public class QueryParserTest {
     QueryParser parser = new QueryParser();
     Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
 
-    EqualsPredicate ep1 = new EqualsPredicate("HostRoles/host_name", "host1");
-    EqualsPredicate ep2 = new EqualsPredicate("HostRoles/host_name", "host2");
-    EqualsPredicate ep3 = new EqualsPredicate("HostRoles/host_name", "host3");
+    EqualsPredicate ep1 = new EqualsPredicate<>("HostRoles/host_name", "host1");
+    EqualsPredicate ep2 = new EqualsPredicate<>("HostRoles/host_name", "host2");
+    EqualsPredicate ep3 = new EqualsPredicate<>("HostRoles/host_name", "host3");
 
     OrPredicate orPredicate = new OrPredicate(ep1, ep2, ep3);
 

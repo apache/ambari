@@ -70,7 +70,7 @@ public class PostUserCreationHookServerAction extends AbstractServerAction {
       validateCommandParams(commandParams);
 
       //persist user data to csv
-      CollectionPersisterService csvPersisterService = collectionPersisterServiceFactory.createCsvFilePersisterService(commandParams.get(UserHookParams.CMD_INPUT_FILE.param()));
+      CollectionPersisterService<String, List<String>> csvPersisterService = collectionPersisterServiceFactory.createCsvFilePersisterService(commandParams.get(UserHookParams.CMD_INPUT_FILE.param()));
       csvPersisterService.persistMap(getPayload(commandParams));
 
       String[] cmd = assembleCommand(commandParams);

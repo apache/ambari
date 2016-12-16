@@ -894,7 +894,7 @@ public class ClusterControllerImplTest {
             anyObject(Predicate.class))).andReturn(
         Collections.<Resource> emptySet()).anyTimes();
 
-    expect(resourceProvider.checkPropertyIds(EasyMock.anyObject(Set.class))).andReturn(
+    expect(resourceProvider.checkPropertyIds(EasyMock.<Set<String>>anyObject())).andReturn(
         new HashSet<String>()).anyTimes();
 
     // strict pageRequest mock to ensure that paging is not performed on

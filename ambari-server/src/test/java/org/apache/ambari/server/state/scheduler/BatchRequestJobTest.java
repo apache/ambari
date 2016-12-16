@@ -36,6 +36,7 @@ import java.util.Map;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 import org.quartz.JobDataMap;
@@ -72,9 +73,9 @@ public class BatchRequestJobTest {
     BatchRequestResponse completedResponse = new BatchRequestResponse();
     completedResponse.setStatus(HostRoleStatus.COMPLETED.toString());
 
-    Capture<Long> executionIdCapture = new Capture<Long>();
-    Capture<Long> batchIdCapture = new Capture<Long>();
-    Capture<String> clusterNameCapture = new Capture<String>();
+    Capture<Long> executionIdCapture = EasyMock.newCapture();
+    Capture<Long> batchIdCapture = EasyMock.newCapture();
+    Capture<String> clusterNameCapture = EasyMock.newCapture();
 
 
     expect(scheduleManagerMock.executeBatchRequest(captureLong(executionIdCapture),
@@ -127,7 +128,7 @@ public class BatchRequestJobTest {
     expect(jobDataMap.getWrappedMap()).andReturn(properties);
     expect(jobDataMap.getString((String) anyObject())).andReturn("testJob").anyTimes();
 
-    Capture<Trigger> triggerCapture = new Capture<Trigger>();
+    Capture<Trigger> triggerCapture = EasyMock.newCapture();
     scheduleManagerMock.scheduleJob(capture(triggerCapture));
     expectLastCall().once();
 

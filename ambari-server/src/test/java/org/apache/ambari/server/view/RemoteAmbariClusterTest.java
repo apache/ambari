@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -36,6 +35,7 @@ import java.util.Map;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
 import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.AmbariStreamProvider;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -60,7 +60,7 @@ public class RemoteAmbariClusterTest {
     final String clusterPath = "/api/v1/clusters/Test";
 
     expect(clusterStreamProvider.readFrom(eq( clusterPath + "?fields=services/ServiceInfo,hosts,Clusters"),
-      eq("GET"), (String) isNull(), (Map<String, String>) anyObject())).andAnswer(new IAnswer<InputStream>() {
+      eq("GET"), (String) isNull(), EasyMock.<Map<String, String>>anyObject())).andAnswer(new IAnswer<InputStream>() {
       @Override
       public InputStream answer() throws Throwable {
         desiredConfigPolls[0] += 1;
@@ -69,7 +69,7 @@ public class RemoteAmbariClusterTest {
     }).anyTimes();
 
     expect(clusterStreamProvider.readFrom(eq(clusterPath + "/configurations?(type=test-site&tag=TAG)"),
-      eq("GET"), (String)isNull(), (Map<String, String>) anyObject())).andAnswer(new IAnswer<InputStream>() {
+      eq("GET"), (String)isNull(), EasyMock.<Map<String, String>>anyObject())).andAnswer(new IAnswer<InputStream>() {
       @Override
       public InputStream answer() throws Throwable {
         testConfigPolls[0] += 1;
@@ -113,7 +113,7 @@ public class RemoteAmbariClusterTest {
 
     expect(clusterStreamProvider.readFrom(eq(String.format("%s/services/%s/components/%s?" +
         "fields=host_components/HostRoles/host_name", clusterPath, service, component)),
-      eq("GET"), (String) isNull(), (Map<String, String>) anyObject()))
+      eq("GET"), (String) isNull(), EasyMock.<Map<String, String>>anyObject()))
       .andReturn(new ByteArrayInputStream(componentHostsString.getBytes()));
 
     RemoteAmbariClusterEntity entity = createNiceMock(RemoteAmbariClusterEntity.class);

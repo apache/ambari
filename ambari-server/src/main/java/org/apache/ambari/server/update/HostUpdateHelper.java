@@ -364,7 +364,7 @@ public class HostUpdateHelper {
     for (Map.Entry<String, JsonElement> clusterEntry : hostChangesJsonObject.entrySet()) {
       try {
         Gson gson = new Gson();
-        hostChangesFileMap.put(clusterEntry.getKey(), gson.fromJson(clusterEntry.getValue(), Map.class));
+        hostChangesFileMap.put(clusterEntry.getKey(), gson.<Map<String, String>>fromJson(clusterEntry.getValue(), Map.class));
       } catch(Exception e) {
         throw new AmbariException("Error occurred during mapping Json to Map structure. Please check json structure in file.", e);
       }

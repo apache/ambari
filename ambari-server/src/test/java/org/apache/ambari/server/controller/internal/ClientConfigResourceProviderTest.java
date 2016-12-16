@@ -71,6 +71,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -280,7 +281,7 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
@@ -483,7 +484,7 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");

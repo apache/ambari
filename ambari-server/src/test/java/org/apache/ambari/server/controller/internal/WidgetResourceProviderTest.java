@@ -222,7 +222,7 @@ public class WidgetResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
-    Capture<WidgetEntity> entityCapture = new Capture<WidgetEntity>();
+    Capture<WidgetEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -236,8 +236,8 @@ public class WidgetResourceProviderTest {
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
-    Set testSet = new LinkedHashSet();
-    HashMap testMap = new HashMap();
+    Set<Map<String, String>> testSet = new LinkedHashSet<>();
+    Map<String, String> testMap = new HashMap<>();
     testMap.put("name","value");
     testMap.put("name2","value2");
     testSet.add(testMap);
@@ -279,7 +279,7 @@ public class WidgetResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).atLeastOnce();
 
-    Capture<WidgetEntity> entityCapture = new Capture<WidgetEntity>();
+    Capture<WidgetEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -291,8 +291,8 @@ public class WidgetResourceProviderTest {
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
-    Set testSet = new LinkedHashSet();
-    HashMap testMap = new HashMap();
+    Set<Map<String, String>> testSet = new LinkedHashSet<>();
+    Map<String, String> testMap = new HashMap<>();
     testMap.put("name","value");
     testMap.put("name2","value2");
     testSet.add(testMap);
@@ -336,8 +336,8 @@ public class WidgetResourceProviderTest {
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
-    testSet = new LinkedHashSet();
-    testMap = new HashMap();
+    testSet = new LinkedHashSet<>();
+    testMap = new HashMap<>();
     testMap.put("name","new_value");
     testMap.put("new_name","new_value2");
     testSet.add(testMap);
@@ -374,7 +374,7 @@ public class WidgetResourceProviderTest {
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
 
-    Capture<WidgetEntity> entityCapture = new Capture<WidgetEntity>();
+    Capture<WidgetEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 
@@ -388,8 +388,8 @@ public class WidgetResourceProviderTest {
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
-    Set testSet = new LinkedHashSet();
-    HashMap testMap = new HashMap();
+    Set<Map<String, String>> testSet = new LinkedHashSet<>();
+    Map<String, String> testMap = new HashMap<>();
     testMap.put("name","value");
     testMap.put("name2","value2");
     testSet.add(testMap);
@@ -439,7 +439,7 @@ public class WidgetResourceProviderTest {
     WidgetResourceProvider widgetResourceProvider = PowerMock.createPartialMock(WidgetResourceProvider.class, "isScopeAllowedForUser");
     PowerMock.expectPrivate(widgetResourceProvider, "isScopeAllowedForUser", "CLUSTER").andReturn(false);
 
-    Capture<WidgetEntity> entityCapture = new Capture<WidgetEntity>();
+    Capture<WidgetEntity> entityCapture = EasyMock.newCapture();
     dao.create(capture(entityCapture));
     expectLastCall();
 

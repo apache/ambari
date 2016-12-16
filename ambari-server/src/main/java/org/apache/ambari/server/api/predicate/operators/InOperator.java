@@ -53,7 +53,7 @@ public class InOperator extends AbstractOperator implements RelationalOperator {
     String[] tokens = val.split(",");
     List<EqualsPredicate> listPredicates = new ArrayList<EqualsPredicate>();
     for (String token : tokens) {
-      listPredicates.add(new EqualsPredicate(prop, token.trim()));
+      listPredicates.add(new EqualsPredicate<>(prop, token.trim()));
     }
     return listPredicates.size() == 1 ? listPredicates.get(0) :
         buildOrPredicate(listPredicates);

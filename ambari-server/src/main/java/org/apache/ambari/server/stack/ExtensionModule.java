@@ -520,7 +520,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
   private Set<String> errorSet = new HashSet<String>();
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
   }
 

@@ -54,6 +54,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,8 +99,8 @@ public class BaseResourceDefinitionTest {
         PropertyHelper.getKeyPropertyIds(Resource.Type.Service),
         managementController, maintenanceStateHelper);
     
-    expect(factory.getServiceResourceProvider(anyObject(Set.class),
-        anyObject(Map.class),
+    expect(factory.getServiceResourceProvider(EasyMock.<Set<String>>anyObject(),
+        EasyMock.<Map<Resource.Type, String>>anyObject(),
         anyObject(AmbariManagementController.class))).andReturn(serviceResourceProvider);
     
     AbstractControllerResourceProvider.init(factory);
@@ -148,7 +149,7 @@ public class BaseResourceDefinitionTest {
   public void testReadDirectives() {
     ResourceDefinition resource = getResourceDefinition();
 
-    assertEquals(Collections.EMPTY_SET, resource.getReadDirectives());
+    assertEquals(Collections.emptySet(), resource.getReadDirectives());
 
     Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<BaseResourceDefinition.DirectiveType, List<String>>();
     directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("do_something_delete", "do_something_else_delete"));

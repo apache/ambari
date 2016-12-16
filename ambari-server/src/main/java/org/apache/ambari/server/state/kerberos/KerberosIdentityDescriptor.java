@@ -150,7 +150,7 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
 
       item = data.get("when");
       if (item instanceof Map) {
-        setWhen(PredicateUtils.fromMap((Map<String, Object>) item));
+        setWhen(PredicateUtils.fromMap((Map<?, ?>) item));
       }
     }
   }

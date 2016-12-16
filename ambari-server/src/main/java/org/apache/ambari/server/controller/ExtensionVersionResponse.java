@@ -37,7 +37,7 @@ public class ExtensionVersionResponse implements Validable{
   private String parentVersion;
 
   public ExtensionVersionResponse(String extensionVersion, String parentVersion,
-                              boolean valid, Collection errorSet) {
+                              boolean valid, Collection<String> errorSet) {
     setExtensionVersion(extensionVersion);
     setParentVersion(parentVersion);
     setValid(valid);

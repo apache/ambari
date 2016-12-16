@@ -50,6 +50,7 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 /**
@@ -98,7 +99,7 @@ public class ReadHandlerTest {
     Result result = createStrictMock(Result.class);
     RequestBody body = createStrictMock(RequestBody.class);
     Renderer renderer = new DefaultRenderer();
-    Capture<ResultStatus> resultStatusCapture = new Capture<ResultStatus>();
+    Capture<ResultStatus> resultStatusCapture = EasyMock.newCapture();
 
     Map<String, String> requestInfoProperties = Collections.singletonMap("directive", "value");
 

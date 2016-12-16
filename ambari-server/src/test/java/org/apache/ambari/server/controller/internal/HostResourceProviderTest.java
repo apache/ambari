@@ -74,7 +74,9 @@ import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -1074,7 +1076,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getHost("Host100")).andReturn(host1).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-    expect(cluster.getServiceComponentHosts("Host100")).andReturn(Collections.EMPTY_LIST);
+    expect(cluster.getServiceComponentHosts("Host100")).andReturn(Collections.<ServiceComponentHost>emptyList());
     expect(cluster.getClusterId()).andReturn(100L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
     clusters.deleteHost("Host100");
@@ -1082,7 +1084,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
-    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
+    expect(topologyManager.getRequests(Collections.<Long>emptyList())).andReturn(Collections.<LogicalRequest>emptyList()).anyTimes();
 
     // replay
     replayAll();
@@ -1334,7 +1336,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
   public static void deleteHosts(AmbariManagementController controller, Set<HostRequest> requests)
       throws AmbariException {
     TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
-    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
+    expect(topologyManager.getRequests(Collections.<Long>emptyList())).andReturn(Collections.<LogicalRequest>emptyList()).anyTimes();
 
     replay(topologyManager);
 
@@ -1347,7 +1349,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
                                                  Set<HostRequest> requests, boolean dryRun, boolean forceDelete)
       throws AmbariException {
     TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
-    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
+    expect(topologyManager.getRequests(Collections.<Long>emptyList())).andReturn(Collections.<LogicalRequest>emptyList()).anyTimes();
 
     replay(topologyManager);
 
@@ -1415,7 +1417,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     try {
       expect(host.getDesiredHostConfigs(EasyMock.<Cluster> anyObject(),
-          EasyMock.<Map> anyObject())).andReturn(desiredConfigs).anyTimes();
+          EasyMock.<Map<String, DesiredConfig>> anyObject())).andReturn(desiredConfigs).anyTimes();
 
     } catch (AmbariException e) {
       Assert.fail(e.getMessage());

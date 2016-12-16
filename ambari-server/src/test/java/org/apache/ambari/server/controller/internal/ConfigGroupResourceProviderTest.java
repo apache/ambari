@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Before;
@@ -279,8 +280,8 @@ public class ConfigGroupResourceProviderTest {
     expect(cluster.getConfigGroups()).andReturn(configGroupMap);
 
     expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject(), (HashMap) anyObject(),
-        (HashMap) anyObject())).andReturn(configGroup).anyTimes();
+        (String) anyObject(), (String) anyObject(), EasyMock.<Map<String, Config>>anyObject(),
+        EasyMock.<Map<Long, Host>>anyObject())).andReturn(configGroup).anyTimes();
 
     expect(configGroup.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(configGroup.getName()).andReturn("test-1").anyTimes();

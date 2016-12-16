@@ -572,13 +572,13 @@ public class ExecutionScheduleManager {
 
     String responseString = clientResponse.getEntity(String.class);
     LOG.debug("Processing API response: status={}, body={}", retCode, responseString);
-    Map httpResponseMap;
+    Map<String, Object> httpResponseMap;
     try {
-      httpResponseMap = gson.fromJson(responseString, Map.class);
+      httpResponseMap = gson.<Map<String, Object>>fromJson(responseString, Map.class);
       LOG.debug("Processing responce as JSON");
     } catch (JsonSyntaxException e) {
       LOG.debug("Response is not valid JSON object. Recording as is");
-      httpResponseMap = new HashMap();
+      httpResponseMap = new HashMap<>();
       httpResponseMap.put("message", responseString);
     }
 

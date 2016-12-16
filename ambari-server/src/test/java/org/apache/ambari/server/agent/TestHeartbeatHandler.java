@@ -30,7 +30,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -170,7 +169,7 @@ public class TestHeartbeatHandler {
   @SuppressWarnings("unchecked")
   public void testHeartbeat() throws Exception {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(new ArrayList<HostRoleCommand>());
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<HostRoleCommand>());
     replay(am);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
@@ -252,7 +251,7 @@ public class TestHeartbeatHandler {
             Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
             }}).anyTimes();
@@ -336,7 +335,7 @@ public class TestHeartbeatHandler {
             Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
               add(command);
@@ -834,7 +833,7 @@ public class TestHeartbeatHandler {
             Role.DATANODE, null, RoleCommand.INSTALL);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
             }});
@@ -904,7 +903,7 @@ public class TestHeartbeatHandler {
             Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
             }});
@@ -974,7 +973,7 @@ public class TestHeartbeatHandler {
 
     ActionQueue aq = new ActionQueue();
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
             }});
     replay(am);
@@ -1014,7 +1013,7 @@ public class TestHeartbeatHandler {
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1, Role.DATANODE, null, null);
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
           add(command);
@@ -1096,7 +1095,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
               add(command);
@@ -1231,7 +1230,7 @@ public class TestHeartbeatHandler {
     assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
 
     reset(am);
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
             }}).anyTimes();
@@ -1328,7 +1327,7 @@ public class TestHeartbeatHandler {
             Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
               add(command);
@@ -1446,7 +1445,7 @@ public class TestHeartbeatHandler {
             Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
             }});
@@ -1533,7 +1532,7 @@ public class TestHeartbeatHandler {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
         }});
@@ -1564,7 +1563,7 @@ public class TestHeartbeatHandler {
         Role.DATANODE, null, null);
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(anyObject(List.class))).andReturn(
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
         }});

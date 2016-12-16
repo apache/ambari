@@ -125,7 +125,7 @@ public class Parallel {
       final LoopBody<T, R> loopBody) {
 
     if(source == null || source.isEmpty()) {
-      return new ParallelLoopResult<R>(true, (List<R>) Collections.emptyList());
+      return new ParallelLoopResult<>(true, Collections.<R>emptyList());
     }
     return forLoop(source, 0, source.size(), loopBody);
   }
@@ -149,7 +149,7 @@ public class Parallel {
       final LoopBody<T, R> loopBody) {
 
     if(source == null || source.isEmpty() || startIndex == endIndex) {
-      return new ParallelLoopResult<R>(true, (List<R>) Collections.emptyList());
+      return new ParallelLoopResult<>(true, Collections.<R>emptyList());
     }
     if(startIndex < 0 || startIndex >= source.size()) {
       throw new IndexOutOfBoundsException("startIndex is out of bounds");

@@ -32,6 +32,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -254,7 +255,7 @@ public class ClusterConfigurationRequestTest {
       .anyTimes();
 
       expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
-    expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
+    expect(ambariContext.createConfigurationRequests(EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
 
     if (kerberosConfig == null) {
@@ -263,10 +264,10 @@ public class ClusterConfigurationRequestTest {
       properties.put("testProperty", "KERBEROStestValue");
       kerberosConfig.put("testConfigType", properties);
      }
-    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Set.class))).andReturn(true).once();
-    expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Map.class), anyObject(Map.class), anyObject(Set.class), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
+    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject(),
+      EasyMock.<Set<String>>anyObject())).andReturn(true).once();
+    expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), EasyMock.<Map<String, Map<String, String>>>anyObject(),
+      EasyMock.<Map<String, Set<String>>>anyObject(), EasyMock.<Map<String, Collection<String>>>anyObject(), EasyMock.<Set<String>>anyObject(), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
 
     Capture<? extends String> captureClusterName = newCapture(CaptureType.ALL);
     Capture<? extends Set<String>> captureUpdatedConfigTypes = newCapture(CaptureType.ALL);
@@ -334,7 +335,7 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
     expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
-    expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
+    expect(ambariContext.createConfigurationRequests(EasyMock.<Map<String, Object>>anyObject())).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
 
 

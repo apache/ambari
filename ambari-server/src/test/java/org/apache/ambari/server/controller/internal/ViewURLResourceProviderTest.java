@@ -245,7 +245,7 @@ public class ViewURLResourceProviderTest {
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
     ViewURLEntity viewURLEntity = createNiceMock(ViewURLEntity.class);
     ViewURLDAO viewURLDAO = createNiceMock(ViewURLDAO.class);
-    EqualsPredicate equalsPredicate = new EqualsPredicate(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
+    EqualsPredicate<String> equalsPredicate = new EqualsPredicate<>(ViewURLResourceProvider.URL_NAME_PROPERTY_ID,"test");
 
 
     setDao(ViewURLResourceProvider.class.getDeclaredField("viewURLDAO"), viewURLDAO);

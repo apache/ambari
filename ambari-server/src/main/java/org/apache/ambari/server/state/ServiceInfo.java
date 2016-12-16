@@ -56,9 +56,9 @@ import com.google.common.collect.Multimaps;
 @JsonFilter("propertiesfilter")
 public class ServiceInfo implements Validable{
 
-  public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_INSTALLABLE_PROPERTY = new AbstractMap.SimpleEntry("installable", "true");
-  public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MANAGED_PROPERTY = new AbstractMap.SimpleEntry("managed", "true");
-  public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MONITORED_PROPERTY = new AbstractMap.SimpleEntry("monitored", "true");
+  public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_INSTALLABLE_PROPERTY = new AbstractMap.SimpleEntry<>("installable", "true");
+  public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MANAGED_PROPERTY = new AbstractMap.SimpleEntry<>("managed", "true");
+  public static final AbstractMap.SimpleEntry<String, String> DEFAULT_SERVICE_MONITORED_PROPERTY = new AbstractMap.SimpleEntry<>("monitored", "true");
   /**
    * Format version. Added at schema ver 2
    */

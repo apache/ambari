@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.codec.binary.Base64;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
@@ -149,8 +150,8 @@ public class LoggingRequestHelperImplTest {
     testConfigProperties.put("logsearch_admin_password", EXPECTED_ADMIN_PASSWORD);
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
 
-    Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
-    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
+    Capture<HttpURLConnection> captureURLConnection = EasyMock.newCapture();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = EasyMock.newCapture();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
@@ -328,8 +329,8 @@ public class LoggingRequestHelperImplTest {
     testConfigProperties.put("logsearch_admin_password", "admin-pwd");
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
 
-    Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
-    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
+    Capture<HttpURLConnection> captureURLConnection = EasyMock.newCapture();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = EasyMock.newCapture();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
@@ -421,8 +422,8 @@ public class LoggingRequestHelperImplTest {
     testConfigProperties.put("logsearch_admin_password", "admin-pwd");
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
 
-    Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
-    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
+    Capture<HttpURLConnection> captureURLConnection = EasyMock.newCapture();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = EasyMock.newCapture();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
@@ -584,8 +585,8 @@ public class LoggingRequestHelperImplTest {
     Config adminPropertiesConfigMock =
       mockSupport.createMock(Config.class);
 
-    Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
-    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
+    Capture<HttpURLConnection> captureURLConnection = EasyMock.newCapture();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = EasyMock.newCapture();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(clusterMock.getClusterName()).andReturn(expectedClusterName).atLeastOnce();

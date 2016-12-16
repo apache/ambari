@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.KerberosDescriptorDAO;
 import org.apache.ambari.server.orm.entities.KerberosDescriptorEntity;
@@ -80,7 +81,7 @@ public class KerberosDescriptorResourceProviderTest {
     EasyMock.replay(request);
 
     kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, Collections.EMPTY_SET, Collections.EMPTY_MAP, null);
+        kerberosDescriptorFactory, Collections.<String>emptySet(), Collections.<Resource.Type, String>emptyMap(), null);
 
     // WHEN
     kerberosDescriptorResourceProvider.createResources(request);
@@ -97,7 +98,7 @@ public class KerberosDescriptorResourceProviderTest {
     EasyMock.replay(request);
 
     kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, Collections.EMPTY_SET, Collections.EMPTY_MAP, null);
+        kerberosDescriptorFactory, Collections.<String>emptySet(), Collections.<Resource.Type, String>emptyMap(), null);
 
     // WHEN
     kerberosDescriptorResourceProvider.createResources(request);
@@ -112,7 +113,7 @@ public class KerberosDescriptorResourceProviderTest {
 
     // GIVEN
     kerberosDescriptorResourceProvider = new KerberosDescriptorResourceProvider(kerberosDescriptorDAO,
-        kerberosDescriptorFactory, Collections.EMPTY_SET, Collections.EMPTY_MAP, null);
+        kerberosDescriptorFactory, Collections.<String>emptySet(), Collections.<Resource.Type, String>emptyMap(), null);
 
     EasyMock.expect(request.getProperties())
         .andReturn(requestPropertySet(KERBEROS_DESCRIPTORS_KERBEROS_DESCRIPTOR_NAME, TEST_KERBEROS_DESCRIPTOR_NAME))

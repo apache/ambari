@@ -88,7 +88,7 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
 
     replayAll();
 
-    asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, executorServiceMock);
+    asyncCallableService = new AsyncCallableService<>(taskMock, timeout, delay, executorServiceMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -111,7 +111,7 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
       }
     };
 
-    asyncCallableService = new AsyncCallableService(hangingTask, timeout, delay, Executors.newScheduledThreadPool(2));
+    asyncCallableService = new AsyncCallableService<>(hangingTask, timeout, delay, Executors.newScheduledThreadPool(2));
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -128,7 +128,7 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
     expect(taskMock.call()).andReturn(Boolean.TRUE).times(1);
 
     replayAll();
-    asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, Executors.newScheduledThreadPool(2));
+    asyncCallableService = new AsyncCallableService<>(taskMock, timeout, delay, Executors.newScheduledThreadPool(2));
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -146,7 +146,7 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
     // the task to be throws exception
     expect(taskMock.call()).andThrow(new IllegalStateException("****************** TESTING ****************")).times(2, 3);
     replayAll();
-    asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, Executors.newScheduledThreadPool(2));
+    asyncCallableService = new AsyncCallableService<>(taskMock, timeout, delay, Executors.newScheduledThreadPool(2));
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
@@ -170,7 +170,7 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
       }
     };
 
-    asyncCallableService = new AsyncCallableService(hangingTask, timeout, delay, Executors.newScheduledThreadPool(2));
+    asyncCallableService = new AsyncCallableService<>(hangingTask, timeout, delay, Executors.newScheduledThreadPool(2));
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();

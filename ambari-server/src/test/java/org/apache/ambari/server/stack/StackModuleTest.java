@@ -131,7 +131,8 @@ public class StackModuleTest {
     assertEquals(removedServices.size(), 0);
   }
 
-  private StackModule createStackModule(String stackName, String stackVersion, Optional<? extends List<RepositoryInfo>> stackRepos,
+  @SafeVarargs
+  private static StackModule createStackModule(String stackName, String stackVersion, Optional<? extends List<RepositoryInfo>> stackRepos,
                                         List<RepositoryInfo>... serviceRepoLists) throws AmbariException {
     StackDirectory sd = mock(StackDirectory.class);
     List<ServiceDirectory> serviceDirectories = Lists.newArrayList();

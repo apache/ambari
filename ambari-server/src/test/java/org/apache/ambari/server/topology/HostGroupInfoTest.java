@@ -112,7 +112,7 @@ public class HostGroupInfoTest {
 
     group.setPredicate("Hosts/host_name=awesome.host.com");
     assertEquals("Hosts/host_name=awesome.host.com", group.getPredicateString());
-    assertEquals(new EqualsPredicate("Hosts/host_name", "awesome.host.com"), group.getPredicate());
+    assertEquals(new EqualsPredicate<>("Hosts/host_name", "awesome.host.com"), group.getPredicate());
   }
 
   @Test(expected=InvalidQueryException.class)

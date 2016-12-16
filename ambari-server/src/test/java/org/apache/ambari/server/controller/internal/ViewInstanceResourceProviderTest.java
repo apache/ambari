@@ -54,6 +54,7 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewDefinition;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -173,12 +174,12 @@ public class ViewInstanceResourceProviderTest {
     expect(viewregistry.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(viewregistry.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
 
-    Capture<Map<String, String>> captureProperties = new Capture<Map<String, String>>();
+    Capture<Map<String, String>> captureProperties = EasyMock.newCapture();
 
     viewregistry.setViewInstanceProperties(eq(viewInstanceEntity), capture(captureProperties),
         anyObject(ViewConfig.class), anyObject(ClassLoader.class));
 
-    Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
+    Capture<ViewInstanceEntity> instanceEntityCapture = EasyMock.newCapture();
     viewregistry.installViewInstance(capture(instanceEntityCapture));
     expectLastCall().anyTimes();
 

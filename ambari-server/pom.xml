@@ -48,6 +48,7 @@
     <hadoop.version>2.7.2</hadoop.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
+    <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
   </properties>
   <build>
     <plugins>
@@ -109,6 +110,11 @@
         <version>3.2</version>
         <configuration>
           <useIncrementalCompilation>false</useIncrementalCompilation>
+          <compilerArgs>
+            <arg>-Xlint:${xlint}</arg>
+            <arg>-Xmaxwarns</arg>
+            <arg>50000</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>

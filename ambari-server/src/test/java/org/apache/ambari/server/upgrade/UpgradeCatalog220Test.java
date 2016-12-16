@@ -496,7 +496,7 @@ public class UpgradeCatalog220Test {
 
     UpgradeCatalog220 upgradeMock = createMockBuilder(UpgradeCatalog220.class).createMock();
 
-    Capture<Map<String, Object>> updatedData = new Capture<Map<String, Object>>();
+    Capture<Map<String, Object>> updatedData = EasyMock.newCapture();
 
     ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
     expect(artifactEntity.getArtifactData())
@@ -698,12 +698,12 @@ public class UpgradeCatalog220Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog220(injector2).updateAMSConfigs();
@@ -759,12 +759,12 @@ public class UpgradeCatalog220Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog220(injector2).updateAMSConfigs();
@@ -1128,8 +1128,8 @@ public class UpgradeCatalog220Test {
    */
   class UpgradeSectionDDL implements SectionDDL {
 
-    Capture<DBAccessor.DBColumnInfo> upgradeTablePackageNameColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> upgradeTableUpgradeTypeColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> upgradeTablePackageNameColumnCapture = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> upgradeTableUpgradeTypeColumnCapture = EasyMock.newCapture();
 
     /**
      * {@inheritDoc}

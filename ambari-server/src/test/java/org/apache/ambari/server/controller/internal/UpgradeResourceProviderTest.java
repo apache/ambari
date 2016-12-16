@@ -719,7 +719,7 @@ public class UpgradeResourceProviderTest {
 
     Gson gson = new Gson();
     for (StageEntity se : stages) {
-      Map<String, String> map = gson.fromJson(se.getCommandParamsStage(), Map.class);
+      Map<String, String> map = gson.<Map<String, String>>fromJson(se.getCommandParamsStage(), Map.class);
       assertTrue(map.containsKey("upgrade_direction"));
       assertEquals("downgrade", map.get("upgrade_direction"));
     }
@@ -1169,7 +1169,7 @@ public class UpgradeResourceProviderTest {
         configHelper.getDefaultProperties(EasyMock.eq(stack220), EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(
         stack220Configs).anyTimes();
 
-    Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = new Capture<Map<String, Map<String, String>>>();
+    Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
     configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
         EasyMock.anyObject(AmbariManagementController.class),

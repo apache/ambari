@@ -1726,7 +1726,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * @return
    */
   private String sqlStringListFromArrayList(List<String> list) {
-    List sqlList = new ArrayList<String>(list.size());
+    List<String> sqlList = new ArrayList<>(list.size());
 
     for (String item : list) {
       sqlList.add(String.format("'%s'", item.trim()));

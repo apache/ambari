@@ -3805,7 +3805,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public List<String> selectHealthyHosts(Set<String> hostList) throws AmbariException {
-    List<String> healthyHosts = new ArrayList();
+    List<String> healthyHosts = new ArrayList<>();
 
     for (String candidateHostName : hostList) {
       Host candidateHost = clusters.getHost(candidateHostName);

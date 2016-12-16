@@ -96,7 +96,7 @@ public class DefaultEventCreatorTest {
 
           @Override
           public Object getPrincipal() {
-            return new User("testuser", "password", Collections.EMPTY_LIST);
+            return new User("testuser", "password", Collections.<GrantedAuthority>emptyList());
           }
 
           @Override

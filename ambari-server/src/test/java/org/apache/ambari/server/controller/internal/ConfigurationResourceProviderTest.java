@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -170,8 +171,8 @@ public class ConfigurationResourceProviderTest {
     orResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
         "tag2", 2L, null, null));
 
-    Capture<Set<ConfigurationRequest>> configRequestCapture1 = new Capture<Set<ConfigurationRequest>>();
-    Capture<Set<ConfigurationRequest>> configRequestCapture2 = new Capture<Set<ConfigurationRequest>>();
+    Capture<Set<ConfigurationRequest>> configRequestCapture1 = EasyMock.newCapture();
+    Capture<Set<ConfigurationRequest>> configRequestCapture2 = EasyMock.newCapture();
 
     // set expectations
     //equals predicate

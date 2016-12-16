@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Assert;
 import org.junit.Test;
@@ -96,7 +97,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       statement.executeQuery(anyObject(String.class));
       expectLastCall().andReturn(rs1).anyTimes();
 
-      Capture<String> queryCapture = new Capture<String>();
+      Capture<String> queryCapture = EasyMock.newCapture();
       dbAccessor.executeQuery(capture(queryCapture));
       expectLastCall().once();
 
@@ -259,12 +260,12 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
         .andReturn(configKerberosEnv)
         .once();
 
-    Capture<ConfigurationRequest> captureCR = new Capture<ConfigurationRequest>();
+    Capture<ConfigurationRequest> captureCR = EasyMock.newCapture();
     Capture<Cluster> clusterCapture = newCapture();
     Capture<String> typeCapture = newCapture();
-    Capture<Map> propertiesCapture = newCapture();
+    Capture<Map<String, String>> propertiesCapture = newCapture();
     Capture<String> tagCapture = newCapture();
-    Capture<Map> attributesCapture = newCapture();
+    Capture<Map<String, Map<String, String>>> attributesCapture = newCapture();
 
 
     expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
@@ -394,12 +395,12 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
       stringCaptures = new HashMap<String, Capture<String>>();
       classCaptures = new HashMap<String, Capture<Class>>();
 
-      Capture<String> textCaptureC = new Capture<String>();
-      Capture<String> textCaptureH = new Capture<String>();
-      Capture<Class>  classFromC = new Capture<Class>();
-      Capture<Class>  classFromH = new Capture<Class>();
-      Capture<Class>  classToC = new Capture<Class>();
-      Capture<Class>  classToH = new Capture<Class>();
+      Capture<String> textCaptureC = EasyMock.newCapture();
+      Capture<String> textCaptureH = EasyMock.newCapture();
+      Capture<Class>  classFromC = EasyMock.newCapture();
+      Capture<Class>  classFromH = EasyMock.newCapture();
+      Capture<Class>  classToC = EasyMock.newCapture();
+      Capture<Class>  classToH = EasyMock.newCapture();
 
       stringCaptures.put("textCaptureC", textCaptureC);
       stringCaptures.put("textCaptureH", textCaptureH);
