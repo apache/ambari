@@ -17,35 +17,34 @@
  */
 package org.apache.ambari.server.events;
 
+import java.util.Set;
+
 /**
- * The {@link HostAddedEvent} is fired when a host is added to a cluster.
+ * The {@link HostsAddedEvent} is fired when the hosts are added to a cluster.
  */
-public class HostAddedEvent extends ClusterEvent {
+public class HostsAddedEvent extends ClusterEvent {
 
   /**
-   * The host's name.
+   * The hosts' names.
    */
-  protected final String m_hostName;
+  protected final Set<String> m_hostNames;
 
   /**
    * Constructor.
-   *
    * @param clusterId
-   *          the ID of the cluster.
-   * @param hostName
-   *          the name of the host.
+   * @param hostNames
    */
-  public HostAddedEvent(long clusterId, String hostName) {
+  public HostsAddedEvent(long clusterId, Set<String> hostNames) {
     super(AmbariEventType.HOST_ADDED, clusterId);
-    m_hostName = hostName;
+    m_hostNames = hostNames;
   }
 
   /**
-   * Gets the host's name that the event belongs to.
+   * Gets the hosts' names that the event belongs to.
    *
    * @return the hostName
    */
-  public String getHostName() {
-    return m_hostName;
+  public Set<String> getHostNames() {
+    return m_hostNames;
   }
 }

@@ -25,8 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
-import org.apache.ambari.server.events.HostAddedEvent;
-import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.HostsAddedEvent;
+import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -44,8 +44,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * The {@link AlertHostListener} class handles {@link HostAddedEvent} and
- * {@link HostRemovedEvent} and ensures that {@link AlertCurrentEntity}
+ * The {@link AlertHostListener} class handles {@link HostsAddedEvent} and
+ * {@link HostsRemovedEvent} and ensures that {@link AlertCurrentEntity}
  * instances are properly cleaned up
  */
 @Singleton
@@ -104,7 +104,7 @@ public class AlertHostListener {
   }
 
   /**
-   * Handles the {@link HostAddedEvent} by performing the following actions:
+   * Handles the {@link HostsAddedEvent} by performing the following actions:
    * <ul>
    * <li>Ensures that all host-level alerts are loaded for the cluster. This is
    * especially useful when creating a cluster and no alerts were loaded on
@@ -115,7 +115,7 @@ public class AlertHostListener {
    */
   @Subscribe
   @AllowConcurrentEvents
-  public void onAmbariEvent(HostAddedEvent event) {
+  public void onAmbariEvent(HostsAddedEvent event) {
     LOG.debug("Received event {}", event);
 
     long clusterId = event.getClusterId();
@@ -155,24 +155,28 @@ public class AlertHostListener {
       m_hostAlertLock.unlock();
     }
 
-    AlertHashInvalidationEvent invalidationEvent = new AlertHashInvalidationEvent(
-        event.getClusterId(), Collections.singletonList(event.getHostName()));
+    for (String hostName : event.getHostNames()) {
+      AlertHashInvalidationEvent invalidationEvent = new AlertHashInvalidationEvent(
+        event.getClusterId(), Collections.singletonList(hostName));
 
-    m_eventPublisher.publish(invalidationEvent);
+      m_eventPublisher.publish(invalidationEvent);
+    }
   }
 
   /**
-   * Handles the {@link HostRemovedEvent} by performing the following actions:
+   * Handles the {@link HostsRemovedEvent} by performing the following actions:
    * <ul>
-   * <li>Removes all {@link AlertCurrentEntity} for the removed host</li>
+   * <li>Removes all {@link AlertCurrentEntity} for the removed hosts</li>
    * </ul>
    */
   @Subscribe
   @AllowConcurrentEvents
-  public void onAmbariEvent(HostRemovedEvent event) {
+  public void onAmbariEvent(HostsRemovedEvent event) {
     LOG.debug("Received event {}", event);
 
-    // remove any current alerts for the removed host
-    m_alertsDao.removeCurrentByHost(event.getHostName());
+    // remove any current alerts for the removed hosts
+    for (String hostName : event.getHostNames()) {
+      m_alertsDao.removeCurrentByHost(hostName);
+    }
   }
 }

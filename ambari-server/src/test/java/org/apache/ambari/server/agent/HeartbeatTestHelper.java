@@ -216,7 +216,7 @@ public class HeartbeatTestHelper {
     }
 
     clusterEntity.setHostEntities(hostEntities);
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     return cluster;
   }
