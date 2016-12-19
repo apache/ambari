@@ -18,6 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+def fix_encoding_reimport_bug():
+  """
+  Fix https://bugs.python.org/issue14847
+  """
+  b'x'.decode('utf-8')
+  b'x'.decode('ascii')
+
 def fix_subprocess_racecondition():
   """
   Subprocess in Python has race condition with enabling/disabling gc. Which may lead to turning off python garbage collector.
@@ -36,6 +43,7 @@ def fix_subprocess_racecondition():
   import gc
 
 fix_subprocess_racecondition()
+fix_encoding_reimport_bug()
 
 import logging.handlers
 import logging.config
