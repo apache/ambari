@@ -2177,7 +2177,18 @@ var urls = {
   },
 
   'preinstalled.checks.tasks': {
-    'real': '/requests/{requestId}?fields=tasks/Tasks,Requests/inputs,Requests/request_status',
+    'real': '/requests/{requestId}?fields=Requests/inputs,Requests/request_status,tasks/Tasks/host_name,' +
+    'tasks/Tasks/structured_out/host_resolution_check/hosts_with_failures,' +
+    'tasks/Tasks/structured_out/host_resolution_check/failed_count,' +
+    'tasks/Tasks/structured_out/installed_packages,' +
+    'tasks/Tasks/structured_out/last_agent_env_check,' +
+    'tasks/Tasks/structured_out/transparentHugePage,' +
+    'tasks/Tasks/stdout,' +
+    'tasks/Tasks/stderr,' +
+    'tasks/Tasks/error_log,' +
+    'tasks/Tasks/command_detail,' +
+    'tasks/Tasks/status' +
+    '&minimal_response=true',
     'mock': '/data/requests/host_check/1.json'
   },
 

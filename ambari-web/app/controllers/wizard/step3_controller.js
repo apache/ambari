@@ -1405,8 +1405,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(task.Tasks.status)) {
         if (task.Tasks.status === "COMPLETED" && !!Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count")) {
           var targetHostName = Em.get(task, "Tasks.host_name");
-          var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.failures")
-            ? Em.get(task, "Tasks.structured_out.host_resolution_check.failures").mapProperty('host') : [];
+          var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.hosts_with_failures") || [];
           var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.length + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.host' + (relatedHostNames.length == 1 ? '' : 's')));
           var contextMessageLong = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
           if (!hostInfo) {
