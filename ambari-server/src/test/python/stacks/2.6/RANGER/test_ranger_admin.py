@@ -36,6 +36,7 @@ class TestRangerAdmin(RMFTestCase):
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+
     self.assert_configure_default()
 
     self.assertResourceCalled('Directory', '/var/log/ambari-infra-solr-client',
@@ -61,8 +62,24 @@ class TestRangerAdmin(RMFTestCase):
         content = '',
         mode = 0664,
     )
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 5 --interval 10')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5')
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 5 --interval 10',)
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf/solrconfig.xml',
+      owner = u'ranger',
+      content = InlineTemplate(self.getConfig()['configurations']['ranger-solr-configuration']['content']),
+      group = u'ranger',
+      mode = 0644,
+    )
+
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',only_if = 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --check-config --config-set ranger_audits --retry 30 --interval 5',)
+
+    self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_ranger_audits_0.[0-9]*/solrconfig.xml',content = InlineTemplate(self.getConfig()['configurations']['ranger-solr-configuration']['content']),
+                              only_if = 'test -d /tmp/solr_config_ranger_audits_0.[0-9]*',)
+
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',
+                                    only_if = 'test -d /tmp/solr_config_ranger_audits_0.[0-9]*',)
+
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf --config-set ranger_audits --retry 30 --interval 5')
     self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_ranger_audits_0.[0-9]*',
                                     action=['delete'],
@@ -116,13 +133,30 @@ class TestRangerAdmin(RMFTestCase):
       content = Template('ranger_solr_jaas_conf.j2'),
       owner = 'ranger',
     )
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /ambari-solr --check-znode --retry 5 --interval 10')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/ambari-solr --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/ambari-solr --upload-config --config-dir /usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf --config-set ranger_audits --retry 30 --interval 5')
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 5 --interval 10',)
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf/solrconfig.xml',
+                              owner = u'ranger',
+                              content = InlineTemplate(self.getConfig()['configurations']['ranger-solr-configuration']['content']),
+                              group = u'ranger',
+                              mode = 0644,
+                              )
+
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',only_if = 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --check-config --config-set ranger_audits --retry 30 --interval 5',)
+
+    self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_ranger_audits_0.[0-9]*/solrconfig.xml',content = InlineTemplate(self.getConfig()['configurations']['ranger-solr-configuration']['content']),
+                                    only_if = 'test -d /tmp/solr_config_ranger_audits_0.[0-9]*',)
+
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_ranger_audits_0.[0-9]* --config-set ranger_audits --retry 30 --interval 5',
+                                    only_if = 'test -d /tmp/solr_config_ranger_audits_0.[0-9]*',)
+
+
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /usr/hdp/current/ranger-admin/contrib/solr_for_audit_setup/conf --config-set ranger_audits --retry 30 --interval 5')
     self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_ranger_audits_0.[0-9]*',
                                     action=['delete'],
                                     create_parents=True)
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/ambari-solr --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
 
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},

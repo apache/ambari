@@ -618,15 +618,38 @@ def setup_ranger_audit_solr():
 
   check_znode()
 
-  solr_cloud_util.upload_configuration_to_zk(
-    zookeeper_quorum = params.zookeeper_quorum,
-    solr_znode = params.solr_znode,
-    config_set = params.ranger_solr_config_set,
-    config_set_dir = params.ranger_solr_conf,
-    tmp_dir = params.tmp_dir,
-    java64_home = params.java_home,
-    jaas_file=params.solr_jaas_file,
-    retry=30, interval=5)
+  if params.stack_supports_ranger_solr_configs:
+    Logger.info('Solr configrations supported,creating solr-configurations.')
+    File(format("{ranger_solr_conf}/solrconfig.xml"),
+         content=InlineTemplate(params.ranger_solr_config_content),
+         owner=params.unix_user,
+         group=params.unix_group,
+         mode=0644
+    )
+
+    solr_cloud_util.upload_configuration_to_zk(
+      zookeeper_quorum = params.zookeeper_quorum,
+      solr_znode = params.solr_znode,
+      config_set = params.ranger_solr_config_set,
+      config_set_dir = params.ranger_solr_conf,
+      tmp_dir = params.tmp_dir,
+      java64_home = params.java_home,
+      solrconfig_content = InlineTemplate(params.ranger_solr_config_content),
+      jaas_file=params.solr_jaas_file,
+      retry=30, interval=5
+    )
+
+  else:
+    Logger.info('Solr configrations not supported, skipping solr-configurations.')
+    solr_cloud_util.upload_configuration_to_zk(
+      zookeeper_quorum = params.zookeeper_quorum,
+      solr_znode = params.solr_znode,
+      config_set = params.ranger_solr_config_set,
+      config_set_dir = params.ranger_solr_conf,
+      tmp_dir = params.tmp_dir,
+      java64_home = params.java_home,
+      jaas_file=params.solr_jaas_file,
+      retry=30, interval=5)
 
   solr_cloud_util.create_collection(
     zookeeper_quorum = params.zookeeper_quorum,
