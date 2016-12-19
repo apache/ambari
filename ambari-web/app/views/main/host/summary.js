@@ -215,11 +215,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    */
   addableComponentObject: Em.Object.extend({
     componentName: '',
-    subComponentNames: null,
     displayName: function () {
-      if (this.get('componentName') === 'CLIENTS') {
-        return this.t('common.clients');
-      }
       return App.format.role(this.get('componentName'), false);
     }.property('componentName')
   }),
