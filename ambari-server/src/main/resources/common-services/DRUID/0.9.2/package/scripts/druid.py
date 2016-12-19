@@ -80,43 +80,6 @@ def druid(upgrade_type=None, nodeType=None):
 
   Logger.info("Created log rotate file")
 
-  # Write Hadoop Configs if configured
-  if 'core-site' in params.config['configurations']:
-    XmlConfig("core-site.xml",
-              conf_dir=params.druid_common_conf_dir,
-              configurations=params.config['configurations']['core-site'],
-              configuration_attributes=params.config['configuration_attributes']['core-site'],
-              owner=params.druid_user,
-              group=params.user_group
-              )
-
-  if 'mapred-site' in params.config['configurations']:
-    XmlConfig("mapred-site.xml",
-              conf_dir=params.druid_common_conf_dir,
-              configurations=params.config['configurations']['mapred-site'],
-              configuration_attributes=params.config['configuration_attributes']['mapred-site'],
-              owner=params.druid_user,
-              group=params.user_group
-              )
-
-  if 'yarn-site' in params.config['configurations']:
-    XmlConfig("yarn-site.xml",
-              conf_dir=params.druid_common_conf_dir,
-              configurations=params.config['configurations']['yarn-site'],
-              configuration_attributes=params.config['configuration_attributes']['yarn-site'],
-              owner=params.druid_user,
-              group=params.user_group
-              )
-
-  if 'hdfs-site' in params.config['configurations']:
-    XmlConfig("hdfs-site.xml",
-              conf_dir=params.druid_common_conf_dir,
-              configurations=params.config['configurations']['hdfs-site'],
-              configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
-              owner=params.druid_user,
-              group=params.user_group
-              )
-
   # node specific configs
   for node_type in ['coordinator', 'overlord', 'historical', 'broker', 'middleManager', 'router']:
     node_config_dir = format('{params.druid_conf_dir}/{node_type}')
