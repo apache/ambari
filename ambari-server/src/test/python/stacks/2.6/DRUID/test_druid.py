@@ -441,30 +441,6 @@ class TestDruid(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['druid-logrotate']['content'])
                               )
 
-    self.assertResourceCalled('XmlConfig', "core-site.xml",
-                              conf_dir=format('/usr/hdp/current/{role}/conf/_common'),
-                              configurations=self.getConfig()['configurations']['core-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['core-site'],
-                              owner='druid',
-                              group='hadoop'
-                              )
-
-    self.assertResourceCalled('XmlConfig', "yarn-site.xml",
-                              conf_dir=format('/usr/hdp/current/{role}/conf/_common'),
-                              configurations=self.getConfig()['configurations']['yarn-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['yarn-site'],
-                              owner='druid',
-                              group='hadoop'
-                              )
-
-    self.assertResourceCalled('XmlConfig', "hdfs-site.xml",
-                              conf_dir=format('/usr/hdp/current/{role}/conf/_common'),
-                              configurations=self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes=self.getConfig()['configuration_attributes']['hdfs-site'],
-                              owner='druid',
-                              group='hadoop'
-                              )
-
     self.assertResourceCalled('PropertiesFile', "runtime.properties",
                               dir=format('/usr/hdp/current/{role}/conf/coordinator'),
                               properties=self.getConfig()['configurations']['druid-coordinator'],
