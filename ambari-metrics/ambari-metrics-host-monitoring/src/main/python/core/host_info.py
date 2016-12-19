@@ -191,7 +191,7 @@ class HostInfo():
       try:
         usage = psutil.disk_usage(part.mountpoint)
       except Exception, e:
-        logger.error('Failed to read disk_usage for a mountpoint : ' + str(e))
+        logger.debug('Failed to read disk_usage for a mountpoint : ' + str(e))
         continue
 
       if part.device in devices: # Skip devices already seen.
