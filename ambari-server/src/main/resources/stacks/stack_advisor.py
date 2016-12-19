@@ -17,11 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import imp
 import os
 import re
 import socket
 import traceback
+
+# Local imports
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+
 
 class StackAdvisor(object):
   """
@@ -310,6 +316,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def __init__(self):
     self.services = None
+    
+    Logger.initialize_logger()
+    
     # Dictionary that maps serviceName or componentName to serviceAdvisor
     self.serviceAdvisorsDict = {}
 
@@ -317,6 +326,169 @@ class DefaultStackAdvisor(StackAdvisor):
     # It's empty during other requests.
     self.allRequestedProperties = None
 
+
+    # Data structures that may be extended by Service Advisors with information specific to each Service 
+    self.mastersWithMultipleInstances = set()
+    self.notValuableComponents = set()
+    self.notPreferableOnServerComponents = set()
+    self.cardinalitiesDict = {}
+    self.loaded_service_advisors = False
+
+
+  def getServiceComponentLayoutValidations(self, services, hosts):
+    """
+    Get a list of errors.
+
+    :param services: Dictionary of the form:
+    {
+      'changed-configurations': [],
+      'Versions": {
+        'parent_stack_version': '9.0',
+        'stack_name': 'HDP',
+        'stack_version': '9.0',
+        'stack_hierarchy': {
+          'stack_name': 'HDP',
+          'stack_versions': ['8.0', '7.0', ..., '1.0']
+        }
+      },
+      'ambari-server-properties': {'key': 'value', ...},
+      'services': [
+        {'StackServices': {
+          'advisor_path': '/var/lib/ambari-server/resources/common-services/MYSERVICE/1.2.3/service_advisor.py',
+          'service_version': '1.2.3',
+          'stack_name': 'HDP',
+          'service_name': 'MYSERVICE',
+          'stack_version': '9.0',
+          'advisor_name': 'MYSERVICEServiceAdvisor'
+        },
+        'components': [
+          {'StackServiceComponents': {
+            'stack_version': '9.0',
+            'decommission_allowed': True|False,
+            'display_name': 'My Service Display Name',
+            'stack_name': 'HDP',
+            'custom_commands': [],
+            'component_category': 'CLIENT|MASTER|SLAVE',
+            'advertise_version': True|False,
+            'is_client': True|False,
+            'is_master': False|False,
+            'bulk_commands_display_name': '',
+            'bulk_commands_master_component_name': '',
+            'service_name': 'MYSERVICE',
+            'has_bulk_commands_definition': True|False,
+            'reassign_allowed': True|False,
+            'recovery_enabled': True|False,
+            'cardinality': '0+|1|1+',
+            'hostnames': ['c6401.ambari.apache.org'],
+            'component_name': 'MY_COMPONENT_NAME'
+          },
+          'dependencies': []
+          },
+          ...
+          }],
+          'configurations': [
+            {
+              'StackConfigurations':
+              {
+                'stack_name': 'HDP',
+                'service_name': 'MYSERVICE',
+                'stack_version': '9.0',
+                'property_depends_on': [],
+                'type': 'myservice-config.xml',
+                'property_name': 'foo'
+              },
+              'dependencies': []
+            },
+            {
+              'StackConfigurations': {
+                'stack_name': 'HDP',
+                'service_name': 'ZOOKEEPER',
+                'stack_version':
+                '2.6',
+                'property_depends_on': [],
+                'type': 'zoo.cfg.xml',
+                'property_name': 'autopurge.snapRetainCount'
+              },
+              'dependencies': []
+            }
+            ...
+         ]
+        }
+      ],
+      'configurations': {}
+    }
+
+    :param hosts: Dictionary where hosts["items"] contains list of hosts on the cluster.
+    E.g. of the form,
+    {
+      'items': [
+        {
+          'Hosts':
+          {
+            'host_name': 'c6401.ambari.apache.org',
+            'public_host_name': 'c6401.ambari.apache.org',
+            'ip': '192.168.64.101',
+            'rack_info': '/default-rack',
+            'os_type': 'centos6',
+            'os_arch': 'x86_64',
+            'cpu_count': 1,
+            'ph_cpu_count': 1
+            'host_state': 'HEALTHY',
+            'total_mem': 2926196,
+            'host_status': 'HEALTHY',
+            'last_registration_time': 1481833146522,
+            'os_family': 'redhat6',
+            'last_heartbeat_time': 1481835051067,
+            'recovery_summary': 'DISABLED',
+            'host_health_report': '',
+            'desired_configs': None,
+            'disk_info': [
+              {
+                'available': '483608892',
+                'used': '3304964',
+                'percent': '1%',
+                'device': '/dev/mapper/VolGroup-lv_root',
+                'mountpoint': '/',
+                'type': 'ext4',
+                'size': '512971376'
+              },
+              ...
+            ],
+            'recovery_report': {
+              'component_reports': [],
+              'summary': 'DISABLED'
+            },
+            'last_agent_env': {
+              'transparentHugePage': 'always',
+              'hostHealth': {
+                'agentTimeStampAtReporting': 1481835031135,
+                'activeJavaProcs': [],
+                'serverTimeStampAtReporting': 1481835031180,
+                'liveServices': [{
+                  'status': 'Healthy',
+                  'name': 'ntpd',
+                  'desc': ''
+                }]
+              },
+              'umask': 18,
+              'reverseLookup': True,
+              'alternatives': [],
+              'existingUsers': [],
+              'firewallName': 'iptables',
+              'stackFoldersAndFiles': [],
+              'existingRepos': [],
+              'installedPackages': [],
+              'firewallRunning': False
+            }
+          }
+        }
+      ]
+    }
+
+    :return: List of errors
+    """
+    # To be overriden by subclass or Service Advisor
+    raise Fail("Must be overriden by subclass or Service Advisor")
 
   def getActiveHosts(self, hosts):
     """ Filters the list of specified hosts object and returns
@@ -328,37 +500,69 @@ class DefaultStackAdvisor(StackAdvisor):
     return hostsList
 
   def getServiceAdvisor(self, key):
-    if len(self.serviceAdvisorsDict) == 0:
+    """
+    Get the class name for the Service Advisor with the given name if it exists, or None otherwise.
+    :param key: Service Name
+    :return: Class name if it exists, or None otherwise.
+    """
+    if not self.loaded_service_advisors:
       self.loadServiceAdvisors()
-    return self.serviceAdvisorsDict[key]
+
+    return self.serviceAdvisorsDict[key] if key in self.serviceAdvisorsDict else None
 
   def loadServiceAdvisors(self):
+    """
+    If not loaded, for all of the services requested load the Service Advisor into the in-memory dictionary.
+    """
+    self.loaded_service_advisors = True
+    if self.services is None or "services" not in self.services:
+      return
+
     for service in self.services["services"]:
       serviceName = service["StackServices"]["service_name"]
-      self.serviceAdvisorsDict[serviceName] = self.instantiateServiceAdvisor(service)
+      serviceAdvisor = self.instantiateServiceAdvisor(service)
+      # This may store None for that service advisor.
+      self.serviceAdvisorsDict[serviceName] = serviceAdvisor
       for component in service["components"]:
         componentName = self.getComponentName(component)
         self.serviceAdvisorsDict[componentName] = self.serviceAdvisorsDict[serviceName]
 
   def instantiateServiceAdvisor(self, service):
-
-    serviceName = service["StackServices"]["service_name"]
-    className = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
+    """
+    Load the Service Advisor for the given services by finding the best class in the given file.
+    :param service: Service object that contains a path to the advisor being requested.
+    :return: The class name for the Service Advisor requested, or None if one could not be found.
+    """
+    service_name = service["StackServices"]["service_name"]
+    class_name = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
     path = service["StackServices"]["advisor_path"] if "advisor_path" in service["StackServices"] else None
 
-    if path is not None and os.path.exists(path) and className is not None:
+    class_name_pattern = re.compile("%s.*?ServiceAdvisor" % service_name, re.IGNORECASE)
+
+    if path is not None and os.path.exists(path) and class_name is not None:
       try:
         with open(path, 'rb') as fp:
-          serviceAdvisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
-        if hasattr(serviceAdvisor, className):
-          print "ServiceAdvisor implementation for service {0} was loaded".format(serviceName)
-          return getattr(serviceAdvisor, className)()
-        else:
-          print "Failed to load or create ServiceAdvisor implementation for service {0}: " \
-                "Expecting class name {1} but it was not found.".format(serviceName, className)
+          service_advisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
+
+          # Find the class name by reading from all of the available attributes of the python file.
+          attributes = dir(service_advisor)
+          best_class_name = class_name
+          for potential_class_name in attributes:
+            if not potential_class_name.startswith("__"):
+              m = class_name_pattern.match(potential_class_name)
+              if m:
+                best_class_name = potential_class_name
+                break
+
+          if hasattr(service_advisor, best_class_name):
+            Logger.info("ServiceAdvisor implementation for service {0} was loaded".format(service_name))
+            return getattr(service_advisor, best_class_name)()
+          else:
+            Logger.error("Failed to load or create ServiceAdvisor implementation for service {0}: " \
+                  "Expecting class name {1} but it was not found.".format(service_name, best_class_name))
       except Exception as e:
         traceback.print_exc()
-        print "Failed to load or create ServiceAdvisor implementation for service {0}".format(serviceName)
+        Logger.error("Failed to load or create ServiceAdvisor implementation for service {0}".format(service_name))
 
     return None
 
@@ -380,6 +584,124 @@ class DefaultStackAdvisor(StackAdvisor):
     }
 
     return recommendations
+
+  def get_heap_size_properties(self, services):
+    """
+    Get dictionary of all of the components and a mapping to the heap-size configs, along with default values
+    if the heap-size config could not be found. This is used in calculations for the total memory needed to run
+    the cluster.
+    :param services: Dictionary that contains all of the services being requested. This is used to find heap-size
+    configs that have been delegated to Service Advisors to define.
+    :return: Dictionary of mappings from component name to another dictionary of the heap-size configs.
+    """
+    default = {
+      "NAMENODE":
+        [{"config-name": "hadoop-env",
+          "property": "namenode_heapsize",
+          "default": "1024m"}],
+      "SECONDARY_NAMENODE":
+        [{"config-name": "hadoop-env",
+          "property": "namenode_heapsize",
+          "default": "1024m"}],
+      "DATANODE":
+        [{"config-name": "hadoop-env",
+          "property": "dtnode_heapsize",
+          "default": "1024m"}],
+      "REGIONSERVER":
+        [{"config-name": "hbase-env",
+          "property": "hbase_regionserver_heapsize",
+          "default": "1024m"}],
+      "HBASE_MASTER":
+        [{"config-name": "hbase-env",
+          "property": "hbase_master_heapsize",
+          "default": "1024m"}],
+      "HIVE_CLIENT":
+        [{"config-name": "hive-env",
+          "property": "hive.client.heapsize",
+          "default": "1024m"}],
+      "HIVE_METASTORE":
+        [{"config-name": "hive-env",
+          "property": "hive.metastore.heapsize",
+          "default": "1024m"}],
+      "HIVE_SERVER":
+        [{"config-name": "hive-env",
+          "property": "hive.heapsize",
+          "default": "1024m"}],
+      "HISTORYSERVER":
+        [{"config-name": "mapred-env",
+          "property": "jobhistory_heapsize",
+          "default": "1024m"}],
+      "OOZIE_SERVER":
+        [{"config-name": "oozie-env",
+          "property": "oozie_heapsize",
+          "default": "1024m"}],
+      "RESOURCEMANAGER":
+        [{"config-name": "yarn-env",
+          "property": "resourcemanager_heapsize",
+          "default": "1024m"}],
+      "NODEMANAGER":
+        [{"config-name": "yarn-env",
+          "property": "nodemanager_heapsize",
+          "default": "1024m"}],
+      "APP_TIMELINE_SERVER":
+        [{"config-name": "yarn-env",
+          "property": "apptimelineserver_heapsize",
+          "default": "1024m"}],
+      "ZOOKEEPER_SERVER":
+        [{"config-name": "zookeeper-env",
+          "property": "zk_server_heapsize",
+          "default": "1024m"}],
+      "METRICS_COLLECTOR":
+        [{"config-name": "ams-hbase-env",
+          "property": "hbase_master_heapsize",
+          "default": "1024m"},
+         {"config-name": "ams-hbase-env",
+          "property": "hbase_regionserver_heapsize",
+          "default": "1024m"},
+         {"config-name": "ams-env",
+          "property": "metrics_collector_heapsize",
+          "default": "512m"}],
+      "ATLAS_SERVER":
+        [{"config-name": "atlas-env",
+          "property": "atlas_server_xmx",
+          "default": "2048m"}],
+      "LOGSEARCH_SERVER":
+        [{"config-name": "logsearch-env",
+          "property": "logsearch_app_max_memory",
+          "default": "1024m"}],
+      "LOGSEARCH_LOGFEEDER":
+        [{"config-name": "logfeeder-env",
+          "property": "logfeeder_max_mem",
+          "default": "512m"}],
+      "SPARK_JOBHISTORYSERVER":
+        [{"config-name": "spark-env",
+          "property": "spark_daemon_memory",
+          "default": "1024m"}],
+      "SPARK2_JOBHISTORYSERVER":
+        [{"config-name": "spark2-env",
+          "property": "spark_daemon_memory",
+          "default": "1024m"}]
+    }
+
+
+    try:
+      # Override any by reading from the Service Advisors
+
+      for service in services["services"]:
+        serviceName = service["StackServices"]["service_name"]
+        serviceAdvisor = self.getServiceAdvisor(serviceName)
+
+        # This seems confusing, but "self" may actually refer to the actual Service Advisor class that was loaded
+        # as opposed to this class.
+        advisor = serviceAdvisor if serviceAdvisor is not None else self
+
+        # TODO, switch this to a function instead of a property.
+        if hasattr(advisor, "heap_size_properties"):
+          # Override the values in "default" with those from the service advisor
+          default.update(advisor.heap_size_properties)
+    except Exception, e:
+      traceback.print_exc()
+    return default
 
   def createComponentLayoutRecommendations(self, services, hosts):
     self.services = services
@@ -683,6 +1005,7 @@ class DefaultStackAdvisor(StackAdvisor):
       serviceAdvisors = []
       for service in services["services"]:
         serviceName = service["StackServices"]["service_name"]
+        # "calculation" is a function pointer
         calculation = self.getServiceConfigurationRecommender(serviceName)
         if calculation is not None:
           calculation(configurations, cgClusterSummary, cgServices, cgHosts)
@@ -818,7 +1141,11 @@ class DefaultStackAdvisor(StackAdvisor):
 
   # Helper dictionaries
   def getComponentCardinality(self, componentName):
-    return self.getCardinalitiesDict().get(componentName, {"min": 1, "max": 1})
+    dict = self.getCardinalitiesDict()
+    if componentName in dict:
+      return dict[componentName]
+    else:
+      return {"min": 1, "max": 1}
 
   def getHostForComponent(self, component, hostsList):
     if len(hostsList) == 0:
@@ -844,16 +1171,16 @@ class DefaultStackAdvisor(StackAdvisor):
     return not (self.getComponentName(component) in self.getNotPreferableOnServerComponents() and self.isLocalHost(host))
 
   def getMastersWithMultipleInstances(self):
-    return []
+    return self.mastersWithMultipleInstances
 
   def getNotValuableComponents(self):
-    return []
+    return self.notValuableComponents
 
   def getNotPreferableOnServerComponents(self):
-    return []
+    return self.notPreferableOnServerComponents
 
   def getCardinalitiesDict(self):
-    return {}
+    return self.cardinalitiesDict
 
   def getComponentLayoutSchemes(self):
     """

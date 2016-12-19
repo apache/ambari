@@ -17,17 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import re
 import os
 import sys
 import socket
-
 from math import ceil, floor, log
 
+# Local Imports
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
-
 from stack_advisor import DefaultStackAdvisor
 
 
@@ -36,6 +36,53 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def __init__(self):
     super(HDP206StackAdvisor, self).__init__()
     Logger.initialize_logger()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    self.mastersWithMultipleInstances |= set(['ZOOKEEPER_SERVER', 'HBASE_MASTER'])
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    self.cardinalitiesDict.update(
+      {
+        'ZOOKEEPER_SERVER': {"min": 3},
+        'HBASE_MASTER': {"min": 1},
+      }
+    )
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    self.notPreferableOnServerComponents |= set(['GANGLIA_SERVER', 'METRICS_COLLECTOR'])
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -953,6 +1000,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                               and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
     return components
 
+  # TODO, move this to a generic stack advisor.
   def getZKHostPortString(self, services, include_port=True):
     """
     Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
@@ -978,6 +1026,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       zookeeper_host_port = ",".join(zookeeper_host_port_arr)
     return zookeeper_host_port
 
+  # TODO, move this to a generic stack advisor
   def getZKPort(self, services):
     zookeeper_port = '2181'     #default port
     if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
@@ -1414,7 +1463,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 if collectorHostName in component["StackServiceComponents"]["hostnames"]:
                   hostComponents.append(component["StackServiceComponents"]["component_name"])
 
-          requiredMemory = getMemorySizeRequired(hostComponents, configurations)
+          requiredMemory = self.getMemorySizeRequired(services, hostComponents, configurations)
           unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
           collector_needs_increase = collector_heapsize * mb < 16 * gb
 
@@ -1428,6 +1477,33 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeItem}])
     pass
     return self.toConfigurationValidationProblems(validationItems, "ams-env")
+
+  def getMemorySizeRequired(self, services, components, configurations):
+    totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
+    # Dictionary from component name to list of dictionary with keys: config-name, property, default.
+    heapSizeProperties = self.get_heap_size_properties(services)
+    for component in components:
+      if component in heapSizeProperties.keys():
+        heapSizePropertiesForComp = heapSizeProperties[component]
+        for heapSizeProperty in heapSizePropertiesForComp:
+          try:
+            properties = configurations[heapSizeProperty["config-name"]]["properties"]
+            heapsize = properties[heapSizeProperty["property"]]
+          except KeyError:
+            heapsize = heapSizeProperty["default"]
+
+          # Assume Mb if no modifier
+          if len(heapsize) > 1 and heapsize[-1] in '0123456789':
+            heapsize = str(heapsize) + "m"
+
+          totalMemoryRequired += formatXmxSizeToBytes(heapsize)
+      else:
+        if component == "METRICS_MONITOR" or "CLIENT" in component:
+          heapsize = '512m'
+        else:
+          heapsize = '1024m'
+        totalMemoryRequired += formatXmxSizeToBytes(heapsize)
+    return totalMemoryRequired
 
   def getPreferredMountPoints(self, hostInfo):
 
@@ -1707,21 +1783,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         return dataNodeHosts
     return []
 
-  def getMastersWithMultipleInstances(self):
-    return ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
-
-  def getNotValuableComponents(self):
-    return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
-
-  def getNotPreferableOnServerComponents(self):
-    return ['GANGLIA_SERVER', 'METRICS_COLLECTOR']
-
-  def getCardinalitiesDict(self):
-    return {
-      'ZOOKEEPER_SERVER': {"min": 3},
-      'HBASE_MASTER': {"min": 1},
-      }
-
+  # TODO, move to Service Advisors.
   def getComponentLayoutSchemes(self):
     return {
       'NAMENODE': {"else": 0},
@@ -2062,100 +2124,6 @@ def getMountPointForDir(dir, mountPoints):
           bestMountFound = mountPoint
 
   return bestMountFound
-
-def getHeapsizeProperties():
-  return { "NAMENODE": [{"config-name": "hadoop-env",
-                         "property": "namenode_heapsize",
-                         "default": "1024m"}],
-           "SECONDARY_NAMENODE": [{"config-name": "hadoop-env",
-                         "property": "namenode_heapsize",
-                         "default": "1024m"}],
-           "DATANODE": [{"config-name": "hadoop-env",
-                         "property": "dtnode_heapsize",
-                         "default": "1024m"}],
-           "REGIONSERVER": [{"config-name": "hbase-env",
-                             "property": "hbase_regionserver_heapsize",
-                             "default": "1024m"}],
-           "HBASE_MASTER": [{"config-name": "hbase-env",
-                             "property": "hbase_master_heapsize",
-                             "default": "1024m"}],
-           "HIVE_CLIENT": [{"config-name": "hive-env",
-                            "property": "hive.client.heapsize",
-                            "default": "1024"}],
-           "HIVE_METASTORE": [{"config-name": "hive-env",
-                            "property": "hive.metastore.heapsize",
-                            "default": "1024"}],
-           "HIVE_SERVER": [{"config-name": "hive-env",
-                               "property": "hive.heapsize",
-                               "default": "1024"}],
-           "HISTORYSERVER": [{"config-name": "mapred-env",
-                              "property": "jobhistory_heapsize",
-                              "default": "1024m"}],
-           "OOZIE_SERVER": [{"config-name": "oozie-env",
-                             "property": "oozie_heapsize",
-                             "default": "1024m"}],
-           "RESOURCEMANAGER": [{"config-name": "yarn-env",
-                                "property": "resourcemanager_heapsize",
-                                "default": "1024m"}],
-           "NODEMANAGER": [{"config-name": "yarn-env",
-                            "property": "nodemanager_heapsize",
-                            "default": "1024m"}],
-           "APP_TIMELINE_SERVER": [{"config-name": "yarn-env",
-                                    "property": "apptimelineserver_heapsize",
-                                    "default": "1024m"}],
-           "ZOOKEEPER_SERVER": [{"config-name": "zookeeper-env",
-                                 "property": "zk_server_heapsize",
-                                 "default": "1024m"}],
-           "METRICS_COLLECTOR": [{"config-name": "ams-hbase-env",
-                                   "property": "hbase_master_heapsize",
-                                   "default": "1024"},
-                                 {"config-name": "ams-hbase-env",
-                                  "property": "hbase_regionserver_heapsize",
-                                  "default": "1024"},
-                                 {"config-name": "ams-env",
-                                   "property": "metrics_collector_heapsize",
-                                   "default": "512"}],
-           "ATLAS_SERVER": [{"config-name": "atlas-env",
-                             "property": "atlas_server_xmx",
-                             "default": "2048"}],
-           "LOGSEARCH_SERVER": [{"config-name": "logsearch-env",
-                            "property": "logsearch_app_max_memory",
-                            "default": "1024"}],
-           "LOGSEARCH_LOGFEEDER": [{"config-name": "logfeeder-env",
-                            "property": "logfeeder_max_mem",
-                            "default": "512"}],
-           "SPARK_JOBHISTORYSERVER": [{"config-name": "spark-env",
-                                 "property": "spark_daemon_memory",
-                                 "default": "1024"}],
-           "SPARK2_JOBHISTORYSERVER": [{"config-name": "spark2-env",
-                                       "property": "spark_daemon_memory",
-                                       "default": "1024"}]
-           }
-
-def getMemorySizeRequired(components, configurations):
-  totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
-  for component in components:
-    if component in getHeapsizeProperties().keys():
-      heapSizeProperties = getHeapsizeProperties()[component]
-      for heapSizeProperty in heapSizeProperties:
-        try:
-          properties = configurations[heapSizeProperty["config-name"]]["properties"]
-          heapsize = properties[heapSizeProperty["property"]]
-        except KeyError:
-          heapsize = heapSizeProperty["default"]
-
-        # Assume Mb if no modifier
-        if len(heapsize) > 1 and heapsize[-1] in '0123456789':
-          heapsize = str(heapsize) + "m"
-
-        totalMemoryRequired += formatXmxSizeToBytes(heapsize)
-    else:
-      if component == "METRICS_MONITOR" or "CLIENT" in component:
-        heapsize = '512m'
-      else:
-        heapsize = '1024m'
-      totalMemoryRequired += formatXmxSizeToBytes(heapsize)
-  return totalMemoryRequired
 
 def round_to_n(mem_size, n=128):
   return int(round(mem_size / float(n))) * int(n)

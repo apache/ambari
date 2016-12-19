@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import math
 from math import floor
 from urlparse import urlparse
@@ -26,8 +27,61 @@ import socket
 import re
 import xml.etree.ElementTree as ET
 
+# Local Imports
+from resource_management.core.logger import Logger
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
+
+  def __init__(self):
+    super(HDP22StackAdvisor, self).__init__()
+    Logger.initialize_logger()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    self.mastersWithMultipleInstances |= set(['METRICS_COLLECTOR'])
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    self.cardinalitiesDict.update(
+      {
+        'METRICS_COLLECTOR': {"min": 1}
+      }
+    )
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['METRICS_MONITOR'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDP22StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -1673,21 +1727,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       validationItems.append({"config-name": "ranger-storm-plugin-enabled",
                               "item": self.getWarnItem("Ranger Storm plugin should not be enabled in non-kerberos environment.")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-env")
-
-  def getMastersWithMultipleInstances(self):
-    result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()
-    result.extend(['METRICS_COLLECTOR'])
-    return result
-
-  def getNotValuableComponents(self):
-    result = super(HDP22StackAdvisor, self).getNotValuableComponents()
-    result.extend(['METRICS_MONITOR'])
-    return result
-
-  def getCardinalitiesDict(self):
-    result = super(HDP22StackAdvisor, self).getCardinalitiesDict()
-    result['METRICS_COLLECTOR'] = {"min": 1}
-    return result
 
   def getAffectedConfigs(self, services):
     affectedConfigs = super(HDP22StackAdvisor, self).getAffectedConfigs(services)

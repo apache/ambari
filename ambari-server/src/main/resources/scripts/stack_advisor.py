@@ -134,10 +134,11 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
     try:
       path = STACK_ADVISOR_IMPL_PATH_TEMPLATE.format(stackName, version)
 
-      with open(path, 'rb') as fp:
-        stack_advisor = imp.load_module('stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
-      className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(stackName, version.replace('.', ''))
-      print "StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version)
+      if os.path.isfile(path):
+        with open(path, 'rb') as fp:
+          stack_advisor = imp.load_module('stack_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
+        className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(stackName, version.replace('.', ''))
+        print "StackAdvisor implementation for stack {0}, version {1} was loaded".format(stackName, version)
     except IOError: # file not found
       traceback.print_exc()
       print "StackAdvisor implementation for stack {0}, version {1} was not found".format(stackName, version)
