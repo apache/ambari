@@ -143,9 +143,7 @@ public class QuickLinksConfigurationModuleTest {
     assertEquals("Links are not properly overridden for foo_logs",
         new ArrayList<>(),
         linksByName.get("foo_logs").getProperties());
-
   }
-
 
   private QuickLinks[] resolveQuickLinks(String parentJson, String childJson) throws AmbariException{
     File parentQuiclinksFile = new File(this.getClass().getClassLoader().getResource(parentJson).getFile());
