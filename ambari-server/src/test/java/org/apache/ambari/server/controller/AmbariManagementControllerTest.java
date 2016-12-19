@@ -1690,9 +1690,9 @@ public class AmbariManagementControllerTest {
     hostnames.add(host1);
     hostnames.add(host2);
     hostnames.add(host3);
-    clusters.mapHostsToCluster(hostnames, clusterFoo);
-    clusters.mapHostsToCluster(hostnames, cluster1);
-    clusters.mapHostsToCluster(hostnames, cluster2);
+    clusters.mapAndPublishHostsToCluster(hostnames, clusterFoo);
+    clusters.mapAndPublishHostsToCluster(hostnames, cluster1);
+    clusters.mapAndPublishHostsToCluster(hostnames, cluster2);
 
     set1.clear();
     ServiceComponentHostRequest valid =
@@ -8239,7 +8239,7 @@ public class AmbariManagementControllerTest {
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost(hostName1), "redhat", "5.9");
 
-    clusters.mapHostsToCluster(new HashSet<String>(){
+    clusters.mapAndPublishHostsToCluster(new HashSet<String>(){
       {add(hostName1);}}, cluster1);
 
 

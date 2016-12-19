@@ -483,7 +483,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Cluster c = clusters.getCluster(request.getClusterName());
 
     if (request.getHostNames() != null) {
-      clusters.mapHostsToCluster(request.getHostNames(),
+      clusters.mapAndPublishHostsToCluster(request.getHostNames(),
           request.getClusterName());
     }
     // Create cluster widgets and layouts
@@ -1721,7 +1721,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         request.getHostNames() != null && !request.getHostNames().isEmpty();
 
     if (requiresHostListUpdate) {
-      clusters.mapHostsToCluster(
+      clusters.mapAndPublishHostsToCluster(
           request.getHostNames(), request.getClusterName());
     }
 

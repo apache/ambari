@@ -326,7 +326,7 @@ public class ClustersTest {
     hostnames.add(h1);
     hostnames.add(h2);
 
-    clusters.mapHostsToCluster(hostnames, c2);
+    clusters.mapAndPublishHostsToCluster(hostnames, c2);
 
     c = clusters.getClustersForHost(h1);
     Assert.assertEquals(2, c.size());
@@ -425,7 +425,7 @@ public class ClustersTest {
     setOsFamily(clusters.getHost(h1), "centos", "5.9");
     setOsFamily(clusters.getHost(h2), "centos", "5.9");
 
-    clusters.mapHostsToCluster(new HashSet<String>() {
+    clusters.mapAndPublishHostsToCluster(new HashSet<String>() {
       {
         addAll(Arrays.asList(h1, h2));
       }
@@ -688,7 +688,7 @@ public class ClustersTest {
 
     Set<String> hostnames = new HashSet<>();
     hostnames.add(hostName);
-    clusters.mapHostsToCluster(hostnames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostnames, clusterName);
   }
 
   private Cluster createCluster(String clusterName) throws AmbariException {

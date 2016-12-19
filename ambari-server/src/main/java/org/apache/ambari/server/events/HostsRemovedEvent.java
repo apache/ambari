@@ -17,34 +17,40 @@
  */
 package org.apache.ambari.server.events;
 
+import org.apache.ambari.server.state.Cluster;
+
 import java.util.Collections;
 import java.util.Set;
 
-import org.apache.ambari.server.state.Cluster;
-
 /**
- * The {@link HostRemovedEvent} class is fired when a host is removed from the
+ * The {@link HostsRemovedEvent} class is fired when the hosts are removed from the
  * cluster.
  */
-public class HostRemovedEvent extends HostEvent {
+public class HostsRemovedEvent extends AmbariEvent {
 
   /**
-   * The clusters that the removed host belonged to.
+   * The clusters that the removed hosts belonged to.
    */
   private final Set<Cluster> m_clusters;
 
   /**
-   * Constructor.
-   *
-   * @param hostName
+   * Removed hosts.
    */
-  public HostRemovedEvent(String hostName, Set<Cluster> clusters) {
-    super(AmbariEventType.HOST_REMOVED, hostName);
+  private final Set<String> m_hosts;
+
+  /**
+   * Constructor.
+   * @param hosts
+   * @param clusters
+   */
+  public HostsRemovedEvent(Set<String> hosts, Set<Cluster> clusters) {
+    super(AmbariEventType.HOST_REMOVED);
     m_clusters = clusters;
+    m_hosts = hosts;
   }
 
   /**
-   * The clusters that the host belonged to.
+   * The clusters that the hosts belonged to.
    *
    * @return the clusters, or an empty set.
    */
@@ -57,13 +63,26 @@ public class HostRemovedEvent extends HostEvent {
   }
 
   /**
+   * Removed hosts.
+   * @return
+   */
+  public Set<String> getHostNames() {
+    if (null == m_hosts) {
+      return Collections.emptySet();
+    }
+
+    return m_hosts;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("HostRemovedEvent{");
-    buffer.append("hostName=").append(m_hostName);
-    buffer.append("}");
-    return buffer.toString();
+    final StringBuffer sb = new StringBuffer("HostsRemovedEvent{");
+    sb.append("m_clusters=").append(m_clusters);
+    sb.append(", m_hosts=").append(m_hosts);
+    sb.append('}');
+    return sb.toString();
   }
 }

@@ -154,7 +154,7 @@ public class ServiceComponentHostTest {
     clusterEntity.setHostEntities(hostEntities);
     clusterDAO.merge(clusterEntity);
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
   }
 
   private ServiceComponentHost createNewServiceComponentHost(String clusterName,

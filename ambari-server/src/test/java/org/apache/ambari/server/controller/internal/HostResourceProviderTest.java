@@ -905,7 +905,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getHosts()).andReturn(Arrays.asList(host100)).anyTimes();
     expect(clusters.getHostsForCluster("Cluster100")).andReturn(Collections.singletonMap("Host100", host100)).anyTimes();
     expect(clusters.getHost("Host100")).andReturn(host100).anyTimes();
-    clusters.mapHostToCluster("Host100", "Cluster100");
+    clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
     expectLastCall().anyTimes();
     cluster.recalculateAllClusterVersionStates();
     expectLastCall().anyTimes();
@@ -998,7 +998,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
     expect(clusters.getHost("Host100")).andReturn(host100).anyTimes();
     expect(clusters.getHostsForCluster("Cluster100")).andReturn(Collections.singletonMap("Host100", host100)).anyTimes();
-    clusters.mapHostToCluster("Host100", "Cluster100");
+    clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
     expectLastCall().anyTimes();
     cluster.recalculateAllClusterVersionStates();
     expectLastCall().anyTimes();
@@ -1079,6 +1079,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(cluster.getClusterId()).andReturn(100L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
     clusters.deleteHost("Host100");
+    clusters.publishHostsDeletion(Collections.EMPTY_SET, Collections.singleton("Host100"));
     cluster.recalculateAllClusterVersionStates();
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();

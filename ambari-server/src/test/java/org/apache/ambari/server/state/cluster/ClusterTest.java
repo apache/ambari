@@ -243,7 +243,7 @@ public class ClusterTest {
       hostDAO.merge(hostEntity);
     }
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     c1 = clusters.getCluster(clusterName);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -2035,7 +2035,7 @@ public class ClusterTest {
 
     // Add one more Host, with only Ganglia on it. It should have a HostVersion in OUT_OF_SYNC for v2
     addHost("h-5", hostAttributes);
-    clusters.mapHostToCluster("h-5", clusterName);
+    clusters.mapAndPublishHostsToCluster(Collections.singleton("h-5"), clusterName);
     ServiceComponentHost schHost5Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-5");
     sc3CompB.addServiceComponentHost(schHost5Serv3CompB);
 

@@ -157,7 +157,7 @@ public interface Clusters {
    * @param clusterName
    * @throws AmbariException
    */
-  void mapHostsToCluster(Set<String> hostnames, String clusterName)
+  void mapAndPublishHostsToCluster(Set<String> hostnames, String clusterName)
       throws AmbariException;
 
   /**
@@ -240,6 +240,15 @@ public interface Clusters {
    * @param hostname
    */
   void deleteHost(String hostname)
+      throws AmbariException;
+
+  /**
+   * Publish event set of hosts were removed
+   * @param clusters
+   * @param hostNames
+   * @throws AmbariException
+   */
+  void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames)
       throws AmbariException;
 
   /**

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -126,6 +127,19 @@ public class CrudDAO<E, K> {
   @Transactional
   public void remove(E entity) {
     entityManagerProvider.get().remove(merge(entity));
+    entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
+  }
+
+  /**
+   * Deletes entities.
+   *
+   * @param entities entities to delete
+   */
+  @Transactional
+  public void remove(Collection<E> entities) {
+    for (E entity : entities) {
+      entityManagerProvider.get().remove(merge(entity));
+    }
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
   }
 
