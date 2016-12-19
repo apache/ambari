@@ -213,4 +213,39 @@ public class TestShellCommandUtil {
     Assert.assertTrue(destFile.length() > 0);
     Assert.assertEquals(destFile.length(), srcFile.length());
   }
+
+  @Test
+  public void deleteExistingFile() throws Exception {
+    File file = temp.newFile();
+
+    ShellCommandUtil.Result result = ShellCommandUtil.delete(file.getAbsolutePath(), false, false);
+
+    Assert.assertTrue(result.getStderr(), result.isSuccessful());
+    Assert.assertFalse(file.exists());
+  }
+
+  @Test
+  public void deleteNonexistentFile() throws Exception {
+    File file = temp.newFile();
+
+    if (file.delete()) {
+      ShellCommandUtil.Result result = ShellCommandUtil.delete(file.getAbsolutePath(), false, false);
+
+      Assert.assertFalse(result.getStderr(), result.isSuccessful());
+      Assert.assertFalse(file.exists());
+    }
+  }
+
+  @Test
+  public void forceDeleteNonexistentFile() throws Exception {
+    File file = temp.newFile();
+
+    if (file.delete()) {
+      ShellCommandUtil.Result result = ShellCommandUtil.delete(file.getAbsolutePath(), true, false);
+
+      Assert.assertTrue(result.getStderr(), result.isSuccessful());
+      Assert.assertFalse(file.exists());
+    }
+  }
+
 }

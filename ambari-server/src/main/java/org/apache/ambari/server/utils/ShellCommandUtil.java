@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -342,7 +343,7 @@ public class ShellCommandUtil {
 
       command.add(directoryPath);
 
-      return runCommand(command.toArray(new String[command.size()]), null, null, sudo);
+      return runCommand(command, null, null, sudo);
     }
   }
 
@@ -377,7 +378,43 @@ public class ShellCommandUtil {
     command.add(srcFile);
     command.add(destFile);
 
-    return runCommand(command.toArray(new String[command.size()]), null, null, sudo);
+    return runCommand(command, null, null, sudo);
+  }
+
+  /**
+   * Deletes the <code>file</code>.
+   *
+   * @param file the path to the file to be deleted
+   * @param force true to force copy even if the file exists
+   * @param sudo true to execute the command using sudo (ambari-sudo); otherwise false
+   * @return the shell command result
+   */
+  public static Result delete(String file, boolean force, boolean sudo) throws IOException, InterruptedException {
+    List<String> command = new ArrayList<>();
+
+    if (WINDOWS) {
+      command.add("del");
+      if (force) {
+        command.add("/f");
+      }
+    } else {
+      command.add("/bin/rm");
+      if (force) {
+        command.add("-f");
+      }
+    }
+
+    command.add(file);
+
+    return runCommand(command, null, null, sudo);
+  }
+
+  /**
+   * @see #runCommand(String[], Map, InteractiveHandler, boolean)
+   */
+  public static Result runCommand(List<String> args, Map<String, String> vars, InteractiveHandler interactiveHandler, boolean sudo)
+    throws IOException, InterruptedException {
+    return runCommand(args.toArray(new String[args.size()]), vars, interactiveHandler, sudo);
   }
 
   /**
