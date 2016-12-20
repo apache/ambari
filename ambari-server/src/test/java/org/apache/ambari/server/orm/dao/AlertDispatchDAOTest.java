@@ -85,8 +85,6 @@ public class AlertDispatchDAOTest {
   private AlertDefinitionDAO m_definitionDao;
   private AlertsDAO m_alertsDao;
   private OrmTestHelper m_helper;
-  private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
-  private HostComponentStateDAO hostComponentStateDAO;
 
   private ServiceFactory m_serviceFactory;
   private ServiceComponentFactory m_componentFactory;
@@ -131,7 +129,7 @@ public class AlertDispatchDAOTest {
   }
 
   private void initTestData() throws Exception {
-    Set<AlertTargetEntity> targets = createTargets();
+    Set<AlertTargetEntity> targets = createTargets(1);
 
     for (int i = 0; i < 2; i++) {
       AlertGroupEntity group = new AlertGroupEntity();
@@ -849,9 +847,9 @@ public class AlertDispatchDAOTest {
    * @return
    * @throws Exception
    */
-  private Set<AlertTargetEntity> createTargets() throws Exception {
+  private Set<AlertTargetEntity> createTargets(int numberOfTargets) throws Exception {
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < numberOfTargets; i++) {
       AlertTargetEntity target = new AlertTargetEntity();
       target.setDescription("Target Description " + i);
       target.setNotificationType("EMAIL");
@@ -899,6 +897,49 @@ public class AlertDispatchDAOTest {
 
     for (AlertDefinitionEntity definition : definitions) {
       assertTrue(group.getAlertDefinitions().contains(definition));
+    }
+  }
+
+  /**
+   * Tests that updating JPA associations concurrently doesn't lead to Concu
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testConcurrentGroupModification() throws Exception {
+    createDefinitions();
+
+    AlertGroupEntity group = m_helper.createAlertGroup(m_cluster.getClusterId(), null);
+    final Set<AlertTargetEntity> targets = createTargets(100);
+
+    group.setAlertTargets(targets);
+    group = m_dao.merge(group);
+
+    final class AlertGroupWriterThread extends Thread {
+      private AlertGroupEntity group;
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void run() {
+        for (int i = 0; i < 1000; i++) {
+          group.setAlertTargets(new HashSet<>(targets));
+        }
+      }
+    }
+
+    List<Thread> threads = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      AlertGroupWriterThread thread = new AlertGroupWriterThread();
+      threads.add(thread);
+
+      thread.group = group;
+      thread.start();
+    }
+
+    for (Thread thread : threads) {
+      thread.join();
     }
   }
 }
