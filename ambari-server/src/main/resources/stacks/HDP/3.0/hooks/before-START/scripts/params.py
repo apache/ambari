@@ -45,7 +45,7 @@ stack_root = Script.get_stack_root()
 hadoop_conf_dir = "/etc/hadoop/conf"
 component_list = default("/localComponents", [])
 
-hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
+hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 
 hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
