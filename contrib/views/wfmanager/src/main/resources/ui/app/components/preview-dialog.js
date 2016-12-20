@@ -19,9 +19,17 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
   elementsInserted :function(){
+    this.$('#previewModal').modal({
+      backdrop: 'static',
+      keyboard: false
+    });
+    this.$('#previewModal').modal('show');
   	var self = this;
 	  this.$('#previewModal').on('shown.bs.modal', function (e) {
 	    self.$('.CodeMirror')[0].CodeMirror.refresh();
-	  }); 
-  }.on('didInsertElement'),
+	  });
+    this.$('#previewModal').on('hidden.bs.modal', function () {
+      this.sendAction("closePreview");
+	  }.bind(this));
+  }.on('didInsertElement')
 });

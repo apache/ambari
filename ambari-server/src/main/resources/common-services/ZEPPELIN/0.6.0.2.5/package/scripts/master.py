@@ -312,7 +312,6 @@ class Master(Script):
             interpreter['dependencies'].append(
                 {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.7.0-HBase-1.1", "local": "false"})
       elif interpreter['group'] == 'livy' and params.livy_livyserver_host:
-        interpreter['properties']['livy.spark.master'] = "yarn-cluster"
         interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
                                                       ":" + params.livy_livyserver_port
 

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.apache.ambari.server.audit.event.kerberos.DestroyPrincipalKerberosAud
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
+import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,8 +143,13 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
           if (hostName != null && hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
             String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
             if (keytabFilePath != null) {
-              if (!new File(keytabFilePath).delete()) {
-                LOG.debug(String.format("Failed to remove ambari keytab for %s", evaluatedPrincipal));
+              try {
+                ShellCommandUtil.Result result = ShellCommandUtil.delete(keytabFilePath, true, true);
+                if (!result.isSuccessful()) {
+                  LOG.warn("Failed to remove ambari keytab for {} due to {}", evaluatedPrincipal, result.getStderr());
+                }
+              } catch (IOException|InterruptedException e) {
+                LOG.warn("Failed to remove ambari keytab for " + evaluatedPrincipal, e);
               }
             }
           }

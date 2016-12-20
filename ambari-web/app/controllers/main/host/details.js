@@ -75,6 +75,67 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
   isConfigsLoaded: false,
 
+  addDeleteComponentsMap: {
+    'ZOOKEEPER_SERVER': {
+      deletePropertyName: 'fromDeleteZkServer',
+      configsCallbackName: 'loadStormConfigs'
+    },
+    'HIVE_METASTORE': {
+      deletePropertyName: 'deleteHiveMetaStore',
+      hostPropertyName: 'hiveMetastoreHost',
+      configsCallbackName: 'loadHiveConfigs'
+    },
+    'WEBHCAT_SERVER': {
+      deletePropertyName: 'deleteWebHCatServer',
+      hostPropertyName: 'webhcatServerHost',
+      configsCallbackName: 'loadWebHCatConfigs'
+    },
+    'HIVE_SERVER': {
+      deletePropertyName: 'deleteHiveServer',
+      hostPropertyName: '',
+      configsCallbackName: 'loadHiveConfigs'
+    },
+    'NIMBUS': {
+      deletePropertyName: 'deleteNimbusHost',
+      hostPropertyName: 'nimbusHost',
+      configsCallbackName: 'loadStormConfigs'
+    },
+    'RANGER_KMS_SERVER': {
+      deletePropertyName: 'deleteRangerKMSServer',
+      hostPropertyName: 'rangerKMSServerHost',
+      configsCallbackName: 'loadRangerConfigs'
+    }
+  },
+
+  addDeleteComponentPopupBody: Em.View.extend({
+    templateName: require('templates/main/host/details/addDeleteComponentPopup'),
+    isReconfigure: false,
+    commonMessage: '',
+    manualKerberosWarning: App.get('router.mainAdminKerberosController.isManualKerberos') ?
+      Em.I18n.t('hosts.host.manualKerberosWarning') : '',
+    propertiesToChange: [],
+    lastComponent: false,
+    lastComponentError: '',
+    setPopupSize: function () {
+      this.set('parentView.hasPropertiesToChange', !!this.get('propertiesToChange.length'));
+    }.observes('propertiesToChange.length')
+  }),
+
+  applyConfigsCustomization: function (configs) {
+    configs.propertiesToChange.forEach(function (property) {
+      var value = property.saveRecommended ? property.recommendedValue : property.initialValue,
+        filename = property.propertyFileName;
+      if (configs.groups.length) {
+        var group = configs.groups.find(function (item) {
+          return item.properties.hasOwnProperty(filename);
+        });
+        if (group) {
+          group.properties[filename][property.propertyName] = value;
+        }
+      }
+    });
+  },
+
   /**
    * Open dashboard page
    * @method routeHome
@@ -316,47 +377,84 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var component = event.context;
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
-    var isLastComponent = (this.getTotalComponent(component) === 1);
-    return App.ModalPopup.show({
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      primary: componentName == 'JOURNALNODE'? Em.I18n.t('ok') : Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
-      bodyClass: Em.View.extend({
-        templateName: require('templates/main/host/details/deleteComponentPopup')
-      }),
-      isHiveMetastore: componentName == 'HIVE_METASTORE',
-      isWebHCatServer: componentName == 'WEBHCAT_SERVER',
-      isNimbus: componentName == 'NIMBUS',
-      isRangerKMSServer: componentName == 'RANGER_KMS_SERVER',
-      isZkServer: componentName == 'ZOOKEEPER_SERVER',
-      isJournalNode: componentName == 'JOURNALNODE',
-
-      deleteHiveMetastoreMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'),
-      deleteWebHCatServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteWebHCatServer'),
-      deleteNimbusMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteNimbus'),
-      deleteRangerKMSServereMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteRangerKMSServer'),
-      lastComponentError: Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName),
-      deleteComponentMsg: Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName),
-      deleteZkServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteZooKeeperServer'),
-      deleteJournalNodeMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteJournalNodeMsg'),
-
-      isChecked: false,
-      disablePrimary: Em.computed.not('isChecked'),
-      lastComponent: function () {
-        this.set('isChecked', !isLastComponent);
-        return isLastComponent;
-      }.property(),
-
-      onPrimary: function () {
-        var popup = this;
-        if (componentName == 'JOURNALNODE') {
-          popup.hide();
-          App.router.transitionTo('main.services.manageJournalNode');
-        } else {
-          self._doDeleteHostComponent(component, function () {
-            self.set('redrawComponents', true);
-            popup.hide();
+    var hostName = event.selectedHost || this.get('content.hostName');
+    var returnFunc;
+    var componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
+    if (componentsMapItem) {
+      var primary;
+      if (componentsMapItem.deletePropertyName) {
+        this.set(componentsMapItem.deletePropertyName, true);
+      }
+      if (componentName === 'ZOOKEEPER_SERVER') {
+        primary = function () {
+          this.set('fromDeleteZkServer', true);
+          this.updateStormConfigs();
+          this.isServiceMetricsLoaded(function () {
+            self.loadConfigs();
           });
         }
+      }
+      returnFunc = this.showDeleteComponentPopup(component, true, componentsMapItem.configsCallbackName, primary);
+    } else if (componentName === 'JOURNALNODE') {
+      returnFunc = App.showConfirmationPopup(function () {
+        App.router.transitionTo('main.services.manageJournalNode');
+      }, Em.I18n.t('hosts.host.deleteComponent.popup.deleteJournalNodeMsg'));
+    } else {
+      returnFunc = this.showDeleteComponentPopup(component);
+    }
+    return returnFunc;
+  },
+
+  showDeleteComponentPopup: function (component, isReconfigure, callbackName, primary) {
+    var self = this,
+      isLastComponent = (this.getTotalComponent(component) === 1),
+      componentName = component.get('componentName'),
+      componentDisplayName = component.get('displayName'),
+      commonMessage = Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(componentDisplayName);
+    if (isReconfigure) {
+      var configs = {
+        groups: [],
+        propertiesToChange: []
+      };
+      this.loadConfigs(callbackName, configs);
+    }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      controller: self,
+      hasPropertiesToChange: false,
+      classNameBindings: ['hasPropertiesToChange:common-modal-wrapper', 'hasPropertiesToChange:modal-full-width'],
+      modalDialogClasses: function () {
+        return this.get('hasPropertiesToChange') ? ['modal-lg'] : [];
+      }.property('hasPropertiesToChange'),
+      primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
+      bodyClass: self.get('addDeleteComponentPopupBody').extend({
+        isReconfigure: isReconfigure,
+        commonMessage: commonMessage,
+        propertiesToChange: isReconfigure ? configs.propertiesToChange : [],
+        lastComponentError: Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(componentDisplayName),
+        lastComponent: function () {
+          this.set('parentView.isChecked', !isLastComponent);
+          return isLastComponent;
+        }.property()
+      }),
+      isChecked: false,
+      disablePrimary: function () {
+        return (isReconfigure && !this.get('controller.isConfigsLoaded')) || !this.get('isChecked');
+      }.property('controller.isConfigsLoaded', 'isChecked'),
+      onPrimary: function () {
+        this._super();
+        if (isReconfigure) {
+          self.applyConfigsCustomization(configs);
+        }
+        self._doDeleteHostComponent(componentName, function () {
+          if (isReconfigure) {
+            self.saveConfigsBatch(configs.groups, componentName);
+            if (primary) {
+              primary.call(self);
+            }
+          }
+          self.set('redrawComponents', true);
+        });
       }
     });
   },
@@ -394,13 +492,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    *          when components failed to get deleted.
    * @method _doDeleteHostComponent
    */
-  _doDeleteHostComponent: function (component, callback) {
+  _doDeleteHostComponent: function (componentName, callback) {
     callback = callback || Em.K;
     App.ajax.send({
-      name: (Em.isNone(component)) ? 'common.delete.host' : 'common.delete.host_component',
+      name: (Em.isNone(componentName)) ? 'common.delete.host' : 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: (component) ? component.get('componentName') : '',
+        componentName: componentName || '',
         hostName: this.get('content.hostName')
       },
       success: '_doDeleteHostComponentSuccessCallback',
@@ -419,31 +517,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method _doDeleteHostComponentSuccessCallback
    */
   _doDeleteHostComponentSuccessCallback: function (response, request, data) {
-    var self = this;
     this.set('_deletedHostComponentResult', null);
     this.removeHostComponentModel(data.componentName, data.hostName);
-    if (data.componentName == 'ZOOKEEPER_SERVER') {
-      this.set('fromDeleteZkServer', true);
-      this.updateStormConfigs();
-      self.isServiceMetricsLoaded(function () {
-        self.loadConfigs();
-      });
-    } else if (data.componentName == 'HIVE_METASTORE') {
-      this.set('deleteHiveMetaStore', true);
-      this.loadConfigs('loadHiveConfigs');
-    } else if (data.componentName == 'WEBHCAT_SERVER') {
-      this.set('deleteWebHCatServer', true);
-      this.loadConfigs('loadWebHCatConfigs');
-    } else if (data.componentName == 'HIVE_SERVER') {
-      this.set('deleteHiveServer', true);
-      this.loadConfigs('loadHiveConfigs');
-    } else if (data.componentName == 'NIMBUS') {
-      this.set('deleteNimbusHost', true);
-      this.loadConfigs('loadStormConfigs');
-    } else if (data.componentName == 'RANGER_KMS_SERVER') {
-      this.set('deleteRangerKMSServer', true);
-      this.loadConfigs('loadRangerConfigs');
-    }
   },
 
   /**
@@ -538,55 +613,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
-  showAddComponentConfirmation: function (componentName, callbackName, primary) {
-    var self = this,
-      componentDisplayName = App.format.role(componentName, false),
-      manualKerberosWarning = App.get('router.mainAdminKerberosController.isManualKerberos') ?
-        Em.I18n.t('hosts.host.manualKerberosWarning') : '',
-      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
-      configs = {
-        groups: [],
-        propertiesToChange: []
-      };
-    this.loadConfigs(callbackName, configs);
-    App.ModalPopup.show({
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      controller: self,
-      hasPropertiesToChange: false,
-      classNameBindings: ['hasPropertiesToChange:common-modal-wrapper', 'hasPropertiesToChange:modal-full-width'],
-      modalDialogClasses: function () {
-        return this.get('hasPropertiesToChange') ? ['modal-lg'] : [];
-      }.property('hasPropertiesToChange'),
-      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
-      bodyClass: Em.View.extend({
-        templateName: require('templates/main/host/details/addComponentWithConfigsChanges'),
-        commonMessage: commonMessage,
-        manualKerberosWarning: manualKerberosWarning,
-        propertiesToChange: configs.propertiesToChange,
-        setPopupSize: function () {
-          this.set('parentView.hasPropertiesToChange', !!this.get('propertiesToChange.length'));
-        }.observes('propertiesToChange.length')
-      }),
-      disablePrimary: Em.computed.not('controller.isConfigsLoaded'),
-      onPrimary: function () {
-        this._super();
-        configs.propertiesToChange.forEach(function (property) {
-          var value = property.saveRecommended ? property.recommendedValue : property.initialValue,
-            filename = property.propertyFileName;
-          if (configs.groups.length) {
-            var group = configs.groups.find(function (item) {
-              return item.properties.hasOwnProperty(filename);
-            });
-            group.properties[filename][property.propertyName] = value;
-          }
-        });
-        if (primary) {
-          primary.call(self, configs.groups);
-        }
-      }
-    });
-  },
-
   /**
    * add component as <code>addComponent<code> method but perform
    * kdc sessionstate if cluster is secure;
@@ -616,7 +642,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         installedComponents: this.get('content.hostComponents').mapProperty('componentName')
       }),
       isManualKerberos = App.get('router.mainAdminKerberosController.isManualKerberos'),
-      manualKerberosWarning = isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '';
+      manualKerberosWarning = isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
+      componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
 
     if (!!missedComponents.length) {
       var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
@@ -626,107 +653,71 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
     }
 
-    switch (componentName) {
-      case 'ZOOKEEPER_SERVER':
-        returnFunc = self.showAddComponentConfirmation(componentName, null, function (groups) {
-          this.saveConfigsBatch(groups, componentName, hostName);
-        });
-        break;
-      case 'HIVE_METASTORE':
-        self.set('hiveMetastoreHost', hostName);
-        returnFunc = self.showAddComponentConfirmation(componentName, 'loadHiveConfigs', function (groups) {
-          this.saveConfigsBatch(groups, componentName, hostName);
+    if (componentsMapItem) {
+      var primary;
+      if (componentsMapItem.hostPropertyName) {
+        this.set(componentsMapItem.hostPropertyName, hostName);
+      }
+      if (componentName === 'HIVE_METASTORE') {
+        primary = function () {
           this.set('addHiveServer', false);
-        });
-        break;
-      case 'WEBHCAT_SERVER':
-        self.set('webhcatServerHost', hostName);
-        returnFunc = self.showAddComponentConfirmation(componentName, 'loadWebHCatConfigs', function (groups) {
-          this.saveConfigsBatch(groups, componentName, hostName);
-        });
-        break;
-      case 'NIMBUS':
-        self.set('nimbusHost', hostName);
-        returnFunc = self.showAddComponentConfirmation(componentName, 'loadStormConfigs', function (groups) {
-          this.saveConfigsBatch(groups, componentName, hostName);
-        });
-        break;
-      case 'RANGER_KMS_SERVER':
-        self.set('rangerKMSServerHost', hostName);
-        returnFunc = self.showAddComponentConfirmation(componentName, 'loadRangerConfigs', function (groups) {
-          this.saveConfigsBatch(groups, componentName, hostName);
-        });
-        break;
-      case 'JOURNALNODE':
-        returnFunc = App.showConfirmationPopup(function () {
-          App.router.transitionTo('main.services.manageJournalNode');
-        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
-        break;
-      default:
-        returnFunc = this.addClientComponent(component, isManualKerberos);
+        };
+      }
+      returnFunc = self.showAddComponentPopup(component, hostName, null, true, componentsMapItem.configsCallbackName, primary);
+    } else if (componentName === 'JOURNALNODE') {
+      returnFunc = App.showConfirmationPopup(function () {
+        App.router.transitionTo('main.services.manageJournalNode');
+      }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
+    } else {
+      returnFunc = this.showAddComponentPopup(component, hostName, function () {
+        self.installHostComponentCall(hostName, component);
+      });
     }
     return returnFunc;
   },
 
-  /**
-   * Send command to server to install client on selected host
-   * @param {App.HostComponent} component
-   * @param {boolean} isManualKerberos
-   * @returns {*}
-   */
-  addClientComponent: function (component, isManualKerberos) {
+  showAddComponentPopup: function (component, hostName, primary, isReconfigure, callbackName, primaryOnReconfigure) {
     var self = this,
-      displayName = this.formatClientsMessage(component);
-
-    return this.showAddComponentPopup(displayName, isManualKerberos, function () {
-      self.installHostComponentCall(self.get('content.hostName'), component);
-    });
-  },
-
-  /**
-   *
-   * @param {string} displayName
-   * @param {boolean} isManualKerberos
-   * @param {Function} primary
-   * @returns {*}
-   */
-  showAddComponentPopup: function (displayName, isManualKerberos, primary) {
-    isManualKerberos = isManualKerberos || false;
-
+      componentName = component.get('componentName'),
+      componentDisplayName = component.get('displayName'),
+      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
+    if (isReconfigure) {
+      var configs = {
+        groups: [],
+        propertiesToChange: []
+      };
+      this.loadConfigs(callbackName, configs);
+    }
     return App.ModalPopup.show({
-      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
-
-      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(displayName),
-
-      manualKerberosWarning: isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
-
-      bodyClass: Em.View.extend({
-        templateName: require('templates/main/host/details/addComponentPopup')
+      controller: self,
+      hasPropertiesToChange: false,
+      classNameBindings: ['hasPropertiesToChange:common-modal-wrapper', 'hasPropertiesToChange:modal-full-width'],
+      modalDialogClasses: function () {
+        return this.get('hasPropertiesToChange') ? ['modal-lg'] : [];
+      }.property('hasPropertiesToChange'),
+      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
+      bodyClass: self.get('addDeleteComponentPopupBody').extend({
+        commonMessage: commonMessage,
+        isReconfigure: isReconfigure,
+        propertiesToChange: isReconfigure ? configs.propertiesToChange : []
       }),
-
+      disablePrimary: function () {
+        return isReconfigure && !this.get('controller.isConfigsLoaded');
+      }.property('controller.isConfigsLoaded'),
       onPrimary: function () {
-        this.hide();
-        primary();
+        this._super();
+        if (isReconfigure) {
+          self.applyConfigsCustomization(configs);
+          self.saveConfigsBatch(configs.groups, componentName, hostName);
+          if (primaryOnReconfigure) {
+            primaryOnReconfigure.call(self);
+          }
+        } else if (primary) {
+          primary();
+        }
       }
     });
-  },
-
-  /**
-   * format message for operation of adding clients
-   * @param client
-   */
-  formatClientsMessage: function (client) {
-    var displayName = Em.isNone(client.get('displayName')) ? '' : client.get('displayName');
-    var subComponentNames = client.get('subComponentNames');
-    if (subComponentNames && subComponentNames.length > 0) {
-      var dns = [];
-      subComponentNames.forEach(function (scn) {
-        dns.push(App.format.role(scn, false));
-      });
-      displayName += " (" + dns.join(", ") + ")";
-    }
-    return displayName;
   },
 
   /**
@@ -807,7 +798,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * get Oozie database config and set databaseType
    * @param {object} data
-   * @method onLoadHiveConfigs
+   * @method onLoadOozieConfigs
    */
   onLoadOozieConfigs: function (data) {
     var configs = {};
@@ -931,7 +922,20 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
     this.updateZkConfigs(configs, params.configs);
 
-    configs['storm-site']['nimbus.seeds'] = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
+    var nimbusSeedsInit = configs['storm-site']['nimbus.seeds'],
+      nimbusSeedsRecommended = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
+    configs['storm-site']['nimbus.seeds'] = nimbusSeedsRecommended;
+    if (params.configs && nimbusSeedsInit !== nimbusSeedsRecommended) {
+      var service = App.config.get('serviceByConfigTypeMap')['storm-site'];
+      params.configs.propertiesToChange.pushObject({
+        propertyFileName: 'storm-site',
+        propertyName: 'nimbus.seeds',
+        serviceDisplayName: service && service.get('displayName'),
+        initialValue: nimbusSeedsInit,
+        recommendedValue: nimbusSeedsRecommended,
+        saveRecommended: true
+      });
+    }
     var groups = [
       {
         properties: {
@@ -2540,7 +2544,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       allComponents.forEach(function (component, index) {
         var length = allComponents.get('length');
         if (!deleteError) {
-          this._doDeleteHostComponent(component, function () {
+          this._doDeleteHostComponent(component.get('componentName'), function () {
             deleteError = self.get('_deletedHostComponentResult');
             if (index == length - 1) {
               dfd.resolve();
@@ -2704,9 +2708,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             }
           };
           if (clientsToAdd.length) {
-            var message = stringUtils.getFormattedStringFromArray(clientsToAdd.mapProperty('displayName'));
-            var isManualKerberos = App.get('router.mainAdminKerberosController.isManualKerberos');
-            self.showAddComponentPopup(message, isManualKerberos, function () {
+            var message = stringUtils.getFormattedStringFromArray(clientsToAdd.mapProperty('displayName')),
+              componentObject = Em.Object.create({
+                displayName: message
+              });
+            self.showAddComponentPopup(componentObject, self.get('content.hostName'), function () {
               sendInstallCommand();
               clientsToAdd.forEach(function (component) {
                 self.installHostComponentCall(self.get('content.hostName'), component);

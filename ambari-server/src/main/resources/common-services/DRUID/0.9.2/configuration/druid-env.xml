@@ -231,6 +231,7 @@
       export DRUID_LOG_DIR={{druid_log_dir}}
       export DRUID_CONF_DIR={{druid_conf_dir}}
       export DRUID_LIB_DIR={{druid_home}}/lib
+      export HADOOP_CONF_DIR={{hadoop_conf_dir}}
 
     </value>
     <value-attributes>

@@ -313,6 +313,10 @@ class DefaultStackAdvisor(StackAdvisor):
     # Dictionary that maps serviceName or componentName to serviceAdvisor
     self.serviceAdvisorsDict = {}
 
+    # Contains requested properties during 'recommend-configuration-dependencies' request.
+    # It's empty during other requests.
+    self.allRequestedProperties = None
+
 
   def getActiveHosts(self, hosts):
     """ Filters the list of specified hosts object and returns
@@ -880,6 +884,7 @@ class DefaultStackAdvisor(StackAdvisor):
             return component["StackServiceComponents"]["hostnames"]
 
   def recommendConfigurationDependencies(self, services, hosts):
+    self.allRequestedProperties = self.getAllRequestedProperties(services)
     result = self.recommendConfigurations(services, hosts)
     return self.filterResult(result, services)
 
@@ -1000,7 +1005,8 @@ class DefaultStackAdvisor(StackAdvisor):
       config[configType]["properties"] = {}
     def appendProperty(key, value):
       # If property exists in changedConfigs, do not override, use user defined property
-      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
+      if not self.isPropertyRequested(configType, key, changedConfigs) \
+          and configType in userConfigs and key in userConfigs[configType]['properties']:
         config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
       else:
         config[configType]["properties"][key] = str(value)
@@ -1011,6 +1017,17 @@ class DefaultStackAdvisor(StackAdvisor):
       if changedConfig['type']==configType and changedConfig['name']==propertyName:
         return True
     return False
+
+  def isPropertyRequested(self, configType, propertyName, changedConfigs):
+    # When the property depends on more than one property, we need to recalculate it based on the actual values
+    # of all related properties. But "changed-configurations" usually contains only one on the dependent on properties.
+    # So allRequestedProperties is used to avoid recommendations of other properties that are not requested.
+    # Calculations should use user provided values for all properties that we depend on, not only the one that
+    # came in the "changed-configurations".
+    if self.allRequestedProperties:
+      return configType in self.allRequestedProperties and propertyName in self.allRequestedProperties[configType]
+    else:
+      return not self.__isPropertyInChangedConfigs(configType, propertyName, changedConfigs)
 
   def updateProperty(self, config, configType, services=None):
     userConfigs = {}

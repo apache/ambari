@@ -51,7 +51,7 @@
     {{t common.group}}&nbsp;
 	  <span class="btn-group config-groups-dropdown">
       {{#if controller.configGroupsAreLoaded}}
-        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first"
+        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} style="text-transform: none;" class="btn btn-default dropdown-toggle first"
                                                                       data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
         <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-toggle="dropdown">
           <span class="caret"></span>

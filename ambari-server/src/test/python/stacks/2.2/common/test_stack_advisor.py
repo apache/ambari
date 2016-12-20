@@ -1173,6 +1173,59 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+  def test_multipleDependsOn(self):
+    configurations = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "350",
+          "yarn.scheduler.maximum-allocation-mb": "1000",
+        },
+      },
+      "mapred-site": {
+        "properties": {
+          "mapreduce.map.memory.mb": "0",
+          "mapreduce.reduce.memory.mb": "111"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256
+    }
+
+    services = {
+      "configurations": configurations,
+      "services": [],
+      "changed-configurations": [
+        {
+          "type": "yarn-site",
+          "name": "yarn.scheduler.maximum-allocation-mb",
+          "old_value": "512"
+        },
+      ]
+
+    }
+    hosts = {}
+
+    # immitate recommend-configuration-dependencies request with only "yarn.scheduler.maximum-allocation-mb" in "changed-configurations"
+    self.stackAdvisor.allRequestedProperties = {'yarn-site': ['yarn.scheduler.maximum-allocation-mb'], 'mapred-site': ['mapreduce.map.memory.mb']}
+
+    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
+
+    # changed-configurations contain only "yarn.scheduler.maximum-allocation-mb".
+    # Ensure that user provided value (350) for "yarn.scheduler.minimum-allocation-mb" is used.
+    # The recommended default for "yarn.scheduler.minimum-allocation-mb" is 256.
+    self.assertEquals(configurations['mapred-site']['properties']['mapreduce.map.memory.mb'], '350') # should not be 256
+
+    # assert that not requested property was not changed
+    self.assertEquals(configurations['mapred-site']['properties']['mapreduce.reduce.memory.mb'], '111')
 
   def test_recommendHiveConfigurationAttributes(self):
     self.maxDiff = None
