@@ -89,7 +89,7 @@ def setup_hadoop():
              mode=0644,
              group=params.user_group,
              owner=params.hdfs_user,
-             content=params.log4j_props
+             content=InlineTemplate(params.log4j_props)
         )
       elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
         File(log4j_filename,
