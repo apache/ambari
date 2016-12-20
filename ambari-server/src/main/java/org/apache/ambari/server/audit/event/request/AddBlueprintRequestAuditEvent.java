@@ -36,6 +36,7 @@ public class AddBlueprintRequestAuditEvent extends RequestAuditEvent {
     private String blueprintName;
 
     public AddBlueprintRequestAuditEventBuilder() {
+      super(AddBlueprintRequestAuditEventBuilder.class);
       super.withOperation("Upload blueprint");
     }
 

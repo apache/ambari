@@ -46,6 +46,7 @@ public class DeleteViewInstanceRequestAuditEvent extends RequestAuditEvent {
     private String version;
 
     public DeleteViewInstanceRequestAuditEventBuilder() {
+      super(DeleteViewInstanceRequestAuditEventBuilder.class);
       super.withOperation("View deletion");
     }
 

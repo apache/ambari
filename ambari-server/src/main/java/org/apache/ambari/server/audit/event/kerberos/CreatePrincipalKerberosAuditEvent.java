@@ -28,6 +28,7 @@ public class CreatePrincipalKerberosAuditEvent extends AbstractKerberosAuditEven
     private String principal;
 
     private CreatePrincipalKerberosAuditEventBuilder() {
+      super(CreatePrincipalKerberosAuditEventBuilder.class);
       this.withOperation("Principal creation");
     }
 

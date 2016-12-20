@@ -40,6 +40,10 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
      */
     private String remoteIp;
 
+    protected AbstractUserAuditEventBuilder(Class<? extends TBuilder> builderClass) {
+      super(builderClass);
+    }
+
     /**
      * Appends to audit event details the user name and remote ip of the host
      * where user actions originates from.
@@ -65,7 +69,7 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
     public TBuilder withUserName(String userName) {
       this.userName = userName;
 
-      return (TBuilder) this;
+      return self();
     }
 
     /**
@@ -77,7 +81,7 @@ public abstract class AbstractUserAuditEvent extends AbstractAuditEvent {
     public TBuilder withRemoteIp(String ip) {
       this.remoteIp = ip;
 
-      return (TBuilder) this;
+      return self();
     }
   }
 

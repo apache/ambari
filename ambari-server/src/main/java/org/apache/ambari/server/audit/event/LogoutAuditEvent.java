@@ -28,6 +28,7 @@ public class LogoutAuditEvent extends AbstractUserAuditEvent {
     extends AbstractUserAuditEventBuilder<LogoutAuditEvent, LogoutAuditEventBuilder> {
 
     private LogoutAuditEventBuilder() {
+      super(LogoutAuditEventBuilder.class);
     }
 
     /**

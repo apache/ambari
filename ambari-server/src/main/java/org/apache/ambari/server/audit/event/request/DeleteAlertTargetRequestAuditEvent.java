@@ -36,6 +36,7 @@ public class DeleteAlertTargetRequestAuditEvent extends RequestAuditEvent {
     private String id;
 
     public DeleteAlertTargetRequestAuditEventBuilder() {
+      super(DeleteAlertTargetRequestAuditEventBuilder.class);
       super.withOperation("Notification removal");
     }
 

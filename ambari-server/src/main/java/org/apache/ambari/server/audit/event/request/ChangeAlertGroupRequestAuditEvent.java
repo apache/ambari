@@ -49,6 +49,7 @@ public class ChangeAlertGroupRequestAuditEvent extends RequestAuditEvent {
     private List<String> notificationIds;
 
     public ChangeAlertGroupRequestAuditEventBuilder() {
+      super(ChangeAlertGroupRequestAuditEventBuilder.class);
       super.withOperation("Alert group change");
     }
 

@@ -36,6 +36,7 @@ public class DeleteGroupRequestAuditEvent extends RequestAuditEvent {
     private String groupName;
 
     public DeleteGroupRequestAuditEventBuilder() {
+      super(DeleteGroupRequestAuditEventBuilder.class);
       super.withOperation("Group delete");
     }
 

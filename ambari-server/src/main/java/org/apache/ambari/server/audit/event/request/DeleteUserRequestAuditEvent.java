@@ -36,6 +36,7 @@ public class DeleteUserRequestAuditEvent extends RequestAuditEvent {
     private String username;
 
     public DeleteUserRequestAuditEventBuilder() {
+      super(DeleteUserRequestAuditEventBuilder.class);
       super.withOperation("User delete");
     }
 

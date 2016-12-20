@@ -34,6 +34,7 @@ public class DestroyPrincipalKerberosAuditEvent extends AbstractKerberosAuditEve
     private String principal;
 
     private DestroyPrincipalKerberosAuditEventBuilder() {
+      super(DestroyPrincipalKerberosAuditEventBuilder.class);
       this.withOperation("Principal removal");
     }
 

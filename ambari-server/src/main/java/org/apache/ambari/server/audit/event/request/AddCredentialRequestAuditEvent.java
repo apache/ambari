@@ -51,6 +51,7 @@ public class AddCredentialRequestAuditEvent extends RequestAuditEvent {
     private String alias;
 
     public AddCredentialAuditEventBuilder() {
+      super(AddCredentialAuditEventBuilder.class);
       super.withOperation("Credential addition");
     }
 

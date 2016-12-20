@@ -36,6 +36,7 @@ public class UserPasswordChangeRequestAuditEvent extends RequestAuditEvent {
     private String username;
 
     public UserPasswordChangeRequestAuditEventBuilder() {
+      super(UserPasswordChangeRequestAuditEventBuilder.class);
       super.withOperation("Password change");
     }
 

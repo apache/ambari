@@ -50,6 +50,7 @@ public class OperationStatusAuditEvent extends AbstractAuditEvent {
     private String userName;
 
     private OperationStatusAuditEventBuilder() {
+      super(OperationStatusAuditEventBuilder.class);
     }
 
     @Override

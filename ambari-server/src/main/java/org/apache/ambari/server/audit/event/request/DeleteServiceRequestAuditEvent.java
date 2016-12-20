@@ -36,6 +36,7 @@ public class DeleteServiceRequestAuditEvent extends RequestAuditEvent {
     private String serviceName;
 
     public DeleteServiceRequestAuditEventBuilder() {
+      super(DeleteServiceRequestAuditEventBuilder.class);
       super.withOperation("Service deletion");
     }
 

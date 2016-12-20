@@ -51,6 +51,10 @@ public class AbstractKerberosAuditEvent extends AbstractAuditEvent {
      */
     protected Long taskId;
 
+    protected AbstractKerberosAuditEventBuilder(Class<? extends TBuilder> builderClass) {
+      super(builderClass);
+    }
+
     /**
      * Builds and audit log message based on the member variables
      *
@@ -79,22 +83,22 @@ public class AbstractKerberosAuditEvent extends AbstractAuditEvent {
 
     public TBuilder withOperation(String operation) {
       this.operation = operation;
-      return (TBuilder) this;
+      return self();
     }
 
     public TBuilder withReasonOfFailure(String reasonOfFailure) {
       this.reasonOfFailure = reasonOfFailure;
-      return (TBuilder) this;
+      return self();
     }
 
     public TBuilder withRequestId(Long requestId) {
       this.requestId = requestId;
-      return (TBuilder) this;
+      return self();
     }
 
     public TBuilder withTaskId(Long taskId) {
       this.taskId = taskId;
-      return (TBuilder) this;
+      return self();
     }
   }
 

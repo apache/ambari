@@ -41,6 +41,7 @@ public class RemoveUserFromGroupRequestAuditEvent extends RequestAuditEvent {
     private String affectedUserName;
 
     public AddUserToGroupRequestAuditEventBuilder() {
+      super(AddUserToGroupRequestAuditEventBuilder.class);
       super.withOperation("User removal from group");
     }
 

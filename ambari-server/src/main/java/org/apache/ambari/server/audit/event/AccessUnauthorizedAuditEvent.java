@@ -39,6 +39,10 @@ public class AccessUnauthorizedAuditEvent extends AbstractUserAuditEvent {
      */
     private String resourcePath;
 
+    private AccessUnauthorizedAuditEventBuilder() {
+      super(AccessUnauthorizedAuditEventBuilder.class);
+    }
+
     /**
      * Appends to the aduit event detail the list of the privileges
      * possessed by the principal requesting access to a resource.

@@ -69,6 +69,7 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
 
     public ViewPrivilegeChangeRequestAuditEventBuilder() {
+      super(ViewPrivilegeChangeRequestAuditEventBuilder.class);
       super.withOperation("View permission change");
     }
 

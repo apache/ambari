@@ -44,6 +44,7 @@ public class MembershipChangeRequestAuditEvent extends RequestAuditEvent {
     private String groupName;
 
     public AddUserToGroupRequestAuditEventBuilder() {
+      super(AddUserToGroupRequestAuditEventBuilder.class);
       super.withOperation("Membership change");
     }
 

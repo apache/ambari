@@ -47,7 +47,7 @@ public abstract class AbstractAuditEvent implements AuditEvent {
 
     private Long timestamp;
     private String auditMessage;
-
+    private final Class<? extends TBuilder> builderClass;
 
     /**
      * Creates a new audit event instance from this builder.
@@ -63,6 +63,9 @@ public abstract class AbstractAuditEvent implements AuditEvent {
      */
     protected abstract void buildAuditMessage(StringBuilder builder);
 
+    protected AbstractAuditEventBuilder(Class<? extends TBuilder> builderClass) {
+      this.builderClass = builderClass;
+    }
 
     /**
      * The timestamp of the audit event.
@@ -73,7 +76,7 @@ public abstract class AbstractAuditEvent implements AuditEvent {
     public TBuilder withTimestamp(Long timestamp) {
       this.timestamp = timestamp;
 
-      return (TBuilder) this;
+      return self();
     }
 
     /**
@@ -89,6 +92,9 @@ public abstract class AbstractAuditEvent implements AuditEvent {
       return newAuditEvent();
     }
 
+    protected TBuilder self() {
+      return builderClass.cast(this);
+    }
   }
 
 

@@ -36,6 +36,7 @@ public class AddHostRequestAuditEvent extends RequestAuditEvent {
     private String hostName;
 
     public AddHostRequestAuditEventBuilder() {
+      super(AddHostRequestAuditEventBuilder.class);
       super.withOperation("Host addition");
     }
 

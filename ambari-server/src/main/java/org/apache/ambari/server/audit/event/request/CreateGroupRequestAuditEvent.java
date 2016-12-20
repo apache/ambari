@@ -36,6 +36,7 @@ public class CreateGroupRequestAuditEvent extends RequestAuditEvent {
     private String groupName;
 
     public CreateGroupRequestAuditEventBuilder() {
+      super(CreateGroupRequestAuditEventBuilder.class);
       super.withOperation("Group creation");
     }
 

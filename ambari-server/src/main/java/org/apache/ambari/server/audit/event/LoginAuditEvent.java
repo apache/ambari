@@ -36,6 +36,7 @@ public class LoginAuditEvent extends AbstractUserAuditEvent {
     extends AbstractUserAuditEventBuilder<LoginAuditEvent, LoginAuditEventBuilder> {
 
     private LoginAuditEventBuilder() {
+      super(LoginAuditEventBuilder.class);
     }
 
     /**

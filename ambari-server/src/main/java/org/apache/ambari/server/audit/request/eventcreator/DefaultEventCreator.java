@@ -25,7 +25,7 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.audit.event.AuditEvent;
-import org.apache.ambari.server.audit.request.RequestAuditEvent;
+import org.apache.ambari.server.audit.event.request.DefaultRequestAuditEvent;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -72,7 +72,7 @@ public class DefaultEventCreator implements RequestAuditEventCreator {
   @Override
   public AuditEvent createAuditEvent(final Request request, final Result result) {
 
-    return RequestAuditEvent.builder()
+    return DefaultRequestAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
       .withRemoteIp(request.getRemoteAddress())
       .withRequestType(request.getRequestType())

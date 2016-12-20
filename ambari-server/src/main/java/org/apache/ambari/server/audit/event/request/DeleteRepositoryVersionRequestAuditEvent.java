@@ -46,6 +46,7 @@ public class DeleteRepositoryVersionRequestAuditEvent extends RequestAuditEvent 
     private String repoVersion;
 
     public DeleteRepositoryVersionAuditEventBuilder() {
+      super(DeleteRepositoryVersionAuditEventBuilder.class);
       super.withOperation("Repository version removal");
     }
 
