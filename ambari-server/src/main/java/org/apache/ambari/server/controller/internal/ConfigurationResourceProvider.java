@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -103,13 +103,11 @@ public class ConfigurationResourceProvider extends
    * @param managementController  the associated management controller
    */
   ConfigurationResourceProvider(AmbariManagementController managementController) {
-
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
-    EnumSet<RoleAuthorization> createConfigsAuthSet =
-        EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS, RoleAuthorization.CLUSTER_MODIFY_CONFIGS);
 
-    setRequiredCreateAuthorizations(createConfigsAuthSet);
-    //update and delete are not supported for configs
+    // creating configs requires authorizations based on the type of changes being performed, therefore
+    // checks need to be performed inline.
+    // update and delete are not supported for configs
 
     setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.CLUSTER_VIEW_CONFIGS));
   }
@@ -118,7 +116,7 @@ public class ConfigurationResourceProvider extends
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResourcesAuthorized(Request request)
+  public RequestStatus createResources(Request request)
       throws SystemException,
              UnsupportedPropertyException,
              ResourceAlreadyExistsException,

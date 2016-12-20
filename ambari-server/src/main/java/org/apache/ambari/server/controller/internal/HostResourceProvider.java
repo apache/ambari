@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -773,30 +773,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clusters.getHostsForCluster(clusterName).containsKey(host.getHostName())) {
 
           for (ConfigurationRequest cr : request.getDesiredConfigs()) {
-            String configType = cr.getType();
-
-            // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
-            // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-            String service = null;
-
-            try {
-              service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-            } catch (IllegalArgumentException e) {
-              // Ignore this since we may have hit a config type that spans multiple services. This may
-              // happen in unit test cases but should not happen with later versions of stacks.
-            }
-
-            if(StringUtils.isEmpty(service)) {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
-                throw new AuthorizationException("The authenticated user does not have authorization to modify cluster configurations");
-              }
-            }
-            else {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
-                throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
-              }
-            }
-
             if (null != cr.getProperties() && cr.getProperties().size() > 0) {
               LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
                   cr.getVersionTag(),
