@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view;
 
 import java.beans.IntrospectionException;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,6 +93,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.Closeables;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.configuration.AutoInstanceConfig;
 import org.apache.ambari.server.view.configuration.EntityConfig;
@@ -1819,19 +1821,8 @@ public class ViewRegistry {
       } catch (IOException e) {
         LOG.error("Error occurred while configuring logs for {}", viewDefinition.getName());
       } finally {
-        if (ambariLog4jStream != null) {
-          try {
-            ambariLog4jStream.close();
-          } catch (IOException e) {
-          }
-        }
-
-        if (viewLog4jStream != null) {
-          try {
-            viewLog4jStream.close();
-          } catch (IOException e) {
-          }
-        }
+        Closeables.closeSilently(ambariLog4jStream);
+        Closeables.closeSilently(viewLog4jStream);
       }
     }
   }
@@ -2023,11 +2014,8 @@ public class ViewRegistry {
             classLoader = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
             return true;
           } finally {
-            if (classLoader != null && classLoader instanceof ViewClassLoader) {
-              try {
-                ((ViewClassLoader) classLoader).close();
-              } catch (IOException e) {
-              }
+            if (classLoader instanceof Closeable) {
+              Closeables.closeSilently((Closeable) classLoader);
             }
           }
         }

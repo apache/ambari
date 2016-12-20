@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.utils.Closeables;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,13 +116,8 @@ class BSHostStatusCollector {
         } catch (IOException e) {
           LOG.info("Error reading log file " + log +
                   ". Log file may be have not created yet");
-        }
-        finally {
-          try {
-            reader.close();
-          }
-          catch (Exception e) {
-          }
+        } finally {
+          Closeables.closeSilently(reader);
         }
         status.setLog(logString);
       }
@@ -136,7 +132,7 @@ class BSHostStatusCollector {
     int reason = -1;
     try {
       reason = Integer.parseInt(statusCode);
-    } catch (Exception e) {
+    } catch (Exception ignored) {
     }
     
     switch (reason) {

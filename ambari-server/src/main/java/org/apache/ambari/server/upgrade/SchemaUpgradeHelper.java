@@ -97,20 +97,18 @@ public class SchemaUpgradeHelper {
       throw new RuntimeException("Unable to read database version", e);
 
     } finally {
-      {
-        if (rs != null) {
-          try {
-            rs.close();
-          } catch (SQLException e) {
-            throw new RuntimeException("Cannot close result set");
-          }
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          throw new RuntimeException("Cannot close result set");
         }
-        if (statement != null) {
-          try {
-            statement.close();
-          } catch (SQLException e) {
-            throw new RuntimeException("Cannot close statement");
-          }
+      }
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          throw new RuntimeException("Cannot close statement");
         }
       }
     }

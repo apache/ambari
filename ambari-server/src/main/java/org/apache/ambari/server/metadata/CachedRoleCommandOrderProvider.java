@@ -73,7 +73,7 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
       if (cluster != null && cluster.getService("GLUSTERFS") != null) {
         hasGLUSTERFS = true;
       }
-    } catch (AmbariException e) {
+    } catch (AmbariException ignored) {
     }
 
     try {
@@ -82,7 +82,7 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
         cluster.getService("HDFS").getServiceComponent("JOURNALNODE") != null) {
         isNameNodeHAEnabled = true;
       }
-    } catch (AmbariException e) {
+    } catch (AmbariException ignored) {
     }
 
     try {
@@ -91,7 +91,7 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
         cluster.getService("YARN").getServiceComponent("RESOURCEMANAGER").getServiceComponentHosts().size() > 1) {
         isResourceManagerHAEnabled = true;
       }
-    } catch (AmbariException e) {
+    } catch (AmbariException ignored) {
     }
 
     int clusterCacheId = new HashCodeBuilder().append(cluster.getClusterId()).append(hasGLUSTERFS).append(isNameNodeHAEnabled).append

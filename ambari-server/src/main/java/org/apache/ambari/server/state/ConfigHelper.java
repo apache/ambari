@@ -552,7 +552,7 @@ public class ConfigHelper {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
           try {
             result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName()));
-          } catch (Exception ex) {
+          } catch (Exception ignored) {
           }
         }
       }

@@ -474,7 +474,10 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       }
       tries++;
 
-      try { Thread.sleep(1000 * configuration.getKerberosOperationRetryTimeout()); } catch (InterruptedException e) {}
+      try {
+        Thread.sleep(1000 * configuration.getKerberosOperationRetryTimeout());
+      } catch (InterruptedException ignored) {
+      }
 
       String message = String.format("Retrying to execute kadmin after a wait of %d seconds :\n\tCommand: %s",
           configuration.getKerberosOperationRetryTimeout(),

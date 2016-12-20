@@ -252,7 +252,8 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
                                                                Integer.toString(url.getPort() == -1
                                                                                     ? url.getDefaultPort()
                                                                                     : url.getPort()));
-      } catch (MalformedURLException ex) {
+      } catch (MalformedURLException ignored) {
+        // actual connection attempt will throw
       }
     }
 

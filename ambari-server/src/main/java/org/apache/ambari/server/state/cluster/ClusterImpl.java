@@ -3196,8 +3196,7 @@ public class ClusterImpl implements Cluster {
       StackId stackId = getCurrentStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       return stackInfo.getConfigPropertiesTypes(configType);
-    } catch (AmbariException e) {
-
+    } catch (AmbariException ignored) {
     }
     return new HashMap<>();
   }

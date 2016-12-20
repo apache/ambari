@@ -747,8 +747,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
               PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
               jpp,
               gpp));
+          break;
         }
-        break;
         case HostComponent: {
           // TODO as we fill out stack metric definitions, these can be phased out
           PropertyProvider jpp = createJMXPropertyProvider(
@@ -795,8 +795,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
           // this follows the current pattern of relying on the management controller
           // to instantiate this PropertyProvider
           providers.add(managementController.getLoggingSearchPropertyProvider());
+          break;
         }
-        break;
         case RootServiceComponent:
           providers.add(new RootServiceComponentPropertyProvider());
           break;
