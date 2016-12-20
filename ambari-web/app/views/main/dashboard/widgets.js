@@ -465,7 +465,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
         });
       }
     }),
-    closeFilter: Em.K,
     applyFilter: function () {
       var parent = this.get('parentView'),
         hiddenWidgets = this.get('hiddenWidgets'),
