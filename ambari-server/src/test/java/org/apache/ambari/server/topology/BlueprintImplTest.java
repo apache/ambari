@@ -37,7 +37,6 @@ import java.util.Set;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.SecurityType;
-import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 

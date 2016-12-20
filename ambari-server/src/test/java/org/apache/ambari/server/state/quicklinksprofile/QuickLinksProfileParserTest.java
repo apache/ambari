@@ -20,10 +20,10 @@ package org.apache.ambari.server.state.quicklinksprofile;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.io.Resources;
 import org.codehaus.jackson.JsonParseException;
 import org.junit.Test;
 
+import com.google.common.io.Resources;
 
 public class QuickLinksProfileParserTest {
 

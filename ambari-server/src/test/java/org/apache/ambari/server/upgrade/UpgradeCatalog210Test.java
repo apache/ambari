@@ -480,8 +480,7 @@ public class UpgradeCatalog210Test {
     final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
       put("hive.server2.authentication", "kerberos");
     }};
-    final Map<String, String> propertiesExpectedHiveServerSite = new HashMap<String, String>() {{
-    }};
+    final Map<String, String> propertiesExpectedHiveServerSite = new HashMap<>();
     final Map<String, Service> servicesExpected = new HashMap<String, Service>(){{
       put("KERBEROS", null);
     }};
@@ -555,8 +554,7 @@ public class UpgradeCatalog210Test {
     final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>() {{
       put("hive_security_authorization", "none");
     }};
-    final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
-    }};
+    final Map<String, String> propertiesExpectedHiveSite = new HashMap<>();
 
     final Map<String, String> propertiesExpectedPluginProperies = new HashMap<String, String>() {{
       put("ranger-hive-plugin-enabled", "yes");

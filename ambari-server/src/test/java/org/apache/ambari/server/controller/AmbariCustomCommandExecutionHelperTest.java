@@ -195,11 +195,7 @@ public class AmbariCustomCommandExecutionHelperTest {
            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))
        ),
        new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
-        new HashMap<String, String>() {
-          {
-          }
-        },
-       false);
+        new HashMap<String, String>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager);
 
@@ -234,10 +230,7 @@ public class AmbariCustomCommandExecutionHelperTest {
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
         new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
-        new HashMap<String, String>() {
-          {
-          }
-        }, false);
+        new HashMap<String, String>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager);
 
@@ -274,10 +267,7 @@ public class AmbariCustomCommandExecutionHelperTest {
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
             new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
         new RequestOperationLevel(Resource.Type.Host, "c1", "GANGLIA", null, null),
-        new HashMap<String, String>() {
-          {
-          }
-        }, false);
+        new HashMap<String, String>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager);
 
@@ -323,10 +313,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         Collections.singletonList("c6402"))),
 
         new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
-        new HashMap<String, String>() {
-          {
-          }
-        }, false);
+        new HashMap<String, String>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager);
     ambariManagementController.createAction(actionRequest, requestProperties);
@@ -366,10 +353,7 @@ public class AmbariCustomCommandExecutionHelperTest {
         Collections.singletonList("c6402"))),
 
         new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
-        new HashMap<String, String>() {
-          {
-          }
-        }, false);
+        new HashMap<String, String>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager);
     ambariManagementController.createAction(actionRequest, requestProperties);

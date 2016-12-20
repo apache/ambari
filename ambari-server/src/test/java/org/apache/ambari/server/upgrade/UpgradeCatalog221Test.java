@@ -478,10 +478,7 @@ public class UpgradeCatalog221Test {
       }
     };
 
-    Map<String, String> newPropertiesAmsHbaseSecuritySite = new HashMap<String, String>() {
-      {
-      }
-    };
+    Map<String, String> newPropertiesAmsHbaseSecuritySite = new HashMap<>();
 
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);

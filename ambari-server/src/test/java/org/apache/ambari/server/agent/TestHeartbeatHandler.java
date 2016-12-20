@@ -973,9 +973,7 @@ public class TestHeartbeatHandler {
 
     ActionQueue aq = new ActionQueue();
     ActionManager am = actionManagerTestHelper.getMockActionManager();
-    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
-            new ArrayList<HostRoleCommand>() {{
-            }});
+    expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(new ArrayList<HostRoleCommand>());
     replay(am);
 
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(am, aq);
