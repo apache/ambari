@@ -922,6 +922,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.set("showingPreview",true);
       }
     },
+    closePreview(){
+      this.set("showingPreview", false);
+    },
     downloadWorkflowXml(){
       this.get('workflowContext').clearErrors();
       var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),

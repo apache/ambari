@@ -61,7 +61,7 @@
                   </a>
                 </li>
                 <li>
-                  <a class="pointer" data-toggle="modal" data-target="#previewModal"  title="Preview workflow" {{action "previewWorkflow"}}>
+                  <a class="pointer" data-toggle="modal" title="Preview workflow" {{action "previewWorkflow"}}>
                     <i class="fa fa-eye marginright5"></i>Preview xml
                   </a>
                 </li>
@@ -333,7 +333,7 @@
   {{hdfs-browser closeFileBrowser="closeExportActionNodeFileBrowser" selectFileCallback=selectFileCallback filePath=exportActionNodeFilePath}}
 {{/if}}
 {{#if showingPreview}}
-  {{#preview-dialog title="Workflow XML Preview" previewXml=previewXml}}{{/preview-dialog}}
+  {{#preview-dialog title="Workflow XML Preview" previewXml=previewXml closePreview="closePreview"}}{{/preview-dialog}}
 {{/if}}
 {{#if showingConfirmationNewWorkflow}}
   {{#confirmation-dialog title="Confirm workflow reset"

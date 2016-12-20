@@ -254,6 +254,9 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.set("previewXml", vkbeautify.xml(bundleXml));
       this.set("showingPreview", true);
     },
+    closePreview(){
+      this.set("showingPreview", false);
+    },
     importBundleTest(){
       var deferred = this.importSampleBundle();
       deferred.promise.then(function(data){

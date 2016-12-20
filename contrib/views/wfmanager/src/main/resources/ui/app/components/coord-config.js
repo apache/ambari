@@ -453,6 +453,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.set("previewXml", vkbeautify.xml(coordinatorXml));
       this.set("showingPreview", true);
     },
+    closePreview(){
+      this.set("showingPreview", false);
+    },
     confirmReset(){
       this.set('showingResetConfirmation', true);
     },
