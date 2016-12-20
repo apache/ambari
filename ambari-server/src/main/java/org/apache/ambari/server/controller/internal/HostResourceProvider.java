@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -62,8 +62,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -72,7 +70,6 @@ import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.ambari.server.update.HostUpdateHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -776,30 +773,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clusters.getHostsForCluster(clusterName).containsKey(host.getHostName())) {
 
           for (ConfigurationRequest cr : request.getDesiredConfigs()) {
-            String configType = cr.getType();
-
-            // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
-            // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-            String service = null;
-
-            try {
-              service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-            } catch (IllegalArgumentException e) {
-              // Ignore this since we may have hit a config type that spans multiple services. This may
-              // happen in unit test cases but should not happen with later versions of stacks.
-            }
-
-            if(StringUtils.isEmpty(service)) {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
-                throw new AuthorizationException("The authenticated user does not have authorization to modify cluster configurations");
-              }
-            }
-            else {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
-                throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
-              }
-            }
-
             if (null != cr.getProperties() && cr.getProperties().size() > 0) {
               LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
                   cr.getVersionTag(),

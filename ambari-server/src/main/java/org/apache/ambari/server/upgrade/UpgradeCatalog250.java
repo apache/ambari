@@ -17,16 +17,8 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
@@ -43,8 +35,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -150,6 +152,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
     updateAtlasConfigs();
+    addManageServiceAutoStartPermissions();
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -515,5 +518,32 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Add permissions for managing service auto-start.
+   * <p>
+   * <ul>
+   * <li>SERVICE.MANAGE_AUTO_START permissions for SERVICE.ADMINISTRATOR, CLUSTER.OPERATOR, CLUSTER.ADMINISTRATOR, AMBARI.ADMINISTRATOR</li>
+   * <li>CLUSTER.MANAGE_AUTO_START permissions for CLUSTER.OPERATOR, CLUSTER.ADMINISTRATOR, AMBARI.ADMINISTRATOR</li>
+   * </ul>
+   */
+  protected void addManageServiceAutoStartPermissions() throws SQLException {
+    Collection<String> roles;
+
+    // Add service-level auto-start permission
+    roles = Arrays.asList(
+        "AMBARI.ADMINISTRATOR:AMBARI",
+        "CLUSTER.ADMINISTRATOR:CLUSTER",
+        "CLUSTER.OPERATOR:CLUSTER",
+        "SERVICE.ADMINISTRATOR:CLUSTER");
+    addRoleAuthorization("SERVICE.MANAGE_AUTO_START", "Manage service auto-start", roles);
+
+    // Add cluster-level auto start-permission
+    roles = Arrays.asList(
+        "AMBARI.ADMINISTRATOR:AMBARI",
+        "CLUSTER.ADMINISTRATOR:CLUSTER",
+        "CLUSTER.OPERATOR:CLUSTER");
+    addRoleAuthorization("CLUSTER.MANAGE_AUTO_START", "Manage service auto-start configuration", roles);
   }
 }

@@ -783,6 +783,29 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  /**
+   * Creates a configuration.
+   * <p>
+   * This implementation ensures the authenticated user is authorized to create the new configuration
+   * based on the details of what properties are being changed and the authorizations the authenticated
+   * user has been granted.
+   * <p>
+   * Example
+   * <ul>
+   * <li>
+   * If the user is attempting to change a service-level configuration that user must be granted the
+   * <code>SERVICE_MODIFY_CONFIGS</code> privilege (authorization)
+   * </li>
+   * <li>
+   * If the user is attempting to change the cluster-wide value to enable or disable auto-start
+   * (<code>cluster-env/recovery_enabled</code>), that user must be granted the
+   * <code>CLUSTER_MANAGE_AUTO_START</code> privilege (authorization)
+   * </li>
+   * </ul>
+   *
+   * @param request the request object which defines the configuration.
+   * @throws AmbariException when the configuration cannot be created.
+   */
   @Override
   public synchronized ConfigurationResponse createConfiguration(
       ConfigurationRequest request) throws AmbariException, AuthorizationException {
@@ -809,19 +832,32 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // happen in unit test cases but should not happen with later versions of stacks.
     }
 
+    // Get the changes so that the user's intention can be determined. For example, maybe
+    // the user wants to change the run-as user for a service or maybe the the cluster-wide
+    // recovery mode setting.
+    Map<String, String[]> propertyChanges = getPropertyChanges(cluster, request);
+
     if(StringUtils.isEmpty(service)) {
-      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
-          EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
-        throw new AuthorizationException("The authenticated user does not have authorization " +
-            "to create cluster configurations");
-      }
+      // If the configuration is not attached to a specific service, it is a cluster-wide configuration
+      // type. For example, cluster-env.
+
+      // If the user is trying to set the cluster-wide recovery mode, ensure that user
+      // has the appropriate authorization
+      validateAuthorizationToManageServiceAutoStartConfiguration(cluster, configType, propertyChanges);
+
+      // If the user is trying to set any other cluster-wide property, ensure that user
+      // has the appropriate authorization
+      validateAuthorizationToModifyConfigurations(cluster, configType, propertyChanges,
+          Collections.singletonMap("cluster-env", Collections.singleton("recovery_enabled")),
+          false);
     }
     else {
-      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
-          EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
-        throw new AuthorizationException("The authenticated user does not have authorization " +
-            "to create service configurations");
-      }
+      // If the user is trying to set any service-level property, ensure that user
+      // has the appropriate authorization
+      validateAuthorizationToModifyConfigurations(cluster, configType, propertyChanges, null, true);
+
+      // Ensure the user is allowed to update service users and groups.
+      validateAuthorizationToUpdateServiceUsersAndGroups(cluster, configType, propertyChanges);
     }
 
     Map<String, String> requestProperties = request.getProperties();
@@ -890,6 +926,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Config config = createConfig(cluster, request.getType(), requestProperties,
       request.getVersionTag(), propertiesAttributes);
+
+    LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
+        request.getVersionTag(),
+        request.getClusterName(),
+        configType));
 
     return new ConfigurationResponse(cluster.getClusterName(), config);
   }
@@ -1626,28 +1667,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (ConfigurationRequest cr : desiredConfigs) {
           String configType = cr.getType();
 
-          // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
-          // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-          String service = null;
-
-          try {
-            service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-          } catch (IllegalArgumentException e) {
-            // Ignore this since we may have hit a config type that spans multiple services. This may
-            // happen in unit test cases but should not happen with later versions of stacks.
-          }
-
-          if(StringUtils.isEmpty(service)) {
-            if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
-              throw new AuthorizationException("The authenticated user does not have authorization to modify cluster configurations");
-            }
-          }
-          else {
-            if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
-              throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
-            }
-          }
-
           if (null != cr.getProperties()) {
             // !!! empty property sets are supported, and need to be able to use
             // previously-defined configs (revert)
@@ -1656,16 +1675,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 !all.containsKey(cr.getVersionTag()) ||     // tag not set
                 cr.getProperties().size() > 0) {            // properties to set
 
-              // Ensure the user is allowed to update all properties
-              validateAuthorizationToUpdateServiceUsersAndGroups(cluster, cr);
+              cr.setClusterName(cluster.getClusterName());
+              configurationResponses.add(createConfiguration(cr));
 
               LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
                   cr.getVersionTag(),
                   request.getClusterName(),
                   configType));
-
-              cr.setClusterName(cluster.getClusterName());
-              configurationResponses.add(createConfiguration(cr));
             }
           }
           note = cr.getServiceConfigVersionNote();
@@ -1839,6 +1855,65 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } else {
       return null;
     }
+  }
+
+  /**
+   * Given a configuration request, compares the requested properties to the current set of desired
+   * properties for the same configuration type and returns a map of property names to an array of
+   * Strings representing the current value (index 0), and the requested value (index 1).
+   * <p>
+   * <ul>
+   * <li>
+   * If a property is set in the requested property set and not found in the current property set,
+   * the current value (index 0) will be <code>null</code> - {<code>null</code>, "requested value"}
+   * </li>
+   * <li>
+   * If a property is set in the current property set and not found in the requested property set,
+   * the requested value (index 1) will be <code>null</code> - {"current value", <code>null</code>}
+   * </li>
+   * <li>
+   * If a property found in bother current property set and the requested property set,
+   * the requested value (index 1) will be <code>null</code> - {"current value", "requested value"}
+   * </li>
+   * </ul>
+   *
+   * @param cluster the relevant cluster
+   * @param request the request data
+   * @return a map lf property names to String arrays indicating the requsted changes ({current value, requested valiue})
+   */
+  private Map<String, String[]> getPropertyChanges(Cluster cluster, ConfigurationRequest request) {
+    Map<String, String[]>  changedProperties = new HashMap<String, String[]>();
+
+    // Ensure that the requested property map is not null.
+    Map<String, String> requestedProperties  = request.getProperties();
+    if (requestedProperties == null) {
+      requestedProperties = Collections.emptyMap();
+    }
+
+    // Get the current/desired properties for the relevant configuration type and ensure that the
+    // property map is not null.
+    Config existingConfig = cluster.getDesiredConfigByType(request.getType());
+    Map<String, String> existingProperties = (existingConfig == null) ? null : existingConfig.getProperties();
+    if (existingProperties == null) {
+      existingProperties = Collections.emptyMap();
+    }
+
+    // Ensure all propery names are captured, including missing ones from either set.
+    Set<String> propertyNames = new HashSet<String>();
+    propertyNames.addAll(requestedProperties.keySet());
+    propertyNames.addAll(existingProperties.keySet());
+
+    for(String propertyName:propertyNames) {
+      String requestedValue = requestedProperties.get(propertyName);
+      String existingValue = existingProperties.get(propertyName);
+
+      // Perform case-sensitive match.  It is possible that case matters here.
+      if((requestedValue == null) ? (existingValue != null) : !requestedValue.equals(existingValue)) {
+        changedProperties.put(propertyName, new String[]{existingValue, requestedValue});
+      }
+    }
+
+    return changedProperties;
   }
 
   /**
@@ -5132,22 +5207,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * the properties of types USER and GROUP have not been changed. If they have been, an
    * AuthorizationException is thrown.
    *
-   * @param cluster the relevant cluster
-   * @param request the configuration request
+   * @param cluster         the relevant cluster
+   * @param configType      the changed configuration type
+   * @param propertyChanges a map of the property changes for the relevant configuration type
    * @throws AuthorizationException if the user is not authorized to perform this operation
    */
-  protected void validateAuthorizationToUpdateServiceUsersAndGroups(Cluster cluster, ConfigurationRequest request)
+  protected void validateAuthorizationToUpdateServiceUsersAndGroups(Cluster cluster,
+                                                                    String configType,
+                                                                    Map<String, String[]> propertyChanges)
       throws AuthorizationException {
-    // If the authenticated user is not authorized to set service users or groups, make sure the
-    // relevant properties are not changed. However, if the user is authorized to set service
-    // users and groups, there is nothing to check.
-    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
-        RoleAuthorization.SERVICE_SET_SERVICE_USERS_GROUPS)) {
 
-      Map<String, String> requestProperties = request.getProperties();
-      if (requestProperties != null) {
-        Map<PropertyInfo.PropertyType, Set<String>> propertyTypes = cluster.getConfigPropertiesTypes(
-            request.getType());
+    if ((propertyChanges != null) && !propertyChanges.isEmpty()) {
+      // If the authenticated user is not authorized to set service users or groups, make sure the
+      // relevant properties are not changed. However, if the user is authorized to set service
+      // users and groups, there is nothing to check.
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+          RoleAuthorization.SERVICE_SET_SERVICE_USERS_GROUPS)) {
+
+        Map<PropertyInfo.PropertyType, Set<String>> propertyTypes = cluster.getConfigPropertiesTypes(configType);
 
         //  Create a composite set of properties to check...
         Set<String> propertiesToCheck = new HashSet<String>();
@@ -5163,23 +5240,103 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         // If there are no USER or GROUP type properties, skip the validation check...
-        if (!propertiesToCheck.isEmpty()) {
-
-          Config existingConfig = cluster.getDesiredConfigByType(request.getType());
-          Map<String, String> existingProperties = (existingConfig == null) ? null : existingConfig.getProperties();
-          if (existingProperties == null) {
-            existingProperties = Collections.emptyMap();
-          }
-
-          for (String propertyName : propertiesToCheck) {
-            String existingProperty = existingProperties.get(propertyName);
-            String requestProperty = requestProperties.get(propertyName);
+        for (String propertyName : propertiesToCheck) {
+          String[] values = propertyChanges.get(propertyName);
+          if (values != null) {
+            String existingValue = values[0];
+            String requestedValue = values[1];
 
             // If the properties don't match, so thrown an authorization exception
-            if ((existingProperty == null) ? (requestProperty != null) : !existingProperty.equals(requestProperty)) {
+            if ((existingValue == null) ? (requestedValue != null) : !existingValue.equals(requestedValue)) {
               throw new AuthorizationException("The authenticated user is not authorized to set service user and groups");
             }
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Validates that the authenticated user can manage the cluster-wide configuration for a service's
+   * ability to be set to auto-start.
+   * <p/>
+   * If the user is authorized, than this method exits quickly.
+   * If the user is not authorized, then this method verifies that the configuration property
+   * <code>cluster-env/recovery_enabled</code> is not changed. If it was, an
+   * {@link AuthorizationException} is thrown.
+   *
+   * @param cluster         the relevant cluster
+   * @param configType      the changed configuration type
+   * @param propertyChanges a map of the property changes for the relevant configuration type
+   * @throws AuthorizationException if the user is not authorized to perform this operation
+   */
+  protected void validateAuthorizationToManageServiceAutoStartConfiguration(Cluster cluster,
+                                                                            String configType,
+                                                                            Map<String, String[]> propertyChanges)
+      throws AuthorizationException {
+    // If the authenticated user is authorized to manage the cluster-wide configuration for a
+    // service's ability to be set to auto-start, there is nothing to check.
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        RoleAuthorization.CLUSTER_MANAGE_AUTO_START)) {
+
+      if ("cluster-env".equals(configType) && propertyChanges.containsKey("recovery_enabled")) {
+        throw new AuthorizationException("The authenticated user is not authorized to set service user and groups");
+      }
+    }
+  }
+
+  /**
+   * Validates that the authenticated user can modify configurations for either a service or the
+   * cluster.
+   * <p>
+   * Since some properties have special meaning, they may be ignored when perfoming this authorization
+   * check. For example, to change the cluster's overall auto-start setting (cluster-env/recovery_enabled)
+   * requires a specific permission that is not the same as the ability to set cluster-wide properties
+   * (in general).  Because of this, the <code>cluster-env/recovery_enabled</code> propery should be
+   * ignored in this check since permission to change it is expected to be validated elsewhere.
+   *
+   * @param cluster                the relevant cluster
+   * @param configType             the changed configuration type
+   * @param propertyChanges        a map of the property changes for the relevant configuration type
+   * @param changesToIgnore        a map of configuration type names to sets of propery names to be ignored
+   * @param isServiceConfiguration <code>true</code>, if the configuration type is a service-level configuration;
+   *                               <code>false</code>, if the configuration type is a cluster-level configuration
+   * @throws AuthorizationException if the authenticated user is not authorized to change the requested configuration
+   */
+  private void validateAuthorizationToModifyConfigurations(Cluster cluster, String configType,
+                                                           Map<String, String[]> propertyChanges,
+                                                           Map<String, Set<String>> changesToIgnore,
+                                                           boolean isServiceConfiguration)
+      throws AuthorizationException {
+    // If the authenticated user is authorized to update cluster-wide/service-level configurations
+    // there is nothing to check, else ensure no (relevant) configurations are being changed - ignoring
+    // the specified configurations which may fall under a special category.
+    // For example cluster-env/recovery_enabled requires a special permission - CLUSTER.MANAGE_AUTO_START
+    if ((propertyChanges != null) && !propertyChanges.isEmpty()) {
+      boolean isAuthorized = (isServiceConfiguration)
+          ? AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_MODIFY_CONFIGS)
+          : AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.CLUSTER_MODIFY_CONFIGS);
+
+      if (!isAuthorized) {
+        Set<String> relevantChangesToIgnore = changesToIgnore.get(configType);
+        Map<String, String[]> relevantPropertyChanges;
+
+        // If necessary remove any non-relevant property changes.
+        if (relevantChangesToIgnore == null)
+          relevantPropertyChanges = propertyChanges;
+        else {
+          relevantPropertyChanges = new HashMap<String, String[]>(propertyChanges);
+
+          for (String propertyName : relevantChangesToIgnore) {
+            relevantPropertyChanges.remove(propertyName);
+          }
+        }
+
+        // If relevant configuration changes have been made, then the user is not authorized to
+        // perform the requested operation and an AuthorizationException must be thrown
+        if (relevantPropertyChanges.size() > 0) {
+          throw new AuthorizationException(String.format("The authenticated user does not have authorization to modify %s configurations",
+              (isServiceConfiguration) ? "service" : "cluster"));
         }
       }
     }
