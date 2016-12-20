@@ -702,7 +702,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putAmsHbaseSiteProperty("hbase.tmp.dir", tmpDir)
 
     if operatingMode == "distributed":
-      putAmsHbaseSiteProperty("hbase.rootdir", defaultFs + "/user/ams/hbase")
+      putAmsHbaseSiteProperty("hbase.rootdir", "/user/ams/hbase")
 
     if operatingMode == "embedded":
       if isLocalRootDir:
