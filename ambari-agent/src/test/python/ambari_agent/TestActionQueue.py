@@ -214,6 +214,20 @@ class TestActionQueue(TestCase):
     'hostLevelParams':{'custom_command': 'START'}
   }
 
+  yarn_refresh_queues_custom_command = {
+    'commandType': 'EXECUTION_COMMAND',
+    'role': u'RESOURCEMANAGER',
+    'roleCommand': u'CUSTOM_COMMAND',
+    'commandId': '1-1',
+    'taskId': 9,
+    'clusterName': u'cc',
+    'serviceName': u'YARN',
+    'commandParams' : {'forceRefreshConfigTags' : 'capacity-scheduler'},
+    'configurations':{'global' : {}},
+    'configurationTags':{'global' : { 'tag': 'v123' }, 'capacity-scheduler' : {'tag': 'v123'}},
+    'hostLevelParams':{'custom_command': 'REFRESHQUEUES'}
+  }
+
   status_command_for_alerts = {
     "serviceName" : 'FLUME',
     "commandType" : "STATUS_COMMAND",
@@ -835,6 +849,53 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])
     self.assertFalse(write_client_components_mock.called)
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(ActualConfigHandler, "write_client_components")
+  @patch.object(ActualConfigHandler, "write_actual_component")
+  @patch.object(ActualConfigHandler, "update_component_tag")
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  def test_refresh_queues_custom_command(self, status_update_callback_mock,
+                                                            command_status_dict_mock,
+                                                            cso_runCommand_mock, update_component_tag, write_actual_component_mock, write_client_components_mock):
+    custom_service_orchestrator_execution_result_dict = {
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut' : '',
+      'exitcode' : 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    config = AmbariConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.execute_command(self.yarn_refresh_queues_custom_command)
+
+    report = actionQueue.result()
+    expected = {'status': 'COMPLETED',
+                'configurationTags': None,
+                'stderr': 'stderr',
+                'stdout': 'out\n\nCommand completed successfully!\n',
+                'clusterName': u'cc',
+                'structuredOut': '""',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'YARN',
+                'role': u'RESOURCEMANAGER',
+                'actionId': '1-1',
+                'taskId': 9,
+                'customCommand': 'RESTART',
+                'exitCode': 0}
+    self.assertEqual(len(report['reports']), 1)
+    self.assertEqual(expected, report['reports'][0])
+
+    # Configuration tags should be updated
+    self.assertTrue(update_component_tag.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler, "write_client_components")

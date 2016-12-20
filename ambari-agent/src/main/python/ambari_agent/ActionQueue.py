@@ -425,6 +425,19 @@ class ActionQueue(threading.Thread):
       # let ambari know that configuration tags were applied
       configHandler = ActualConfigHandler(self.config, self.configTags)
 
+      #update
+      if 'commandParams' in command:
+        command_params = command['commandParams']
+        if command_params and command_params.has_key('forceRefreshConfigTags') and len(command_params['forceRefreshConfigTags']) > 0  :
+          forceRefreshConfigTags = command_params['forceRefreshConfigTags'].split(',')
+          logger.info("Got refresh additional component tags command")
+
+          for configTag in forceRefreshConfigTags :
+            configHandler.update_component_tag(command['role'], configTag, command['configurationTags'][configTag])
+
+          roleResult['customCommand'] = self.CUSTOM_COMMAND_RESTART # force restart for component to evict stale_config on server side
+          command['configurationTags'] = configHandler.read_actual_component(command['role'])
+
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
