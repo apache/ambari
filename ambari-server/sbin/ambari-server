@@ -189,9 +189,13 @@ case "${1:-}" in
         echo -e "Upgrading management pack"
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
+  setup-kerberos)
+        echo -e "Setting up Kerberos authentication"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
   *)
         echo "Usage: $AMBARI_EXECUTABLE
-        {start|stop|reset|restart|upgrade|status|upgradestack|setup|setup-jce|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|check-database|enable-stack|setup-sso|db-cleanup|install-mpack|uninstall-mpack|upgrade-mpack} [options]
+        {start|stop|reset|restart|upgrade|status|upgradestack|setup|setup-jce|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|check-database|enable-stack|setup-sso|db-cleanup|install-mpack|uninstall-mpack|upgrade-mpack|setup-kerberos} [options]
         Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
