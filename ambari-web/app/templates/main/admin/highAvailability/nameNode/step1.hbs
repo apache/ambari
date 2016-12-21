@@ -17,24 +17,30 @@
 }}
 <div id="ha-step1" class="wizard-content col-md-9">
   <h4 class="step-title">{{t admin.highAvailability.wizard.step1.header}}</h4>
-  <p class="step-description">
-    {{t admin.highAvailability.wizard.step1.body}}
+  <div class="step-description">
+    <p>{{t admin.highAvailability.wizard.step1.body}}</p>
     <div class="alert alert-warning">
       {{t admin.highAvailability.wizard.step1.alert}}
       {{#if controller.isHawqInstalled}}
         {{{t admin.highAvailability.wizard.step1.hawq.alert}}}
       {{/if}}
     </div>
-  </p>
+  </div>
   <div class="panel panel-default">
     <div class="panel-body">
-      <div {{bindAttr class=":form-group view.showInputError:error view.showInputError:has-error :form-horizontal :nameserviceid-input"}}>
-        <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
-        <div>
-          {{view Ember.TextField valueBinding="content.nameServiceId" classNames="input-sm form-control"}}
-          <span {{bindAttr class=":help-block :validation-block :col-sm-9 :pull-right view.showInputError::hidden"}}>
-            {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
-          </span>
+      <div {{bindAttr class=":form-group view.showInputError:has-error :form-horizontal"}}>
+        <div class="row">
+          <div class="col-md-2">
+            <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
+          </div>
+          <div class="col-md-3">
+            {{view Ember.TextField valueBinding="content.nameServiceId" classNames="form-control"}}
+          </div>
+          <div class="col-md-7">
+            <span {{bindAttr class=":help-block :validation-block view.showInputError::hidden"}}>
+              {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
+            </span>
+          </div>
         </div>
       </div>
     </div>

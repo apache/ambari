@@ -766,8 +766,6 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#showAddComponentPopup()', function () {
 
-    var message = 'Comp1';
-
     beforeEach(function () {
       sinon.stub(App.ModalPopup, 'show');
     });
