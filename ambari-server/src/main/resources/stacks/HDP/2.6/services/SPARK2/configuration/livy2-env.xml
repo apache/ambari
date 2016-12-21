@@ -44,7 +44,7 @@
     </property>
     <property>
         <name>livy2_log_dir</name>
-        <value>/var/log/livy2</value>
+        <value>/var/log/livy-spark2</value>
         <description>Livy Log Dir</description>
         <value-attributes>
             <type>directory</type>
@@ -53,7 +53,7 @@
     </property>
     <property>
         <name>livy2_pid_dir</name>
-        <value>/var/run/livy2</value>
+        <value>/var/run/livy-spark2</value>
         <value-attributes>
             <type>directory</type>
         </value-attributes>
@@ -82,9 +82,9 @@
             export SPARK_HOME=/usr/hdp/current/spark2-client
             export JAVA_HOME={{java_home}}
             export HADOOP_CONF_DIR=/etc/hadoop/conf
-            export LIVY2_LOG_DIR={{livy2_log_dir}}
-            export LIVY2_PID_DIR={{livy2_pid_dir}}
-            export LIVY2_SERVER_JAVA_OPTS="-Xmx2g"
+            export LIVY_LOG_DIR={{livy2_log_dir}}
+            export LIVY_PID_DIR={{livy2_pid_dir}}
+            export LIVY_SERVER_JAVA_OPTS="-Xmx2g"
         </value>
         <value-attributes>
             <type>content</type>

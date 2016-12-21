@@ -28,8 +28,8 @@
 
       <components>
         <component>
-          <name>LIVY2_SERVER</name>
-          <displayName>Livy2 Server</displayName>
+          <name>LIVY-SPARK2_SERVER</name>
+          <displayName>Livy for Spark2 Server</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
@@ -97,7 +97,7 @@
               <name>spark2_${stack_version}-python</name>
             </package>
             <package>
-              <name>livy2_${stack_version}</name>
+              <name>livy_${stack_version}-spark2</name>
             </package>
           </packages>
         </osSpecific>
@@ -111,7 +111,7 @@
               <name>spark2-${stack_version}-python</name>
             </package>
             <package>
-              <name>livy2-${stack_version}</name>
+              <name>livy-${stack_version}-spark2</name>
             </package>
           </packages>
         </osSpecific>

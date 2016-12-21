@@ -42,4 +42,4 @@ if "livy2-env" in config['configurations']:
   livy2_user = config['configurations']['livy2-env']['livy2_user']
   livy2_group = config['configurations']['livy2-env']['livy2_group']
   livy2_pid_dir = config['configurations']['livy2-env']['livy2_pid_dir']
-  livy2_server_pid_file = format("{livy2_pid_dir}/livy2-{livy2_user}-server.pid")
+  livy2_server_pid_file = format("{livy2_pid_dir}/livy-{livy2_user}-server.pid")

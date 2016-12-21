@@ -33,7 +33,7 @@
         <name>livy.server.port</name>
         <value>8999</value>
         <description>
-            What port to start the server on. Defaults to 8998.
+            What port to start the server on. Defaults to 8999.
         </description>
         <on-ambari-upgrade add="true"/>
     </property>

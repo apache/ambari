@@ -41,7 +41,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
         params.HdfsResource(None, action="execute")
 
     # create livy-env.sh in etc/conf dir
-    File(os.path.join(params.livy2_conf, 'livy2-env.sh'),
+    File(os.path.join(params.livy2_conf, 'livy-env.sh'),
          owner=params.livy2_user,
          group=params.livy2_group,
          content=InlineTemplate(params.livy2_env_sh),
@@ -49,7 +49,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
          )
 
     # create livy.conf in etc/conf dir
-    PropertiesFile(format("{livy2_conf}/livy2.conf"),
+    PropertiesFile(format("{livy2_conf}/livy.conf"),
                    properties = params.config['configurations']['livy2-conf'],
                    key_value_delimiter = " ",
                    owner=params.livy2_user,
