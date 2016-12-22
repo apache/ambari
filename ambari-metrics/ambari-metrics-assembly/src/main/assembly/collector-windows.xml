@@ -45,6 +45,7 @@
         <include>ams-env.cmd</include>
         <include>ams-site.xml</include>
         <include>log4j.properties</include>
+        <include>metrics_whitelist</include>
       </includes>
     </fileSet>
     <fileSet>

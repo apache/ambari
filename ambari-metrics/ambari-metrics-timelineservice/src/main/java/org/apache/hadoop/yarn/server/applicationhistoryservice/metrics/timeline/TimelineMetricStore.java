@@ -78,7 +78,7 @@ public interface TimelineMetricStore {
    * @throws SQLException
    * @throws IOException
    */
-  Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata() throws SQLException, IOException;
+  Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException;
 
   /**
    * Returns all hosts that have written metrics with the apps on the host
