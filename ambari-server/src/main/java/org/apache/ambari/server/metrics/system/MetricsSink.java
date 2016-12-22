@@ -18,21 +18,26 @@
 
 package org.apache.ambari.server.metrics.system;
 
-import java.util.Collection;
+import java.util.List;
 
-import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
+import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
 
 
-public interface MetricsService{
+public interface MetricsSink {
+
   /**
-   * Set up configuration
+   * initialize Sink passing in configuration
    **/
-  void start();
+  void init(MetricsConfiguration configuration);
 
   /**
-   * Get Configured sources
-   * @return
-   */
-  Collection<AbstractMetricsSource> getSources();
-}
+  *  Publish metrics to Collector
+  **/
+  void publish(List<SingleMetric> metrics);
 
+
+  /**
+   * Returns if the sink is initialized.
+   */
+  boolean isInitialized();
+}

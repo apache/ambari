@@ -15,20 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//package org.apache.hadoop.metrics2.sink.ambari;
 
 package org.apache.ambari.server.metrics.system;
 
-import java.util.Map;
+public class SingleMetric {
 
-public interface AmbariMetricSink {
-  /**
-   * initialize Collector URI and sink frequency to publish the metrics to AMS
-   **/
-  void init(String protocol, String collectorUri, int frequency);
+  String metricName;
+  double value;
+  long timestamp;
 
-  /**
-  *  Publish metrics to Collector
-  **/
-  void publish(Map<String, Number> metricsMap);
+  public SingleMetric (String metricName, double value, long timestamp) {
+    this.metricName = metricName;
+    this.value = value;
+    this.timestamp = timestamp;
+  }
+
+  public String getMetricName() {
+    return metricName;
+  }
+
+  public double getValue() {
+    return value;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
 }

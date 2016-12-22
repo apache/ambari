@@ -16,23 +16,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.metrics.system;
+package org.apache.ambari.server.metric.system.impl;
 
-import java.util.Collection;
+import java.util.List;
 
+import org.apache.ambari.server.metrics.system.SingleMetric;
 import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
 
+public class TestMetricsSource extends AbstractMetricsSource {
 
-public interface MetricsService{
-  /**
-   * Set up configuration
-   **/
-  void start();
+  @Override
+  public List<SingleMetric> getMetrics() {
+    return null;
+  }
 
-  /**
-   * Get Configured sources
-   * @return
-   */
-  Collection<AbstractMetricsSource> getSources();
+  @Override
+  public void run() {
+  }
+
 }
-

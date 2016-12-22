@@ -16,23 +16,21 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.metrics.system;
+package org.apache.ambari.server.metric.system.impl;
 
-import java.util.Collection;
+import org.apache.ambari.server.metrics.system.MetricsSink;
+import org.apache.ambari.server.metrics.system.impl.JvmMetricsSource;
+import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
+import org.junit.Test;
 
-import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
+public class JvmMetricsSourceTest {
 
-
-public interface MetricsService{
-  /**
-   * Set up configuration
-   **/
-  void start();
-
-  /**
-   * Get Configured sources
-   * @return
-   */
-  Collection<AbstractMetricsSource> getSources();
+  @Test
+  public void testJvmSourceInit() {
+    JvmMetricsSource jvmMetricsSource = new JvmMetricsSource();
+    MetricsConfiguration configuration = MetricsConfiguration.getMetricsConfiguration();
+    MetricsSink sink = new TestAmbariMetricsSinkImpl();
+    jvmMetricsSource.init(configuration, sink);
+    org.junit.Assert.assertEquals(jvmMetricsSource.getMetrics().size(), 39);
+  }
 }
-

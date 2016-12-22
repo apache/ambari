@@ -15,11 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.metrics.system;
+
+import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
 
 public interface MetricsSource extends Runnable{
   /**
    * initialize sink
    **/
-  void init(AmbariMetricSink sink);
+  void init(MetricsConfiguration configuration, MetricsSink sink);
 }
