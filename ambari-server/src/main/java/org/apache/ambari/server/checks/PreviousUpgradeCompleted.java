@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -43,7 +44,10 @@ import com.google.inject.Singleton;
  * Checks if Install Packages needs to be re-run
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 4.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.DEFAULT,
+    order = 4.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
 
   /**
@@ -105,7 +109,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
           // Should have only 1 element.
           List<HostRoleCommandEntity> finalizeCommandList = hostRoleCommandDaoProvider.get().
               findSortedCommandsByRequestIdAndCustomCommandName(mostRecentUpgrade.getRequestId(), FINALIZE_ACTION_CLASS_NAME);
-  
+
           // If the action is not COMPLETED, then something went wrong.
           if (finalizeCommandList != null) {
             for (HostRoleCommandEntity command : finalizeCommandList) {

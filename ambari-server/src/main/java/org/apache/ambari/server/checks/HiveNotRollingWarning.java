@@ -40,7 +40,7 @@ import com.google.inject.Singleton;
  * that at this point in time, Hive will not be upgraded in a rolling fashion.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.INFORMATIONAL_WARNING, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.INFORMATIONAL_WARNING, required = UpgradeType.ROLLING)
 public class HiveNotRollingWarning extends AbstractCheckDescriptor {
 
   /**

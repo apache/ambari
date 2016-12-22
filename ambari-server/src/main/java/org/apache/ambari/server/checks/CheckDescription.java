@@ -96,12 +96,6 @@ public class CheckDescription {
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: %s.").build());
 
-  public static CheckDescription STORM_REST_API_MUST_BE_DELETED = new CheckDescription("STORM_REST_API_MUST_BE_DELETED",
-    PrereqCheckType.SERVICE,
-    "The STORM_REST_API component will no longer be available and must be deleted from the cluster before upgrading. The same functionality is now provided by STORM_UI_SERVER. First, stop the entire Storm service. Next, delete STORM_REST_API using the API, e.g., curl -u $user:$password -X DELETE -H 'X-Requested-By:admin' http://$server:8080/api/v1/clusters/$name/services/STORM/components/STORM_REST_API . Finally, start Storm service.",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT, "The following component must be deleted from the cluster: {{fails}}.").build());
-
   public static CheckDescription SERVICES_HIVE_MULTIPLE_METASTORES = new CheckDescription("SERVICES_HIVE_MULTIPLE_METASTORES",
     PrereqCheckType.SERVICE,
     "Hive Metastore Availability",

@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -50,7 +51,10 @@ import com.google.inject.Singleton;
  * user had changed the password using the Ranger UI.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.CONFIGURATION_WARNING, order = 23.0f, required=true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.CONFIGURATION_WARNING,
+    order = 23.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class RangerPasswordCheck extends AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(RangerPasswordCheck.class);
