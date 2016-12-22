@@ -32,7 +32,7 @@
           "principal": {
             "value": "${livy2-env/livy2_user}/_HOST@${realm}",
             "type" : "service",
-            "configuration": "livy2-conf/livy2.server.kerberos.principal",
+            "configuration": "livy2-conf/livy.server.kerberos.principal",
             "local_username": "${livy2-env/livy2_user}"
           },
           "keytab": {
@@ -45,16 +45,16 @@
               "name": "${cluster-env/user_group}",
               "access": ""
             },
-            "configuration": "livy2-conf/livy2.server.kerberos.keytab"
+            "configuration": "livy2-conf/livy.server.kerberos.keytab"
           }
         },
         {
           "name": "/spnego",
           "principal": {
-            "configuration": "livy2-conf/livy2.server.auth.kerberos.principal"
+            "configuration": "livy2-conf/livy.server.auth.kerberos.principal"
           },
           "keytab": {
-            "configuration": "livy2-conf/livy2.server.auth.kerberos.keytab"
+            "configuration": "livy2-conf/livy.server.auth.kerberos.keytab"
           }
         }
       ],
@@ -72,9 +72,9 @@
         },
         {
           "livy2-conf": {
-            "livy2.server.auth.type": "kerberos",
-            "livy2.impersonation.enabled": "true",
-            "livy2.superusers": "zeppelin-${cluster_name}"
+            "livy.server.auth.type": "kerberos",
+            "livy.impersonation.enabled": "true",
+            "livy.superusers": "zeppelin-${cluster_name}"
           }
         },
         {

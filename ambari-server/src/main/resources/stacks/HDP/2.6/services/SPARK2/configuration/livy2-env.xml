@@ -23,7 +23,7 @@
     <property>
         <name>livy2_user</name>
         <display-name>Livy User</display-name>
-        <value>livy2</value>
+        <value>livy</value>
         <property-type>USER</property-type>
         <value-attributes>
             <type>user</type>
@@ -34,7 +34,7 @@
     <property>
         <name>livy2_group</name>
         <display-name>Livy Group</display-name>
-        <value>livy2</value>
+        <value>livy</value>
         <property-type>GROUP</property-type>
         <description>livy group</description>
         <value-attributes>
