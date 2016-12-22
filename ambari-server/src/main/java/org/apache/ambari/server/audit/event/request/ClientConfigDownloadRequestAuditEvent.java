@@ -41,6 +41,7 @@ public class ClientConfigDownloadRequestAuditEvent extends RequestAuditEvent {
     private String component;
 
     public ClientConfigDownloadRequestAuditEventBuilder() {
+      super(ClientConfigDownloadRequestAuditEventBuilder.class);
       super.withOperation("Client config download");
     }
 

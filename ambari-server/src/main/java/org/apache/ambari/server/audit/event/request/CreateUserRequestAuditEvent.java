@@ -46,6 +46,7 @@ public class CreateUserRequestAuditEvent extends RequestAuditEvent {
     private String username;
 
     public CreateUserRequestAuditEventBuilder() {
+      super(CreateUserRequestAuditEventBuilder.class);
       super.withOperation("User creation");
     }
 

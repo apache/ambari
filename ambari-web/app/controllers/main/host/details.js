@@ -45,10 +45,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   isFromHosts: false,
 
   /**
-   * Are we adding hive server2 component
+   * Determines whether we are adding Hive Server2 component
    * @type {bool}
    */
   addHiveServer: false,
+
+  /**
+   * Determines whether we are adding ZooKeeper Server component
+   * @type {bool}
+   */
+  addZooKeeperServer: false,
 
   /**
    * path to page visited before
@@ -73,12 +79,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   isOozieServerAddable: true,
 
-  isConfigsLoaded: false,
+  isConfigsLoadingInProgress: false,
 
   addDeleteComponentsMap: {
     'ZOOKEEPER_SERVER': {
-      deletePropertyName: 'fromDeleteZkServer',
-      configsCallbackName: 'loadStormConfigs'
+      addPropertyName: 'addZooKeeperServer',
+      deletePropertyName: 'fromDeleteZkServer'
     },
     'HIVE_METASTORE': {
       deletePropertyName: 'deleteHiveMetaStore',
@@ -91,8 +97,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       configsCallbackName: 'loadWebHCatConfigs'
     },
     'HIVE_SERVER': {
+      addPropertyName: 'addHiveServer',
       deletePropertyName: 'deleteHiveServer',
-      hostPropertyName: '',
       configsCallbackName: 'loadHiveConfigs'
     },
     'NIMBUS': {
@@ -106,6 +112,44 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       configsCallbackName: 'loadRangerConfigs'
     }
   },
+
+  zooKeeperRelatedServices: [
+    {
+      serviceName: 'HIVE',
+      typesToLoad: ['hive-site', 'webhcat-site'],
+      typesToSave: ['hive-site', 'webhcat-site']
+    },
+    {
+      serviceName: 'YARN',
+      typesToLoad: ['yarn-site', 'zoo.cfg'],
+      typesToSave: ['yarn-site']
+    },
+    {
+      serviceName: 'HBASE',
+      typesToLoad: ['hbase-site'],
+      typesToSave: ['hbase-site']
+    },
+    {
+      serviceName: 'ACCUMULO',
+      typesToLoad: ['accumulo-site'],
+      typesToSave: ['accumulo-site']
+    },
+    {
+      serviceName: 'KAFKA',
+      typesToLoad: ['kafka-broker'],
+      typesToSave: ['kafka-broker']
+    },
+    {
+      serviceName: 'ATLAS',
+      typesToLoad: ['application-properties', 'infra-solr-env'],
+      typesToSave: ['application-properties']
+    },
+    {
+      serviceName: 'STORM',
+      typesToLoad: ['storm-site'],
+      typesToSave: ['storm-site']
+    }
+  ],
 
   addDeleteComponentPopupBody: Em.View.extend({
     templateName: require('templates/main/host/details/addDeleteComponentPopup'),
@@ -373,7 +417,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if ($(event.target).closest('li').hasClass('disabled')) {
       return;
     }
-    var self = this;
     var component = event.context;
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
@@ -381,20 +424,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var returnFunc;
     var componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
     if (componentsMapItem) {
-      var primary;
       if (componentsMapItem.deletePropertyName) {
         this.set(componentsMapItem.deletePropertyName, true);
       }
-      if (componentName === 'ZOOKEEPER_SERVER') {
-        primary = function () {
-          this.set('fromDeleteZkServer', true);
-          this.updateStormConfigs();
-          this.isServiceMetricsLoaded(function () {
-            self.loadConfigs();
-          });
-        }
-      }
-      returnFunc = this.showDeleteComponentPopup(component, true, componentsMapItem.configsCallbackName, primary);
+      returnFunc = this.showDeleteComponentPopup(component, true, componentsMapItem.configsCallbackName);
     } else if (componentName === 'JOURNALNODE') {
       returnFunc = App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
@@ -405,7 +438,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     return returnFunc;
   },
 
-  showDeleteComponentPopup: function (component, isReconfigure, callbackName, primary) {
+  showDeleteComponentPopup: function (component, isReconfigure, callbackName) {
     var self = this,
       isLastComponent = (this.getTotalComponent(component) === 1),
       componentName = component.get('componentName'),
@@ -416,7 +449,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         groups: [],
         propertiesToChange: []
       };
-      this.loadConfigs(callbackName, configs);
+      this.set('isConfigsLoadingInProgress', true);
+      this.isServiceMetricsLoaded(function () {
+        self.loadConfigs(callbackName, configs);
+      });
     }
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
@@ -439,8 +475,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }),
       isChecked: false,
       disablePrimary: function () {
-        return (isReconfigure && !this.get('controller.isConfigsLoaded')) || !this.get('isChecked');
-      }.property('controller.isConfigsLoaded', 'isChecked'),
+        return (isReconfigure && this.get('controller.isConfigsLoadingInProgress')) || !this.get('isChecked');
+      }.property('controller.isConfigsLoadingInProgress', 'isChecked'),
       onPrimary: function () {
         this._super();
         if (isReconfigure) {
@@ -449,9 +485,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         self._doDeleteHostComponent(componentName, function () {
           if (isReconfigure) {
             self.saveConfigsBatch(configs.groups, componentName);
-            if (primary) {
-              primary.call(self);
-            }
           }
           self.set('redrawComponents', true);
         });
@@ -658,9 +691,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       if (componentsMapItem.hostPropertyName) {
         this.set(componentsMapItem.hostPropertyName, hostName);
       }
-      if (componentName === 'HIVE_METASTORE') {
+      if (componentsMapItem.addPropertyName) {
+        this.set(componentsMapItem.addPropertyName, true);
         primary = function () {
-          this.set('addHiveServer', false);
+          this.set(componentsMapItem.addPropertyName, false);
         };
       }
       returnFunc = self.showAddComponentPopup(component, hostName, null, true, componentsMapItem.configsCallbackName, primary);
@@ -686,7 +720,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         groups: [],
         propertiesToChange: []
       };
-      this.loadConfigs(callbackName, configs);
+      this.set('isConfigsLoadingInProgress', true);
+      this.isServiceMetricsLoaded(function () {
+        self.loadConfigs(callbackName, configs);
+      });
     }
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
@@ -703,8 +740,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         propertiesToChange: isReconfigure ? configs.propertiesToChange : []
       }),
       disablePrimary: function () {
-        return isReconfigure && !this.get('controller.isConfigsLoaded');
-      }.property('controller.isConfigsLoaded'),
+        return isReconfigure && this.get('controller.isConfigsLoadingInProgress');
+      }.property('controller.isConfigsLoadingInProgress'),
       onPrimary: function () {
         this._super();
         if (isReconfigure) {
@@ -737,17 +774,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.installing, App.HostComponentStatus.stopped);
     }
 
-    this.showBackgroundOperationsPopup(function () {
-      if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_SERVER') {
-        self.set(params.componentName === 'ZOOKEEPER_SERVER' ? 'zkRequestId' : 'hiveRequestId', data.Requests.id);
-        self.addObserver(
-          'App.router.backgroundOperationsController.serviceTimestamp',
-          self,
-          (params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs : self.checkHiveDone)
-        );
-        params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs() : self.checkHiveDone();
-      }
-    });
+    this.showBackgroundOperationsPopup();
     return true;
   },
 
@@ -760,22 +787,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var hosts = [data.context];
     var operationData = {message: Em.I18n.t('hosts.host.details.setRackId')};
     hostsManagement.setRackInfo(operationData, hosts, rack);
-  },
-
-  /**
-   * Call load tags
-   * @method checkHiveDone
-   */
-  checkHiveDone: function () {
-    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('hiveRequestId'));
-    if (bg && !bg.get('isRunning')) {
-      var self = this;
-      this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkHiveDone);
-      setTimeout(function () {
-        self.set('addHiveServer', true);
-        self.loadConfigs("loadHiveConfigs");
-      }, App.get('componentsUpdateInterval'));
-    }
   },
 
   /**
@@ -851,6 +862,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       if (!Em.isNone(removedHost)) {
         Em.set(removedHost, 'isInstalled', false);
       }
+    } else if (this.get('addZooKeeperServer')) {
+      this.set('addZooKeeperServer', false);
+      masterComponents.push({
+        component: 'ZOOKEEPER_SERVER',
+        hostName: this.get('content.hostName'),
+        isInstalled: true
+      });
     }
     var dependencies = {
       zkClientPort: zkPort,
@@ -947,8 +965,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     ];
     if (params.configs) {
-      params.configs.groups = groups;
-      this.set('isConfigsLoaded', true);
+      params.configs.groups.pushObjects(groups);
     } else {
       this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
     }
@@ -1093,8 +1110,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     ];
     if (params.configs) {
-      params.configs.groups = groups;
-      this.set('isConfigsLoaded', true);
+      params.configs.groups.pushObjects(groups);
     } else {
       var args = [groups];
       var componentName = this.get('addHiveServer') ? 'HIVE_SERVER' : (hiveMetastoreHost ? 'HIVE_METASTORE' : 'WEBHCAT_SERVER');
@@ -1288,8 +1304,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       typeConfigs[property.name] = newValue;
     });
     if (params.configs) {
-      params.configs.groups = groups;
-      this.set('isConfigsLoaded', true);
+      params.configs.groups.pushObjects(groups);
     } else {
       this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
     }
@@ -1390,47 +1405,22 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
-   * Update storm config
-   * @method updateStormConfigs
-   */
-  updateStormConfigs: function () {
-    if (App.Service.find('STORM').get('isLoaded') && App.StackService.find('STORM').compareCurrentVersion('0.10') > -1) {
-      this.loadConfigs("loadStormConfigs");
-    }
-  },
-
-  /**
-   * Load tags
-   * @method checkZkConfigs
-   */
-  checkZkConfigs: function () {
-    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('zkRequestId'));
-    if (bg && !bg.get('isRunning')) {
-      var self = this;
-      this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
-      setTimeout(function () {
-        self.updateStormConfigs();
-        var callback = function () {
-          self.loadConfigs();
-        };
-        self.isServiceMetricsLoaded(callback);
-      }, App.get('componentsUpdateInterval'));
-    }
-  },
-
-  /**
    * Load configs
    * This function when used without a callback should be always used from successcallback function of the promise `App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(promise)`
    * This is required to make sure that service metrics API determining the HA state of components is loaded
    * @method loadConfigs
    */
   loadConfigs: function (callback, configs) {
-    this.set('isConfigsLoaded', false);
+    var self = this;
+    this.set('isConfigsLoadingInProgress', true);
     App.ajax.send({
       name: 'config.tags',
       sender: this,
       success: callback ? callback : 'loadConfigsSuccessCallback',
       error: 'onLoadConfigsErrorCallback',
+      callback: function () {
+        self.set('isConfigsLoadingInProgress', false);
+      },
       data: {
         configs: configs
       }
@@ -1480,30 +1470,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (App.get('isHaEnabled')) {
       urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
     }
-    if (services.someProperty('serviceName', 'HBASE')) {
-      urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'HIVE')) {
-      urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
-      urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'STORM')) {
-      urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'YARN')) {
-      urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
-      urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'ACCUMULO')) {
-      urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'KAFKA')) {
-      urlParams.push('(type=kafka-broker&tag=' + data.Clusters.desired_configs['kafka-broker'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'ATLAS')) {
-      urlParams.push('(type=application-properties&tag=' + data.Clusters.desired_configs['application-properties'].tag + ')');
-      urlParams.push('(type=infra-solr-env&tag=' + data.Clusters.desired_configs['infra-solr-env'].tag + ')');
-    }
+    this.get('zooKeeperRelatedServices').forEach(function (service) {
+      if (services.someProperty('serviceName', service.serviceName)) {
+        service.typesToLoad.forEach(function (type) {
+          urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+        });
+      }
+    });
     return urlParams;
   },
 
@@ -1523,82 +1496,23 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }, this);
 
     this.updateZkConfigs(configs, params.configs);
-    var groups = [
-      {
-        properties: {
-          'hive-site': configs['hive-site'],
-          'webhcat-site': configs['webhcat-site']
-        },
-        properties_attributes: {
-          'hive-site': attributes['hive-site'],
-          'webhcat-site': attributes['webhcat-site']
-        }
-      }
-    ];
+    var groups = [];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
-    if (installedServiceNames.contains('YARN')) {
-      groups.push(
-        {
-          properties: {
-            'yarn-site': configs['yarn-site']
-          },
-          properties_attributes: {
-            'yarn-site': attributes['yarn-site']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('HBASE')) {
-      groups.push(
-        {
-          properties: {
-            'hbase-site': configs['hbase-site']
-          },
-          properties_attributes: {
-            'hbase-site': attributes['hbase-site']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('ACCUMULO')) {
-      groups.push(
-        {
-          properties: {
-            'accumulo-site': configs['accumulo-site']
-          },
-          properties_attributes: {
-            'accumulo-site': attributes['accumulo-site']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('KAFKA')) {
-      groups.push(
-        {
-          properties: {
-            'kafka-broker': configs['kafka-broker']
-          },
-          properties_attributes: {
-            'kafka-broker': attributes['kafka-broker']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('ATLAS')) {
-      groups.push(
-        {
-          properties: {
-            'application-properties': configs['application-properties']
-          },
-          properties_attributes: {
-            'application-properties': attributes['application-properties']
-          }
-        }
-      );
-    }
+    this.get('zooKeeperRelatedServices').forEach(function (service) {
+      if (installedServiceNames.contains(service.serviceName)) {
+        var group = {
+          properties: {},
+          properties_attributes: {}
+        };
+        service.typesToSave.forEach(function (type) {
+          group.properties[type] = configs[type];
+          group.properties_attributes[type] = attributes[type];
+        });
+        groups.push(group);
+      }
+    });
     if (params.configs) {
-      params.configs.groups = groups;
-      this.set('isConfigsLoaded', true);
+      params.configs.groups.pushObjects(groups);
     } else {
       this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
     }

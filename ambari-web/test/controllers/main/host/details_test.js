@@ -766,8 +766,6 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#showAddComponentPopup()', function () {
 
-    var message = 'Comp1';
-
     beforeEach(function () {
       sinon.stub(App.ModalPopup, 'show');
     });
@@ -922,7 +920,7 @@ describe('App.MainHostDetailsController', function () {
 
     it('HIVE is installed', function () {
       loadService('HIVE');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=webhcat-site&tag=1)', '(type=hive-site&tag=1)']);
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=hive-site&tag=1)', '(type=webhcat-site&tag=1)']);
     });
 
     it('STORM is installed', function () {
@@ -2560,66 +2558,6 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#checkZkConfigs()', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'removeObserver');
-      sinon.stub(controller, 'loadConfigs');
-      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
-      this.stub = sinon.stub(App.router, 'get');
-      sinon.stub(App.StackService, 'find').returns({
-        compareCurrentVersion: function() {}
-      })
-    });
-    afterEach(function () {
-      controller.loadConfigs.restore();
-      controller.removeObserver.restore();
-      controller.isServiceMetricsLoaded.restore();
-      this.stub.restore();
-      App.StackService.find.restore();
-    });
-
-    it('No operations of ZOOKEEPER_SERVER', function () {
-      this.stub.withArgs('backgroundOperationsController.services').returns([]);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.called).to.be.false;
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-
-    it('Operation of ZOOKEEPER_SERVER running', function () {
-      this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-        id: 1,
-        isRunning: true
-      })]);
-      controller.set('zkRequestId', 1);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.called).to.be.false;
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-
-    describe('Operation of ZOOKEEPER_SERVER finished', function () {
-
-      beforeEach(function () {
-        this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-          id: 1
-        })]);
-        this.clock = sinon.useFakeTimers();
-        controller.set('zkRequestId', 1);
-        controller.checkZkConfigs();
-      });
-
-      afterEach(function () {
-        this.clock.restore();
-      });
-
-      it('loadConfigs is called after `componentsUpdateInterval`', function () {
-        expect(controller.removeObserver.calledWith('App.router.backgroundOperationsController.serviceTimestamp', controller, controller.checkZkConfigs)).to.be.true;
-        this.clock.tick(App.get('componentsUpdateInterval'));
-        expect(controller.loadConfigs.calledOnce).to.be.true;
-      });
-
-    });
-  });
-
   describe('#_doDeleteHostComponentErrorCallback()', function () {
     it('call showBackgroundOperationsPopup', function () {
       controller._doDeleteHostComponentErrorCallback({}, 'textStatus', {}, {url: 'url'});
@@ -3386,54 +3324,6 @@ describe('App.MainHostDetailsController', function () {
     });
     it('Record is deleted', function () {
       expect(App.serviceMapper.deleteRecord.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#updateStormConfigs()", function () {
-    beforeEach(function () {
-      this.serviceMock = sinon.stub(App.Service, 'find');
-      sinon.stub(controller, 'loadConfigs');
-      this.mock = sinon.stub(App, 'get')
-      this.stackServiceMock = sinon.stub(App.StackService, 'find');
-    });
-    afterEach(function () {
-      this.serviceMock.restore();
-      this.mock.restore();
-      controller.loadConfigs.restore();
-      this.stackServiceMock.restore();
-    });
-    it("should not update configs when storm not installed, storm version >= 0.10", function () {
-      this.serviceMock.returns(Em.Object.create({
-        isLoaded: false
-      }));
-      this.mock.returns(false);
-      this.stackServiceMock.returns(App.StackService.createRecord({
-        serviceVersion: '0.10.1.1'
-      }));
-      controller.updateStormConfigs();
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-    it("should not update configs when storm installed, storm version is less 0.10", function () {
-      this.serviceMock.returns(Em.Object.create({
-        isLoaded: true
-      }));
-      this.stackServiceMock.returns(App.StackService.createRecord({
-        serviceVersion: '0.9.1.1'
-      }));
-      this.mock.returns(false);
-      controller.updateStormConfigs();
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-    it("should update configs when storm installed, storm version >= 0.10", function () {
-      this.serviceMock.returns(Em.Object.create({
-        isLoaded: true
-      }));
-      this.stackServiceMock.returns(App.StackService.createRecord({
-        serviceVersion: '0.10.1.1'
-      }));
-      this.mock.returns(true);
-      controller.updateStormConfigs();
-      expect(controller.loadConfigs.calledWith('loadStormConfigs')).to.be.true;
     });
   });
 

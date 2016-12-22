@@ -18,7 +18,6 @@
 package org.apache.ambari.server.security.encryption;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
@@ -29,6 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.GenericKeyCredential;
+import org.apache.ambari.server.utils.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -191,23 +191,14 @@ public class CredentialProvider {
           try {
             fo = new FileOutputStream(writeFilePath);
             fo.write(passwd.getBytes());
-          } catch (FileNotFoundException fe) {
-            fe.printStackTrace();
           } catch (IOException e) {
             e.printStackTrace();
           } finally {
-            if (fo != null) {
-              try {
-                fo.close();
-              } catch (IOException e) {
-              }
-            }
+            Closeables.closeSilently(fo);
           }
         } else {
           LOG.error("Alias and file path are required arguments.");
         }
-      } else if (action.equalsIgnoreCase("RESET")) {
-
       }
     } else {
       LOG.error("No arguments provided to " + "CredentialProvider");

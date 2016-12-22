@@ -26,17 +26,11 @@
         {{/each}}
       </ul>
     </li>
-    <li>
-      <button class="btn btn-default" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
-      <button class="btn btn-primary" {{action "applyFilter" target="view"}}>{{t common.apply}}</button>
+    <li class="add-widgets-apply-button">
+      <button class="btn btn-primary pull-right" {{action "applyFilter" target="view"}}>{{t common.add}}</button>
     </li>
   {{else}}
-    <li>
-      <ul>
-        <li>{{t dashboard.widgets.nothing}}</li>
-      </ul>
-    </li>
-    <li>
-      <button class="btn btn-default" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
+    <li class="nothing-to-add">
+      <span>{{t dashboard.widgets.nothing}}</span>
     </li>
   {{/if}}

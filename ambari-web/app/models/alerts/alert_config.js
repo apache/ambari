@@ -173,28 +173,18 @@ App.AlertConfigProperties = {
     apiProperty: 'name'
   }),
 
-  ServiceAlertType: App.AlertConfigProperty.extend({
-    name: 'alert_type_service',
-    label: 'Service Alert Definition',
-    displayType: 'radioButton',
-    group: 'alert_type'
-  }),
-
-  HostAlertType: App.AlertConfigProperty.extend({
-    name: 'alert_type_host',
-    label: 'Host Alert Definition',
-    displayType: 'radioButton',
-    group: 'alert_type'
-  }),
-
   Service: App.AlertConfigProperty.extend({
     name: 'service',
     label: 'Service',
     displayType: 'select',
     apiProperty: 'service_name',
     apiFormattedValue: function () {
-      return App.StackService.find().findProperty('displayName', this.get('value')).get('serviceName');
-    }.property('value')
+      return this.get('value') == 'CUSTOM' ? this.get('value') : App.StackService.find().findProperty('displayName', this.get('value')).get('serviceName');
+    }.property('value'),
+    change: function () {
+      this.set('property.value', true);
+      this.get('parentView.controller').changeService(this.get('property.name'));
+    }
   }),
 
   Component: App.AlertConfigProperty.extend({
@@ -203,7 +193,7 @@ App.AlertConfigProperties = {
     displayType: 'select',
     apiProperty: 'component_name',
     apiFormattedValue: function () {
-      return App.StackServiceComponent.find().findProperty('displayName', this.get('value')).get('componentName');
+      return this.get('value') == 'No component' ? this.get('value') : App.StackServiceComponent.find().findProperty('displayName', this.get('value')).get('componentName');
     }.property('value')
   }),
 
@@ -404,7 +394,7 @@ App.AlertConfigProperties = {
 
   URI: App.AlertConfigProperty.extend({
     name: 'uri',
-    label: 'URI',
+    label: 'Host',
     displayType: 'textField',
     apiProperty: 'source.uri'
   }),
@@ -429,7 +419,13 @@ App.AlertConfigProperties = {
     name: 'default_port',
     label: 'Default Port',
     displayType: 'textField',
-    apiProperty: 'source.default_port'
+    classNames: 'alert-port-input',
+    apiProperty: 'source.default_port',
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) return false;
+      return String(value) === String(parseInt(value, 10)) && value >= 1;
+    }.property('value')
   }),
 
   Path: App.AlertConfigProperty.extend({

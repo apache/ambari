@@ -134,25 +134,19 @@ public class ConfigMergeHelperTest {
       newStackId.getStackVersion())).andReturn(newStackProperties);
 
     // desired config of hdfs-env.xml
-    Map<String, String> desiredHdfsEnvProperties = new HashMap<String, String>() {{
-
-    }};
+    Map<String, String> desiredHdfsEnvProperties = new HashMap<>();
     expect(clusterMock.getDesiredConfigByType("hdfs-env.xml")).andReturn(
       createConfigMock(desiredHdfsEnvProperties)
     );
 
     // desired config of zk-env.xml
-    Map<String, String> desiredZkEnvProperties = new HashMap<String, String>() {{
-
-    }};
+    Map<String, String> desiredZkEnvProperties = new HashMap<>();
     expect(clusterMock.getDesiredConfigByType("hdfs-env.xml")).andReturn(
       createConfigMock(desiredZkEnvProperties)
     );
 
     // desired config of hadoop-env.xml
-    Map<String, String> desiredHadoopEnvProperties = new HashMap<String, String>() {{
-
-    }};
+    Map<String, String> desiredHadoopEnvProperties = new HashMap<>();
     expect(clusterMock.getDesiredConfigByType("hadoop-env.xml")).andReturn(
       createConfigMock(desiredHadoopEnvProperties)
     );

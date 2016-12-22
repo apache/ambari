@@ -56,6 +56,7 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
     private Map<String, List<String>> roles;
 
     public ClusterPrivilegeChangeRequestAuditEventBuilder() {
+      super(ClusterPrivilegeChangeRequestAuditEventBuilder.class);
       super.withOperation("Role change");
     }
 

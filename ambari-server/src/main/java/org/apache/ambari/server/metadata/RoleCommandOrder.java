@@ -126,7 +126,8 @@ public class RoleCommandOrder {
     try {
       stack = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
-    } catch (AmbariException e) {
+    } catch (AmbariException ignored) {
+      // initialize() will fail with NPE
     }
 
     Map<String,Object> userData = stack.getRoleCommandOrder().getContent();

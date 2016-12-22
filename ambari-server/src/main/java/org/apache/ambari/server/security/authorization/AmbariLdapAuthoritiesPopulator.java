@@ -19,14 +19,10 @@ package org.apache.ambari.server.security.authorization;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.MemberEntity;
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
@@ -47,14 +43,17 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
   UserDAO userDAO;
   MemberDAO memberDAO;
   PrivilegeDAO privilegeDAO;
+  Users users;
 
   @Inject
   public AmbariLdapAuthoritiesPopulator(AuthorizationHelper authorizationHelper,
-                                        UserDAO userDAO, MemberDAO memberDAO, PrivilegeDAO privilegeDAO) {
+                                        UserDAO userDAO, MemberDAO memberDAO, PrivilegeDAO privilegeDAO,
+                                        Users users) {
     this.authorizationHelper = authorizationHelper;
     this.userDAO = userDAO;
     this.memberDAO = memberDAO;
     this.privilegeDAO = privilegeDAO;
+    this.users = users;
   }
 
   @Override
@@ -74,18 +73,8 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
     if(!user.getActive()){
       throw new InvalidUsernamePasswordCombinationException();
     }
-    // get all of the privileges for the user
-    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
 
-    principalEntities.add(user.getPrincipal());
-
-    List<MemberEntity> memberEntities = memberDAO.findAllMembersByUser(user);
-
-    for (MemberEntity memberEntity : memberEntities) {
-      principalEntities.add(memberEntity.getGroup().getPrincipal());
-    }
-
-    List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
+    Collection<PrivilegeEntity> privilegeEntities = users.getUserPrivileges(user);
 
     return authorizationHelper.convertPrivilegesToAuthorities(privilegeEntities);
   }

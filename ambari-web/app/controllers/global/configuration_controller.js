@@ -61,6 +61,12 @@ App.ConfigurationController = Em.Controller.extend({
     }
     return isDifferent;
   },
+
+  /**
+   *
+   * @param {Array} siteNames
+   * @returns {*}
+   */
   loadFromDB: function (siteNames) {
     var dfd = $.Deferred();
     var configs = App.db.getConfigs().filter(function (site) {
@@ -80,7 +86,7 @@ App.ConfigurationController = Em.Controller.extend({
     var dfd = $.Deferred();
     if (!tags.everyProperty('tagName')) {
       var configTags;
-      var jqXhr =  this.loadConfigTags();
+      var jqXhr = this.loadConfigTags();
       jqXhr.done(function (data) {
         configTags = data.Clusters.desired_configs;
         tags.forEach(function (_tag) {
@@ -88,10 +94,10 @@ App.ConfigurationController = Em.Controller.extend({
             _tag.tagName = configTags[_tag.siteName].tag;
           }
         }, self);
-        self.loadConfigsByTags(tags,dfd);
+        self.loadConfigsByTags(tags, dfd);
       });
     } else {
-      self.loadConfigsByTags(tags,dfd);
+      self.loadConfigsByTags(tags, dfd);
     }
     return dfd.promise();
   },
@@ -101,7 +107,7 @@ App.ConfigurationController = Em.Controller.extend({
    *  @params tags
    *  @params dfd jqXhr promise
    */
-  loadConfigsByTags: function (tags,dfd) {
+  loadConfigsByTags: function (tags, dfd) {
     var self = this;
     var loadedConfigs = [];
     App.config.loadConfigsByTags(tags).done(function (data) {

@@ -44,7 +44,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
 component_list = default("/localComponents", [])
 
-hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
+hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 
 hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
@@ -208,6 +208,12 @@ yarn_log_dir_prefix = default("/configurations/yarn-env/yarn_log_dir_prefix","/v
 
 dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
+# Hdfs log4j settings
+hadoop_log_max_backup_size = default('configurations/hdfs-log4j/hadoop_log_max_backup_size', 256)
+hadoop_log_number_of_backup_files = default('configurations/hdfs-log4j/hadoop_log_number_of_backup_files', 20)
+hadoop_security_log_max_backup_size = default('configurations/hdfs-log4j/hadoop_security_log_max_backup_size', 256)
+hadoop_security_log_number_of_backup_files = default('configurations/hdfs-log4j/hadoop_security_log_number_of_backup_files', 20)
+
 # Yarn log4j settings
 yarn_rm_summary_log_max_backup_size = default('configurations/yarn-log4j/yarn_rm_summary_log_max_backup_size', 256)
 yarn_rm_summary_log_number_of_backup_files = default('configurations/yarn-log4j/yarn_rm_summary_log_number_of_backup_files', 20)
@@ -284,7 +290,7 @@ if dfs_ha_namenode_ids:
 if dfs_ha_enabled:
  for nn_id in dfs_ha_namemodes_ids_list:
    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
-   if hostname in nn_host:
+   if hostname.lower() in nn_host.lower():
      namenode_id = nn_id
      namenode_rpc = nn_host
    pass

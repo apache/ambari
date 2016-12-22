@@ -371,6 +371,7 @@ public class HeartbeatProcessor extends AbstractService{
           Cluster cluster = clusterFsm.getCluster(report.getClusterName());
           clusterId = cluster.getClusterId();
         } catch (AmbariException e) {
+          // null clusterId reported and handled by the listener (DistributeRepositoriesActionListener)
         }
       }
 

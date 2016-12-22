@@ -61,6 +61,7 @@ public class ChangeRepositoryVersionRequestAuditEvent extends RequestAuditEvent 
     private SortedMap<String, List<Map<String, String>>> repos;
 
     public ChangeRepositoryVersionAuditEventBuilder() {
+      super(ChangeRepositoryVersionAuditEventBuilder.class);
       super.withOperation("Repository version change");
     }
 

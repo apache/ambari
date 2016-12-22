@@ -36,6 +36,7 @@ public class DeleteAlertGroupRequestAuditEvent extends RequestAuditEvent {
     private String id;
 
     public DeleteAlertGroupRequestAuditEventBuilder() {
+      super(DeleteAlertGroupRequestAuditEventBuilder.class);
       super.withOperation("Alert group removal");
     }
 

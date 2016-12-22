@@ -31,7 +31,6 @@
     <powermock.version>1.6.3</powermock.version>
     <jetty.version>8.1.19.v20160209</jetty.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
-    <checkstyle.skip>false</checkstyle.skip>
   </properties>
   <profiles>
     <profile>
@@ -502,8 +501,8 @@
             <encoding>UTF-8</encoding>
             <consoleOutput>true</consoleOutput>
             <failsOnError>true</failsOnError>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
             <linkXRef>false</linkXRef>
-            <skip>${checkstyle.skip}</skip>
           </configuration>
           <executions>
             <execution>

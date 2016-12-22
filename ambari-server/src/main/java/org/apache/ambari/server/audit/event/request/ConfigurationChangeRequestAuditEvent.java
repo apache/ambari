@@ -41,6 +41,7 @@ public class ConfigurationChangeRequestAuditEvent extends RequestAuditEvent {
     private String versionNote;
 
     public ConfigurationChangeRequestAuditEventBuilder() {
+      super(ConfigurationChangeRequestAuditEventBuilder.class);
       super.withOperation("Configuration change");
     }
 

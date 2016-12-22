@@ -41,10 +41,6 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   public static final String THEME_KEY = "Theme";
 
-  static {
-  }
-
-
   private ThemeInfo moduleInfo;
   private boolean valid = true;
   private Set<String> errors = new HashSet<String>();

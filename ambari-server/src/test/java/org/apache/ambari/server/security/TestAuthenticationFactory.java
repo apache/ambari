@@ -218,6 +218,8 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
         RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS,
         RoleAuthorization.CLUSTER_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_MANAGE_AUTO_START,
+        RoleAuthorization.CLUSTER_MANAGE_AUTO_START,
         RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
     return permissionEntity;
   }
@@ -257,6 +259,8 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA,
         RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS,
+        RoleAuthorization.SERVICE_MANAGE_AUTO_START,
+        RoleAuthorization.CLUSTER_MANAGE_AUTO_START,
         RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS)));
     return permissionEntity;
   }
@@ -291,6 +295,7 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
         RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS,
+        RoleAuthorization.SERVICE_MANAGE_AUTO_START,
         RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
     return permissionEntity;
   }

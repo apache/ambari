@@ -41,6 +41,7 @@ public class AdminUserRequestAuditEvent extends RequestAuditEvent {
     private String username;
 
     public AdminUserRequestAuditEventBuilder() {
+      super(AdminUserRequestAuditEventBuilder.class);
       super.withOperation("Set user admin");
     }
 

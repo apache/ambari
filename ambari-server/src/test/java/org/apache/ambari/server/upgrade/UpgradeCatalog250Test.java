@@ -18,46 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import junit.framework.Assert;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.easymock.EasyMockRunner;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import javax.persistence.EntityManager;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -70,6 +30,58 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockRunner;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -255,19 +267,23 @@ public class UpgradeCatalog250Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method updateAmsConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateHadoopEnvConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHadoopEnvConfigs");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
     Method updateHIVEInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHIVEInteractiveConfigs");
     Method updateTEZInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateTEZInteractiveConfigs");
+    Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
+        .addMockedMethod(updateHadoopEnvConfigs)
         .addMockedMethod(updateKafkaConfigs)
         .addMockedMethod(updateHiveLlapConfigs)
         .addMockedMethod(addNewConfigurationsFromXml)
+        .addMockedMethod(addManageServiceAutoStartPermissions)
         .addMockedMethod(updateHIVEInteractiveConfigs)
         .addMockedMethod(updateTEZInteractiveConfigs)
         .addMockedMethod(updateTablesForZeppelinViewRemoval)
@@ -275,6 +291,9 @@ public class UpgradeCatalog250Test {
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateHadoopEnvConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.addNewConfigurationsFromXml();
@@ -296,6 +315,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateAtlasConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.addManageServiceAutoStartPermissions();
     expectLastCall().once();
 
     replay(upgradeCatalog250);
@@ -498,4 +520,77 @@ public class UpgradeCatalog250Test {
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
+
+  @Test
+  public void testCreateRoleAuthorizations() throws AmbariException, SQLException {
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    ResourceTypeEntity ambariResourceTypeEntity = easyMockSupport.createMock(ResourceTypeEntity.class);
+
+    ResourceTypeEntity clusterResourceTypeEntity = easyMockSupport.createMock(ResourceTypeEntity.class);
+
+    Collection<RoleAuthorizationEntity> ambariAdministratorAuthorizations = new ArrayList<RoleAuthorizationEntity>();
+    Collection<RoleAuthorizationEntity> clusterAdministratorAuthorizations = new ArrayList<RoleAuthorizationEntity>();
+
+    PermissionEntity clusterAdministratorPermissionEntity = easyMockSupport.createMock(PermissionEntity.class);
+    expect(clusterAdministratorPermissionEntity.getAuthorizations())
+        .andReturn(clusterAdministratorAuthorizations).atLeastOnce();
+
+    PermissionEntity ambariAdministratorPermissionEntity = easyMockSupport.createMock(PermissionEntity.class);
+    expect(ambariAdministratorPermissionEntity.getAuthorizations())
+        .andReturn(ambariAdministratorAuthorizations).atLeastOnce();
+
+    PermissionDAO permissionDAO = easyMockSupport.createMock(PermissionDAO.class);
+    expect(permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR", ambariResourceTypeEntity))
+        .andReturn(ambariAdministratorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.findPermissionByNameAndType("CLUSTER.ADMINISTRATOR", clusterResourceTypeEntity))
+        .andReturn(clusterAdministratorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(ambariAdministratorPermissionEntity))
+        .andReturn(ambariAdministratorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(clusterAdministratorPermissionEntity))
+        .andReturn(clusterAdministratorPermissionEntity).atLeastOnce();
+
+    ResourceTypeDAO resourceTypeDAO = easyMockSupport.createMock(ResourceTypeDAO.class);
+    expect(resourceTypeDAO.findByName("AMBARI")).andReturn(ambariResourceTypeEntity).atLeastOnce();
+    expect(resourceTypeDAO.findByName("CLUSTER")).andReturn(clusterResourceTypeEntity).atLeastOnce();
+
+    RoleAuthorizationDAO roleAuthorizationDAO = easyMockSupport.createMock(RoleAuthorizationDAO.class);
+    expect(roleAuthorizationDAO.findById("CLUSTER.RUN_CUSTOM_COMMAND")).andReturn(null).atLeastOnce();
+    expect(roleAuthorizationDAO.findById("AMBARI.RUN_CUSTOM_COMMAND")).andReturn(null).atLeastOnce();
+
+    Capture<RoleAuthorizationEntity> captureClusterRunCustomCommandEntity = newCapture();
+    roleAuthorizationDAO.create(capture(captureClusterRunCustomCommandEntity));
+    expectLastCall().once();
+
+    Capture<RoleAuthorizationEntity> captureAmbariRunCustomCommandEntity = newCapture();
+    roleAuthorizationDAO.create(capture(captureAmbariRunCustomCommandEntity));
+    expectLastCall().once();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(RoleAuthorizationDAO.class)).andReturn(roleAuthorizationDAO).atLeastOnce();
+    expect(injector.getInstance(PermissionDAO.class)).andReturn(permissionDAO).atLeastOnce();
+    expect(injector.getInstance(ResourceTypeDAO.class)).andReturn(resourceTypeDAO).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    new UpgradeCatalog242(injector).createRoleAuthorizations();
+    easyMockSupport.verifyAll();
+
+    RoleAuthorizationEntity ambariRunCustomCommandEntity = captureAmbariRunCustomCommandEntity.getValue();
+    RoleAuthorizationEntity clusterRunCustomCommandEntity = captureClusterRunCustomCommandEntity.getValue();
+
+    Assert.assertEquals("AMBARI.RUN_CUSTOM_COMMAND", ambariRunCustomCommandEntity.getAuthorizationId());
+    Assert.assertEquals("Perform custom administrative actions", ambariRunCustomCommandEntity.getAuthorizationName());
+
+    Assert.assertEquals("CLUSTER.RUN_CUSTOM_COMMAND", clusterRunCustomCommandEntity.getAuthorizationId());
+    Assert.assertEquals("Perform custom cluster-level actions", clusterRunCustomCommandEntity.getAuthorizationName());
+
+    Assert.assertEquals(2, ambariAdministratorAuthorizations.size());
+    Assert.assertTrue(ambariAdministratorAuthorizations.contains(clusterRunCustomCommandEntity));
+    Assert.assertTrue(ambariAdministratorAuthorizations.contains(ambariRunCustomCommandEntity));
+
+    Assert.assertEquals(1, clusterAdministratorAuthorizations.size());
+    Assert.assertTrue(clusterAdministratorAuthorizations.contains(clusterRunCustomCommandEntity));
+  }
+
 }

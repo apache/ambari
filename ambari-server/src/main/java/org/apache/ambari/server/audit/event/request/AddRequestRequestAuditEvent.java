@@ -41,6 +41,7 @@ public class AddRequestRequestAuditEvent extends RequestAuditEvent {
     private String clusterName;
 
     public AddRequestAuditEventBuilder() {
+      super(AddRequestAuditEventBuilder.class);
       super.withOperation("Request from server");
     }
 

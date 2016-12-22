@@ -92,7 +92,7 @@ dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
 dfs_dn_ipc_address = config['configurations']['hdfs-site']['dfs.datanode.ipc.address']
 secure_dn_ports_are_in_use = False
 
-hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
+hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 namenode_backup_dir = default("/configurations/hadoop-env/namenode_backup_dir", "/tmp/upgrades")
 
 # hadoop default parameters
@@ -296,7 +296,7 @@ if dfs_ha_namenode_ids:
 if dfs_ha_enabled:
   for nn_id in dfs_ha_namemodes_ids_list:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
-    if hostname in nn_host:
+    if hostname.lower() in nn_host.lower():
       namenode_id = nn_id
       namenode_rpc = nn_host
   # With HA enabled namenode_address is recomputed

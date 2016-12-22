@@ -44,6 +44,7 @@ public class AddComponentToHostRequestAuditEvent extends RequestAuditEvent {
     private Set<String> components;
 
     public AddComponentToHostRequestAuditEventBuilder() {
+      super(AddComponentToHostRequestAuditEventBuilder.class);
       super.withOperation("Component addition to host");
     }
 

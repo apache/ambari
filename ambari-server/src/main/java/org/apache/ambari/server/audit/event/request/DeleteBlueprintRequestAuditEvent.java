@@ -36,6 +36,7 @@ public class DeleteBlueprintRequestAuditEvent extends RequestAuditEvent {
     private String blueprintName;
 
     public DeleteBlueprintRequestAuditEventBuilder() {
+      super(DeleteBlueprintRequestAuditEventBuilder.class);
       super.withOperation("Delete blueprint");
     }
 

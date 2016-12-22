@@ -32,6 +32,11 @@ describe('App.UpdateController', function () {
 
   beforeEach(function () {
     c = App.UpdateController.create();
+    sinon.stub(App.HttpClient, 'get');
+  });
+
+  afterEach(function() {
+    App.HttpClient.get.restore();
   });
 
   App.TestAliases.testAsComputedAlias(App.UpdateController.create(), 'clusterName', 'App.router.clusterController.clusterName', 'string');
@@ -443,6 +448,14 @@ describe('App.UpdateController', function () {
 
   describe('#computeParameters', function () {
 
+    beforeEach(function() {
+      sinon.stub(App.router.get('mainHostComboSearchBoxController'), 'generateQueryParam').returns('combo');
+    });
+
+    afterEach(function() {
+      App.router.get('mainHostComboSearchBoxController').generateQueryParam.restore();
+    });
+
     Em.A([
       {
         q: [{
@@ -451,6 +464,22 @@ describe('App.UpdateController', function () {
           value: [1, 2]
         }],
         result: 'k.in(1,2)'
+      },
+      {
+        q: [{
+          type: 'CUSTOM',
+          key: '{0} - {1}',
+          value: [1, 2]
+        }],
+        result: '1 - 2'
+      },
+      {
+        q: [{
+          type: 'COMBO',
+          key: '',
+          value: []
+        }],
+        result: 'combo'
       },
       {
         q: [{
@@ -534,9 +563,102 @@ describe('App.UpdateController', function () {
         var result = c.computeParameters(test.q);
         expect(result).to.be.equal(test.result);
       });
-
     });
-
   });
 
+  describe('#preLoadHosts()', function() {
+
+    beforeEach(function() {
+      sinon.stub(c, 'getHostByHostComponents');
+    });
+
+    afterEach(function() {
+      c.getHostByHostComponents.restore();
+    });
+
+    it('getHostByHostComponents should be called', function() {
+      c.set('queryParams.Hosts', [{isComponentRelatedFilter: true}]);
+      expect(c.preLoadHosts(Em.K)).to.be.true;
+      expect(c.getHostByHostComponents.calledOnce).to.be.true;
+    });
+
+    it('getHostByHostComponents should not be called', function() {
+      c.set('queryParams.Hosts', []);
+      expect(c.preLoadHosts(Em.K)).to.be.false;
+      expect(c.getHostByHostComponents.calledOnce).to.be.false;
+    });
+  });
+
+  describe('#getHostByHostComponents', function() {
+
+    it('App.ajax.send should be called', function() {
+      var args = testHelpers.findAjaxRequest('name', 'hosts.host_components.pre_load');
+      expect(args).to.exists;
+    });
+  });
+
+  describe('#updateServices()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateServices();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateComponentConfig()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateComponentConfig();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateComponentsState()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateComponentsState();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateAlertDefinitions()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateAlertDefinitions();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateUnhealthyAlertInstances()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateUnhealthyAlertInstances();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateAlertDefinitionSummary()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateAlertDefinitionSummary();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateAlertGroups()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateAlertGroups();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#updateAlertNotifications()', function() {
+    it('App.HttpClient.get should be called', function() {
+      c.updateAlertNotifications();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#loadClusterConfig()', function() {
+
+    it('App.ajax.send should be called', function() {
+      c.loadClusterConfig();
+      var args = testHelpers.findAjaxRequest('name', 'config.tags.site');
+      expect(args).to.exists;
+    });
+  });
 });

@@ -26,32 +26,36 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
    * List of available actions for alert definitions
    * @type {{title: string, icon: string, action: string, showDivider: boolean}[]}
    */
-  content: [
-    {
-      title: Em.I18n.t('alerts.actions.create'),
-      icon: 'glyphicon glyphicon-plus',
-      action: 'createNewAlertDefinition',
-      showDivider: true
-    },
-    {
+  content: function() {
+    var content = [];
+    if (App.supports.createAlerts) {
+      content = [{
+        title: Em.I18n.t('alerts.actions.create'),
+        icon: 'glyphicon glyphicon-plus',
+        action: 'createNewAlertDefinition',
+        showDivider: true
+      }];
+    }
+    content = content.concat([{
       title: Em.I18n.t('alerts.actions.manageGroups'),
       icon: 'glyphicon glyphicon-th-large',
       action: 'manageAlertGroups',
       showDivider: false
-    },
-    {
-      title: Em.I18n.t('alerts.actions.manageNotifications'),
-      icon: 'glyphicon glyphicon-envelope',
-      action: 'manageNotifications',
-      showDivider: false
-    },
-    {
-      title: Em.I18n.t('alerts.actions.manageSettings'),
-      icon: 'glyphicon glyphicon-cog',
-      action: 'manageSettings',
-      showDivider: false
-    }
-  ],
+      },
+      {
+        title: Em.I18n.t('alerts.actions.manageNotifications'),
+        icon: 'glyphicon glyphicon-envelope',
+        action: 'manageNotifications',
+        showDivider: false
+      },
+      {
+        title: Em.I18n.t('alerts.actions.manageSettings'),
+        icon: 'glyphicon glyphicon-cog',
+        action: 'manageSettings',
+        showDivider: false
+      }]);
+    return content;
+  }.property('App.supports.createAlerts'),
 
   /**
    * Common handler for menu item click

@@ -36,14 +36,6 @@ import org.junit.Test;
 import com.google.common.cache.Cache;
 import com.google.inject.Injector;
 
-
-
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
-
-import com.google.common.cache.Cache;
-
 /**
  * This test verifies the basic behavior of the
  *   LogSearchDataRetrievalServiceTest, and should

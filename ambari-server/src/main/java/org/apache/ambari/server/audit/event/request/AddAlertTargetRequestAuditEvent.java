@@ -69,6 +69,7 @@ public class AddAlertTargetRequestAuditEvent extends RequestAuditEvent {
     private List<String> alertStates;
 
     public AddAlertTargetRequestAuditEventBuilder() {
+      super(AddAlertTargetRequestAuditEventBuilder.class);
       super.withOperation("Notification addition");
     }
 

@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
+import org.apache.ambari.server.utils.Closeables;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
@@ -1093,19 +1094,8 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
         LOG.error(message, e);
         throw new KerberosOperationException(message, e);
       } finally {
-        if (osw != null) {
-          try {
-            osw.close();
-          } catch (IOException e) {
-          }
-        }
-
-        if (reader != null) {
-          try {
-            reader.close();
-          } catch (IOException e) {
-          }
-        }
+        Closeables.closeSilently(osw);
+        Closeables.closeSilently(reader);
       }
 
       if (process.exitValue() != 0) {

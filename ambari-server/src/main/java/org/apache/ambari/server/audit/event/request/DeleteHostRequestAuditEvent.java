@@ -36,6 +36,7 @@ public class DeleteHostRequestAuditEvent extends RequestAuditEvent {
     private String hostName;
 
     public DeleteHostRequestAuditEventBuilder() {
+      super(DeleteHostRequestAuditEventBuilder.class);
       super.withOperation("Host deletion");
     }
 

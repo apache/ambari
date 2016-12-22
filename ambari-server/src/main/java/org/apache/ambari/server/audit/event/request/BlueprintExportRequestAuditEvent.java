@@ -31,6 +31,7 @@ public class BlueprintExportRequestAuditEvent extends RequestAuditEvent {
   public static class BlueprintExportRequestAuditEventBuilder extends RequestAuditEventBuilder<BlueprintExportRequestAuditEvent, BlueprintExportRequestAuditEventBuilder> {
 
     public BlueprintExportRequestAuditEventBuilder() {
+      super(BlueprintExportRequestAuditEventBuilder.class);
       super.withOperation("Blueprint export");
     }
 

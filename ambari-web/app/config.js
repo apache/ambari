@@ -90,6 +90,7 @@ App.supports = {
   kerberosStackAdvisor: true,
   logCountVizualization: false,
   manageJournalNode: true,
+  createAlerts: false,
   enabledWizardForHostOrderedUpgrade: true
 };
 

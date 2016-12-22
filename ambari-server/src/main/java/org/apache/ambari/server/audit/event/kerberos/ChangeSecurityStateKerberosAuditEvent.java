@@ -49,6 +49,7 @@ public class ChangeSecurityStateKerberosAuditEvent extends AbstractKerberosAudit
     private String state;
 
     private ChangeSecurityStateKerberosAuditEventBuilder() {
+      super(ChangeSecurityStateKerberosAuditEventBuilder.class);
       this.withOperation("Security state change");
     }
 

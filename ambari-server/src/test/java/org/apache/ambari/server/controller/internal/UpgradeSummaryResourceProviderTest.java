@@ -195,7 +195,7 @@ public class UpgradeSummaryResourceProviderTest {
    * @param stageId
    */
   @Transactional
-  private void createCommands(Cluster cluster, Long upgradeRequestId, Long stageId) {
+  void createCommands(Cluster cluster, Long upgradeRequestId, Long stageId) {
     HostEntity h1 = hostDAO.findByName("h1");
     ServiceComponentHostEvent event = new ServiceComponentHostOpInProgressEvent("ZOOKEEPER_SERVER", "h1", 1L);
     ServiceComponentHostEventWrapper eventWrapper = new ServiceComponentHostEventWrapper(event);

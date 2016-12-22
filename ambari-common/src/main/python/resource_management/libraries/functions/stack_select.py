@@ -171,13 +171,14 @@ def get_role_component_current_stack_version():
   role = default("/role", "")
   role_command =  default("/roleCommand", "")
   stack_selector_name = stack_tools.get_stack_tool_name(stack_tools.STACK_SELECTOR_NAME)
-
+  Logger.info("Checking version for {0} via {1}".format(role, stack_selector_name))
   if role in SERVER_ROLE_DIRECTORY_MAP:
     stack_select_component = SERVER_ROLE_DIRECTORY_MAP[role]
   elif role_command == "SERVICE_CHECK" and role in SERVICE_CHECK_DIRECTORY_MAP:
     stack_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
 
   if stack_select_component is None:
+    Logger.error("Mapping unavailable for role {0}. Skip checking its version.".format(role))
     return None
 
   current_stack_version = get_stack_version(stack_select_component)

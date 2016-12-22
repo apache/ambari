@@ -921,17 +921,13 @@ public String getVersion() {
 
   public Map<String, ThemeInfo> getThemesMap() {
     if (themesMap == null) {
-      synchronized (this) {
-      }
-      if (themesMap == null) {
-        Map<String, ThemeInfo> tmp = new TreeMap<String, ThemeInfo>();
-        if (themes != null) {
-          for (ThemeInfo theme : themes) {
-            tmp.put(theme.getFileName(), theme);
-          }
+      Map<String, ThemeInfo> tmp = new TreeMap<>();
+      if (themes != null) {
+        for (ThemeInfo theme : themes) {
+          tmp.put(theme.getFileName(), theme);
         }
-        themesMap = tmp;
       }
+      themesMap = tmp;
     }
     return themesMap;
   }
@@ -959,17 +955,13 @@ public String getVersion() {
 
   public Map<String, QuickLinksConfigurationInfo> getQuickLinksConfigurationsMap() {
     if (quickLinksConfigurationsMap == null) {
-      synchronized (this) {
-      }
-      if (quickLinksConfigurationsMap == null) {
-        Map<String, QuickLinksConfigurationInfo> tmp = new TreeMap<String, QuickLinksConfigurationInfo>();
-        if (quickLinksConfigurations != null) {
-          for (QuickLinksConfigurationInfo quickLinksConfiguration : quickLinksConfigurations) {
-            tmp.put(quickLinksConfiguration.getFileName(), quickLinksConfiguration);
-          }
+      Map<String, QuickLinksConfigurationInfo> tmp = new TreeMap<>();
+      if (quickLinksConfigurations != null) {
+        for (QuickLinksConfigurationInfo quickLinksConfiguration : quickLinksConfigurations) {
+          tmp.put(quickLinksConfiguration.getFileName(), quickLinksConfiguration);
         }
-        quickLinksConfigurationsMap = tmp;
       }
+      quickLinksConfigurationsMap = tmp;
     }
     return quickLinksConfigurationsMap;
   }

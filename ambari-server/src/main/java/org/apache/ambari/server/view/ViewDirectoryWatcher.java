@@ -39,6 +39,7 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.Closeables;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -238,12 +239,7 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
       LOG.info("Verification failed ", e);
       return false;
     } finally {
-      if (zipFile != null) {
-        try {
-          zipFile.close();
-        } catch (IOException e) {
-        }
-      }
+      Closeables.closeSilently(zipFile);
     }
     return true;
   }

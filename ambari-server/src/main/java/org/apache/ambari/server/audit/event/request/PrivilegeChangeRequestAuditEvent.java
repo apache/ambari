@@ -46,6 +46,7 @@ public class PrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
     private String role;
 
     public PrivilegeChangeRequestAuditEventBuilder() {
+      super(PrivilegeChangeRequestAuditEventBuilder.class);
       super.withOperation("Role change");
     }
 

@@ -65,6 +65,7 @@ public class TaskStatusAuditEvent extends AbstractAuditEvent {
     private String userName;
 
     private TaskStatusAuditEventBuilder() {
+      super(TaskStatusAuditEventBuilder.class);
     }
 
     @Override

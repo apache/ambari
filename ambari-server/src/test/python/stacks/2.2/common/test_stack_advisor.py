@@ -2524,7 +2524,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
     services["configurations"]["core-site"]["properties"]["fs.defaultFS"] = 'hdfs://host1:8020'
     expected['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
-    expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1:8020/user/ams/hbase'
+    expected['ams-hbase-site']['properties']['hbase.rootdir'] = '/user/ams/hbase'
     expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'

@@ -31,9 +31,7 @@ require('utils/host_progress_popup');
 
 describe('App.BackgroundOperationsController', function () {
 
-  var controller = App.BackgroundOperationsController.create({
-    isInitLoading: Em.K
-  });
+  var controller = App.BackgroundOperationsController.create();
 
   describe('#getQueryParams', function () {
     /**
@@ -711,6 +709,243 @@ describe('App.BackgroundOperationsController', function () {
       expect(request.get('previousTaskStatusMap')).to.eql({"1": "COMPLETED", "2": "IN_PROGRESS"});
       expect(request.get('hostsMap.host1.logTasks.length')).to.equal(2);
       expect(request.get('isRunning')).to.equal(true);
+    });
+  });
+
+  describe("#isInitLoading()", function () {
+
+    it("should return false when not on HOSTS_LIST level", function() {
+      controller.set('levelInfo', Em.Object.create({
+        name: 'SERVICES_LIST'
+      }));
+      expect(controller.isInitLoading()).to.be.false;
+    });
+
+    it("should return false when no request found", function() {
+      controller.set('levelInfo', Em.Object.create({
+        name: 'HOSTS_LIST',
+        requestId: 1
+      }));
+      controller.set('services', []);
+      expect(controller.isInitLoading()).to.be.false;
+    });
+
+    it("should return false when no request found", function() {
+      controller.set('levelInfo', Em.Object.create({
+        name: 'HOSTS_LIST',
+        requestId: 1
+      }));
+      controller.set('services', []);
+      expect(controller.isInitLoading()).to.be.false;
+    });
+
+    it("should return false when request has hosts", function() {
+      controller.set('levelInfo', Em.Object.create({
+        name: 'HOSTS_LIST',
+        requestId: 1
+      }));
+      controller.set('services', [Em.Object.create({
+        id: 1,
+        hostsMap: {
+          'host1': {}
+        }
+      })]);
+      expect(controller.isInitLoading()).to.be.false;
+    });
+
+    it("should return true when no request has no hosts", function() {
+      controller.set('levelInfo', Em.Object.create({
+        name: 'HOSTS_LIST',
+        requestId: 1
+      }));
+      controller.set('services', [Em.Object.create({
+        id: 1,
+        hostsMap: {}
+      })]);
+      expect(controller.isInitLoading()).to.be.true;
+    });
+  });
+
+  describe("#callBackFilteredByTask()", function () {
+    var data = {
+      Tasks: {
+        request_id: 1,
+        host_name: 'host1',
+        id: 2,
+        status: 'foo',
+        stdout: 'bar',
+        stderr: 'barfoo',
+        command: 'cmd',
+        custom_command_name: 'custom-cmd',
+        structured_out: 'str-out',
+        output_log: 'out-log',
+        error_log: 'err-log'
+      }
+    };
+
+    beforeEach(function() {
+      sinon.stub(App, 'dateTime').returns(1);
+    });
+
+    afterEach(function() {
+      App.dateTime.restore();
+    });
+
+    it("should set task info", function() {
+      var task = {
+        Tasks: {
+          id: 2
+        }
+      };
+      controller.set('services', [
+        Em.Object.create({
+          id: 1,
+          hostsMap: {
+            host1: {
+              logTasks: [task]
+            }
+          }
+        })
+      ]);
+
+      controller.callBackFilteredByTask(data);
+      expect(task).to.be.eql({
+        "Tasks": {
+          "id": 2,
+          "status": "foo",
+          "stdout": "bar",
+          "stderr": "barfoo",
+          "command": "cmd",
+          "custom_command_name": "custom-cmd",
+          "structured_out": "str-out",
+          "output_log": "out-log",
+          "error_log": "err-log"
+        }
+      });
+      expect(controller.get('serviceTimestamp')).to.be.equal(1);
+    });
+  });
+
+  describe("#parseRequestContext()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'getRequestContextWithPrefix').returns({
+        parsedRequestContext: 'CTX_WITH_PREFIX'
+      });
+    });
+
+    afterEach(function() {
+      controller.getRequestContextWithPrefix.restore();
+    });
+
+    it("no requestContext specified", function() {
+      expect(controller.parseRequestContext()).to.be.eql({
+        parsedRequestContext: Em.I18n.t('requestInfo.unspecified')
+      });
+    });
+
+    it("requestContext specified", function() {
+      expect(controller.parseRequestContext('CTX')).to.be.eql({
+        parsedRequestContext: 'CTX'
+      });
+    });
+
+    it("requestContext specified with prefix", function() {
+      expect(controller.parseRequestContext(App.BackgroundOperationsController.CommandContexts.PREFIX)).to.be.eql({
+        parsedRequestContext: 'CTX_WITH_PREFIX'
+      });
+    });
+  });
+
+  describe("#getRequestContextWithPrefix()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.format, 'role', function (arg) {
+        return arg;
+      })
+    });
+
+    afterEach(function() {
+      App.format.role.restore();
+    });
+
+    it("custom command", function() {
+      expect(controller.getRequestContextWithPrefix('prefix.foo.bar')).to.be.eql({
+        requestContext: undefined,
+        dependentService: 'bar',
+        contextCommand: 'foo'
+      });
+    });
+    it("STOP all services command", function() {
+      expect(controller.getRequestContextWithPrefix('prefix.STOP.ALL_SERVICES')).to.be.eql({
+        requestContext: Em.I18n.t("requestInfo.stop").format(Em.I18n.t('common.allServices')),
+        dependentService: 'ALL_SERVICES',
+        contextCommand: 'STOP'
+      });
+    });
+    it("STOP one service command", function() {
+      expect(controller.getRequestContextWithPrefix('prefix.STOP.S1')).to.be.eql({
+        requestContext: Em.I18n.t("requestInfo.stop").format('S1'),
+        dependentService: 'S1',
+        contextCommand: 'STOP'
+      });
+    });
+    it("ROLLING-RESTART service command", function() {
+      expect(controller.getRequestContextWithPrefix('prefix.ROLLING-RESTART.S1.foo.bar')).to.be.eql({
+        requestContext: Em.I18n.t("rollingrestart.rest.context").format('S1', 'foo', 'bar'),
+        dependentService: 'S1',
+        contextCommand: 'ROLLING-RESTART'
+      });
+    });
+  });
+
+  describe("#showPopup()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns({
+        dataLoading: function() {
+          return {
+            done: Em.clb
+          }
+        }
+      });
+      sinon.stub(App.HostPopup, 'initPopup').returns(Em.Object.create());
+      App.HostPopup.set('isBackgroundOperations', true);
+    });
+
+    afterEach(function() {
+      App.router.get.restore();
+      App.HostPopup.initPopup.restore();
+    });
+
+    it("App.updater.immediateRun should be called", function() {
+      controller.showPopup();
+      expect(App.updater.immediateRun.calledWith('requestMostRecent')).to.be.true;
+    });
+
+    it("popupView should be created and opened", function() {
+      controller.set('popupView', null);
+      controller.showPopup();
+      expect(controller.get('popupView')).to.be.eql(Em.Object.create({
+        isNotShowBgChecked: true
+      }));
+    });
+
+    it("popupView should be restored and opened", function() {
+      controller.set('popupView', Em.Object.create());
+      controller.showPopup();
+      expect(controller.get('popupView')).to.be.eql(Em.Object.create({
+        isNotShowBgChecked: true,
+        isOpen: true
+      }));
+    });
+  });
+
+  describe("#clear()", function () {
+
+    it("operationsCount should be 10", function() {
+      controller.clear();
+      expect(controller.get('operationsCount')).to.be.equal(10);
     });
   });
 });

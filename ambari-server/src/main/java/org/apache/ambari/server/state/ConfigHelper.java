@@ -551,8 +551,19 @@ public class ConfigHelper {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
           try {
-            result.add(actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName()));
-          } catch (Exception ex) {
+            String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
+            if (null == property){
+              LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
+                  + "The property does not exist in version %s of %s configuration.",
+                  serviceProperty.getName(),
+                  propertyType,
+                  desiredConfigs.get(stackPropertyConfigType),
+                  stackPropertyConfigType
+                  ));
+            } else {
+              result.add(property);
+            }
+          } catch (Exception ignored) {
           }
         }
       }

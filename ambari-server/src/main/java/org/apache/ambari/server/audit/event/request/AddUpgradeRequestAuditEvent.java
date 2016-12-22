@@ -47,6 +47,7 @@ public class AddUpgradeRequestAuditEvent extends RequestAuditEvent {
 
 
     public AddUpgradeRequestAuditEventBuilder() {
+      super(AddUpgradeRequestAuditEventBuilder.class);
       super.withOperation("Upgrade addition");
     }
 

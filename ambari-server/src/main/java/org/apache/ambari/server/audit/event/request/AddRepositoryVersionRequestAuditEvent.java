@@ -60,6 +60,7 @@ public class AddRepositoryVersionRequestAuditEvent extends RequestAuditEvent {
     private Map<String, List<Map<String, String>>> repos;
 
     public AddRepositoryVersionAuditEventBuilder() {
+      super(AddRepositoryVersionAuditEventBuilder.class);
       super.withOperation("Repository version addition");
     }
 

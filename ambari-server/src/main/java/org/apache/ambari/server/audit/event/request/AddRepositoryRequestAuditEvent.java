@@ -56,6 +56,7 @@ public class AddRepositoryRequestAuditEvent extends RequestAuditEvent {
     private String stackVersion;
 
     public AddRepositoryRequestAuditEventBuilder() {
+      super(AddRepositoryRequestAuditEventBuilder.class);
       super.withOperation("Repository addition");
     }
 

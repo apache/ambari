@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.utils.Closeables;
+
 /**
  * Defines the cluster created by gsInstaller.
  */
@@ -282,12 +284,7 @@ public class ClusterDefinition {
       String msg = "Caught exception reading " + CLUSTER_DEFINITION_FILE + ".";
       throw new IllegalStateException(msg, e);
     } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (IOException ex) {
-        }
-      }
+      Closeables.closeSilently(is);
     }
   }
 

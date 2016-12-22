@@ -58,7 +58,7 @@ public class AmbariAuthorizationProviderDisableUserTest {
 
     alup = new AmbariLocalUserProvider(userDAO, users, encoder);
     
-    ldapPopulator = new AmbariLdapAuthoritiesPopulator(authorizationHelper, userDAO, memberDao, privilegeDao);
+    ldapPopulator = new AmbariLdapAuthoritiesPopulator(authorizationHelper, userDAO, memberDao, privilegeDao, users);
     
   }
   

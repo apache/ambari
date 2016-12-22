@@ -41,10 +41,6 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
 
   public static final String QUICKLINKS_CONFIGURATION_KEY = "QuickLinksConfiguration";
 
-  static {
-  }
-
-
   private QuickLinksConfigurationInfo moduleInfo;
   private boolean valid = true;
   private Set<String> errors = new HashSet<String>();

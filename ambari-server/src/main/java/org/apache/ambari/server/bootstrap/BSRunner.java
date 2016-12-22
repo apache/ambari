@@ -159,7 +159,7 @@ class BSRunner extends Thread {
       try {
         process.exitValue();
         return true;
-      } catch (IllegalThreadStateException e) {}
+      } catch (IllegalThreadStateException ignored) {}
       // Check if process has terminated once per second
       Thread.sleep(1000);
     } while (System.currentTimeMillis() - startTime < timeout);

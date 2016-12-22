@@ -56,6 +56,7 @@ public class ChangeViewInstanceRequestAuditEvent extends RequestAuditEvent {
     private String version;
 
     public ChangeViewInstanceRequestAuditEventBuilder() {
+      super(ChangeViewInstanceRequestAuditEventBuilder.class);
       super.withOperation("View change");
     }
 

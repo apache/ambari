@@ -41,6 +41,7 @@ public class ActivateUserRequestAuditEvent extends RequestAuditEvent {
     private String username;
 
     public ActivateUserRequestAuditEventBuilder() {
+      super(ActivateUserRequestAuditEventBuilder.class);
       super.withOperation("Set user active/inactive");
     }
 

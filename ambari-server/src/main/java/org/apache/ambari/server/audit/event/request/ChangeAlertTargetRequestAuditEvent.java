@@ -36,6 +36,7 @@ public class ChangeAlertTargetRequestAuditEvent extends RequestAuditEvent {
     private List<String> alertStates;
 
     public ChangeAlertTargetRequestAuditEventBuilder() {
+      super(ChangeAlertTargetRequestAuditEventBuilder.class);
       super.withOperation("Notification change");
     }
 

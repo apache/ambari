@@ -47,6 +47,7 @@ public class UpdateUpgradeItemRequestAuditEvent extends RequestAuditEvent {
 
 
     public UpdateUpgradeItemRequestAuditEventBuilder() {
+      super(UpdateUpgradeItemRequestAuditEventBuilder.class);
       super.withOperation("Action confirmation by the user");
     }
 

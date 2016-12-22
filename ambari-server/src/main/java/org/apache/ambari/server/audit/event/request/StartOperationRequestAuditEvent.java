@@ -53,6 +53,7 @@ public class StartOperationRequestAuditEvent extends AbstractUserAuditEvent {
     private String hostname;
 
     private StartOperationAuditEventBuilder() {
+      super(StartOperationAuditEventBuilder.class);
     }
 
     /**

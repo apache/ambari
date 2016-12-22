@@ -32,6 +32,7 @@ public class ClusterNameChangeRequestAuditEvent extends RequestAuditEvent {
     private String newName;
 
     public ClusterNameChangeRequestAuditEventBuilder() {
+      super(ClusterNameChangeRequestAuditEventBuilder.class);
       super.withOperation("Cluster name change");
     }
 

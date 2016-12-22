@@ -44,6 +44,7 @@ public class CreateKeyTabKerberosAuditEvent extends AbstractKerberosAuditEvent {
     private String principal;
 
     private CreateKeyTabKerberosAuditEventBuilder() {
+      super(CreateKeyTabKerberosAuditEventBuilder.class);
       this.withOperation("Keytab file creation");
     }
 
