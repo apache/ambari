@@ -154,8 +154,8 @@
           <label>DERBY</label>
         </entry>
         <entry>
-          <value>postgres</value>
-          <label>POSTGRES</label>
+          <value>postgresql</value>
+          <label>POSTGRESQL</label>
         </entry>
       </entries>
     </value-attributes>
