@@ -169,10 +169,10 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * @returns {*}
    */
   postUserPref: function (key, value) {
-    var k = key.startsWith('userSettingsKeys.') ? key : 'userSettingsKeys.' + key + '.name';
-    var kk = k.replace('userSettingsKeys.', '').replace('.name', '');
-    this.set('userSettings.' + kk, value);
-    return this._super(this.get(k), value);
+    var normalizedKey = key.startsWith('userSettingsKeys.') ? key : 'userSettingsKeys.' + key + '.name';
+    var shortKey = normalizedKey.replace('userSettingsKeys.', '').replace('.name', '');
+    this.set('userSettings.' + shortKey, value);
+    return this._super(this.get(normalizedKey), value);
   },
 
   /**
@@ -187,8 +187,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
       return;
     }
 
-    this.dataLoading()
-    .done(function(response) {
+    this.dataLoading().done(function(response) {
       self.loadPrivileges().complete(function() {
         self._showSettingsPopup(response);
       });
@@ -207,27 +206,11 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   },
 
   loadPrivilegesSuccessCallback: function(data) {
-    var key;
-    var privileges = {
-      clusters: {},
-      views: {}
-    };
-    data.items.forEach(function(privilege) {
-      privilege = privilege.PrivilegeInfo;
-      if(privilege.type === 'CLUSTER'){
-        // This is cluster
-        privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
-        privileges.clusters[privilege.cluster_name].push(privilege.permission_label);
-      } else if ( privilege.type === 'VIEW'){
-        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
-        privileges.views[privilege.instance_name].version = privilege.version;
-        privileges.views[privilege.instance_name].view_name = privilege.view_name;
-        privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
-      }
-    });
-    // restructure data for view
-    var clusters = [];
-    var views = [];
+    var key,
+        privileges = this.parsePrivileges(data),
+        clusters = [],
+        views = [];
+
     for (key in privileges.clusters) {
       clusters.push({
         name: key,
@@ -245,9 +228,35 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     privileges.clusters = clusters;
     privileges.views = views;
     this.set('privileges', data.items.length ? privileges : null);
-    this.set('noClusterPriv', $.isEmptyObject(privileges.clusters));
-    this.set('noViewPriv', $.isEmptyObject(privileges.views));
+    this.set('noClusterPriv', Em.isEmpty(clusters));
+    this.set('noViewPriv', Em.isEmpty(views));
     this.set('hidePrivileges', this.get('noClusterPriv') && this.get('noViewPriv'));
+  },
+
+  /**
+   *
+   * @param {?object} data
+   * @returns {{clusters: {}, views: {}}}
+   */
+  parsePrivileges: function (data) {
+    var privileges = {
+      clusters: {},
+      views: {}
+    };
+    data.items.forEach(function (privilege) {
+      privilege = privilege.PrivilegeInfo;
+      if (privilege.type === 'CLUSTER') {
+        // This is cluster
+        privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
+        privileges.clusters[privilege.cluster_name].push(privilege.permission_label);
+      } else if (privilege.type === 'VIEW') {
+        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || {privileges: []};
+        privileges.views[privilege.instance_name].version = privilege.version;
+        privileges.views[privilege.instance_name].view_name = privilege.view_name;
+        privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
+      }
+    });
+    return privileges;
   },
 
   /**

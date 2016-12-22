@@ -410,10 +410,10 @@ App.UpdateController = Em.Controller.extend({
       params.callback(skipCall, queryParams);
     }
   },
-  getHostByHostComponentsErrorCallback: function () {
+  getHostByHostComponentsErrorCallback: Em.K,
 
-  },
   graphs: [],
+
   graphsUpdate: function (callback) {
     var existedGraphs = [];
     this.get('graphs').forEach(function (_graph) {
@@ -524,6 +524,7 @@ App.UpdateController = Em.Controller.extend({
       complete: callback
     });
   },
+
   updateComponentConfig: function (callback) {
     var testUrl = '/data/services/host_component_stale_configs.json';
     var componentConfigUrl = this.getUrl(testUrl, '/components?host_components/HostRoles/stale_configs=true&fields=host_components/HostRoles/display_name,host_components/HostRoles/service_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/stale_configs,host_components/HostRoles/desired_admin_state&minimal_response=true');

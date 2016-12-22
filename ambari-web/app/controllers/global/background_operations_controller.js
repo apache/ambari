@@ -320,36 +320,46 @@ App.BackgroundOperationsController = Em.Controller.extend({
 
   /**
    * parse request context and if keyword "_PARSE_" is present then format it
-   * @param requestContext
+   * @param {string} requestContext
    * @return {Object}
    */
   parseRequestContext: function (requestContext) {
-    var parsedRequestContext;
-    var service;
-    var contextCommand;
+    var context = {};
     if (requestContext) {
       if (requestContext.indexOf(App.BackgroundOperationsController.CommandContexts.PREFIX) !== -1) {
-        var contextSplits = requestContext.split('.');
-        contextCommand = contextSplits[1];
-        service = contextSplits[2];
-        switch(contextCommand){
-        case "STOP":
-        case "START":
-          if (service === 'ALL_SERVICES') {
-            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(Em.I18n.t('common.allServices'));
-          } else {
-            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.format.role(service, true));
-          }
-          break;
-        case "ROLLING-RESTART":
-          parsedRequestContext = Em.I18n.t("rollingrestart.rest.context").format(App.format.role(service, true), contextSplits[3], contextSplits[4]);
-          break;
-        }
+        context = this.getRequestContextWithPrefix(requestContext);
       } else {
-        parsedRequestContext = requestContext;
+        context.parsedRequestContext = requestContext;
       }
     } else {
-      parsedRequestContext = Em.I18n.t('requestInfo.unspecified');
+      context.parsedRequestContext = Em.I18n.t('requestInfo.unspecified');
+    }
+    return context;
+  },
+
+  /**
+   *
+   * @param {string} requestContext
+   * @returns {{requestContext: *, dependentService: *, contextCommand: *}}
+   */
+  getRequestContextWithPrefix: function (requestContext) {
+    var contextSplits = requestContext.split('.'),
+        parsedRequestContext,
+        contextCommand = contextSplits[1],
+        service = contextSplits[2];
+
+    switch (contextCommand) {
+      case "STOP":
+      case "START":
+        if (service === 'ALL_SERVICES') {
+          parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(Em.I18n.t('common.allServices'));
+        } else {
+          parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.format.role(service, true));
+        }
+        break;
+      case "ROLLING-RESTART":
+        parsedRequestContext = Em.I18n.t("rollingrestart.rest.context").format(App.format.role(service, true), contextSplits[3], contextSplits[4]);
+        break;
     }
     return {
       requestContext: parsedRequestContext,
@@ -363,13 +373,13 @@ App.BackgroundOperationsController = Em.Controller.extend({
   /**
    * Onclick handler for background operations number located right to logo
    */
-  showPopup: function(){
+  showPopup: function () {
     // load the checkbox on footer first, then show popup.
     var self = this;
     App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
       App.updater.immediateRun('requestMostRecent');
-      if(self.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
-        self.set ('popupView.isNotShowBgChecked', !initValue);
+      if (self.get('popupView') && App.HostPopup.get('isBackgroundOperations')) {
+        self.set('popupView.isNotShowBgChecked', !initValue);
         self.set('popupView.isOpen', true);
         var el = $(self.get('popupView.element'));
         el.appendTo('#wrapper');

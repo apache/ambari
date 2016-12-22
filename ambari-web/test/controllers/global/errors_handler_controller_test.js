@@ -67,4 +67,14 @@ describe('App.ErrorsHandlerController', function () {
       expect(args[0]).to.be.equal('errors');
     });
   });
+
+  describe("#getUserPrefSuccessCallback()", function () {
+
+    it("should set errors to localStorage", function() {
+      controller.getUserPrefSuccessCallback({data: {}});
+      expect(localStorage.getObject('errors')).to.be.eql({
+        data: {}
+      })
+    });
+  });
 });
