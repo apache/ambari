@@ -17,19 +17,20 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
-import org.apache.ambari.server.metrics.system.AmbariMetricSink;
+import org.apache.ambari.server.metrics.system.MetricsSink;
 import org.apache.ambari.server.metrics.system.MetricsSource;
+import org.apache.ambari.server.metrics.system.SingleMetric;
 
-import java.util.Map;
+import java.util.List;
 
 public abstract class AbstractMetricsSource implements MetricsSource {
-  protected AmbariMetricSink sink;
+  protected MetricsSink sink;
 
   /**
    *  Pass metrics sink to metrics source
    **/
   @Override
-  public void init(AmbariMetricSink sink) {
+  public void init(MetricsConfiguration configuration, MetricsSink sink) {
       this.sink = sink;
   }
 
@@ -37,5 +38,5 @@ public abstract class AbstractMetricsSource implements MetricsSource {
    *  Get metrics at the instance
    *  @return a map for metrics that maps metrics name to metrics value
    **/
-  abstract public Map<String, Number> getMetrics();
+  abstract public List<SingleMetric> getMetrics();
 }

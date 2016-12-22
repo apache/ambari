@@ -18,11 +18,27 @@
 
 package org.apache.ambari.server.metrics.system;
 
-import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
+public class SingleMetric {
 
-public interface MetricsSource extends Runnable{
-  /**
-   * initialize sink
-   **/
-  void init(MetricsConfiguration configuration, MetricsSink sink);
+  String metricName;
+  double value;
+  long timestamp;
+
+  public SingleMetric (String metricName, double value, long timestamp) {
+    this.metricName = metricName;
+    this.value = value;
+    this.timestamp = timestamp;
+  }
+
+  public String getMetricName() {
+    return metricName;
+  }
+
+  public double getValue() {
+    return value;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
 }

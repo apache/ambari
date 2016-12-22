@@ -15,20 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//package org.apache.hadoop.metrics2.sink.ambari;
 
 package org.apache.ambari.server.metrics.system;
 
-import java.util.Map;
+import java.util.List;
 
-public interface AmbariMetricSink {
+import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
+
+
+public interface MetricsSink {
+
   /**
-   * initialize Collector URI and sink frequency to publish the metrics to AMS
+   * initialize Sink passing in configuration
    **/
-  void init(String protocol, String collectorUri, int frequency);
+  void init(MetricsConfiguration configuration);
 
   /**
-  *  Publish metrics to Collector
-  **/
-  void publish(Map<String, Number> metricsMap);
+   *  Publish metrics to Collector
+   **/
+  void publish(List<SingleMetric> metrics);
+
+
+  /**
+   * Returns if the sink is initialized.
+   */
+  boolean isInitialized();
 }

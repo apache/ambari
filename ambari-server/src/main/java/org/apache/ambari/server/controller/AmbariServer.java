@@ -161,10 +161,6 @@ import com.google.inject.persist.Transactional;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-
 @Singleton
 public class AmbariServer {
   public static final String VIEWS_URL_PATTERN = "/api/v1/views/*";
@@ -536,6 +532,9 @@ public class AmbariServer {
       ExecutionScheduleManager executionScheduleManager = injector
           .getInstance(ExecutionScheduleManager.class);
 
+      MetricsService metricsService = injector.getInstance(
+        MetricsService.class);
+
       clusterController = controller;
 
       StateRecoveryManager recoveryManager = injector.getInstance(
@@ -548,14 +547,6 @@ public class AmbariServer {
        */
       server.start();
 
-      // TODO, start every other tread.
-      final ExecutorService executor = Executors.newSingleThreadExecutor();
-      MetricsService metricsService = injector.getInstance(
-              MetricsService.class);
-      metricsService.init();
-      executor.submit(metricsService);
-      LOG.info("********* Started Ambari Metrics **********");
-
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 
@@ -567,6 +558,12 @@ public class AmbariServer {
 
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
+
+      if (!Configuration.AMBARISERVER_METRICS_DISABLE.equals(true)) {
+        metricsService.start();
+      } else {
+        LOG.info("AmbariServer Metrics disabled.");
+      }
 
       server.join();
       LOG.info("Joined the Server");
@@ -822,9 +819,9 @@ public class AmbariServer {
       gzipFilter.setInitParameter("methods", "GET,POST,PUT,DELETE");
       gzipFilter.setInitParameter("excludePathPatterns", ".*(\\.woff|\\.ttf|\\.woff2|\\.eot|\\.svg)");
       gzipFilter.setInitParameter("mimeTypes",
-              "text/html,text/plain,text/xml,text/css,application/x-javascript," +
-                      "application/xml,application/x-www-form-urlencoded," +
-                      "application/javascript,application/json");
+        "text/html,text/plain,text/xml,text/css,application/x-javascript," +
+          "application/xml,application/x-www-form-urlencoded," +
+          "application/javascript,application/json");
       gzipFilter.setInitParameter("minGzipSize", configs.getApiGzipMinSize());
     }
   }

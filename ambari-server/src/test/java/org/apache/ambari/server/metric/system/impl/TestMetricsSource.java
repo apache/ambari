@@ -16,13 +16,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.metrics.system;
+package org.apache.ambari.server.metric.system.impl;
 
-import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
+import java.util.List;
 
-public interface MetricsSource extends Runnable{
-  /**
-   * initialize sink
-   **/
-  void init(MetricsConfiguration configuration, MetricsSink sink);
+import org.apache.ambari.server.metrics.system.SingleMetric;
+import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
+
+public class TestMetricsSource extends AbstractMetricsSource {
+
+  @Override
+  public List<SingleMetric> getMetrics() {
+    return null;
+  }
+
+  @Override
+  public void run() {
+  }
+
 }

@@ -2504,6 +2504,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> LOGSEARCH_PORTAL_READ_TIMEOUT = new ConfigurationProperty<>(
     "logsearch.portal.read.timeout", 5000);
 
+
+  /**
+   * Global disable flag for AmbariServer Metrics.
+   */
+  @Markdown(description = "Global disable flag for AmbariServer Metrics.")
+  public static final ConfigurationProperty<Boolean> AMBARISERVER_METRICS_DISABLE = new ConfigurationProperty<>(
+    "ambariserver.metrics.disable", false);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
