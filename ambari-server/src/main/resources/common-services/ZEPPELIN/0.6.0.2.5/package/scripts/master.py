@@ -46,15 +46,6 @@ class Master(Script):
     env.set_params(params)
     self.install_packages(env)
 
-    # create the pid and zeppelin dirs
-    Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
-              owner=params.zeppelin_user,
-              group=params.zeppelin_group,
-              cd_access="a",
-              create_parents=True,
-              mode=0755
-              )
-
     if params.spark_version:
       Execute('echo spark_version:' + str(params.spark_version) + ' detected for spark_home: '
               + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
@@ -117,6 +108,15 @@ class Master(Script):
     env.set_params(params)
     env.set_params(status_params)
     self.create_zeppelin_log_dir(env)
+
+    # create the pid and zeppelin dirs
+    Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
+              owner=params.zeppelin_user,
+              group=params.zeppelin_group,
+              cd_access="a",
+              create_parents=True,
+              mode=0755
+    )
 
     # write out zeppelin-site.xml
     XmlConfig("zeppelin-site.xml",
