@@ -26,36 +26,6 @@
             },
             "configuration": "spark2-defaults/spark.history.kerberos.keytab"
           }
-        },
-        {
-          "name": "livy2user",
-          "principal": {
-            "value": "${livy2-env/livy2_user}/_HOST@${realm}",
-            "type" : "service",
-            "configuration": "livy2-conf/livy.server.kerberos.principal",
-            "local_username": "${livy2-env/livy2_user}"
-          },
-          "keytab": {
-            "file": "${keytab_dir}/livy2.service.keytab",
-            "owner": {
-              "name": "${livy2-env/livy2_user}",
-              "access": "r"
-            },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": ""
-            },
-            "configuration": "livy2-conf/livy.server.kerberos.keytab"
-          }
-        },
-        {
-          "name": "/spnego",
-          "principal": {
-            "configuration": "livy2-conf/livy.server.auth.kerberos.principal"
-          },
-          "keytab": {
-            "configuration": "livy2-conf/livy.server.auth.kerberos.keytab"
-          }
         }
       ],
       "configurations": [
@@ -89,7 +59,8 @@
           "name": "SPARK2_JOBHISTORYSERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             }
           ]
         },
@@ -100,10 +71,12 @@
           "name": "SPARK2_THRIFTSERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
             },
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
+              "name": "hive_server_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive"
             }
           ]
         },
@@ -111,7 +84,39 @@
           "name": "LIVY2_SERVER",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "livyuser",
+              "principal": {
+                "value": "${livy2-env/livy2_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "livy2-conf/livy.server.launch.kerberos.principal",
+                "local_username": "${livy2-env/livy2_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/livy.service.keytab",
+                "owner": {
+                  "name": "${livy2-env/livy2_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "livy2-conf/livy.server.launch.kerberos.keytab"
+              }
+            },
+            {
+              "name": "livy_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "livy2-conf/livy.server.auth.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "livy2-conf/livy.server.auth.kerberos.keytab"
+              }
             }
           ]
         }

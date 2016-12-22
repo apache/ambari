@@ -30,6 +30,18 @@
             # This file takes a list of property names (one per line). Empty lines and lines starting with "#"
             # are ignored.
             #
+
+            # Disallow overriding the master and the deploy mode.
+            spark.master
+            spark.submit.deployMode
+
+            # Disallow overriding the location of Spark cached jars.
+            spark.yarn.jar
+            spark.yarn.jars
+            spark.yarn.archive
+
+            # Don't allow users to override the RSC timeout.
+            livy.rsc.server.idle_timeout
         </value>
         <value-attributes>
             <type>content</type>
@@ -38,4 +50,3 @@
         <on-ambari-upgrade add="true"/>
     </property>
 </configuration>
-

@@ -213,10 +213,17 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, sta
   livy2_log4j_properties = config['configurations']['livy2-log4j-properties']['content']
   livy2_spark_blacklist_properties = config['configurations']['livy2-spark-blacklist']['content']
 
-  livy2_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.kerberos.keytab']
-  livy2_kerberos_principal = config['configurations']['livy2-conf']['livy.server.kerberos.principal']
+  if 'livy.server.kerberos.keytab' in config['configurations']['livy2-conf']:
+    livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.kerberos.keytab']
+  else:
+    livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.launch.kerberos.keytab']
+  if 'livy.server.kerberos.principal' in config['configurations']['livy2-conf']:
+    livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.kerberos.principal']
+  else:
+    livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.launch.kerberos.principal']
 
-  livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
+
+livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
 
   # ats 1.5 properties
   entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']

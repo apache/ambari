@@ -55,10 +55,26 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
+        <name>livy.impersonation.enabled</name>
+        <value>true</value>
+        <description>
+            If livy should use proxy users when submitting a job.
+        </description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
         <name>livy.server.csrf_protection.enabled</name>
         <value>true</value>
         <description>
             Whether to enable csrf protection for livy's rest api.
+        </description>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>livy.spark.master</name>
+        <value>yarn-cluster</value>
+        <description>
+            spark.master property for spark engine
         </description>
         <on-ambari-upgrade add="true"/>
     </property>
