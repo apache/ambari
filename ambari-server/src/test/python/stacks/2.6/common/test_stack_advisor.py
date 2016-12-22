@@ -279,7 +279,7 @@ class TestHDP26StackAdvisor(TestCase):
           "properties": {
             "database_name": "druid",
             "metastore_hostname": "c6401.ambari.apache.org",
-            "druid.metadata.storage.type": "postgres",
+            "druid.metadata.storage.type": "postgresql",
             "druid.extensions.loadList": "[\"mysql-metadata-storage\"]",
             "druid.extensions.pullList": "[]"
           }

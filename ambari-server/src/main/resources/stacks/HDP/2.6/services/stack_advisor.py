@@ -84,7 +84,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           metadata_storage_port = "3306"
           extensions_load_list = self.addToList(extensions_load_list, mysql_module_name)
 
-      if database_type == 'postgres':
+      if database_type == 'postgresql':
           extensions_load_list = self.addToList(extensions_load_list, postgres_module_name)
           metadata_storage_port = "5432"
 
@@ -127,7 +127,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       driverDict = {
           'mysql': 'jdbc:mysql://{0}:{2}/{1}?createDatabaseIfNotExist=true',
           'derby': 'jdbc:derby://{0}:{2}/{1};create=true',
-          'postgres': 'jdbc:postgresql://{0}:{2}/{1}'
+          'postgresql': 'jdbc:postgresql://{0}:{2}/{1}'
       }
       return driverDict.get(database_type.lower())
 
