@@ -57,6 +57,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String GROUPS_TABLE = "groups";
   protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
+  private static final String HADOOP_ENV = "hadoop-env";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String KAFKA_TIMELINE_METRICS_HOST = "kafka.timeline.metrics.host";
 
@@ -146,6 +147,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
+    updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
     updateTEZInteractiveConfigs();
@@ -269,6 +271,45 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               // Explicitly skipping hive.llap.allow.permanent.fns during upgrades, since it's related to security,
               // and we don't know if the value is set by the user or as a result of the previous default.
             }
+          }
+        }
+      }
+    }
+  }
+
+
+  protected void updateHadoopEnvConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      Map<String, String> prop = new HashMap<String, String>();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          /***
+           * Append "ulimit -l" from hadoop-env.sh
+           */
+          String content = null;
+          if (cluster.getDesiredConfigByType(HADOOP_ENV) != null) {
+            content = cluster.getDesiredConfigByType(HADOOP_ENV).getProperties().get("content");
+          }
+
+          if (content != null && !content.contains("ulimit")) {
+            content += "\n" +
+                "{% if is_datanode_max_locked_memory_set %}\n" +
+                "# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. \n" +
+                "# Makes sense to fix only when runing DN as root \n" +
+                "if [ \"$command\" == \"datanode\" ] &amp;&amp; [ \"$EUID\" -eq 0 ] &amp;&amp; [ -n \"$HADOOP_SECURE_DN_USER\" ]; then\n" +
+                "  ulimit -l {{datanode_max_locked_memory}}\n" +
+                "fi\n" +
+                "{% endif %}";
+
+            prop.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
+                prop, true, false);
           }
         }
       }

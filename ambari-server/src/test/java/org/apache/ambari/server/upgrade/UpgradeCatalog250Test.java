@@ -266,6 +266,7 @@ public class UpgradeCatalog250Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method updateAmsConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateHadoopEnvConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHadoopEnvConfigs");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
@@ -277,6 +278,7 @@ public class UpgradeCatalog250Test {
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
       .addMockedMethod(updateAmsConfigs)
+      .addMockedMethod(updateHadoopEnvConfigs)
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateHIVEInteractiveConfigs)
       .addMockedMethod(updateTEZInteractiveConfigs)
@@ -289,6 +291,9 @@ public class UpgradeCatalog250Test {
 
 
     upgradeCatalog250.updateAMSConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateHadoopEnvConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.addNewConfigurationsFromXml();
