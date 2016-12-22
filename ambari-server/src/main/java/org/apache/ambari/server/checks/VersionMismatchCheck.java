@@ -27,6 +27,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -38,7 +39,10 @@ import java.util.Map;
  * fail. In failure description, lists actual and expected component versions.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.COMPONENT_VERSION, order = 7.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.COMPONENT_VERSION,
+    order = 7.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class VersionMismatchCheck extends AbstractCheckDescriptor {
 
   public VersionMismatchCheck() {

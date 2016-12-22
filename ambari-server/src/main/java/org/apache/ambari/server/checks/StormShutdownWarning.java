@@ -38,7 +38,7 @@ import com.google.inject.Singleton;
  * Storm and the type of upgrade.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.INFORMATIONAL_WARNING, required = false)
+@UpgradeCheck(group = UpgradeCheckGroup.INFORMATIONAL_WARNING, required = UpgradeType.ROLLING)
 public class StormShutdownWarning extends AbstractCheckDescriptor {
 
   /**

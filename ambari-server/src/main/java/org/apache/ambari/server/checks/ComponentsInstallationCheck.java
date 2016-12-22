@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
@@ -45,7 +46,10 @@ import com.google.inject.Singleton;
  * Checks that service components are installed.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.LIVELINESS,
+    order = 2.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
 
   /**

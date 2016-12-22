@@ -61,6 +61,10 @@ import com.google.inject.Provider;
 public class AbstractCheckDescriptorTest {
   final private Clusters clusters = EasyMock.createNiceMock(Clusters.class);
 
+  @UpgradeCheck(
+      group = UpgradeCheckGroup.DEFAULT,
+      order = 1.0f,
+      required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
   private class TestCheckImpl extends AbstractCheckDescriptor {
     private PrereqCheckType m_type;
 
@@ -84,6 +88,50 @@ public class AbstractCheckDescriptorTest {
     @Override
     public void perform(PrerequisiteCheck prerequisiteCheck,
         PrereqCheckRequest request) throws AmbariException {
+    }
+  }
+
+  @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f, required = { UpgradeType.ROLLING })
+  private class RollingTestCheckImpl extends AbstractCheckDescriptor {
+    private PrereqCheckType m_type;
+
+    RollingTestCheckImpl(PrereqCheckType type) {
+      super(null);
+      m_type = type;
+
+      clustersProvider = new Provider<Clusters>() {
+        @Override
+        public Clusters get() {
+          return clusters;
+        }
+      };
+    }
+
+    @Override
+    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+        throws AmbariException {
+    }
+  }
+
+  @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
+  private class NotRequiredCheckTest extends AbstractCheckDescriptor {
+    private PrereqCheckType m_type;
+
+    NotRequiredCheckTest(PrereqCheckType type) {
+      super(null);
+      m_type = type;
+
+      clustersProvider = new Provider<Clusters>() {
+        @Override
+        public Clusters get() {
+          return clusters;
+        }
+      };
+    }
+
+    @Override
+    public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
+        throws AmbariException {
     }
   }
 
@@ -165,6 +213,28 @@ public class AbstractCheckDescriptorTest {
     // Case with non existed services
     Assert.assertEquals(false, check.isApplicable(request, nonExistedList, false));
     Assert.assertEquals(false, check.isApplicable(request, nonExistedList, true));
+  }
+
+  /**
+   * Tests {@link UpgradeCheck#required()}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRequired() throws Exception {
+    RollingTestCheckImpl rollingCheck = new RollingTestCheckImpl(PrereqCheckType.SERVICE);
+    Assert.assertTrue(rollingCheck.isRequired(UpgradeType.ROLLING));
+    Assert.assertFalse(rollingCheck.isRequired(UpgradeType.NON_ROLLING));
+
+    NotRequiredCheckTest notRequiredCheck = new NotRequiredCheckTest(PrereqCheckType.SERVICE);
+    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.ROLLING));
+    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.NON_ROLLING));
+    Assert.assertFalse(notRequiredCheck.isRequired(UpgradeType.HOST_ORDERED));
+
+    TestCheckImpl requiredCheck = new TestCheckImpl(PrereqCheckType.SERVICE);
+    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.ROLLING));
+    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.NON_ROLLING));
+    Assert.assertTrue(requiredCheck.isRequired(UpgradeType.HOST_ORDERED));
   }
 
 }

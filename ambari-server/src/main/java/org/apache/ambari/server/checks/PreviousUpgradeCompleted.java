@@ -17,41 +17,37 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.text.MessageFormat;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import javax.inject.Provider;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
-import javax.inject.Provider;
-import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Checks if Install Packages needs to be re-run
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 4.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.DEFAULT,
+    order = 4.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
 
   /**
@@ -113,7 +109,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
           // Should have only 1 element.
           List<HostRoleCommandEntity> finalizeCommandList = hostRoleCommandDaoProvider.get().
               findSortedCommandsByRequestIdAndCustomCommandName(mostRecentUpgrade.getRequestId(), FINALIZE_ACTION_CLASS_NAME);
-  
+
           // If the action is not COMPLETED, then something went wrong.
           if (finalizeCommandList != null) {
             for (HostRoleCommandEntity command : finalizeCommandList) {

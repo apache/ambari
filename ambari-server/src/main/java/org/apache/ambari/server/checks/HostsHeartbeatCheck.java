@@ -27,6 +27,7 @@ import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
 
@@ -41,7 +42,10 @@ import com.google.inject.Singleton;
  * @see HostMaintenanceModeCheck
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 1.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.LIVELINESS,
+    order = 1.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
 
   /**

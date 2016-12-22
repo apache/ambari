@@ -24,23 +24,11 @@
   <type>HOST_ORDERED</type>
   <prerequisite-checks>
     <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
-    <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
     <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
-    <check>org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck</check>
     <check>org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck</check>
-    <check>org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck</check>
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
-    <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
-
-    <configuration>
-      <!-- Configuration properties for all pre-reqs including required pre-reqs -->
-      <!--TODO: is it required? -->
-      <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
-        <property name="min-failure-stack-version">HDP-2.3.0.0</property>
-      </check-properties>
-    </configuration>
   </prerequisite-checks>
 
   <order>
