@@ -18,7 +18,6 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 import com.google.common.collect.Multimap;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -111,6 +110,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_METADATA_TABLE_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ALTER_METRICS_METADATA_TABLE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
@@ -403,6 +403,8 @@ public class PhoenixHBaseAccessor {
       String metadataSql = String.format(CREATE_METRICS_METADATA_TABLE_SQL,
         encoding, compression);
       stmt.executeUpdate(metadataSql);
+      stmt.executeUpdate(ALTER_METRICS_METADATA_TABLE);
+
       String hostedAppSql = String.format(CREATE_HOSTED_APPS_METADATA_TABLE_SQL,
         encoding, compression);
       stmt.executeUpdate(hostedAppSql);
@@ -718,19 +720,18 @@ public class PhoenixHBaseAccessor {
 
       TimelineMetric tm = iterator.next();
 
-      if (CollectionUtils.isNotEmpty(AggregatorUtils.whitelistedMetrics) &&
-        !AggregatorUtils.whitelistedMetrics.contains(tm.getMetricName())) {
-        iterator.remove();
-        continue;
-      }
+      boolean acceptMetric = TimelineMetricsFilter.acceptMetric(tm);
 
       // Write to metadata cache on successful write to store
       if (metadataManager != null) {
         metadataManager.putIfModifiedTimelineMetricMetadata(
-                metadataManager.getTimelineMetricMetadata(tm));
+                metadataManager.getTimelineMetricMetadata(tm, acceptMetric));
 
         metadataManager.putIfModifiedHostedAppsMetadata(
                 tm.getHostName(), tm.getAppId());
+      }
+      if (!acceptMetric) {
+        iterator.remove();
       }
     }
 
@@ -1469,6 +1470,7 @@ public class PhoenixHBaseAccessor {
         stmt.setString(4, metadata.getType());
         stmt.setLong(5, metadata.getSeriesStartTime());
         stmt.setBoolean(6, metadata.isSupportsAggregates());
+        stmt.setBoolean(7, metadata.isWhitelisted());
 
         try {
           stmt.executeUpdate();
@@ -1561,7 +1563,8 @@ public class PhoenixHBaseAccessor {
           rs.getString("UNITS"),
           rs.getString("TYPE"),
           rs.getLong("START_TIME"),
-          rs.getBoolean("SUPPORTS_AGGREGATION")
+          rs.getBoolean("SUPPORTS_AGGREGATION"),
+          rs.getBoolean("IS_WHITELISTED")
         );
 
         TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(metricName, appId);

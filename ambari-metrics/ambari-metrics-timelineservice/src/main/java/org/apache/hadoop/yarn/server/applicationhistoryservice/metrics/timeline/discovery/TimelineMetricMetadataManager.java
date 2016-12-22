@@ -196,14 +196,15 @@ public class TimelineMetricMetadataManager {
     hBaseAccessor.saveHostAppsMetadata(hostedApps);
   }
 
-  public TimelineMetricMetadata getTimelineMetricMetadata(TimelineMetric timelineMetric) {
+  public TimelineMetricMetadata getTimelineMetricMetadata(TimelineMetric timelineMetric, boolean isWhitelisted) {
     return new TimelineMetricMetadata(
       timelineMetric.getMetricName(),
       timelineMetric.getAppId(),
       timelineMetric.getUnits(),
       timelineMetric.getType(),
       timelineMetric.getStartTime(),
-      supportAggregates(timelineMetric)
+      supportAggregates(timelineMetric),
+      isWhitelisted
     );
   }
 

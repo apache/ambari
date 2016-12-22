@@ -208,6 +208,9 @@
                   <location>conf/unix/log4j.properties</location>
                 </source>
                 <source>
+                  <location>conf/unix/metrics_whitelist</location>
+                </source>
+                <source>
                   <location>target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
                 </source>
               </sources>
@@ -242,6 +245,24 @@
           <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
           <groups>${testcase.groups}</groups>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>conf/unix/metrics_whitelist</exclude>
+            <exclude>conf/windows/metrics_whitelist</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.vafer</groupId>

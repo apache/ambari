@@ -384,12 +384,13 @@ public class TimelineWebServices {
   @Produces({ MediaType.APPLICATION_JSON })
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
     @Context HttpServletRequest req,
-    @Context HttpServletResponse res
-  ) {
+    @Context HttpServletResponse res,
+    @QueryParam("query") String query
+    ) {
     init(res);
 
     try {
-      return timelineMetricStore.getTimelineMetricMetadata();
+      return timelineMetricStore.getTimelineMetricMetadata(query);
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }

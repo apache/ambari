@@ -23,14 +23,12 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricsFilter;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -88,8 +86,9 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     }});
     timelineMetrics.getMetrics().add(metric3);
 
-    AggregatorUtils.whitelistedMetrics.add("dummy_metric1");
-    AggregatorUtils.whitelistedMetrics.add("dummy_metric2");
+    TimelineMetricsFilter.initializeMetricFilter(new Configuration());
+    TimelineMetricsFilter.addToWhitelist("dummy_metric1");
+    TimelineMetricsFilter.addToWhitelist("dummy_metric2");
 
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
   }
@@ -99,16 +98,20 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> cachedData = metadataManager.getMetadataCache();
 
     Assert.assertNotNull(cachedData);
-    Assert.assertEquals(2, cachedData.size());
+    Assert.assertEquals(3, cachedData.size());
     TimelineMetricMetadataKey key1 = new TimelineMetricMetadataKey("dummy_metric1", "dummy_app1");
     TimelineMetricMetadataKey key2 = new TimelineMetricMetadataKey("dummy_metric2", "dummy_app2");
+    TimelineMetricMetadataKey key3 = new TimelineMetricMetadataKey("dummy_metric3", "dummy_app3");
     TimelineMetricMetadata value1 = new TimelineMetricMetadata("dummy_metric1",
-      "dummy_app1", "Integer", null, 1L, true);
+      "dummy_app1", "Integer", null, 1L, true, false);
     TimelineMetricMetadata value2 = new TimelineMetricMetadata("dummy_metric2",
-      "dummy_app2", "Integer", null, 1L, true);
+      "dummy_app2", "Integer", null, 1L, true, false);
+    TimelineMetricMetadata value3 = new TimelineMetricMetadata("dummy_metric3",
+      "dummy_app3", "Integer", null, 1L, true, true);
 
     Assert.assertEquals(value1, cachedData.get(key1));
     Assert.assertEquals(value2, cachedData.get(key2));
+    Assert.assertEquals(value3, cachedData.get(key3));
 
     TimelineMetricMetadataSync syncRunnable = new TimelineMetricMetadataSync(metadataManager);
     syncRunnable.run();
@@ -117,16 +120,19 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
       hdb.getTimelineMetricMetadata();
 
     Assert.assertNotNull(savedData);
-    Assert.assertEquals(2, savedData.size());
+    Assert.assertEquals(3, savedData.size());
     Assert.assertEquals(value1, savedData.get(key1));
     Assert.assertEquals(value2, savedData.get(key2));
+    Assert.assertEquals(value3, savedData.get(key3));
 
     Map<String, Set<String>> cachedHostData = metadataManager.getHostedAppsCache();
     Map<String, Set<String>> savedHostData = metadataManager.getHostedAppsFromStore();
     Assert.assertEquals(cachedData.size(), savedData.size());
     Assert.assertEquals("dummy_app1", cachedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", cachedHostData.get("dummy_host2").iterator().next());
+    Assert.assertEquals("dummy_app3", cachedHostData.get("dummy_host3").iterator().next());
     Assert.assertEquals("dummy_app1", savedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", savedHostData.get("dummy_host2").iterator().next());
+    Assert.assertEquals("dummy_app3", cachedHostData.get("dummy_host3").iterator().next());
   }
 }

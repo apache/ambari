@@ -335,6 +335,9 @@
                           <location>${collector.dir}/conf/unix/log4j.properties</location>
                         </source>
                         <source>
+                          <location>${collector.dir}/conf/unix/metrics_whitelist</location>
+                        </source>
+                        <source>
                           <location>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
                         </source>
                       </sources>
@@ -866,6 +869,15 @@
                   <mapper>
                     <type>perm</type>
                     <filemode>644</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/metrics_whitelist</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
                     <prefix>/etc/ambari-metrics-collector/conf</prefix>
                   </mapper>
                 </data>
