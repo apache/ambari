@@ -48,8 +48,9 @@ class AlertSchedulerHandler():
   TYPE_WEB = 'WEB'
   TYPE_RECOVERY = 'RECOVERY'
 
-  def __init__(self, cachedir, stacks_dir, common_services_dir, extensions_dir, host_scripts_dir,
-      cluster_configuration, config, recovery_manager, in_minutes=True):
+  def __init__(self, cachedir, stacks_dir, common_services_dir, extensions_dir,
+      host_scripts_dir, cluster_configuration, config, recovery_manager,
+      in_minutes=True):
 
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
@@ -403,10 +404,10 @@ def main():
   args = list(sys.argv)
   del args[0]
 
-  
+
   ash = AlertSchedulerHandler(args[0], args[1], args[2], False)
   ash.start()
-  
+
   i = 0
   try:
     while i < 10:
@@ -414,12 +415,10 @@ def main():
       i += 1
   except KeyboardInterrupt:
     pass
-    
+
   print str(ash.collector().alerts())
-      
+
   ash.stop()
 
 if __name__ == "__main__":
   main()
-  
-      
