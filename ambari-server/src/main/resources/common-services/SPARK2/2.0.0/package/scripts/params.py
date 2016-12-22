@@ -39,8 +39,8 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK2_JOBHISTORYSERVER' : 'spark2-historyserver',
   'SPARK2_CLIENT' : 'spark2-client',
   'SPARK2_THRIFTSERVER' : 'spark2-thriftserver',
-  'LIVY-SPARK2_SERVER' : 'livy-spark2-server',
-  'LIVY-SPARK2_CLIENT' : 'livy-spark2-client'
+  'LIVY2_SERVER' : 'livy2-server',
+  'LIVY2_CLIENT' : 'livy2-client'
 
 }
 
@@ -194,7 +194,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 has_livyserver = False
 
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
-  livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY-SPARK2_SERVER")
+  livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
   livy2_conf = format("{stack_root}/current/{livy2_component_directory}/conf")
   livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
   livy2_pid_dir = status_params.livy2_pid_dir
@@ -230,7 +230,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, sta
     if security_enabled:
       livy2_principal = livy2_kerberos_principal.replace('_HOST', config['hostname'].lower())
 
-  livy2_livyserver_port = default('configurations/livy2-conf/livy2.server.port',8999)
+  livy2_livyserver_port = default('configurations/livy2-conf/livy.server.port',8999)
 
 
 import functools

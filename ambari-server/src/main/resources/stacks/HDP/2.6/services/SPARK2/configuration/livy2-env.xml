@@ -44,7 +44,7 @@
     </property>
     <property>
         <name>livy2_log_dir</name>
-        <value>/var/log/livy-spark2</value>
+        <value>/var/log/livy2</value>
         <description>Livy Log Dir</description>
         <value-attributes>
             <type>directory</type>
@@ -53,7 +53,7 @@
     </property>
     <property>
         <name>livy2_pid_dir</name>
-        <value>/var/run/livy-spark2</value>
+        <value>/var/run/livy2</value>
         <value-attributes>
             <type>directory</type>
         </value-attributes>
@@ -76,9 +76,9 @@
 
             # - SPARK_HOME      Spark which you would like to use in livy
             # - HADOOP_CONF_DIR Directory containing the Hadoop / YARN configuration to use.
-            # - LIVY2_LOG_DIR    Where log files are stored.  (Default: ${LIVY_HOME}/logs)
-            # - LIVY2_PID_DIR    Where the pid file is stored. (Default: /tmp)
-            # - LIVY2_SERVER_JAVA_OPTS  Java Opts for running livy server (You can set jvm related setting here, like jvm memory/gc algorithm and etc.)
+            # - LIVY_LOG_DIR    Where log files are stored.  (Default: ${LIVY_HOME}/logs)
+            # - LIVY_PID_DIR    Where the pid file is stored. (Default: /tmp)
+            # - LIVY_SERVER_JAVA_OPTS  Java Opts for running livy server (You can set jvm related setting here, like jvm memory/gc algorithm and etc.)
             export SPARK_HOME=/usr/hdp/current/spark2-client
             export JAVA_HOME={{java_home}}
             export HADOOP_CONF_DIR=/etc/hadoop/conf
