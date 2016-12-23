@@ -106,7 +106,9 @@ def hive(name=None):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive(name=None):
   import params
-
+  hive_client_conf_path = format("{stack_root}/current/{component_directory}/conf")
+  # Permissions 644 for conf dir (client) files, and 600 for conf.server
+  mode_identified = 0644 if params.hive_config_dir == hive_client_conf_path else 0600
   if name == 'hiveserver2':
     # copy tarball to HDFS feature not supported
     if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):
@@ -226,7 +228,7 @@ def hive(name=None):
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0600)
+            mode=mode_identified)
 
   # Generate atlas-application.properties.xml file
   if params.enable_atlas_hook:
@@ -254,7 +256,7 @@ def hive(name=None):
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
-       mode=0600,
+       mode=mode_identified,
        content=InlineTemplate(params.hive_env_sh_template)
   )
 
