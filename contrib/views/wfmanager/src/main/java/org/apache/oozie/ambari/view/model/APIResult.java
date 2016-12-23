@@ -17,37 +17,47 @@
  */
 package org.apache.oozie.ambari.view.model;
 
-import java.io.Serializable;
+public class APIResult {
 
+  private Status status;
+  private Object data;
+  private Paging paging = new Paging();
+  ;
 
-public class BaseModel implements When, Serializable {
-  private static final long serialVersionUID = 1L;
-  private String createdAt;
-  private String updatedAt;
-  private String owner;
-
-  public String getCreatedAt() {
-    return createdAt;
+  public Status getStatus() {
+    return status;
   }
 
-  public void setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
+  public void setStatus(Status status) {
+    this.status = status;
   }
 
-  public String getUpdatedAt() {
-    return updatedAt;
+
+  public Object getData() {
+    return data;
   }
 
-  public void setUpdatedAt(String updatedAt) {
-    this.updatedAt = updatedAt;
+  public void setData(Object data) {
+    this.data = data;
   }
 
-  public String getOwner() {
-    return owner;
+  public Paging getPaging() {
+    return paging;
+
   }
 
-  public void setOwner(String owner) {
-    this.owner = owner;
+  public void setPaging(Paging paging) {
+    this.paging = paging;
+  }
+
+
+  public static enum Status {
+    SUCCESS,
+    ERROR
+  }
+
+  public static void main(String[] args) {
+    System.out.println("hello");
   }
 
 }

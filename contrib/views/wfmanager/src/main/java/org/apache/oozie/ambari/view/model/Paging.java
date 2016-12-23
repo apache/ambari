@@ -17,37 +17,14 @@
  */
 package org.apache.oozie.ambari.view.model;
 
-import java.io.Serializable;
+public class Paging {
+  private Long total;
 
-
-public class BaseModel implements When, Serializable {
-  private static final long serialVersionUID = 1L;
-  private String createdAt;
-  private String updatedAt;
-  private String owner;
-
-  public String getCreatedAt() {
-    return createdAt;
+  public Long getTotal() {
+    return total;
   }
 
-  public void setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
+  public void setTotal(Long total) {
+    this.total = total;
   }
-
-  public String getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(String updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
-  }
-
 }

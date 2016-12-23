@@ -15,39 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.oozie.ambari.view.model;
+package org.apache.oozie.ambari.view.assets.model;
 
-import java.io.Serializable;
+import org.apache.oozie.ambari.view.model.Indexed;
 
+public class ActionAssetDefinition implements Indexed {
+  private String id;
+  private String data;
 
-public class BaseModel implements When, Serializable {
-  private static final long serialVersionUID = 1L;
-  private String createdAt;
-  private String updatedAt;
-  private String owner;
-
-  public String getCreatedAt() {
-    return createdAt;
+  public String getId() {
+    return id;
   }
 
-  public void setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public String getUpdatedAt() {
-    return updatedAt;
+  public String getData() {
+    return data;
   }
 
-  public void setUpdatedAt(String updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
+  public void setData(String data) {
+    this.data = data;
   }
 
 }

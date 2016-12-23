@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,31 +21,95 @@ import java.util.Collection;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.oozie.ambari.view.assets.model.ActionAsset;
+import org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition;
+import org.apache.oozie.ambari.view.assets.model.AssetDefintion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AssetService {
-    private AssetRepo assetRepo;
+  private final static Logger LOGGER = LoggerFactory
+    .getLogger(AssetService.class);
+  private final AssetRepo assetRepo;
+  private final AssetDefinitionRepo assetDefinitionRepo;
 
-    public AssetService(ViewContext viewContext) {
-        super();
-        assetRepo = new AssetRepo(viewContext.getDataStore());
+  private final ViewContext viewContext;
+
+
+  public AssetService(ViewContext viewContext) {
+    super();
+    this.viewContext = viewContext;
+
+    this.assetDefinitionRepo = new AssetDefinitionRepo(
+      viewContext.getDataStore());
+    this.assetRepo = new AssetRepo(viewContext.getDataStore());
+
+  }
+
+  public Collection<ActionAsset> getAssets() {
+    return assetRepo.findAll();
+  }
+
+  public Collection<ActionAsset> getPrioritizedAssets() {
+    Collection<ActionAsset> assets = getAssets();
+    return assets;
+  }
+
+  public void saveAsset(String assetId, String userName,
+                        AssetDefintion assetDefinition) {
+    if (assetId != null) {
+      ActionAsset actionAsset = assetRepo.findById(assetId);
+      if (actionAsset == null) {
+        throw new RuntimeException("could not find asset with id :"
+          + assetId);
+      }
+      actionAsset.setDescription(assetDefinition.getDescription());
+      actionAsset.setName(assetDefinition.getName());
+      actionAsset.setType(assetDefinition.getType());
+      ActionAssetDefinition assetDefinintion = assetDefinitionRepo
+        .findById(actionAsset.getDefinitionRef());
+      assetDefinintion.setData(assetDefinintion.getData());
+      assetDefinitionRepo.update(assetDefinintion);
+      assetRepo.update(actionAsset);
+    } else {
+      ActionAsset actionAsset = new ActionAsset();
+      actionAsset.setOwner(userName);
+      ActionAssetDefinition definition = new ActionAssetDefinition();
+      definition.setData(assetDefinition.getDefinition());
+      ActionAssetDefinition createdDefinition = assetDefinitionRepo
+        .create(definition);
+      actionAsset.setDefinitionRef(createdDefinition.getId());
+      actionAsset.setDescription(assetDefinition.getDescription());
+      actionAsset.setName(assetDefinition.getName());
+      actionAsset.setType(assetDefinition.getType());
+      assetRepo.create(actionAsset);
     }
+  }
 
-    public Collection<ActionAsset> getAssets() {
 
-        return null;
-    }
+  public void deleteAsset(String id) {
+    assetRepo.deleteById(id);
+  }
 
-    public Collection<ActionAsset> getPrioritizedAssets() {
-        Collection<ActionAsset> assets = getAssets();
-        // reorder
-        return assets;
-    }
+  public AssetDefintion getAssetDetail(String assetId) {
+    AssetDefintion ad = new AssetDefintion();
+    ActionAsset actionAsset = assetRepo.findById(assetId);
+    ActionAssetDefinition actionDefinition = assetDefinitionRepo
+      .findById(actionAsset.getDefinitionRef());
+    ad.setDefinition(actionDefinition.getData());
+    ad.setDescription(actionAsset.getDescription());
+    ad.setName(actionAsset.getName());
+    return ad;
+  }
 
-    public void addAsset() {
+  public ActionAssetDefinition getAssetDefinition(String assetDefintionId) {
+    return assetDefinitionRepo.findById(assetDefintionId);
+  }
 
-    }
+  public ActionAsset getAsset(String id) {
+    return assetRepo.findById(id);
+  }
 
-    public void deleteAsset() {
-
-    }
+  public Collection<ActionAsset> getMyAssets() {
+    return assetRepo.getMyAsets(viewContext.getUsername());
+  }
 }

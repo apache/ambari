@@ -15,39 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.oozie.ambari.view.model;
+package org.apache.oozie.ambari.view;
 
-import java.io.Serializable;
-
-
-public class BaseModel implements When, Serializable {
-  private static final long serialVersionUID = 1L;
-  private String createdAt;
-  private String updatedAt;
-  private String owner;
-
-  public String getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public String getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(String updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
-  }
-
+public class Constants {
+  public static final String STATUS_FAILED = "failed";
+  public static final String STATUS_OK = "ok";
+  public static final String STATUS_KEY = "status";
+  public static final String MESSAGE_KEY = "message";
 }

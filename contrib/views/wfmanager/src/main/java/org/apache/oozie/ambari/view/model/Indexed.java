@@ -17,37 +17,8 @@
  */
 package org.apache.oozie.ambari.view.model;
 
-import java.io.Serializable;
+public interface Indexed {
+  String getId();
 
-
-public class BaseModel implements When, Serializable {
-  private static final long serialVersionUID = 1L;
-  private String createdAt;
-  private String updatedAt;
-  private String owner;
-
-  public String getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public String getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(String updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
-  }
-
+  void setId(String id);
 }
