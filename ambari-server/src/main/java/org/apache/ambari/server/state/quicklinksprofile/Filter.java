@@ -69,10 +69,10 @@ public abstract class Filter {
     return linkNameFilter;
   }
 
-  static PropertyFilter propertyFilter(String propertyName, boolean visible) {
-    PropertyFilter propertyFilter = new PropertyFilter();
-    propertyFilter.setPropertyName(propertyName);
-    propertyFilter.setVisible(visible);
-    return propertyFilter;
+  static LinkAttributeFilter linkAttributeFilter(String linkAttribute, boolean visible) {
+    LinkAttributeFilter linkAttributeFilter = new LinkAttributeFilter();
+    linkAttributeFilter.setLinkAttribute(linkAttribute);
+    linkAttributeFilter.setVisible(visible);
+    return linkAttributeFilter;
   }
 }

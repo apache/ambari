@@ -18,29 +18,10 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
-import org.apache.ambari.server.state.quicklinks.Link;
+public class QuickLinksProfileEvaluatorException extends Exception {
 
-/**
- * A filter that accepts all links. It is useful to specify a general rule while the more specific
- * ({@link LinkNameFilter} and {@link LinkAttributeFilter}) filters handle more special cases.
- */
-public class AcceptAllFilter extends Filter {
-
-  @Override
-  public boolean accept(Link link) {
-    return true;
+  public QuickLinksProfileEvaluatorException(String message) {
+    super(message);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    AcceptAllFilter that = (AcceptAllFilter) o;
-    return isVisible() == that.isVisible();
-  }
-
-  @Override
-  public int hashCode() {
-    return java.util.Objects.hash(isVisible());
-  }
 }
