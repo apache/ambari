@@ -244,12 +244,12 @@ public class AmbariSNMPDispatcherTest {
             variableBindings.put(variableBinding.getOid().toString(), variableBinding);
         }
         assertEquals(10, variableBindings.size());
-        assertEquals(AmbariSNMPDispatcher.APACHE_AMBARI_TRAPS_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
+        assertEquals(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
         assertEquals(String.valueOf(DEFINITION_ID), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID).toValueString());
         assertEquals(DEFINITION_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID).toValueString());
         assertEquals(ALERT_LABEL, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_NAME_OID).toValueString());
         assertEquals(ALERT_TEXT, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_TEXT_OID).toValueString());
-        assertEquals(String.valueOf(ALERT_STATE), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_STATE_OID).toValueString());
+        assertEquals(String.valueOf(ALERT_STATE.getIntValue()), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_STATE_OID).toValueString());
         assertEquals(ALERT_HOSTNAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_HOST_NAME_OID).toValueString());
         assertEquals(ALERT_SERVICE_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_SERVICE_NAME_OID).toValueString());
         assertEquals(ALERT_COMPONENT_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_COMPONENT_NAME_OID).toValueString());
@@ -284,12 +284,12 @@ public class AmbariSNMPDispatcherTest {
         }
 
         assertEquals(10, variableBindings.size());
-        assertEquals(AmbariSNMPDispatcher.APACHE_AMBARI_TRAPS_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
+        assertEquals(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
         assertEquals(String.valueOf(DEFINITION_ID), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID).toValueString());
         assertEquals(DEFINITION_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID).toValueString());
         assertEquals(ALERT_LABEL, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_NAME_OID).toValueString());
         assertEquals(ALERT_TEXT, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_TEXT_OID).toValueString());
-        assertEquals(String.valueOf(ALERT_STATE), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_STATE_OID).toValueString());
+        assertEquals(String.valueOf(ALERT_STATE.getIntValue()), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_STATE_OID).toValueString());
         assertEquals(ALERT_HOSTNAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_HOST_NAME_OID).toValueString());
         assertEquals(ALERT_SERVICE_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_SERVICE_NAME_OID).toValueString());
         assertEquals(ALERT_COMPONENT_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_COMPONENT_NAME_OID).toValueString());

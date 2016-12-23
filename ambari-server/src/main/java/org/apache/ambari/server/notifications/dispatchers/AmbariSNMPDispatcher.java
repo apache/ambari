@@ -56,6 +56,7 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
 
     public static final String BASE_AMBARI_OID = "1.3.6.1.4.1.18060.16";
     public static final String APACHE_AMBARI_TRAPS_OID = BASE_AMBARI_OID + ".0";
+    public static final String AMBARI_ALERT_TRAP_OID = APACHE_AMBARI_TRAPS_OID + ".1";
     public static final String AMBARI_ALERTS_OID = BASE_AMBARI_OID + ".1";
     public static final String AMBARI_ALERT_TABLE_OID = AMBARI_ALERTS_OID + ".1";
     public static final String AMBARI_ALERT_ENTRY_OID = AMBARI_ALERT_TABLE_OID + ".1";
@@ -108,7 +109,7 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
 
         pdu.setType(snmpVersion.getTrapType());
         // Set trap oid for PDU
-        pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(APACHE_AMBARI_TRAPS_OID)));
+        pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AMBARI_ALERT_TRAP_OID)));
         // Set notification body and subject for PDU objects with identifiers specified in dispatch properties.
         AlertNoticeDispatchService.AlertInfo alertInfo = alertNotification.getAlertInfo();
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_ID_OID, alertInfo.getAlertDefinitionId());
@@ -116,7 +117,7 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_HASH_OID, alertInfo.getAlertDefinitionHash());
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_NAME_OID, alertInfo.getAlertName());
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_TEXT_OID, alertInfo.getAlertText());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_STATE_OID, alertInfo.getAlertState());
+        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_STATE_OID, alertInfo.getAlertState().getIntValue());
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_HOST_NAME_OID, alertInfo.getHostName());
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_SERVICE_NAME_OID, alertInfo.getServiceName());
         addVariableBindingCheckForNull(pdu, AMBARI_ALERT_COMPONENT_NAME_OID, alertInfo.getComponentName());
