@@ -99,6 +99,7 @@ class Controller(threading.Thread):
 
     stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
     common_services_cache_dir = os.path.join(cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+    extensions_cache_dir = os.path.join(cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
     host_scripts_cache_dir = os.path.join(cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
     alerts_cache_dir = os.path.join(cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
     cluster_config_cache_dir = os.path.join(cache_dir, FileCache.CLUSTER_CONFIGURATION_CACHE_DIRECTORY)
@@ -122,8 +123,9 @@ class Controller(threading.Thread):
     self.move_data_dir_mount_file()
 
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir,
-      stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
-      self.cluster_configuration, config, self.recovery_manager)
+      stacks_cache_dir, common_services_cache_dir, extensions_cache_dir,
+      host_scripts_cache_dir, self.cluster_configuration, config,
+      self.recovery_manager)
 
     self.alert_scheduler_handler.start()
 
@@ -447,10 +449,10 @@ class Controller(threading.Thread):
       self.actionQueue.start()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
-  
+ 
       opener = urllib2.build_opener()
       urllib2.install_opener(opener)
-  
+ 
       while True:
         self.repeatRegistration = False
         self.registerAndHeartbeat()
@@ -460,7 +462,7 @@ class Controller(threading.Thread):
     except:
       logger.exception("Controller thread failed with exception:")
       raise
-    
+
     logger.info("Controller thread has successfully finished")
 
   def registerAndHeartbeat(self):

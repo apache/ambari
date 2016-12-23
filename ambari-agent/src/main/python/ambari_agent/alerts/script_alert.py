@@ -48,6 +48,7 @@ class ScriptAlert(BaseAlert):
     self.stacks_dir = None
     self.common_services_dir = None
     self.host_scripts_dir = None
+    self.extensions_dir = None
     self.path_to_script = None
     self.parameters = {}
 
@@ -65,6 +66,9 @@ class ScriptAlert(BaseAlert):
 
     if 'host_scripts_directory' in alert_source_meta:
       self.host_scripts_dir = alert_source_meta['host_scripts_directory']
+
+    if 'extensions_directory' in alert_source_meta:
+      self.extensions_dir = alert_source_meta['extensions_directory']
 
     # convert a list of script parameters, like timeouts, into a dictionary
     # so the the scripts can easily lookup the data
@@ -143,6 +147,10 @@ class ScriptAlert(BaseAlert):
     # if the path doesn't exist and the host script dir is defined, try that
     if not os.path.exists(self.path_to_script) and self.host_scripts_dir is not None:
       self.path_to_script = os.path.join(self.host_scripts_dir, *paths)
+
+    # if the path doesn't exist and the extensions dir is defined, try that
+    if not os.path.exists(self.path_to_script) and self.extensions_dir is not None:
+      self.path_to_script = os.path.join(self.extensions_dir, *paths)
 
     # if the path can't be evaluated, throw exception
     if not os.path.exists(self.path_to_script) or not os.path.isfile(self.path_to_script):
