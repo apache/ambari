@@ -30,7 +30,7 @@ class KeeperException(Exception):
 
 class ResourceFilesKeeper():
   """
-  This class incapsulates all utility methods for resource files maintenance.
+  This class encapsulates all utility methods for resource files maintenance.
   """
 
   HOOKS_DIR="hooks"
@@ -40,6 +40,7 @@ class ResourceFilesKeeper():
   CUSTOM_ACTIONS_DIR="custom_actions"
   HOST_SCRIPTS_DIR="host_scripts"
   DASHBOARDS_DIR="dashboards"
+  EXTENSIONS_DIR="extensions"
 
   # For these directories archives are created
   ARCHIVABLE_DIRS = [HOOKS_DIR, PACKAGE_DIR]
@@ -107,6 +108,14 @@ class ResourceFilesKeeper():
     # Iterate over common services directories
     self._iter_update_directory_archive(valid_common_services)
 
+    # archive extensions
+    extensions_root = os.path.join(self.resources_dir, self.EXTENSIONS_DIR)
+    self.dbg_out("Updating archives for extensions dirs at {0}...".format(extensions_root))
+    valid_extensions = self.list_extensions(extensions_root)
+    self.dbg_out("Extensions: {0}".format(pprint.pformat(valid_extensions)))
+    # Iterate over extension directories
+    self._iter_update_directory_archive(valid_extensions)
+
     # custom actions
     self._update_resources_subdir_archive(self.CUSTOM_ACTIONS_DIR)
 
@@ -144,6 +153,15 @@ class ResourceFilesKeeper():
       return self._list_metainfo_dirs(root_dir)
     except Exception, err:
       raise KeeperException("Can not list common services: {0}".format(str(err)))
+
+  def list_extensions(self, root_dir):
+    """
+    Builds a list of extension directories
+    """
+    try:
+      return self._list_metainfo_dirs(root_dir)
+    except Exception, err:
+      raise KeeperException("Can not list extensions: {0}".format(str(err)))
 
   def update_directory_archive(self, directory):
     """
