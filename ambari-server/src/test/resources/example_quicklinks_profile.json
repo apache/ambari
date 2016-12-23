@@ -1,7 +1,7 @@
 {
   "filters": [
     {
-      "property_name": "sso",
+      "link_attribute": "sso",
       "visible": true
     }
   ],
@@ -10,7 +10,7 @@
       "name": "HDFS",
       "filters": [
         {
-          "property_name": "authenticated",
+          "link_attribute": "authenticated",
           "visible": true
         }
       ],

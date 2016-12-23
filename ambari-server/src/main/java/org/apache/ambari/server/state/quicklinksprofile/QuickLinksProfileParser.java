@@ -62,7 +62,7 @@ public class QuickLinksProfileParser {
  */
 class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
   private static final String PARSE_ERROR_MESSAGE =
-      "A filter is not allowed to declare both property_name and link_name at the same time.";
+      "A filter is not allowed to declare both link_name and link_attribute at the same time.";
 
   QuickLinksFilterDeserializer() {
     super(Filter.class);
@@ -71,9 +71,9 @@ class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
   /**
    * Filter polymorphism is handled here. If a filter object in the JSON document has:
    * <ul>
-   *   <li>a {@code property_name} field, it will parsed as {@link PropertyFilter}</li>
+   *   <li>a {@code link_attribute} field, it will parsed as {@link LinkAttributeFilter}</li>
    *   <li>a {@code link_name} field, it will be parsed as {@link LinkNameFilter}</li>
-   *   <li>both {@code property_name} and {@code link_name}, it will throw a {@link JsonParseException}</li>
+   *   <li>both {@code link_attribute} and {@code link_name}, it will throw a {@link JsonParseException}</li>
    *   <li>neither of the above fields, it will be parsed as {@link AcceptAllFilter}</li>
    * </ul>
    *
@@ -86,11 +86,11 @@ class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
     Class<? extends Filter> filterClass = null;
     for (String fieldName: ImmutableList.copyOf(root.getFieldNames())) {
       switch(fieldName) {
-        case PropertyFilter.PROPERTY_NAME:
+        case LinkAttributeFilter.LINK_ATTRIBUTE:
           if (null != filterClass) {
             throw new JsonParseException(PARSE_ERROR_MESSAGE, parser.getCurrentLocation());
           }
-          filterClass = PropertyFilter.class;
+          filterClass = LinkAttributeFilter.class;
           break;
         case LinkNameFilter.LINK_NAME:
           if (null != filterClass) {
