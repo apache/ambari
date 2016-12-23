@@ -254,9 +254,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         var changedConfigIds = this.get('changedProperties').map(function(changed) {
           return App.config.configId(changed.propertyName, changed.propertyFileName);
         });
-        if (this.get('currentlyChangedConfig')) {
-          return changedConfigIds.contains(App.config.configId(this.get('currentlyChangedConfig.name'), this.get('currentlyChangedConfig.fileName')));
-        }
         return !changedConfigIds.contains(App.config.configId(c.get('name'), c.get('filename')));
       }, this).length;
     }, this).length;
