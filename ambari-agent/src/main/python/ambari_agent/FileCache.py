@@ -167,6 +167,7 @@ class FileCache():
             self.invalidate_directory(full_path)
             self.unpack_archive(membuffer, full_path)
             self.write_hash_sum(full_path, remote_hash)
+            logger.info("Updated directory {0}".format(full_path))
           else:
             logger.warn("Skipping empty archive: {0}. "
                         "Expected archive was not found. Cached copy will be used.".format(download_url))
