@@ -46,6 +46,9 @@ class TestResourceFilesKeeper(TestCase):
   DUMMY_UNCHANGEABLE_STACK = ".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
                            "dummy_stack" + os.sep + "HIVE"
 
+  DUMMY_UNCHANGEABLE_EXTENSION = ".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
+                           "dummy_extension" + os.sep + "HIVE"
+
   DUMMY_ACTIVE_STACK = ".." + os.sep + "resources" + os.sep + "TestAmbaryServer.samples" + os.sep + \
                            "active_stack"
 
@@ -81,6 +84,7 @@ class TestResourceFilesKeeper(TestCase):
       "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n " \
       "call('../resources/TestAmbaryServer.samples/" \
       "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n " \
+      "call('../resources/TestAmbaryServer.samples/dummy_extension/HIVE/package'),\n " \
       "call('../resources/custom_actions'),\n " \
       "call('../resources/host_scripts'),\n " \
       "call('../resources/dashboards')]"
@@ -91,6 +95,7 @@ class TestResourceFilesKeeper(TestCase):
       "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n " \
       "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n " \
       "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n " \
+      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_extension\\\\HIVE\\\\package'),\n " \
       "call('..\\\\resources\\\\custom_actions'),\n " \
       "call('..\\\\resources\\\\host_scripts'),\n " \
       "call('..\\\\resources\\\\dashboards')]"
@@ -107,6 +112,7 @@ class TestResourceFilesKeeper(TestCase):
     pass
 
 
+  @patch.object(ResourceFilesKeeper, "list_extensions")
   @patch.object(ResourceFilesKeeper, "update_directory_archive")
   @patch.object(ResourceFilesKeeper, "list_common_services")
   @patch.object(ResourceFilesKeeper, "list_stacks")
@@ -114,12 +120,15 @@ class TestResourceFilesKeeper(TestCase):
   def test_update_directory_archives(self, abspath_mock,
                                       list_active_stacks_mock,
                                       list_common_services_mock,
-                                      update_directory_archive_mock):
+                                      update_directory_archive_mock,
+                                      list_extensions_mock):
     list_active_stacks_mock.return_value = [self.DUMMY_UNCHANGEABLE_STACK,
                                             self.DUMMY_UNCHANGEABLE_STACK,
                                             self.DUMMY_UNCHANGEABLE_STACK]
     list_common_services_mock.return_value = [self.DUMMY_UNCHANGEABLE_COMMON_SERVICES,
                                               self.DUMMY_UNCHANGEABLE_COMMON_SERVICES]
+    list_extensions_mock.return_value = [self.DUMMY_UNCHANGEABLE_EXTENSION]
+
     abspath_mock.side_effect = lambda s : s
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.TEST_STACKS_DIR)
     resource_files_keeper.update_directory_archives()
