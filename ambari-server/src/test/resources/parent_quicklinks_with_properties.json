@@ -20,7 +20,7 @@
         "label": "Foo UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
-        "attributes": ["authenticated", "sso"],
+        "properties": ["authenticated"],
         "port":{
           "http_property": "foo.ui.webapp.address",
           "http_default_port": "19888",
@@ -35,6 +35,7 @@
         "label":"Foo JMX",
         "requires_user_name":"false",
         "url":"%@://%@:%@/jmx",
+        "properties": ["authenticated"],
         "port":{
           "http_property": "foo.jmx.webapp.address",
           "http_default_port": "19888",
@@ -49,7 +50,7 @@
         "label": "Foo logs",
         "requires_user_name": "false",
         "url": "%@://%@:%@/logs",
-        "attributes": [],
+        "properties": ["authenticated"],
         "port":{
           "http_property": "foo.logs.webapp.address",
           "http_default_port": "19888",

@@ -36,13 +36,6 @@ public class Component {
   @JsonProperty("filters")
   private List<Filter> filters;
 
-  static Component create(String name, List<Filter> filters) {
-    Component component = new Component();
-    component.setName(name);
-    component.setFilters(filters);
-    return component;
-  }
-
   public String getName() {
     return name;
   }
