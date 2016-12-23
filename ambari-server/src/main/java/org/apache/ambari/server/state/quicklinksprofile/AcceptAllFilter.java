@@ -22,7 +22,7 @@ import org.apache.ambari.server.state.quicklinks.Link;
 
 /**
  * A filter that accepts all links. It is useful to specify a general rule while the more specific
- * ({@link LinkNameFilter} and {@link LinkAttributeFilter}) filters handle more special cases.
+ * ({@link LinkNameFilter} and {@link PropertyFilter}) filters handle more special cases.
  */
 public class AcceptAllFilter extends Filter {
 

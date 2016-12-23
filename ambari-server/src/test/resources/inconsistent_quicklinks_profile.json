@@ -1,7 +1,7 @@
 {
   "filters": [
     {
-      "link_attribute": "sso",
+      "property_name": "sso",
       "link_name": "namenode_ui",
       "visible": true
     }

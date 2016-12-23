@@ -51,8 +51,8 @@ public class Link{
   @JsonProperty("protocol")
   private Protocol protocol;
 
-  @JsonProperty("attributes")
-  private List<String> attributes;
+  @JsonProperty("properties")
+  private List<String> properties;
 
   public String getName() {
     return name;
@@ -111,12 +111,12 @@ public class Link{
   }
 
   @Nullable
-  public List<String> getAttributes() {
-    return attributes;
+  public List<String> getProperties() {
+    return properties;
   }
 
-  public void setAttributes(List<String> attributes) {
-    this.attributes = attributes;
+  public void setProperties(List<String> properties) {
+    this.properties = properties;
   }
 
   public boolean isRemoved(){
@@ -149,8 +149,8 @@ public class Link{
       port.mergetWithParent(parentLink.getPort());
     }
 
-    if (null == attributes && null != parentLink.attributes) {
-      attributes = parentLink.attributes;
+    if (null == properties && null != parentLink.properties) {
+      properties = parentLink.properties;
     }
   }
 

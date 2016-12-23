@@ -35,7 +35,7 @@ public class QuickLinksProfileParserTest {
     QuickLinksProfile profile = parser.parse(Resources.getResource(profileName));
     assertEquals(1, profile.getFilters().size());
     assertEquals(
-        Filter.linkAttributeFilter("sso", true),
+        Filter.propertyFilter("sso", true),
         profile.getFilters().get(0));
     assertEquals(2, profile.getServices().size());
 
@@ -44,7 +44,7 @@ public class QuickLinksProfileParserTest {
     assertEquals(1, hdfs.getFilters().size());
     assertEquals(1, hdfs.getComponents().size());
     assertEquals(
-        Filter.linkAttributeFilter("authenticated", true),
+        Filter.propertyFilter("authenticated", true),
         hdfs.getFilters().get(0));
 
     Component nameNode = hdfs.getComponents().get(0);

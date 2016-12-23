@@ -117,8 +117,8 @@ public class QuickLinksConfigurationModuleTest {
 
   @Test
   public void testResolveOverrideProperties() throws Exception{
-    QuickLinks[] results = resolveQuickLinks("parent_quicklinks_with_attributes.json",
-        "child_quicklinks_with_attributes.json");
+    QuickLinks[] results = resolveQuickLinks("parent_quicklinks_with_properties.json",
+        "child_quicklinks_with_properties.json");
     QuickLinks parentQuickLinks = results[0];
     QuickLinks childQuickLinks = results[1];
 
@@ -136,13 +136,13 @@ public class QuickLinksConfigurationModuleTest {
     }
     assertEquals("Links are not properly overridden for foo_ui",
         Lists.newArrayList("authenticated", "sso"),
-        linksByName.get("foo_ui").getAttributes());
+        linksByName.get("foo_ui").getProperties());
     assertEquals("Parent links for foo_jmx are not inherited.",
         Lists.newArrayList("authenticated"),
-        linksByName.get("foo_jmx").getAttributes());
+        linksByName.get("foo_jmx").getProperties());
     assertEquals("Links are not properly overridden for foo_logs",
         new ArrayList<>(),
-        linksByName.get("foo_logs").getAttributes());
+        linksByName.get("foo_logs").getProperties());
   }
 
   private QuickLinks[] resolveQuickLinks(String parentJson, String childJson) throws AmbariException{
