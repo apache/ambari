@@ -163,9 +163,9 @@ class Hardware:
       else:
         ignored_mounts.append(mount)
 
-      if len(ignored_mounts) > 0:
-        ignore_list = [el["mountpoint"] for el in ignored_mounts]
-        logger.info("Some mount points was ignored: {0}".format(', '.join(ignore_list)))
+    if len(ignored_mounts) > 0:
+      ignore_list = [el["mountpoint"] for el in ignored_mounts]
+      logger.info("Some mount points were ignored: {0}".format(', '.join(ignore_list)))
 
     return result_mounts
 
