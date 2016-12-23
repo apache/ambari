@@ -329,10 +329,10 @@ App.BackgroundOperationsController = Em.Controller.extend({
       if (requestContext.indexOf(App.BackgroundOperationsController.CommandContexts.PREFIX) !== -1) {
         context = this.getRequestContextWithPrefix(requestContext);
       } else {
-        context.parsedRequestContext = requestContext;
+        context.requestContext = requestContext;
       }
     } else {
-      context.parsedRequestContext = Em.I18n.t('requestInfo.unspecified');
+      context.requestContext = Em.I18n.t('requestInfo.unspecified');
     }
     return context;
   },
