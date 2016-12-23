@@ -48,12 +48,14 @@ class AlertSchedulerHandler():
   TYPE_WEB = 'WEB'
   TYPE_RECOVERY = 'RECOVERY'
 
-  def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir,
-      cluster_configuration, config, recovery_manager, in_minutes=True):
+  def __init__(self, cachedir, stacks_dir, common_services_dir, extensions_dir,
+      host_scripts_dir, cluster_configuration, config, recovery_manager,
+      in_minutes=True):
 
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
     self.common_services_dir = common_services_dir
+    self.extensions_dir = extensions_dir
     self.host_scripts_dir = host_scripts_dir
 
     self._cluster_configuration = cluster_configuration
@@ -308,6 +310,7 @@ class AlertSchedulerHandler():
       elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
         source['stacks_directory'] = self.stacks_dir
         source['common_services_directory'] = self.common_services_dir
+        source['extensions_directory'] = self.extensions_dir
         source['host_scripts_directory'] = self.host_scripts_dir
         alert = ScriptAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_WEB:
@@ -401,10 +404,10 @@ def main():
   args = list(sys.argv)
   del args[0]
 
-  
+
   ash = AlertSchedulerHandler(args[0], args[1], args[2], False)
   ash.start()
-  
+
   i = 0
   try:
     while i < 10:
@@ -412,12 +415,10 @@ def main():
       i += 1
   except KeyboardInterrupt:
     pass
-    
+
   print str(ash.collector().alerts())
-      
+
   ash.stop()
 
 if __name__ == "__main__":
   main()
-  
-      
