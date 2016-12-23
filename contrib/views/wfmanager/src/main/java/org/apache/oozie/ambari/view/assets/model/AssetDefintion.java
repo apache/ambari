@@ -18,26 +18,28 @@
 package org.apache.oozie.ambari.view.assets.model;
 
 import org.apache.oozie.ambari.view.AssetDefinitionRefType;
-import org.apache.oozie.ambari.view.EntityStatus;
-import org.apache.oozie.ambari.view.model.BaseModel;
-import org.apache.oozie.ambari.view.model.Indexed;
 
-public class ActionAsset extends BaseModel implements Indexed {
-  private static final long serialVersionUID = 1L;
-  private String id;
+public class AssetDefintion {
+  private String definition = AssetDefinitionRefType.DB.name();
+  private String type;
   private String name;
   private String description;
-  private String type;
-  private String definitionRefType = AssetDefinitionRefType.DB.name();//can be db or fs
-  private String definitionRef;//point to dbid or filesystem
-  private String status = EntityStatus.DRAFT.name();
+  private String status;
 
-  public String getId() {
-    return id;
+  public String getDefinition() {
+    return definition;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setDefinition(String definition) {
+    this.definition = definition;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   public String getName() {
@@ -56,30 +58,6 @@ public class ActionAsset extends BaseModel implements Indexed {
     this.description = description;
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  public String getDefinitionRef() {
-    return definitionRef;
-  }
-
-  public void setDefinitionRef(String definitionRef) {
-    this.definitionRef = definitionRef;
-  }
-
-  public String getDefinitionRefType() {
-    return definitionRefType;
-  }
-
-  public void setDefinitionRefType(String definitionRefType) {
-    this.definitionRefType = definitionRefType;
-  }
-
   public String getStatus() {
     return status;
   }
@@ -87,4 +65,5 @@ public class ActionAsset extends BaseModel implements Indexed {
   public void setStatus(String status) {
     this.status = status;
   }
+
 }

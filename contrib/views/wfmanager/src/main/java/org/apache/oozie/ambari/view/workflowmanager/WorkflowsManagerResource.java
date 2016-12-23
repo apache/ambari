@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import org.apache.ambari.view.ViewContext;
@@ -44,8 +46,10 @@ public class WorkflowsManagerResource {
 	
 	
 	@DELETE
-	public void deleteWorkflow( @QueryParam("worfkflowPath") String path,
+	@Path("/projectId")
+	public void deleteWorkflow( @PathParam("projectId") String id,
             @DefaultValue("false") @QueryParam("deleteDefinition") Boolean deleteDefinition){
-	    workflowManagerService.deleteWorkflow(path,deleteDefinition);
+	    workflowManagerService.deleteWorkflow(id,deleteDefinition);
 	}
+	
 }

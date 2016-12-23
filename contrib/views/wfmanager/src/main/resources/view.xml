@@ -120,6 +120,23 @@
         <required>false</required>
     </parameter>
 
+    <persistence>
+        <!--
+        <entity>
+             <class>org.apache.oozie.ambari.view.workflowmanager.model.Workflow</class>
+            <id-property>id</id-property>
+        </entity> -->
+        <entity>
+            <class>org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.oozie.ambari.view.assets.model.ActionAsset</class>
+            <id-property>id</id-property>
+        </entity>
+
+    </persistence>
+
   <!--<auto-instance>
     <name>AUTO_OOZIE_VIEW</name>
     <label>Oozie UI View</label>
