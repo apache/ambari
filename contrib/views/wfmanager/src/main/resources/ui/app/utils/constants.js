@@ -85,4 +85,7 @@ export default Ember.Object.create({
     {displayName:'(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka',gmtOffset:-12, value:'GMT+12:00'}
   ]),
   persistWorkInProgressInterval : 30000,
+  elConstants : [
+    '${YEAR}', '${MONTH}', '${DAY}', '${HOUR}', '${MINUTE}'
+  ]
 });

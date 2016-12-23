@@ -251,9 +251,10 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     deferred.promise.then(function(data){
       this.getCoordinatorFromXml(data);
       this.set("isImporting", false);
-    }.bind(this)).catch(function(){
+    }.bind(this)).catch(function(e){
       this.set("isImporting", false);
       this.set("isImportingSuccess", false);
+      throw new Error(e);
     }.bind(this));
   },
   readFromHdfs(filePath){
@@ -269,8 +270,8 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       }
     }).done(function(data){
       deferred.resolve(data);
-    }).fail(function(){
-      deferred.reject();
+    }).fail(function(e){
+      deferred.reject(e);
     });
     return deferred;
   },
@@ -396,12 +397,29 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         this.set('showErrorMessage', true);
         return;
       }
-      var coordGenerator=CoordinatorGenerator.create({coordinator:this.get("coordinator")});
-      var coordinatorXml=coordGenerator.process();
-      var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(coordinatorXml);
-      var configForSubmit={props:dynamicProperties,xml:coordinatorXml,params:this.get('coordinator.parameters')};
-      this.set("coordinatorConfigs", configForSubmit);
-      this.set("showingJobConfig", true);
+      this.$('#loading').show();
+      var deferred = this.readFromHdfs(this.get('coordinator.workflow.appPath'));
+      deferred.promise.then(function(data){
+        var x2js = new X2JS();
+        var workflowJson = x2js.xml_str2json(data);
+        this.set('workflowName', workflowJson["workflow-app"]._name);
+        var workflowProps = this.get('propertyExtractor').getDynamicProperties(data);
+        var coordGenerator = CoordinatorGenerator.create({coordinator:this.get("coordinator")});
+        var coordinatorXml = coordGenerator.process();
+        var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(coordinatorXml);
+        workflowProps.forEach((prop)=>{
+          dynamicProperties.set(prop, prop);
+        });
+        this.$('#loading').hide();
+        var configForSubmit={props:dynamicProperties,xml:coordinatorXml,params:this.get('coordinator.parameters')};
+        this.set("coordinatorConfigs", configForSubmit);
+        this.set("showingJobConfig", true);
+      }.bind(this)).catch(function(e){
+        this.set('workflowProps',[]);
+        this.$('#loading').hide();
+        this.get("errors").pushObject({'message' : 'Could not process workflow from ' + this.get('coordinator.workflow.appPath')});
+        throw new Error(e);
+      }.bind(this));
     },
     closeCoordSubmitConfig(){
       this.set("showingJobConfig", false);
@@ -473,7 +491,6 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         if(data.coordinator.get('dataInputType') === 'logical'){
           this.set('conditionalDataInExists', true);
         }
-        console.error(this.get('coordinator'));
       }.bind(this)).catch(function(e){
         throw new Error(e);
       });
@@ -527,8 +544,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         var x2js = new X2JS();
         var workflowJson = x2js.xml_str2json(data);
         this.set('workflowName', workflowJson["workflow-app"]._name);
-      }.bind(this)).catch(function(){
+      }.bind(this)).catch(function(e){
         this.set('workflowName', null);
+        throw new Error(e);
       }.bind(this));
     },
     showVersionSettings(value){

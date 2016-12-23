@@ -132,7 +132,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   importBundle (filePath){
     this.set("bundleFilePath", filePath);
     this.set("isImporting", false);
-    var deferred = this.getBundleFromHdfs(filePath);
+    var deferred = this.getFromHdfs(filePath);
     deferred.promise.then(function(data){
       this.getBundleFromXml(data);
       this.set("isImporting", false);
@@ -141,7 +141,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.set("isImportingSuccess", false);
     }.bind(this));
   },
-  getBundleFromHdfs(filePath){
+  getFromHdfs(filePath){
     var url =  Ember.ENV.API_URL + "/readWorkflowXml?workflowXmlPath="+filePath;
     var deferred = Ember.RSVP.defer();
     Ember.$.ajax({
@@ -154,7 +154,8 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       }
     }).done(function(data){
       deferred.resolve(data);
-    }).fail(function(){
+    }).fail(function(e){
+      console.error(e);
       deferred.reject();
     });
     return deferred;
@@ -165,6 +166,22 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     this.set("bundle", bundleObj.bundle);
     this.get("errors").clear();
     this.get("errors").pushObjects(bundleObj.errors);
+  },
+  getJobProperties(coordinatorPath){
+    var deferred = Ember.RSVP.defer();
+    this.getFromHdfs(coordinatorPath).promise.then((coordinatorXml)=>{
+      var x2js = new X2JS();
+      var coordProps = this.get('propertyExtractor').getDynamicProperties(coordinatorXml);
+      var coordinatorJson = x2js.xml_str2json(coordinatorXml);
+      var workflowPath = coordinatorJson['coordinator-app']['action']['workflow']['app-path'];
+      this.getFromHdfs(workflowPath).promise.then((workflowXml)=>{
+        var workflowProps = this.get('propertyExtractor').getDynamicProperties(workflowXml);
+        deferred.resolve(Array.from(coordProps.values()).concat(Array.from(workflowProps.values())));
+      });
+    }.bind(this)).catch((e)=>{
+      deferred.reject({trace :e, path: coordinatorPath});
+    });
+    return deferred;
   },
   actions : {
     closeFileBrowser(){
@@ -238,10 +255,30 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       }
       var bundleGenerator = BundleGenerator.create({bundle:this.get("bundle")});
       var bundleXml = bundleGenerator.process();
-      var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(bundleXml);
-      var configForSubmit = {props : dynamicProperties, xml : bundleXml, params : this.get('bundle.parameters')};
-      this.set("bundleConfigs", configForSubmit);
-      this.set("showingJobConfig", true);
+      var propertyPromises = [];
+      this.$('#loading').show();
+      this.get('bundle.coordinators').forEach((coordinator) =>{
+        var deferred = this.getJobProperties(coordinator.appPath);
+        propertyPromises.push(deferred.promise);
+      }, this);
+      Ember.RSVP.Promise.all(propertyPromises).then(function(props){
+        var combinedProps = [];
+        props.forEach((prop)=>{
+          combinedProps = combinedProps.concat(prop);
+        });
+        var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(bundleXml);
+        combinedProps.forEach((prop)=>{
+          dynamicProperties.set(prop, prop);
+        });
+        this.$('#loading').hide();
+        var configForSubmit = {props : dynamicProperties, xml : bundleXml, params : this.get('bundle.parameters')};
+        this.set("bundleConfigs", configForSubmit);
+        this.set("showingJobConfig", true);
+      }.bind(this)).catch(function(e){
+        this.$('#loading').hide();
+        this.get("errors").pushObject({'message' : 'Could not process coordinator from ' + e.path});
+        throw new Error(e.trace);
+      }.bind(this));
     },
     preview(){
       if(this.get('validations.isInvalid')) {
