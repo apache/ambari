@@ -418,6 +418,7 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop',
                               create_parents = True,
+                              mode = 0755,
     )
 
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
@@ -432,10 +433,12 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
                               content='log4jproperties\nline2',
@@ -452,7 +455,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group='hadoop',
                               conf_dir='/etc/hive/conf.server',
-                              mode=0644,
+                              mode=0600,
                               configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                    u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                    u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -462,7 +465,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
       group = 'hadoop',
       conf_dir = '/etc/hive/conf.server',
-      mode = 0644,
+      mode = 0600,
       owner = 'hive',
       configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
       configurations = self.getConfig()['configurations']['hiveserver2-site'],
@@ -471,6 +474,7 @@ class TestHiveServer(RMFTestCase):
                               content=InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner='hive',
                               group='hadoop',
+                              mode = 0600,
     )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
@@ -505,7 +509,8 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hiveserver2.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hiveserver2.properties.j2')
+                              content = Template('hadoop-metrics2-hiveserver2.properties.j2'),
+                              mode = 0600,
                               )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',
@@ -620,6 +625,7 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop',
                               create_parents = True,
+                              mode = 0755,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
@@ -633,10 +639,12 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
                               content='log4jproperties\nline2',
@@ -653,7 +661,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group='hadoop',
                               conf_dir='/etc/hive/conf.server',
-                              mode=0644,
+                              mode=0600,
                               configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                    u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                    u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -663,7 +671,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
       group = 'hadoop',
       conf_dir = '/etc/hive/conf.server',
-      mode = 0644,
+      mode = 0600,
       owner = 'hive',
       configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
       configurations = self.getConfig()['configurations']['hiveserver2-site'],
@@ -672,6 +680,7 @@ class TestHiveServer(RMFTestCase):
                               content=InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner='hive',
                               group='hadoop',
+                              mode = 0600,
     )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
@@ -706,7 +715,8 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hiveserver2.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hiveserver2.properties.j2')
+                              content = Template('hadoop-metrics2-hiveserver2.properties.j2'),
+                              mode = 0600,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',

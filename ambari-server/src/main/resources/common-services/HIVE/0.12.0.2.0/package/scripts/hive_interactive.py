@@ -177,6 +177,7 @@ def hive_interactive(name=None):
       del merged_hive_interactive_site_copy[item]
 
   for conf_dir in hive2_conf_dirs_list:
+      mode_identified = 0644 if conf_dir == hive2_client_conf_path else 0600
       if conf_dir == hive2_client_conf_path:
         XmlConfig("hive-site.xml",
                   conf_dir=conf_dir,
@@ -192,54 +193,54 @@ def hive_interactive(name=None):
                   configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
                   owner=params.hive_user,
                   group=params.user_group,
-                  mode=0644)
-
+                  mode=0600)
       XmlConfig("hiveserver2-site.xml",
                 conf_dir=conf_dir,
                 configurations=merged_hiveserver2_interactive_site,
                 configuration_attributes=params.config['configuration_attributes']['hiveserver2-interactive-site'],
                 owner=params.hive_user,
                 group=params.user_group,
-                mode=0644)
+                mode=mode_identified)
 
       hive_server_interactive_conf_dir = conf_dir
 
       File(format("{hive_server_interactive_conf_dir}/hive-env.sh"),
            owner=params.hive_user,
            group=params.user_group,
+           mode=mode_identified,
            content=InlineTemplate(params.hive_interactive_env_sh_template))
 
       llap_daemon_log4j_filename = 'llap-daemon-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{llap_daemon_log4j_filename}"),
-           mode=0644,
+           mode=mode_identified,
            group=params.user_group,
            owner=params.hive_user,
            content=params.llap_daemon_log4j)
 
       llap_cli_log4j2_filename = 'llap-cli-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{llap_cli_log4j2_filename}"),
-           mode=0644,
+           mode=mode_identified,
            group=params.user_group,
            owner=params.hive_user,
            content=params.llap_cli_log4j2)
 
       hive_log4j2_filename = 'hive-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{hive_log4j2_filename}"),
-         mode=0644,
+         mode=mode_identified,
          group=params.user_group,
          owner=params.hive_user,
          content=params.hive_log4j2)
 
       hive_exec_log4j2_filename = 'hive-exec-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{hive_exec_log4j2_filename}"),
-         mode=0644,
+         mode=mode_identified,
          group=params.user_group,
          owner=params.hive_user,
          content=params.hive_exec_log4j2)
 
       beeline_log4j2_filename = 'beeline-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{beeline_log4j2_filename}"),
-         mode=0644,
+         mode=mode_identified,
          group=params.user_group,
          owner=params.hive_user,
          content=params.beeline_log4j2)
@@ -247,17 +248,20 @@ def hive_interactive(name=None):
       File(os.path.join(hive_server_interactive_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
            owner=params.hive_user,
            group=params.user_group,
+           mode=mode_identified,
            content=Template("hadoop-metrics2-hiveserver2.properties.j2")
            )
 
       File(format("{hive_server_interactive_conf_dir}/hadoop-metrics2-llapdaemon.properties"),
            owner=params.hive_user,
            group=params.user_group,
+           mode=mode_identified,
            content=Template("hadoop-metrics2-llapdaemon.j2"))
 
       File(format("{hive_server_interactive_conf_dir}/hadoop-metrics2-llaptaskscheduler.properties"),
            owner=params.hive_user,
            group=params.user_group,
+           mode=mode_identified,
            content=Template("hadoop-metrics2-llaptaskscheduler.j2"))
 
 

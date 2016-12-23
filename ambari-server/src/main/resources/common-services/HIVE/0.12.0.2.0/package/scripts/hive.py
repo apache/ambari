@@ -109,7 +109,7 @@ def hive(name=None):
 
   if name == 'hiveserver2':
     # copy tarball to HDFS feature not supported
-    if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):  
+    if not (params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major)):
       params.HdfsResource(params.webhcat_apps_dir,
                             type="directory",
                             action="create_on_execute",
@@ -226,13 +226,13 @@ def hive(name=None):
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=0600)
 
   # Generate atlas-application.properties.xml file
   if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
-  
+
   if name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,
@@ -240,7 +240,7 @@ def hive(name=None):
               configuration_attributes=params.config['configuration_attributes']['hiveserver2-site'],
               owner=params.hive_user,
               group=params.user_group,
-              mode=0644)
+              mode=0600)
 
   if params.hive_metastore_site_supported and name == 'metastore':
     XmlConfig("hivemetastore-site.xml",
@@ -249,11 +249,12 @@ def hive(name=None):
               configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
               owner=params.hive_user,
               group=params.user_group,
-              mode=0644)
-  
+              mode=0600)
+
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,
+       mode=0600,
        content=InlineTemplate(params.hive_env_sh_template)
   )
 
@@ -286,6 +287,7 @@ def hive(name=None):
     File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
          owner=params.hive_user,
          group=params.user_group,
+         mode=0600,
          content=Template("hadoop-metrics2-hivemetastore.properties.j2")
     )
 
@@ -328,6 +330,7 @@ def hive(name=None):
     File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
          owner=params.hive_user,
          group=params.user_group,
+         mode=0600,
          content=Template("hadoop-metrics2-hiveserver2.properties.j2")
     )
 
@@ -356,11 +359,16 @@ Writes configuration files required by Hive.
 """
 def fill_conf_dir(component_conf_dir):
   import params
+  hive_client_conf_path = os.path.realpath(format("{stack_root}/current/{component_directory}/conf"))
+  component_conf_dir = os.path.realpath(component_conf_dir)
+  mode_identified_for_file = 0644 if component_conf_dir == hive_client_conf_path else 0600
+  mode_identified_for_dir = 0755 if component_conf_dir == hive_client_conf_path else 0700
 
   Directory(component_conf_dir,
             owner=params.hive_user,
             group=params.user_group,
-            create_parents = True
+            create_parents = True,
+            mode=mode_identified_for_dir
   )
 
   XmlConfig("mapred-site.xml",
@@ -369,17 +377,19 @@ def fill_conf_dir(component_conf_dir):
             configuration_attributes=params.config['configuration_attributes']['mapred-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=0644)
+            mode=mode_identified_for_file)
 
 
   File(format("{component_conf_dir}/hive-default.xml.template"),
        owner=params.hive_user,
-       group=params.user_group
+       group=params.user_group,
+       mode=mode_identified_for_file
   )
 
   File(format("{component_conf_dir}/hive-env.sh.template"),
        owner=params.hive_user,
-       group=params.user_group
+       group=params.user_group,
+       mode=mode_identified_for_file
   )
 
   # Create hive-log4j.properties and hive-exec-log4j.properties
@@ -388,14 +398,14 @@ def fill_conf_dir(component_conf_dir):
     log4j_exec_filename = 'hive-exec-log4j.properties'
     if (params.log4j_exec_props != None):
       File(format("{component_conf_dir}/{log4j_exec_filename}"),
-           mode=0644,
+           mode=mode_identified_for_file,
            group=params.user_group,
            owner=params.hive_user,
            content=params.log4j_exec_props
       )
     elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
       File(format("{component_conf_dir}/{log4j_exec_filename}"),
-           mode=0644,
+           mode=mode_identified_for_file,
            group=params.user_group,
            owner=params.hive_user,
            content=StaticFile(format("{component_conf_dir}/{log4j_exec_filename}.template"))
@@ -404,14 +414,14 @@ def fill_conf_dir(component_conf_dir):
     log4j_filename = 'hive-log4j.properties'
     if (params.log4j_props != None):
       File(format("{component_conf_dir}/{log4j_filename}"),
-           mode=0644,
+           mode=mode_identified_for_file,
            group=params.user_group,
            owner=params.hive_user,
            content=params.log4j_props
       )
     elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
       File(format("{component_conf_dir}/{log4j_filename}"),
-           mode=0644,
+           mode=mode_identified_for_file,
            group=params.user_group,
            owner=params.hive_user,
            content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
