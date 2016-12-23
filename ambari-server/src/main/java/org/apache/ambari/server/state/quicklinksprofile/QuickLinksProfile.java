@@ -45,6 +45,13 @@ public class QuickLinksProfile {
   @JsonProperty("services")
   private List<Service> services;
 
+  static QuickLinksProfile create(List<Filter> globalFilters, List<Service> services) {
+    QuickLinksProfile profile = new QuickLinksProfile();
+    profile.setFilters(globalFilters);
+    profile.setServices(services);
+    return profile;
+  }
+
   /**
    * @return service-specific quicklink filter definitions
    */

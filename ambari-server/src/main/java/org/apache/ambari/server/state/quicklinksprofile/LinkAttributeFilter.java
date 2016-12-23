@@ -24,37 +24,38 @@ import org.apache.ambari.server.state.quicklinks.Link;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * A quicklink filter based on property-match (the filter's property is contained by the links set of properties)
+ * A quicklink filter based on link attribute match (the filter's link_attribute is contained by the links set of
+ * attributes)
  */
-public class PropertyFilter extends Filter {
-  static final String PROPERTY_NAME = "property_name";
+public class LinkAttributeFilter extends Filter {
+  static final String LINK_ATTRIBUTE = "link_attribute";
 
-  @JsonProperty(PROPERTY_NAME)
-  private String propertyName;
+  @JsonProperty(LINK_ATTRIBUTE)
+  private String linkAttribute;
 
-  public String getPropertyName() {
-    return propertyName;
+  public String getLinkAttribute() {
+    return linkAttribute;
   }
 
-  public void setPropertyName(String propertyName) {
-    this.propertyName = propertyName;
+  public void setLinkAttribute(String linkAttribute) {
+    this.linkAttribute = linkAttribute;
   }
 
   @Override
   public boolean accept(Link link) {
-    return link.getProperties().contains(propertyName);
+    return link.getAttributes().contains(linkAttribute);
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    PropertyFilter that = (PropertyFilter) o;
-    return isVisible() == that.isVisible() && Objects.equals(propertyName, that.propertyName);
+    LinkAttributeFilter that = (LinkAttributeFilter) o;
+    return isVisible() == that.isVisible() && Objects.equals(linkAttribute, that.linkAttribute);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(isVisible(), propertyName);
+    return Objects.hash(isVisible(), linkAttribute);
   }
 }
