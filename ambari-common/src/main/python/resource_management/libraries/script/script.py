@@ -645,6 +645,12 @@ class Script(object):
     """
     pass
 
+  def disable_security(self, env):
+    """
+    To be overridden by subclasses if a custom action is required upon dekerberization (e.g. removing zk ACLs)
+    """
+    pass
+
   def restart(self, env):
     """
     Default implementation of restart command is to call stop and start methods

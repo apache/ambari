@@ -1379,27 +1379,27 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
 
-    final Service serviceKerberos = createStrictMock(Service.class);
+    final Service serviceKerberos = createNiceMock(Service.class);
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(1);
+        .anyTimes();
     serviceKerberos.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
-    final Service service1 = createStrictMock(Service.class);
+    final Service service1 = createNiceMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(1);
+        .anyTimes();
     service1.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
-    final Service service2 = createStrictMock(Service.class);
+    final Service service2 = createNiceMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(1);
+        .anyTimes();
     service2.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
@@ -1465,6 +1465,17 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
+    expect(cluster.getService("ZOOKEEPER")).andReturn(service1).anyTimes();
+    // Hook Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+    // StopZk Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
     // Preparation Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();

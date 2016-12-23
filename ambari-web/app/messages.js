@@ -1258,10 +1258,12 @@ Em.I18n.translations = {
   'admin.kerberos.regenerate_keytabs.checkbox.restart.label': 'Automatically restart components after keytab regeneration',
   'admin.kerberos.service.alert.yarn': 'YARN log and local dir will be deleted and ResourceManager state will be formatted as part of Enabling/Disabling Kerberos.',
 
-  'admin.kerberos.disable.step1.task0.title': 'Stop Services',
-  'admin.kerberos.disable.step1.task1.title': 'Unkerberize Cluster',
-  'admin.kerberos.disable.step1.task2.title': 'Remove Kerberos',
-  'admin.kerberos.disable.step1.task3.title': 'Start Services',
+  'admin.kerberos.disable.step1.task0.title': 'Start ZooKeeper',
+  'admin.kerberos.disable.step1.task1.title': 'Stop Required Services',
+  'admin.kerberos.disable.step1.task2.title': 'Unkerberize Cluster',
+  'admin.kerberos.disable.step1.task3.title': 'Remove Kerberos',
+  'admin.kerberos.disable.step1.task4.title': 'Start Services',
+
   'admin.kerberos.disable.unkerberize.header': 'Unkerberize cluster',
   'admin.kerberos.disable.unkerberize.message': 'You cannot quit wizard while cluster is being unkerberized',
   'admin.kerberos.disable.inProgress': 'Please wait while cluster is being unkerberized',

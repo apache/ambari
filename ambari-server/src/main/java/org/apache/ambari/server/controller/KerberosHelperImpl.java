@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import static java.util.Collections.singletonList;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -38,6 +40,7 @@ import java.util.regex.Matcher;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -3012,6 +3015,78 @@ public class KerberosHelperImpl implements KerberosHelper {
       return serviceComponentHosts;
     }
 
+    void addDisableSecurityHookStage(Cluster cluster,
+                                            String clusterHostInfoJson,
+                                            String hostParamsJson,
+                                            Map<String, String> commandParameters,
+                                            RoleCommandOrder roleCommandOrder,
+                                            RequestStageContainer requestStageContainer)
+      throws AmbariException
+    {
+      Stage stage = createNewStage(requestStageContainer.getLastStageId(),
+        cluster,
+        requestStageContainer.getId(),
+        "Disable security",
+        clusterHostInfoJson,
+        StageUtils.getGson().toJson(commandParameters),
+        hostParamsJson);
+      addDisableSecurityCommandToAllServices(cluster, stage);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
+      roleGraph.build(stage);
+      requestStageContainer.addStages(roleGraph.getStages());
+    }
+
+    private void addDisableSecurityCommandToAllServices(Cluster cluster, Stage stage) throws AmbariException {
+      for (Service service : cluster.getServices().values()) {
+        for (ServiceComponent component : service.getServiceComponents().values()) {
+            if (!component.getServiceComponentHosts().isEmpty()) {
+              String firstHost = component.getServiceComponentHosts().keySet().iterator().next(); // it is only necessary to send it to one host
+              ActionExecutionContext exec = new ActionExecutionContext(
+                cluster.getClusterName(),
+                "DISABLE_SECURITY",
+                singletonList(new RequestResourceFilter(service.getName(), component.getName(), singletonList(firstHost))),
+                Collections.<String, String>emptyMap());
+              customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap());
+          }
+        }
+      }
+    }
+
+    void addStopZookeeperStage(Cluster cluster,
+                                      String clusterHostInfoJson,
+                                      String hostParamsJson,
+                                      Map<String, String> commandParameters,
+                                      RoleCommandOrder roleCommandOrder,
+                                      RequestStageContainer requestStageContainer)
+      throws AmbariException
+    {
+      Service zookeeper;
+      try {
+        zookeeper = cluster.getService("ZOOKEEPER");
+      } catch (ServiceNotFoundException e) {
+        return;
+      }
+      Stage stage = createNewStage(requestStageContainer.getLastStageId(),
+        cluster,
+        requestStageContainer.getId(),
+        "Stopping ZooKeeper",
+        clusterHostInfoJson,
+        StageUtils.getGson().toJson(commandParameters),
+        hostParamsJson);
+      for (ServiceComponent component : zookeeper.getServiceComponents().values()) {
+          Set<String> hosts = component.getServiceComponentHosts().keySet();
+          ActionExecutionContext exec = new ActionExecutionContext(
+            cluster.getClusterName(),
+            "STOP",
+            singletonList(new RequestResourceFilter(zookeeper.getName(), component.getName(), new ArrayList<>(hosts))),
+            Collections.<String, String>emptyMap());
+          customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap());
+      }
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
+      roleGraph.build(stage);
+      requestStageContainer.addStages(roleGraph.getStages());
+    }
+
     public void addDeleteKeytabFilesStage(Cluster cluster, List<ServiceComponentHost> serviceComponentHosts,
                                           String clusterHostInfoJson, String hostParamsJson,
                                           Map<String, String> commandParameters,
@@ -3330,6 +3405,12 @@ public class KerberosHelperImpl implements KerberosHelper {
       if (identityFilter != null) {
         commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
       }
+
+      addDisableSecurityHookStage(cluster, clusterHostInfoJson, hostParamsJson, commandParameters,
+        roleCommandOrder, requestStageContainer);
+
+      addStopZookeeperStage(cluster, clusterHostInfoJson, hostParamsJson, commandParameters,
+        roleCommandOrder, requestStageContainer);
 
       // *****************************************************************
       // Create stage to prepare operations
