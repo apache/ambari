@@ -312,6 +312,7 @@
             <exclude>**/cluster.properties.j2</exclude>
             <exclude>**/repo_ubuntu.j2</exclude>
             <exclude>**/.pydev*</exclude>
+            <exclude>**/.hash</exclude>
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
