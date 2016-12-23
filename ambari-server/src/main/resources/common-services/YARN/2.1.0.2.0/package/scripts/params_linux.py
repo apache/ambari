@@ -171,6 +171,7 @@ rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.
 rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 
 java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
 yarn_heapsize = config['configurations']['yarn-env']['yarn_heapsize']
@@ -244,11 +245,17 @@ rm_kinit_cmd = ""
 yarn_timelineservice_kinit_cmd = ""
 nodemanager_kinit_cmd = ""
 
+rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-address']
+rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
+rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
+
 if security_enabled:
   rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
   rm_principal_name = rm_principal_name.replace('_HOST',hostname.lower())
   rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
+  yarn_jaas_file = os.path.join(config_dir, 'yarn_jaas.conf')
+  yarn_env_sh_template += format('\nYARN_OPTS="$YARN_OPTS -Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client"\n')
 
   # YARN timeline security options
   if has_ats:
