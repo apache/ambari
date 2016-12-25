@@ -24,11 +24,11 @@
     <name>yarn_rm_summary_log_max_backup_size</name>
     <value>256</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Yarn Log: rmsummary backup file size</display-name>
+    <display-name>Yarn Log: backup file size</display-name>
     <value-attributes>
         <unit>MB</unit>
     </value-attributes>
-     <on-ambari-upgrade add="true"/>
+     <on-ambari-upgrade add="false"/>
    </property>
    <property>
       <name>yarn_rm_summary_log_number_of_backup_files</name>
@@ -39,7 +39,7 @@
         <type>int</type>
         <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
     </property>
   <property>
     <name>content</name>
