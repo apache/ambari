@@ -184,7 +184,7 @@ def hbase(name=None):
          mode=0644,
          group=params.user_group,
          owner=params.hbase_user,
-         content=params.log4j_props
+         content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(format("{params.hbase_conf_dir}/log4j.properties"))):
     File(format("{params.hbase_conf_dir}/log4j.properties"),

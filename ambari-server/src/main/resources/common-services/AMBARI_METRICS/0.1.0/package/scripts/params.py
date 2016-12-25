@@ -300,6 +300,14 @@ if security_enabled:
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
 
+#Ambari metrics log4j settings
+ams_hbase_log_maxfilesize = default('configurations/ams-hbase-log4j/ams_hbase_log_maxfilesize',256)
+ams_hbase_log_maxbackupindex = default('configurations/ams-hbase-log4j/ams_hbase_log_maxbackupindex',20)
+ams_hbase_security_log_maxfilesize = default('configurations/ams-hbase-log4j/ams_hbase_security_log_maxfilesize',256)
+ams_hbase_security_log_maxbackupindex = default('configurations/ams-hbase-log4j/ams_hbase_security_log_maxbackupindex',20)
+ams_log_max_backup_size = default('configurations/ams-log4j/ams_log_max_backup_size',80)
+ams_log_number_of_backup_files = default('configurations/ams-log4j/ams_log_number_of_backup_files',60)
+
 #log4j.properties
 if (('ams-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['ams-hbase-log4j'])):
   hbase_log4j_props = config['configurations']['ams-hbase-log4j']['content']

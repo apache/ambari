@@ -215,7 +215,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2'
+                              content=InlineTemplate('log4jproperties\nline2')
     )
 
   def assert_configure_secured(self):
@@ -308,7 +308,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2'
+                              content=InlineTemplate('log4jproperties\nline2')
     )
 
   def test_start_default_22(self):
@@ -411,7 +411,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2')
+                              content=InlineTemplate('log4jproperties\nline2'))
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start regionserver',
       not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase')
@@ -520,7 +520,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2')
+                              content=InlineTemplate('log4jproperties\nline2'))
 
     self.assertResourceCalled('Package', 'phoenix_2_2_*', retry_count=5, retry_on_repo_unavailability=False)
 

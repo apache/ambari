@@ -326,7 +326,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       mode = 0644,
       group = 'hadoop',
       owner = 'hbase',
-      content = 'log4jproperties\nline2'
+      content = InlineTemplate('log4jproperties\nline2')
     )
 
   def assert_configure_secured(self):
@@ -434,7 +434,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       mode = 0644,
       group = 'hadoop',
       owner = 'hbase',
-      content = 'log4jproperties\nline2'
+      content = InlineTemplate('log4jproperties\nline2')
     )
 
   def test_upgrade_restart(self):

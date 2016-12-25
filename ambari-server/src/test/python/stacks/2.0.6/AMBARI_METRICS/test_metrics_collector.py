@@ -162,7 +162,7 @@ class TestMetricsCollector(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ambari-metrics-collector/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',
-                              content = "\n",
+                              content = InlineTemplate(self.getConfig()['configurations']['ams-hbase-log4j']['content']),
                               mode=0644,
     )
     self.assertResourceCalled('File', '/etc/ambari-metrics-collector/conf/ams-env.sh',
@@ -371,10 +371,10 @@ class TestMetricsCollector(RMFTestCase):
                                   owner = 'ams',
                                   action = ['delete']
         )
-        
+    
     self.assertResourceCalled('File', '/etc/ams-hbase/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',
                               mode = 0644,
-                              content = "\n"
+                              content = InlineTemplate(self.getConfig()['configurations']['ams-hbase-log4j']['content'])
     )

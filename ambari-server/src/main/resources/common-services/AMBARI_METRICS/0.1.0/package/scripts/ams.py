@@ -239,7 +239,7 @@ def ams(name=None, action=None):
            mode=0644,
            group=params.user_group,
            owner=params.ams_user,
-           content=params.log4j_props
+           content=InlineTemplate(params.log4j_props)
       )
 
     File(format("{ams_collector_conf_dir}/ams-env.sh"),

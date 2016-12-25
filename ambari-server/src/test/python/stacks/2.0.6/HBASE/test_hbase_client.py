@@ -115,7 +115,7 @@ class TestHBaseClient(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2'
+                              content=InlineTemplate('log4jproperties\nline2')
     )
     self.assertNoMoreResources()
     
@@ -200,7 +200,7 @@ class TestHBaseClient(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2'
+                              content=InlineTemplate('log4jproperties\nline2')
     )
     self.assertNoMoreResources()
 
