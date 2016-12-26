@@ -286,6 +286,9 @@ class Master(Script):
       if interpreter['group'] == 'jdbc':
         interpreter['dependencies'] = []
         if params.hive_server_host:
+          interpreter['properties']['hive.driver'] = 'org.apache.hive.jdbc.HiveDriver'
+          interpreter['properties']['hive.user'] = 'hive'
+          interpreter['properties']['hive.password'] = ''
           if params.hive_server2_support_dynamic_service_discovery:
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_zookeeper_quorum + \
@@ -303,6 +306,10 @@ class Master(Script):
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
+            interpreter['properties']['phoenix.driver'] = 'org.apache.phoenix.jdbc.PhoenixDriver'
+            interpreter['properties']['phoenix.hbase.client.retries.number'] = '1'
+            interpreter['properties']['phoenix.user'] = 'phoenixuser'
+            interpreter['properties']['phoenix.password'] = ''
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
