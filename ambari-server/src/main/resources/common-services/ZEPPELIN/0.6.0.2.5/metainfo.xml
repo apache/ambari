@@ -80,10 +80,6 @@ limitations under the License.
         <timeout>300</timeout>
       </commandScript>
 
-      <requiredServices>
-        <service>SPARK</service>
-      </requiredServices>
-
       <configuration-dependencies>
         <config-type>zeppelin-config</config-type>
         <config-type>zeppelin-env</config-type>
