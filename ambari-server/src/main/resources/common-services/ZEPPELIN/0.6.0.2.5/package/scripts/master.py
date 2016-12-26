@@ -161,14 +161,6 @@ class Master(Script):
     import time
     self.configure(env)
 
-    Directory([params.zeppelin_pid_dir],
-              owner=params.zeppelin_user,
-              group=params.zeppelin_group,
-              cd_access="a",
-              create_parents=True,
-              mode=0755
-              )
-
     Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"), "/etc/zeppelin"),
             sudo=True)
     Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
