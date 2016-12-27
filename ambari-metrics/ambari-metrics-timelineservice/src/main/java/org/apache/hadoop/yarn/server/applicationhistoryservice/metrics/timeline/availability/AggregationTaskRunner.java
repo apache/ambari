@@ -23,7 +23,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.helix.HelixManager;
 import org.apache.helix.HelixManagerFactory;
 import org.apache.helix.InstanceType;
-import org.apache.helix.api.id.StateModelDefId;
 import org.apache.helix.participant.StateMachineEngine;
 
 import java.util.HashMap;
@@ -95,7 +94,7 @@ public class AggregationTaskRunner {
       new OnlineOfflineStateModelFactory(instanceName, this);
 
     StateMachineEngine stateMach = manager.getStateMachineEngine();
-    stateMach.registerStateModelFactory(StateModelDefId.from(DEFAULT_STATE_MODEL), stateModelFactory);
+    stateMach.registerStateModelFactory(DEFAULT_STATE_MODEL, stateModelFactory);
     manager.connect();
 
     checkpointManager = new CheckpointManager(manager.getHelixPropertyStore());

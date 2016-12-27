@@ -293,21 +293,21 @@
     <dependency>
       <groupId>org.apache.helix</groupId>
       <artifactId>helix-core</artifactId>
-      <version>0.7.1</version>
+      <version>0.6.6</version>
       <exclusions>
+        <!-- zkclient is helix-core dependency but it need to be 0.9 in order for AMS HA to work on secure cluster-->
         <exclusion>
-          <artifactId>zookeeper</artifactId>
-          <groupId>org.apache.zookeeper</groupId>
+          <artifactId>zkclient</artifactId>
+          <groupId>com.101tec</groupId>
         </exclusion>
       </exclusions>
     </dependency>
-
+    <!-- zkclient is helix-core dependency but it need to be 0.9 in order for AMS HA to work on secure cluster-->
     <dependency>
-      <artifactId>zookeeper</artifactId>
-      <groupId>org.apache.zookeeper</groupId>
-      <version>3.4.8</version>
+      <groupId>com.101tec</groupId>
+      <artifactId>zkclient</artifactId>
+      <version>0.9</version>
     </dependency>
-
     <dependency>
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>

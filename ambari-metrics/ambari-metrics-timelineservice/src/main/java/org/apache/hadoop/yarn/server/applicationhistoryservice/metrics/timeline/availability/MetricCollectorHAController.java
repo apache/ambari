@@ -33,6 +33,7 @@ import org.apache.helix.manager.zk.ZKHelixAdmin;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
 import org.apache.helix.model.LiveInstance;
+import org.apache.helix.model.OnlineOfflineSMD;
 import org.apache.helix.model.StateModelDefinition;
 import org.apache.helix.tools.StateModelConfigGenerator;;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class MetricCollectorHAController {
 
   static final String CLUSTER_NAME = "ambari-metrics-cluster";
   static final String METRIC_AGGREGATORS = "METRIC_AGGREGATORS";
-  static final String DEFAULT_STATE_MODEL = "OnlineOffline";
+  static final String DEFAULT_STATE_MODEL = OnlineOfflineSMD.name;
   static final String INSTANCE_NAME_DELIMITER = "_";
 
   final String zkConnectUrl;
