@@ -317,8 +317,6 @@
             <exclude>contrib/views/commons/src/main/resources/ui/*/vendor/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/tests/**/public/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/tests/**/vendor/**</exclude>
-            <exclude>contrib/views/hive/src/main/resources/ui/hive-web/vendor/codemirror/**</exclude>
-            <exclude>contrib/views/hive/src/main/resources/ui/hive-web/.bowerrc</exclude>
             <exclude>contrib/views/hive-next/src/main/resources/ui/hive-web/vendor/codemirror/**</exclude>
             <exclude>contrib/views/hive-next/src/main/resources/ui/hive-web/.bowerrc</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/.bowerrc</exclude>
