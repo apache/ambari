@@ -46,6 +46,8 @@ class Master(Script):
     env.set_params(params)
     self.install_packages(env)
 
+    self.create_zeppelin_log_dir(env)
+
     if params.spark_version:
       Execute('echo spark_version:' + str(params.spark_version) + ' detected for spark_home: '
               + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
