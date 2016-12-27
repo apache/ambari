@@ -105,17 +105,20 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     {
       name: 'hostComponents',
       key: 'host_components/HostRoles/component_name',
-      type: 'EQUAL'
+      type: 'EQUAL',
+      isComponentRelatedFilter: true
     },
     {
       name: 'services',
       key: 'host_components/HostRoles/service_name',
-      type: 'MATCH'
+      type: 'MATCH',
+      isComponentRelatedFilter: true
     },
     {
       name: 'state',
       key: 'host_components/HostRoles/state',
-      type: 'MATCH'
+      type: 'MATCH',
+      isComponentRelatedFilter: true
     },
     {
       name: 'healthClass',
@@ -130,12 +133,14 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     {
       name: 'componentsWithStaleConfigsCount',
       key: 'host_components/HostRoles/stale_configs',
-      type: 'EQUAL'
+      type: 'EQUAL',
+      isComponentRelatedFilter: true
     },
     {
       name: 'componentsInPassiveStateCount',
       key: 'host_components/HostRoles/maintenance_state',
-      type: 'MULTIPLE'
+      type: 'MULTIPLE',
+      isComponentRelatedFilter: true
     },
     {
       name: 'selected',
@@ -165,7 +170,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
         '(host_components/HostRoles/component_name={0}&host_components/HostRoles/desired_admin_state={1})',
         '(host_components/HostRoles/component_name={0}&host_components/HostRoles/maintenance_state={1})'
       ],
-      type: 'COMBO'
+      type: 'COMBO',
+      isComponentRelatedFilter: true
     }
   ],
 
@@ -259,7 +265,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           value: filter.value,
           type: property.type,
           isFilter: true,
-          isComponentRelatedFilter: ([13,15].indexOf(filter.iColumn) != -1)
+          isComponentRelatedFilter: property.isComponentRelatedFilter
         };
         if (filter.type === 'string' && sortProperties.someProperty('name', colPropAssoc[filter.iColumn])) {
           if (Em.isArray(filter.value)) {
