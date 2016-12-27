@@ -265,7 +265,7 @@ App.UpdateController = Em.Controller.extend({
       realUrl += loggingResource;
     }
 
-    var clientCallback = function (skipCall, queryParams) {
+    var clientCallback = function (skipCall, queryParams, itemTotal) {
       var completeCallback = function () {
         callback();
         if (loadMetricsSeparately) {
@@ -289,6 +289,11 @@ App.UpdateController = Em.Controller.extend({
 
         App.HttpClient.get(realUrl, App.hostsMapper, {
           complete: completeCallback,
+          beforeMap: function(response) {
+            if (itemTotal) {
+              response.itemTotal = itemTotal;
+            }
+          },
           doGetAsPost: true,
           params: self.computeParameters(queryParams),
           error: error
@@ -397,17 +402,12 @@ App.UpdateController = Em.Controller.extend({
     if (skipCall) {
       params.callback(skipCall);
     } else {
-      // get all non-hostcomponent related keys
-      queryParams = queryParams.filter(function (param) {
-        return !param.isComponentRelatedFilter;
-      });
-      // force specific hosts
-      queryParams.push({
+      queryParams = [{
         key: 'Hosts/host_name',
         value: hostNames,
         type: 'MULTIPLE'
-      });
-      params.callback(skipCall, queryParams);
+      }];
+      params.callback(skipCall, queryParams, itemTotal);
     }
   },
   getHostByHostComponentsErrorCallback: function () {
