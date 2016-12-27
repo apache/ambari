@@ -23,7 +23,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.helix.HelixManager;
 import org.apache.helix.HelixManagerFactory;
 import org.apache.helix.InstanceType;
-import org.apache.helix.api.id.StateModelDefId;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
 import org.junit.Before;
@@ -75,7 +74,7 @@ public class MetricCollectorHAControllerTest extends AbstractMiniHBaseClusterTes
     HelixManager manager2 = HelixManagerFactory.getZKHelixManager(CLUSTER_NAME,
       instanceConfig2.getInstanceName(),
       InstanceType.PARTICIPANT, haController.zkConnectUrl);
-    manager2.getStateMachineEngine().registerStateModelFactory(StateModelDefId.from(DEFAULT_STATE_MODEL),
+    manager2.getStateMachineEngine().registerStateModelFactory(DEFAULT_STATE_MODEL,
       new OnlineOfflineStateModelFactory(instanceConfig2.getInstanceName(),
         new AggregationTaskRunner(instanceConfig2.getInstanceName(), "", CLUSTER_NAME)));
     manager2.connect();
