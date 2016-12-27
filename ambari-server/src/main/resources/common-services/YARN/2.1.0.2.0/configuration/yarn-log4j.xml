@@ -21,7 +21,6 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
-     <property>
     <name>yarn_rm_summary_log_max_backup_size</name>
     <value>256</value>
     <description>The maximum size of backup file before the log is rotated</description>
@@ -42,6 +41,7 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
     </property>
+    <property>
     <name>content</name>
     <display-name>yarn-log4j template</display-name>
     <description>Custom log4j.properties</description>
