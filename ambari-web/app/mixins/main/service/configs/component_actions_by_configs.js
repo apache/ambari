@@ -26,6 +26,13 @@ var stringUtils = require('utils/string_utils');
  */
 App.ComponentActionsByConfigs = Em.Mixin.create({
 
+  configAction: null,
+
+  /**
+   * Flag to check if Yarn Queues have been refreshed already
+   */
+  isYarnQueueRefreshed: false,
+
   /**
    * Do component add/delete actions as inferred from value of service configs
    * @public
@@ -34,10 +41,65 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
   doConfigActions: function() {
     var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var configActionComponents = serviceConfigs.filterProperty('configActionComponent');
+    this.isYarnQueueRefreshed = false;
     this.doComponentDeleteActions(configActionComponents);
     this.doComponentAddActions(configActionComponents);
+    this.showPopup();
   },
 
+  /**
+   * Method to show confirmation popup before sending an ajax request
+   */
+  showPopup: function() {
+    var config_actions = App.ConfigAction.find().filterProperty('actionType', 'showPopup');
+    var self = this;
+    if (config_actions.length) {
+      config_actions.forEach(function (config_action) {
+        var configs = self.get('allConfigs').filterProperty('filename', config_action.get('fileName')).filter(function (item) {
+          return item.get('value') !== item.get('initialValue');
+        });
+
+        if (configs.length) {
+          if(config_action.get('fileName') === 'capacity-scheduler.xml' && !self.isYarnQueueRefreshed) {
+            self.configAction = config_action;
+            App.showConfirmationPopup(function () {
+              self.popupPrimaryButtonCallback(config_action);
+            }, config_action.get('popupProperties').body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+          }
+        }
+      });
+    }
+  },
+
+  popupPrimaryButtonCallback: function (config_action) {
+    var hosts = App.Service.find(config_action.get('serviceName')).get('hostComponents').filterProperty('componentName', config_action.get('componentName')).mapProperty('hostName');
+    var self = this;
+    App.ajax.send({
+      name : config_action.get('popupProperties').primaryButton.metaData.name,
+      sender: self,
+      data : {
+        command : config_action.get('popupProperties').primaryButton.metaData.command,
+        context : config_action.get('popupProperties').primaryButton.metaData.context,
+        hosts : hosts.join(','),
+        serviceName : config_action.get('serviceName'),
+        componentName : config_action.get('componentName'),
+        forceRefreshConfigTags : config_action.get('configName')
+      },
+      error : 'popupPrimaryButtonCallbackError'
+    });
+  },
+
+  popupPrimaryButtonCallbackError: function(data) {
+    var error = this.configAction.get('popupProperties').errorMessage;
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(this.configAction.get('popupProperties').errorMessage, error, null);
+  },
+  
   /**
    * Method informs if any component will be added/deleted on saving configurations
    * @return {boolean}
@@ -331,6 +393,8 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       var commandName = 'REFRESHQUEUES';
       var tag = 'capacity-scheduler';
       var hostNames = App.Service.find(serviceName).get('hostComponents').filterProperty('componentName', componentName).mapProperty('hostName');
+      // Set the flag to true
+      this.isYarnQueueRefreshed = true;
       batches.push({
         "type": 'POST',
         "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",

@@ -415,6 +415,8 @@ Em.I18n.translations = {
 
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
+  'popup.confirmation.refreshYarnQueues.body':'It is strongly recommended to <strong>Refresh Yarn Queues</strong> after making a change to the capacity scheduler configuration. Would you like to proceed?',
+  'popup.confirmation.refreshYarnQueues.buttonText':'Refresh Yarn Queues',
   'popup.prompt.commonHeader':'Prompt',
   'popup.confirmationFeedBack.sending':'Sending...',
   'popup.confirmationFeedBack.query.fail':'Request failed',

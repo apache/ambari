@@ -37,8 +37,6 @@ App.ConfigAction = DS.Model.extend({
    */
   fileName: DS.attr('string'),
 
-
-
   /**
    * conditional String which can be evaluated to boolean result.
    * If evaluated result of this staring is true then use the statement provided by `then` attribute.
@@ -47,8 +45,14 @@ App.ConfigAction = DS.Model.extend({
   if: DS.attr('string'),
   then: DS.attr('string'),
   else: DS.attr('string'),
-  hostComponentConfig: DS.attr('object')
-
+  hostComponentConfig: DS.attr('object', {
+    defaultValue: function () { return {}; }
+  }),
+  actionType: DS.attr('string'),
+  popupProperties: DS.attr('object', {
+    defaultValue: function () { return {}; }
+  }),
+  serviceName: DS.attr('string')
 });
 
 App.ConfigAction.FIXTURES = [

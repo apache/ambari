@@ -323,68 +323,11 @@ App.MainServiceController = Em.ArrayController.extend({
    * @returns {$.ajax}
    */
   restartHostComponents: function () {
-    var batches, hiveInteractive = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
-    var isYARNQueueRefreshRequired = hiveInteractive && hiveInteractive.get('staleConfigs');
-    var ajaxData = {
-      "RequestInfo": {
-        "command": "RESTART",
-        "context": "Restart all required services",
-        "operation_level": "host_component"
-      },
-      "Requests/resource_filters": [
-        {
-          "hosts_predicate": "HostRoles/stale_configs=true"
-        }
-      ]
-    };
-    
-    if (isYARNQueueRefreshRequired) {
-      batches = [
-        {
-          "order_id": 1,
-          "type": "POST",
-          "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-          "RequestBodyInfo": {
-            "RequestInfo": {
-              "context": "Refresh YARN Capacity Scheduler",
-              "command": "REFRESHQUEUES",
-              "parameters/forceRefreshConfigTags": "capacity-scheduler"
-            },
-            "Requests/resource_filters": [{
-              "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER",
-              "hosts": App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName')
-            }]
-          }
-        },
-        {
-          "order_id": 2,
-          "type": "POST",
-          "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-          "RequestBodyInfo": ajaxData
-        }
-      ];
-
-      App.ajax.send({
-        name: 'common.batch.request_schedules',
-        sender: this,
-        data: {
-          intervalTimeSeconds: 1,
-          tolerateSize: 0,
-          batches: batches
-        },
-        success: 'restartAllRequiredSuccessCallback'
-      });
-    } else {
-      App.ajax.send({
-        name: 'request.post',
-        sender: this,
-        data: {
-          data: ajaxData
-        },
-        success: 'restartAllRequiredSuccessCallback'
-      });
-    }
+    App.ajax.send({
+      name: 'restart.staleConfigs',
+      sender: this,
+      success: 'restartAllRequiredSuccessCallback'
+    });
   },
 
   /**
