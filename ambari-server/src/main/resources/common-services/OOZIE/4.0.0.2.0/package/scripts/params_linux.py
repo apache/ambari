@@ -209,6 +209,8 @@ if https_port is None and 'oozie.https.port' in config['configurations']['oozie-
 
 oozie_base_url = config['configurations']['oozie-site']['oozie.base.url']
 
+service_check_job_name = default("/configurations/oozie-env/service_check_job_name", "no-op")
+
 # construct proper url for https
 if https_port is not None:
   parsed_url = urlparse(oozie_base_url)

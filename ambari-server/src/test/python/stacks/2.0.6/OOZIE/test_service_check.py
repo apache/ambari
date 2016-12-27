@@ -62,7 +62,7 @@ class TestServiceCheck(RMFTestCase):
         content = StaticFile('prepareOozieHdfsDirectories.sh'),
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', ('/tmp/prepareOozieHdfsDirectories.sh', '/etc/oozie/conf', '/', '/etc/hadoop/conf', 'c6402.ambari.apache.org:8050', 'hdfs://c6401.ambari.apache.org:8020', 'default'),
+    self.assertResourceCalled('Execute', ('/tmp/prepareOozieHdfsDirectories.sh', '/etc/oozie/conf', '/', '/etc/hadoop/conf', 'c6402.ambari.apache.org:8050', 'hdfs://c6401.ambari.apache.org:8020', 'default', 'no-op'),
         logoutput = True,
         tries = 3,
         try_sleep = 5,
@@ -146,7 +146,7 @@ class TestServiceCheck(RMFTestCase):
         action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh suse /var/lib/oozie /etc/oozie/conf /usr/bin http://c6402.ambari.apache.org:11000/oozie / /etc/hadoop/conf /usr/bin ambari-qa False',
+    self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh suse /var/lib/oozie /etc/oozie/conf /usr/bin http://c6402.ambari.apache.org:11000/oozie / /etc/hadoop/conf /usr/bin ambari-qa no-op False',
         logoutput = True,
         path = ['/usr/bin:/usr/bin'],
         tries = 3,
