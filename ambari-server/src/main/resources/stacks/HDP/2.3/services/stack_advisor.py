@@ -485,7 +485,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if kmsEnvProperties and self.checkSiteProperties(kmsEnvProperties, 'kms_user') and 'KERBEROS' in servicesList:
       kmsUser = kmsEnvProperties['kms_user']
       kmsUserOld = getOldValue(self, services, 'kms-env', 'kms_user')
-      putCoreSiteProperty('hadoop.proxyuser.{0}.groups'.format(kmsUser), '*')
+      self.put_proxyuser_value(kmsUser, '*', is_groups=True, services=services, put_function=putCoreSiteProperty)
       if kmsUserOld is not None and kmsUser != kmsUserOld:
         putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(kmsUserOld), 'delete', 'true')
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUserOld)})

@@ -205,11 +205,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if "HDFS" in servicesList:
       ambari_user = self.getAmbariUser(services)
       ambariHostName = socket.getfqdn()
-      is_wildcard_value, hosts = self.get_hosts_for_proxyuser(ambari_user, services)
-      if not is_wildcard_value:
-        hosts.add(ambariHostName)
-        putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ",".join(hosts))
-      putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
+      self.put_proxyuser_value(ambari_user, ambariHostName, services=services, put_function=putCoreSiteProperty)
+      self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, put_function=putCoreSiteProperty)
       old_ambari_user = self.getOldAmbariUser(services)
       if old_ambari_user is not None:
         putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
@@ -254,7 +251,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         for proxyPropertyName, hostSelector in hostSelectorMap.iteritems():
           componentHostNamesString = hostSelector if isinstance(hostSelector, basestring) else '*'
           if isinstance(hostSelector, (list, tuple)):
-            _, componentHostNames = self.get_hosts_for_proxyuser(user, services) # preserve old values
+            _, componentHostNames = self.get_data_for_proxyuser(user, services) # preserve old values
             for component in hostSelector:
               componentHosts = self.getHostsWithComponent(serviceName, component, services, hosts)
               if componentHosts is not None:
@@ -288,13 +285,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return users
 
-  def get_hosts_for_proxyuser(self, user_name, services):
+  def get_data_for_proxyuser(self, user_name, services, groups=False):
     if "core-site" in services["configurations"]:
       coreSite = services["configurations"]["core-site"]['properties']
     else:
       coreSite = {}
 
-    property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+    if groups:
+        property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+
     if property_name in coreSite:
       property_value = coreSite[property_name]
       if property_value == "*":
@@ -302,6 +303,32 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       else:
         return False, set(property_value.split(","))
     return False, set()
+
+  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, put_function=None):
+    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, is_groups)
+    result_value = "*"
+    result_values_set = self.merge_proxyusers_values(current_value, value)
+    if len(result_values_set) > 0:
+      result_value = ",".join(sorted([val for val in result_values_set if val]))
+
+    if is_groups:
+      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+
+    put_function(property_name, result_value)
+
+  def merge_proxyusers_values(self, first, second):
+    result = set()
+    def append(data):
+      if isinstance(data, str) or isinstance(data, unicode):
+        if data != "*":
+          result.update(data.split(","))
+      else:
+        result.update(data)
+    append(first)
+    append(second)
+    return result
 
   def getServiceHadoopProxyUsersConfigurationDict(self):
     """
@@ -365,14 +392,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
 
     for user_name, user_properties in users.iteritems():
-      is_wildcard_value, _ = self.get_hosts_for_proxyuser(user_name, services)
 
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
-      if not is_wildcard_value:
-        putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
-        Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
+      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, put_function=putCoreSiteProperty)
+      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
-        putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
+        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, put_function=putCoreSiteProperty)
 
       # Remove old properties if user was renamed
       userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
