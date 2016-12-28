@@ -57,6 +57,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String GROUPS_TABLE = "groups";
   protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
+  private static final String AMS_SITE = "ams-site";
+  private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
+  private static final String AMS_HBASE_SITE = "ams-hbase-site";
+  private static final String HBASE_ROOTDIR = "hbase.rootdir";
   private static final String HADOOP_ENV = "hadoop-env";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String KAFKA_TIMELINE_METRICS_HOST = "kafka.timeline.metrics.host";
@@ -189,6 +193,31 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             Map<String, String> newProperties = new HashMap<>();
             newProperties.put("content", updateAmsEnvContent(content));
             updateConfigurationPropertiesForCluster(cluster, AMS_ENV, newProperties, true, true);
+          }
+
+
+          boolean isDistributed = false;
+          Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
+          if (amsSite != null) {
+            if ("distributed".equals(amsSite.getProperties().get(AMS_MODE))) {
+              isDistributed = true;
+            }
+          }
+
+          if (isDistributed) {
+            Config amsHbaseSite = cluster.getDesiredConfigByType(AMS_HBASE_SITE);
+            if (amsHbaseSite != null) {
+              Map<String, String> amsHbaseSiteProperties = amsHbaseSite.getProperties();
+              String rootDir = amsHbaseSiteProperties.get(HBASE_ROOTDIR);
+              if (StringUtils.isNotEmpty(rootDir) && rootDir.startsWith("hdfs://")) {
+                int indexOfSlash = rootDir.indexOf("/", 7);
+                Map<String, String> newProperties = new HashMap<>();
+                String newRootdir = rootDir.substring(indexOfSlash);
+                newProperties.put(HBASE_ROOTDIR, newRootdir);
+                LOG.info("Changing ams-hbase-site rootdir to " + newRootdir);
+                updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
+              }
+            }
           }
 
         }

@@ -392,6 +392,78 @@ public class UpgradeCatalog250Test {
     assertTrue(Maps.difference(newPropertiesAmsEnv, updatedProperties).areEqual());
   }
 
+  @Test
+  public void testAmsHbaseSiteUpdateConfigs() throws Exception {
+
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("hbase.rootdir", "/user/ams/hbase");
+      }
+    };
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("hbase.rootdir", "hdfs://namenodehost.domain.com:8020/user/ams/hbase");
+      }
+    };
+
+    testAmsHbaseRootDir(oldProperties, newProperties);
+
+    oldProperties = new HashMap<String, String>() {
+      {
+        put("hbase.rootdir", "hdfs://nameservice/user/ams/hbase");
+      }
+    };
+
+    testAmsHbaseRootDir(oldProperties, newProperties);
+
+  }
+
+  private void testAmsHbaseRootDir(Map<String, String> oldProperties, Map<String, String> newProperties) throws AmbariException {
+    Map<String, String> amsSite = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.operation.mode", "distributed");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
+    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
+
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+
+    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
+    expect(mockAmsSite.getProperties()).andReturn(amsSite).anyTimes();
+    expect(cluster.getDesiredConfigByType("ams-hbase-site")).andReturn(mockAmsHbaseSite).atLeastOnce();
+    expect(mockAmsHbaseSite.getProperties()).andReturn(oldProperties).anyTimes();
+
+    replay(clusters, mockAmsHbaseSite, mockAmsSite, cluster);
+
+    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(actionManager, clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(config).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog250(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
 
   @Test
   public void testKafkaUpdateConfigs() throws Exception{
