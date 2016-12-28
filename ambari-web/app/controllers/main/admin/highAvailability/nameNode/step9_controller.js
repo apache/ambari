@@ -22,7 +22,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'installPXF', 'reconfigureRanger', 'reconfigureHBase', 'reconfigureAccumulo', 'reconfigureHawq', 'deleteSNameNode', 'stopHDFS', 'startAllServices'],
+  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'installPXF', 'reconfigureRanger', 'reconfigureHBase', 'reconfigureAMS', 'reconfigureAccumulo', 'reconfigureHawq', 'deleteSNameNode', 'stopHDFS', 'startAllServices'],
 
   hbaseSiteTag: "",
   accumuloSiteTag: "",
@@ -44,6 +44,9 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
     }
     if (!App.Service.find().someProperty('serviceName', 'HBASE')) {
       tasksToRemove.push('reconfigureHBase');
+    }
+    if (!App.Service.find().someProperty('serviceName', 'AMBARI_METRICS')) {
+      tasksToRemove.push('reconfigureAMS');
     }
     if (!App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
       tasksToRemove.push('reconfigureAccumulo');
@@ -250,6 +253,20 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
       }
     }
     var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
+    App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      success: 'saveConfigTag',
+      error: 'onTaskError'
+    });
+  },
+
+  reconfigureAMS: function () {
+    var data = this.get('content.serviceConfigProperties');
+    var configData = this.reconfigureSites(['ams-hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
