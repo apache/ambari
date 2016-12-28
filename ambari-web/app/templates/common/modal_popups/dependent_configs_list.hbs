@@ -16,51 +16,97 @@
 * limitations under the License.
 }}
 
-<div class="alert alert-warning">
-  {{#if view.isAfterRecommendation}}
-    <div>{{t popup.dependent.configs.title.recommendation}}</div>
-  {{/if}}
-  <div>{{t popup.dependent.configs.title.values}}</div>
-</div>
+{{#if view.recommendations.length}}
+  <div class="alert alert-warning">
+    {{#if view.isAfterRecommendation}}
+      <div>{{t popup.dependent.configs.title.recommendation}}</div>
+    {{/if}}
+    <div>{{t popup.dependent.configs.title.values}}</div>
+  </div>
+{{/if}}
 <span id="config-dependencies" class="limited-height-2">
-  <table class="table table-hover">
-    <thead>
-    <tr>
-      <th>{{t common.property}}</th>
-      <th>{{t common.service}}</th>
-      <th>{{t common.configGroup}}</th>
-      <th>{{t common.fileName}}</th>
-      <th class="row-fluid">
-          <div class="col-md-6">
-            {{t popup.dependent.configs.table.currentValue}}
-          </div>
-          <div class="col-md-6">
-            {{t popup.dependent.configs.table.recommendedValue}}
-          </div>
-      </th>
-      <th class="check-box-col">{{view view.toggleAll}}<label {{bindAttr for="view.toggleAllId"}}></label></th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#each recommendation in view.recommendations}}
-      <tr {{bindAttr class="recommendation.saveRecommended:active"}}>
-        <td class="config-dependency-name">{{recommendation.propertyName}}</td>
-        <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
-        <td class="config-dependency-group">
-          <span {{bindAttr class="recommendation.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
-            {{action showSelectGroupPopup recommendation.serviceName target="App.router.mainServiceInfoConfigsController"}}>
-            {{recommendation.configGroup}}
-          </a></span>
-        </td>
-        <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
-        <td>
-          <div>
-            {{view App.ConfigDiffView configBinding="recommendation"}}
-          </div>
-        </td>
-        <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
-      </tr>
-    {{/each}}
-    </tbody>
-  </table>
+  {{#if view.recommendations.length}}
+    <h4>{{t popup.dependent.configs.table.recommended}}</h4>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>{{t common.property}}</th>
+          <th>{{t common.service}}</th>
+          <th>{{t common.configGroup}}</th>
+          <th>{{t common.fileName}}</th>
+          <th class="row-fluid">
+            <div class="col-md-6">
+              {{t popup.dependent.configs.table.currentValue}}
+            </div>
+            <div class="col-md-6">
+              {{t popup.dependent.configs.table.recommendedValue}}
+            </div>
+          </th>
+          <th class="check-box-col">{{view view.toggleAll}}<label {{bindAttr for="view.toggleAllId"}}></label></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each recommendation in view.recommendations}}
+          <tr {{bindAttr class="recommendation.saveRecommended:active"}}>
+            <td class="config-dependency-name">{{recommendation.propertyName}}</td>
+            <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
+            <td class="config-dependency-group">
+              <span {{bindAttr class="recommendation.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
+                {{action showSelectGroupPopup recommendation.serviceName target="App.router.mainServiceInfoConfigsController"}}>
+                {{recommendation.configGroup}}
+              </a></span>
+            </td>
+            <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
+            <td>
+              <div>
+                {{view App.ConfigDiffView configBinding="recommendation"}}
+              </div>
+            </td>
+            <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
+  {{#if view.requiredChanges.length}}
+    <h4>{{t popup.dependent.configs.table.required}}</h4>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>{{t common.property}}</th>
+          <th>{{t common.service}}</th>
+          <th>{{t common.configGroup}}</th>
+          <th>{{t common.fileName}}</th>
+          <th class="row-fluid">
+            <div class="col-md-6">
+              {{t popup.dependent.configs.table.currentValue}}
+            </div>
+            <div class="col-md-6">
+              {{t popup.dependent.configs.table.newValue}}
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each recommendation in view.requiredChanges}}
+          <tr>
+            <td class="config-dependency-name">{{recommendation.propertyName}}</td>
+            <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
+            <td class="config-dependency-group">
+              <span {{bindAttr class="recommendation.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
+                {{action showSelectGroupPopup recommendation.serviceName target="App.router.mainServiceInfoConfigsController"}}>
+                {{recommendation.configGroup}}
+              </a></span>
+            </td>
+            <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
+            <td>
+              <div>
+                {{view App.ConfigDiffView configBinding="recommendation"}}
+              </div>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
 </span>
