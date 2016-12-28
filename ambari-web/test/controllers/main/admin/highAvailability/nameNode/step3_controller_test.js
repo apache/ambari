@@ -49,7 +49,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       {
         type: 'ams-hbase-site',
         properties: {
-          'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase'
+          'hbase.rootdir': 'hdfs://h1:8020/user/ams/hbase'
         }
       },
       {
@@ -346,7 +346,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           name: 'hbase.rootdir',
           filename: 'ams-hbase-site'
         },
-        value: 'file:///var/lib/ambari-metrics-collector/hbase'
+        value: 'hdfs://' + nameServiceId + '/user/ams/hbase'
       },
       {
         config: {
