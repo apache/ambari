@@ -65,6 +65,12 @@ App.ManageAlertNotificationsView = Em.View.extend({
    */
   showSNMPDetails: Em.computed.equal('controller.selectedAlertNotification.type', 'SNMP'),
 
+  /**
+   * Show Custom SNMP information if selected alert notification has type Custom SNMP
+   * @type {boolean}
+   */
+  showCustomSNMPDetails: Em.computed.equal('controller.selectedAlertNotification.type', 'Custom SNMP'),
+  
   email: function () {
     return this.get('controller.selectedAlertNotification.properties')['ambari.dispatch.recipients'];
   }.property('controller.selectedAlertNotification.properties'),
