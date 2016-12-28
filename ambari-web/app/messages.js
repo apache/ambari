@@ -3172,6 +3172,7 @@ Em.I18n.translations = {
   'errorMessage.config.user': 'Value is not valid',
   'errorMessage.config.ldapUrl': 'Must be a valid LDAP url',
   'errorMessage.config.password': 'Passwords do not match',
+  'errorMessage.config.password.length': 'Password should contain at least {0} symbols',
   'errorMessage.config.directory.heterogeneous': 'dir format is wrong, can be "[{storage type}]/{dir name}"',
   'errorMessage.config.directory.default': 'Must be a slash or drive at the start, and must not contain white spaces',
   'errorMessage.config.directory.allowed': 'Can\'t start with "home(s)"',

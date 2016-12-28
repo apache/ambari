@@ -632,6 +632,11 @@ App.config = Em.Object.create({
         };
       case 'password':
         return function (value, name, retypedPassword) {
+          if (name === 'ranger_admin_password') {
+            if (String(value).length < 9) {
+              return Em.I18n.t('errorMessage.config.password.length').format(9);
+            }
+          }
           return value !== retypedPassword ? Em.I18n.t('errorMessage.config.password') : '';
         };
       case 'user':
@@ -649,9 +654,8 @@ App.config = Em.Object.create({
           if (['javax.jdo.option.ConnectionURL', 'oozie.service.JPAService.jdbc.url'].contains(name)
             && !validator.isConfigValueLink(value) && validator.isConfigValueLink(value)) {
             return Em.I18n.t('errorMessage.config.spaces.trim');
-          } else {
-            return validator.isNotTrimmedRight(value) ? Em.I18n.t('errorMessage.config.spaces.trailing') : '';
           }
+          return validator.isNotTrimmedRight(value) ? Em.I18n.t('errorMessage.config.spaces.trailing') : '';
         };
     }
   },
