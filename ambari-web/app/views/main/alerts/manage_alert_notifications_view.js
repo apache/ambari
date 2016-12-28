@@ -82,6 +82,10 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.alertStates').join(', ');
   }.property('controller.selectedAlertNotification.alertStates'),
 
+  selectedAlertNotificationTypeText: function() {
+    return this.get('controller').getNotificationTypeText(this.get('controller.selectedAlertNotification.type'))
+  }.property('controller.selectedAlertNotification', 'controller.isLoaded'),
+  
   /**
    * Prevent user select more than 1 alert notification
    * @method onAlertNotificationSelect

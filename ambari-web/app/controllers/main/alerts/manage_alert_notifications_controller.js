@@ -392,6 +392,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   fillEditCreateInputs: function (addCopyToName) {
     var inputFields = this.get('inputFields');
     var selectedAlertNotification = this.get('selectedAlertNotification');
+    var methodValue = this.getNotificationTypeText(selectedAlertNotification.get('type'));
     inputFields.set('name.value', (addCopyToName ? 'Copy of ' : '') + selectedAlertNotification.get('name'));
     inputFields.set('groups.value', selectedAlertNotification.get('groups').toArray());
     inputFields.set('email.value', selectedAlertNotification.get('properties')['ambari.dispatch.recipients'] ?
@@ -416,7 +417,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     // not allow to edit global field
     inputFields.set('global.disabled', true);
     inputFields.set('description.value', selectedAlertNotification.get('description'));
-    inputFields.set('method.value', selectedAlertNotification.get('type'));
+    inputFields.set('method.value', methodValue);
     inputFields.get('customProperties').clear();
     var properties = selectedAlertNotification.get('properties');
     var ignoredCustomProperties = this.get('ignoredCustomProperties');
@@ -768,21 +769,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.get('customProperties').forEach(function (customProperty) {
       properties[customProperty.name] = customProperty.value;
     });
-    var getNotificationType = function() {
-      var methodValue = inputFields.get('method.value');
-      if(methodValue == "Custom SNMP") {
-        methodValue = "SNMP";
-      } else if(methodValue == "SNMP") {
-        methodValue = "AMBARI_SNMP"
-      }
-      return methodValue;
-    };
     var apiObject = {
       AlertTarget: {
         name: inputFields.get('name.value'),
         description: inputFields.get('description.value'),
         global: inputFields.get('allGroups.value') === 'all',
-        notification_type: getNotificationType(),
+        notification_type: this.getNotificationType(inputFields.get('method.value')),
         alert_states: inputFields.get('severityFilter.value'),
         properties: properties
       }
@@ -791,6 +783,26 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       apiObject.AlertTarget.groups = inputFields.get('groups.value').mapProperty('id');
     }
     return apiObject;
+  },
+
+  getNotificationType: function(text) {
+    var notificationType = text;
+    if(notificationType == "Custom SNMP") {
+      notificationType = "SNMP";
+    } else if(notificationType == "SNMP") {
+      notificationType = "AMBARI_SNMP";
+    }
+    return notificationType;
+  },
+
+  getNotificationTypeText: function(notificationType) {
+    var notificationTypeText = notificationType;
+    if(notificationType == "SNMP") {
+      notificationTypeText = "Custom SNMP";
+    } else if(notificationType == "AMBARI_SNMP") {
+      notificationTypeText = "SNMP";
+    }
+    return notificationTypeText;
   },
 
   /**
