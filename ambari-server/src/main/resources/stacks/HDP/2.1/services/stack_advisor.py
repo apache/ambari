@@ -139,27 +139,11 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
     if self.is_secured_cluster(services):
-      appendCoreSiteProperty = self.updateProperty(configurations, "core-site", services)
-
-      def updateCallback(originalValue, newValue):
-        """
-        :type originalValue str
-        :type newValue list
-        """
-        if originalValue and not originalValue.isspace():
-          hosts = originalValue.split(',')
-
-          if newValue:
-            hosts.extend(newValue)
-
-          result = ','.join(set(hosts))
-          return result
-        else:
-          return ','.join(set(newValue))
+      putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
 
       meta = self.get_service_component_meta("HIVE", "WEBHCAT_SERVER", services)
       if "hostnames" in meta:
-        appendCoreSiteProperty('hadoop.proxyuser.HTTP.hosts', meta["hostnames"], updateCallback)
+        self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, put_function=putCoreSiteProperty)
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")

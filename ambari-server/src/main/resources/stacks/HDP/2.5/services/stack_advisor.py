@@ -618,7 +618,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
-    appendCoreSiteProperty = self.updateProperty(configurations, "core-site", services)
+    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
 
     if "cluster-env" in services["configurations"] \
          and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
@@ -632,24 +632,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         Logger.debug("Attempting to update hadoop.proxyuser.HTTP.hosts with %s" % str(phoenix_query_server_hosts))
         # The PQS hosts we want to ensure are set
         new_value = ','.join(phoenix_query_server_hosts)
-        # Compute the unique set of hosts for the property
-        def updateCallback(originalValue, newValue):
-          Logger.debug("Original hadoop.proxyuser.HTTP.hosts value %s, appending %s" % (originalValue, newValue))
-          # Only update the original value if it's not whitespace only
-          if originalValue and not originalValue.isspace():
-            hosts = originalValue.split(',')
-            # Add in the new hosts if we have some
-            if newValue and not newValue.isspace():
-              hosts.extend(newValue.split(','))
-            # Return the combined (uniqued) list of hosts
-            result = ','.join(set(hosts))
-            Logger.debug("Setting final to %s" % result)
-            return result
-          else:
-            Logger.debug("Setting final value to %s" % newValue)
-            return newValue
         # Update the proxyuser setting, deferring to out callback to merge results together
-        appendCoreSiteProperty('hadoop.proxyuser.HTTP.hosts', new_value, updateCallback)
+        self.put_proxyuser_value("HTTP", new_value, services=services, put_function=putCoreSiteProperty)
       else:
         Logger.debug("No phoenix query server hosts to update")
     else:

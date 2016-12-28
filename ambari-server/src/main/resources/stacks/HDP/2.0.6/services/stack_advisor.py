@@ -200,12 +200,23 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
          ambari_user = ambari_user.split('@')[0]
     return ambari_user
 
-  def get_hosts_for_proxyuser(self, user_name, services):
+  def get_data_for_proxyuser(self, user_name, services, groups=False):
+    """
+    Returns values of proxyuser properties for given user. Properties can be
+    hadoop.proxyuser.username.groups or hadoop.proxyuser.username.hosts
+    :param user_name:
+    :param services:
+    :param groups: if true, will return values for group property, not hosts
+    :return: tuple (wildcard_value, set[values]), where wildcard_value indicates if property value was *
+    """
     if "core-site" in services["configurations"]:
       coreSite = services["configurations"]["core-site"]['properties']
     else:
       coreSite = {}
-    property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+    if groups:
+      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
     if property_name in coreSite:
       property_value = coreSite[property_name]
       if property_value == "*":
@@ -214,15 +225,40 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         return False, set(property_value.split(","))
     return False, set()
 
+  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, put_function=None):
+    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, is_groups)
+    result_value = "*"
+    result_values_set = self.merge_proxyusers_values(current_value, value)
+    if len(result_values_set) > 0:
+      result_value = ",".join(sorted([val for val in result_values_set if val]))
+
+    if is_groups:
+      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+
+    put_function(property_name, result_value)
+
+  def merge_proxyusers_values(self, first, second):
+    result = set()
+    def append(data):
+      if isinstance(data, str) or isinstance(data, unicode):
+        if data != "*":
+          result.update(data.split(","))
+      else:
+        result.update(data)
+    append(first)
+    append(second)
+    return result
+
   def recommendAmbariProxyUsersForHDFS(self, services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
       if "HDFS" in servicesList:
           ambari_user = self.getAmbariUser(services)
           ambariHostName = socket.getfqdn()
-          is_wildcard_value, hosts = self.get_hosts_for_proxyuser(ambari_user, services)
-          if not is_wildcard_value:
-            hosts.add(ambariHostName)
-            putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ",".join(hosts))
-          putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
+
+          self.put_proxyuser_value(ambari_user,ambariHostName,services=services,put_function=putCoreSiteProperty)
+          self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, put_function=putCoreSiteProperty)
+
           old_ambari_user = self.getOldAmbariUser(services)
           if old_ambari_user is not None:
             putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
@@ -246,7 +282,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       oozie_user = None
       if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
         oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-        _, oozieServerHostsNameSet = self.get_hosts_for_proxyuser(oozie_user, services)
+        oozieServerHostsNameSet = set()
         oozieServerHosts = self.getHostsWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
         if oozieServerHosts is not None:
           for oozieServerHost in oozieServerHosts:
@@ -267,27 +303,27 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         webHcatServerHosts = self.getHostsWithComponent("HIVE", "WEBHCAT_SERVER", services, hosts)
 
         if hiveServerHosts is not None:
-          _, hiveServerHostsNameList = self.get_hosts_for_proxyuser(hive_user, services)
+          hiveServerHostsNameSet = set()
           for hiveServerHost in hiveServerHosts:
-            hiveServerHostsNameList.add(hiveServerHost["Hosts"]["host_name"])
+            hiveServerHostsNameSet.add(hiveServerHost["Hosts"]["host_name"])
           # Append Hive Server Interactive host as well, as it is Hive2/HiveServer2 component.
           if hiveServerInteractiveHosts:
             for hiveServerInteractiveHost in hiveServerInteractiveHosts:
               hiveServerInteractiveHostName = hiveServerInteractiveHost["Hosts"]["host_name"]
-              if hiveServerInteractiveHostName not in hiveServerHostsNameList:
-                hiveServerHostsNameList.add(hiveServerInteractiveHostName)
-                Logger.info("Appended (if not exiting), Hive Server Interactive Host : '{0}', to Hive Server Host List : '{1}'".format(hiveServerInteractiveHostName, hiveServerHostsNameList))
+              if hiveServerInteractiveHostName not in hiveServerHostsNameSet:
+                hiveServerHostsNameSet.add(hiveServerInteractiveHostName)
+                Logger.info("Appended (if not exiting), Hive Server Interactive Host : '{0}', to Hive Server Host List : '{1}'".format(hiveServerInteractiveHostName, hiveServerHostsNameSet))
 
-          hiveServerHostsNames = ",".join(sorted(hiveServerHostsNameList))  # includes Hive Server interactive host also.
-          Logger.info("Hive Server and Hive Server Interactive (if enabled) Host List : {0}".format(hiveServerHostsNameList))
+          hiveServerHostsNames = ",".join(sorted(hiveServerHostsNameSet))  # includes Hive Server interactive host also.
+          Logger.info("Hive Server and Hive Server Interactive (if enabled) Host List : {0}".format(hiveServerHostsNameSet))
           if not hive_user in users and hive_user is not None:
             users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
 
         if webHcatServerHosts is not None:
-          _, webHcatServerHostsNameList = self.get_hosts_for_proxyuser(hive_user, services)
+          webHcatServerHostsNameSet = set()
           for webHcatServerHost in webHcatServerHosts:
-            webHcatServerHostsNameList.add(webHcatServerHost["Hosts"]["host_name"])
-          webHcatServerHostsNames = ",".join(sorted(webHcatServerHostsNameList))
+            webHcatServerHostsNameSet.add(webHcatServerHost["Hosts"]["host_name"])
+          webHcatServerHostsNames = ",".join(sorted(webHcatServerHostsNameSet))
           if not webhcat_user in users and webhcat_user is not None:
             users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
 
@@ -298,10 +334,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         rmHosts = self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)
 
         if len(rmHosts) > 1:
-          _, rmHostsNameList = self.get_hosts_for_proxyuser(hive_user, services)
+          rmHostsNameSet = set()
           for rmHost in rmHosts:
-            rmHostsNameList.add(rmHost["Hosts"]["host_name"])
-          rmHostsNames = ",".join(sorted(rmHostsNameList))
+            rmHostsNameSet.add(rmHost["Hosts"]["host_name"])
+          rmHostsNames = ",".join(sorted(rmHostsNameSet))
           if not yarn_user in users and yarn_user is not None:
             users[yarn_user] = {"propertyHosts" : rmHostsNames, "config" : "yarn-env", "propertyName" : "yarn_user"}
 
@@ -324,16 +360,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
     for user_name, user_properties in users.iteritems():
-      is_wildcard_value, _ = self.get_hosts_for_proxyuser(user_name, services)
       if hive_user and hive_user == user_name:
         if "propertyHosts" in user_properties:
           services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
-      if not is_wildcard_value:
-        putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
-        Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(hive_user, user_properties["propertyHosts"]))
+      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, put_function=putCoreSiteProperty)
+      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(hive_user, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
-        putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
+        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, put_function=putCoreSiteProperty)
 
       # Remove old properties if user was renamed
       userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])

@@ -1318,7 +1318,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'hadoop.proxyuser.ambari_user.hosts': ambariHostName,
                       'hadoop.proxyuser.oozie.groups': '*',
                       'hadoop.proxyuser.hive.groups': '*',
-                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org,c6403.ambari.apache.org',
+                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.hosts': '*',
                       'hadoop.proxyuser.webhcat.groups': '*',
                       'hadoop.proxyuser.hdfs.groups': '*',
@@ -1351,12 +1351,6 @@ class TestHDP206StackAdvisor(TestCase):
     # and Hive Server Interactive Host (installed on same host compared to HiveServer).
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services2, hosts)
     self.assertEquals(configurations, expected)
-
-
-
-
-
-
 
     configurations["hadoop-env"]["properties"]['hdfs_user'] = "hdfs1"
 
@@ -1448,7 +1442,7 @@ class TestHDP206StackAdvisor(TestCase):
                                  'hadoop.proxyuser.hive.groups': '*',
                                  'hadoop.proxyuser.hdfs1.groups': '*',
                                  'hadoop.proxyuser.hdfs1.hosts': '*',
-                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org,c6403.ambari.apache.org',
+                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                                  'hadoop.proxyuser.falcon.hosts': '*',
                                  'hadoop.proxyuser.webhcat.groups': '*',
                                  'hadoop.proxyuser.hdfs.groups': '*',
