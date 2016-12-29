@@ -1737,6 +1737,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> EXTERNAL_SCRIPT_TIMEOUT = new ConfigurationProperty<>(
       "server.script.timeout", 5000);
 
+  /**
+   * The time, in {@link TimeUnit#MILLISECONDS}, until an external script is killed.
+   * n threads will execute n/2 scripts. one extra thread is needed to gather error/output stream of external script
+   */
+  @Markdown(description = "The number of threads that should be allocated to run external script.")
+  public static final ConfigurationProperty<Integer> THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT = new ConfigurationProperty<>(
+    "server.script.threads", 4);
+
   public static final String DEF_ARCHIVE_EXTENSION;
   public static final String DEF_ARCHIVE_CONTENT_TYPE;
 
@@ -2823,6 +2831,7 @@ public class Configuration {
     configsMap.put(SERVER_TMP_DIR.getKey(), getProperty(SERVER_TMP_DIR));
     configsMap.put(LOG4JMONITOR_DELAY.getKey(), getProperty(LOG4JMONITOR_DELAY));
     configsMap.put(EXTERNAL_SCRIPT_TIMEOUT.getKey(), getProperty(EXTERNAL_SCRIPT_TIMEOUT));
+    configsMap.put(THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getKey(), getProperty(THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT));
     configsMap.put(SHARED_RESOURCES_DIR.getKey(), getProperty(SHARED_RESOURCES_DIR));
     configsMap.put(KDC_PORT.getKey(), getProperty(KDC_PORT));
     configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT.getKey(), getProperty(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT));
@@ -4226,6 +4235,16 @@ public class Configuration {
 
   public Integer getExternalScriptTimeout() {
     return Integer.parseInt(getProperty(EXTERNAL_SCRIPT_TIMEOUT));
+  }
+
+  //THREAD_POOL_FOR_EXTERNAL_SCRIPT
+
+  /**
+   * Get the threadpool size for external script execution
+   * @return {Integer}
+   */
+  public Integer getExternalScriptThreadPoolSize() {
+    return Integer.parseInt(getProperty(THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT));
   }
 
   public boolean getParallelStageExecution() {
