@@ -3826,7 +3826,7 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#setConfigsChangesForDisplayObserver', function () {
+  describe('#setConfigsChangesForDisplay', function () {
 
     var propertiesToChange = [
         {
@@ -3896,7 +3896,7 @@ describe('App.MainHostDetailsController', function () {
       });
       sinon.stub(App, 'get').withArgs('router.clusterController.isConfigsPropertiesLoaded').returns(true);
       controller.set('isConfigsLoadingInProgress', true);
-      controller.setConfigsChangesForDisplayObserver();
+      controller.setConfigsChangesForDisplay();
     });
 
     afterEach(function () {

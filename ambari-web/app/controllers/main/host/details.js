@@ -938,9 +938,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }, this);
     }, this);
-    if (this.get('isReconfigureRequired')) {
-      this.setConfigsChangesForDisplay();
-    }
   },
 
   /**
@@ -1005,8 +1002,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     ];
     if (this.get('isReconfigureRequired')) {
-      this.get('groupedPropertiesToChange').pushObjects(groups);
-      this.setConfigsChangesForDisplay();
+      this.setConfigsChanges(groups);
     } else {
       this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
     }
@@ -1146,8 +1142,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     ];
     if (this.get('isReconfigureRequired')) {
-      this.get('groupedPropertiesToChange').pushObjects(groups);
-      this.setConfigsChangesForDisplay();
+      this.setConfigsChanges(groups);
     } else {
       var args = [groups];
       var componentName = this.get('addHiveServer') ? 'HIVE_SERVER' : (hiveMetastoreHost ? 'HIVE_METASTORE' : 'WEBHCAT_SERVER');
@@ -1337,8 +1332,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       typeConfigs[property.name] = newValue;
     }, this);
     if (this.get('isReconfigureRequired')) {
-      this.get('groupedPropertiesToChange').pushObjects(groups);
-      this.setConfigsChangesForDisplay();
+      this.setConfigsChanges(groups);
     } else {
       this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
     }
@@ -1533,7 +1527,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     });
     if (this.get('isReconfigureRequired')) {
-      this.get('groupedPropertiesToChange').pushObjects(groups);
+      this.setConfigsChanges(groups);
     } else {
       this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
     }
@@ -2749,7 +2743,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(callback);
   },
 
-  setConfigsChangesForDisplayObserver: function () {
+  setConfigsChangesForDisplay: function () {
     if (App.get('router.clusterController.isConfigsPropertiesLoaded')) {
       this.get('allPropertiesToChange').forEach(function (property) {
         var stackProperty = App.configsCollection.getConfigByName(property.propertyName, property.propertyFileName);
@@ -2761,16 +2755,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }, this);
       this.set('isConfigsLoadingInProgress', false);
-      this.removeObserver('App.router.clusterController.isConfigsPropertiesLoaded', this, 'setConfigsChangesForDisplayObserver');
+      this.removeObserver('App.router.clusterController.isConfigsPropertiesLoaded', this, 'setConfigsChangesForDisplay');
     }
   },
 
-  setConfigsChangesForDisplay: function () {
+  setConfigsChanges: function (groups) {
+    this.get('groupedPropertiesToChange').pushObjects(groups);
     if (this.get('allPropertiesToChange.length')) {
       if (App.get('router.clusterController.isConfigsPropertiesLoaded')) {
-        this.setConfigsChangesForDisplayObserver();
+        this.setConfigsChangesForDisplay();
       } else {
-        this.addObserver('App.router.clusterController.isConfigsPropertiesLoaded', this, 'setConfigsChangesForDisplayObserver');
+        this.addObserver('App.router.clusterController.isConfigsPropertiesLoaded', this, 'setConfigsChangesForDisplay');
       }
     } else {
       this.set('isConfigsLoadingInProgress', false);
