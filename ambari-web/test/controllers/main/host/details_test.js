@@ -3828,8 +3828,7 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#setConfigsChangesForDisplayObserver', function () {
 
-    var configsObject,
-      propertiesToChange = [
+    var propertiesToChange = [
         {
           propertyName: 'n0',
           propertyFileName: 'f0'
@@ -3879,28 +3878,21 @@ describe('App.MainHostDetailsController', function () {
         requiredPropertiesToChange: []
       });
       sinon.stub(App.configsCollection, 'getConfigByName', function (propertyName) {
-        var stackProperty;
-        switch (propertyName) {
-          case 'n0':
-            stackProperty = {
-              isEditable: true,
-              isReconfigurable: true
-            };
-            break;
-          case 'n1':
-            stackProperty = {
-              isEditable: true,
-              isReconfigurable: false
-            };
-            break;
-          case 'n2':
-            stackProperty = {
-              isEditable: false,
-              isReconfigurable: false
-            };
-            break;
-        }
-        return stackProperty;
+        var map = {
+          n0: {
+            isEditable: true,
+            isReconfigurable: true
+          },
+          n1: {
+            isEditable: true,
+            isReconfigurable: false
+          },
+          n2: {
+            isEditable: false,
+            isReconfigurable: false
+          }
+        };
+        return map[propertyName];
       });
       sinon.stub(App, 'get').withArgs('router.clusterController.isConfigsPropertiesLoaded').returns(true);
       controller.set('isConfigsLoadingInProgress', true);

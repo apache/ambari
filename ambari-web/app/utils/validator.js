@@ -180,11 +180,13 @@ module.exports = {
 
   /**
    * validate key of configurations
+   * allow spaces as prefix and suffix
+   *
    * @param value
    * @return {Boolean}
    */
   isValidConfigKey: function(value) {
-    var configKeyRegex = /^[0-9a-z_\-\.\*]+$/i;
+    var configKeyRegex = /^\s*[0-9a-z_\-\.\*]+\s*$/i;
     return configKeyRegex.test(value);
   },
 

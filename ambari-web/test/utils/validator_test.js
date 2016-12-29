@@ -371,7 +371,10 @@ describe('validator', function () {
       {m:'"-abc-" - valid',i:'-abc-',e:true},
       {m:'"abc 123" - invalid',i:'abc 123',e:false},
       {m:'"a"b" - invalid',i:'a"b',e:false},
-      {m:'"a\'b" - invalid',i:'a\'b',e:false}
+      {m:'"a\'b" - invalid',i:'a\'b',e:false},
+      {m:'" a " - valid', i: ' a ', e: true},
+      {m:'" a" - valid', i: ' a', e: true},
+      {m:'"a " - valid', i: 'a ', e: true}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
