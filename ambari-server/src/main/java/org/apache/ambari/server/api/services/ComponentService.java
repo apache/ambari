@@ -41,6 +41,8 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * Service responsible for components resource requests.
@@ -99,7 +101,12 @@ public class ComponentService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                 @QueryParam("format") String format) {
+
+    if (format != null && format.equals("client_config_tar")) {
+      return createClientConfigResource(body, headers, ui, null);
+    }
     return handleRequest(headers, body, ui, Request.Type.GET,
         createComponentResource(m_clusterName, m_serviceName, null));
   }
@@ -227,7 +234,20 @@ public class ComponentService extends BaseService {
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Service, m_serviceName);
     mapIds.put(Resource.Type.Component, componentName);
+    String filePrefixName;
 
+    if (StringUtils.isEmpty(componentName)) {
+      if (StringUtils.isEmpty(m_serviceName)) {
+        filePrefixName = m_clusterName + "(" + Resource.InternalType.Cluster.toString().toUpperCase()+")";
+      } else {
+        filePrefixName = m_serviceName + "(" + Resource.InternalType.Service.toString().toUpperCase()+")";
+      }
+    } else {
+      filePrefixName = componentName;
+    }
+
+    Validate.notNull(filePrefixName, "compressed config file name should not be null");
+    String fileName =  filePrefixName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION;
 
     Response response = handleRequest(headers, body, ui, Request.Type.GET,
             createResource(Resource.Type.ClientConfig, mapIds));
@@ -240,7 +260,7 @@ public class ComponentService extends BaseService {
     Response.ResponseBuilder rb = Response.status(Response.Status.OK);
     Configuration configs = new Configuration();
     String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR.getKey());
-    File file = new File(tmpDir + File.separator + componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION);
+    File file = new File(tmpDir,fileName);
     InputStream resultInputStream = null;
     try {
       resultInputStream = new FileInputStream(file);
@@ -249,8 +269,7 @@ public class ComponentService extends BaseService {
     }
 
     String contentType = Configuration.DEF_ARCHIVE_CONTENT_TYPE;
-    String outputFileName = componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION;
-    rb.header("Content-Disposition",  "attachment; filename=\"" + outputFileName + "\"");
+    rb.header("Content-Disposition",  "attachment; filename=\"" + fileName + "\"");
     rb.entity(resultInputStream);
     return rb.type(contentType).build();
 
