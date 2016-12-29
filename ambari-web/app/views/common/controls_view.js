@@ -155,24 +155,12 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
  */
 App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
-  selected: false,
-
-  focusOut: function () {
-    this.set('selected', false);
-  },
-
-  focusIn: function () {
-    this.set('selected', true);
-  },
-
   onValueUpdate: function () {
-    if (this.get('selected')) {
-      var self = this, config = this.get('serviceConfig'),
-        controller = this.get('controller');
-      delay(function(){
-        self.sendRequestRorDependentConfigs(config, controller);
-      }, 500);
-    }
+    var self = this, config = this.get('serviceConfig'),
+    controller = this.get('controller');
+    delay(function(){
+      self.sendRequestRorDependentConfigs(config, controller);
+    }, 500);
   }.observes('serviceConfig.value')
 });
 
