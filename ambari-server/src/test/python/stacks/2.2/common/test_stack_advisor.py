@@ -3783,23 +3783,22 @@ class TestHDP22StackAdvisor(TestCase):
       "yarn-site": {
         "properties": {
           "yarn.nodemanager.linux-container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
-          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
-          "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "43008",
           "yarn.scheduler.minimum-allocation-mb": "14336",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
-          "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "43008",
-          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false",
           "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
           "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
+          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "/yarn",
+          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
           "yarn.nodemanager.local-dirs": "/hadoop/yarn/local",
-          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log"
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
         },
         "property_attributes": {
           "yarn.scheduler.minimum-allocation-vcores": {
@@ -3843,35 +3842,25 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
-          "yarn.nodemanager.container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
-          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "43008",
           "yarn.scheduler.minimum-allocation-mb": "14336",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
-          "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "43008",
-          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false",
           "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
           "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
+          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "/yarn",
+          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
           "yarn.nodemanager.local-dirs": "/hadoop/yarn/local",
-          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log"
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
         },
         "property_attributes": {
-          "yarn.nodemanager.container-executor.cgroups.mount": {
-            "delete": "true"
-          },
-          "yarn.nodemanager.container-executor.cgroups.hierarchy": {
-            "delete": "true"
-          },
-          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": {
-            "delete": "true"
-          },
           "yarn.scheduler.minimum-allocation-vcores": {
             "maximum": "4"
           },
@@ -3890,7 +3879,16 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-mb": {
             "maximum": "43008"
           },
-          "yarn.nodemanager.container-executor.resources-handler.class": {
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": {
             "delete": "true"
           }
         }

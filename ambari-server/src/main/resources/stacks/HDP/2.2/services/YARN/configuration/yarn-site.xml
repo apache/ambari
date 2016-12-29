@@ -187,18 +187,48 @@
     <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.util.DefaultLCEResourcesHandler</value>
     <description>Pre-requisite to use CGroups</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
     <value>hadoop-yarn</value>
     <description>Name of the Cgroups hierarchy under which all YARN jobs will be launched</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
     <value>false</value>
     <description>If true, YARN will automount the CGroup, however the directory needs to already exist; else, the cgroup should be mounted by the admin</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
+    <value>/cgroup</value>
+    <description>Path used by the LCE to mount cgroups if not found. This path must exist before the NodeManager is launched.</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

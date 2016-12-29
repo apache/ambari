@@ -120,17 +120,17 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         yarn_cgroups_enabled = services["configurations"]["yarn-env"]["properties"]["yarn_cgroups_enabled"].lower() == "true"
         if yarn_cgroups_enabled:
           putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
-          putYarnProperty('yarn.nodemanager.container-executor.group', 'hadoop')
-          putYarnProperty('yarn.nodemanager.container-executor.resources-handler.class', 'org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler')
-          putYarnProperty('yarn.nodemanager.container-executor.cgroups.hierarchy', ' /yarn')
-          putYarnProperty('yarn.nodemanager.container-executor.cgroups.mount', 'true')
+          putYarnProperty('yarn.nodemanager.linux-container-executor.group', 'hadoop')
+          putYarnProperty('yarn.nodemanager.linux-container-executor.resources-handler.class', 'org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler')
+          putYarnProperty('yarn.nodemanager.linux-container-executor.cgroups.hierarchy', '/yarn')
+          putYarnProperty('yarn.nodemanager.linux-container-executor.cgroups.mount', 'true')
           putYarnProperty('yarn.nodemanager.linux-container-executor.cgroups.mount-path', '/cgroup')
         else:
           if not kerberos_authentication_enabled:
             putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor')
-          putYarnPropertyAttribute('yarn.nodemanager.container-executor.resources-handler.class', 'delete', 'true')
-          putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.hierarchy', 'delete', 'true')
-          putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.mount', 'delete', 'true')
+          putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.resources-handler.class', 'delete', 'true')
+          putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.hierarchy', 'delete', 'true')
+          putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.mount', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.mount-path', 'delete', 'true')
     # recommend hadoop.registry.rm.enabled based on SLIDER in services
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
