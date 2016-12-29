@@ -100,7 +100,12 @@ angular.module('ambariAdminConsole')
   	angular.forEach(path.split('.'), function(routeObj) {
   		route = route[routeObj];
   	});
-  	var r = new RegExp( route.url.replace(/(:\w+)/, '\\w+'));
-  	return r.test($location.path());
+
+    // We should compare only root location part
+  	var r = new RegExp( route.url.replace(/(:\w+)/, '\\w+')),
+      secondSlashUrlIndex = $location.path().indexOf('/', 1),
+      locationIsRoot = !~secondSlashUrlIndex,
+      location = locationIsRoot ?  $location.path() : $location.path().slice(0, secondSlashUrlIndex);
+  	return r.test(location);
   };
 }]);
