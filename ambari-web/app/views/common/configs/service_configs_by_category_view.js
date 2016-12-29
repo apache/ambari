@@ -489,8 +489,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       showFilterLink: false,
       errorMessage: '',
       observeAddPropertyValue: function () {
-        var name = this.get('name');
-        if (name.trim() != '') {
+        var name = this.get('name').trim();
+        if (name !== '') {
           if (validator.isValidConfigKey(name)) {
             if (!self.isDuplicatedConfigKey(name)) { //no duplication within the same confType
               var files = self.isDuplicatedConfigKeyinConfigs(name);
@@ -561,7 +561,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
            * For the first entrance use this if (serviceConfigObj.name.trim() != '')
            */
           if (!serviceConfigObj.isKeyError) {
-            propertyObj.name = serviceConfigObj.get('name');
+            propertyObj.name = serviceConfigObj.get('name').trim();
             propertyObj.value = serviceConfigObj.get('value');
             propertyObj.propertyType = serviceConfigObj.get('propertyType');
             self.createProperty(propertyObj);
@@ -730,7 +730,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   doRestoreDefaultValue: function (event) {
     var serviceConfigProperty = event.contexts[0];
-    var value = serviceConfigProperty.get('value');
     var savedValue = serviceConfigProperty.get('savedValue');
     var supportsFinal = serviceConfigProperty.get('supportsFinal');
     var savedIsFinal = serviceConfigProperty.get('savedIsFinal');
