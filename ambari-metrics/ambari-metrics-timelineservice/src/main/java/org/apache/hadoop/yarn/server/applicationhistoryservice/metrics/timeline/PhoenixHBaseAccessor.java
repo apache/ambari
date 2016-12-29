@@ -1135,7 +1135,14 @@ public class PhoenixHBaseAccessor {
     }
 
     for (String metricNameEntry : metricFunctions.keySet()) {
-      String metricRegEx = metricNameEntry.replace("%", ".*");
+
+      String metricRegEx;
+      if (metricNameEntry.contains("*")) {
+        String metricNameWithEscSeq = metricNameEntry.replace("*","\\*");
+        metricRegEx = metricNameWithEscSeq.replace("%", ".*");
+      } else {
+        metricRegEx = metricNameEntry.replace("%", ".*");
+      }
       if (metricName.matches(metricRegEx)) {
         return metricFunctions.get(metricNameEntry);
       }
