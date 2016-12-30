@@ -68,6 +68,12 @@ module.exports = [
   {
     "category": "Isolation",
     "filename": "yarn-site.xml",
+    "name": "yarn.nodemanager.linux-container-executor.cgroups.mount-path",
+    "serviceName": "YARN"
+  },
+  {
+    "category": "Isolation",
+    "filename": "yarn-site.xml",
     "name": "yarn.nodemanager.linux-container-executor.group",
     "serviceName": "YARN"
   },
