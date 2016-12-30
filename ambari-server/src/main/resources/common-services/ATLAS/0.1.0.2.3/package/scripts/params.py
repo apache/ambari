@@ -175,6 +175,8 @@ metadata_solrconfig_content = default("/configurations/atlas-solrconfig/content"
 
 atlas_log_level = config['configurations']['atlas-log4j']['atlas_log_level']
 audit_log_level = config['configurations']['atlas-log4j']['audit_log_level']
+atlas_log_max_backup_size = default("/configurations/atlas-log4j/atlas_log_max_backup_size", 256)
+atlas_log_number_of_backup_files = default("/configurations/atlas-log4j/atlas_log_number_of_backup_files", 20)
 
 # smoke test
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']

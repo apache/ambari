@@ -111,7 +111,7 @@ def knox():
          mode=0644,
          group=params.knox_group,
          owner=params.knox_user,
-         content=params.gateway_log4j
+         content=InlineTemplate(params.gateway_log4j)
     )
 
     File(format("{params.knox_conf_dir}/topologies/default.xml"),

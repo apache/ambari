@@ -101,6 +101,12 @@ kafka_hosts.sort()
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()
 
+#Kafka log4j
+kafka_log_maxfilesize = default('/configurations/kafka-log4j/kafka_log_maxfilesize',256)
+kafka_log_maxbackupindex = default('/configurations/kafka-log4j/kafka_log_maxbackupindex',20)
+controller_log_maxfilesize = default('/configurations/kafka-log4j/controller_log_maxfilesize',256)
+controller_log_maxbackupindex = default('/configurations/kafka-log4j/controller_log_maxbackupindex',20)
+
 if (('kafka-log4j' in config['configurations']) and ('content' in config['configurations']['kafka-log4j'])):
     log4j_props = config['configurations']['kafka-log4j']['content']
 else:

@@ -134,7 +134,7 @@ def kafka(upgrade_type=None):
              mode=0644,
              group=params.user_group,
              owner=params.kafka_user,
-             content=params.log4j_props
+             content=InlineTemplate(params.log4j_props)
          )
 
     if params.security_enabled and params.kafka_kerberos_enabled:

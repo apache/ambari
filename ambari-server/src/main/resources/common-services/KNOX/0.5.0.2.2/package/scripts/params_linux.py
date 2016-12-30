@@ -232,6 +232,12 @@ if has_oozie:
 # Knox managed properties
 knox_managed_pid_symlink= format('{stack_root}/current/knox-server/pids')
 
+#knox log4j
+knox_gateway_log_maxfilesize = default('/configurations/gateway-log4j/knox_gateway_log_maxfilesize',256)
+knox_gateway_log_maxbackupindex = default('/configurations/gateway-log4j/knox_gateway_log_maxbackupindex',20)
+knox_ldap_log_maxfilesize = default('/configurations/ldap-log4j/knox_ldap_log_maxfilesize',256)
+knox_ldap_log_maxbackupindex = default('/configurations/ldap-log4j/knox_ldap_log_maxbackupindex',20)
+
 # server configurations
 knox_master_secret = config['configurations']['knox-env']['knox_master_secret']
 knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]

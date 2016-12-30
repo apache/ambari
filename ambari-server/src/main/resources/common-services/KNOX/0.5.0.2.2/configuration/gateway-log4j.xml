@@ -20,6 +20,27 @@
  */
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
+   <property>
+    <name>knox_gateway_log_maxfilesize</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Knox Gateway Log: backup file size</display-name>
+   <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>knox_gateway_log_maxbackupindex</name>
+    <value>20</value>
+    <description>The number of backup files</description>
+    <display-name>Knox Gateway Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
   <property>
     <name>content</name>
     <display-name>gateway-log4j template</display-name>
@@ -66,6 +87,8 @@
       log4j.appender.drfa.DatePattern=.yyyy-MM-dd
       log4j.appender.drfa.layout=org.apache.log4j.PatternLayout
       log4j.appender.drfa.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
+      log4j.appender.drfa.MaxFileSize = {{knox_gateway_log_maxfilesize}}MB
+      log4j.appender.drfa.MaxBackupIndex = {{knox_gateway_log_maxbackupindex}}
 
       log4j.logger.audit=INFO, auditfile
       log4j.appender.auditfile=org.apache.log4j.DailyRollingFileAppender
