@@ -829,7 +829,7 @@ class DefaultStackAdvisor(StackAdvisor):
     if len(hostsList) != 1:
       scheme = self.getComponentLayoutSchemes().get(componentName, None)
       if scheme is not None:
-        hostIndex = next((index for key, index in scheme.iteritems() if isinstance(key, (int, long)) and len(hostsList) < key), scheme['else'])
+        hostIndex = next((index for key, index in scheme.iteritems() if isinstance(key, ( int, long )) and len(hostsList) < key), scheme['else'])
       else:
         hostIndex = 0
       for host in hostsList[hostIndex:]:
@@ -864,16 +864,16 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     return {}
 
+  """
+  Utility method used for validation warnings.
+  """
   def getWarnItem(self, message):
-    """
-    Utility method used for validation warnings.
-    """
     return {"level": "WARN", "message": message}
 
+  """
+  Utility method used for validation errors.
+  """
   def getErrorItem(self, message):
-    """
-    Utility method used for validation errors.
-    """
     return {"level": "ERROR", "message": message}
 
   def getComponentHostNames(self, servicesDict, serviceName, componentName):
@@ -1075,49 +1075,6 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     hostNamesList = [component["hostnames"] for component in componentsList if component["component_name"] == componentName]
     return hostNamesList[0] if len(hostNamesList) > 0 else []
-
-  def getServiceComponents(self, services, serviceName):
-    """
-    Return list of components for serviceName service
-
-    :type services dict
-    :type serviceName str
-    :rtype list
-    """
-    components = []
-
-    if not services or not serviceName:
-      return components
-
-    for service in services["services"]:
-      if service["StackServices"]["service_name"] == serviceName:
-        components.extend(service["components"])
-        break
-
-    return components
-
-  def getHostsForComponent(self, services, serviceName, componentName):
-    """
-    Returns the host(s) on which a requested service's component is hosted.
-
-    :argument services Configuration information for the cluster
-    :argument serviceName Passed-in service in consideration
-    :argument componentName Passed-in component in consideration
-
-    :type services dict
-    :type serviceName str
-    :type componentName str
-    :rtype list
-    """
-    hosts_for_component = []
-    components = self.getServiceComponents(services, serviceName)
-
-    for component in components:
-      if component["StackServiceComponents"]["component_name"] == componentName:
-        hosts_for_component.extend(component["StackServiceComponents"]["hostnames"])
-        break
-
-    return hosts_for_component
 
   def getMountPoints(self, hosts):
     """
