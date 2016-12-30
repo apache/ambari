@@ -302,7 +302,12 @@ Ember.Route.reopen({
     var controller = router.get(controllerName);
     controller.set('serializedQuery', parseQueryParams(params ? params.query : ''));
     return params || { query: ''};
+  },
+
+  scrollTop() {
+    window.scrollTo(0, 0);
   }
+
 });
 
 Ember.Router.reopen({
