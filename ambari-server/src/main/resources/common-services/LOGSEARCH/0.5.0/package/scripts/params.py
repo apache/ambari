@@ -91,7 +91,7 @@ if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
   logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
-  use_external_solr_with_kerberos = default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
+  use_external_solr_with_kerberos = default('configurations/logsearch-common-env/logsearch_external_solr_kerberos_enabled', False)
   if use_external_solr_with_kerberos:
     logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_keytab']
     logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
@@ -116,13 +116,13 @@ logsearch_service_logs_merge_factor = config['configurations']['logsearch-servic
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
 logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
 
-logsearch_use_external_solr = default('/configurations/logsearch-env/logsearch_use_external_solr', False)
+logsearch_use_external_solr = default('/configurations/logsearch-common-env/logsearch_use_external_solr', False)
 
 if logsearch_use_external_solr:
-  logsearch_solr_zk_znode = config['configurations']['logsearch-env']['logsearch_external_solr_zk_znode']
-  logsearch_solr_zk_quorum = config['configurations']['logsearch-env']['logsearch_external_solr_zk_quorum']
-  logsearch_solr_ssl_enabled = default('configurations/logsearch-env/logsearch_external_solr_ssl_enabled', False)
-  logsearch_solr_kerberos_enabled = security_enabled and default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
+  logsearch_solr_zk_znode = config['configurations']['logsearch-common-env']['logsearch_external_solr_zk_znode']
+  logsearch_solr_zk_quorum = config['configurations']['logsearch-common-env']['logsearch_external_solr_zk_quorum']
+  logsearch_solr_ssl_enabled = default('configurations/logsearch-common-env/logsearch_external_solr_ssl_enabled', False)
+  logsearch_solr_kerberos_enabled = security_enabled and use_external_solr_with_kerberos
 else:
   logsearch_solr_zk_znode = infra_solr_znode
 
