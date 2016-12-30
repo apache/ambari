@@ -37,11 +37,11 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
     var height = App.Service.find().get('length') > 10 ? ((App.Service.find().get('length') - 10) * 40 + 500) : 500;
     $('.version-column').height(height);
 
-    // fix the line up minor diff issue in FireFox
-    if ($.browser.mozilla) {
-      $('.line-separator').css('top', '-6px');
-      $('.line-separator-bottom').css('top', '-4px');
-    }
+    // set the lines width of the table, line up the labels
+    var account = App.RepositoryVersion.find().get('length');
+    $('.border-extended-table').width(account * 100 + 100 + "%");
+    $('.border-extended-table').css("max-width", account * 100 + 100 + "%");
+    $('.services-section .service-version-info').css('margin-bottom', $(".border-extended-table tr").height() - 25 + "px");
   },
 
   services: function() {

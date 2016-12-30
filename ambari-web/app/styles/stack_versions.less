@@ -135,9 +135,6 @@
     padding: 0;
     margin: 0;
     border: none;
-    .hosts-section {
-      padding-bottom: 16px;
-    }
     .out-of-sync-badge {
       top: 0;
       left: 0;
@@ -160,9 +157,15 @@
   .left-menu-table {
     padding: 10px 0;
     margin-top: 122px;
-    td.service-display-name {
-      border-top: 2px solid #e4e4e4;
-      border-bottom: 2px solid #e4e4e4;
+    .border-extended-table {
+      width: 100%;
+      position: relative;
+      z-index: 999;
+      background: transparent;
+      td.service-display-name {
+        border-top: 1px solid #d2d9dd;
+        border-bottom: 1px solid #d2d9dd;
+      }
     }
   }
   div.current-version-box {
@@ -258,15 +261,16 @@
     }
     .hosts-section {
       margin-top: 16px;
+      padding-bottom: 8px;
       width: 100%;
       text-align: center;
       background: #f8f8f8;
       border-top: 1px solid #e4e4e4;
-      padding-bottom: 4px;
     }
     .hosts-section .hosts-bar {
       font-size: 14px;
       font-weight: 500;
+      padding: 8px;
     }
     .hosts-section .host-link {
       margin: 0;
@@ -318,9 +322,11 @@
       width: 100%;
       text-align: center;
       padding-bottom: 4px;
+      margin-top: -5px;
       .service-version-info {
         line-height: 20px;
-        margin-bottom: 12px;
+        margin-bottom: 9px;
+        padding-top: 6px;
         text-align: center;
         span.label {
           padding: 5px 15px;
@@ -328,18 +334,6 @@
           z-index: 100;
           position: relative;
         }
-      }
-      .line-separator, .line-separator-bottom{
-        height: 2px;
-        background: #e4e4e4;
-        position: relative;
-        margin: 0 0 0 -15px;
-      }
-      .line-separator {
-        top: -7px;
-      }
-      .line-separator-bottom {
-        top: -5px;
       }
     }
   }
