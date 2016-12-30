@@ -441,7 +441,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     } else {
      this.restoreComponentsSelection(hostsObj, slaveComponents);
     }
-    this.enableCheckboxesForDependentComponents(hostsObj);
+    if (this.get('isAddServiceWizard')) {
+      this.enableCheckboxesForDependentComponents(hostsObj);
+    }
     this.selectClientHost(hostsObj);
     return hostsObj;
   },
