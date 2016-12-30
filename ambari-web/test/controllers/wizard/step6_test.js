@@ -208,6 +208,7 @@ describe('App.WizardStep6Controller', function () {
 
       beforeEach(function() {
         controller.set('content.slaveComponentHosts', null);
+        controller.set('content.controllerName', null);
       });
 
       it("selectRecommendedComponents should be called", function() {
@@ -225,6 +226,15 @@ describe('App.WizardStep6Controller', function () {
       it("selectClientHost should be called", function() {
         expect(controller.renderSlaves(hostsObj)).to.eql(hostsObj);
         expect(controller.selectClientHost.calledWith(hostsObj)).to.be.true;
+      });
+      it("enableCheckboxesForDependentComponents should not be called", function() {
+        expect(controller.renderSlaves(hostsObj)).to.eql(hostsObj);
+        expect(controller.enableCheckboxesForDependentComponents.calledOnce).to.be.false;
+      });
+      it("enableCheckboxesForDependentComponents should be called", function() {
+        controller.set('content.controllerName', 'addServiceController');
+        expect(controller.renderSlaves(hostsObj)).to.eql(hostsObj);
+        expect(controller.enableCheckboxesForDependentComponents.calledOnce).to.be.true;
       });
     });
 

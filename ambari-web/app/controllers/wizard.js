@@ -1307,7 +1307,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var hasServicesWithSlave = services.someProperty('hasSlave');
     var hasServicesWithClient = services.someProperty('hasClient');
     var hasServicesWithCustomAssignedNonMasters = services.someProperty('hasNonMastersWithCustomAssignment');
-    var hasDependentSlaveComponent = this.hasDependentSlaveComponent(services);
+    var hasDependentSlaveComponent = this.get('name') === 'addServiceController' ? this.hasDependentSlaveComponent(services) : false;
     this.set('content.skipSlavesStep', (!hasServicesWithSlave && !hasServicesWithClient || !hasServicesWithCustomAssignedNonMasters) && !hasDependentSlaveComponent);
     if (this.get('content.skipSlavesStep')) {
       this.get('isStepDisabled').findProperty('step', step).set('value', this.get('content.skipSlavesStep'));
@@ -1329,8 +1329,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         service.get('serviceComponents').forEach(function (component) {
           component.get('dependencies').forEach(function (dependency) {
             var dependentService = App.StackService.find().findProperty('serviceName', dependency.serviceName);
-            var dependentComponent = dependentService.get('serviceComponents').findProperty('componentName', dependency.componentName);
-            if (dependentComponent.get('isSlave') && dependentService.get('isInstalled')) {
+            var dependentComponent = dependentService && dependentService.get('serviceComponents').findProperty('componentName', dependency.componentName);
+            if (dependentComponent && dependentComponent.get('isSlave') && dependentService.get('isInstalled')) {
               dependentSlaves.push({component: dependentComponent.get('componentName'), count: 0});
             }
           });
