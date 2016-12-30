@@ -151,6 +151,16 @@ logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsear
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
 
+#Logsearch log4j properties
+logsearch_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_log_maxfilesize',10)
+logsearch_log_maxbackupindex = default('/configurations/logsearch-log4j/logsearch_log_maxbackupindex',10)
+logsearch_json_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_json_log_maxfilesize',10)
+logsearch_json_log_maxbackupindex = default('/configurations/logsearch-log4j/logsearch_json_log_maxbackupindex',10)
+logsearch_audit_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_audit_log_maxfilesize',10)
+logsearch_audit_log_maxbackupindex =default('/configurations/logsearch-log4j/logsearch_audit_log_maxbackupindex',10)
+logsearch_perf_log_maxfilesize =default('/configurations/logsearch-log4j/logsearch_perf_log_maxfilesize',10)
+logsearch_perf_log_maxbackupindex =default('/configurations/logsearch-log4j/logsearch_perf_log_maxbackupindex',10)
+
 # store the log file for the service from the 'solr.log' property of the 'logsearch-env.xml' file
 logsearch_env_content = config['configurations']['logsearch-env']['content']
 logsearch_service_logs_solrconfig_content = config['configurations']['logsearch-service_logs-solrconfig']['content']
@@ -244,6 +254,12 @@ logsearch_collection_audit_logs_numshards = logsearch_properties['logsearch.coll
 #####################################
 
 logfeeder_dir = "/usr/lib/ambari-logsearch-logfeeder"
+
+# logfeeder-log4j
+logfeeder_log_maxfilesize = default('/configurations/logfeeder-log4j/logfeeder_log_maxfilesize',10)
+logfeeder_log_maxbackupindex =  default('/configurations/logfeeder-log4j/logfeeder_log_maxbackupindex',10)
+logfeeder_json_log_maxfilesize = default('/configurations/logfeeder-log4j/logfeeder_json_log_maxfilesize',10)
+logfeeder_json_log_maxbackupindex = default('/configurations/logfeeder-log4j/logfeeder_json_log_maxbackupindex',10)
 
 # logfeeder-env configs
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']

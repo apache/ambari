@@ -28,8 +28,8 @@ limitations under the License.
     <param name="file" value="{{logsearch_log_dir}}/logsearch.log" />
     <param name="Threshold" value="info" />
     <param name="append" value="true" />
-    <param name="maxFileSize" value="10MB" />
-    <param name="maxBackupIndex" value="10" />
+    <param name="maxFileSize" value="{{logsearch_log_maxfilesize}}MB" />
+    <param name="maxBackupIndex" value="{{logsearch_log_maxbackupindex}}" />
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n" />
     </layout>
@@ -38,16 +38,16 @@ limitations under the License.
   <appender name="rolling_file_json" class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
     <param name="file" value="{{logsearch_log_dir}}/logsearch.json"/>
     <param name="append" value="true"/>
-    <param name="maxFileSize" value="10MB"/>
-    <param name="maxBackupIndex" value="10"/>
+    <param name="maxFileSize" value="{{logsearch_json_log_maxfilesize}}MB"/>
+    <param name="maxBackupIndex" value="{{logsearch_json_log_maxbackupindex}}"/>
     <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 
   <appender name="audit_rolling_file_json" class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
     <param name="file" value="{{logsearch_log_dir}}/logsearch-audit.json"/>
     <param name="append" value="true"/>
-    <param name="maxFileSize" value="10MB"/>
-    <param name="maxBackupIndex" value="10"/>
+    <param name="maxFileSize" value="{{logsearch_audit_log_maxfilesize}}MB"/>
+    <param name="maxBackupIndex" value="{{logsearch_audit_log_maxbackupindex}}"/>
     <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 
@@ -55,8 +55,8 @@ limitations under the License.
     <param name="file" value="{{logsearch_log_dir}}/logsearch-performance.json"/>
     <param name="Threshold" value="info"/>
     <param name="append" value="true"/>
-    <param name="maxFileSize" value="10MB"/>
-    <param name="maxBackupIndex" value="10"/>
+    <param name="maxFileSize" value="{{logsearch_perf_log_maxfilesize}}MB""/>
+    <param name="maxBackupIndex" value="{{logsearch_perf_log_maxbackupindex}}"/>
     <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 
