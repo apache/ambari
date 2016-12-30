@@ -149,7 +149,7 @@
   <property>
     <name>content</name>
     <display-name>logfeeder-env template</display-name>
-    <description>This is the jinja template for logsearch-env.sh file</description>
+    <description>This is the jinja template for logfeeder-env.sh file</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>

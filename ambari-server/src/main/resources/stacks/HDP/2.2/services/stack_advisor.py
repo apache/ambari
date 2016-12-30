@@ -1027,7 +1027,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
     putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
     putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
-    putLogsearchEnvProperty = self.putProperty(configurations, "logsearch-env", services)
+    putLogsearchCommonEnvProperty = self.putProperty(configurations, "logsearch-common-env", services)
+    putLogsearchCommonEnvAttribute = self.putPropertyAttribute(configurations, "logsearch-common-env")
     putLogsearchEnvAttribute = self.putPropertyAttribute(configurations, "logsearch-env")
     putLogfeederEnvAttribute = self.putPropertyAttribute(configurations, "logfeeder-env")
 
@@ -1047,8 +1048,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       recommendedShards = 1
       recommendedMaxShards = 100
       
-      putLogsearchEnvProperty('logsearch_use_external_solr', 'true')
-      putLogsearchEnvAttribute('logsearch_use_external_solr', 'visible', 'false')
+      putLogsearchCommonEnvProperty('logsearch_use_external_solr', 'true')
+      putLogsearchCommonEnvAttribute('logsearch_use_external_solr', 'visible', 'false')
 
     # recommend number of shard
     putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
@@ -1064,8 +1065,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     
     kerberos_authentication_enabled = self.isSecurityEnabled(services)
     if not kerberos_authentication_enabled:
-       putLogsearchEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
-       putLogsearchEnvAttribute('logsearch_external_solr_kerberos_enabled', 'visible', 'false')
+       putLogsearchCommonEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
+       putLogsearchCommonEnvAttribute('logsearch_external_solr_kerberos_enabled', 'visible', 'false')
        putLogsearchEnvAttribute('logsearch_external_solr_kerberos_keytab', 'visible', 'false')
        putLogsearchEnvAttribute('logsearch_external_solr_kerberos_principal', 'visible', 'false')
        putLogfeederEnvAttribute('logfeeder_external_solr_kerberos_keytab', 'visible', 'false')
