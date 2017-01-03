@@ -19,7 +19,7 @@
 var App = require('app');
 var misc = require('utils/misc');
 
-App.MainServiceController = Em.ArrayController.extend({
+App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDownload, {
 
   name: 'mainServiceController',
 
@@ -141,6 +141,13 @@ App.MainServiceController = Em.ArrayController.extend({
         self.allServicesCall(state, query);
       }, bodyMessage);
     }
+  },
+
+  /**
+   * Download client configs for all services
+   */
+  downloadAllClientConfigs: function() {
+    this.downloadClientConfigsCall({downloadAll: true});
   },
 
   /**

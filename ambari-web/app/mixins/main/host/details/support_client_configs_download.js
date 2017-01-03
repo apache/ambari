@@ -24,11 +24,14 @@ App.SupportClientConfigsDownload = Em.Mixin.create({
    * @param {{hostName: string, componentName: string, displayName: string, serviceName: string}} data
    */
   downloadClientConfigsCall: function (data) {
-    var url = this._getUrl(data.hostName, data.serviceName, data.componentName);
+    var url = this._getUrl(data.hostName, data.serviceName, data.componentName, data.downloadAll);
     var newWindow = window.open(url);
     newWindow.focus();
   },
 
+  _getDownloadAllUrl: function () {
+    return App.get('apiPrefix') + '/clusters/' + App.router.getClusterName() + '/components?format=client_config_tar';
+  },
   /**
    *
    * @param {string|null} hostName
@@ -37,7 +40,10 @@ App.SupportClientConfigsDownload = Em.Mixin.create({
    * @returns {string}
    * @private
    */
-  _getUrl: function (hostName, serviceName, componentName) {
+  _getUrl: function (hostName, serviceName, componentName, downloadAll) {
+    if (downloadAll) {
+      return this._getDownloadAllUrl();
+    }
     var isForHost = !Em.isNone(hostName);
     return App.get('apiPrefix') + '/clusters/' + App.router.getClusterName() + '/' +
       (isForHost ? 'hosts/' + hostName + '/host_components/' : 'services/' + serviceName + '/components/') +
