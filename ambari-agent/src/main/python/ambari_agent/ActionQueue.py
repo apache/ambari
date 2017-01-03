@@ -87,6 +87,7 @@ class ActionQueue(threading.Thread):
     self.parallel_execution = config.get_parallel_exec_option()
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
+    self.lock = threading.Lock()
 
   def stop(self):
     self._stop.set()
@@ -347,12 +348,13 @@ class ActionQueue(threading.Thread):
 
     # do not fail task which was rescheduled from server
     if command_canceled:
-      with self.commandQueue.mutex:
-        for com in self.commandQueue.queue:
-          if com['taskId'] == command['taskId']:
-            logger.info('Command with taskId = {cid} was rescheduled by server. '
-                        'Fail report on cancelled command won\'t be sent with heartbeat.'.format(cid=taskId))
-            return
+      with self.lock:
+        with self.commandQueue.mutex:
+          for com in self.commandQueue.queue:
+            if com['taskId'] == command['taskId']:
+              logger.info('Command with taskId = {cid} was rescheduled by server. '
+                          'Fail report on cancelled command won\'t be sent with heartbeat.'.format(cid=taskId))
+              return
 
     # final result to stdout
     commandresult['stdout'] += '\n\nCommand completed successfully!\n' if status == self.COMPLETED_STATUS else '\n\nCommand failed after ' + str(numAttempts) + ' tries\n'

@@ -358,13 +358,18 @@ class Controller(threading.Thread):
         self.cluster_configuration.update_configurations_from_heartbeat(response)
 
         response_keys = response.keys()
-        if 'cancelCommands' in response_keys:
-          self.cancelCommandInQueue(response['cancelCommands'])
 
-        if 'executionCommands' in response_keys:
-          execution_commands = response['executionCommands']
-          self.recovery_manager.process_execution_commands(execution_commands)
-          self.addToQueue(execution_commands)
+        # there's case when canceled task can be processed in Action Queue.execute before adding rescheduled task to queue
+        # this can cause command failure instead result suppression
+        # so canceling and putting rescheduled commands should be executed atomically
+        with self.actionQueue.lock:
+          if 'cancelCommands' in response_keys:
+            self.cancelCommandInQueue(response['cancelCommands'])
+
+          if 'executionCommands' in response_keys:
+            execution_commands = response['executionCommands']
+            self.recovery_manager.process_execution_commands(execution_commands)
+            self.addToQueue(execution_commands)
 
         if 'statusCommands' in response_keys:
           # try storing execution command details and desired state
