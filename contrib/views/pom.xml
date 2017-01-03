@@ -48,6 +48,7 @@
     <module>storm</module>
     <module>hueambarimigration</module>
     <module>hive-next</module>
+    <module>hive20</module>
     <module>wfmanager</module>
     <!--ambari-views-package should be last in the module list for it to function properly-->
     <module>ambari-views-package</module>
