@@ -109,15 +109,11 @@ if security_enabled:
   infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules'].replace('$', '\$')
 
 #Solr log4j
-infra_client_log_maxfilesize =  default('configurations/infra-solr-client-log4j/infra_client_log_maxfilesize',80)
-infra_client_log_maxbackupindex =  default('configurations/infra-solr-client-log4j/infra_client_log_maxbackupindex',60)
 infra_log_maxfilesize = default('configurations/infra-solr-log4j/infra_log_maxfilesize',10)
 infra_log_maxbackupindex = default('configurations/infra-solr-log4j/infra_log_maxbackupindex',9)
 
 solr_xml_content = default('configurations/infra-solr-xml/content', None)
 solr_log4j_content = default('configurations/infra-solr-log4j/content', None)
-
-solr_client_custom_log4j = "infra-solr-client-log4j" in config['configurations']
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
