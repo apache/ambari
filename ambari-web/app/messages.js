@@ -3295,6 +3295,8 @@ Em.I18n.translations = {
       'Click <b>Save</b> to commit the change or <b>Discard</b> to revert your changes',
   'admin.serviceAutoStart.save.popup.transition.title': 'Warning',
   'admin.serviceAutoStart.save.popup.transition.body': 'You have unsaved changes',
+  'admin.serviceAutoStart.disabled.popup.body': 'During RU/EU auto-start of service components will be disabled.' +
+  ' Auto-start will be enabled after upgrade is completed.',
 
   'reset.ui.states': 'Reset UI State',
   'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?',
