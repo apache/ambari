@@ -18,7 +18,7 @@
 package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.historyqueryset;
 
 
-public class OracleQuerySet extends QuerySet {
+public class OracleQuerySetHueDB extends QuerySetHueDB {
 
   @Override
   protected String fetchuserIdfromUsernameSql() {
@@ -58,4 +58,9 @@ public class OracleQuerySet extends QuerySet {
     return "select query from beeswax_queryhistory where submission_date >= date(?) AND submission_date <= date(?)";
 
   }
+  @Override
+  protected String fetchUserNamSql() {
+    return "select username from auth_user where id = ?";
+  }
+
 }

@@ -53,6 +53,7 @@ public class HiveSavedQueryStartJob extends Thread{
     migrationresult.setIntanceName(instance);
     migrationresult.setUserNameofhue(username);
     migrationresult.setProgressPercentage(0);
+    migrationresult.setFlag(0);
 
     JSONObject response = new JSONObject();
 

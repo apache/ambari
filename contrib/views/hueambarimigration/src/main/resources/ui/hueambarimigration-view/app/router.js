@@ -30,8 +30,8 @@ Router.map(function() {
     this.route('pig-script');
     this.route('pig-job');
     this.route('revert-change');
+    this.route('pig-udf');
   });
-
 
 });
 

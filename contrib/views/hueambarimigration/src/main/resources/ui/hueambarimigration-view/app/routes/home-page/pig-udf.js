@@ -57,9 +57,7 @@ export default Ember.Route.extend({
       var migration = this.store.queryRecord('returnjobid', {
         username: this.usernames.toString(),
         instance: this.controller.get('instancename'),
-        startdate: this.controller.get('startdate'),
-        enddate: this.controller.get('enddate'),
-        jobtype: "pigjobmigration"
+        jobtype: "pigudfmigration"
       });
       var control = this.controller;
       var store = this.store;
@@ -70,10 +68,8 @@ export default Ember.Route.extend({
         var hivehistoryqueryjobstart = store.queryRecord('startmigration', {
           username: repeat.usernames.toString(),
           instance: control.get('instancename'),
-          startdate: control.get('startdate'),
-          enddate: control.get('enddate'),
           jobid: jobid,
-          jobtype: "pigjobmigration"
+          jobtype: "pigudfmigration"
         });
         hivehistoryqueryjobstart.then(function() {
           control.set('jobstatus', "0");
@@ -95,7 +91,6 @@ export default Ember.Route.extend({
         var numberOfQueryTransfered = progress.get('numberOfQueryTransfered');
         var flagForCompletion = parseInt(progress.get('flag'));
         console.log("the progress percentage is="+progressPercentage);
-        console.log("flag completion status is "+flagForCompletion);
 
         if (flagForCompletion === 1) {
           var totalNoQuery = progress.get('totalNoQuery');
@@ -119,6 +114,7 @@ export default Ember.Route.extend({
           control.set('progressBar', progressPercentage);
           repeat.progresscheck(jobid);
         }
+
       });
     }, 500);
   }

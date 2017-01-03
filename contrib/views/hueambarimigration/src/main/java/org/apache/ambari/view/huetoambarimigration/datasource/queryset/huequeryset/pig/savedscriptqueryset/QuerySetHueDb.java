@@ -15,42 +15,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset;
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.savedscriptqueryset;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 
-public abstract class QuerySet {
+public abstract class QuerySetHueDb {
 
-  public PreparedStatement getUseridfromUserName(Connection connection, String username) throws SQLException {
+  public PreparedStatement getUseridfromUserName(Connection connection,String username) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchuserIdfromUsernameSql());
     prSt.setString(1, username);
     return prSt;
   }
 
-  public PreparedStatement getQueriesNoStartDateNoEndDate(Connection connection, int id) throws SQLException {
+  public PreparedStatement getQueriesNoStartDateNoEndDate(Connection connection,int id) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesNoStartdateNoEnddateSql());
     prSt.setInt(1, id);
     return prSt;
   }
 
-  public PreparedStatement getQueriesNoStartDateYesEndDate(Connection connection, int id, String enddate) throws SQLException {
+  public PreparedStatement getQueriesNoStartDateYesEndDate(Connection connection,int id,String enddate) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesNoStartdateYesEnddateSql());
     prSt.setInt(1, id);
     prSt.setString(2, enddate);
     return prSt;
   }
 
-  public PreparedStatement getQueriesYesStartDateNoEndDate(Connection connection, int id, String startdate) throws SQLException {
+  public PreparedStatement getQueriesYesStartDateNoEndDate(Connection connection,int id,String startdate) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesYesStartdateNoEnddateSql());
     prSt.setInt(1, id);
     prSt.setString(2, startdate);
     return prSt;
   }
 
-  public PreparedStatement getQueriesYesStartDateYesEndDate(Connection connection, int id, String startdate, String endate) throws SQLException {
+  public PreparedStatement getQueriesYesStartDateYesEndDate(Connection connection,int id,String startdate,String endate) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesYesStartdateYesEnddateSql());
     prSt.setInt(1, id);
     prSt.setString(2, startdate);
@@ -60,28 +60,34 @@ public abstract class QuerySet {
 
   /**
    * for all user
-   */
+   * */
   public PreparedStatement getQueriesNoStartDateNoEndDateAllUser(Connection connection) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesNoStartdateNoEnddateYesallUserSql());
     return prSt;
   }
 
-  public PreparedStatement getQueriesNoStartDateYesEndDateAllUser(Connection connection, String enddate) throws SQLException {
+  public PreparedStatement getQueriesNoStartDateYesEndDateAllUser(Connection connection,String enddate) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesNoStartdateYesEnddateYesallUserSql());
     prSt.setString(1, enddate);
     return prSt;
   }
 
-  public PreparedStatement getQueriesYesStartDateNoEndDateAllUser(Connection connection, String startdate) throws SQLException {
+  public PreparedStatement getQueriesYesStartDateNoEndDateAllUser(Connection connection,String startdate) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesYesStartdateNoEnddateYesallUserSql());
     prSt.setString(1, startdate);
     return prSt;
   }
 
-  public PreparedStatement getQueriesYesStartDateYesEndDateAllUser(Connection connection, String startdate, String endate) throws SQLException {
+  public PreparedStatement getQueriesYesStartDateYesEndDateAllUser(Connection connection,String startdate,String endate) throws SQLException {
     PreparedStatement prSt = connection.prepareStatement(fetchHueQueriesYesStartdateYesEnddateYesallUserSql());
     prSt.setString(1, startdate);
     prSt.setString(2, endate);
+    return prSt;
+  }
+
+  public PreparedStatement getUserName(Connection connection, int id) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(fetchUserNameSql());
+    prSt.setInt(1, id);
     return prSt;
   }
 
@@ -91,42 +97,46 @@ public abstract class QuerySet {
   }
 
   protected String fetchHueQueriesNoStartdateNoEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =?;";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =?;";
   }
 
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =?  AND start_time <= date(?);";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND  date_created <= date(?);";
 
   }
 
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= date(?);";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND date_created >= date(?);";
+
 
   }
 
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= date(?) AND start_time <= date(?);";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND date_created >= date(?) AND date_created <= date(?);";
 
   }
 
   protected String fetchHueQueriesNoStartdateNoEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job ;";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 ;";
   }
 
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time <= date(?);";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND  date_created <= date(?);";
 
   }
 
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= date(?);";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND date_created >= date(?);";
 
   }
 
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= date(?) AND start_time <= date(?);";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND date_created >= date(?) AND date_created <= date(?);";
 
   }
 
+  protected String fetchUserNameSql() {
+    return "select username from auth_user where id = ?;";
+  }
 
 }

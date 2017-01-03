@@ -27,24 +27,30 @@ import java.sql.SQLException;
 
 public abstract class QuerySetAmbariDB {
 
-  public PreparedStatement getTableIdFromInstanceNameSavedquery(Connection connection, String instance) throws SQLException {
+  public PreparedStatement getTableIdFromInstanceName(Connection connection, String instance, String tableSequence) throws SQLException {
 
-    PreparedStatement prSt = connection.prepareStatement(getTableIdSqlFromInstanceNameSavedQuery());
+    PreparedStatement prSt = connection.prepareStatement(getTableIdSqlFromInstanceName(tableSequence));
     prSt.setString(1, instance);
     return prSt;
   }
 
-  public PreparedStatement updateSequenceNoInAmbariSequence(Connection connection, int seqNo, int id) throws SQLException {
 
-    PreparedStatement prSt = connection.prepareStatement(getSqlUpdateSequenceNo(id));
+  public PreparedStatement updateSequenceNoInAmbariSequence(Connection connection, int seqNo, String sequenceName) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlUpdateSequenceNo());
 
     prSt.setInt(1, seqNo);
+    prSt.setString(2, sequenceName);
 
     return prSt;
   }
 
-  public PreparedStatement getSequenceNoFromAmbariSequence(Connection connection,int id) throws SQLException {
-    PreparedStatement prSt = connection.prepareStatement(getSqlSequenceNoFromAmbariSequence(id));
+  public PreparedStatement getSequenceNoFromAmbariSequence(Connection connection,String sequenceName) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlSequenceNoFromAmbariSequence());
+
+    prSt.setString(1, sequenceName);
+
     return prSt;
   }
 
@@ -101,6 +107,39 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
+
+  public PreparedStatement insertToFileResources(Connection connection, int id, String maxcount, String fileName, String udfOwner, String udfPath) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlInsertFileResources(id));
+
+    prSt.setString(1, maxcount);
+    prSt.setString(2, fileName);
+    prSt.setString(3, udfOwner);
+    prSt.setString(4, udfPath);
+
+    return prSt;
+
+  }
+
+  public PreparedStatement insertToHiveUdf(Connection connection, int id, String maxcount1, String maxcount2, String className, String name, String owner) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlInsertHiveUdf(id));
+
+    prSt.setString(1, maxcount1);
+    prSt.setString(2, className);
+    prSt.setString(3, maxcount2);
+    prSt.setString(4, name);
+    prSt.setString(5, owner);
+
+    return prSt;
+  }
+
+  public PreparedStatement getUdfFileNamesAndOwners(Connection connection, int id) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(getSqlUdfFileNameAndOwners(id));
+    return prSt;
+
+  }
+
   public String revertSqlHistoryQuery(int id, String maxcount) throws SQLException {
 
     return getRevSqlHistoryQuery(id, maxcount);
@@ -115,9 +154,10 @@ public abstract class QuerySetAmbariDB {
     return "select MAX(cast(ds_id as integer)) as max from ds_savedquery_" + id + ";";
   }
 
-  protected String getTableIdSqlFromInstanceNameSavedQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.savedQueries.SavedQuery' and view_instance_name=?;";
+  protected String getTableIdSqlFromInstanceName(String sequence) {
+    return "select id from viewentity where class_name LIKE '" + sequence + "' and view_instance_name=?;";
   }
+
 
   protected String getSqlMaxDSidFromTableIdHistoryQuery(int id) {
     return "select MAX(cast(ds_id as integer)) as max from ds_jobimpl_" + id + ";";
@@ -135,6 +175,14 @@ public abstract class QuerySetAmbariDB {
     return "INSERT INTO ds_savedquery_" + id + " values (?,?,?,?,?,?);";
   }
 
+  protected String getSqlInsertFileResources(int id) {
+    return "INSERT INTO ds_fileresourceitem_" + id + " values (?,?,?,?);";
+  }
+
+  protected String getSqlInsertHiveUdf(int id) {
+    return "INSERT INTO ds_udf_" + id + " values (?,?,?,?,?);";
+  }
+
   protected String getRevSqlSavedQuery(int id, String maxcount) {
     return "delete from  ds_savedquery_" + id + " where ds_id='" + maxcount + "';";
   }
@@ -143,12 +191,16 @@ public abstract class QuerySetAmbariDB {
     return "delete from  ds_jobimpl_" + id + " where ds_id='" + maxcount + "';";
   }
 
-  protected String getSqlSequenceNoFromAmbariSequence(int id) {
-    return "select sequence_value from ambari_sequences where sequence_name ='ds_savedquery_"+id+"_id_seq';";
+  protected String getSqlSequenceNoFromAmbariSequence() {
+    return "select sequence_value from ambari_sequences where sequence_name=?;";
   }
 
-  protected String getSqlUpdateSequenceNo(int id) {
-    return "update ambari_sequences set sequence_value=? where sequence_name='ds_savedquery_"+id+"_id_seq';";
+  protected String getSqlUpdateSequenceNo() {
+    return "update ambari_sequences set sequence_value=? where sequence_name=?;";
+  }
+
+  protected String getSqlUdfFileNameAndOwners(int id) {
+    return "select ds_name, ds_owner from ds_fileresourceitem_" + id + ";";
   }
 
 }

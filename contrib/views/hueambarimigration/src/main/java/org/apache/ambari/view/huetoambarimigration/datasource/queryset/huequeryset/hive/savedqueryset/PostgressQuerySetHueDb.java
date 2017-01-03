@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset;
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.savedqueryset;
 
 
-public class SqliteQuerySet extends QuerySet {
+public class PostgressQuerySetHueDb extends QuerySetHueDb {
 }

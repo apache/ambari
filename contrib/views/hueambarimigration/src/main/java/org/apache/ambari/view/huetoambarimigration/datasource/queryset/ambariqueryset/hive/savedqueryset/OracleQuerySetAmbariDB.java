@@ -25,8 +25,8 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   }
 
   @Override
-  protected String getTableIdSqlFromInstanceNameSavedQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.savedQueries.SavedQuery' and view_instance_name=?";
+  protected String getTableIdSqlFromInstanceName(String sequence) {
+    return "select id from viewentity where class_name LIKE '" + sequence + "' and view_instance_name=?";
   }
 
   @Override
@@ -48,6 +48,16 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   }
 
   @Override
+  protected String getSqlInsertFileResources(int id) {
+    return "INSERT INTO ds_fileresourceitem_" + id + " values (?,?,?,?)";
+  }
+
+  @Override
+  protected String getSqlInsertHiveUdf(int id) {
+    return "INSERT INTO ds_udf_" + id + " values (?,?,?,?,?)";
+  }
+
+  @Override
   protected String getRevSqlSavedQuery(int id, String maxcount) {
     return "delete from  ds_savedquery_" + id + " where ds_id='" + maxcount + "'";
   }
@@ -55,12 +65,19 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   protected String getRevSqlHistoryQuery(int id, String maxcount) {
     return "delete from  ds_jobimpl_" + id + " where ds_id='" + maxcount + "'";
   }
+
   @Override
-  protected String getSqlSequenceNoFromAmbariSequence(int id) {
-    return "select sequence_value from ambari_sequences where sequence_name ='ds_savedquery_"+id+"_id_seq'";
+  protected String getSqlSequenceNoFromAmbariSequence() {
+    return "select sequence_value from ambari_sequences where sequence_name=?;";
   }
+
   @Override
-  protected String getSqlUpdateSequenceNo(int id) {
-    return "update ambari_sequences set sequence_value=? where sequence_name='ds_savedquery_"+id+"_id_seq'";
+  protected String getSqlUpdateSequenceNo() {
+    return "update ambari_sequences set sequence_value=? where sequence_name=?;";
+  }
+
+  @Override
+  protected String getSqlUdfFileNameAndOwners(int id) {
+    return "select ds_name, ds_owner from ds_fileresourceitem_" + id + ";";
   }
 }

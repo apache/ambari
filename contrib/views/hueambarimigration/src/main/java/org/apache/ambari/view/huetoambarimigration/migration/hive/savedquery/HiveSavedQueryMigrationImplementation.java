@@ -20,7 +20,7 @@ package org.apache.ambari.view.huetoambarimigration.migration.hive.savedquery;
 
 import org.apache.ambari.view.huetoambarimigration.resources.scripts.models.HiveModel;
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.hive.savedqueryset.QuerySetAmbariDB;
-import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.savedqueryset.QuerySet;
+import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.savedqueryset.QuerySetHueDb;
 import org.apache.ambari.view.huetoambarimigration.migration.configuration.ConfigurationCheckImplementation;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -36,6 +36,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -44,10 +45,9 @@ import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.*;
 import java.util.Date;
-import java.util.GregorianCalendar;
+import java.net.URI;
 
 public class HiveSavedQueryMigrationImplementation {
 
@@ -151,7 +151,7 @@ public class HiveSavedQueryMigrationImplementation {
   }
 
 
-  public int fetchSequenceno(Connection c, int id, QuerySetAmbariDB ambaridatabase) throws SQLException {
+  public int fetchSequenceno(Connection c, QuerySetAmbariDB ambaridatabase, String sequenceName) throws SQLException {
 
     String ds_id = new String();
     Statement stmt = null;
@@ -159,10 +159,10 @@ public class HiveSavedQueryMigrationImplementation {
     int sequencevalue=0;
 
 
+
     ResultSet rs = null;
 
-
-    prSt = ambaridatabase.getSequenceNoFromAmbariSequence(c, id);
+    prSt = ambaridatabase.getSequenceNoFromAmbariSequence(c, sequenceName);
 
     logger.info("sql statement to fetch is from ambari instance:= =  " + prSt);
 
@@ -174,16 +174,16 @@ public class HiveSavedQueryMigrationImplementation {
     return sequencevalue;
   }
 
-  public void updateSequenceno(Connection c, int seqNo, int id, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+  public void updateSequenceno(Connection c, int seqNo, String sequenceName, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
 
     PreparedStatement prSt;
-    prSt = ambaridatabase.updateSequenceNoInAmbariSequence(c, seqNo, id);
+    prSt = ambaridatabase.updateSequenceNoInAmbariSequence(c, seqNo, sequenceName);
     logger.info("The actual insert statement is " + prSt);
     prSt.executeUpdate();
     logger.info("adding revert sql hive history");
   }
 
-  public int fetchInstancetablenameForSavedqueryHive(Connection c, String instance, QuerySetAmbariDB ambaridatabase) throws SQLException {
+  public int fetchInstancetablename(Connection c, String instance, QuerySetAmbariDB ambaridatabase, String tableSequence) throws SQLException {
 
     String ds_id = new String();
     int id = 0;
@@ -194,9 +194,9 @@ public class HiveSavedQueryMigrationImplementation {
     ResultSet rs = null;
 
 
-    prSt = ambaridatabase.getTableIdFromInstanceNameSavedquery(c, instance);
+    prSt = ambaridatabase.getTableIdFromInstanceName(c, instance, tableSequence);
 
-    logger.info("sql statement to fetch is from ambari instance:= =  " + prSt);
+    logger.info("sql statement to fetch from ambari instance:= =  " + prSt);
 
     rs = prSt.executeQuery();
 
@@ -301,6 +301,20 @@ public class HiveSavedQueryMigrationImplementation {
 
   }
 
+
+  public void insertUdf(Connection c, int fileid, int udfid, int maxcountFileResource, int maxcountUdf, String udfClass, String fileName, String udfName, String udfOwner, String udfPath, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+
+    String revsql = null;
+
+    PreparedStatement prSt = null;
+
+    prSt = ambaridatabase.insertToFileResources(c, fileid, Integer.toString(maxcountFileResource), fileName, udfOwner, udfPath);
+    prSt.executeUpdate();
+    prSt = ambaridatabase.insertToHiveUdf(c, udfid, Integer.toString(maxcountUdf), Integer.toString(maxcountFileResource), udfClass, udfName, udfOwner);
+    prSt.executeUpdate();
+
+  }
+
   public long getEpochTime() throws ParseException {
 
     long seconds = System.currentTimeMillis() / 1000l;
@@ -335,7 +349,7 @@ public class HiveSavedQueryMigrationImplementation {
 
   }
 
-  public ArrayList<HiveModel> fetchFromHuedb(String username, String startdate, String endtime, Connection connection, QuerySet huedatabase)
+  public ArrayList<HiveModel> fetchFromHuedb(String username, String startdate, String endtime, Connection connection, QuerySetHueDb huedatabase)
     throws ClassNotFoundException, IOException {
     int id = 0;
     int i = 0;
@@ -348,6 +362,8 @@ public class HiveSavedQueryMigrationImplementation {
       connection.setAutoCommit(false);
       PreparedStatement prSt = null;
       ResultSet rs;
+      String ownerName="";
+      int ownerId;
       if (username.equals("all")) {
       } else {
 
@@ -392,28 +408,68 @@ public class HiveSavedQueryMigrationImplementation {
 
       }
 
+      logger.info("Query Prepared statement is " + prSt.toString());
+
       rs1 = prSt.executeQuery();
+
+      logger.info("Query executed");
 
 
       while (rs1.next()) {
         HiveModel hivepojo = new HiveModel();
-        String name = rs1.getString("name");
+        ownerId = rs1.getInt("owner_id");
+        if(username.equals("all")) {
+          prSt = huedatabase.getUserName(connection, ownerId);
+          ResultSet resultSet = prSt.executeQuery();
+          while(resultSet.next()) {
+            ownerName = resultSet.getString("username");
+          }
+        }
+        String queryTitle = rs1.getString("name");
         String temp = rs1.getString("data");
         InputStream is = new ByteArrayInputStream(temp.getBytes());
         BufferedReader rd = new BufferedReader(new InputStreamReader(
           is, Charset.forName("UTF-8")));
         String jsonText = readAll(rd);
+
         JSONObject json = new JSONObject(jsonText);
         String resources = json.get("query").toString();
-        json = new JSONObject(resources);
+        logger.info("query: "+resources);
+        JSONArray fileResources = (JSONArray) json.get("file_resources");
+        JSONArray functions = (JSONArray) json.get("functions");
+        ArrayList<String> filePaths = new ArrayList<String>();
+        ArrayList<String> classNames = new ArrayList<String>();
+        ArrayList<String> udfNames = new ArrayList<String>();
 
+        for(int j=0;j<fileResources.length();j++) {
+          filePaths.add(fileResources.getJSONObject(j).get("path").toString());
+        }
+
+        for(int j=0;j<functions.length();j++) {
+          classNames.add(functions.getJSONObject(j).get("class_name").toString());
+          udfNames.add(functions.getJSONObject(j).get("name").toString());
+        }
+
+        logger.info("Paths are: " + Arrays.toString(filePaths.toArray()));
+        logger.info("Class names are: " + Arrays.toString(classNames.toArray()));
+        logger.info("Udf names are: " + Arrays.toString(udfNames.toArray()));
+
+
+        json = new JSONObject(resources);
         String resarr = (json.get("query")).toString();
 
         json = new JSONObject(resources);
         String database = (json.get("database")).toString();
+
         hivepojo.setQuery(resarr);
+        hivepojo.setOwnerName(ownerName);
         hivepojo.setDatabase(database);
-        hivepojo.setOwner(name);
+        hivepojo.setQueryTitle(queryTitle);
+        if(filePaths.size() > 0) {
+          hivepojo.setFilePaths(filePaths);
+          hivepojo.setUdfClasses(classNames);
+          hivepojo.setUdfNames(udfNames);
+        }
         hiveArrayList.add(hivepojo);
         i++;
       }
@@ -435,6 +491,21 @@ public class HiveSavedQueryMigrationImplementation {
 
   }
 
+  public boolean checkUdfExists(Connection connection, String fileName, String username, int tableId, QuerySetAmbariDB ambaridatabase, HashSet<String> udfSet) throws SQLException{
+    //check if it is already in the database
+    ResultSet rs = ambaridatabase.getUdfFileNamesAndOwners(connection, tableId).executeQuery();
+    while(rs.next()){
+      logger.info("fileName: "+fileName+" ds_name:"+rs.getString("ds_name")+" username:"+username+" ds_owner:"+rs.getString("ds_owner"));
+      if(rs.getString("ds_name").equals(fileName) && rs.getString("ds_owner").equals(username)) {
+        return true;
+      }
+    }
+    //check if it is one of the udf's selected in this migration
+    if(udfSet.contains(fileName+username)) {
+      return true;
+    }
+    return false;
+  }
 
   public void writetoFilequeryHql(String content, String homedir) {
     try {
@@ -536,10 +607,10 @@ public class HiveSavedQueryMigrationImplementation {
 
         public Void run() throws Exception {
 
-          FileSystem fs = FileSystem.get(conf);
+          URI uri = new URI(dir);
+          FileSystem fs = FileSystem.get(uri, conf, username);
           Path src = new Path(dir);
           fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
           return null;
         }
       });
@@ -568,10 +639,10 @@ public class HiveSavedQueryMigrationImplementation {
       ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
         public Boolean run() throws Exception {
-          FileSystem fs = FileSystem.get(conf);
+          URI uri = new URI(dir);
+          FileSystem fs = FileSystem.get(uri, conf, username);
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
           return b;
         }
       });
@@ -613,9 +684,7 @@ public class HiveSavedQueryMigrationImplementation {
           }
 
           Path path = new Path(dest1);
-          if (fileSystem.exists(path)) {
 
-          }
           FSDataOutputStream out = fileSystem.create(path);
 
           InputStream in = new BufferedInputStream(
@@ -628,7 +697,7 @@ public class HiveSavedQueryMigrationImplementation {
           }
           in.close();
           out.close();
-          fileSystem.setOwner(path,username,"hadoop");
+          fileSystem.setOwner(path, username, "hadoop");
           fileSystem.close();
           return null;
         }
@@ -690,7 +759,7 @@ public class HiveSavedQueryMigrationImplementation {
           }
           in.close();
           out.close();
-          fileSystem.setOwner(path,username,"hadoop");
+          fileSystem.setOwner(path, username, "hadoop");
           fileSystem.close();
           return null;
         }

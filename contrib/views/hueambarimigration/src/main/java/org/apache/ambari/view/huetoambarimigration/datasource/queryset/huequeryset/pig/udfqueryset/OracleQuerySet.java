@@ -6,26 +6,36 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Model from 'ember-data/model';
-import DS from 'ember-data';
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.udfqueryset;
 
-export default Model.extend({
-  progressPercentage: DS.attr('string'),
-  numberOfQueryTransfered: DS.attr('string'),
-  totalNoQuery: DS.attr('string'),
-  intanceName: DS.attr('string'),
-  userNameofhue: DS.attr('string'),
-  totalTimeTaken: DS.attr('string'),
-  jobtype: DS.attr('string'),
-  isNoQuerySelected: DS.attr('string'),
-  flag: DS.attr('string')
-});
+
+public class OracleQuerySet extends QuerySet {
+
+  @Override
+  protected String fetchuserIdfromUsernameSql() {
+    return "select id from auth_user where username=?";
+  }
+
+  @Override
+  protected String fetchHueQueriesSql() {
+    return "select url, file_name, owner_id from pig_udf where owner_id =?";
+  }
+
+  @Override
+  protected String fetchHueQueriesAllUserSql() {
+    return "select url, file_name, owner_id from pig_udf";
+  }
+
+  @Override
+  protected String fetchuserNamefromUserIdSql() { return "select username from auth_user where id=?";}
+
+}

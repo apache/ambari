@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.historyqueryset;
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.udfqueryset;
 
 
-public class SqliteQuerySet extends QuerySet {
+public class PostgressQuerySetAmbariDB extends QuerySetAmbariDB {
 }
