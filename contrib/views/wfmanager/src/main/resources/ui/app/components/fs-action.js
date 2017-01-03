@@ -21,7 +21,7 @@ const Validations = buildValidations({
   'actionModel.fsOps': {
     validators: [
       validator('fs-action-validator', {
-        dependentKeys: ['actionModel.fsOps.@each']
+        dependentKeys: ['actionModel.fsOps.@each.path','actionModel.fsOps.@each.source', 'actionModel.fsOps.@each.target', 'actionModel.fsOps.@each.group']
       })
     ]
   }
@@ -32,12 +32,13 @@ export default Ember.Component.extend(Validations, {
   setUp: function() {
     if (this.get('actionModel.fsOps') === undefined) {
       this.set("actionModel.fsOps", Ember.A([]));
+      this.set("actionModel.fsOps", [{"type":"mkdir"}]);
     }
     if (this.get('actionModel.configuration') === undefined) {
       this.set("actionModel.configuration", {});
       this.set("actionModel.configuration.property", Ember.A([]));
     }
-    var field = 'validations.attrs.actionModel.fsOps.isDirty';
+    var field = 'validations.attrs.actionModel.fsOps.isInvalid';
     this.set(field, false);
     this.sendAction('register', 'fsAction', this);
   }.on('init'),
