@@ -502,11 +502,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     ];
     beforeEach(function () {
       sinon.stub(App, 'showClusterCheckPopup', Em.K);
-      sinon.stub(controller, 'showAutoStartDisableModal', Em.K);
+      sinon.stub(controller, 'upgrade', Em.K);
     });
     afterEach(function () {
       App.showClusterCheckPopup.restore();
-      controller.showAutoStartDisableModal.restore();
+      controller.upgrade.restore();
     });
     cases.forEach(function (item) {
       it(item.title, function () {
@@ -521,7 +521,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             label: 'name'
           }
         );
-        expect(controller.showAutoStartDisableModal.callCount).to.equal(item.upgradeCalledCount);
+        expect(controller.upgrade.callCount).to.equal(item.upgradeCalledCount);
         expect(App.showClusterCheckPopup.callCount).to.equal(item.showClusterCheckPopupCalledCount);
         if (item.check.id === 'CONFIG_MERGE') {
           expect(App.showClusterCheckPopup.firstCall.args[2]).to.eql(item.configs);
@@ -1264,57 +1264,31 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#setUpgradeItemStatus()", function () {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'switchServiceAutoStartTo');
-    });
-    afterEach(function() {
-      controller.switchServiceAutoStartTo.restore();
-    });
-
-    describe('#PENDING status', function() {
-      var item;
-      beforeEach(function () {
-        item = Em.Object.create({
-          request_id: 1,
-          stage_id: 1,
-          group_id: 1
-        });
-        controller.setUpgradeItemStatus(item, 'PENDING');
-        this.callArgs = testHelpers.findAjaxRequest('name', 'admin.upgrade.upgradeItem.setState')[0];
+    var item;
+    beforeEach(function () {
+      item = Em.Object.create({
+        request_id: 1,
+        stage_id: 1,
+        group_id: 1
       });
-
-      it('request-data is valid', function () {
-        expect(this.callArgs.data).to.be.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
-      });
-      it('request-name is valid', function () {
-        expect(this.callArgs.name).to.be.equal('admin.upgrade.upgradeItem.setState');
-      });
-      it('request-sendeer is valid', function () {
-        expect(this.callArgs.sender).to.be.eql(controller);
-      });
-      it('callback is called', function () {
-        expect(this.callArgs.callback).to.be.called;
-      });
-      it('item.status is PENDING', function () {
-        expect(item.get('status')).to.equal('PENDING');
-      });
-      it('switchServiceAutoStartTo should not be called', function () {
-        expect(controller.switchServiceAutoStartTo.called).to.be.false;
-      });
+      controller.setUpgradeItemStatus(item, 'PENDING');
+      this.callArgs = testHelpers.findAjaxRequest('name', 'admin.upgrade.upgradeItem.setState')[0];
     });
 
-    describe('#COMPLETED status', function() {
-      it('switchServiceAutoStartTo should not be called', function () {
-        var item = Em.Object.create({
-          request_id: 1,
-          stage_id: 1,
-          group_id: 1
-        });
-        controller.set('isFinalizeItem', true);
-        controller.setUpgradeItemStatus(item, 'COMPLETED');
-        expect(controller.switchServiceAutoStartTo.calledOnce).to.be.true;
-      });
+    it('request-data is valid', function () {
+      expect(this.callArgs.data).to.be.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
+    });
+    it('request-name is valid', function () {
+      expect(this.callArgs.name).to.be.equal('admin.upgrade.upgradeItem.setState');
+    });
+    it('request-sendeer is valid', function () {
+      expect(this.callArgs.sender).to.be.eql(controller);
+    });
+    it('callback is called', function () {
+      expect(this.callArgs.callback).to.be.called;
+    });
+    it('item.status is PENDING', function () {
+      expect(item.get('status')).to.equal('PENDING');
     });
   });
 
@@ -3301,82 +3275,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       };
       controller.loadCompatibleVersionsSuccessCallback(data);
       expect(mock.mapProperty('isCompatible')).to.be.eql([false, true])
-    });
-  });
-
-  describe('#showAutoStartDisableModal', function() {
-
-    beforeEach(function() {
-      sinon.spy(App, 'showAlertPopup');
-      sinon.stub(controller, 'switchServiceAutoStartTo');
-      sinon.stub(controller, 'upgrade');
-    });
-
-    afterEach(function() {
-      App.showAlertPopup.restore();
-      controller.switchServiceAutoStartTo.restore();
-      controller.upgrade.restore();
-    });
-
-    it('showAlertPopup should be called', function() {
-      controller.showAutoStartDisableModal({});
-      expect(App.showAlertPopup.calledOnce).to.be.true;
-    });
-
-    it('switchServiceAutoStartTo should be called', function() {
-      var popup = controller.showAutoStartDisableModal({});
-      popup.onPrimary();
-      expect(controller.switchServiceAutoStartTo.calledWith(false)).to.be.true;
-    });
-
-    it('upgrade should be called', function() {
-      var popup = controller.showAutoStartDisableModal({});
-      popup.onPrimary();
-      expect(controller.upgrade.calledWith({})).to.be.true;
-    });
-  });
-
-  describe('#switchServiceAutoStartTo', function() {
-    var mockController = Em.Object.create({
-      load: Em.K,
-      saveClusterConfigs: Em.K,
-      syncStatus: Em.K
-    });
-
-    beforeEach(function() {
-      sinon.stub(App.router, 'get').returns(mockController);
-      sinon.stub(mockController, 'load').returns({
-        done: Em.clb
-      });
-      sinon.stub(mockController, 'saveClusterConfigs');
-      sinon.stub(mockController, 'syncStatus');
-    });
-
-    afterEach(function() {
-      App.router.get.restore();
-      mockController.load.restore();
-      mockController.saveClusterConfigs.restore();
-      mockController.syncStatus.restore();
-    });
-
-    it('should not update value on server when state have not been changed', function() {
-      mockController.set('servicesAutoStart', true);
-      mockController.set('clusterConfigs', {recovery_enabled: 'true'});
-      controller.switchServiceAutoStartTo(true);
-      expect(mockController.load.calledOnce).to.be.true;
-      expect(mockController.saveClusterConfigs.called).to.be.false;
-      expect(mockController.syncStatus.called).to.be.false;
-      expect(mockController.get('servicesAutoStart')).to.be.true;
-    });
-
-    it('should update value on server when state been changed', function() {
-      mockController.set('servicesAutoStart', true);
-      mockController.set('clusterConfigs', {recovery_enabled: 'true'});
-      controller.switchServiceAutoStartTo(false);
-      expect(mockController.load.calledOnce).to.be.true;
-      expect(mockController.saveClusterConfigs.calledWith({recovery_enabled: 'false'})).to.be.true;
-      expect(mockController.syncStatus.calledOnce).to.be.true;
-      expect(mockController.get('servicesAutoStart')).to.be.false;
     });
   });
 
