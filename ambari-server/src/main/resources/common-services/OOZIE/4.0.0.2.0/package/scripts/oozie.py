@@ -148,7 +148,7 @@ def oozie(is_server=False):
       mode=0644,
       group=params.user_group,
       owner=params.oozie_user,
-      content=params.log4j_props
+      content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(format("{params.conf_dir}/oozie-log4j.properties"))):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
