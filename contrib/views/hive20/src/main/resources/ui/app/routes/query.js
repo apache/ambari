@@ -64,7 +64,7 @@ export default Ember.Route.extend({
     controller.set('isQueryRunning', false);
     controller.set('defaultQueryResult', {'schema' :[], 'rows' :[]});
     controller.set('queryResult', controller.get('defaultQueryResult'));
-    controller.set('showPreviousButton', false);
+    controller.set('hidePreviousButton', true);
 
     //For Pagination
     localStorage.setItem("jobData", JSON.stringify([]));
@@ -212,7 +212,7 @@ export default Ember.Route.extend({
           console.log('getJob route', data );
           self.get('controller').set('queryResult', data);
           self.get('controller').set('isQueryRunning', false);
-          self.get('controller').set('showPreviousButton', true);
+          self.get('controller').set('hidePreviousButton', false);
 
           let localArr = JSON.parse(localStorage.getItem("jobData"));
           localArr.push(data);
@@ -248,7 +248,7 @@ export default Ember.Route.extend({
           this.get('controller').set('prevPage', prevPage + 1 );
           this.get('controller').set('nextPage', nextPage + 1);
 
-          this.get('controller').set('showPreviousButton', true);
+          this.get('controller').set('hidePreviousButton', false);
 
           this.get('controller').set('queryResult', JSON.parse(localStorage.getItem("jobData"))[this.get('controller').get('currentPage')] );
         } else {
@@ -257,6 +257,8 @@ export default Ember.Route.extend({
           this.send('goNextPage');
         }
       }
+
+
     },
     goPrevPage(){
 
@@ -273,8 +275,31 @@ export default Ember.Route.extend({
         this.get('controller').set('queryResult', JSON.parse(localStorage.getItem("jobData"))[this.get('controller').get('currentPage')] );
       } else {
         //console.log('previous limit over');
-        this.get('controller').set('showPreviousButton', false);
+        this.get('controller').set('hidePreviousButton', true);
+      }
+    },
+
+    expandQueryEdidorPanel(){
+      Ember.$('.query-editor-panel').toggleClass('query-editor-full-width');
+      Ember.$('.database-panel').toggleClass("hide");
+    },
+
+    expandQueryResultPanel(){
+
+      Ember.$('.query-editor-panel').toggleClass('query-editor-full-width');
+      Ember.$('.query-editor-container').toggleClass("hide");
+      Ember.$('.database-panel').toggleClass("hide");
+      this.send('adjustPanelSize');
+    },
+
+    adjustPanelSize(){
+      let isFullHeight = ($(window).height() ==(parseInt(Ember.$('.ember-light-table').css('height'), 10)) ) || false;
+      if(!isFullHeight){
+        Ember.$('.ember-light-table').css('height', '100vh');
+      }else {
+        Ember.$('.ember-light-table').css('height', '70vh');
       }
     }
+
   }
 });

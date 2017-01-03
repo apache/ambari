@@ -279,14 +279,33 @@ pre {
   }
 }
 
+.query-editor-panel{
+  transition:width 0.50s;
+}
+
 .query-editor {
   border: 1px solid darken($database-search-background, 25%);
   margin-right: 0;
 }
 
+.query-editor-full-width {
+  width: 100%;
+  padding-right: 0;
+  transition:width 0.50s;
+}
+
 .query-editor-controls {
   padding-top: 15px;
   padding-bottom: 15px;
+}
+
+.query-editor-results {
+  padding-right: 15px;
+}
+
+.query-result-table {
+  border-top: 1px solid darken($database-search-background, 25%);
+  padding-top:10px;
 }
 
 .database-panel{
@@ -403,9 +422,14 @@ pre {
   }
 
   .ember-light-table {
-    width: 95%;
+    width: 100%;
     margin: 0 auto;
-    border-collapse: collapse
+    border-collapse: collapse;
+    height: 65vh; //This can be controlled from the hbs also.
+  }
+
+  .full-vw-height{
+    height: 100vh;
   }
 
   .ember-light-table .multi-select {

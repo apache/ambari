@@ -77,6 +77,9 @@ export default Ember.Component.extend({
     },
     goPrevPage(){
       this.sendAction('goPrevPage');
+    },
+    expandQueryResultPanel(){
+      this.sendAction('expandQueryResultPanel');
     }
 
   }
