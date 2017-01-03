@@ -579,14 +579,14 @@ public class ConfigGroupResourceProvider extends
           getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
           cluster.getClusterName());
 
+      verifyConfigs(request.getConfigs(), cluster.getClusterName());
+
       ConfigGroup configGroup = configGroupFactory.createNew(cluster,
         request.getGroupName(),
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
 
       configGroup.setServiceName(serviceName);
-
-      verifyConfigs(configGroup.getConfigurations(), cluster.getClusterName());
 
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {
