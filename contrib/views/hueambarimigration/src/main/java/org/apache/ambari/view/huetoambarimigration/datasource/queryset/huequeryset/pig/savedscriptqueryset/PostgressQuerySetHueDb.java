@@ -15,51 +15,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset;
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.savedscriptqueryset;
 
 
-public class OracleQuerySet extends QuerySet {
+public class PostgressQuerySetHueDb extends QuerySetHueDb {
+
   @Override
   protected String fetchuserIdfromUsernameSql() {
-    return   "select id from auth_user where username=?";
+    return "select id from auth_user where username=?;";
 
   }
   @Override
   protected String fetchHueQueriesNoStartdateNoEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =?";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true' AND user_id =?;";
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =?  AND start_time <= date(?)";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true' AND user_id =? AND  date_created <= date(?);";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= date(?)";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true' AND user_id =? AND date_created >= date(?);";
+
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= date(?) AND start_time <= date(?)";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true' AND user_id =? AND date_created >= date(?) AND date_created <= date(?);";
 
   }
   @Override
   protected String fetchHueQueriesNoStartdateNoEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job ";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true' ;";
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time <= date(?)";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true'  AND  date_created <= date(?);";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= date(?)";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true'  AND date_created >= date(?);";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= date(?) AND start_time <= date(?)";
+    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved='true'  AND date_created >= date(?) AND date_created <= date(?);";
 
   }
 }

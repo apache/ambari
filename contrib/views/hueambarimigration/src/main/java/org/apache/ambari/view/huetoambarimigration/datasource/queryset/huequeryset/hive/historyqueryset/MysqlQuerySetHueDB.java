@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.savedscriptqueryset;
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.historyqueryset;
 
 
-public class MysqlQuerySet extends QuerySet {
+public class MysqlQuerySetHueDB extends QuerySetHueDB {
+
 }

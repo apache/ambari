@@ -18,7 +18,5 @@
 package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.savedscriptqueryset;
 
 
-public class SqliteQuerySet extends QuerySet {
-
-
+public class MysqlQuerySetHueDb extends QuerySetHueDb {
 }

@@ -15,15 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.savedqueryset;
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.historyqueryset;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 
-public  abstract class QuerySet {
+public abstract class QuerySetHueDB {
 
 
   public PreparedStatement getUseridfromUserName(Connection connection, String username) throws SQLException {
@@ -87,6 +86,11 @@ public  abstract class QuerySet {
     return prSt;
   }
 
+  public PreparedStatement getUserName(Connection connection, int id) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(fetchUserNamSql());
+    prSt.setInt(1, id);
+    return prSt;
+  }
 
   protected String fetchuserIdfromUsernameSql() {
     return "select id from auth_user where username=?;";
@@ -94,40 +98,41 @@ public  abstract class QuerySet {
   }
 
   protected String fetchHueQueriesNoStartdateNoEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =?;";
+    return "select owner_id, query from beeswax_queryhistory where owner_id =?;";
   }
 
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime <= date(?);";
+    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date <= date(?);";
   }
 
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime >= date(?);";
-
+    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?);";
   }
 
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime >= date(?) AND mtime <= date(?);";
-
+    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?) AND submission_date <= date(?);";
   }
 
   protected String fetchHueQueriesNoStartdateNoEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query';";
+    return "select owner_id, query from beeswax_queryhistory;";
   }
 
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime <= date(?);";
-
+    return "select owner_id, query from beeswax_queryhistory where submission_date <= date(?);";
   }
 
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime >= date(?);";
+    return "select owner_id, query from beeswax_queryhistory where submission_date >= date(?);";
 
   }
 
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime >= date(?) AND mtime <= date(?);";
+    return "select owner_id, query from beeswax_queryhistory where submission_date >= date(?) AND submission_date <= date(?);";
 
+  }
+
+  protected String fetchUserNamSql() {
+    return "select username from auth_user where id = ?;";
   }
 
 

@@ -26,7 +26,7 @@ limitations under the License.
         </font>
       </div>
       <div class="col-sm-3">
-        {{ember-selectize content=model.usersdetail  optionValuePath="content.username" optionLabelPath="content.username" value=usernamehue placeholder="Select an userName" }}
+        {{ember-selectize content=model.usersdetail selection=model.selections optionValuePath="content.username" optionLabelPath="content.username" multiple=true add-value="addSelection" remove-value="removeSelection" placeholder="Select a User Name" }}
       </div>
     </div>
     <br>
@@ -109,7 +109,7 @@ limitations under the License.
               <td>Total Time Taken</td><td>{{totalTimeTaken}}ms</td>
             </tr>
             <tr>
-              <td>Hue User Name(Source)</td>
+              <td>Hue Users</td>
               <td>{{Username}}</td>
             </tr>
             <tr>

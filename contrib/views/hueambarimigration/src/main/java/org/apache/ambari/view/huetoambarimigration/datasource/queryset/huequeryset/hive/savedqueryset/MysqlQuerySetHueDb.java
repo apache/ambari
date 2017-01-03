@@ -6,26 +6,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Model from 'ember-data/model';
-import DS from 'ember-data';
 
-export default Model.extend({
-  progressPercentage: DS.attr('string'),
-  numberOfQueryTransfered: DS.attr('string'),
-  totalNoQuery: DS.attr('string'),
-  intanceName: DS.attr('string'),
-  userNameofhue: DS.attr('string'),
-  totalTimeTaken: DS.attr('string'),
-  jobtype: DS.attr('string'),
-  isNoQuerySelected: DS.attr('string'),
-  flag: DS.attr('string')
-});
+package org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.savedqueryset;
+
+
+public class MysqlQuerySetHueDb extends QuerySetHueDb {
+}

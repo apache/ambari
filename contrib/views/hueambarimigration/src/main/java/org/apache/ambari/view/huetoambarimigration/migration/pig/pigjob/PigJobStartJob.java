@@ -52,6 +52,7 @@ public class PigJobStartJob extends Thread{
     migrationresult.setIntanceName(instance);
     migrationresult.setUserNameofhue(username);
     migrationresult.setProgressPercentage(0);
+    migrationresult.setFlag(0);
 
     PigJobMigrationUtility pigjobmigration=new PigJobMigrationUtility();
     try {

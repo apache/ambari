@@ -33,7 +33,6 @@ import java.util.Map;
 public class MigrationResponse implements Serializable,PersonalResource{
 
 
-
   private String id;
 
   private int numberOfQueryTransfered;
@@ -45,6 +44,7 @@ public class MigrationResponse implements Serializable,PersonalResource{
   private String totalTimeTaken="";
   private String jobtype="";
   private String isNoQuerySelected="";
+  private int flag;
 
   public String getTotalTimeTaken() {
     return totalTimeTaken;
@@ -140,4 +140,8 @@ public class MigrationResponse implements Serializable,PersonalResource{
   public void setOwner(String owner) {
     this.owner = owner;
   }
+
+  public int getFlag() { return flag; }
+
+  public void setFlag(int flag) { this.flag = flag; }
 }
