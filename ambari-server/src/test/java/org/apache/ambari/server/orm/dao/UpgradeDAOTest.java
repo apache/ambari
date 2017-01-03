@@ -185,7 +185,7 @@ public class UpgradeDAOTest {
     entity3.setUpgradePackage("test-upgrade");
     entity3.setDowngradeAllowed(true);
     dao.create(entity3);
-    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1);
+    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1, Direction.UPGRADE);
     assertNotNull(lastUpgradeForCluster);
     assertEquals(33L, (long)lastUpgradeForCluster.getId());
   }
@@ -215,7 +215,7 @@ public class UpgradeDAOTest {
     upgradeEntity.setUpgradePackage("test-upgrade");
     dao.create(upgradeEntity);
 
-    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1);
+    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1, Direction.UPGRADE);
     Assert.assertFalse(lastUpgradeForCluster.isComponentFailureAutoSkipped());
     Assert.assertFalse(lastUpgradeForCluster.isServiceCheckFailureAutoSkipped());
 
@@ -223,7 +223,7 @@ public class UpgradeDAOTest {
     lastUpgradeForCluster.setAutoSkipServiceCheckFailures(true);
     dao.merge(lastUpgradeForCluster);
 
-    lastUpgradeForCluster = dao.findLastUpgradeForCluster(1);
+    lastUpgradeForCluster = dao.findLastUpgradeForCluster(1, Direction.UPGRADE);
     Assert.assertTrue(lastUpgradeForCluster.isComponentFailureAutoSkipped());
     Assert.assertTrue(lastUpgradeForCluster.isServiceCheckFailureAutoSkipped());
   }

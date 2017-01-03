@@ -629,7 +629,7 @@ public class UpgradeResourceProviderTest {
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
-    UpgradeEntity lastUpgrade = upgradeDao.findLastUpgradeForCluster(cluster.getClusterId());
+    UpgradeEntity lastUpgrade = upgradeDao.findLastUpgradeForCluster(cluster.getClusterId(), Direction.UPGRADE);
     assertNotNull(lastUpgrade);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
