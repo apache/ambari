@@ -2191,6 +2191,7 @@ Em.I18n.translations = {
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
   'services.service.restartAllRequired':'Restart All Required',
+  'services.service.downloadAllClientConfigs':'Download All Client Configs',
   'services.service.startAll.confirmMsg' : 'You are about to start all services',
   'services.service.stopAll.confirmMsg' : 'You are about to stop all services',
   'services.service.refreshAll.confirmMsg': '<p>You are about to restart {0}</p>' +

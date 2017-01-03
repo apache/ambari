@@ -58,6 +58,13 @@
                         </a>
                     </li>
                 {{/isAuthorized}}
+                <li>
+                    <a href="#"
+                        {{action "downloadAllClientConfigs" target="view.serviceController"}}>
+                        <i {{bindAttr class=":icon-download-alt"}}></i>
+                        {{t services.service.downloadAllClientConfigs}}
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
