@@ -18,6 +18,7 @@ import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
 export default Ember.Component.extend({
   workspaceManager : Ember.inject.service('workspace-manager'),
+  assetManager : Ember.inject.service('asset-manager'),
   xmlAppPath : null,
   appPath : null,
   type : 'wf',
@@ -190,6 +191,29 @@ export default Ember.Component.extend({
       }else if(tab.type === 'dashboard'){
         this.sendAction('showDashboard');
       }
+    },
+    showAssetManager(value) {
+      var self=this;
+      if (value) {
+        var fetchAssetsDefered=self.get("assetManager").fetchMyAssets();
+        fetchAssetsDefered.promise.then(function(response){
+          self.set('assetList', JSON.parse(response).data);
+          self.set('showingAssetManager', value);
+        }.bind(this)).catch(function(data){
+          self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
+        });
+      } else {
+        self.set('showingAssetManager', value);
+      }
+    },
+    deleteAsset(asset) {
+      var self=this;
+      var deleteAssetDefered=self.get("assetManager").deleteAsset(asset.id);
+      deleteAssetDefered.promise.then(function(response){
+        console.log("Asset deleted..");
+      }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while deleting asset. Please try again.");
+      });
     }
   }
 });

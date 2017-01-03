@@ -54,6 +54,9 @@ a {
 .padding20{
     margin-top: 20px;
 }
+.marginBottom10{
+    margin-bottom: 10px;
+}
 .marginleft20{
   margin-left: 20px !important;
 }
@@ -577,7 +580,10 @@ input:invalid {
 #version-settings-dialog .modal-dialog,
 #control-dialog .modal-dialog,
 #ConfirmDialog .modal-dialog,
-#killnode-manager-dialog .modal-dialog {
+#killnode-manager-dialog .modal-dialog,
+#asset_manager_dialog .modal-dialog,
+#asset_config_dialog .modal-dialog,
+#asset_list_dialog .modal-dialog {
     width: 800px;
 }
 #configureJob .modal-dialog{
@@ -597,6 +603,9 @@ input:invalid {
 #configureWorkfowModal .panel-default > .panel-heading,
 #workflow_parameters_dialog .panel-default > .panel-heading,
 #killnode-manager-dialog .panel-default > .panel-heading,
+#asset_manager_dialog .panel-default > .panel-heading,
+#asset_config_dialog .panel-default > .panel-heading,
+#asset_list_dialog .panel-default > .panel-heading,
  .whiteLabel, .whiteLabel:hover, .whiteLabel:focus, .whiteLabel:visited, .whiteLabel:active {
     background-color: @bgGreenActive;
     color: #fff;
@@ -1542,4 +1551,29 @@ input:invalid {
 }
 .inlineBlock{
   display:inline-block;
+}
+.asset-list .fa-trash-o {
+  color: @defaultRed;
+  cursor: pointer;
+}
+.active-asset-row {
+  background-color : @bgGreenActive !important;
+}
+.font10px {
+  font-size: 10px;
+}
+.asset-list-header-table {
+  width: 98%;
+}
+.asset-list-panel-header {
+  background-color: #f5f5f5;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.asset-list-panel-body {
+  max-height: 200px;
+  overflow-y: scroll;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-top: 0px;
 }

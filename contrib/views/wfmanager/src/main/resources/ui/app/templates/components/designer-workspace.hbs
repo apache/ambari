@@ -65,6 +65,9 @@
               <button {{action 'showDashboard'}} class="backto-dashboard btn btn-default" title="Workflow Dashboard">
                 <i class="fa fa-th marginright5"></i>Dashboard
               </button>
+              <button {{action "showAssetManager" true}} class="btn btn-default" title="Manage Assets">
+                  Manage Assets
+              </button>
               {{help-icon}}
             </div>
           </div>
@@ -111,6 +114,9 @@
       {{/each}}
     </div>
   </div>
+  {{#if showingAssetManager}}
+    {{#asset-manager showAssetManager="showAssetManager" deleteAsset="deleteAsset" assetList=assetList}}{{/asset-manager}}
+  {{/if}}
   <!--
   {{#if (eq type 'wf')}}
   {{flow-designer xmlAppPath=appPath isNew=isNew}}

@@ -194,7 +194,7 @@
           </div>
       </div>
       {{/if}}
-      {{#unless isImportingSuccess}}
+      {{#if (not (eq errorMsg ""))}}
         <div id="loader">
             <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
                 {{errorMsg}}
@@ -209,7 +209,7 @@
                 {{/if}}
             </div>
         </div>
-      {{/unless}}
+      {{/if}}
       {{#if isAssetPublishing}}
         <div id="loader">
             <div id="alert"class="alert alert-info alert-dismissible" role="alert">
@@ -217,13 +217,13 @@
             </div>
         </div>
       {{/if}}
-      {{#unless isPublishingSuccess}}
+      {{#if isAssetImporting}}
         <div id="loader">
-            <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
-                {{errorMsg}}
+            <div id="alert"class="alert alert-info alert-dismissible" role="alert">
+              Importing asset. Please wait...
             </div>
         </div>
-      {{/unless}}
+      {{/if}}
       <div id="flow-designer">
         {{#each flattenedNodes as |node|}}
         <div class="node-wrapper">
@@ -284,11 +284,17 @@
                 {{/file-picker}}
               </div>
             </span>
-            <span class="overlay-hdfs-import-icon" title="Import action" {{action "showActionSettingsFileBrowser"}}>
+            <span class="hide" title="Import action" {{action "showActionSettingsFileBrowser"}}>
                 <i class="fa fa-download"></i>
             </span>
-            <span class="overlay-hdfs-export-icon" title="Export action" {{action "showExportActionNodeFileBrowser"}}>
+            <span class="overlay-hdfs-import-icon" title="Import Asset" {{action "showAssetList" true}}>
+                <i class="fa fa-download"></i>
+            </span>
+            <span class="hide" title="Export action" {{action "showExportActionNodeFileBrowser"}}>
                 <i class="fa fa-upload"></i>
+            </span>
+            <span class="overlay-hdfs-export-icon" title="Publish Asset" {{action "showAssetConfig" true}}>
+                <i class="fa fa-share-square-o"></i>
             </span>
           </div>
           {{decision-add-branch node=node registerAddBranchAction="registerAddBranchAction" addDecisionBranch="addDecisionBranch" workflow=workflow}}
@@ -299,7 +305,7 @@
         {{/if}}
       </div>
       <div id="workflow-actions" class="hidden">
-        {{workflow-actions element=popOverElement addNode="addNode" pasteNode="pasteNode" showImportActionNodeFileBrowser="showImportActionNodeFileBrowser" importActionNodeLocalFS="importActionNodeLocalFS" clipboard=clipboard}}
+        {{workflow-actions element=popOverElement addNode="addNode" pasteNode="pasteNode" showImportActionNodeFileBrowser="showImportActionNodeFileBrowser" importActionNodeLocalFS="importActionNodeLocalFS" showAssetNodeList="showAssetNodeList" clipboard=clipboard}}
       </div>
     </div>
   </div>
@@ -331,6 +337,15 @@
 {{/if}}
 {{#if showingExportActionNodeFileBrowser}}
   {{hdfs-browser closeFileBrowser="closeExportActionNodeFileBrowser" selectFileCallback=selectFileCallback filePath=exportActionNodeFilePath}}
+{{/if}}
+{{#if showingAssetConfig}}
+  {{#asset-config showAssetConfig="showAssetConfig" saveAssetConfig="saveAssetConfig" assetModel=assetConfig}}{{/asset-config}}
+{{/if}}
+{{#if showingAssetList}}
+  {{#asset-list showAssetList="showAssetList" importAsset="importAsset" assetList=assetList}}{{/asset-list}}
+{{/if}}
+{{#if showingAssetNodeList}}
+  {{#asset-list showAssetList="showAssetNodeList" importAsset="importAssetNode" deleteAsset="deleteAsset" assetList=assetList}}{{/asset-list}}
 {{/if}}
 {{#if showingPreview}}
   {{#preview-dialog title="Workflow XML Preview" previewXml=previewXml closePreview="closePreview"}}{{/preview-dialog}}
