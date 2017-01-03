@@ -18,17 +18,36 @@
 
 {{multiple-database-search-bar databases=model selected=selected xyz="xyz" }}
 
-<div class="clearfix">
-  <div class="col-md-9">
-    <div class="row query-editor">
+<div class="clearfix col-md-9 query-editor-panel">
+  <div class="query-editor-container">
+    <div class="row query-editor" style="position:relative">
+      <span style="position: absolute;right: 5px;top: 5px;z-index: 9999;cursor: pointer;" {{action "expandQueryEdidorPanel" }} >
+        {{fa-icon "expand"}}
+      </span>
       {{query-editor query=currentQuery }}
     </div>
     <div class="row query-editor-controls">
       <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
+
+      {{#if isQueryRunning}}
+        <img src="http://www.bba-reman.com/images/fbloader.gif" height="22" width="32" />
+      {{/if}}
+
+
     </div>
   </div>
 
-  <div class="col-md-3">
+
+  <div class="clearfix row query-editor-results" style="position: relative">
+    {{query-result-table queryResult=queryResult hidePreviousButton=hidePreviousButton goNextPage='goNextPage' goPrevPage='goPrevPage' expandQueryResultPanel='expandQueryResultPanel' }}
+  </div>
+
+
+</div>
+
+<div class="col-md-3 database-panel">
+
+  <div class="database-container">
     <div class="row">
     <div class="panel-group database-panel" id="accordion" role="tablist" aria-multiselectable="true">
 
@@ -69,17 +88,9 @@
     </div>
   </div>
 </div>
+
 </div>
 
-
-<div class="clearfix query-editor-results">
-  {{#if isQueryRunning}}
-    <div style="left:37%; position: relative;">
-      <img src="http://www.bba-reman.com/images/fbloader.gif" height="22" width="32" />
-    </div>
-  {{/if}}
-  {{query-result-table queryResult=queryResult showPreviousButton=showPreviousButton goNextPage='goNextPage' goPrevPage='goPrevPage' }}
-</div>
 
 {{#if databaseNotEmpty}}
   {{database-not-empty name=databaseName close="notEmptyDialogClosed"}}

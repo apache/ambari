@@ -17,17 +17,16 @@
 }}
 
 {{#if columns.length}}
-  <div class="clearfix" style="text-align: right">
-    {{#if showPreviousButton}}
-        <button class="btn btn-success" {{action "goPrevPage" }}>{{fa-icon "arrow-left"}} </button>
-    {{/if}}
-    <button class="btn btn-success" {{action "goNextPage" }}>{{fa-icon "arrow-right"}} </button>
+  <div class="clearfix" style="text-align: right; padding-right:5px">
+    <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" }}  disabled={{ hidePreviousButton}}  >{{fa-icon "arrow-left"}} </button>
+    <button class="btn btn-default" title="Next Page" {{action "goNextPage" }}>{{fa-icon "arrow-right"}} </button> &nbsp;
+    <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
   </div>
 {{/if}}
 
 <div class="clearfix">
-{{#light-table table height='65vh' as |t|}}
-  {{#if columns.length}}
+  {{#light-table table height='70vh' as |t|}}
+    {{#if columns.length}}
       {{t.head
       onColumnClick=(action 'onColumnClick')
       iconAscending='fa fa-sort-asc'
@@ -46,8 +45,8 @@
           {{/body.loader}}
         {{/if}}
       {{/t.body}}
-  {{/if}}
-{{/light-table}}
+    {{/if}}
+  {{/light-table}}
 </div>
 
 {{yield}}
