@@ -1363,8 +1363,41 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         error: "runPreUpgradeCheckError"
       });
     } else {
-      this.upgrade(params);
+      this.showAutoStartDisableModal(params);
     }
+  },
+
+  /**
+   *
+   * @param {object} upgradeParams
+   */
+  showAutoStartDisableModal: function(upgradeParams) {
+    var self = this;
+    return App.showAlertPopup(
+      Em.I18n.t('common.warning'),
+      Em.I18n.t('admin.serviceAutoStart.disabled.popup.body'),
+      function() {
+        self.switchServiceAutoStartTo(false);
+        self.upgrade(upgradeParams);
+      }
+    );
+  },
+
+  /**
+   *
+   * @param {boolean} state
+   */
+  switchServiceAutoStartTo: function(state) {
+    var autoStartController = App.router.get('mainAdminServiceAutoStartController');
+    return autoStartController.load().done(function() {
+      var clusterConfigs = autoStartController.get('clusterConfigs');
+      if (clusterConfigs && clusterConfigs.recovery_enabled !== String(state)) {
+        clusterConfigs.recovery_enabled = String(state);
+        autoStartController.saveClusterConfigs(clusterConfigs);
+        autoStartController.set('servicesAutoStart', state);
+        autoStartController.syncStatus();
+      }
+    });
   },
 
   /**
@@ -1377,7 +1410,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   runPreUpgradeCheckSuccess: function (data, opt, params) {
     var self = this;
-    if (data.items.someProperty('UpgradeChecks.status', 'FAIL') || data.items.someProperty('UpgradeChecks.status', 'WARNING') || data.items.someProperty('UpgradeChecks.status', 'BYPASS')) {
+    if (data.items.someProperty('UpgradeChecks.status', 'FAIL') ||
+        data.items.someProperty('UpgradeChecks.status', 'WARNING') ||
+        data.items.someProperty('UpgradeChecks.status', 'BYPASS')) {
       this.set('requestInProgress', false);
       var hasFails = data.items.someProperty('UpgradeChecks.status', 'FAIL'),
         header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label),
@@ -1400,11 +1435,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         bypassedFailures: bypassedFailures,
         noCallbackCondition: hasFails,
         callback: function () {
-          self.upgrade(params);
+          self.showAutoStartDisableModal(params);
         }
       }, configs, params.label);
     } else {
-      this.upgrade(params);
+      this.showAutoStartDisableModal(params);
     }
   },
 
@@ -1805,6 +1840,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param status
    */
   setUpgradeItemStatus: function(item, status) {
+    if (this.get('isFinalizeItem') && status === 'COMPLETED') {
+      this.switchServiceAutoStartTo(true);
+    }
     this.set('requestInProgress', true);
     return App.ajax.send({
       name: 'admin.upgrade.upgradeItem.setState',
