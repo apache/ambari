@@ -762,7 +762,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {
         upgradeContext.setDowngradeFromVersion((String) requestMap.get(UPGRADE_FROM_VERSION));
       } else {
-        UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(cluster.getClusterId());
+        UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(
+            cluster.getClusterId(), Direction.UPGRADE);
+
         upgradeContext.setDowngradeFromVersion(lastUpgradeItemForCluster.getToVersion());
       }
     }
