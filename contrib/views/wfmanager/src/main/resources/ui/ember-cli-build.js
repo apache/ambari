@@ -123,7 +123,10 @@ module.exports = function(defaults) {
 
 	//cytoscape-panzoom
 	app.import('bower_components/cytoscape-panzoom/cytoscape-panzoom.js');
-	app.import('bower_components/cytoscape-panzoom/cytoscape.js-panzoom.css');	
+	app.import('bower_components/cytoscape-panzoom/cytoscape.js-panzoom.css');
+
+	// Fuse js
+	app.import('bower_components/fuse.js/src/fuse.min.js');
 
     return app.toTree();
 };

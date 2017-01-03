@@ -77,10 +77,12 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   propertyExtractor : Ember.inject.service('property-extractor'),
   clipboardService : Ember.inject.service('workflow-clipboard'),
   workspaceManager : Ember.inject.service('workspace-manager'),
+  assetManager : Ember.inject.service('asset-manager'),
   showGlobalConfig : false,
   showParameterSettings : false,
   showNotificationPanel : false,
   globalConfig : {},
+  assetConfig : {},
   parameters : {},
   clonedDomain : {},
   clonedErrorNode : {},
@@ -88,9 +90,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showingFileBrowser : false,
   killNode : {},
   isWorkflowImporting: false,
-  isImportingSuccess: true,
   isAssetPublishing: false,
-  isPublishingSuccess: true,
+  errorMsg: "",
   shouldPersist : false,
   useCytoscape: Constants.useCytoscape,
   cyOverflow: {},
@@ -311,6 +312,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       var stackTraceMsg = self.getStackTrace(data.responseText);
       self.set("errorMsg", "There is some problem while importing.Please try again.");
       self.showingErrorMsgInDesigner(data);
+      self.set("isWorkflowImporting", false);
     });
   },
   importWorkflowFromString(data){
@@ -349,10 +351,15 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   importActionSettingsFromString(actionSettings) {
     var x2js = new X2JS();
-    var actionNode = this.flowRenderer.currentCyNode.data().node;
-    var actionJobHandler = this.actionTypeResolver.getActionJobHandler(actionNode.actionType);
-    actionJobHandler.handleImport(actionNode, x2js.xml_str2json(actionSettings)[actionNode.actionType]);
-    this.flowRenderer.hideOverlayNodeActions();
+    var actionSettingsObj = x2js.xml_str2json(actionSettings);
+    var currentActionNode = this.flowRenderer.currentCyNode.data().node;
+    if (actionSettingsObj[currentActionNode.actionType]) {
+      var actionJobHandler = this.actionTypeResolver.getActionJobHandler(currentActionNode.actionType);
+      actionJobHandler.handleImport(currentActionNode, actionSettingsObj[currentActionNode.actionType]);
+      this.flowRenderer.hideOverlayNodeActions();
+    } else {
+      this.set("errorMsg", "Invalid asset settings");
+    }
   },
   importActionNodeFromString(actionNodeXmlString) {
     var x2js = new X2JS();
@@ -366,29 +373,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.scrollToNewPosition();
     var actionJobHandler = this.actionTypeResolver.getActionJobHandler(actionNodeType);
     actionJobHandler.handleImport(actionNode, actionNodeXml[actionNodeType]);
-  },
-  publishAsset(filePath, actionNodeXml, wfDynamicProps) {
-    var url = Ember.ENV.API_URL + "/publishAsset?uploadPath="+filePath;
-    wfDynamicProps.forEach(function(property){
-      url = url + "&config." + property.name + "=" + property.value;
-    });
-    var deferred = Ember.RSVP.defer();
-    Ember.$.ajax({
-      url: url,
-      method: "POST",
-      dataType: "text",
-      contentType: "text/plain;charset=utf-8",
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
-        xhr.setRequestHeader("X-Requested-By", "Ambari");
-      },
-      data: actionNodeXml,
-    }).done(function(data){
-      deferred.resolve(data);
-    }).fail(function(data){
-      deferred.reject(data);
-    });
-    return deferred;
   },
   getRandomDataToDynamicProps(dynamicProperties) {
     var wfDynamicProps = [];
@@ -419,24 +403,21 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var actionNodeXml = workflowGenerator.getActionNodeXml(this.flowRenderer.currentCyNode.data().name, this.flowRenderer.currentCyNode.data().node.actionType);
     var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(actionNodeXml);
 
-    var exportActionNodeXmlDefered=this.publishAsset(this.get('exportActionNodeFilePath'), actionNodeXml, this.getRandomDataToDynamicProps(dynamicProperties));
+    var exportActionNodeXmlDefered=this.get("assetManager").publishAsset(this.get('exportActionNodeFilePath'), actionNodeXml, this.getRandomDataToDynamicProps(dynamicProperties));
     exportActionNodeXmlDefered.promise.then(function(data){
       self.set("isAssetPublishing", false);
-      self.set("isPublishingSuccess", true);
-      self.set("successMsg", "Asset is successfully published.");
     }.bind(this)).catch(function(data){
       self.set("errorMsg", "There is some problem while publishing asset. Please try again.");
       self.showingErrorMsgInDesigner(data);
-      self.set("isImportingSuccess", true);
+      self.set("isAssetPublishing", false);
     });
 
     console.log("Action Node", actionNodeXml);
   },
   resetDesigner(){
-    this.set("isImportingSuccess", true);
-    this.set("isPublishingSuccess", true);
     this.set("xmlAppPath", null);
     this.set('errors',[]);
+    this.set('errorMsg',"");
     this.set('validationErrors',[]);
     this.set('workflowFilePath',"");
     this.get("workflow").resetWorfklow();
@@ -672,10 +653,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         self.set("isStackTraceVisible", false);
         self.set("isStackTraceAvailable", false);
       }
-      self.set("isWorkflowImporting", false);
-      self.set("isImportingSuccess", false);
-      this.set("isAssetPublishing", false);
-      this.set("isPublishingSuccess", false);
   },
   isDraftExists(path){
     var deferred = Ember.RSVP.defer(), url, self = this;
@@ -1130,6 +1107,85 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         return;
       }
       this.sendAction('openTab', 'coord', this.get('workflowFilePath'));
+    },
+    showAssetConfig(value) {
+      this.set('assetConfig', {});
+      this.set('showingAssetConfig', value);
+    },
+    saveAssetConfig() {
+      var self=this;
+      self.set("isAssetPublishing", true);
+      var workflowGenerator = WorkflowGenerator.create({workflow:self.get("workflow"), workflowContext:self.get('workflowContext')});
+      var actionNodeXml = workflowGenerator.getActionNodeXml(self.flowRenderer.currentCyNode.data().name, self.flowRenderer.currentCyNode.data().node.actionType);
+      var dynamicProperties = self.get('propertyExtractor').getDynamicProperties(actionNodeXml);
+      self.set('assetConfig.type', self.flowRenderer.currentCyNode.data().node.actionType);
+      self.set('assetConfig.definition', actionNodeXml);
+      var saveAssetConfigDefered=self.get("assetManager").saveAsset(self.get('assetConfig'), self.getRandomDataToDynamicProps(dynamicProperties));
+      saveAssetConfigDefered.promise.then(function(data){
+        self.set("isAssetPublishing", false);
+      }.bind(this)).catch(function(data){
+        self.set("isAssetPublishing", false);
+        self.set("errorMsg", "There is some problem while saving asset. Please try again.");
+        self.showingErrorMsgInDesigner(data);
+      });
+    },
+    showAssetList(value) {
+      var self=this;
+      if (value) {
+        var fetchAssetsDefered=self.get("assetManager").fetchAssets();
+        fetchAssetsDefered.promise.then(function(response){
+          self.set('assetList', JSON.parse(response).data);
+          self.set('showingAssetList', value);
+        }.bind(this)).catch(function(data){
+          self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
+          self.showingErrorMsgInDesigner(data);
+        });
+      } else {
+        self.set('showingAssetList', value);
+      }
+    },
+    importAsset(asset) {
+      var self=this;
+      self.set("isAssetImporting", true);
+      var importAssetDefered=self.get("assetManager").importAssetDefinition(asset.id);
+      importAssetDefered.promise.then(function(response){
+        var importedAsset = JSON.parse(response).data;
+        self.importActionSettingsFromString(importedAsset.definition);
+        self.set("isAssetImporting", false);
+      }.bind(this)).catch(function(data){
+        self.set("isAssetImporting", false);
+        self.set("errorMsg", "There is some problem while importing asset. Please try again.");
+        self.showingErrorMsgInDesigner(data);
+      });
+    },
+    showAssetNodeList(value) {
+      var self=this;
+      if (value) {
+        var fetchAssetsDefered=self.get("assetManager").fetchAssets();
+        fetchAssetsDefered.promise.then(function(response){
+          self.set('assetList', JSON.parse(response).data);
+          self.set('showingAssetNodeList', value);
+        }.bind(this)).catch(function(data){
+          self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
+          self.showingErrorMsgInDesigner(data);
+        });
+      } else {
+        self.set('showingAssetNodeList', value);
+      }
+    },
+    importAssetNode(asset) {
+      var self=this;
+      self.set("isAssetImporting", true);
+      var importAssetDefered=self.get("assetManager").importAssetDefinition(asset.id);
+      importAssetDefered.promise.then(function(response){
+        var importedAsset = JSON.parse(response).data;
+        self.importActionNodeFromString(importedAsset.definition);
+        self.set("isAssetImporting", false);
+      }.bind(this)).catch(function(data){
+        self.set("isAssetImporting", false);
+        self.set("errorMsg", "There is some problem while importing asset. Please try again.");
+        self.showingErrorMsgInDesigner(data);
+      });
     }
   }
 });
