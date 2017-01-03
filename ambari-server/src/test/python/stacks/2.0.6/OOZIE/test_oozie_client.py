@@ -69,7 +69,7 @@ class TestOozieClient(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              content = InlineTemplate('log4jproperties\nline2')
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
         owner = 'oozie',
@@ -135,7 +135,7 @@ class TestOozieClient(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              content = InlineTemplate('log4jproperties\nline2')
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
                               owner = 'oozie',
@@ -207,7 +207,7 @@ class TestOozieClient(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              content = InlineTemplate('log4jproperties\nline2')
     )
     self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/adminusers.txt',
                               content = Template('adminusers.txt.j2'),
