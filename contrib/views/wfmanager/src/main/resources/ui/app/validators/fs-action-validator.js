@@ -28,25 +28,25 @@ const FsActionValidator = BaseValidator.extend({
         case "mkdir":
         case "delete":
         case "touchz":
-        if (!item.settings.path) {
+        if (!item.path) {
           isValidated = false;
           msg = "path is mandatory";
         }
         break;
         case "chmod":
-        if (!item.settings.path) {
+        if (!item.path) {
           isValidated = false;
           msg = "path and permissions are mandatory";
         }
         break;
         case "chgrp":
-        if (!item.settings.path || !item.settings.group) {
+        if (!item.path || !item.group) {
           isValidated = false;
           msg = "path and group are mandatory";
         }
         break;
         case "move":
-        if (!item.settings.source || !item.settings.target) {
+        if (!item.source || !item.target) {
           isValidated = false;
           msg = "source and target are mandatory";
         }
