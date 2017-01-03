@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.events;
 
-import org.apache.ambari.server.state.Cluster;
-
 import java.util.Collections;
 import java.util.Set;
+
+import org.apache.ambari.server.state.Cluster;
 
 /**
  * The {@link HostsRemovedEvent} class is fired when the hosts are removed from the
