@@ -29,6 +29,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.anyString;
 
 import java.util.ArrayList;
 import java.util.Collections;
