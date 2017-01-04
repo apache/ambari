@@ -34,9 +34,9 @@ public class WorkflowFilesService {
     this.hdfsFileUtils = hdfsFileUtils;
   }
 
-  public String createWorkflowFile(String appPath, String content,
+  public String createFile(String appPath, String content,
                                    boolean overwrite) throws IOException {
-    return hdfsFileUtils.writeToFile(getWorkflowFileName(appPath), content,
+    return hdfsFileUtils.writeToFile(appPath, content,
       overwrite);
   }
 
@@ -44,12 +44,6 @@ public class WorkflowFilesService {
                                 boolean overwrite) throws IOException {
     return hdfsFileUtils.writeToFile(appPath, content,
       overwrite);
-  }
-
-  public String saveDraft(String appPath, String content, boolean overwrite)
-    throws IOException {
-    return hdfsFileUtils.writeToFile(getWorkflowDrafFileName(appPath),
-      content, overwrite);
   }
 
   public InputStream readDraft(String appPath) throws IOException {
@@ -60,11 +54,15 @@ public class WorkflowFilesService {
     return hdfsFileUtils.read(getWorkflowFileName(appPath));
   }
 
-  private String getWorkflowDrafFileName(String appPath) {
-    return getWorkflowFileName(appPath).concat(".draft.json");
+  public String getWorkflowDrafFileName(String appPath) {
+    if (appPath.endsWith(".draft.json")){
+      return appPath;
+    }else{
+      return getWorkflowFileName(appPath).concat(".draft.json");
+    }
   }
 
-  private String getWorkflowFileName(String appPath) {
+  public String getWorkflowFileName(String appPath) {
     String workflowFile = null;
     if (appPath.endsWith(".xml")) {
       workflowFile = appPath;
