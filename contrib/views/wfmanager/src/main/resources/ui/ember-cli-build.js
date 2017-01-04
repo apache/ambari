@@ -25,9 +25,9 @@ module.exports = function(defaults) {
     var app = new EmberApp(defaults, {
         // Add options here
   codemirror: {
-    // modes: ['xml'],
-    // keyMaps: ['vim'],
-    // themes: ['solarized']
+     modes: ['xml'],
+     keyMaps: ['vim'],
+     themes: ['solarized']
   }
     });
 
