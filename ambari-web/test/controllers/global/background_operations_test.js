@@ -730,15 +730,6 @@ describe('App.BackgroundOperationsController', function () {
       expect(controller.isInitLoading()).to.be.false;
     });
 
-    it("should return false when no request found", function() {
-      controller.set('levelInfo', Em.Object.create({
-        name: 'HOSTS_LIST',
-        requestId: 1
-      }));
-      controller.set('services', []);
-      expect(controller.isInitLoading()).to.be.false;
-    });
-
     it("should return false when request has hosts", function() {
       controller.set('levelInfo', Em.Object.create({
         name: 'HOSTS_LIST',

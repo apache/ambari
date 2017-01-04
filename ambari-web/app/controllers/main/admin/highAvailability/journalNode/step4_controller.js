@@ -25,12 +25,12 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
 
   commands: ['stopStandbyNameNode', 'stopServices', 'installJournalNodes', 'deleteJournalNodes', 'startJournalNodes', 'reconfigureHDFS'],
 
-  hdfsSiteTag : "",
+  hdfsSiteTag: "",
 
-  stopStandbyNameNode: function() {
+  stopStandbyNameNode: function () {
     // save who's active and who's standby at this point in time
-    var sbNN = this.get('content.standByNN');
-    this.updateComponent('NAMENODE', sbNN.host_name, 'HDFS',  'INSTALLED');
+    var hostName = this.get('content.standByNN.host_name');
+    this.updateComponent('NAMENODE', hostName, 'HDFS',  'INSTALLED');
   },
 
   installJournalNodes: function () {
@@ -45,7 +45,7 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
   deleteJournalNodes: function () {
     var hosts = App.router.get('manageJournalNodeWizardController').getJournalNodesToDelete();
     if (hosts && hosts.length > 0) {
-      hosts.forEach(function(host) {
+      hosts.forEach(function (host) {
         this.deleteComponent('JOURNALNODE', host);
       }, this);
     } else {
@@ -59,15 +59,14 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
   },
 
   reconfigureHDFS: function () {
-    var data = this.get('content.serviceConfigProperties');
-    this.updateConfigProperties(data);
+    this.updateConfigProperties(this.get('content.serviceConfigProperties'));
   },
 
   /**
    * Update service configurations
    * @param {Object} data - config object to update
    */
-  updateConfigProperties: function(data) {
+  updateConfigProperties: function (data) {
     var siteNames = ['hdfs-site'];
     var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.manageJournalNode.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
     App.ajax.send({
@@ -77,7 +76,7 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
         desired_config: configData
       },
       success: 'installHDFSClients',
-      error: 'onTaskError',
+      error: 'onTaskError'
     });
   },
 

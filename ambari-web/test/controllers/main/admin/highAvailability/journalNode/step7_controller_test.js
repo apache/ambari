@@ -16,15 +16,31 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
+require('controllers/main/admin/highAvailability/journalNode/step7_controller');
 
-App.ManageJournalNodeWizardStep7Controller = Em.Controller.extend({
 
-  name: "manageJournalNodeWizardStep7Controller",
+describe('App.ManageJournalNodeWizardStep7Controller', function () {
+  var controller;
 
-  done: function () {
-    App.router.send("next");
-  }
+  beforeEach(function () {
+    controller = App.ManageJournalNodeWizardStep7Controller.create();
+  });
 
+  describe('#done', function() {
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'send');
+    });
+
+    afterEach(function() {
+      App.router.send.restore();
+    });
+
+    it('App.router.send should be called', function() {
+      controller.done();
+      expect(App.router.send.calledWith('next')).to.be.true;
+    });
+  });
 });
-

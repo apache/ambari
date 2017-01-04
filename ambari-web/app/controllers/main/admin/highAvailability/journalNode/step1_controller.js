@@ -22,7 +22,7 @@ require('controllers/wizard/step5_controller');
 
 App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
 
-  name:"manageJournalNodeWizardStep1Controller",
+  name: "manageJournalNodeWizardStep1Controller",
 
   useServerValidation: false,
 
@@ -38,7 +38,7 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
    * On initial rendering, load equivalent number of existing JournalNodes to masterToShow
    * @param masterComponents
    */
-  renderComponents: function(masterComponents) {
+  renderComponents: function (masterComponents) {
     //check if we are restoring components assignment by checking existing of JOURNALNODE component in array
     var restoringComponents = masterComponents.someProperty('component_name', 'JOURNALNODE');
     masterComponents = restoringComponents ? masterComponents : masterComponents.concat(this.generateJournalNodeComponents());
@@ -54,7 +54,10 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
   generateJournalNodeComponents: function () {
     var journalNodes = [];
     App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').forEach(function (jn) {
-      var jnComponent = this.createComponentInstallationObject(Em.Object.create({serviceName: jn.get('service.serviceName'), componentName: jn.get('componentName')}), jn.get('hostName'));
+      var jnComponent = this.createComponentInstallationObject(Em.Object.create({
+        serviceName: jn.get('service.serviceName'),
+        componentName: jn.get('componentName')
+      }), jn.get('hostName'));
       jnComponent.isInstalled = true;
       journalNodes.push(jnComponent);
     }, this);
@@ -64,13 +67,13 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
   /**
    * Enable/Disable show/hide operation for each JournalNode
    */
-  showHideJournalNodesAddRemoveControl: function() {
+  showHideJournalNodesAddRemoveControl: function () {
     var masterComponents = this.get('selectedServicesMasters');
     var jns = masterComponents.filterProperty('component_name', 'JOURNALNODE');
-    var maxNumMasters = this.getMaxNumberOfMasters('JOURNALNODE')
+    var maxNumMasters = this.getMaxNumberOfMasters('JOURNALNODE');
     var showRemoveControl = jns.get('length') > this.get('JOURNALNODES_COUNT_MINIMUM');
     var showAddControl = jns.get('length') < maxNumMasters;
-    jns.forEach(function(item) {
+    jns.forEach(function (item) {
       item.set('showAddControl', false);
       item.set('showRemoveControl', showRemoveControl);
     });
@@ -80,10 +83,10 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
   /**
    * Mark existing JournalNodes 'isInstalled' and 'showCurrentPrefix'
    */
-  updateJournalNodeInfo: function() {
+  updateJournalNodeInfo: function () {
     var jns = this.get('selectedServicesMasters').filterProperty('component_name', 'JOURNALNODE');
     var hosts = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
-    hosts.forEach(function(host) {
+    hosts.forEach(function (host) {
       var jn = jns.findProperty('selectedHost', host);
       if (jn) {
         jn.set('isInstalled', true);
@@ -96,7 +99,7 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
    * Callback after load controller data (hosts, host components etc)
    * @method loadStepCallback
    */
-  loadStepCallback: function(components, self) {
+  loadStepCallback: function (components, self) {
     self.renderComponents(components);
 
     self.get('addableComponents').forEach(function (componentName) {
@@ -108,10 +111,10 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
   /**
    * Next button is disabled when there is any change to the original JournalNode hosts
    */
-  nextButtonDisabled: function() {
+  nextButtonDisabled: function () {
     var currentHosts = this.get('selectedServicesMasters').filterProperty('component_name', 'JOURNALNODE').mapProperty('selectedHost');
     var originalHosts = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
-    return currentHosts.sort().join() == originalHosts.sort().join();
+    return currentHosts.sort().join() === originalHosts.sort().join();
   }.property('hostNameCheckTrigger', 'nextButtonCheckTrigger')
 
 });
