@@ -74,6 +74,8 @@ public class ZkMigrator {
     ZooKeeper client = ZkConnection.open(connectionString, SESSION_TIMEOUT_MILLIS, CONNECTION_TIMEOUT_MILLIS);
     try {
       acl.setRecursivelyOn(client, znode);
+    } catch (KeeperException.NoNodeException e) {
+      System.out.println("Could not set ACL on " + znode + ". Reason: " + e.getMessage());
     } finally {
       client.close();
     }

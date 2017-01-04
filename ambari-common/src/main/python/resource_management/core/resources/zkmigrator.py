@@ -21,6 +21,8 @@ Ambari Agent
 """
 
 from resource_management.core.resources.system import Execute
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions import format
 
 class ZkMigrator:
   def __init__(self, zk_host, java_exec, java_home, jaas_file, user):
@@ -32,6 +34,7 @@ class ZkMigrator:
     self.zkmigrator_jar = "/var/lib/ambari-agent/tools/zkmigrator.jar"
 
   def set_acls(self, znode, acl, tries=1):
+    Logger.info(format("Setting ACL on znode {znode} to {acl}"))
     Execute(
       self._command(znode, acl), \
       user=self.user, \

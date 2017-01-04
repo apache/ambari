@@ -32,7 +32,9 @@
             "yarn.resourcemanager.proxyusers.*.users": "",
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
             "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "",
-            "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda"
+            "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda",
+            "hadoop.registry.secure" : "true",
+            "hadoop.registry.system.accounts" : "sasl:yarn,sasl:mapred,sasl:hadoop,sasl:hdfs,sasl:rm"
           }
         },
         {
