@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -91,6 +92,18 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID    = PropertyHelper.getPropertyId("HostStackVersions", "repositories");
   protected static final String HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID    = PropertyHelper.getPropertyId("HostStackVersions", "repository_version");
 
+  /**
+   * Whether to force creating of install command on a host which is not member of any cluster yet.
+   */
+  protected static final String HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID = PropertyHelper
+    .getPropertyId("HostStackVersions", "force_non_member_install");
+
+  /**
+   * In case of force_non_member_install = true a list of component names must be provided in the request.
+   */
+  protected static final String HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID = PropertyHelper.getPropertyId("HostStackVersions", "components");
+  protected static final String COMPONENT_NAME_PROPERTY_ID = "name";
+
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
 
@@ -111,7 +124,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           HOST_STACK_VERSION_VERSION_PROPERTY_ID,
           HOST_STACK_VERSION_STATE_PROPERTY_ID,
           HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID,
-          HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+          HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID,
+          HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID,
+          HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID);
 
   private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
@@ -261,9 +276,36 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
               String.format("The required property %s is not defined", requiredProperty));
     }
 
-    String clName = (String) propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+    String clName = (String) propertyMap.get (HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
     hostName = (String) propertyMap.get(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
     desiredRepoVersion = (String) propertyMap.get(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+    stackName = (String) propertyMap.get(HOST_STACK_VERSION_STACK_PROPERTY_ID);
+    stackVersion = (String) propertyMap.get(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
+
+    boolean forceInstallOnNonMemberHost = false;
+    Set<Map<String, String>> componentNames = null;
+    String forceInstallOnNonMemberHostString = (String) propertyMap.get
+      (HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID);
+
+    if (BooleanUtils.toBoolean(forceInstallOnNonMemberHostString)) {
+      forceInstallOnNonMemberHost = true;
+      componentNames = (Set<Map<String, String>>) propertyMap.get(HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID);
+      if (componentNames == null) {
+        throw new IllegalArgumentException("In case " + HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID + " is set to true, the list of " +
+          "components should be specified in request.");
+      }
+    }
+
+    RequestStageContainer req = createInstallPackagesRequest(hostName, desiredRepoVersion, stackName, stackVersion,
+      clName, forceInstallOnNonMemberHost, componentNames);
+    return getRequestStatus(req.getRequestStatusResponse());
+  }
+
+  private RequestStageContainer createInstallPackagesRequest(String hostName, final String desiredRepoVersion,
+                                                             String stackName, String stackVersion, String clName,
+                                                             boolean forceInstallOnNonMemberHost,
+                                                             Set<Map<String, String>> componentNames)
+    throws NoSuchParentResourceException, SystemException {
 
     Host host;
     try {
@@ -275,8 +317,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     AmbariManagementController managementController = getManagementController();
     AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
 
-    stackName = (String) propertyMap.get(HOST_STACK_VERSION_STACK_PROPERTY_ID);
-    stackVersion = (String) propertyMap.get(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
     final StackId stackId = new StackId(stackName, stackVersion);
     if (!ami.isSupportedStack(stackName, stackVersion)) {
       throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
@@ -327,17 +367,19 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     HostVersionEntity hostVersEntity = hostVersionDAO.findByClusterStackVersionAndHost(clName, stackId,
             desiredRepoVersion, hostName);
-    if (hostVersEntity == null) {
-      throw new IllegalArgumentException(String.format(
-        "Repo version %s for stack %s is not available for host %s",
-        desiredRepoVersion, stackId, hostName));
-    }
-    if (hostVersEntity.getState() != RepositoryVersionState.INSTALLED &&
-            hostVersEntity.getState() != RepositoryVersionState.INSTALL_FAILED &&
-            hostVersEntity.getState() != RepositoryVersionState.OUT_OF_SYNC) {
-      throw new UnsupportedOperationException(String.format("Repo version %s for stack %s " +
-        "for host %s is in %s state. Can not transition to INSTALLING state",
-              desiredRepoVersion, stackId, hostName, hostVersEntity.getState().toString()));
+    if (!forceInstallOnNonMemberHost) {
+      if (hostVersEntity == null) {
+        throw new IllegalArgumentException(String.format(
+          "Repo version %s for stack %s is not available for host %s",
+          desiredRepoVersion, stackId, hostName));
+      }
+      if (hostVersEntity.getState() != RepositoryVersionState.INSTALLED &&
+        hostVersEntity.getState() != RepositoryVersionState.INSTALL_FAILED &&
+        hostVersEntity.getState() != RepositoryVersionState.OUT_OF_SYNC) {
+        throw new UnsupportedOperationException(String.format("Repo version %s for stack %s " +
+            "for host %s is in %s state. Can not transition to INSTALLING state",
+          desiredRepoVersion, stackId, hostName, hostVersEntity.getState().toString()));
+      }
     }
 
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
@@ -357,9 +399,34 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     // For every host at cluster, determine packages for all installed services
     List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
-    List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
-    for (ServiceComponentHost component : components) {
-      servicesOnHost.add(component.getServiceName());
+
+    if (forceInstallOnNonMemberHost) {
+      for (Map<String, String> componentProperties : componentNames) {
+
+        String componentName = componentProperties.get(COMPONENT_NAME_PROPERTY_ID);
+        if (StringUtils.isEmpty(componentName)) {
+          throw new IllegalArgumentException("Components list contains a component with no 'name' property");
+        }
+
+        String serviceName = null;
+        try {
+          serviceName = ami.getComponentToService(stackName, stackVersion, componentName.trim().toUpperCase());
+          if (serviceName == null) {
+            throw new IllegalArgumentException("Service not found for component : " + componentName);
+          }
+          servicesOnHost.add(serviceName);
+        } catch (AmbariException e) {
+          LOG.error("Service not found for component {}!", componentName, e);
+          throw new IllegalArgumentException("Service not found for component : " + componentName);
+        }
+
+      }
+
+    } else {
+      List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
+      for (ServiceComponentHost component : components) {
+        servicesOnHost.add(component.getServiceName());
+      }
     }
     List<String> blacklistedPackagePrefixes = configuration.getRollingUpgradeSkipPackagesPrefixes();
     for (String serviceName : servicesOnHost) {
@@ -409,7 +476,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       params.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
     }
 
-
     // Create custom action
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
             Collections.singletonList(hostName));
@@ -452,21 +518,22 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     req.addStages(Collections.singletonList(stage));
 
     try {
-      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
+      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null, !forceInstallOnNonMemberHost);
     } catch (AmbariException e) {
       throw new SystemException("Can not modify stage", e);
     }
 
     try {
-      hostVersEntity.setState(RepositoryVersionState.INSTALLING);
-      hostVersionDAO.merge(hostVersEntity);
-
-      cluster.recalculateClusterVersionState(repoVersionEnt);
+      if (!forceInstallOnNonMemberHost) {
+        hostVersEntity.setState(RepositoryVersionState.INSTALLING);
+        hostVersionDAO.merge(hostVersEntity);
+        cluster.recalculateClusterVersionState(repoVersionEnt);
+      }
       req.persist();
     } catch (AmbariException e) {
       throw new SystemException("Can not persist request", e);
     }
-    return getRequestStatus(req.getRequestStatusResponse());
+    return req;
   }
 
 

@@ -32,6 +32,7 @@ import static org.easymock.EasyMock.verify;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -278,6 +279,101 @@ public class HostStackVersionResourceProviderTest {
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_VERSION_PROPERTY_ID, "2.0.1");
     properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, "host1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    // verify
+    verify(managementController, response, clusters);
+  }
+
+  @Test
+  public void testCreateResources_on_host_not_belonging_To_any_cluster() throws Exception {
+    StackId stackId = new StackId("HDP", "2.0.1");
+
+    final Host host1 = createNiceMock("host1", Host.class);
+    expect(host1.getHostName()).andReturn("host1").anyTimes();
+    expect(host1.getOsFamily()).andReturn("redhat6").anyTimes();
+    replay(host1);
+    Map<String, Host> hostsForCluster = new HashMap<>();
+
+    ServiceComponentHost sch = createMock(ServiceComponentHost.class);
+
+    final ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
+    hivePackage.setName("hive");
+    final ServiceOsSpecific.Package mysqlPackage = new ServiceOsSpecific.Package();
+    mysqlPackage.setName("mysql");
+    mysqlPackage.setSkipUpgrade(Boolean.TRUE);
+    List<ServiceOsSpecific.Package> packages = Arrays.asList(hivePackage, mysqlPackage);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
+    expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
+    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+      anyObject(Map.class), anyObject(String.class))).andReturn(packages).anyTimes();
+
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+      eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+    expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
+    expect(cluster.getServices()).andReturn(new HashMap<String, Service>()).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+
+    expect(
+      repositoryVersionDAOMock.findByStackAndVersion(
+        anyObject(StackId.class),
+        anyObject(String.class))).andReturn(repoVersion);
+
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+
+    StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
+
+    // replay
+    replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
+      cluster, repositoryVersionDAOMock, configHelper, sch, actionManager, hostVersionEntityMock, hostVersionDAOMock);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+      type,
+      PropertyHelper.getPropertyIds(type),
+      PropertyHelper.getKeyPropertyIds(type),
+      managementController);
+
+    injector.injectMembers(provider);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+
+    // add properties to the request map
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID, "2.2.0.1-885");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_VERSION_PROPERTY_ID, "2.0.1");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, "host1");
+    Set<Map<String, String>> components = new HashSet<>();
+    Map<String, String> hiveMetastoreComponent = new HashMap<>();
+    hiveMetastoreComponent.put("name", "HIVE_METASTORE");
+    components.add(hiveMetastoreComponent);
+    Map<String, String> hiveServerstoreComponent = new HashMap<>();
+    hiveServerstoreComponent.put("name", "HIVE_SERVER");
+    components.add(hiveServerstoreComponent);
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_COMPONENT_NAMES_PROPERTY_ID, components);
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID,
+      "true");
 
     propertySet.add(properties);
 
