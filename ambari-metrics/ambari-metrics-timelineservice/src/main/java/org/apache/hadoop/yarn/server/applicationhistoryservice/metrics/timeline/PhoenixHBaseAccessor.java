@@ -1137,8 +1137,11 @@ public class PhoenixHBaseAccessor {
     for (String metricNameEntry : metricFunctions.keySet()) {
 
       String metricRegEx;
-      if (metricNameEntry.contains("*")) {
-        String metricNameWithEscSeq = metricNameEntry.replace("*","\\*");
+      //Special case handling for metric name with * and __%.
+      //For example, dfs.NNTopUserOpCounts.windowMs=300000.op=*.user=%.count
+      // or dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%.count
+      if (metricNameEntry.contains("*") || metricNameEntry.contains("__%")) {
+        String metricNameWithEscSeq = metricNameEntry.replace("*", "\\*").replace("__%", "..%");
         metricRegEx = metricNameWithEscSeq.replace("%", ".*");
       } else {
         metricRegEx = metricNameEntry.replace("%", ".*");
