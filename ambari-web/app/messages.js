@@ -2655,6 +2655,7 @@ Em.I18n.translations = {
   'host.host.details.installClients': 'Install clients',
   'host.host.details.reinstallClients': 'Reinstall clients',
   'host.host.details.checkHost': 'Check host',
+  'host.host.details.downloadAllClients': 'All Clients On Host',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',
