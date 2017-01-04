@@ -37,8 +37,6 @@ export LOGSEARCH_DEBUG_PORT=5005
 
 export LOGSEARCH_SSL="true"
 export LOGSEARCH_KEYSTORE_LOCATION=/root/config/ssl/logsearch.keyStore.jks
-export LOGSEARCH_KEYSTORE_PASSWORD=bigdata
 export LOGSEARCH_KEYSTORE_TYPE=jks
 export LOGSEARCH_TRUSTSTORE_LOCATION=/root/config/ssl/logsearch.trustStore.jks
-export LOGSEARCH_TRUSTSTORE_PASSWORD=bigdata
 export LOGSEARCH_TRUSTSTORE_TYPE=jks
