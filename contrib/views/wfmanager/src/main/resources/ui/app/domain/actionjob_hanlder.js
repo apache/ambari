@@ -434,8 +434,19 @@ var FSActionJobHandler=ActionJobHandler.extend({
             settings.path=fileOpJson._path;
             settings.permissions=fileOpJson._permissions;
             var perm = settings.permissions.toString();
-
-
+            if(isNaN(perm)){
+              var permList = {"-":0,"r":1,"w":2,"x":4}, permissionNumFormat = "", permTokenNum = 0, tempArr = [1,4,7];
+              for(let p=0; p<tempArr.length; p++){
+                  var permToken = perm.slice(tempArr[p],tempArr[p]+3);
+                  for(let q=0; q<permToken.length; q++){
+                    var tok = permList[permToken.slice(q,q+1)]
+                    permTokenNum = permTokenNum + tok;
+                  }
+                  permissionNumFormat = permissionNumFormat +""+ permTokenNum;
+                  permTokenNum = 0;
+              }
+              perm = permissionNumFormat;
+            }
             for(var i=0; i< perm.length; i++){
               var keyField;
               if(i===0){
@@ -477,7 +488,7 @@ var FSActionJobHandler=ActionJobHandler.extend({
                 settings[keyField+"read"] = 1;
                 settings[keyField+"write"] = 2;
                 settings[keyField+"execute"] = 4;
-              }              
+              }
             }
             settings.dirfiles=fileOpJson["_dir-files"];
             if(fileOpJson.hasOwnProperty("recursive")){
