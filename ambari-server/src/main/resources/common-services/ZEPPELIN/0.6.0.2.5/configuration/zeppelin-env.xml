@@ -137,6 +137,93 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>shiro_ini_content</name>
+    <description>This is the jinja template for shiro.ini file</description>
+    <value>
+[users]
+# List of users with their password allowed to access Zeppelin.
+# To use a different strategy (LDAP / Database / ...) check the shiro doc at http://shiro.apache.org/configuration.html#Configuration-INISections
+#admin = password1, admin
+#user1 = password2, role1, role2
+#user2 = password3, role3
+#user3 = password4, role2
+
+# Sample LDAP configuration, for user Authentication, currently tested for single Realm
+[main]
+### A sample for configuring Active Directory Realm
+#activeDirectoryRealm = org.apache.zeppelin.realm.ActiveDirectoryGroupRealm
+#activeDirectoryRealm.systemUsername = userNameA
+
+#use either systemPassword or hadoopSecurityCredentialPath, more details in http://zeppelin.apache.org/docs/latest/security/shiroauthentication.html
+#activeDirectoryRealm.systemPassword = passwordA
+#activeDirectoryRealm.hadoopSecurityCredentialPath = jceks://file/user/zeppelin/zeppelin.jceks
+#activeDirectoryRealm.searchBase = CN=Users,DC=SOME_GROUP,DC=COMPANY,DC=COM
+#activeDirectoryRealm.url = ldap://ldap.test.com:389
+#activeDirectoryRealm.groupRolesMap = "CN=admin,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"admin","CN=finance,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"finance","CN=hr,OU=groups,DC=SOME_GROUP,DC=COMPANY,DC=COM":"hr"
+#activeDirectoryRealm.authorizationCachingEnabled = false
+
+### A sample for configuring LDAP Directory Realm
+#ldapRealm = org.apache.zeppelin.realm.LdapGroupRealm
+## search base for ldap groups (only relevant for LdapGroupRealm):
+#ldapRealm.contextFactory.environment[ldap.searchBase] = dc=COMPANY,dc=COM
+#ldapRealm.contextFactory.url = ldap://ldap.test.com:389
+#ldapRealm.userDnTemplate = uid={0},ou=Users,dc=COMPANY,dc=COM
+#ldapRealm.contextFactory.authenticationMechanism = SIMPLE
+
+### A sample PAM configuration
+#pamRealm=org.apache.zeppelin.realm.PamRealm
+#pamRealm.service=sshd
+
+sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+
+### If caching of user is required then uncomment below lines
+#cacheManager = org.apache.shiro.cache.MemoryConstrainedCacheManager
+#securityManager.cacheManager = $cacheManager
+
+securityManager.sessionManager = $sessionManager
+# 86,400,000 milliseconds = 24 hour
+securityManager.sessionManager.globalSessionTimeout = 86400000
+shiro.loginUrl = /api/login
+
+[roles]
+#role1 = *
+#role2 = *
+#role3 = *
+#admin = *
+
+[urls]
+# This section is used for url-based security.
+# You can secure interpreter, configuration and credential information by urls. Comment or uncomment the below urls that you want to hide.
+# anon means the access is anonymous.
+# authc means Form based Auth Security
+# To enfore security, comment the line below and uncomment the next one
+/api/version = anon
+#/api/interpreter/** = authc, roles[admin]
+#/api/configurations/** = authc, roles[admin]
+#/api/credential/** = authc, roles[admin]
+/** = anon
+#/** = authc
+    </value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>log4j_properties_content</name>
+    <description>This is the content for log4j.properties file</description>
+    <value>
+log4j.rootLogger = INFO, dailyfile
+log4j.appender.stdout = org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout = org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n
+log4j.appender.dailyfile.DatePattern=.yyyy-MM-dd
+log4j.appender.dailyfile.Threshold = INFO
+log4j.appender.dailyfile = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.dailyfile.File = ${zeppelin.log.file}
+log4j.appender.dailyfile.layout = org.apache.log4j.PatternLayout
+log4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n
+  </value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>zeppelin.executor.mem</name>
     <value>512m</value>
     <description>Executor memory to use (e.g. 512m or 1g)</description>
