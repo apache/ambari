@@ -1214,7 +1214,7 @@ describe('App.MainServiceItemController', function () {
       expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
         serviceName: 'S1',
         componentName: 'C1',
-        displayName: 'd1'
+        resourceType: mainServiceItemController.resourceTypeEnum.SERVICE_COMPONENT
       })).to.be.true;
     });
     it('should launch $.fileDownload method, event passed', function () {
@@ -1226,7 +1226,7 @@ describe('App.MainServiceItemController', function () {
       expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
         serviceName: 'S1',
         componentName: 'name1',
-        displayName: 'label1'
+        resourceType: mainServiceItemController.resourceTypeEnum.SERVICE_COMPONENT
       })).to.be.true;
     });
   });

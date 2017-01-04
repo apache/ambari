@@ -2497,14 +2497,33 @@ describe('App.MainHostDetailsController', function () {
       controller.downloadClientConfigs({
         context: Em.Object.create({
           componentName: 'name',
-          hostName: 'host1',
-          displayName: 'dName'
+          hostName: 'host1'
         })
       });
       expect(controller.downloadClientConfigsCall.calledWith({
         componentName: 'name',
         hostName: 'host1',
-        displayName: 'dName'
+        resourceType: controller.resourceTypeEnum.HOST_COMPONENT
+      })).to.be.true;
+    });
+  });
+
+  describe('#downloadAllClientConfigs', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'downloadClientConfigsCall', Em.K);
+      sinon.stub(controller, 'get').withArgs('content.hostName').returns('host1');
+    });
+    afterEach(function () {
+      controller.downloadClientConfigsCall.restore();
+      controller.get.restore();
+    });
+
+    it('should launch controller.downloadClientConfigsCall method', function () {
+      controller.downloadAllClientConfigs();
+      expect(controller.downloadClientConfigsCall.calledWith({
+        hostName: 'host1',
+        resourceType: controller.resourceTypeEnum.HOST
       })).to.be.true;
     });
   });

@@ -2391,7 +2391,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.downloadClientConfigsCall({
       hostName: event.context.get('hostName'),
       componentName: event.context.get('componentName'),
-      displayName: event.context.get('displayName')
+      resourceType: this.resourceTypeEnum.HOST_COMPONENT
+    });
+  },
+
+  /**
+   *  This controller action is called from the template when user clicks to download configs for "All Clients On Host"
+   */
+  downloadAllClientConfigs: function () {
+    var self = this;
+    this.downloadClientConfigsCall({
+      hostName: self.get('content.hostName'),
+      resourceType: this.resourceTypeEnum.HOST
     });
   },
 

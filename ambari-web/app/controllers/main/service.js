@@ -147,7 +147,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
    * Download client configs for all services
    */
   downloadAllClientConfigs: function() {
-    this.downloadClientConfigsCall({downloadAll: true});
+    this.downloadClientConfigsCall({resourceType: this.resourceTypeEnum.CLUSTER});
   },
 
   /**

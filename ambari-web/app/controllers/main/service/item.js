@@ -1091,7 +1091,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     this.downloadClientConfigsCall({
       serviceName: this.get('content.serviceName'),
       componentName: (event && event.name) || component.get('componentName'),
-      displayName: (event && event.label) || component.get('displayName')
+      resourceType: this.resourceTypeEnum.SERVICE_COMPONENT
     });
   },
 

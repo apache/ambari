@@ -59,7 +59,7 @@
                     </li>
                 {{/isAuthorized}}
                 <li>
-                    <a href="#"
+                    <a href="#" id="all-clients-of-cluster-link"
                         {{action "downloadAllClientConfigs" target="view.serviceController"}}>
                         <i {{bindAttr class=":icon-download-alt"}}></i>
                         {{t services.service.downloadAllClientConfigs}}
