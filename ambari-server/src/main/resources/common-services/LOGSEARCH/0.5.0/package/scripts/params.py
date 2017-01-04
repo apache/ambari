@@ -218,7 +218,6 @@ logsearch_properties['logsearch.login.credentials.file'] = logsearch_admin_crede
 logsearch_properties['logsearch.auth.file.enabled'] = 'true'
 logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
 logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
-logsearch_properties['logsearch.roles.allowed'] = 'AMBARI.ADMINISTRATOR'
 
 logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
 

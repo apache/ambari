@@ -2251,53 +2251,60 @@ var hdp2properties = [
     "index": 11
   },
   {
-    "name": "logsearch.auth.jwt.audiances",
+    "name": "logsearch.roles.allowed",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 12
   },
   {
-    "name": "logsearch.auth.jwt.cookie.name",
+    "name": "logsearch.auth.jwt.audiances",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 13
   },
   {
-    "name": "logsearch.auth.jwt.query.param.original_url",
+    "name": "logsearch.auth.jwt.cookie.name",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 14
   },
   {
-    "name": "logsearch.spnego.kerberos.enabled",
+    "name": "logsearch.auth.jwt.query.param.original_url",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 15
   },
   {
-    "name": "logsearch.spnego.kerberos.keytab",
+    "name": "logsearch.spnego.kerberos.enabled",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 16
   },
   {
-    "name": "logsearch.spnego.kerberos.principal",
+    "name": "logsearch.spnego.kerberos.keytab",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 17
   },
   {
-    "name": "logsearch.spnego.kerberos.host",
+    "name": "logsearch.spnego.kerberos.principal",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 18
+  },
+  {
+    "name": "logsearch.spnego.kerberos.host",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 19
   },
   /*infra-solr-client-log4j*/
   {
