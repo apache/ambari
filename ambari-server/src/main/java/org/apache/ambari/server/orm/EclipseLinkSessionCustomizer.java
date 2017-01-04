@@ -17,9 +17,13 @@
  */
 package org.apache.ambari.server.orm;
 
+import java.util.ArrayList;
+
 import javax.activation.DataSource;
 
+import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.SessionCustomizer;
+import org.eclipse.persistence.internal.queries.ContainerPolicy;
 import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.JNDIConnector;
 import org.eclipse.persistence.sessions.Session;
@@ -57,5 +61,17 @@ public class EclipseLinkSessionCustomizer implements SessionCustomizer {
     // ensure db behavior is same as shared cache
     DatabaseLogin databaseLogin = (DatabaseLogin) session.getDatasourceLogin();
     databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_READ_COMMITTED);
+
+    // read-all queries use a Vector as their container for
+    // result items - this seems like an unnecessary performance hit since
+    // Vectors are synchronized and there's no apparent reason to provide a
+    // thread-safe collection on a read all query
+    // see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=255634
+    Object ddlGeneration = session.getProperty(PersistenceUnitProperties.DDL_GENERATION);
+    if (null == ddlGeneration || PersistenceUnitProperties.NONE.equals(ddlGeneration)) {
+      // only set this when not using DDL generation - Sequence generation hard
+      // codes Vector
+      ContainerPolicy.setDefaultContainerClass(ArrayList.class);
+    }
   }
 }
