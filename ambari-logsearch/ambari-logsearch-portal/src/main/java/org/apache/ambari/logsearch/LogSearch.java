@@ -84,13 +84,14 @@ public class LogSearch {
   private static final String ROOT_CONTEXT = "/";
   private static final Integer SESSION_TIMEOUT = 60 * 30;
 
-  private static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
   private static final String LOGSEARCH_CERT_FILENAME = "logsearch.crt";
   private static final String LOGSEARCH_KEYSTORE_FILENAME = "logsearch.jks";
   private static final String LOGSEARCH_KEYSTORE_PRIVATE_KEY = "logsearch.private.key";
   private static final String LOGSEARCH_KEYSTORE_PUBLIC_KEY = "logsearch.public.key";
-  private static final String LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD = "bigdata";
   private static final String LOGSEARCH_CERT_DEFAULT_ALGORITHM = "sha256WithRSAEncryption";
+
+  public static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
+  public static final String LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD = "bigdata";
 
   public static void main(String[] argv) {
     LogSearch logSearch = new LogSearch();
@@ -300,7 +301,7 @@ public class LogSearch {
     fileSet.setDir(new File(certFolder));
     fileSet.setIncludes("**");
     chmod.addFileset(fileSet);
-    chmod.setPerm("640");
+    chmod.setPerm("600");
     chmod.execute();
   }
 }
