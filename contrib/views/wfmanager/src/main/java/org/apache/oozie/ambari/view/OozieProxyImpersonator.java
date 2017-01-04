@@ -169,7 +169,7 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = appPath.trim();
+    appPath = workflowFilesService.getWorkflowFileName(appPath.trim());
     if (!overwrite) {
       boolean fileExists = hdfsFileUtils.fileExists(appPath);
       if (fileExists) {
@@ -178,7 +178,7 @@ public class OozieProxyImpersonator {
     }
     postBody = utils.formatXml(postBody);
     try {
-      String filePath = workflowFilesService.createWorkflowFile(appPath,
+      String filePath = workflowFilesService.createFile(appPath,
         postBody, overwrite);
       LOGGER.info(String.format(
         "submit workflow job done. filePath=[%s]", filePath));
@@ -210,8 +210,8 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = appPath.trim();
-    workflowFilesService.saveDraft(appPath, postBody, overwrite);
+    appPath = workflowFilesService.getWorkflowDrafFileName(appPath.trim());
+    workflowFilesService.createFile(appPath, postBody, overwrite);
     if (PROJ_MANAGER_ENABLED) {
       JobType jobType = StringUtils.isEmpty(jobTypeStr) ? JobType.WORKFLOW : JobType.valueOf(jobTypeStr);
       String name = oozieUtils.deduceWorkflowNameFromJson(postBody);
@@ -303,7 +303,7 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = appPath.trim();
+    appPath = workflowFilesService.getWorkflowFileName(appPath.trim());
     if (!overwrite) {
       boolean fileExists = hdfsFileUtils.fileExists(appPath);
       if (fileExists) {
@@ -312,7 +312,7 @@ public class OozieProxyImpersonator {
     }
     postBody = utils.formatXml(postBody);
     try {
-      String filePath = hdfsFileUtils.writeToFile(appPath, postBody,
+      String filePath = workflowFilesService.createFile(appPath, postBody,
         overwrite);
       LOGGER.info(String.format(
         "submit workflow job done. filePath=[%s]", filePath));
