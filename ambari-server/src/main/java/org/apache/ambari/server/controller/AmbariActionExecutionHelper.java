@@ -227,17 +227,28 @@ public class AmbariActionExecutionHelper {
             || targetHostType.equals(TargetHostType.MAJORITY);
   }
 
-
   /**
    * Add tasks to the stage based on the requested action execution
-   *
    * @param actionContext  the context associated with the action
    * @param stage          stage into which tasks must be inserted
    * @param requestParams  all request parameters (may be null)
    * @throws AmbariException if the task can not be added
    */
   public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage,
-                                          Map<String, String> requestParams)
+                                          Map<String, String> requestParams) throws AmbariException {
+    addExecutionCommandsToStage(actionContext, stage, requestParams, true);
+  }
+
+  /**
+   * Add tasks to the stage based on the requested action execution
+   * @param actionContext
+   * @param stage
+   * @param requestParams
+   * @param checkHostIsMemberOfCluster if true AmbariException will be thrown in case host is not member of cluster.
+   * @throws AmbariException
+   */
+  public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage,
+                                          Map<String, String> requestParams, boolean checkHostIsMemberOfCluster)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -331,13 +342,15 @@ public class AmbariActionExecutionHelper {
               + "actionName=" + actionContext.getActionName());
     }
 
-    // Compare specified hosts to available hosts
-    if (!resourceFilter.getHostNames().isEmpty() && !candidateHosts.isEmpty()) {
-      for (String hostname : resourceFilter.getHostNames()) {
-        if (!candidateHosts.contains(hostname)) {
-          throw new AmbariException("Request specifies host " + hostname +
-            " but it is not a valid host based on the " +
-            "target service=" + serviceName + " and component=" + componentName);
+    if (checkHostIsMemberOfCluster) {
+      // Compare specified hosts to available hosts
+      if (!resourceFilter.getHostNames().isEmpty() && !candidateHosts.isEmpty()) {
+        for (String hostname : resourceFilter.getHostNames()) {
+          if (!candidateHosts.contains(hostname)) {
+            throw new AmbariException("Request specifies host " + hostname +
+              " but it is not a valid host based on the " +
+              "target service=" + serviceName + " and component=" + componentName);
+          }
         }
       }
     }
