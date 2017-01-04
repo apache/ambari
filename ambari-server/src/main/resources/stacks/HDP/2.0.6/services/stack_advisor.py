@@ -693,6 +693,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if "timeline.metrics.service.operation.mode" in services["configurations"]["ams-site"]["properties"]:
         operatingMode = services["configurations"]["ams-site"]["properties"]["timeline.metrics.service.operation.mode"]
 
+    if len(amsCollectorHosts) > 1 :
+      operatingMode = "distributed"
+      putAmsSiteProperty("timeline.metrics.service.operation.mode", operatingMode)
+
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
@@ -1082,7 +1086,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if op_mode not in ("embedded", "distributed"):
       correct_op_mode_item = self.getErrorItem("Correct value should be set.")
       pass
-
+    elif len(self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")) > 1 and op_mode != 'distributed':
+      correct_op_mode_item = self.getErrorItem("Correct value should be 'distributed' for clusters with more then 1 Metrics collector")
     validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 
