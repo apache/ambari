@@ -105,6 +105,11 @@ public class ZkMigratorTest {
     setAcls("/any", "world:anyone:invalid");
   }
 
+  @Test
+  public void testIgnoresNonExistentNode() throws Exception {
+    setAcls("/nonexistent", "world:anyone:rw");
+  }
+
   @Before
   public void startZookeeper() throws Exception {
     zkTestServer = new TestingServer(Port.free());
