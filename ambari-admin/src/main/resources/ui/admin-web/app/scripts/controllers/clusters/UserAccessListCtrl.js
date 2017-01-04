@@ -166,9 +166,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
 
         // Process when it's NONE privilege or higher than current effective group privilege
         if (userIndex <= groupIndex || user.permission_name == $scope.NONE_ROLE.permission_name) {
-          var privilege_ids = [];
-          privilegesOfTypeUser.forEach(function(privilegeOfTypeUser) {
-            privilege_ids.push(privilegeOfTypeUser.privilege_id);
+          var privilege_ids = privilegesOfTypeUser.filter(function(privilegeOfTypeUser) {
+            return privilegeOfTypeUser.principal_type !== 'ROLE';
+          }).map(function (privilegeOfTypeUser) {
+            return privilegeOfTypeUser.privilege_id;
           });
 
           // Purge existing user level privileges if there is any
