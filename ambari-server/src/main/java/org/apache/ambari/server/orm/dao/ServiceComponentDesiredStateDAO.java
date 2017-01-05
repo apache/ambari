@@ -199,6 +199,14 @@ public class ServiceComponentDesiredStateDAO {
     return daoUtils.selectList(query);
   }
 
+  /**
+   * Gets a specific version for a component
+   * @param clusterId     the cluster id
+   * @param serviceName   the service name
+   * @param componentName the component name
+   * @param version       the component version to find
+   * @return the version entity, or {@code null} if not found
+   */
   @RequiresSession
   public ServiceComponentVersionEntity findVersion(long clusterId, String serviceName,
       String componentName, String version) {
