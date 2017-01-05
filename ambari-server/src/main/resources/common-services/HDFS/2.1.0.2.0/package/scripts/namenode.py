@@ -19,20 +19,19 @@ limitations under the License.
 
 import sys
 import os
-import time
 import json
 import tempfile
 from datetime import datetime
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
-from resource_management import Script
+from ambari_commons import constants
+
+from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -100,8 +99,9 @@ class NameNode(Script):
     namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type,
       upgrade_suspended=params.upgrade_suspended, env=env)
 
-    # after starting NN in an upgrade, touch the marker file
-    if upgrade_type is not None:
+    # after starting NN in an upgrade, touch the marker file - but only do this for certain
+    # upgrade types - not all upgrades actually tell NN about the upgrade (like HOU)
+    if upgrade_type in (constants.UPGRADE_TYPE_ROLLING, constants.UPGRADE_TYPE_NON_ROLLING):
       # place a file on the system indicating that we've submitting the command that
       # instructs NN that it is now part of an upgrade
       namenode_upgrade.create_upgrade_marker()
@@ -110,7 +110,7 @@ class NameNode(Script):
     import params
     env.set_params(params)
     hdfs_binary = self.get_hdfs_binary()
-    if upgrade_type == "rolling" and params.dfs_ha_enabled:
+    if upgrade_type == constants.UPGRADE_TYPE_ROLLING and params.dfs_ha_enabled:
       if params.dfs_ha_automatic_failover_enabled:
         initiate_safe_zkfc_failover()
       else:
@@ -184,25 +184,23 @@ class NameNodeDefault(NameNode):
 
   def finalize_non_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
-    namenode_upgrade.finalize_upgrade("nonrolling", hfds_binary)
+    namenode_upgrade.finalize_upgrade(constants.UPGRADE_TYPE_NON_ROLLING, hfds_binary)
 
   def finalize_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
-    namenode_upgrade.finalize_upgrade("rolling", hfds_binary)
+    namenode_upgrade.finalize_upgrade(constants.UPGRADE_TYPE_ROLLING, hfds_binary)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
-      # Therefore, we cannot call this code in that scenario.
-      call_if = [("rolling", "upgrade"), ("rolling", "downgrade"), ("nonrolling", "upgrade")]
-      for e in call_if:
-        if (upgrade_type, params.upgrade_direction) == e:
-          conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-namenode", params.version)
+    # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
+    # Therefore, we cannot call this code in that scenario.
+    if upgrade_type != constants.UPGRADE_TYPE_NON_ROLLING or params.upgrade_direction != Direction.DOWNGRADE:
+      conf_select.select(params.stack_name, "hadoop", params.version)
+
+    stack_select.select("hadoop-hdfs-namenode", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")
