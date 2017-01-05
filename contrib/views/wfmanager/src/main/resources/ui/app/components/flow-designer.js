@@ -465,7 +465,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         request.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
         request.setRequestHeader("X-Requested-By", "workflow-designer");
       },
-      data: self.persistWorkflowAsDraft(),
+      data: self.getWorkflowAsJson(),
       success: function(response) {
         //deferred.resolve(response);
       }.bind(this),
@@ -510,9 +510,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       return false;
     }
     return detect(obj);
-  },
-  persistWorkflowAsDraft(){
-
   },
   getDraftWorkflowData(path){
     var deferred = Ember.RSVP.defer();
@@ -612,25 +609,23 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       scrollTop: scroll+200
     }, 1000);
   },
-  openSaveWorkflow (isWfPathSet){
+  openSaveWorkflow() {
     this.get('workflowContext').clearErrors();
     var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
     workflowContext:this.get('workflowContext')});
     var workflowXml=workflowGenerator.process();
     if(this.get('workflowContext').hasErrors()){
       this.set('errors',this.get('workflowContext').getErrors());
-      this.set("jobXmlJSONStr", this.persistWorkflowAsDraft());
+      this.set("jobXmlJSONStr", this.getWorkflowAsJson());
       this.set("isDraft", true);
     }else{
-      this.set("jobXmlJSONStr", "");
+      this.set("jobXmlJSONStr", this.getWorkflowAsJson());
       var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
       var configForSubmit={props:dynamicProperties,xml:workflowXml,params:this.get('workflow.parameters')};
       this.set("workflowSubmitConfigs",configForSubmit);
       this.set("isDraft", false);
     }
-    if(isWfPathSet) {
-      this.set("showingSaveWorkflow",true);
-    }
+    this.set("showingSaveWorkflow",true);
   },
   openJobConfig (){
     this.get('workflowContext').clearErrors();
@@ -866,26 +861,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.openJobConfig();
     },
     saveWorkflow(action){
-      if(this.get("fileInfo").get("path") && action === "save"){
-        this.openSaveWorkflow();
-        var url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("fileInfo").get("path") + "&overwrite=" + this.get("fileInfo").get("overWritePath");
-        var self = this, workflowData;
-
-        if(this.get('isDraft')){
-           url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("fileInfo").get("path") + "&overwrite=" + this.get("fileInfo").get("overWritePath");;
-           workflowData = this.get("jobXmlJSONStr");
-        } else {
-           url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("fileInfo").get("path") + "&overwrite=" + this.get("fileInfo").get("overWritePath");;
-           workflowData = this.get("workflowSubmitConfigs").xml;
-        }
-
-        this.get("saveJobService").saveWorkflow(url, workflowData).promise.then(function(data){
-        }.bind(this)).catch(function(data){
-          self.set("errorMsg", "There is some problem while saving workflow.Please try again.");
-          self.showingErrorMsgInDesigner(data);
-        });
-      } else {
-        this.openSaveWorkflow(true);
+      this.openSaveWorkflow();
+      if(action === "saveDraft"){
+        this.set("isDraft", true);
       }
       this.set('dryrun', false);
     },
@@ -942,9 +920,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
           var draftData = JSON.parse(data);
           if(draftData.draftExists && draftData.isDraftCurrent){
             self.getDraftWorkflowData(path).promise.then(function(data){
-              var drafWorkflowJson = self.get('workspaceManager').restoreWorkInProgress(data);
               var workflowImporter=WorkflowJsonImporter.create({});
-              var workflow=workflowImporter.importWorkflow(drafWorkflowJson);
+              var workflow=workflowImporter.importWorkflow(data);
 
               self.resetDesigner();
               self.set("workflow",workflow);

@@ -48,12 +48,12 @@
                         <i class="fa fa-download marginright5"></i>Import from Local FS
                     {{/file-picker}}
                   </a>
-                  <!--a class="pointer" title="Save workflow" {{action "saveWorkflow" "save"}}>
+                  <a class="pointer" title="Save workflow" {{action "saveWorkflow" "save"}}>
                       <i class="fa fa-floppy-o marginright5"></i>Save
                   </a>
-                  <a class="pointer" title="Save workflow" {{action "saveWorkflow" }}>
-                      <i class="fa fa-floppy-o marginright5"></i>Save As
-                  </a-->
+                  <a class="pointer" title="Save as draft" {{action "saveWorkflow" "saveDraft"}}>
+                      <i class="fa fa-floppy-o marginright5"></i>Save As Draft
+                  </a>
                 </li>
                 <li>
                   <a class="pointer" data-toggle="modal" title="Save workflow to local file system" {{action "downloadWorkflowXml"}}>
