@@ -3408,7 +3408,7 @@ describe('App.MainHostDetailsController', function () {
         'result': [
           {
             properties: {
-              'core-site': {'hadoop.security.key.provider.path': 'kms://http@host1;host2:port/kms'},
+              'core-site': {'hadoop.security.key.provider.path': 'kms://http@host2;host1:port/kms'},
               'hdfs-site': {'dfs.encryption.key.provider.uri': 'kms://http@host1;host2:port/kms'}
             },
             properties_attributes: {
@@ -3439,11 +3439,15 @@ describe('App.MainHostDetailsController', function () {
             },
             {
               type: 'core-site',
-              properties: {}
+              properties: {
+                'hadoop.security.key.provider.path': 'kms://http@host2;host1:port/kms'
+              }
             },
             {
               type: 'hdfs-site',
-              properties: {}
+              properties: {
+                'dfs.encryption.key.provider.uri': 'kms://http@host2:port/kms'
+              }
             }
           ]
         };

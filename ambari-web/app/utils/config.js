@@ -37,6 +37,17 @@ App.config = Em.Object.create({
   preDefinedServiceConfigs: [],
 
   /**
+   * Map for methods used to parse hosts lists from certain config properties
+   */
+  uniqueHostsListParsers: [
+    {
+      propertyName: 'templeton.hive.properties',
+      type: 'webhcat-site',
+      method: 'getTempletonHiveHosts'
+    }
+  ],
+
+  /**
    *
    * Returns file name version that stored on server.
    *
@@ -1251,6 +1262,12 @@ App.config = Em.Object.create({
     return false;
   },
 
+  getTempletonHiveHosts: function (value) {
+    var pattern = /thrift:\/\/.+:\d+/,
+      patternMatch = value.match(pattern);
+    return patternMatch ? patternMatch[0].split('\\,') : value;
+  },
+
   /**
    * Update config property value based on its current value and list of zookeeper server hosts.
    * Used to prevent sort order issues.
@@ -1268,14 +1285,31 @@ App.config = Em.Object.create({
    *
    * @method updateHostsListValue
    * @param {Object} siteConfigs - prepared site config object to store
+   * @param {String} propertyType - type of the property to update
    * @param {String} propertyName - name of the property to update
    * @param {String} hostsList - list of ZooKeeper Server names to set as config property value
+   * @param {Boolean} isArray - determines whether value string is formatted as array
    * @return {String} - result value
    */
-  updateHostsListValue: function(siteConfigs, propertyName, hostsList) {
-    var value = hostsList;
-    var propertyHosts = (siteConfigs[propertyName] || '').split(',');
-    var hostsToSet = hostsList.split(',');
+  updateHostsListValue: function(siteConfigs, propertyType, propertyName, hostsList, isArray) {
+    var value = hostsList,
+      propertyHosts = (siteConfigs[propertyName] || ''),
+      hostsToSet = hostsList,
+      parser = this.get('uniqueHostsListParsers').find(function (property) {
+        return property.type === propertyType && property.propertyName === propertyName;
+      });
+    if (parser) {
+      propertyHosts = this.get(parser.method)(propertyHosts);
+      hostsToSet = this.get(parser.method)(hostsToSet);
+    } else {
+      if (isArray) {
+        var pattern = /(^\[|]$)/g;
+        propertyHosts = propertyHosts.replace(pattern, '');
+        hostsToSet = hostsToSet.replace(pattern, '');
+      }
+      propertyHosts = propertyHosts.split(',');
+      hostsToSet = hostsToSet.split(',');
+    }
 
     if (!Em.isEmpty(siteConfigs[propertyName])) {
       var diffLength = propertyHosts.filter(function(hostName) {

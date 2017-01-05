@@ -957,11 +957,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       if (configs[fileName]) {
         Em.keys(configs[fileName]).forEach(function(propertyName) {
           var propertyDef = {
-            fileName: fileName,
-            name: propertyName,
-            value: configs[fileName][propertyName]
-          };
-          configs[fileName][propertyName] = Em.get(initializer.initialValue(propertyDef, localDB, dependencies), 'value');
+              fileName: fileName,
+              name: propertyName,
+              value: configs[fileName][propertyName]
+            },
+            configProperty = initializer.initialValue(propertyDef, localDB, dependencies);
+          initializer.updateSiteObj(configs[fileName], configProperty);
         });
       }
     });
@@ -1130,26 +1131,46 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadHiveConfigs
    */
   onLoadRangerConfigs: function (data) {
-    var hostToInstall = this.get('rangerKMSServerHost');
-    var rkmsHosts = this.getRangerKMSServerHosts();
-    var rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'];
-    var coreSiteConfigs = data.items.findProperty('type', 'core-site');
-    var hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site');
-    var groups = [
-      {
-        properties: {
-          'core-site': coreSiteConfigs.properties,
-          'hdfs-site': hdfsSiteConfigs.properties
+    var properties = [
+        {
+          type: 'core-site',
+          name: 'hadoop.security.key.provider.path'
         },
-        properties_attributes: {
-          'core-site': coreSiteConfigs.properties_attributes,
-          'hdfs-site': hdfsSiteConfigs.properties_attributes
+        {
+          type: 'hdfs-site',
+          name: 'dfs.encryption.key.provider.uri'
         }
-      }
-    ];
+      ],
+      hostToInstall = this.get('rangerKMSServerHost'),
+      rkmsHosts = this.getRangerKMSServerHosts().join(';'),
+      rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'],
+      newValue = 'kms://http@' + rkmsHosts + ':' + rkmsPort + '/kms',
+      coreSiteConfigs = data.items.findProperty('type', 'core-site'),
+      hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site'),
+      groups = [
+        {
+          properties: {
+            'core-site': coreSiteConfigs.properties,
+            'hdfs-site': hdfsSiteConfigs.properties
+          },
+          properties_attributes: {
+            'core-site': coreSiteConfigs.properties_attributes,
+            'hdfs-site': hdfsSiteConfigs.properties_attributes
+          }
+        }
+      ];
 
-    coreSiteConfigs.properties['hadoop.security.key.provider.path'] = 'kms://http@' + rkmsHosts.join(';') + ':' + rkmsPort + '/kms';
-    hdfsSiteConfigs.properties['dfs.encryption.key.provider.uri'] = 'kms://http@' + rkmsHosts.join(';') + ':' + rkmsPort + '/kms';
+    properties.forEach(function (property) {
+      var typeConfigs = data.items.findProperty('type', property.type).properties,
+          currentValue = typeConfigs[property.name],
+          pattern = new RegExp('^kms:\\/\\/http@(.+):' + rkmsPort + '\\/kms$'),
+          patternMatch = currentValue && currentValue.match(pattern),
+          currentHostsList = patternMatch && patternMatch[1].split(';').sort().join(';');
+      if (currentHostsList !== rkmsHosts) {
+        typeConfigs[property.name] = newValue;
+      }
+    });
+
     this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
   },
 

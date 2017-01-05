@@ -371,7 +371,7 @@ App.HostsBasedInitializerMixin = Em.Mixin.create({
       component: component,
       componentExists: componentExists,
       modifier: {
-        delmitier: Em.isNone(delimiter) ? ',' : delimiter
+        delimiter: Em.isNone(delimiter) ? ',' : delimiter
       }
     };
   },
