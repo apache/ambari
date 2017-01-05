@@ -301,7 +301,7 @@ def kms(upgrade_type=None):
     File(os.path.join(params.kms_conf_dir, "kms-log4j.properties"),
       owner=params.kms_user,
       group=params.kms_group,
-      content=params.kms_log4j,
+      content=InlineTemplate(params.kms_log4j),
       mode=0644
     )
     if params.security_enabled:

@@ -140,7 +140,7 @@ class TestRangerTagsync(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-tagsync/conf/log4j.properties',
       owner = 'ranger',
       group = 'ranger',
-      content = self.getConfig()['configurations']['tagsync-log4j']['content'],
+      content = InlineTemplate(self.getConfig()['configurations']['tagsync-log4j']['content']),
       mode = 0644
     )
 

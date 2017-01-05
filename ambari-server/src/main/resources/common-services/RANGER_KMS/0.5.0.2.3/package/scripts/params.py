@@ -61,6 +61,11 @@ java_home = config['hostLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
 
+ranger_kms_audit_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_audit_log_maxfilesize',256)
+ranger_kms_audit_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_audit_log_maxbackupindex',20)
+ranger_kms_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_log_maxfilesize',256)
+ranger_kms_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_log_maxbackupindex',20)
+
 jdk_location = config['hostLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 

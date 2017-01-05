@@ -88,7 +88,7 @@ def falcon(type, action = None, upgrade_type=None):
       owner = params.falcon_user,
       group=params.user_group,
     )
-    
+
     PropertiesFile(params.falcon_conf_dir + '/client.properties',
       properties = params.falcon_client_properties,
       mode = 0644,
@@ -101,6 +101,12 @@ def falcon(type, action = None, upgrade_type=None):
 
     PropertiesFile(params.falcon_conf_dir + '/startup.properties',
       properties = params.falcon_startup_properties,
+      mode = 0644,
+      owner = params.falcon_user)
+
+    File(params.falcon_conf_dir + '/log4j.properties',
+      content = InlineTemplate(params.falcon_log4j),
+      group = params.user_group,
       mode = 0644,
       owner = params.falcon_user)
 

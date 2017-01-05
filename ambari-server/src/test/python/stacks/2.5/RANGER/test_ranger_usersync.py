@@ -128,7 +128,7 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/log4j.properties',
       owner = 'ranger',
       group = 'ranger',
-      content = self.getConfig()['configurations']['usersync-log4j']['content'],
+      content = InlineTemplate(self.getConfig()['configurations']['usersync-log4j']['content']),
       mode = 0644
     )
 
