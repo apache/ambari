@@ -53,8 +53,10 @@
           <div>
             {{#if alertMessage}}
               <div class="alert alert-{{alertType}} col-xs-24">
-                {{alertMessage}}-
-                {{alertDetails}}
+                {{alertMessage}}
+                {{#if alertDetails}}
+                -{{alertDetails}}
+                {{/if}}
               </div>
 
             {{/if}}
