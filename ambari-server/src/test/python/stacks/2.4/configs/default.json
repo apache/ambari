@@ -302,7 +302,8 @@
         "logsearch.solr.metrics.collector.hosts" : "{metrics_collector_hosts}",
         "logsearch.auth.external_auth.enabled" : "false",
         "logsearch.auth.external_auth.host_url" : "{ambari_server_auth_host_url}",
-        "logsearch.auth.external_auth.login_url" : "/api/v1/users/$USERNAME/privileges?fields=*"
+        "logsearch.auth.external_auth.login_url" : "/api/v1/users/$USERNAME/privileges?fields=*",
+        "logsearch.roles.allowed": "AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR"
       },
       "logfeeder-properties": {
         "logfeeder.checkpoint.folder" : "/etc/ambari-logsearch-logfeeder/conf/checkpoints",

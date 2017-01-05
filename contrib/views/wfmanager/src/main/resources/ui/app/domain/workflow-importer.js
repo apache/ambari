@@ -19,9 +19,12 @@ import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
 import {Workflow} from '../domain/workflow';
 import {WorkflowXmlMapper} from '../domain/workflow_xml_mapper';
+import SchemaVersions from '../domain/schema-versions';
+
 var WorkflowImporter= Ember.Object.extend({
   workflowMapper:null,
   x2js : new X2JS(),
+  schemaVersions : SchemaVersions.create({}),
   importWorkflow(workflowXml){
     var workflow=Workflow.create({});
     var errors=[];
@@ -36,7 +39,12 @@ var WorkflowImporter= Ember.Object.extend({
     }
     var workflowAppJson=workflowJson["workflow-app"];
     var workflowVersion=CommonUtils.extractSchemaVersion(workflowAppJson._xmlns);
-    workflow.schemaVersions.setCurrentWorkflowVersion(workflowVersion);
+    var maxWorkflowVersion = Math.max.apply(Math, this.get('schemaVersions').getSupportedVersions('workflow'));
+    if (workflowVersion > maxWorkflowVersion) {
+      errors.push({message: "Unsupported workflow version - " + workflowVersion});
+    } else {
+      workflow.schemaVersions.workflowVersion = workflowVersion;
+    }
     this.processWorkflowActionVersions(workflowAppJson, workflow, errors);
 
     if (workflowAppJson.info && workflowAppJson.info.__prefix==="sla") {
@@ -69,13 +77,16 @@ var WorkflowImporter= Ember.Object.extend({
     });
 
     importedWfActionVersions._keys.forEach(function(wfActionType){
-      var maxImportedActionVersion = Math.max.apply(Math, importedWfActionVersions.get(wfActionType))
-      if (workflow.schemaVersions.getActionVersion(wfActionType) < maxImportedActionVersion) {
-        errors.push({message: "Unsupported " + wfActionType + " version - " + maxImportedActionVersion});
-      } else {
-        workflow.schemaVersions.setActionVersion(wfActionType, maxImportedActionVersion.toString());
-      }
-    });
+      var maxImportedActionVersion = Math.max(...importedWfActionVersions.get(wfActionType));
+      var supportedVersions = this.get('schemaVersions').getSupportedVersions(wfActionType);
+      importedWfActionVersions.get(wfActionType).forEach((version)=>{
+        if(supportedVersions.indexOf(version) === -1){
+          errors.push({message: "Unsupported " + wfActionType + " version - " + maxImportedActionVersion});
+        }else{
+          workflow.schemaVersions.actionVersions.set(wfActionType, maxImportedActionVersion);
+        }
+      }, this);
+    }, this);
   },
   processActionNode(nodeMap,action){
     var actionMapper=this.get("workflowMapper").getNodeHandler("action");

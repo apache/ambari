@@ -105,7 +105,7 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.collection.service.logs.replication.factor': '1',
                                             'logsearch.login.credentials.file': 'logsearch-admin.json',
                                             'logsearch.protocol': 'http',
-                                            'logsearch.roles.allowed': 'AMBARI.ADMINISTRATOR',
+                                            'logsearch.roles.allowed': 'AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR',
                                             'logsearch.service.logs.split.interval.mins': '1',
                                             'logsearch.solr.audit.logs.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr',
                                             'logsearch.solr.collection.audit.logs': 'audit_logs',

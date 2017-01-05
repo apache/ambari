@@ -28,6 +28,8 @@ var WorkflowJsonImporter= Ember.Object.extend({
         var workflow=Workflow.create({});
         workflow.initialize();
         workflow.set("name",workflowJson.name);
+        workflow.schemaVersions.workflowVersion = workflowJson.schemaVersions.workflowVersion;
+        workflow.schemaVersions.actionVersions = new Map(JSON.parse(workflowJson.schemaVersions.actionVersions));
         this.restoreKillNodes(workflowJson.killNodes,workflow);
         var nodeMap= new Map();
         var startNode=this.visitNode(workflowJson.startNode,nodeMap);

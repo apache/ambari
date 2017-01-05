@@ -78,15 +78,16 @@ export default Ember.Component.extend(Validations, {
     }
   },
   saveJob(){
-    var url, workflowData;
-    if(this.get('isDraft')){
-       url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
-       workflowData = this.get("jobXmlJSONStr");
-    } else {
+    var url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
+    var workflowData = this.get("jobXmlJSONStr");
+    this.saveWfJob(url, workflowData);
+    if(!this.get('isDraft')){
        url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
        workflowData = this.get("jobXml");
+       this.saveWfJob(url, workflowData);
     }
-
+  },
+  saveWfJob(url, workflowData) {
     var self = this;
     this.get("saveJobService").saveWorkflow(url, workflowData).promise.then(function(response){
         self.showNotification({

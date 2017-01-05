@@ -27,9 +27,9 @@
           <div class="form-group">
             <label class="control-label col-xs-3"> Coordinator Version</label>
             <div class="col-xs-7">
-              <select onchange={{action (mut currentCoordinatorVersion) value="target.value"}} name="select-version" class="form-control">
+              <select onchange={{action (mut selectedCoordinatorVersion) value="target.value"}} name="select-version" class="form-control">
                 {{#each coordinatorSchemaVersions as |version index|}}
-                  <option value={{version}} selected={{eq currentCoordinatorVersion version}}>{{version}}</option>
+                  <option value={{version}} selected={{eq selectedCoordinatorVersion version}}>{{version}}</option>
                 {{/each}}
               </select>
             </div>

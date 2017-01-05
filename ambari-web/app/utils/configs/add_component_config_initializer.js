@@ -146,7 +146,10 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
    */
   updateSiteObj: function(siteConfigs, configProperty) {
     if (!siteConfigs || !configProperty) return false;
-    App.config.updateHostsListValue(siteConfigs, configProperty.name, configProperty.value);
+    var initializer = this.get('initializers')[configProperty.name],
+      isArray = !!(initializer && (initializer.type === 'json_stringified_value'
+        || Em.isArray(initializer) && initializer.someProperty('type', 'json_stringified_value')));
+    App.config.updateHostsListValue(siteConfigs, configProperty.fileName, configProperty.name, configProperty.value, isArray);
     return true;
   },
 

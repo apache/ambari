@@ -572,6 +572,12 @@ input:invalid {
     position: relative;
 }
 
+#configureJob .modal-body {
+    max-height: @defaultPropertiesEditorHeight;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
 #action_properties_dialog .modal-dialog,
 #workflow_sla_dialog .modal-dialog,
 #global_properties_dialog .modal-dialog,
@@ -1576,4 +1582,7 @@ input:invalid {
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   border-top: 0px;
+}
+#search-table td:first-child {
+  width:5%;
 }

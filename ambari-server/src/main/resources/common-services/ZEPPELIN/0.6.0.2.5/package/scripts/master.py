@@ -104,12 +104,19 @@ class Master(Script):
               mode=0755
               )
 
+  def chown_zeppelin_pid_dir(self, env):
+    import params
+    env.set_params(params)
+    Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"), params.zeppelin_pid_dir),
+            sudo=True)
+
   def configure(self, env):
     import params
     import status_params
     env.set_params(params)
     env.set_params(status_params)
     self.create_zeppelin_log_dir(env)
+    self.chown_zeppelin_pid_dir(env)
 
     # create the pid and zeppelin dirs
     Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
@@ -154,6 +161,7 @@ class Master(Script):
   def stop(self, env, upgrade_type=None):
     import params
     self.create_zeppelin_log_dir(env)
+    self.chown_zeppelin_pid_dir(env)
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh stop >> ' + params.zeppelin_log_file,
             user=params.zeppelin_user)
 
