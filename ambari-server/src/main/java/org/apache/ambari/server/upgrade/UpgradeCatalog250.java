@@ -557,6 +557,9 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
             updateConfigurationProperties("hive-interactive-site", Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
                 "1000000000"), true, true);
+            updateConfigurationProperties("hive-interactive-site",
+                Collections.singletonMap("hive.llap.execution.mode", "only"),
+                true, true);
           }
         }
       }
