@@ -27,9 +27,9 @@
           <div class="form-group">
             <label class="control-label col-xs-3"> Workflow Version</label>
             <div class="col-xs-7">
-              <select onchange={{action (mut currentWorkflowVersion) value="target.value"}} name="select-version" class="form-control">
+              <select onchange={{action (mut selectedWorkflowVersion) value="target.value"}} name="select-version" class="form-control">
                 {{#each workflowSchemaVersions as |version index|}}
-                  <option value={{version}} selected={{eq currentWorkflowVersion version}}>{{version}}</option>
+                  <option value={{version}} selected={{eq selectedWorkflowVersion version}}>{{version}}</option>
                 {{/each}}
               </select>
             </div>

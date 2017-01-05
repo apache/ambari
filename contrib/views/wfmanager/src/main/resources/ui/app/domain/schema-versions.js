@@ -16,16 +16,15 @@
 */
 import Ember from 'ember';
 export default Ember.Object.extend({
-  actionVersions: Ember.Map.create(),
-  currentActionVersion:Ember.Map.create(),
-  workflowVersions: [],
-  workflowVersion: null,
-  bundleVersions: [],
-  bundleVersion: null,
-  coordinatorVersions: [],
-  coordinatorVersion: null,
-  clone : {},
-  actionSchemaMap:{
+
+  supportedVersions : new Map(),
+  defaultVersions : new Map(),
+  actionVersions: new Map(),
+  currentActionVersion:new Map(),
+  workflowVersions: ["0.5","0.4.5","0.4","0.3","0.2.5","0.2","0.1"],
+  bundleVersions: ["0.2","0.1"],
+  coordinatorVersions: ["0.5", "0.4","0.3", "0.2","0.1"],
+  actionSchemas:{
     "hive":["0.6","0.5","0.4","0.3","0.2","0.1"],
     "hive2":["0.2","0.1"],
     "sqoop":["0.3","0.2","0.1"],
@@ -34,39 +33,62 @@ export default Ember.Object.extend({
     "distcp":["0.2","0.1"],
     "email":["0.2","0.1"]
   },
-  createCopy(){
-    this.clone.workflowVersion = this.workflowVersion;
-    this.clone.currentActionVersion = this.currentActionVersion.copy();
-    this.clone.coordinatorVersion = this.coordinatorVersion;
-    this.clone.bundleVersion = this.bundleVersion;
+  init(){
+    if(this.supportedVersions.size === 0 && !this.useDefaultSettings){
+      this.parseWorkflowSchemaConfig();
+      this.parseCoordSchemaConfig();
+      this.parseBundleSchemaConfig();
+      this.initializeDefaultVersions();
+    }else if(this.supportedVersions.size === 0 && this.useDefaultSettings){
+      this.loadDefaultSettings()
+      this.initializeDefaultVersions();
+    }
   },
-  rollBack(){
-    this.workflowVersion = this.clone.workflowVersion;
-    this.currentActionVersion = this.clone.currentActionVersion.copy();
+  loadDefaultSettings(){
+    this.supportedVersions.set('workflow', []);
+    this.supportedVersions.set('coordinator', []);
+    this.supportedVersions.set('bundle', []);
+    this.workflowVersions.forEach((value)=>{
+      this.supportedVersions.get('workflow').pushObject(value);
+    }, this);
+    this.coordinatorVersions.forEach((value)=>{
+      this.supportedVersions.get('coordinator').pushObject(value);
+    }, this);
+    this.bundleVersions.forEach((value)=>{
+      this.supportedVersions.get('bundle').pushObject(value);
+    }, this);
+    Object.keys(this.actionSchemas).forEach((key)=>{
+      this.supportedVersions.set(key , this.actionSchemas[key]);
+    }, this);
   },
-  importAdminConfigs(){
-    var url = Ember.ENV.API_URL + "/v1/admin/configuration";
-    var deferred = Ember.RSVP.defer();
-    Ember.$.ajax({
-      url: url,
-      method: "GET",
-      dataType: "text",
-      contentType: "text/plain;charset=utf-8",
-      beforeSend: function(request) {
-        request.setRequestHeader("X-Requested-By", "workflow-designer");
-      },
-      success: function(response) {
-        deferred.resolve(response);
-      }.bind(this),
-      error: function(response) {
-        deferred.reject(response);
-      }.bind(this)
-    });
-    return deferred;
+  getSupportedVersions(type){
+    return this.supportedVersions.get(type);
   },
-  setWfSchemaVersions(configSettings) {
+
+  getDefaultVersion(type){
+    return this.defaultVersions.get(type);
+  },
+
+  setDefaultVersion(type, version){
+    this.defaultVersions.set(type, version);
+  },
+
+  restoreDefaultVersionSettings(){
+    this.initializeDefaultVersions();
+  },
+
+  initializeDefaultVersions(){
+    this.supportedVersions.forEach((value, key) =>{
+      var max = Math.max(...value)
+      if(isNaN(max)){
+        max = value.reduce((a, b) => a > b?a:b);
+      }
+      this.defaultVersions.set(key, String(max));
+    }, this);
+  },
+  parseWorkflowSchemaConfig() {
     this.workflowVersions = [];
-    var wfSchemaVersions = configSettings["oozie.service.SchemaService.wf.schemas"].trim().split(",");
+    var wfSchemaVersions = this.adminConfig["oozie.service.SchemaService.wf.schemas"].trim().split(",");
     wfSchemaVersions = wfSchemaVersions.map(Function.prototype.call, String.prototype.trim).sort();
     wfSchemaVersions.forEach(function(wfSchemaVersion) {
       var wfSchema = wfSchemaVersion.split("-");
@@ -74,67 +96,51 @@ export default Ember.Object.extend({
       var wfSchemaType = wfSchema[1];
       var wfSchemaVersionNumber = wfSchema[2].replace(".xsd", "");
       if (wfSchemaType === "action") {
-        if (this.actionVersions.get(wfSchemaName)) {
-          this.actionVersions.get(wfSchemaName).push(wfSchemaVersionNumber);
-          this.currentActionVersion.set(wfSchemaName, wfSchemaVersionNumber);
-        } else {
-          this.actionVersions.set(wfSchemaName, [wfSchemaVersionNumber]);
-          this.currentActionVersion.set(wfSchemaName, wfSchemaVersionNumber);
+        if(this.supportedVersions.get(wfSchemaName)){
+          this.supportedVersions.get(wfSchemaName).pushObject(wfSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set(wfSchemaName, [wfSchemaVersionNumber]);
         }
       } else if (wfSchemaType === "workflow") {
-        this.workflowVersions.push(wfSchemaVersionNumber);
-        this.workflowVersion = wfSchemaVersionNumber;
+        if(this.supportedVersions.get(wfSchemaType)){
+          this.supportedVersions.get(wfSchemaType).pushObject(wfSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set(wfSchemaType, [wfSchemaVersionNumber]);
+        }
       }
     }.bind(this));
   },
-  setCoordSchemaVersions(configSettings) {
-    this.coordinatorVersions = [];
-    var coordSchemaVersions = configSettings["oozie.service.SchemaService.coord.schemas"].trim().split(",");
+  parseCoordSchemaConfig() {
+    var coordSchemaVersions = this.adminConfig["oozie.service.SchemaService.coord.schemas"].trim().split(",");
     coordSchemaVersions = coordSchemaVersions.map(Function.prototype.call, String.prototype.trim).sort();
     coordSchemaVersions.forEach(function(coordSchemaVersion) {
       var coordSchema = coordSchemaVersion.split("-");
       var coordSchemaType = coordSchema[1];
       var coordSchemaVersionNumber = coordSchema[2].replace(".xsd", "");
       if (coordSchemaType === "coordinator") {
-        this.coordinatorVersions.push(coordSchemaVersionNumber);
-        this.coordinatorVersion = coordSchemaVersionNumber;
+        if(this.supportedVersions.get('coordinator')){
+          this.supportedVersions.get('coordinator').pushObject(coordSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set('coordinator', [coordSchemaVersionNumber]);
+        }
       }
     }.bind(this));
   },
-  setBundleSchemaVersions(configSettings) {
+  parseBundleSchemaConfig() {
     this.bundleVersions = [];
-    var bundleSchemaVersions = configSettings["oozie.service.SchemaService.bundle.schemas"].trim().split(",");
+    var bundleSchemaVersions = this.adminConfig["oozie.service.SchemaService.bundle.schemas"].trim().split(",");
     bundleSchemaVersions = bundleSchemaVersions.map(Function.prototype.call, String.prototype.trim).sort();
     bundleSchemaVersions.forEach(function(bundleSchemaVersion) {
       var bundleSchema = bundleSchemaVersion.split("-");
       var bundleSchemaType = bundleSchema[1];
       var bundleSchemaVersionNumber = bundleSchema[2].replace(".xsd", "");
       if (bundleSchemaType === "bundle") {
-        this.bundleVersions.push(bundleSchemaVersionNumber);
-        this.bundleVersion = bundleSchemaVersionNumber;
+        if(this.supportedVersions.get('bundle')){
+          this.supportedVersions.get('bundle').pushObject(bundleSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set('bundle', [bundleSchemaVersionNumber]);
+        }
       }
-    }.bind(this));
-  },
-  init(){
-    var importAdminConfigsDefered=this.importAdminConfigs();
-    importAdminConfigsDefered.promise.then(function(data){
-      var configSettings = JSON.parse(data);
-      if (!(configSettings instanceof Object)) {
-        configSettings = JSON.parse(configSettings);
-      }
-      this.setWfSchemaVersions(configSettings);
-      this.setCoordSchemaVersions(configSettings);
-      this.setBundleSchemaVersions(configSettings);
-      this.setDefaultActionVersions();
-    }.bind(this)).catch(function(){
-      this.setWorkflowVersions(["0.5","0.4.5","0.4","0.3","0.2.5","0.2","0.1"]);
-      this.setCurrentWorkflowVersion("0.5");
-      this.setCoordinatorVersions(["0.4","0.3", "0.2","0.1"]);
-      this.setCurrentCoordinatorVersion("0.4");
-      this.setBundleVersions(["0.2","0.1"]);
-      this.setCurrentBundleVersion("0.2");
-      this.setDefaultActionVersions();
-      console.error("There is some problem while importing schema versions. defaulting to known versions.");
     }.bind(this));
   },
   setDefaultActionVersions(){
@@ -145,51 +151,5 @@ export default Ember.Object.extend({
         self.currentActionVersion.set(key,self.actionSchemaMap[key][0]);
       }
     });
-  },
-  getActionVersions(type){
-    return this.actionVersions.get(type);
-  },
-  getActionVersion(type){
-    return this.currentActionVersion.get(type);
-  },
-  getCurrentWorkflowVersion(){
-    return this.workflowVersion;
-  },
-  getWorkflowVersions(){
-    return this.workflowVersions;
-  },
-  getCurrentCoordinatorVersion(){
-    return this.coordinatorVersion;
-  },
-  getCoordinatorVersions(){
-    return this.coordinatorVersions;
-  },
-  getCurrentBundleVersion(){
-    return this.bundleVersion;
-  },
-  getBundleVersions(){
-    return this.bundleVersions;
-  },
-  setActionVersion(type, version){
-    this.currentActionVersion.set(type, version);
-  },
-  setCurrentWorkflowVersion(version){
-    this.workflowVersion = version;
-  },
-  setCurrentCoordinatorVersion(version){
-    this.coordinatorVersion = version;
-  },
-  setCurrentBundleVersion(version){
-    this.bundleVersion = version;
-  },
-  setWorkflowVersions(versions){
-    this.workflowVersions = versions;
-  },
-  setCoordinatorVersions(versions){
-    this.coordinatorVersions = versions;
-  },
-  setBundleVersions(versions){
-    this.bundleVersions = versions;
   }
-
 });

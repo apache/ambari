@@ -21,10 +21,10 @@ import CommonUtils from "../../utils/common-utils";
 
 var CoordinatorXmlImporter= Ember.Object.extend({
   x2js : new X2JS(),
-  schemaVersions: null,
-  importCoordinator (xml, errors){
+  schemaVersions: SchemaVersions.create({}),
+  importCoordinator (xml){
     var coordinatorJson = this.get("x2js").xml_str2json(xml);
-    return this.processCoordinatorXML(coordinatorJson, errors);
+    return this.processCoordinatorXML(coordinatorJson);
   },
   createNewCoordinator(){
     return Coordinator.create({
@@ -59,7 +59,9 @@ var CoordinatorXmlImporter= Ember.Object.extend({
         }
       },
       controls : Ember.A([]),
-      schemaVersions : this.get("schemaVersions")
+      schemaVersions : {
+        coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
+      }
     });
   },
   processCoordinatorXML(coordinatorJson){
@@ -68,12 +70,11 @@ var CoordinatorXmlImporter= Ember.Object.extend({
     var coordinator = this.createNewCoordinator();
     coordinator.name = coordinatorApp._name;
     var coordinatorVersion=CommonUtils.extractSchemaVersion(coordinatorApp._xmlns);
-    var maxCoordinatorVersion = Math.max.apply(Math, coordinator.schemaVersions.getCoordinatorVersions());
-    if (coordinatorVersion < maxCoordinatorVersion) {
-      coordinator.schemaVersions.setCurrentCoordinatorVersion(coordinatorVersion);
-    } else {
+    var maxCoordinatorVersion = Math.max.apply(Math, this.get('schemaVersions').getSupportedVersions('coordinator'));
+    if (coordinatorVersion > maxCoordinatorVersion) {
       errors.push({message: "Unsupported coordinator version - " + coordinatorVersion});
     }
+    coordinator.schemaVersions.coordinatorVersion = coordinatorVersion;
     var frequency = coordinatorApp._frequency;
     if(frequency.startsWith('${coord:')){
       coordinator.frequency.type = frequency.substring(frequency.indexOf(':')+1, frequency.indexOf('('));

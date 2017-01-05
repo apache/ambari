@@ -208,7 +208,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       },
       controls : Ember.A([]),
       slainfo : SlaInfo.create({}),
-      schemaVersions : this.get("schemaVersions")
+      schemaVersions : {
+        coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
+      }
     });
   },
   importSampleCoordinator (){
@@ -219,8 +221,8 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       dataType: "text",
       cache:false,
       success: function(data) {
-        var coordinatorXmlImporter = CoordinatorXmlImporter.create({schemaVersions: self.schemaVersions});
-        var coordinator = coordinatorXmlImporter.importCoordinator(data, self.errors);
+        var coordinatorXmlImporter = CoordinatorXmlImporter.create({});
+        var coordinator = coordinatorXmlImporter.importCoordinator(data);
         deferred.resolve(coordinator);
       }.bind(this),
       failure : function(data){
@@ -276,8 +278,8 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     return deferred;
   },
   getCoordinatorFromXml(coordinatorXml){
-    var coordinatorXmlImporter = CoordinatorXmlImporter.create({schemaVersions: this.get("schemaVersions")});
-    var coordinatorObj = coordinatorXmlImporter.importCoordinator(coordinatorXml, this.errors);
+    var coordinatorXmlImporter = CoordinatorXmlImporter.create({});
+    var coordinatorObj = coordinatorXmlImporter.importCoordinator(coordinatorXml);
     var coordinator = coordinatorObj.coordinator;
     this.set("coordinator", coordinator);
     this.get("errors").clear();

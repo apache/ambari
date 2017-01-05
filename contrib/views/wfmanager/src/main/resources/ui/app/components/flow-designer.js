@@ -481,8 +481,11 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   getWorkflowAsJson(){
     try{
      var json=JSON.stringify(this.get("workflow")), self = this;
+     var actionVersions = JSON.stringify([...this.get("workflow").schemaVersions.actionVersions]);
+     var workflow = JSON.parse(json);
+     workflow.schemaVersions.actionVersions = actionVersions
      //this.get('workspaceManager').saveWorkInProgress(this.get('tabInfo.id'), json);
-     return json;
+     return JSON.stringify(workflow);
    }catch(err){
     console.error(err);
      this.isCyclic(this.get("workflow"));

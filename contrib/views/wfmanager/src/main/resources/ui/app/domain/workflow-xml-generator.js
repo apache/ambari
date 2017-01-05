@@ -51,7 +51,7 @@ var WorkflowGenerator= Ember.Object.extend({
     var targetWorkflowApp=reordered["workflow-app"];
     targetWorkflowApp["_name"]=this.workflow.get("name");
     this.copyProp(srcWorkflowApp,targetWorkflowApp,["parameters","global","credentials","start","decision","fork","join","action","kill","end","info"]);
-    targetWorkflowApp["_xmlns"]="uri:oozie:workflow:"+this.workflow.get("schemaVersions").getCurrentWorkflowVersion();
+    targetWorkflowApp["_xmlns"]="uri:oozie:workflow:"+this.workflow.schemaVersions.workflowVersion;
     if (this.slaInfoExists(targetWorkflowApp)){
       targetWorkflowApp["_xmlns:sla"]="uri:oozie:sla:0.2";
     }

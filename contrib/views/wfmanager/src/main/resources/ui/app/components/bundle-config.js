@@ -111,7 +111,9 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
         type : 'date'
       },
       coordinators : null,
-      schemaVersions : this.get("schemaVersions")
+      schemaVersions : {
+        bundleVersion : this.get('schemaVersions').getDefaultVersion('bundle')
+      }
     });
   },
   importSampleBundle (){
@@ -136,9 +138,10 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     deferred.promise.then(function(data){
       this.getBundleFromXml(data);
       this.set("isImporting", false);
-    }.bind(this)).catch(function(){
+    }.bind(this)).catch(function(e){
       this.set("isImporting", false);
       this.set("isImportingSuccess", false);
+	  throw new Error(e);
     }.bind(this));
   },
   getFromHdfs(filePath){
@@ -161,8 +164,8 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     return deferred;
   },
   getBundleFromXml(bundleXml){
-    var bundleXmlImporter = BundleXmlImporter.create({schemaVersions: this.get("schemaVersions")});
-    var bundleObj = bundleXmlImporter.importBundle(bundleXml, this.get("errors"));
+    var bundleXmlImporter = BundleXmlImporter.create();
+    var bundleObj = bundleXmlImporter.importBundle(bundleXml);
     this.set("bundle", bundleObj.bundle);
     this.get("errors").clear();
     this.get("errors").pushObjects(bundleObj.errors);

@@ -31,11 +31,21 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
   killNodes : null,
   nodeVisitor : null,
   nodeFactory:NodeFactory.create({}),
-  schemaVersions:SchemaVersions.create({}),
   sla : SlaInfo.create({}),
   credentials : Ember.A([]),
   initialize(){
     this.nodeVisitor=NodeVisitor.create({});
+    var schemaVersions=SchemaVersions.create({});
+    this.schemaVersions = {};
+    this.schemaVersions.workflowVersion = schemaVersions.getDefaultVersion('workflow');
+    var actionsMap = new Map();
+    Object.keys(Constants.actions).forEach((key)=>{
+      var action = Constants.actions[key];
+      if(action.supportsSchema){
+        actionsMap.set(action.name, schemaVersions.getDefaultVersion(action.name));
+      }
+    });
+    this.schemaVersions.actionVersions = actionsMap;
     var src =this.nodeFactory.createStartNode();
     var dest =this.nodeFactory.createEndNode("end");
     this.set("startNode", src);
