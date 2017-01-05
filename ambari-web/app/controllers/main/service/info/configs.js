@@ -239,8 +239,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
     this.clearSaveInfo();
-    this.clearRecommendationsInfo();
-    this.clearAllRecommendations();
+    this.clearRecommendations();
     this.setProperties({
       saveInProgress: false,
       isInit: true,
@@ -627,8 +626,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
-    this.clearAllRecommendations();
-    this.clearRecommendationsInfo();
+    this.clearRecommendations();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 
