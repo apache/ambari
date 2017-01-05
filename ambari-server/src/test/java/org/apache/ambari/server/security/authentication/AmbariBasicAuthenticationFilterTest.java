@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,31 +27,24 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.security.AmbariEntryPoint;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.easymock.EasyMockSupport;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+
 import org.springframework.security.crypto.codec.Base64;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(AuthorizationHelper.class)
-public class AmbariBasicAuthenticationFilterTest {
+public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
 
   private AmbariBasicAuthenticationFilter underTest;
 
@@ -67,7 +60,6 @@ public class AmbariBasicAuthenticationFilterTest {
     permissionHelper = createMock(PermissionHelper.class);
     entryPoint = createMock(AmbariEntryPoint.class);
     underTest = new AmbariBasicAuthenticationFilter(null, entryPoint, mockedAuditLogger, permissionHelper);
-    replay(entryPoint);
   }
 
   @Test
@@ -83,11 +75,11 @@ public class AmbariBasicAuthenticationFilterTest {
     expectLastCall().times(1);
     filterChain.doFilter(request, response);
     expectLastCall();
-    replay(mockedAuditLogger, request, filterChain);
+    replayAll();
     // WHEN
     underTest.doFilter(request, response, filterChain);
     // THEN
-    verify(mockedAuditLogger, request, filterChain);
+    verifyAll();
   }
 
   @Test
@@ -96,26 +88,21 @@ public class AmbariBasicAuthenticationFilterTest {
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     Authentication authentication = createMock(Authentication.class);
-    PowerMock.mockStatic(AuthorizationHelper.class);
 
     Map<String, List<String>> roles = new HashMap<>();
     roles.put("a", Arrays.asList("r1", "r2", "r3"));
     expect(permissionHelper.getPermissionLabels(authentication))
-      .andReturn(roles);
-    expect(AuthorizationHelper.getAuthorizationNames(authentication))
-      .andReturn(Arrays.asList("perm1", "perm2"));
-    expect(AuthorizationHelper.getAuthenticatedName()).andReturn("perm1");
+        .andReturn(roles);
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
     expect(authentication.getName()).andReturn("admin");
     expect(mockedAuditLogger.isEnabled()).andReturn(true);
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
-    replay(mockedAuditLogger, request, authentication, permissionHelper);
-    PowerMock.replayAll();
+    replayAll();
     // WHEN
     underTest.onSuccessfulAuthentication(request, response, authentication);
     // THEN
-    verify(mockedAuditLogger, request);
+    verifyAll();
   }
 
   @Test
@@ -126,14 +113,14 @@ public class AmbariBasicAuthenticationFilterTest {
     AuthenticationException authEx = createMock(AuthenticationException.class);
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
     expect(request.getHeader("Authorization")).andReturn(
-      "Basic " + new String(Base64.encode("admin:admin".getBytes("UTF-8"))));
+        "Basic " + new String(Base64.encode("admin:admin".getBytes("UTF-8"))));
     expect(mockedAuditLogger.isEnabled()).andReturn(true);
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
-    replay(mockedAuditLogger, request, authEx);
+    replayAll();
     // WHEN
     underTest.onUnsuccessfulAuthentication(request, response, authEx);
     // THEN
-    verify(mockedAuditLogger, request, authEx);
+    verifyAll();
   }
 }

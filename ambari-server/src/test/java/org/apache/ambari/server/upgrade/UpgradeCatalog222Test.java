@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
@@ -1082,7 +1083,8 @@ public class UpgradeCatalog222Test {
     final Service kafkaService = createStrictMock(Service.class);
     final Service hbaseService = createStrictMock(Service.class);
     final Map<String, Cluster> clusterMap = Collections.singletonMap("c1", cluster);
-    final Map<String, Service> services = new HashMap<>();
+    // Use a TreeMap so we can assume a particular order when iterating over the services.
+    final Map<String, Service> services = new TreeMap<>();
     services.put(stormServiceName, stormService);
     services.put(kafkaServiceName, kafkaService);
     services.put(hbaseServiceName, hbaseService);
