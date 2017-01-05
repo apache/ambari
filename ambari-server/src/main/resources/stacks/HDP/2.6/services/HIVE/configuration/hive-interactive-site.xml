@@ -55,4 +55,11 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
 
+  <property>
+    <name>hive.llap.execution.mode</name>
+    <value>only</value>
+    <description>Chooses which fragments of a query will run in llap</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>
