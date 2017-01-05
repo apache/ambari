@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 
@@ -1084,8 +1083,7 @@ public class UpgradeCatalog222Test {
     final Service kafkaService = createStrictMock(Service.class);
     final Service hbaseService = createStrictMock(Service.class);
     final Map<String, Cluster> clusterMap = Collections.singletonMap("c1", cluster);
-    // Use a TreeMap so we can assume a particular order when iterating over the services.
-    final Map<String, Service> services = new TreeMap<>();
+    final Map<String, Service> services = new HashMap<>();
     services.put(stormServiceName, stormService);
     services.put(kafkaServiceName, kafkaService);
     services.put(hbaseServiceName, hbaseService);
