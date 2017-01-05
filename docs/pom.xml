@@ -303,6 +303,18 @@
                 Hortonworks
             </organization>
         </developer>
+        <developer>
+            <id>dbuzhor</id>
+            <name>Buzhor Denys</name>
+            <email>dbuzhor@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>            
             <id>ddas</id>
             <name>Devaraj Das</name>
