@@ -359,6 +359,9 @@ public class OrmTestHelper {
     assertNotNull(clusterEntity);
     assertTrue(clusterEntity.getClusterId() > 0);
 
+    clusterEntity.setClusterStateEntity(clusterStateEntity);
+    clusterDAO.merge(clusterEntity);
+
     // because this test method goes around the Clusters business object, we
     // forcefully will refresh the internal state so that any tests which
     // incorrect use Clusters after calling this won't be affected
@@ -411,7 +414,7 @@ public class OrmTestHelper {
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
 
-    clusters.mapHostToCluster(hostName, cluster.getClusterName());
+    clusters.mapAndPublishHostsToCluster(Collections.singleton(hostName), cluster.getClusterName());
   }
 
   public void addHostComponent(Cluster cluster, String hostName, String serviceName, String componentName) throws AmbariException {

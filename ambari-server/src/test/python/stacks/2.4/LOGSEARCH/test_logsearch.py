@@ -63,6 +63,26 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
                               )
+    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf/keys',
+                              owner = 'logsearch',
+                              group = 'hadoop',
+                              cd_access = 'a',
+                              mode = 0755
+                              )
+
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ks_pass.txt',
+                              owner='logsearch',
+                              group='hadoop',
+                              mode=0600,
+                              content='bigdata'
+                              )
+
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ts_pass.txt',
+                              owner='logsearch',
+                              group='hadoop',
+                              mode=0600,
+                              content='bigdata'
+                              )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',

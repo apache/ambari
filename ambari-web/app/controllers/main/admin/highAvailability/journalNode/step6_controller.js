@@ -31,7 +31,7 @@ App.ManageJournalNodeWizardStep6Controller = App.ManageJournalNodeProgressPageCo
   },
 
   startActiveNameNode: function () {
-    var activeNN = this.get('content.activeNN');
-    this.updateComponent('NAMENODE', activeNN.host_name, "HDFS", "Start");
+    var hostName = this.get('content.activeNN.host_name');
+    this.updateComponent('NAMENODE', hostName, "HDFS", "Start");
   }
 });

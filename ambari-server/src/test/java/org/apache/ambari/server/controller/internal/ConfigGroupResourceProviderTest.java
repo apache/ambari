@@ -21,6 +21,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -160,6 +161,8 @@ public class ConfigGroupResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getHost("h1")).andReturn(h1);
     expect(clusters.getHost("h2")).andReturn(h2);
+    expect(cluster.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(cluster.isConfigTypeExists(anyString())).andReturn(true).anyTimes();
     expect(managementController.getConfigGroupFactory()).andReturn(configGroupFactory);
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(hostDAO.findByName("h1")).andReturn(hostEntity1).atLeastOnce();

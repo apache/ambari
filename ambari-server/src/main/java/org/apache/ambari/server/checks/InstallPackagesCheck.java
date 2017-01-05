@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
@@ -42,7 +43,10 @@ import com.google.inject.Singleton;
  * Checks if Install Packages needs to be re-run
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 3.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.DEFAULT,
+    order = 3.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class InstallPackagesCheck extends AbstractCheckDescriptor {
 
   /**

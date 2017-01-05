@@ -125,7 +125,7 @@ class TestOozieServer(RMFTestCase):
                               content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
@@ -353,7 +353,7 @@ class TestOozieServer(RMFTestCase):
                               content=Template("oozie.conf.j2"),
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
@@ -793,7 +793,7 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              content = InlineTemplate('log4jproperties\nline2')
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
                               owner = 'oozie',
@@ -992,7 +992,7 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              content = InlineTemplate('log4jproperties\nline2')
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
                               owner = 'oozie',

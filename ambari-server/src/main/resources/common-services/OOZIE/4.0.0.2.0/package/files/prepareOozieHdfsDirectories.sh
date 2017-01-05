@@ -26,16 +26,17 @@ export hadoop_conf_dir=$3
 export JOBTRACKER=$4
 export NAMENODE=$5
 export QUEUE=$6
+export JOB_NAME=$7
 
 cd $oozie_examples_dir
 
 /var/lib/ambari-agent/ambari-sudo.sh tar -zxf oozie-examples.tar.gz
 /var/lib/ambari-agent/ambari-sudo.sh chmod -R o+rx examples
 
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|queueName=default|queueName=$QUEUE|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/$JOB_NAME/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/$JOB_NAME/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/$JOB_NAME/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/$JOB_NAME/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/$JOB_NAME/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|queueName=default|queueName=$QUEUE|g" examples/apps/$JOB_NAME/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/$JOB_NAME/job.properties

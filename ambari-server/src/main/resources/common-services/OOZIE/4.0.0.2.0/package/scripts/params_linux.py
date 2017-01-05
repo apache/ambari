@@ -208,6 +208,8 @@ if https_port is None and 'oozie.https.port' in config['configurations']['oozie-
 
 oozie_base_url = config['configurations']['oozie-site']['oozie.base.url']
 
+service_check_job_name = default("/configurations/oozie-env/service_check_job_name", "no-op")
+
 # construct proper url for https
 if https_port is not None:
   parsed_url = urlparse(oozie_base_url)
@@ -287,6 +289,7 @@ has_falcon_host = not len(falcon_host)  == 0
 oozie_server_hostnames = default("/clusterHostInfo/oozie_server", [])
 oozie_server_hostnames = sorted(oozie_server_hostnames)
 
+oozie_log_maxhistory = default('configurations/oozie-log4j/oozie_log_maxhistory',720)
 
 #oozie-log4j.properties
 if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):

@@ -22,6 +22,8 @@ App.DependentConfigsListView = Em.View.extend({
   templateName: require('templates/common/modal_popups/dependent_configs_list'),
   isAfterRecommendation: true,
   recommendations: [],
+  requiredChanges: [],
+  toggleAllId: '',
   toggleAll: App.CheckboxView.extend({
     didInsertElement: function () {
       this.set('parentView.toggleAllId', this.get('elementId'));
@@ -32,13 +34,13 @@ App.DependentConfigsListView = Em.View.extend({
     },
     updateCheckboxObserver: function () {
       Em.run.once(this, 'updateCheckbox');
-    }.observes('parentView.parentView.recommendations.@each.saveRecommended'),
+    }.observes('parentView.recommendations.@each.saveRecommended'),
 
     updateCheckbox: function() {
-      this.set('checked', !(this.get('parentView.parentView.recommendations') || []).someProperty('saveRecommended', false));
+      this.set('checked', !(this.get('parentView.recommendations') || []).someProperty('saveRecommended', false));
     },
     updateSaveRecommended: function() {
-      this.get('parentView.parentView.recommendations').setEach('saveRecommended', this.get('checked'));
+      this.get('parentView.recommendations').setEach('saveRecommended', this.get('checked'));
     }
   })
 });

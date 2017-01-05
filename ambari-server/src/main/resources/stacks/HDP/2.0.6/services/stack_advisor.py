@@ -126,7 +126,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['minContainerRam']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
@@ -205,11 +205,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if "HDFS" in servicesList:
       ambari_user = self.getAmbariUser(services)
       ambariHostName = socket.getfqdn()
-      is_wildcard_value, hosts = self.get_hosts_for_proxyuser(ambari_user, services)
-      if not is_wildcard_value:
-        hosts.add(ambariHostName)
-        putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ",".join(hosts))
-      putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
+      self.put_proxyuser_value(ambari_user, ambariHostName, services=services, put_function=putCoreSiteProperty)
+      self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, put_function=putCoreSiteProperty)
       old_ambari_user = self.getOldAmbariUser(services)
       if old_ambari_user is not None:
         putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
@@ -254,7 +251,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         for proxyPropertyName, hostSelector in hostSelectorMap.iteritems():
           componentHostNamesString = hostSelector if isinstance(hostSelector, basestring) else '*'
           if isinstance(hostSelector, (list, tuple)):
-            _, componentHostNames = self.get_hosts_for_proxyuser(user, services) # preserve old values
+            _, componentHostNames = self.get_data_for_proxyuser(user, services) # preserve old values
             for component in hostSelector:
               componentHosts = self.getHostsWithComponent(serviceName, component, services, hosts)
               if componentHosts is not None:
@@ -288,13 +285,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return users
 
-  def get_hosts_for_proxyuser(self, user_name, services):
+  def get_data_for_proxyuser(self, user_name, services, groups=False):
     if "core-site" in services["configurations"]:
       coreSite = services["configurations"]["core-site"]['properties']
     else:
       coreSite = {}
 
-    property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+    if groups:
+        property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+
     if property_name in coreSite:
       property_value = coreSite[property_name]
       if property_value == "*":
@@ -302,6 +303,32 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       else:
         return False, set(property_value.split(","))
     return False, set()
+
+  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, put_function=None):
+    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, is_groups)
+    result_value = "*"
+    result_values_set = self.merge_proxyusers_values(current_value, value)
+    if len(result_values_set) > 0:
+      result_value = ",".join(sorted([val for val in result_values_set if val]))
+
+    if is_groups:
+      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+
+    put_function(property_name, result_value)
+
+  def merge_proxyusers_values(self, first, second):
+    result = set()
+    def append(data):
+      if isinstance(data, str) or isinstance(data, unicode):
+        if data != "*":
+          result.update(data.split(","))
+      else:
+        result.update(data)
+    append(first)
+    append(second)
+    return result
 
   def getServiceHadoopProxyUsersConfigurationDict(self):
     """
@@ -365,14 +392,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
 
     for user_name, user_properties in users.iteritems():
-      is_wildcard_value, _ = self.get_hosts_for_proxyuser(user_name, services)
 
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
-      if not is_wildcard_value:
-        putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
-        Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
+      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, put_function=putCoreSiteProperty)
+      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
-        putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
+        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, put_function=putCoreSiteProperty)
 
       # Remove old properties if user was renamed
       userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
@@ -711,6 +736,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if "timeline.metrics.service.operation.mode" in services["configurations"]["ams-site"]["properties"]:
         operatingMode = services["configurations"]["ams-site"]["properties"]["timeline.metrics.service.operation.mode"]
 
+    if len(amsCollectorHosts) > 1 :
+      operatingMode = "distributed"
+      putAmsSiteProperty("timeline.metrics.service.operation.mode", operatingMode)
+
     if operatingMode == "distributed":
       putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
       putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
@@ -1017,7 +1046,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 
     cluster["minContainerSize"] = {
-      cluster["ram"] <= 4: 256,
+      cluster["ram"] <= 3: 128,
+      3 < cluster["ram"] <= 4: 256,
       4 < cluster["ram"] <= 8: 512,
       8 < cluster["ram"] <= 24: 1024,
       24 < cluster["ram"]: 2048
@@ -1028,20 +1058,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       totalAvailableRam -= cluster["hbaseRam"]
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = round(max(3,
+    cluster["containers"] = int(round(max(3,
                                 min(2 * cluster["cpu"],
                                     min(ceil(1.8 * cluster["disk"]),
-                                            cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
+                                            cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
 
     '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
+    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
     '''If greater than 1GB, value will be in multiples of 512.'''
     if cluster["ramPerContainer"] > 1024:
       cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
 
+    cluster["minContainerRam"] = min(1024, cluster["ramPerContainer"])
+
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
-    cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
+    cluster["amMemory"] = min(cluster["mapMemory"], cluster["minContainerRam"])
 
     return cluster
 
@@ -1098,7 +1130,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if op_mode not in ("embedded", "distributed"):
       correct_op_mode_item = self.getErrorItem("Correct value should be set.")
       pass
-
+    elif len(self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")) > 1 and op_mode != 'distributed':
+      correct_op_mode_item = self.getErrorItem("Correct value should be 'distributed' for clusters with more then 1 Metrics collector")
     validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 

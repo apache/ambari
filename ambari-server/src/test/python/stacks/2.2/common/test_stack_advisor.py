@@ -86,10 +86,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
     clusterData = {
       "mapMemory": 3000,
-      "amMemory": 2000,
+      "amMemory": 2048,
       "reduceMemory": 2056,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "tez-site": {
@@ -183,6 +184,7 @@ class TestHDP22StackAdvisor(TestCase):
       "amMemory": 3100,
       "reduceMemory": 2056,
       "containers": 3,
+      "minContainerRam": 256,
       "ramPerContainer": 256
     }
     expected = {
@@ -265,10 +267,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
     clusterData = {
       "mapMemory": 760,
-      "amMemory": 2000,
+      "amMemory": 2048,
       "reduceMemory": 760,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "tez-site": {
@@ -884,7 +887,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "yarn-env": {
@@ -923,7 +927,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers": 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "spark-defaults": {
@@ -955,7 +960,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "yarn-env": {
@@ -1197,7 +1203,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
 
     services = {
@@ -1244,7 +1251,8 @@ class TestHDP22StackAdvisor(TestCase):
       "amMemory": 2000,
       "reduceMemory": 2056,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
 
     expected = {
@@ -1735,6 +1743,7 @@ class TestHDP22StackAdvisor(TestCase):
       "containers" : 7,
       "ramPerContainer": 256,
       "totalAvailableRam": 4096,
+      "minContainerRam": 256
     }
     expected = {
       "cluster-env": {
@@ -2002,7 +2011,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "yarn-env": {
@@ -3790,7 +3800,7 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
-          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.scheduler.minimum-allocation-mb": "1024",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
@@ -3849,7 +3859,7 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
-          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.scheduler.minimum-allocation-mb": "1024",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",

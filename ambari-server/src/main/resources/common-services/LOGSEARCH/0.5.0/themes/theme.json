@@ -159,18 +159,18 @@
           ]
         },
         {
-          "config": "logsearch-env/logsearch_use_external_solr",
+          "config": "logsearch-common-env/logsearch_use_external_solr",
           "subsection-name": "subsection-logsearch-solr-connection-col1"
         },
         {
-          "config": "logsearch-env/logsearch_external_solr_zk_znode",
+          "config": "logsearch-common-env/logsearch_external_solr_zk_znode",
           "subsection-name": "subsection-logsearch-solr-connection-col1",
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_use_external_solr"
+                "logsearch-common-env/logsearch_use_external_solr"
               ],
-              "if": "${logsearch-env/logsearch_use_external_solr}",
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -185,14 +185,14 @@
           ]
         },
         {
-          "config": "logsearch-env/logsearch_external_solr_zk_quorum",
+          "config": "logsearch-common-env/logsearch_external_solr_zk_quorum",
           "subsection-name": "subsection-logsearch-solr-connection-col1",
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_use_external_solr"
+                "logsearch-common-env/logsearch_use_external_solr"
               ],
-              "if": "${logsearch-env/logsearch_use_external_solr}",
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -207,14 +207,14 @@
           ]
         },
         {
-          "config": "logsearch-env/logsearch_external_solr_ssl_enabled",
+          "config": "logsearch-common-env/logsearch_external_solr_ssl_enabled",
           "subsection-name": "subsection-logsearch-solr-connection-col1",
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_use_external_solr"
+                "logsearch-common-env/logsearch_use_external_solr"
               ],
-              "if": "${logsearch-env/logsearch_use_external_solr}",
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -229,14 +229,14 @@
           ]
         },
         {
-          "config": "logsearch-env/logsearch_external_solr_kerberos_enabled",
+          "config": "logsearch-common-env/logsearch_external_solr_kerberos_enabled",
           "subsection-name": "subsection-logsearch-solr-connection-col1",
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_use_external_solr"
+                "logsearch-common-env/logsearch_use_external_solr"
               ],
-              "if": "${logsearch-env/logsearch_use_external_solr}",
+              "if": "${logsearch-common-env/logsearch_use_external_solr}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -256,9 +256,9 @@
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_external_solr_kerberos_enabled"
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
               ],
-              "if": "${logsearch-env/logsearch_external_solr_kerberos_enabled}",
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -278,9 +278,9 @@
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_external_solr_kerberos_enabled"
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
               ],
-              "if": "${logsearch-env/logsearch_external_solr_kerberos_enabled}",
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -300,9 +300,9 @@
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_external_solr_kerberos_enabled"
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
               ],
-              "if": "${logsearch-env/logsearch_external_solr_kerberos_enabled}",
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -322,9 +322,9 @@
           "depends-on": [
             {
               "configs":[
-                "logsearch-env/logsearch_external_solr_kerberos_enabled"
+                "logsearch-common-env/logsearch_external_solr_kerberos_enabled"
               ],
-              "if": "${logsearch-env/logsearch_external_solr_kerberos_enabled}",
+              "if": "${logsearch-common-env/logsearch_external_solr_kerberos_enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -421,31 +421,31 @@
         }
       },
       {
-        "config": "logsearch-env/logsearch_use_external_solr",
+        "config": "logsearch-common-env/logsearch_use_external_solr",
         "widget": {
           "type": "toggle"
         }
       },
       {
-        "config": "logsearch-env/logsearch_external_solr_zk_znode",
+        "config": "logsearch-common-env/logsearch_external_solr_zk_znode",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "logsearch-env/logsearch_external_solr_zk_quorum",
+        "config": "logsearch-common-env/logsearch_external_solr_zk_quorum",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "logsearch-env/logsearch_external_solr_ssl_enabled",
+        "config": "logsearch-common-env/logsearch_external_solr_ssl_enabled",
         "widget": {
           "type": "toggle"
         }
       },
       {
-        "config": "logsearch-env/logsearch_external_solr_kerberos_enabled",
+        "config": "logsearch-common-env/logsearch_external_solr_kerberos_enabled",
         "widget": {
           "type": "toggle"
         }

@@ -171,10 +171,23 @@ def create_sasl_users(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl
   create_sasl_users_cmd = format('{solr_cli_prefix} --create-sasl-users --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
   Execute(create_sasl_users_cmd)
 
+def default_config(config, name, default_value):
+  subdicts = filter(None, name.split('/'))
+  if not config:
+    return default_value
+  for x in subdicts:
+    if x in config:
+      config = config[x]
+    else:
+      return default_value
+  return config
+
 def setup_solr_client(config, custom_log4j = True, custom_log_location = None, log4jcontent = None):
     solr_client_dir = '/usr/lib/ambari-infra-solr-client'
-    solr_client_log_dir = default('/configurations/infra-solr-env/infra_solr_client_log_dir', '/var/log/ambari-infra-solr-client') if custom_log_location is None else custom_log_location
+    solr_client_log_dir = default_config(config, '/configurations/infra-solr-client-log4j/infra_solr_client_log_dir', '/var/log/ambari-infra-solr-client') if custom_log_location is None else custom_log_location
     solr_client_log = format("{solr_client_log_dir}/solr-client.log")
+    solr_client_log_maxfilesize =  default_config(config, 'configurations/infra-solr-client-log4j/infra_client_log_maxfilesize', 80)
+    solr_client_log_maxbackupindex =  default_config(config, 'configurations/infra-solr-client-log4j/infra_client_log_maxbackupindex', 60)
 
     Directory(solr_client_log_dir,
                 mode=0755,

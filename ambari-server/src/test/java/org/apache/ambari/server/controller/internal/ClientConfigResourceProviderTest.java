@@ -22,9 +22,11 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -76,6 +78,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -213,14 +216,6 @@ public class ClientConfigResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    // create the request
-    Request request = PropertyHelper.getReadRequest(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "c1",
-        ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-        ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
-
-    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").
-        toPredicate();
-
     String clusterName = "C1";
     String serviceName = "PIG";
     String componentName = "PIG";
@@ -275,11 +270,12 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
+    expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
     Map<String,String> props = new HashMap<String, String>();
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
-    expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
+    expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
@@ -347,6 +343,19 @@ public class ClientConfigResourceProviderTest {
     expect(processBuilder.start()).andReturn(process).once();
     InputStream inputStream = new ByteArrayInputStream("some logging info".getBytes());
     expect(process.getInputStream()).andReturn(inputStream);
+
+    ClientConfigResourceProvider.TarUtils tarUtilMock = PowerMockito.mock(ClientConfigResourceProvider.TarUtils.class);
+    whenNew(ClientConfigResourceProvider.TarUtils.class).withAnyArguments().thenReturn(tarUtilMock);
+    tarUtilMock.tarConfigFiles();
+    expectLastCall().once();
+
+    // create the request
+    Request request = PropertyHelper.getReadRequest(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "c1",
+      ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+      ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
+      equals("c1").and().property(ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("PIG").toPredicate();
 
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo, commandScriptDefinition,
@@ -419,8 +428,10 @@ public class ClientConfigResourceProviderTest {
         ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
         ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
 
-    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").
-        toPredicate();
+    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
+      equals("c1").and().property(ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("PIG").
+      and().property(ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID).equals("PIG").
+      toPredicate();
 
     String clusterName = "C1";
     String serviceName = "PIG";
@@ -477,12 +488,13 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
+    expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
 
     Map<String,String> props = new HashMap<String, String>();
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
-    expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
+    expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);

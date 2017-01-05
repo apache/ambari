@@ -23,6 +23,27 @@
 <configuration supports_adding_forbidden="true">
   <!-- log4j.xml -->
   <property>
+     <name>infra_client_log_maxfilesize</name>
+      <value>80</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Ambari-Infra Solr Client Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+   </property>
+   <property>
+    <name>infra_client_log_maxbackupindex</name>
+    <value>60</value>
+    <description>The number of backup files</description>
+    <display-name>Ambari-Infra Solr Client Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>infra_solr_client_log_dir</name>
     <value>/var/log/ambari-infra-solr-client</value>
     <description>Directory for Solr client logs</description>

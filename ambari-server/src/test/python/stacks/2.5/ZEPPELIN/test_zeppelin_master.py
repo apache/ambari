@@ -39,6 +39,20 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Directory', '/var/run/zeppelin',
+        owner = 'zeppelin',
+        create_parents = True,
+        group = 'zeppelin',
+        mode = 0755,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/zeppelin-server',
+        owner = 'zeppelin',
+        group = 'zeppelin',
+        create_parents = True,
+        mode = 0755,
+        cd_access = 'a',
+    )
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',
@@ -68,6 +82,20 @@ class TestZeppelinMaster(RMFTestCase):
  
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/log/zeppelin',
+        owner = 'zeppelin',
+        group = 'zeppelin',
+        create_parents = True,
+        mode = 0755,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/zeppelin',
+        owner = 'zeppelin',
+        create_parents = True,
+        group = 'zeppelin',
+        mode = 0755,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/zeppelin-server',
         owner = 'zeppelin',
         group = 'zeppelin',
         create_parents = True,

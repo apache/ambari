@@ -297,7 +297,7 @@ public class UpgradeActionTest {
     host.setHostAttributes(hostAttributes);
 
     // without this, HostEntity will not have a relation to ClusterEntity
-    clusters.mapHostsToCluster(Collections.singleton(hostName), clusterName);
+    clusters.mapHostToCluster(hostName, clusterName);
 
     // Create the starting repo version
     RepositoryVersionEntity repoEntity = m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);

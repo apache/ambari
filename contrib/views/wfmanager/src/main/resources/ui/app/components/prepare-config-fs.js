@@ -84,9 +84,7 @@ export default Ember.Component.extend({
       case "delete":
       case "touchz":
       this.get('fsOps').pushObject({
-        settings: {
-          path: this.get('path')
-        },
+        path :this.get('path'),
         type: value
       });
       break;
@@ -99,33 +97,27 @@ export default Ember.Component.extend({
       permissionsObj = Ember.$.extend(true, permissionsObj, rPerm);
       var perm = oPerm.operm + ""+ gPerm.gperm + ""+ rPerm.rperm;
       this.get('fsOps').pushObject({
-        settings: {
           path: this.get('path'),
           permissions: perm,
           permissionsObj: permissionsObj,
           recursive: this.get('recursive'),
-          dirfiles: this.get('dirFiles')
-        },
+          dirfiles: this.get('dirFiles'),
         type: value
       });
       break;
       case "chgrp":
       this.get('fsOps').pushObject({
-        settings: {
           path: this.get('path'),
           group: this.get('group'),
           recursive: this.get('recursive'),
-          dirfiles: this.get('dirFiles')
-        },
+          dirfiles: this.get('dirFiles'),
         type: value
       });
       break;
       case "move":
       this.get('fsOps').pushObject({
-        settings: {
           source: this.get('source'),
-          target: this.get('target')
-        },
+          target: this.get('target'),
         type: value
       });
       break;

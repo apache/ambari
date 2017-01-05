@@ -32,92 +32,144 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class OozieUtils {
-	private final static Logger LOGGER = LoggerFactory
-			.getLogger(OozieUtils.class);
-	private Utils utils = new Utils();
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
-	public String generateConfigXml(Map<String, String> map) {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db;
-		try {
-			db = dbf.newDocumentBuilder();
-			Document doc = db.newDocument();
-			Element configElement = doc.createElement("configuration");
-			doc.appendChild(configElement);
-			for (Map.Entry<String, String> entry : map.entrySet()) {
-				Element propElement = doc.createElement("property");
-				configElement.appendChild(propElement);
-				Element nameElem = doc.createElement("name");
-				nameElem.setTextContent(entry.getKey());
-				Element valueElem = doc.createElement("value");
-				valueElem.setTextContent(entry.getValue());
-				propElement.appendChild(nameElem);
-				propElement.appendChild(valueElem);
-			}
-			return utils.generateXml(doc);
-		} catch (ParserConfigurationException e) {
-			LOGGER.error("error in generating config xml", e);
-			throw new RuntimeException(e);
-		}
-	}
-	public String getJobPathPropertyKey(JobType jobType) {
-		switch (jobType) {
-		case WORKFLOW:
-			return "oozie.wf.application.path";
-		case COORDINATOR:
-			return "oozie.coord.application.path";
-		case BUNDLE:
-			return "oozie.bundle.application.path";
-		}
-		throw new RuntimeException("Unknown Job Type");
-	}
-	
-	public String generateWorkflowXml(String actionNodeXml) {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db;
-		try {
-			db = dbf.newDocumentBuilder();
-			Document doc = db.newDocument();
-			
-			Element workflowElement = doc.createElement("workflow-app");
-			workflowElement.setAttribute("name", "testWorkflow");
-			workflowElement.setAttribute("xmlns", "uri:oozie:workflow:0.5");
-			doc.appendChild(workflowElement);
-			
-			Element startElement = doc.createElement("start");
-			startElement.setAttribute("to", "testAction");
-			workflowElement.appendChild(startElement);
-			
-			Element actionElement = doc.createElement("action");
-			actionElement.setAttribute("name", "testAction");
-			Element actionSettingsElement = db.parse(new InputSource(new StringReader(actionNodeXml))).getDocumentElement();
-			actionElement.appendChild(doc.importNode(actionSettingsElement, true));
-			workflowElement.appendChild(actionElement);
-			
-			Element actionOkTransitionElement = doc.createElement("ok");
-			actionOkTransitionElement.setAttribute("to", "end");
-			actionElement.appendChild(actionOkTransitionElement);
-			
-			Element actionErrorTransitionElement = doc.createElement("error");
-			actionErrorTransitionElement.setAttribute("to", "kill");
-			actionElement.appendChild(actionErrorTransitionElement);
-			
-			Element killElement = doc.createElement("kill");
-			killElement.setAttribute("name", "kill");
-			Element killMessageElement = doc.createElement("message");
-			killMessageElement.setTextContent("Kill node message");
-			killElement.appendChild(killMessageElement);
-			workflowElement.appendChild(killElement);
-			
-			Element endElement = doc.createElement("end");
-			endElement.setAttribute("name", "end");
-			workflowElement.appendChild(endElement);
-			
-			return utils.generateXml(doc);
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			LOGGER.error("error in generating workflow xml", e);
-			throw new RuntimeException(e);
-		}
-	}
+public class OozieUtils {
+  private final static Logger LOGGER = LoggerFactory
+    .getLogger(OozieUtils.class);
+  private Utils utils = new Utils();
+
+  public String generateConfigXml(Map<String, String> map) {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db;
+    try {
+      db = dbf.newDocumentBuilder();
+      Document doc = db.newDocument();
+      Element configElement = doc.createElement("configuration");
+      doc.appendChild(configElement);
+      for (Map.Entry<String, String> entry : map.entrySet()) {
+        Element propElement = doc.createElement("property");
+        configElement.appendChild(propElement);
+        Element nameElem = doc.createElement("name");
+        nameElem.setTextContent(entry.getKey());
+        Element valueElem = doc.createElement("value");
+        valueElem.setTextContent(entry.getValue());
+        propElement.appendChild(nameElem);
+        propElement.appendChild(valueElem);
+      }
+      return utils.generateXml(doc);
+    } catch (ParserConfigurationException e) {
+      LOGGER.error("error in generating config xml", e);
+      throw new RuntimeException(e);
+    }
+  }
+
+  public String getJobPathPropertyKey(JobType jobType) {
+    switch (jobType) {
+      case WORKFLOW:
+        return "oozie.wf.application.path";
+      case COORDINATOR:
+        return "oozie.coord.application.path";
+      case BUNDLE:
+        return "oozie.bundle.application.path";
+    }
+    throw new RuntimeException("Unknown Job Type");
+  }
+
+  public JobType deduceJobType(String xml) {
+    try {
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      DocumentBuilder db = null;
+
+      db = dbf.newDocumentBuilder();
+      InputSource is = new InputSource();
+      is.setCharacterStream(new StringReader(xml));
+
+      Document doc = db.parse(is);
+      String rootNode = doc.getDocumentElement().getNodeName();
+      if ("workflow-app".equals(rootNode)) {
+        return JobType.WORKFLOW;
+      } else if ("coordinator-app".equals(rootNode)) {
+        return JobType.COORDINATOR;
+      } else if ("bundle-app".equals(rootNode)) {
+        return JobType.BUNDLE;
+      }
+      throw new RuntimeException("invalid xml submitted");
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public String deduceWorkflowNameFromJson(String json) {
+    JsonElement jsonElement = new JsonParser().parse(json);
+    String name = jsonElement.getAsJsonObject().get("name").getAsString();
+    return name;
+  }
+
+  public String deduceWorkflowNameFromXml(String xml) {
+    try {
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      InputSource is = new InputSource();
+      is.setCharacterStream(new StringReader(xml));
+      Document doc = db.parse(is);
+      String name = doc.getDocumentElement().getAttributeNode("name").getValue();
+      return name;
+
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public String generateWorkflowXml(String actionNodeXml) {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db;
+    try {
+      db = dbf.newDocumentBuilder();
+      Document doc = db.newDocument();
+
+      Element workflowElement = doc.createElement("workflow-app");
+      workflowElement.setAttribute("name", "testWorkflow");
+      workflowElement.setAttribute("xmlns", "uri:oozie:workflow:0.5");
+      doc.appendChild(workflowElement);
+
+      Element startElement = doc.createElement("start");
+      startElement.setAttribute("to", "testAction");
+      workflowElement.appendChild(startElement);
+
+      Element actionElement = doc.createElement("action");
+      actionElement.setAttribute("name", "testAction");
+      Element actionSettingsElement = db.parse(
+        new InputSource(new StringReader(actionNodeXml)))
+        .getDocumentElement();
+      actionElement.appendChild(doc.importNode(actionSettingsElement,
+        true));
+      workflowElement.appendChild(actionElement);
+
+      Element actionOkTransitionElement = doc.createElement("ok");
+      actionOkTransitionElement.setAttribute("to", "end");
+      actionElement.appendChild(actionOkTransitionElement);
+
+      Element actionErrorTransitionElement = doc.createElement("error");
+      actionErrorTransitionElement.setAttribute("to", "kill");
+      actionElement.appendChild(actionErrorTransitionElement);
+
+      Element killElement = doc.createElement("kill");
+      killElement.setAttribute("name", "kill");
+      Element killMessageElement = doc.createElement("message");
+      killMessageElement.setTextContent("Kill node message");
+      killElement.appendChild(killMessageElement);
+      workflowElement.appendChild(killElement);
+
+      Element endElement = doc.createElement("end");
+      endElement.setAttribute("name", "end");
+      workflowElement.appendChild(endElement);
+
+      return utils.generateXml(doc);
+    } catch (ParserConfigurationException | SAXException | IOException e) {
+      LOGGER.error("error in generating workflow xml", e);
+      throw new RuntimeException(e);
+    }
+  }
 }

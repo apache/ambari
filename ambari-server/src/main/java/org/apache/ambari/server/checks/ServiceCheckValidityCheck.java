@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,9 @@ import com.google.inject.Singleton;
  * That is a potential problem when doing stack update.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.DEFAULT,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckValidityCheck.class);

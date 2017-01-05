@@ -219,6 +219,10 @@
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>
     <file>
+      <source>conf/unix/metrics.properties</source>
+      <outputDirectory>/etc/ambari-server/conf</outputDirectory>
+    </file>
+    <file>
       <source>conf/unix/krb5JAASLogin.conf</source>
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>

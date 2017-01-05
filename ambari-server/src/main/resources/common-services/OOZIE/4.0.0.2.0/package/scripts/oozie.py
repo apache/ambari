@@ -148,7 +148,7 @@ def oozie(is_server=False):
       mode=0644,
       group=params.user_group,
       owner=params.oozie_user,
-      content=params.log4j_props
+      content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(format("{params.conf_dir}/oozie-log4j.properties"))):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
@@ -389,58 +389,55 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   # This can return over 100 files, so take the first 5 lines after "Available ShareLib"
   # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
   command = format(r'source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -shareliblist hive | grep "\[Available ShareLib\]" -A 5')
+  Execute(command,
+          user=params.oozie_user,
+          tries=10,
+          try_sleep=5,
+          logoutput=True,
+  )
 
-  try:
-    code, out = call(command, user=params.oozie_user, tries=10, try_sleep=5, logoutput=True)
-    if code == 0 and out is not None:
-      hive_sharelib_dir = __parse_sharelib_from_output(out)
+  hive_sharelib_dir = __parse_sharelib_from_output(out)
 
-      if hive_sharelib_dir is None:
-        raise Fail("Could not parse Hive sharelib from output.")
+  if hive_sharelib_dir is None:
+    raise Fail("Could not parse Hive sharelib from output.")
 
-      Logger.info("Parsed Hive sharelib = %s and will attempt to copy/replace %d files to it from %s" %
-                  (hive_sharelib_dir, num_files, atlas_hive_hook_impl_dir))
+  Logger.info(format("Parsed Hive sharelib = {hive_sharelib_dir} and will attempt to copy/replace {num_files} files to it from {atlas_hive_hook_impl_dir}"))
 
-      params.HdfsResource(hive_sharelib_dir,
-                          type="directory",
-                          action="create_on_execute",
-                          source=atlas_hive_hook_impl_dir,
-                          user=params.hdfs_user,
-                          owner=params.oozie_user,
-                          group=params.hdfs_user,
-                          mode=0755,
-                          recursive_chown=True,
-                          recursive_chmod=True,
-                          replace_existing_files=True
-                          )
-                          
-      Logger.info("Copying Atlas Hive hook properties file to Oozie Sharelib in DFS.")
-      atlas_hook_filepath_source = os.path.join(params.hive_conf_dir, params.atlas_hook_filename)
-      atlas_hook_file_path_dest_in_dfs = os.path.join(hive_sharelib_dir, params.atlas_hook_filename)
-      params.HdfsResource(atlas_hook_file_path_dest_in_dfs,
-                          type="file",
-                          source=atlas_hook_filepath_source,
-                          action="create_on_execute",
-                          owner=params.oozie_user,
-                          group=params.hdfs_user,
-                          mode=0755,
-                          replace_existing_files=True
-                          )
-      params.HdfsResource(None, action="execute")
+  params.HdfsResource(hive_sharelib_dir,
+                      type="directory",
+                      action="create_on_execute",
+                      source=atlas_hive_hook_impl_dir,
+                      user=params.hdfs_user,
+                      owner=params.oozie_user,
+                      group=params.hdfs_user,
+                      mode=0755,
+                      recursive_chown=True,
+                      recursive_chmod=True,
+                      replace_existing_files=True
+                      )
 
-      # Update the sharelib after making any changes
-      # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
-      command = format("source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -sharelibupdate")
-      code, out = call(command, user=params.oozie_user, tries=5, try_sleep=5, logoutput=True)
-      if code == 0 and out is not None:
-        Logger.info("Successfully updated the Oozie ShareLib")
-      else:
-        raise Exception("Could not update the Oozie ShareLib after uploading the Atlas Hive hook directory to DFS. "
-                        "Code: %s" % str(code))
-    else:
-      raise Exception("Code is non-zero or output is empty. Code: %s" % str(code))
-  except Fail, e:
-    Logger.error("Failed to get Hive sharelib directory in DFS. %s" % str(e))
+  Logger.info("Copying Atlas Hive hook properties file to Oozie Sharelib in DFS.")
+  atlas_hook_filepath_source = os.path.join(params.hive_conf_dir, params.atlas_hook_filename)
+  atlas_hook_file_path_dest_in_dfs = os.path.join(hive_sharelib_dir, params.atlas_hook_filename)
+  params.HdfsResource(atlas_hook_file_path_dest_in_dfs,
+                      type="file",
+                      source=atlas_hook_filepath_source,
+                      action="create_on_execute",
+                      owner=params.oozie_user,
+                      group=params.hdfs_user,
+                      mode=0755,
+                      replace_existing_files=True
+                      )
+  params.HdfsResource(None, action="execute")
+
+  # Update the sharelib after making any changes
+  # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
+  Execute(format("source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -sharelibupdate"),
+          user=params.oozie_user,
+          tries=5,
+          try_sleep=5,
+          logoutput=True,
+  )
 
 
 def download_database_library_if_needed(target_directory = None):

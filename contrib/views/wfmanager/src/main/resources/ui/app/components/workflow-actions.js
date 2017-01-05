@@ -38,6 +38,10 @@ export default Ember.Component.extend({
     showImportActionNodeFileBrowser() {
       this.$(this.get('element')).popover('hide');
       this.sendAction("showImportActionNodeFileBrowser");
+    },
+    showAssetNodeList() {
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("showAssetNodeList", true);
     }
   }
 });

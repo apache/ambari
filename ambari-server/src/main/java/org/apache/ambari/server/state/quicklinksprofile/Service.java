@@ -39,6 +39,14 @@ public class Service {
   @JsonProperty("filters")
   private List<Filter> filters;
 
+  static Service create(String name, List<Filter> filters, List<Component> components) {
+    Service service = new Service();
+    service.setName(name);
+    service.setFilters(filters);
+    service.setComponents(components);
+    return service;
+  }
+
   public String getName() {
     return name;
   }

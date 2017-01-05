@@ -15,12 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.metrics.system;
 
-public interface MetricsService extends Runnable {
+import java.util.Collection;
+
+import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
+
+
+public interface MetricsService{
   /**
    * Set up configuration
    **/
-  void init();
+  void start();
+
+  /**
+   * Get Configured sources
+   * @return
+   */
+  Collection<AbstractMetricsSource> getSources();
 }
 

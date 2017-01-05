@@ -1,0 +1,6 @@
+cpu_system
+cpu_user
+mem_cached
+mem_free
+._p_dfs.FSNamesystem.*
+._p_jvm.JvmMetrics*

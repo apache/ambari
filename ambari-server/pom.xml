@@ -312,6 +312,7 @@
             <exclude>**/cluster.properties.j2</exclude>
             <exclude>**/repo_ubuntu.j2</exclude>
             <exclude>**/.pydev*</exclude>
+            <exclude>**/.hash</exclude>
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
@@ -1036,6 +1037,11 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.5</version>
     </dependency>
     <dependency>
       <groupId>uk.com.robust-it</groupId>

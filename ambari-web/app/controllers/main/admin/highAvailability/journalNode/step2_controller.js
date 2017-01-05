@@ -41,6 +41,8 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
   versionLoaded: true,
   hideDependenciesInfoBar: true,
 
+  isNextDisabled: Em.computed.not('isLoaded'),
+
   clearStep: function () {
     this.get('stepConfigs').clear();
     this.set('serverConfigData', {});
@@ -65,7 +67,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
     var urlParams = [];
     var hdfsSiteTag = data.Clusters.desired_configs['hdfs-site'].tag;
     urlParams.push('(type=hdfs-site&tag=' + hdfsSiteTag + ')');
-    this.set("hdfsSiteTag", {name : "hdfsSiteTag", value : hdfsSiteTag});
+    this.set("hdfsSiteTag", {name: "hdfsSiteTag", value: hdfsSiteTag});
 
     App.ajax.send({
       name: 'admin.get.all_configurations',
@@ -79,7 +81,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
   },
 
   onLoadConfigs: function (data) {
-    this.set('serverConfigData',data);
+    this.set('serverConfigData', data);
     this.set('content.nameServiceId', data.items[0].properties['dfs.nameservices']);
     this.tweakServiceConfigs(this.get('moveJNConfig.configs'));
     this.renderServiceConfigs(this.get('moveJNConfig'));
@@ -111,7 +113,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
     return localDB;
   },
 
-  tweakServiceConfigs: function(configs) {
+  tweakServiceConfigs: function (configs) {
     var localDB = this._prepareLocalDB();
     var dependencies = this._prepareDependencies();
 
@@ -142,7 +144,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
 
     this.get('stepConfigs').pushObject(serviceConfig);
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
-    this.once = true;
+    this.set('once', true);
   },
 
   /**
@@ -156,8 +158,5 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
     }, this);
-  },
-
-  isNextDisabled: Em.computed.not('isLoaded')
-
+  }
 });

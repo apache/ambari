@@ -465,10 +465,13 @@ Em.I18n.translations = {
   'popup.dependent.configs.header': 'Dependent Configurations',
   'popup.dependent.configs.title.recommendation': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes.',
   'popup.dependent.configs.title.values': 'Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
+  'popup.dependent.configs.table.recommended': 'Recommended Changes',
+  'popup.dependent.configs.table.required': 'Required Changes',
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.initValue': 'Initial value',
   'popup.dependent.configs.table.currentValue': 'Current Value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
+  'popup.dependent.configs.table.newValue': 'New Value',
   'popup.dependent.configs.table.not.defined': 'Not Defined',
 
 
@@ -1284,10 +1287,12 @@ Em.I18n.translations = {
   'admin.kerberos.regenerate_keytabs.checkbox.restart.label': 'Automatically restart components after keytab regeneration',
   'admin.kerberos.service.alert.yarn': 'YARN log and local dir will be deleted and ResourceManager state will be formatted as part of Enabling/Disabling Kerberos.',
 
-  'admin.kerberos.disable.step1.task0.title': 'Stop Services',
-  'admin.kerberos.disable.step1.task1.title': 'Unkerberize Cluster',
-  'admin.kerberos.disable.step1.task2.title': 'Remove Kerberos',
-  'admin.kerberos.disable.step1.task3.title': 'Start Services',
+  'admin.kerberos.disable.step1.task0.title': 'Start ZooKeeper',
+  'admin.kerberos.disable.step1.task1.title': 'Stop Required Services',
+  'admin.kerberos.disable.step1.task2.title': 'Unkerberize Cluster',
+  'admin.kerberos.disable.step1.task3.title': 'Remove Kerberos',
+  'admin.kerberos.disable.step1.task4.title': 'Start Services',
+
   'admin.kerberos.disable.unkerberize.header': 'Unkerberize cluster',
   'admin.kerberos.disable.unkerberize.message': 'You cannot quit wizard while cluster is being unkerberized',
   'admin.kerberos.disable.inProgress': 'Please wait while cluster is being unkerberized',
@@ -1442,11 +1447,12 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step9.task3.title':'Install PXF',
   'admin.highAvailability.wizard.step9.task4.title':'Reconfigure Ranger',
   'admin.highAvailability.wizard.step9.task5.title':'Reconfigure HBase',
-  'admin.highAvailability.wizard.step9.task6.title':'Reconfigure Accumulo',
-  'admin.highAvailability.wizard.step9.task7.title':'Reconfigure HAWQ',
-  'admin.highAvailability.wizard.step9.task8.title':'Delete Secondary NameNode',
-  'admin.highAvailability.wizard.step9.task9.title':'Stop HDFS',
-  'admin.highAvailability.wizard.step9.task10.title':'Start All Services',
+  'admin.highAvailability.wizard.step9.task6.title':'Reconfigure AMS',
+  'admin.highAvailability.wizard.step9.task7.title':'Reconfigure Accumulo',
+  'admin.highAvailability.wizard.step9.task8.title':'Reconfigure HAWQ',
+  'admin.highAvailability.wizard.step9.task9.title':'Delete Secondary NameNode',
+  'admin.highAvailability.wizard.step9.task10.title':'Stop HDFS',
+  'admin.highAvailability.wizard.step9.task11.title':'Start All Services',
   'admin.highAvailability.wizard.step9.notice.completed':'NameNode HA has been enabled successfully.',
 
   'admin.highAvailability.wizard.step3.curNameNode': '<b>Current NameNode:</b> ',
@@ -2216,6 +2222,7 @@ Em.I18n.translations = {
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
   'services.service.restartAllRequired':'Restart All Required',
+  'services.service.downloadAllClientConfigs':'Download All Client Configs',
   'services.service.startAll.confirmMsg' : 'You are about to start all services',
   'services.service.stopAll.confirmMsg' : 'You are about to stop all services',
   'services.service.refreshAll.confirmMsg': '<p>You are about to restart {0}</p>' +
@@ -2648,6 +2655,7 @@ Em.I18n.translations = {
   'host.host.details.installClients': 'Install clients',
   'host.host.details.reinstallClients': 'Reinstall clients',
   'host.host.details.checkHost': 'Check host',
+  'host.host.details.downloadAllClients': 'All Clients On Host',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',
@@ -3204,6 +3212,7 @@ Em.I18n.translations = {
   'errorMessage.config.user': 'Value is not valid',
   'errorMessage.config.ldapUrl': 'Must be a valid LDAP url',
   'errorMessage.config.password': 'Passwords do not match',
+  'errorMessage.config.password.length': 'Password should contain at least {0} symbols',
   'errorMessage.config.directory.heterogeneous': 'dir format is wrong, can be "[{storage type}]/{dir name}"',
   'errorMessage.config.directory.default': 'Must be a slash or drive at the start, and must not contain white spaces',
   'errorMessage.config.directory.allowed': 'Can\'t start with "home(s)"',
@@ -3325,6 +3334,8 @@ Em.I18n.translations = {
       'Click <b>Save</b> to commit the change or <b>Discard</b> to revert your changes',
   'admin.serviceAutoStart.save.popup.transition.title': 'Warning',
   'admin.serviceAutoStart.save.popup.transition.body': 'You have unsaved changes',
+  'admin.serviceAutoStart.disabled.popup.body': 'During RU/EU auto-start of service components will be disabled.' +
+  ' Auto-start will be enabled after upgrade is completed.',
 
   'reset.ui.states': 'Reset UI State',
   'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?',

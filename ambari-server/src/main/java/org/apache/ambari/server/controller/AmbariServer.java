@@ -28,8 +28,6 @@ import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
@@ -542,6 +540,9 @@ public class AmbariServer {
       ExecutionScheduleManager executionScheduleManager = injector
           .getInstance(ExecutionScheduleManager.class);
 
+      MetricsService metricsService = injector.getInstance(
+        MetricsService.class);
+
       clusterController = controller;
 
       StateRecoveryManager recoveryManager = injector.getInstance(
@@ -554,14 +555,6 @@ public class AmbariServer {
        */
       server.start();
 
-      // TODO, start every other tread.
-      final ExecutorService executor = Executors.newSingleThreadExecutor();
-      MetricsService metricsService = injector.getInstance(
-              MetricsService.class);
-      metricsService.init();
-      executor.submit(metricsService);
-      LOG.info("********* Started Ambari Metrics **********");
-
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 
@@ -573,6 +566,12 @@ public class AmbariServer {
 
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
+
+      if (!Configuration.AMBARISERVER_METRICS_DISABLE.equals(true)) {
+        metricsService.start();
+      } else {
+        LOG.info("AmbariServer Metrics disabled.");
+      }
 
       server.join();
       LOG.info("Joined the Server");

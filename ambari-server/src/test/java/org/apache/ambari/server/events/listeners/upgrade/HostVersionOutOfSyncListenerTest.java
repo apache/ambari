@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -378,7 +377,7 @@ public class HostVersionOutOfSyncListenerTest {
   }
 
   /**
-   * Tests that when a host is removed, the {@link HostRemovedEvent} fires and
+   * Tests that when a host is removed, the {@link org.apache.ambari.server.events.HostsRemovedEvent} fires and
    * eventually calls to recalculate the cluster state.
    */
   @Test
@@ -428,6 +427,7 @@ public class HostVersionOutOfSyncListenerTest {
     // event handle it
     injector.getInstance(UnitOfWork.class).begin();
     clusters.deleteHost("h2");
+    clusters.publishHostsDeletion(Collections.singleton(c1), Collections.singleton("h2"));
     injector.getInstance(UnitOfWork.class).end();
     assertRepoVersionState(stackId.getStackId(), "2.2.0", RepositoryVersionState.CURRENT);
     assertRepoVersionState(stackId.getStackId(), "2.2.9-9999", RepositoryVersionState.INSTALLED);

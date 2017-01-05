@@ -164,7 +164,7 @@ public class TestHeartbeatMonitor {
     cluster.addDesiredConfig("_test", Collections.singleton(config));
 
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1);
@@ -253,7 +253,7 @@ public class TestHeartbeatMonitor {
     cluster.addDesiredConfig("_test", Collections.singleton(hadoopEnvConfig));
 
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
@@ -360,7 +360,7 @@ public class TestHeartbeatMonitor {
       add(hostname1);
      }};
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name());
@@ -442,7 +442,7 @@ public class TestHeartbeatMonitor {
       add(hostname1);
      }};
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
     hdfs.addServiceComponent(Role.DATANODE.name());
@@ -561,7 +561,7 @@ public class TestHeartbeatMonitor {
       add(hostname2);
     }};
 
-    clusters.mapHostsToCluster(hostNames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
 

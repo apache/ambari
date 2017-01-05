@@ -41,9 +41,9 @@ public class TestMetadataSync {
     PhoenixHBaseAccessor hBaseAccessor = createNiceMock(PhoenixHBaseAccessor.class);
 
     final TimelineMetricMetadata testMetadata1 = new TimelineMetricMetadata(
-      "m1", "a1", "", GAUGE.name(), System.currentTimeMillis(), true);
+      "m1", "a1", "", GAUGE.name(), System.currentTimeMillis(), true, false);
     final TimelineMetricMetadata testMetadata2 = new TimelineMetricMetadata(
-      "m2", "a2", "", GAUGE.name(), System.currentTimeMillis(), true);
+      "m2", "a2", "", GAUGE.name(), System.currentTimeMillis(), true, false);
 
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata =
       new HashMap<TimelineMetricMetadataKey, TimelineMetricMetadata>() {{
@@ -88,11 +88,11 @@ public class TestMetadataSync {
     PhoenixHBaseAccessor hBaseAccessor = createNiceMock(PhoenixHBaseAccessor.class);
 
     TimelineMetricMetadata metadata1 = new TimelineMetricMetadata(
-      "xxx.abc.yyy", "a1", "", GAUGE.name(), System.currentTimeMillis(), true);
+      "xxx.abc.yyy", "a1", "", GAUGE.name(), System.currentTimeMillis(), true, false);
     TimelineMetricMetadata metadata2 = new TimelineMetricMetadata(
-      "xxx.cdef.yyy", "a2", "", GAUGE.name(), System.currentTimeMillis(), true);
+      "xxx.cdef.yyy", "a2", "", GAUGE.name(), System.currentTimeMillis(), true, false);
     TimelineMetricMetadata metadata3 = new TimelineMetricMetadata(
-      "xxx.pqr.zzz", "a3", "", GAUGE.name(), System.currentTimeMillis(), true);
+      "xxx.pqr.zzz", "a3", "", GAUGE.name(), System.currentTimeMillis(), true, false);
 
     expect(configuration.get(TIMELINE_METRIC_METADATA_FILTERS)).andReturn("abc,cde");
 

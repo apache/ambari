@@ -70,7 +70,7 @@ class OozieServiceCheckDefault(OozieServiceCheck):
       raise Fail(format(NO_DOCS_FOLDER_MESSAGE))
     oozie_examples_dir = oozie_examples_dir_regex_matches[0]
 
-    Execute((format("{tmp_dir}/{prepare_hdfs_file_name}"), params.conf_dir, oozie_examples_dir, params.hadoop_conf_dir, params.yarn_resourcemanager_address, params.fs_root, params.service_check_queue_name),
+    Execute((format("{tmp_dir}/{prepare_hdfs_file_name}"), params.conf_dir, oozie_examples_dir, params.hadoop_conf_dir, params.yarn_resourcemanager_address, params.fs_root, params.service_check_queue_name, params.service_check_job_name),
             tries=3,
             try_sleep=5,
             logoutput=True
@@ -112,10 +112,10 @@ class OozieServiceCheckDefault(OozieServiceCheck):
 
     if params.security_enabled:
       sh_cmd = format(
-        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
+        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {service_check_job_name} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
     else:
       sh_cmd = format(
-        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
+        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {service_check_job_name} {security_enabled}")
 
     Execute(sh_cmd,
             path=params.execute_path,
@@ -137,4 +137,4 @@ class OozieServiceCheckWindows(OozieServiceCheck):
 
 if __name__ == "__main__":
   OozieServiceCheck().execute()
-  
+

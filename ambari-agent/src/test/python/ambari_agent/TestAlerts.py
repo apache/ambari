@@ -62,12 +62,13 @@ class TestAlerts(TestCase):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
       self.config, None)
 
     ash.start()
@@ -236,10 +237,10 @@ class TestAlerts(TestCase):
     self.assertEquals(6, alert.interval())
 
     alert.collect()
-    
+
     alerts = collector.alerts()
     self.assertEquals(0, len(collector.alerts()))
-    
+
     self.assertEquals('OK', alerts[0]['state'])
     self.assertTrue('(Unit Tests)' in alerts[0]['text'])
     self.assertTrue('response time on port 2181' in alerts[0]['text'])
@@ -286,6 +287,7 @@ class TestAlerts(TestCase):
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
     definition_json['source']['common_services_directory'] = os.path.join('ambari_agent', 'common-services')
+    definition_json['source']['extensions_directory'] = os.path.join('ambari_agent', 'extensions')
     definition_json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     configuration = {'foo-site' :
@@ -299,9 +301,10 @@ class TestAlerts(TestCase):
     alert = ScriptAlert(definition_json, definition_json['source'], MagicMock())
     alert.set_helpers(collector, cluster_configuration )
     alert.set_cluster("c1", "c6401.ambari.apache.org")
-    
+
     self.assertEquals(definition_json['source']['path'], alert.path)
     self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
+    self.assertEquals(definition_json['source']['extensions_directory'], alert.extensions_dir)
     self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
     self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
@@ -320,6 +323,7 @@ class TestAlerts(TestCase):
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
     definition_json['source']['common_services_directory'] = os.path.join('ambari_agent', 'common-services')
+    definition_json['source']['extensions_directory'] = os.path.join('ambari_agent', 'extensions')
     definition_json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     configuration = {'foo-site' :
@@ -337,6 +341,7 @@ class TestAlerts(TestCase):
     self.assertEquals(definition_json['source']['path'], alert.path)
     self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
     self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
+    self.assertEquals(definition_json['source']['extensions_directory'], alert.extensions_dir)
     self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
     alert.collect()
@@ -454,7 +459,7 @@ class TestAlerts(TestCase):
     definition_json = self._get_metric_alert_definition()
 
     ma_load_jmx_mock.return_value = ([0,0], None)
-    
+
     # run the alert without specifying any keys; an exception should be thrown
     # indicating that there was no URI and the result is UNKNOWN
     collector = AlertCollector()
@@ -479,9 +484,9 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
-    
+
     self.assertEquals('UNKNOWN', collector.alerts()[0]['state'])
-    
+
     # set an actual property key (http)
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTP_ONLY',
@@ -495,9 +500,9 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
-    
+
     self.assertEquals('OK', collector.alerts()[0]['state'])
-    
+
     # set an actual property key (https)
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTP_ONLY',
@@ -511,7 +516,7 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
-    
+
     self.assertEquals('OK', collector.alerts()[0]['state'])
 
     # set both (http and https)
@@ -528,8 +533,8 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
-    
-    self.assertEquals('OK', collector.alerts()[0]['state'])    
+
+    self.assertEquals('OK', collector.alerts()[0]['state'])
 
 
   @patch.object(WebAlert, "_make_web_request")
@@ -539,7 +544,7 @@ class TestAlerts(TestCase):
     WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
     wa_make_web_request_mock.return_value = WebResponse(200,1.234,None)
 
-    # run the alert and check HTTP 200    
+    # run the alert and check HTTP 200
     configuration = {'hdfs-site' :
       { 'dfs.datanode.http.address' : 'c6401.ambari.apache.org:80' }
     }
@@ -566,25 +571,25 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
-    
+
     alerts = collector.alerts()
     self.assertEquals(0, len(collector.alerts()))
-    
+
     self.assertEquals('WARNING', alerts[0]['state'])
     self.assertEquals('(Unit Tests) warning: 500 (Internal Server Error)', alerts[0]['text'])
 
     # run the alert and check critical
     wa_make_web_request_mock.return_value = WebResponse(0,0,'error message')
-     
+
     collector = AlertCollector()
     alert = WebAlert(definition_json, definition_json['source'], self.config)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
-    
+
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))    
-    
+    self.assertEquals(0, len(collector.alerts()))
+
     # http assertion indicating that we properly determined non-SSL
     self.assertEquals('CRITICAL', alerts[0]['state'])
     self.assertEquals('(Unit Tests) critical: http://c6401.ambari.apache.org:80. error message', alerts[0]['text'])
@@ -603,10 +608,10 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
     alert.collect()
-    
+
     alerts = collector.alerts()
-    self.assertEquals(0, len(collector.alerts()))    
-    
+    self.assertEquals(0, len(collector.alerts()))
+
     # SSL assertion
     self.assertEquals('CRITICAL', alerts[0]['state'])
     self.assertEquals('(Unit Tests) critical: https://c6401.ambari.apache.org:443/test/path. error message', alerts[0]['text'])
@@ -615,12 +620,13 @@ class TestAlerts(TestCase):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
       self.config, None)
 
     ash.start()
@@ -662,12 +668,13 @@ class TestAlerts(TestCase):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
       self.config, None)
 
     ash.start()
@@ -699,11 +706,12 @@ class TestAlerts(TestCase):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
     test_stack_path = os.path.join('ambari_agent', 'dummy_files')
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_extensions_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
     cluster_configuration = self.__get_cluster_configuration()
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_extensions_path, test_host_scripts_path, cluster_configuration,
       self.config, None)
 
     ash.start()
@@ -728,6 +736,7 @@ class TestAlerts(TestCase):
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
     definition_json['source']['common_services_directory'] = os.path.join('ambari_agent', 'common-services')
+    definition_json['source']['extensions_directory'] = os.path.join('ambari_agent', 'extensions')
     definition_json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     configuration = {'foo-site' :
@@ -748,6 +757,7 @@ class TestAlerts(TestCase):
 
     self.assertEquals(definition_json['source']['path'], alert.path)
     self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
+    self.assertEquals(definition_json['source']['extensions_directory'], alert.extensions_dir)
     self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
     self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
 
@@ -796,6 +806,7 @@ class TestAlerts(TestCase):
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
     definition_json['source']['common_services_directory'] = os.path.join('ambari_agent', 'common-services')
+    definition_json['source']['extensions_directory'] = os.path.join('ambari_agent', 'extensions')
     definition_json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     configuration = {'foo-site' :

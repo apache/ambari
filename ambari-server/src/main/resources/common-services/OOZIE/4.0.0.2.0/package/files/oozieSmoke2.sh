@@ -29,10 +29,11 @@ export oozie_examples_dir=$6
 export hadoop_conf_dir=$7
 export hadoop_bin_dir=$8
 export smoke_test_user=$9
-export security_enabled=${10}
-export smoke_user_keytab=${11}
-export kinit_path_local=${12}
-export smokeuser_principal=${13}
+export job_name=${10}
+export security_enabled=${11}
+export smoke_user_keytab=${12}
+export kinit_path_local=${13}
+export smokeuser_principal=${14}
 
 function checkOozieJobStatus {
   local job_id=$1
@@ -74,7 +75,7 @@ else
   kinitcmd=""
 fi
 
-cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $oozie_examples_dir/examples/apps/map-reduce/job.properties  -run"
+cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $oozie_examples_dir/examples/apps/${job_name}/job.properties  -run"
 echo $cmd
 job_info=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"

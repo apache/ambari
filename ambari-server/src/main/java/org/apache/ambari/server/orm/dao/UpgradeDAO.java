@@ -175,16 +175,19 @@ public class UpgradeDAO {
   }
 
   /**
-   * @param clusterId the cluster id
+   * @param clusterId
+   *          the cluster id
+   * @param direction
+   *          the direction (not {@code null}).
    * @return the upgrade entity, or {@code null} if not found
    */
   @RequiresSession
-  public UpgradeEntity findLastUpgradeForCluster(long clusterId) {
+  public UpgradeEntity findLastUpgradeForCluster(long clusterId, Direction direction) {
     TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
         "UpgradeEntity.findLatestForClusterInDirection", UpgradeEntity.class);
     query.setMaxResults(1);
     query.setParameter("clusterId", clusterId);
-    query.setParameter("direction", Direction.UPGRADE);
+    query.setParameter("direction", direction);
 
     query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 

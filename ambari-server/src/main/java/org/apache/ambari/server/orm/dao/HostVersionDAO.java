@@ -278,9 +278,7 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   @Transactional
   public void removeByHostName(String hostName) {
     Collection<HostVersionEntity> hostVersions = this.findByHost(hostName);
-    for (HostVersionEntity hostVersion : hostVersions) {
-      this.remove(hostVersion);
-    }
+    this.remove(hostVersions);
   }
 
   /**

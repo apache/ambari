@@ -50,6 +50,9 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+import static org.apache.ambari.logsearch.LogSearch.LOGSEARCH_CERT_DEFAULT_FOLDER;
+import static org.apache.ambari.logsearch.LogSearch.LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD;
+
 public class SSLUtil {
   private static final Logger LOG = LoggerFactory.getLogger(SSLUtil.class);
   
@@ -61,6 +64,8 @@ public class SSLUtil {
   private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
   private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
   private static final String DEFAULT_TRUSTSTORE_TYPE = "JKS";
+  private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
+  private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
   
   private SSLUtil() {
     throw new UnsupportedOperationException();
@@ -69,11 +74,11 @@ public class SSLUtil {
   public static String getKeyStoreLocation() {
     return System.getProperty(KEYSTORE_LOCATION_ARG);
   }
-  
+
   public static String getKeyStorePassword() {
     return System.getProperty(KEYSTORE_PASSWORD_ARG);
   }
-  
+
   public static String getKeyStoreType() {
     return System.getProperty(KEYSTORE_TYPE_ARG, DEFAULT_KEYSTORE_TYPE);
   }
@@ -81,24 +86,26 @@ public class SSLUtil {
   public static String getTrustStoreLocation() {
     return System.getProperty(TRUSTSTORE_LOCATION_ARG);
   }
-  
+
   public static String getTrustStorePassword() {
     return System.getProperty(TRUSTSTORE_PASSWORD_ARG);
   }
-  
+
   public static String getTrustStoreType() {
     return System.getProperty(TRUSTSTORE_TYPE_ARG, DEFAULT_TRUSTSTORE_TYPE);
   }
-  
+
   public static boolean isKeyStoreSpecified() {
-    return StringUtils.isNotEmpty(getKeyStoreLocation()) && StringUtils.isNotEmpty(getKeyStorePassword());
+    return StringUtils.isNotEmpty(getKeyStoreLocation());
   }
 
   private static boolean isTrustStoreSpecified() {
-    return StringUtils.isNotEmpty(getTrustStoreLocation()) && StringUtils.isNotEmpty(getTrustStorePassword());
+    return StringUtils.isNotEmpty(getTrustStoreLocation());
   }
   
   public static SslContextFactory getSslContextFactory() {
+    setPasswordIfSysPropIsEmpty(KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_FILE);
+    setPasswordIfSysPropIsEmpty(TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_FILE);
     SslContextFactory sslContextFactory = new SslContextFactory();
     sslContextFactory.setKeyStorePath(getKeyStoreLocation());
     sslContextFactory.setKeyStorePassword(getKeyStorePassword());
@@ -111,7 +118,7 @@ public class SSLUtil {
     
     return sslContextFactory;
   }
-  
+
   public static SSLContext getSSLContext() {
     SslContextFactory sslContextFactory = getSslContextFactory();
     
@@ -127,6 +134,22 @@ public class SSLUtil {
       } catch (Exception e) {
         LOG.error("Could not stop sslContextFactory", e);
       }
+    }
+  }
+
+  private static String getPasswordFromFile(String certFolder, String fileName, String defaultPassword) {
+    try {
+      String pwdFileName = String.format("%s/%s", certFolder, fileName);
+      File pwdFile = new File(pwdFileName);
+      if (!pwdFile.exists()) {
+        FileUtils.writeStringToFile(pwdFile, defaultPassword);
+        return defaultPassword;
+      } else {
+        return FileUtils.readFileToString(pwdFile);
+      }
+    } catch (Exception e) {
+      String errMsg = "Exception occurred during read/write password file for keystore.";
+      throw new RuntimeException(errMsg, e);
     }
   }
 
@@ -174,6 +197,13 @@ public class SSLUtil {
     } catch (Exception e) {
       LOG.error("Could not create certificate.");
       throw e;
+    }
+  }
+
+  private static void setPasswordIfSysPropIsEmpty(String prop, String pwdFile) {
+    if (StringUtils.isEmpty(System.getProperty(prop))) {
+      String password = getPasswordFromFile(LOGSEARCH_CERT_DEFAULT_FOLDER, pwdFile, LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD);
+      System.setProperty(prop, password);
     }
   }
 

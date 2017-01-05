@@ -151,33 +151,68 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   ],
 
+  /**
+   * Determines whether adding/deleting host component requires configs changes
+   * @type {Boolean}
+   */
+  isReconfigureRequired: false,
+
+  /**
+   * Array of all properties affected by adding/deleting host component
+   * @type {Array}
+   */
+  allPropertiesToChange: [],
+
+  /**
+   * Array of editable properties affected by adding/deleting host component
+   * @type {Array}
+   */
+  recommendedPropertiesToChange: [],
+
+  /**
+   * Array of non-editable properties affected by adding/deleting host component
+   * @type {Array}
+   */
+  requiredPropertiesToChange: [],
+
+  /**
+   * Properties affected by adding/deleting host component, grouped by service, formatted for PUT call
+   * @type {Array}
+   */
+  groupedPropertiesToChange: [],
+
+  hasPropertiesToChange: Em.computed.or('recommendedPropertiesToChange.length', 'requiredPropertiesToChange.length'),
+
   addDeleteComponentPopupBody: Em.View.extend({
     templateName: require('templates/main/host/details/addDeleteComponentPopup'),
-    isReconfigure: false,
     commonMessage: '',
     manualKerberosWarning: App.get('router.mainAdminKerberosController.isManualKerberos') ?
       Em.I18n.t('hosts.host.manualKerberosWarning') : '',
-    propertiesToChange: [],
     lastComponent: false,
-    lastComponentError: '',
-    setPopupSize: function () {
-      this.set('parentView.hasPropertiesToChange', !!this.get('propertiesToChange.length'));
-    }.observes('propertiesToChange.length')
+    lastComponentError: ''
   }),
 
-  applyConfigsCustomization: function (configs) {
-    configs.propertiesToChange.forEach(function (property) {
+  clearConfigsChanges: function () {
+    var arrayNames = ['allPropertiesToChange', 'recommendedPropertiesToChange', 'requiredPropertiesToChange', 'groupedPropertiesToChange'];
+    arrayNames.forEach(function (arrayName) {
+      this.get(arrayName).clear();
+    }, this);
+    this.set('isReconfigureRequired', false);
+  },
+
+  applyConfigsCustomization: function () {
+    this.get('recommendedPropertiesToChange').forEach(function (property) {
       var value = property.saveRecommended ? property.recommendedValue : property.initialValue,
         filename = property.propertyFileName;
-      if (configs.groups.length) {
-        var group = configs.groups.find(function (item) {
+      if (this.get('groupedPropertiesToChange.length')) {
+        var group = this.get('groupedPropertiesToChange').find(function (item) {
           return item.properties.hasOwnProperty(filename);
         });
         if (group) {
           group.properties[filename][property.propertyName] = value;
         }
       }
-    });
+    }, this);
   },
 
   /**
@@ -427,7 +462,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       if (componentsMapItem.deletePropertyName) {
         this.set(componentsMapItem.deletePropertyName, true);
       }
-      returnFunc = this.showDeleteComponentPopup(component, true, componentsMapItem.configsCallbackName);
+      this.set('isReconfigureRequired', true);
+      returnFunc = this.showDeleteComponentPopup(component, componentsMapItem.configsCallbackName);
     } else if (componentName === 'JOURNALNODE') {
       returnFunc = App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
@@ -438,35 +474,31 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     return returnFunc;
   },
 
-  showDeleteComponentPopup: function (component, isReconfigure, callbackName) {
+  showDeleteComponentPopup: function (component, callbackName) {
     var self = this,
       isLastComponent = (this.getTotalComponent(component) === 1),
       componentName = component.get('componentName'),
       componentDisplayName = component.get('displayName'),
       commonMessage = Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(componentDisplayName);
-    if (isReconfigure) {
-      var configs = {
-        groups: [],
-        propertiesToChange: []
-      };
+    if (this.get('isReconfigureRequired')) {
       this.set('isConfigsLoadingInProgress', true);
       this.isServiceMetricsLoaded(function () {
-        self.loadConfigs(callbackName, configs);
+        self.loadConfigs(callbackName);
       });
     }
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       controller: self,
       hasPropertiesToChange: false,
-      classNameBindings: ['hasPropertiesToChange:common-modal-wrapper', 'hasPropertiesToChange:modal-full-width'],
+      classNameBindings: ['controller.hasPropertiesToChange:common-modal-wrapper', 'controller.hasPropertiesToChange:modal-full-width'],
       modalDialogClasses: function () {
-        return this.get('hasPropertiesToChange') ? ['modal-lg'] : [];
-      }.property('hasPropertiesToChange'),
+        return this.get('controller.hasPropertiesToChange') ? ['modal-lg'] : [];
+      }.property('controller.hasPropertiesToChange'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
       bodyClass: self.get('addDeleteComponentPopupBody').extend({
-        isReconfigure: isReconfigure,
         commonMessage: commonMessage,
-        propertiesToChange: isReconfigure ? configs.propertiesToChange : [],
+        recommendedPropertiesToChange: self.get('recommendedPropertiesToChange'),
+        requiredPropertiesToChange: self.get('requiredPropertiesToChange'),
         lastComponentError: Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(componentDisplayName),
         lastComponent: function () {
           this.set('parentView.isChecked', !isLastComponent);
@@ -475,19 +507,28 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }),
       isChecked: false,
       disablePrimary: function () {
-        return (isReconfigure && this.get('controller.isConfigsLoadingInProgress')) || !this.get('isChecked');
-      }.property('controller.isConfigsLoadingInProgress', 'isChecked'),
+        return (this.get('controller.isReconfigureRequired') && this.get('controller.isConfigsLoadingInProgress')) || !this.get('isChecked');
+      }.property('controller.isReconfigureRequired', 'controller.isConfigsLoadingInProgress', 'isChecked'),
       onPrimary: function () {
         this._super();
-        if (isReconfigure) {
-          self.applyConfigsCustomization(configs);
+        if (self.get('isReconfigureRequired')) {
+          self.applyConfigsCustomization();
         }
         self._doDeleteHostComponent(componentName, function () {
-          if (isReconfigure) {
-            self.saveConfigsBatch(configs.groups, componentName);
+          if (self.get('isReconfigureRequired')) {
+            self.saveConfigsBatch(self.get('groupedPropertiesToChange'), componentName);
+            self.clearConfigsChanges();
           }
           self.set('redrawComponents', true);
         });
+      },
+      onSecondary: function () {
+        this._super();
+        self.clearConfigsChanges();
+      },
+      onClose: function () {
+        this._super();
+        self.clearConfigsChanges();
       }
     });
   },
@@ -697,7 +738,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           this.set(componentsMapItem.addPropertyName, false);
         };
       }
-      returnFunc = self.showAddComponentPopup(component, hostName, null, true, componentsMapItem.configsCallbackName, primary);
+      this.set('isReconfigureRequired', true);
+      returnFunc = self.showAddComponentPopup(component, hostName, null, componentsMapItem.configsCallbackName, primary);
     } else if (componentName === 'JOURNALNODE') {
       returnFunc = App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
@@ -710,19 +752,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     return returnFunc;
   },
 
-  showAddComponentPopup: function (component, hostName, primary, isReconfigure, callbackName, primaryOnReconfigure) {
+  showAddComponentPopup: function (component, hostName, primary, callbackName, primaryOnReconfigure) {
     var self = this,
       componentName = component.get('componentName'),
       componentDisplayName = component.get('displayName'),
       commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
-    if (isReconfigure) {
-      var configs = {
-        groups: [],
-        propertiesToChange: []
-      };
+    if (this.get('isReconfigureRequired')) {
       this.set('isConfigsLoadingInProgress', true);
       this.isServiceMetricsLoaded(function () {
-        self.loadConfigs(callbackName, configs);
+        self.loadConfigs(callbackName);
       });
     }
     return App.ModalPopup.show({
@@ -731,28 +769,33 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       hasPropertiesToChange: false,
       classNameBindings: ['hasPropertiesToChange:common-modal-wrapper', 'hasPropertiesToChange:modal-full-width'],
       modalDialogClasses: function () {
-        return this.get('hasPropertiesToChange') ? ['modal-lg'] : [];
-      }.property('hasPropertiesToChange'),
+        return this.get('controller.hasPropertiesToChange') ? ['modal-lg'] : [];
+      }.property('controller.hasPropertiesToChange'),
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       bodyClass: self.get('addDeleteComponentPopupBody').extend({
-        commonMessage: commonMessage,
-        isReconfigure: isReconfigure,
-        propertiesToChange: isReconfigure ? configs.propertiesToChange : []
+        commonMessage: commonMessage
       }),
-      disablePrimary: function () {
-        return isReconfigure && this.get('controller.isConfigsLoadingInProgress');
-      }.property('controller.isConfigsLoadingInProgress'),
+      disablePrimary: Em.computed.and('controller.isReconfigureRequired', 'controller.isConfigsLoadingInProgress'),
       onPrimary: function () {
         this._super();
-        if (isReconfigure) {
-          self.applyConfigsCustomization(configs);
-          self.saveConfigsBatch(configs.groups, componentName, hostName);
+        if (self.get('isReconfigureRequired')) {
+          self.applyConfigsCustomization();
+          self.saveConfigsBatch(self.get('groupedPropertiesToChange'), componentName, hostName);
           if (primaryOnReconfigure) {
             primaryOnReconfigure.call(self);
           }
+          self.clearConfigsChanges();
         } else if (primary) {
           primary();
         }
+      },
+      onSecondary: function () {
+        this._super();
+        self.clearConfigsChanges();
+      },
+      onClose: function () {
+        this._super();
+        self.clearConfigsChanges();
       }
     });
   },
@@ -824,17 +867,14 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for Storm load configs request
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method loadStormConfigs
    */
-  loadStormConfigs: function (data, opt, params) {
+  loadStormConfigs: function (data) {
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')',
-        configs: params.configs
+        urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')'
       },
       success: 'onLoadStormConfigs'
     });
@@ -843,10 +883,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Update zk configs
    * @param {object} configs
-   * @param {object} configsForReview
    * @method updateZkConfigs
    */
-  updateZkConfigs: function (configs, configsForReview) {
+  updateZkConfigs: function (configs) {
     var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
     var zkPort = typeof portValue === 'undefined' ? '2181' : portValue;
     var infraSolrZnode = configs['infra-solr-env'] ? Em.get(configs['infra-solr-env'], 'infra_solr_znode') : '/ambari-solr';
@@ -854,6 +893,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var hostComponentsTopology = {
       masterComponentHosts: []
     };
+    var propertiesToChange = this.get('allPropertiesToChange');
     var masterComponents = this.bootstrapHostsMapping('ZOOKEEPER_SERVER');
     if (this.get('fromDeleteHost') || this.get('fromDeleteZkServer')) {
       this.set('fromDeleteHost', false);
@@ -886,19 +926,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           };
         var configProperty = initializer.initialValue(propertyDef, hostComponentsTopology, dependencies);
         initializer.updateSiteObj(configs[fileName], configProperty);
-        if (configsForReview && currentValue !== propertyDef.value) {
+        if (this.get('isReconfigureRequired') && currentValue !== propertyDef.value) {
           var service = App.config.get('serviceByConfigTypeMap')[fileName];
-          configsForReview.propertiesToChange.pushObject({
+          propertiesToChange.pushObject({
             propertyFileName: fileName,
             propertyName: propertyName,
             serviceDisplayName: service && service.get('displayName'),
             initialValue: currentValue,
-            recommendedValue: propertyDef.value,
-            saveRecommended: true
+            recommendedValue: propertyDef.value
           });
         }
-      });
-    });
+      }, this);
+    }, this);
   },
 
   /**
@@ -923,35 +962,33 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * update and save Storm related configs to server
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method onLoadStormConfigs
    */
-  onLoadStormConfigs: function (data, opt, params) {
+  onLoadStormConfigs: function (data) {
     var nimbusHost = this.get('nimbusHost'),
       stormNimbusHosts = this.getStormNimbusHosts(),
       configs = {},
-      attributes = {};
+      attributes = {},
+      propertiesToChange = this.get('allPropertiesToChange');
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
     }, this);
 
-    this.updateZkConfigs(configs, params.configs);
+    this.updateZkConfigs(configs);
 
     var nimbusSeedsInit = configs['storm-site']['nimbus.seeds'],
       nimbusSeedsRecommended = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
     configs['storm-site']['nimbus.seeds'] = nimbusSeedsRecommended;
-    if (params.configs && nimbusSeedsInit !== nimbusSeedsRecommended) {
+    if (this.get('isReconfigureRequired') && nimbusSeedsInit !== nimbusSeedsRecommended) {
       var service = App.config.get('serviceByConfigTypeMap')['storm-site'];
-      params.configs.propertiesToChange.pushObject({
+      propertiesToChange.pushObject({
         propertyFileName: 'storm-site',
         propertyName: 'nimbus.seeds',
         serviceDisplayName: service && service.get('displayName'),
         initialValue: nimbusSeedsInit,
-        recommendedValue: nimbusSeedsRecommended,
-        saveRecommended: true
+        recommendedValue: nimbusSeedsRecommended
       });
     }
     var groups = [
@@ -964,8 +1001,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    if (params.configs) {
-      params.configs.groups.pushObjects(groups);
+    if (this.get('isReconfigureRequired')) {
+      this.setConfigsChanges(groups);
     } else {
       this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
     }
@@ -974,11 +1011,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for load configs request
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method loadWebHCatConfigs
    */
-  loadWebHCatConfigs: function (data, opt, params) {
+  loadWebHCatConfigs: function (data) {
     return App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -989,8 +1024,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
           '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
           '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
-        ].join('|'),
-        configs: params.configs
+        ].join('|')
       },
       success: 'onLoadHiveConfigs'
     });
@@ -1003,7 +1037,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} params
    * @method loadHiveConfigs
    */
-  loadHiveConfigs: function (data, opt, params) {
+  loadHiveConfigs: function (data) {
     return App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -1013,8 +1047,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           '(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')',
           '(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')',
           '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
-        ].join('|'),
-        configs: params.configs
+        ].join('|')
       },
       success: 'onLoadHiveConfigs'
     });
@@ -1045,7 +1078,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
     }, this);
-
+    var propertiesToChange = this.get('allPropertiesToChange');
 
     port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
     port = port ? port[0].slice(1) : "9083";
@@ -1070,20 +1103,19 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
               value: currentValue
             };
           configs[fileName][propertyName] = Em.get(initializer.initialValue(propertyDef, localDB, dependencies), 'value');
-          if (params.configs && propertyDef.value !== currentValue) {
+          if (this.get('isReconfigureRequired') && propertyDef.value !== currentValue) {
             var service = App.config.get('serviceByConfigTypeMap')[fileName];
-            params.configs.propertiesToChange.pushObject({
+            propertiesToChange.pushObject({
               propertyFileName: fileName,
               propertyName: propertyName,
               serviceDisplayName: service && service.get('displayName'),
               initialValue: currentValue,
-              recommendedValue: propertyDef.value,
-              saveRecommended: true
+              recommendedValue: propertyDef.value
             });
           }
-        });
+        }, this);
       }
-    });
+    }, this);
 
     initializer.cleanup();
 
@@ -1109,8 +1141,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    if (params.configs) {
-      params.configs.groups.pushObjects(groups);
+    if (this.get('isReconfigureRequired')) {
+      this.setConfigsChanges(groups);
     } else {
       var args = [groups];
       var componentName = this.get('addHiveServer') ? 'HIVE_SERVER' : (hiveMetastoreHost ? 'HIVE_METASTORE' : 'WEBHCAT_SERVER');
@@ -1234,17 +1266,14 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for load configs request
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method loadRangerConfigs
    */
-  loadRangerConfigs: function (data, opt, params) {
+  loadRangerConfigs: function (data) {
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')',
-        configs: params.configs
+        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')'
       },
       success: 'onLoadRangerConfigs'
     });
@@ -1253,11 +1282,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * update and save Hive hive.metastore.uris config to server
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method onLoadRangerConfigs
    */
-  onLoadRangerConfigs: function (data, opt, params) {
+  onLoadRangerConfigs: function (data) {
     var properties = [
       {
         type: 'core-site',
@@ -1286,13 +1313,14 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
+    var propertiesToChange = this.get('allPropertiesToChange');
 
     properties.forEach(function (property) {
       var typeConfigs = data.items.findProperty('type', property.type).properties,
         currentValue = typeConfigs[property.name];
-      if (params.configs && currentValue !== newValue) {
+      if (this.get('isReconfigureRequired') && currentValue !== newValue) {
         var service = App.config.get('serviceByConfigTypeMap')[property.type];
-        params.configs.propertiesToChange.pushObject({
+        propertiesToChange.pushObject({
           propertyFileName: property.type,
           propertyName: property.name,
           serviceDisplayName: service && service.get('displayName'),
@@ -1302,9 +1330,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         });
       }
       typeConfigs[property.name] = newValue;
-    });
-    if (params.configs) {
-      params.configs.groups.pushObjects(groups);
+    }, this);
+    if (this.get('isReconfigureRequired')) {
+      this.setConfigsChanges(groups);
     } else {
       this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
     }
@@ -1410,20 +1438,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * This is required to make sure that service metrics API determining the HA state of components is loaded
    * @method loadConfigs
    */
-  loadConfigs: function (callback, configs) {
-    var self = this;
-    this.set('isConfigsLoadingInProgress', true);
+  loadConfigs: function (callback) {
     App.ajax.send({
       name: 'config.tags',
       sender: this,
       success: callback ? callback : 'loadConfigsSuccessCallback',
-      error: 'onLoadConfigsErrorCallback',
-      callback: function () {
-        self.set('isConfigsLoadingInProgress', false);
-      },
-      data: {
-        configs: configs
-      }
+      error: 'onLoadConfigsErrorCallback'
     });
   },
 
@@ -1438,19 +1458,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for load configs request
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method loadConfigsSuccessCallback
    */
-  loadConfigsSuccessCallback: function (data, opt, params) {
+  loadConfigsSuccessCallback: function (data) {
     var urlParams = this.constructConfigUrlParams(data);
     if (urlParams.length > 0) {
       App.ajax.send({
         name: 'reassign.load_configs',
         sender: this,
         data: {
-          urlParams: urlParams.join('|'),
-          configs: params.configs
+          urlParams: urlParams.join('|')
         },
         success: 'saveZkConfigs'
       });
@@ -1483,11 +1500,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * save new ZooKeeper configs to server
    * @param {object} data
-   * @param {object} opt
-   * @param {object} params
    * @method saveZkConfigs
    */
-  saveZkConfigs: function (data, opt, params) {
+  saveZkConfigs: function (data) {
     var configs = {};
     var attributes = {};
     data.items.forEach(function (item) {
@@ -1495,7 +1510,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       attributes[item.type] = item.properties_attributes || {};
     }, this);
 
-    this.updateZkConfigs(configs, params.configs);
+    this.updateZkConfigs(configs);
     var groups = [];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
     this.get('zooKeeperRelatedServices').forEach(function (service) {
@@ -1511,8 +1526,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         groups.push(group);
       }
     });
-    if (params.configs) {
-      params.configs.groups.pushObjects(groups);
+    if (this.get('isReconfigureRequired')) {
+      this.setConfigsChanges(groups);
     } else {
       this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
     }
@@ -2577,7 +2592,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.downloadClientConfigsCall({
       hostName: event.context.get('hostName'),
       componentName: event.context.get('componentName'),
-      displayName: event.context.get('displayName')
+      resourceType: this.resourceTypeEnum.HOST_COMPONENT
+    });
+  },
+
+  /**
+   *  This controller action is called from the template when user clicks to download configs for "All Clients On Host"
+   */
+  downloadAllClientConfigs: function () {
+    var self = this;
+    this.downloadClientConfigsCall({
+      hostName: self.get('content.hostName'),
+      resourceType: this.resourceTypeEnum.HOST
     });
   },
 
@@ -2726,5 +2752,34 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   isServiceMetricsLoaded: function(callback) {
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isServiceContentFullyLoaded').done(callback);
+  },
+
+  setConfigsChangesForDisplay: function () {
+    if (App.get('router.clusterController.isConfigsPropertiesLoaded')) {
+      this.get('allPropertiesToChange').forEach(function (property) {
+        var stackProperty = App.configsCollection.getConfigByName(property.propertyName, property.propertyFileName);
+        if (stackProperty && (!stackProperty.isEditable || !stackProperty.isReconfigurable)) {
+          this.get('requiredPropertiesToChange').pushObject(property);
+        } else {
+          Em.set(property, 'saveRecommended', true);
+          this.get('recommendedPropertiesToChange').pushObject(property);
+        }
+      }, this);
+      this.set('isConfigsLoadingInProgress', false);
+      this.removeObserver('App.router.clusterController.isConfigsPropertiesLoaded', this, 'setConfigsChangesForDisplay');
+    }
+  },
+
+  setConfigsChanges: function (groups) {
+    this.get('groupedPropertiesToChange').pushObjects(groups);
+    if (this.get('allPropertiesToChange.length')) {
+      if (App.get('router.clusterController.isConfigsPropertiesLoaded')) {
+        this.setConfigsChangesForDisplay();
+      } else {
+        this.addObserver('App.router.clusterController.isConfigsPropertiesLoaded', this, 'setConfigsChangesForDisplay');
+      }
+    } else {
+      this.set('isConfigsLoadingInProgress', false);
+    }
   }
 });

@@ -31,9 +31,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.io.*;
 import java.net.URISyntaxException;
+import java.net.URI;
 ;
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.jobqueryset.QuerySetAmbariDB;
-import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset.QuerySet;
+import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset.QuerySetHueDb;
 import org.apache.ambari.view.huetoambarimigration.resources.scripts.models.PigModel;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -259,7 +260,7 @@ public class PigJobMigrationImplementation {
     return strDate;
   }
 
-  public ArrayList<PigModel> fetchFromHueDB(String username, String startdate, String endtime, Connection connection, QuerySet huedatabase) throws ClassNotFoundException, IOException {
+  public ArrayList<PigModel> fetchFromHueDB(String username, String startdate, String endtime, Connection connection, QuerySetHueDb huedatabase) throws ClassNotFoundException, IOException {
     int id = 0;
     int i = 0;
     String[] query = new String[100];
@@ -269,6 +270,8 @@ public class PigJobMigrationImplementation {
       PreparedStatement prSt = null;
       Statement statement = connection.createStatement();
       ResultSet rs;
+      String ownerName = "";
+      int ownerId;
 
       ResultSet rs1 = null;
       if (username.equals("all")) {
@@ -321,6 +324,14 @@ public class PigJobMigrationImplementation {
 
       while (rs1.next()) {
         PigModel pigjjobobject = new PigModel();
+        ownerId = rs1.getInt("user_id");
+        if(username.equals("all")) {
+          prSt = huedatabase.getUserName(connection, ownerId);
+          ResultSet resultSet = prSt.executeQuery();
+          while(resultSet.next()) {
+            ownerName = resultSet.getString("username");
+          }
+        }
 
         int runstatus = rs1.getInt("status");
 
@@ -336,6 +347,7 @@ public class PigJobMigrationImplementation {
         String title = rs1.getString("script_title");
 
 
+        pigjjobobject.setUserName(ownerName);
         pigjjobobject.setTitle(title);
         String dir = rs1.getString("statusdir");
         pigjjobobject.setDir(dir);
@@ -401,10 +413,10 @@ public class PigJobMigrationImplementation {
           conf.set("fs.defaultFS", namenodeuri);
           conf.set("hadoop.job.ugi", "hdfs");
 
-          FileSystem fs = FileSystem.get(conf);
+          URI uri = new URI(dir);
+          FileSystem fs = FileSystem.get(uri, conf, username);
           Path src = new Path(dir);
           fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
           return null;
         }
       });
@@ -434,10 +446,10 @@ public class PigJobMigrationImplementation {
       ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
         public Boolean run() throws Exception {
-          FileSystem fs = FileSystem.get(conf);
+          URI uri = new URI(dir);
+          FileSystem fs = FileSystem.get(uri, conf, username);
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
           return b;
         }
       });
@@ -478,11 +490,15 @@ public class PigJobMigrationImplementation {
           }
 
           Path path1 = new Path(source);
+          if(!fileSystemHue.exists(path1)) {
+            FSDataOutputStream out = fileSystemHue.create(path1);
+            out.close();
+          }
           FSDataInputStream in1 = fileSystemHue.open(path1);
 
           Path path = new Path(dest1);
           if (fileSystemAmbari.exists(path)) {
-
+            fileSystemAmbari.delete(path, true);
           }
 
           FSDataOutputStream out = fileSystemAmbari.create(path);
@@ -494,7 +510,8 @@ public class PigJobMigrationImplementation {
           }
           in1.close();
           out.close();
-          fileSystemAmbari.setOwner(path,username,"hadoop");
+          fileSystemAmbari.setOwner(path, username, "hadoop");
+          fileSystemHue.close();
           fileSystemAmbari.close();
           return null;
         }
@@ -545,11 +562,15 @@ public class PigJobMigrationImplementation {
           }
 
           Path path1 = new Path(source);
+          if(!fileSystemHue.exists(path1)) {
+            FSDataOutputStream out = fileSystemHue.create(path1);
+            out.close();
+          }
           FSDataInputStream in1 = fileSystemHue.open(path1);
 
           Path path = new Path(dest1);
           if (fileSystemAmbari.exists(path)) {
-
+            fileSystemAmbari.delete(path, true);
           }
           FSDataOutputStream out = fileSystemAmbari.create(path);
           byte[] b = new byte[1024];
@@ -559,7 +580,8 @@ public class PigJobMigrationImplementation {
           }
           in1.close();
           out.close();
-          fileSystemAmbari.setOwner(path,username,"hadoop");
+          fileSystemAmbari.setOwner(path, username, "hadoop");
+          fileSystemHue.close();
           fileSystemAmbari.close();
           return null;
         }

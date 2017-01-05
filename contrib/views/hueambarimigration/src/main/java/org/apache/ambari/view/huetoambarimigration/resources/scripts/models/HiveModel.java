@@ -18,11 +18,18 @@
 
 package org.apache.ambari.view.huetoambarimigration.resources.scripts.models;
 
+import java.util.ArrayList;
+
 public class HiveModel {
 
   private String database;
-  private String owner;
   private String query;
+  private String queryTitle;
+  private ArrayList<String> filePaths;
+  private ArrayList<String> udfClasses;
+  private ArrayList<String> udfNames;
+  private String ownerName;
+
 
   public String getDatabase() {
     return database;
@@ -32,20 +39,43 @@ public class HiveModel {
     this.database = database;
   }
 
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
-  }
-
   public String getQuery() {
     return query;
   }
+
+  public String getQueryTitle() { return queryTitle; }
+
+  public void setQueryTitle(String queryTitle) { this.queryTitle = queryTitle; }
 
   public void setQuery(String query) {
     this.query = query;
   }
 
+  public ArrayList<String> getFilePaths() {
+    return filePaths;
+  }
+
+  public void setFilePaths(ArrayList<String> filePaths) {
+    this.filePaths = filePaths;
+  }
+
+  public ArrayList<String> getUdfClasses() {
+    return udfClasses;
+  }
+
+  public void setUdfClasses(ArrayList<String> udfClasses) {
+    this.udfClasses = udfClasses;
+  }
+
+  public ArrayList<String> getUdfNames() {
+    return udfNames;
+  }
+
+  public void setUdfNames(ArrayList<String> udfNames) {
+    this.udfNames = udfNames;
+  }
+
+  public String getOwnerName() { return ownerName; }
+
+  public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
 }

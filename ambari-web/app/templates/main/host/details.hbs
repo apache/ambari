@@ -51,6 +51,11 @@
 
                   <div class="dropdown-menu-wrap">
                     <ul class="dropdown-menu">
+                    {{#if view.hasManyClientsWithConfigs}}
+                      <li>
+                         <a id="all-clients-on-host-link" {{action "downloadAllClientConfigs" target="controller" href=true}}>{{t host.host.details.downloadAllClients}}</a>
+                      </li>
+                    {{/if}}
                       {{#each client in view.clientsWithConfigs}}
                         <li>
                           <a {{action "downloadClientConfigs" client target="controller" href=true}}>{{client.displayName}}</a>

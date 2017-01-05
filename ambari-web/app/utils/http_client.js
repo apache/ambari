@@ -90,7 +90,11 @@ App.HttpClient = Em.Object.create({
           } catch (err) {
             console.warn('App.store.commit error:', err);
           }
-          mapper.map($.parseJSON(xhr.responseText));
+          var response = $.parseJSON(xhr.responseText);
+          if (tmp_val.beforeMap) {
+            tmp_val.beforeMap.call(self, response);
+          }
+          mapper.map(response);
           tmp_val.complete.call(self);
           xhr.abort();
         } else {

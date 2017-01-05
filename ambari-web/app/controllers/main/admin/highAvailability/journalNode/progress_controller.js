@@ -32,7 +32,8 @@ App.ManageJournalNodeProgressPageController = App.ManageJournalNodeWizardControl
    * @param note String
    */
   reconfigureSites: function(siteNames, data, note) {
-    var tagName = App.get('testMode') ? 'version1' : 'version' + (new Date).getTime();
+    var tagName = 'version' + App.dateTime();
+
     return siteNames.map(function(_siteName) {
       var config = data.items.findProperty('type', _siteName);
       var configToSave = {

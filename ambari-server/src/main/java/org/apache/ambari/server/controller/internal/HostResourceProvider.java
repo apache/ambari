@@ -721,7 +721,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       try {
         // The below method call throws an exception when trying to create a duplicate mapping in the clusterhostmapping
         // table. This is done to detect duplicates during host create. In order to be robust, handle these gracefully.
-        clusters.mapHostToCluster(request.getHostname(), clusterName);
+        clusters.mapAndPublishHostsToCluster(new HashSet<>(Arrays.asList(request.getHostname())), clusterName);
       } catch (DuplicateResourceException e) {
         // do nothing
       }
@@ -871,10 +871,17 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   private void processDeleteHostRequests(List<HostRequest> requests,  Clusters clusters, DeleteStatusMetaData deleteStatusMetaData) throws AmbariException {
+    Set<String> hostsClusters = new HashSet<>();
+    Set<String> hostNames = new HashSet<>();
+    Set<Cluster> allClustersWithHosts = new HashSet<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.
       String hostname = hostRequest.getHostname();
+      hostNames.add(hostname);
 
+      if (hostRequest.getClusterName() != null) {
+        hostsClusters.add(hostRequest.getClusterName());
+      }
       // delete all host components
       Set<ServiceComponentHostRequest> schrs = new HashSet<>();
       for(Cluster cluster : clusters.getClustersForHost(hostname)) {
@@ -906,6 +913,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
+      if (hostRequest.getClusterName() != null) {
+        hostsClusters.add(hostRequest.getClusterName());
+      }
       try {
         clusters.deleteHost(hostname);
         deleteStatusMetaData.addDeletedKey(hostname);
@@ -916,10 +926,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
-
-      if (null != hostRequest.getClusterName()) {
-        clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
-      }
+    }
+    clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
+    for (String clustername : hostsClusters) {
+      clusters.getCluster(clustername).recalculateAllClusterVersionStates();
     }
   }
 

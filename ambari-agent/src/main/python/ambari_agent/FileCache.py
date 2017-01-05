@@ -45,6 +45,7 @@ class FileCache():
   STACKS_CACHE_DIRECTORY="stacks"
   COMMON_SERVICES_DIRECTORY="common-services"
   CUSTOM_ACTIONS_CACHE_DIRECTORY="custom_actions"
+  EXTENSIONS_CACHE_DIRECTORY="extensions"
   HOST_SCRIPTS_CACHE_DIRECTORY="host_scripts"
   HASH_SUM_FILE=".hash"
   ARCHIVE_NAME="archive.zip"
@@ -167,6 +168,7 @@ class FileCache():
             self.invalidate_directory(full_path)
             self.unpack_archive(membuffer, full_path)
             self.write_hash_sum(full_path, remote_hash)
+            logger.info("Updated directory {0}".format(full_path))
           else:
             logger.warn("Skipping empty archive: {0}. "
                         "Expected archive was not found. Cached copy will be used.".format(download_url))

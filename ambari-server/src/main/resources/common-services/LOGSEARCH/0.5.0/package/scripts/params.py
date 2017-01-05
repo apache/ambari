@@ -42,6 +42,7 @@ sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
+logsearch_server_keys_folder = logsearch_server_conf + "/keys"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
@@ -91,7 +92,7 @@ if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
   logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
-  use_external_solr_with_kerberos = default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
+  use_external_solr_with_kerberos = default('configurations/logsearch-common-env/logsearch_external_solr_kerberos_enabled', False)
   if use_external_solr_with_kerberos:
     logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_keytab']
     logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
@@ -116,13 +117,13 @@ logsearch_service_logs_merge_factor = config['configurations']['logsearch-servic
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
 logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
 
-logsearch_use_external_solr = default('/configurations/logsearch-env/logsearch_use_external_solr', False)
+logsearch_use_external_solr = default('/configurations/logsearch-common-env/logsearch_use_external_solr', False)
 
 if logsearch_use_external_solr:
-  logsearch_solr_zk_znode = config['configurations']['logsearch-env']['logsearch_external_solr_zk_znode']
-  logsearch_solr_zk_quorum = config['configurations']['logsearch-env']['logsearch_external_solr_zk_quorum']
-  logsearch_solr_ssl_enabled = default('configurations/logsearch-env/logsearch_external_solr_ssl_enabled', False)
-  logsearch_solr_kerberos_enabled = security_enabled and default('configurations/logsearch-env/logsearch_external_solr_kerberos_enabled', False)
+  logsearch_solr_zk_znode = config['configurations']['logsearch-common-env']['logsearch_external_solr_zk_znode']
+  logsearch_solr_zk_quorum = config['configurations']['logsearch-common-env']['logsearch_external_solr_zk_quorum']
+  logsearch_solr_ssl_enabled = default('configurations/logsearch-common-env/logsearch_external_solr_ssl_enabled', False)
+  logsearch_solr_kerberos_enabled = security_enabled and use_external_solr_with_kerberos
 else:
   logsearch_solr_zk_znode = infra_solr_znode
 
@@ -150,6 +151,16 @@ logsearch_ui_port = config['configurations']['logsearch-env']["logsearch_ui_port
 logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
+
+#Logsearch log4j properties
+logsearch_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_log_maxfilesize',10)
+logsearch_log_maxbackupindex = default('/configurations/logsearch-log4j/logsearch_log_maxbackupindex',10)
+logsearch_json_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_json_log_maxfilesize',10)
+logsearch_json_log_maxbackupindex = default('/configurations/logsearch-log4j/logsearch_json_log_maxbackupindex',10)
+logsearch_audit_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_audit_log_maxfilesize',10)
+logsearch_audit_log_maxbackupindex =default('/configurations/logsearch-log4j/logsearch_audit_log_maxbackupindex',10)
+logsearch_perf_log_maxfilesize =default('/configurations/logsearch-log4j/logsearch_perf_log_maxfilesize',10)
+logsearch_perf_log_maxbackupindex =default('/configurations/logsearch-log4j/logsearch_perf_log_maxbackupindex',10)
 
 # store the log file for the service from the 'solr.log' property of the 'logsearch-env.xml' file
 logsearch_env_content = config['configurations']['logsearch-env']['content']
@@ -244,6 +255,12 @@ logsearch_collection_audit_logs_numshards = logsearch_properties['logsearch.coll
 #####################################
 
 logfeeder_dir = "/usr/lib/ambari-logsearch-logfeeder"
+
+# logfeeder-log4j
+logfeeder_log_maxfilesize = default('/configurations/logfeeder-log4j/logfeeder_log_maxfilesize',10)
+logfeeder_log_maxbackupindex =  default('/configurations/logfeeder-log4j/logfeeder_log_maxbackupindex',10)
+logfeeder_json_log_maxfilesize = default('/configurations/logfeeder-log4j/logfeeder_json_log_maxfilesize',10)
+logfeeder_json_log_maxbackupindex = default('/configurations/logfeeder-log4j/logfeeder_json_log_maxbackupindex',10)
 
 # logfeeder-env configs
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']

@@ -156,6 +156,7 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               create_parents = True,
+                              mode = 0755,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
@@ -169,10 +170,12 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -189,7 +192,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hive/conf.server',
-                              mode = 0644,
+                              mode = 0600,
                               configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                      u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                      u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -200,6 +203,7 @@ class TestHiveMetastore(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0600,
                               )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -253,7 +257,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
+                              content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
+                              mode = 0600,
                               )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
                               content = StaticFile('startMetastore.sh'),
@@ -272,6 +277,7 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               create_parents = True,
+                              mode = 0755,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
@@ -285,10 +291,12 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -305,7 +313,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hive/conf.server',
-                              mode = 0644,
+                              mode = 0600,
                               configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                      u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                      u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -316,6 +324,7 @@ class TestHiveMetastore(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0600,
                               )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -366,7 +375,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
+                              content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
+                              mode = 0600,
                               )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
                               content = StaticFile('startMetastore.sh'),
@@ -409,7 +419,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
                               owner = 'hive',
                               group = 'hadoop',
-                              create_parents = True)
+                              create_parents = True,
+                              mode = 0755)
 
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
@@ -423,11 +434,13 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner = 'hive',
                               group = 'hadoop',
+                              mode = 0644,
                               )
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner = 'hive',
-                              group = 'hadoop')
+                              group = 'hadoop',
+                              mode = 0644)
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
       content = 'log4jproperties\nline2',
@@ -444,7 +457,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/usr/hdp/current/hive-server2/conf/conf.server',
-                              mode = 0644,
+                              mode = 0600,
                               configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                      u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                      u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -454,7 +467,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hive-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
-                              group = 'hadoop')
+                              group = 'hadoop',
+                              mode = 0600)
 
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -506,7 +520,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
+                              content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
+                              mode = 0600,
                               )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
                               content = StaticFile('startMetastore.sh'),

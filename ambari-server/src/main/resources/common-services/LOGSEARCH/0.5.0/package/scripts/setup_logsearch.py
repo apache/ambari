@@ -46,6 +46,26 @@ def setup_logsearch():
             recursive_ownership=True
             )
 
+  Directory(params.logsearch_server_keys_folder,
+            cd_access='a',
+            mode=0755,
+            owner= params.logsearch_user,
+            group=params.user_group)
+
+  File(format("{logsearch_server_keys_folder}/ks_pass.txt"),
+       content=params.logsearch_keystore_password,
+       mode=0600,
+       owner= params.logsearch_user,
+       group=params.user_group
+       )
+
+  File(format("{logsearch_server_keys_folder}/ts_pass.txt"),
+       content=params.logsearch_truststore_password,
+       mode=0600,
+       owner= params.logsearch_user,
+       group=params.user_group
+       )
+
   File(params.logsearch_log,
        mode=0644,
        owner=params.logsearch_user,

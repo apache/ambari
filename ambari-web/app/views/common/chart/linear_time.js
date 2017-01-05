@@ -1512,11 +1512,9 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
             }, this);
           }
         }).always(function () {
-          _request.context.set('runningRequests', _request.context.get('runningRequests').reject(function (item) {
-            return item === xhr;
-          }));
+          _request.context.set('runningRequests', Em.tryInvoke(_request.context.get('runningRequests'), 'without', [xhr]));
         });
-        _request.context.get('runningRequests').push(xhr);
+        Em.tryInvoke(_request.context.get('runningRequests'), 'push', [xhr]);
       })(bulks[id]);
     }
   },

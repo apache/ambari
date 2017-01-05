@@ -23,7 +23,7 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
 
   name: 'kerberosDisableController',
   clusterDeployState: 'DEFAULT',
-  commands: ['stopServices', 'unkerberize', 'deleteKerberos', 'startAllServices'],
+  commands: ['startZookeeper', 'stopAllButZookeeper', 'unkerberize', 'deleteKerberos', 'startAllServices'],
 
   tasksMessagesPrefix: 'admin.kerberos.disable.step',
 
@@ -33,6 +33,14 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
     this.loadTasksRequestIds();
     this.loadRequestIds();
     this._super();
+  },
+
+  startZookeeper: function () {
+    this.startServices(false, ["ZOOKEEPER"], true);
+  },
+
+  stopAllButZookeeper: function () {
+    this.stopServices(["ZOOKEEPER"], false);
   },
 
   unkerberize: function () {

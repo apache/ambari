@@ -24,13 +24,13 @@
     </div>
   </div>
 {{/if}}
-{{#if view.isReconfigure}}
+{{#if controller.isReconfigureRequired}}
   {{#if controller.isConfigsLoadingInProgress}}
     {{view App.SpinnerView}}
   {{else}}
     {{view.commonMessage}}
-    {{#if view.propertiesToChange.length}}
-      {{view App.DependentConfigsListView isAfterRecommendation=false recommendationsBinding="view.propertiesToChange"}}
+    {{#if controller.hasPropertiesToChange}}
+      {{view App.DependentConfigsListView isAfterRecommendation=false recommendationsBinding="controller.recommendedPropertiesToChange" requiredChangesBinding="controller.requiredPropertiesToChange"}}
     {{/if}}
     {{{view.manualKerberosWarning}}}
   {{/if}}

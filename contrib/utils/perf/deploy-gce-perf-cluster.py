@@ -338,6 +338,7 @@ def create_server_script(server_host_name):
   "\n" + \
   "yum install mysql-connector-java* -y\n" + \
   "yum install mysql-server -y\n" + \
+  "sed -i -e 's/mysqld]/mysqld]\\nmax_allowed_packet=16M/1' /etc/my.cnf\n" + \
   "service mysqld start\n" + \
   "mysql -uroot -e \"CREATE DATABASE ambari;\"\n" + \
   "mysql -uroot -e \"SOURCE /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql;\" ambari\n" + \
@@ -366,6 +367,7 @@ def create_server_script(server_host_name):
   "echo 'server.jdbc.port=3306' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'server.jdbc.hostname=localhost' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'server.jdbc.driver.path=/usr/share/java/mysql-connector-java.jar' >> /etc/ambari-server/conf/ambari.properties\n" + \
+  "echo 'security.temporary.keystore.retention.minutes=180' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "\n" + \
   "ambari-server start --skip-database-check\n" + \
   "exit 0"

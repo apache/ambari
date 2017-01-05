@@ -266,6 +266,7 @@ App.AddMetricExpressionView = Em.View.extend({
     var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))
       .get('components').findProperty('id', event.context.get('id'));
     this.set('currentSelectedComponent', component);
+    event.stopPropagation();
   },
 
   /**

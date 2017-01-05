@@ -38,9 +38,9 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.events.HostAddedEvent;
 import org.apache.ambari.server.events.HostRegisteredEvent;
-import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.HostsAddedEvent;
+import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
@@ -453,24 +453,34 @@ public class ClustersImpl implements Clusters {
     }
 
     Map<String, Host> hostMap = getHostsMap(hostClusters.keySet());
-    Set<String> clusterNames = new HashSet<String>();
-    for (Set<String> cSet : hostClusters.values()) {
-      clusterNames.addAll(cSet);
-    }
 
-    for (String hostname : hostClusters.keySet()) {
+    Map<String, Set<String>> clusterHosts = new HashMap<>();
+    for (Map.Entry<String, Set<String>> hostClustersEntry : hostClusters.entrySet()) {
+      Set<String> hostClusterNames = hostClustersEntry.getValue();
+      String hostname = hostClustersEntry.getKey();
+
+      // populate attributes
       Host host = hostMap.get(hostname);
       Map<String, String> attributes = hostAttributes.get(hostname);
       if (attributes != null && !attributes.isEmpty()) {
         host.setHostAttributes(attributes);
       }
 
-      Set<String> hostClusterNames = hostClusters.get(hostname);
+      // create cluster to hosts map
       for (String clusterName : hostClusterNames) {
         if (clusterName != null && !clusterName.isEmpty()) {
-          mapHostToCluster(hostname, clusterName);
+          if (!clusterHosts.containsKey(clusterName)) {
+            clusterHosts.put(clusterName, new HashSet<String>());
+          }
+          clusterHosts.get(clusterName).add(hostname);
         }
       }
+    }
+
+    for (Map.Entry<String, Set<String>> clusterHostsEntry : clusterHosts.entrySet()) {
+      Set<String> clusterHostsNames = clusterHostsEntry.getValue();
+      String clusterName = clusterHostsEntry.getKey();
+      mapAndPublishHostsToCluster(clusterHostsNames, clusterName);
     }
   }
 
@@ -502,11 +512,17 @@ public class ClustersImpl implements Clusters {
    * @throws AmbariException
    */
   @Override
-  public void mapHostsToCluster(Set<String> hostnames, String clusterName) throws AmbariException {
-    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
+  public void mapAndPublishHostsToCluster(Set<String> hostnames, String clusterName) throws AmbariException {
     for (String hostname : hostnames) {
-      mapHostToCluster(hostname, clusterName, clusterVersionEntity);
+      mapHostToCluster(hostname, clusterName);
     }
+    publishAddingHostsToCluster(hostnames, clusterName);
+    getCluster(clusterName).refresh();
+  }
+
+  private void publishAddingHostsToCluster(Set<String> hostnames, String clusterName) throws AmbariException {
+    HostsAddedEvent event = new HostsAddedEvent(getCluster(clusterName).getClusterId(), hostnames);
+    eventPublisher.publish(event);
   }
 
   /**
@@ -514,11 +530,11 @@ public class ClustersImpl implements Clusters {
    * record for the cluster's currently applied (stack, version) if not already present.
    * @param hostname Host name
    * @param clusterName Cluster name
-   * @param currentClusterVersion Cluster's current stack version
    * @throws AmbariException May throw a DuplicateResourceException.
    */
-  public void mapHostToCluster(String hostname, String clusterName,
-      ClusterVersionEntity currentClusterVersion) throws AmbariException {
+  @Override
+  public void mapHostToCluster(String hostname, String clusterName)
+      throws AmbariException {
     Host host = null;
     Cluster cluster = null;
 
@@ -529,15 +545,15 @@ public class ClustersImpl implements Clusters {
     for (Cluster c : hostClusterMap.get(hostname)) {
       if (c.getClusterName().equals(clusterName)) {
         throw new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
-            clusterName + ", hostName=" + hostname);
+          clusterName + ", hostName=" + hostname);
       }
     }
 
     if (!isOsSupportedByClusterStack(cluster, host)) {
       String message = "Trying to map host to cluster where stack does not"
-          + " support host's os type" + ", clusterName=" + clusterName
-          + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
-          + ", hostname=" + hostname + ", hostOsFamily=" + host.getOsFamily();
+        + " support host's os type" + ", clusterName=" + clusterName
+        + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
+        + ", hostname=" + hostname + ", hostOsFamily=" + host.getOsFamily();
       LOG.error(message);
       throw new AmbariException(message);
     }
@@ -545,28 +561,12 @@ public class ClustersImpl implements Clusters {
     long clusterId = cluster.getClusterId();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Mapping host {} to cluster {} (id={})", hostname, clusterName,
-          clusterId);
+        clusterId);
     }
 
     mapHostClusterEntities(hostname, clusterId);
     hostClusterMap.get(hostname).add(cluster);
     clusterHostMap.get(clusterName).add(host);
-
-    cluster.refresh();
-  }
-
-  /**
-   * Attempts to map the host to the cluster via clusterhostmapping table if not already present, and add a host_version
-   * record for the cluster's currently applied (stack, version) if not already present. This function is overloaded.
-   * @param hostname Host name
-   * @param clusterName Cluster name
-   * @throws AmbariException May throw a DuplicateResourceException.
-   */
-  @Override
-  public void mapHostToCluster(String hostname, String clusterName)
-      throws AmbariException {
-    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
-    mapHostToCluster(hostname, clusterName, clusterVersionEntity);
   }
 
   @Transactional
@@ -579,10 +579,6 @@ public class ClustersImpl implements Clusters {
 
     clusterDAO.merge(clusterEntity);
     hostDAO.merge(hostEntity);
-
-    // publish the event for adding a host to a cluster
-    HostAddedEvent event = new HostAddedEvent(clusterId, hostName);
-    eventPublisher.publish(event);
   }
 
   @Override
@@ -729,8 +725,6 @@ public class ClustersImpl implements Clusters {
    * Delete a host entirely from the cluster and all database tables, except
    * AlertHistory. If the host is not found, throws
    * {@link org.apache.ambari.server.HostNotFoundException}.
-   * <p/>
-   * This method will trigger a {@link HostRemovedEvent} when completed.
    *
    * @param hostname
    * @throws AmbariException
@@ -745,19 +739,20 @@ public class ClustersImpl implements Clusters {
       throw new HostNotFoundException(hostname);
     }
 
-    Set<Cluster> hostsClusters = new HashSet<>(clusters);
-
     deleteHostEntityRelationships(hostname);
+  }
 
+  @Override
+  public void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames) throws AmbariException {
     // Publish the event, using the original list of clusters that the host
     // belonged to
-    HostRemovedEvent event = new HostRemovedEvent(hostname, hostsClusters);
+    HostsRemovedEvent event = new HostsRemovedEvent(hostNames, clusters);
     eventPublisher.publish(event);
   }
 
   /***
    * Deletes all of the JPA relationships between a host and other entities.
-   * This method will not fire {@link HostRemovedEvent} since it is performed
+   * This method will not fire {@link HostsRemovedEvent} since it is performed
    * within an {@link Transactional} and the event must fire after the
    * transaction is successfully committed.
    *

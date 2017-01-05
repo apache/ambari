@@ -26,14 +26,18 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
 
 /**
- * Checks that services are in the maintenance mode.
+ * Checks to ensure that services are not in maintenance mode.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 6.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.MAINTENANCE_MODE,
+    order = 6.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   /**

@@ -41,9 +41,7 @@ export LOGSEARCH_DEBUG_PORT={{logsearch_debug_port}}
 {% if logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl %}
 export LOGSEARCH_SSL="true"
 export LOGSEARCH_KEYSTORE_LOCATION={{logsearch_keystore_location}}
-export LOGSEARCH_KEYSTORE_PASSWORD={{logsearch_keystore_password}}
 export LOGSEARCH_KEYSTORE_TYPE={{logsearch_keystore_type}}
 export LOGSEARCH_TRUSTSTORE_LOCATION={{logsearch_truststore_location}}
-export LOGSEARCH_TRUSTSTORE_PASSWORD={{logsearch_truststore_password}}
 export LOGSEARCH_TRUSTSTORE_TYPE={{logsearch_truststore_type}}
 {% endif %}

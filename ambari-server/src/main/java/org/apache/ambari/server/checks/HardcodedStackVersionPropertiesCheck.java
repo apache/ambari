@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -47,7 +48,9 @@ import com.google.inject.Singleton;
  * That is a potential problem when doing stack update.
  */
 @Singleton
-@UpgradeCheck(order = 98.0f, required = true)
+@UpgradeCheck(
+    order = 98.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class HardcodedStackVersionPropertiesCheck extends AbstractCheckDescriptor {
 
   @Inject

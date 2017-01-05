@@ -137,7 +137,8 @@ public class PhoenixTransactSQL {
       "UNITS CHAR(20), " +
       "TYPE CHAR(20), " +
       "START_TIME UNSIGNED_LONG, " +
-      "SUPPORTS_AGGREGATION BOOLEAN " +
+      "SUPPORTS_AGGREGATION BOOLEAN, " +
+      "IS_WHITELISTED BOOLEAN " +
       "CONSTRAINT pk PRIMARY KEY (METRIC_NAME, APP_ID)) " +
       "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
 
@@ -146,6 +147,9 @@ public class PhoenixTransactSQL {
       "(HOSTNAME VARCHAR, APP_IDS VARCHAR, " +
       "CONSTRAINT pk PRIMARY KEY (HOSTNAME))" +
       "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
+
+  public static final String ALTER_METRICS_METADATA_TABLE =
+    "ALTER TABLE METRICS_METADATA ADD IF NOT EXISTS IS_WHITELISTED BOOLEAN";
 
   /**
    * ALTER table to set new options
@@ -220,8 +224,8 @@ public class PhoenixTransactSQL {
 
   public static final String UPSERT_METADATA_SQL =
     "UPSERT INTO METRICS_METADATA (METRIC_NAME, APP_ID, UNITS, TYPE, " +
-      "START_TIME, SUPPORTS_AGGREGATION) " +
-      "VALUES (?, ?, ?, ?, ?, ?)";
+      "START_TIME, SUPPORTS_AGGREGATION, IS_WHITELISTED) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
   public static final String UPSERT_HOSTED_APPS_METADATA_SQL =
     "UPSERT INTO HOSTED_APPS_METADATA (HOSTNAME, APP_IDS) VALUES (?, ?)";
@@ -300,7 +304,7 @@ public class PhoenixTransactSQL {
 
   public static final String GET_METRIC_METADATA_SQL = "SELECT " +
     "METRIC_NAME, APP_ID, UNITS, TYPE, START_TIME, " +
-    "SUPPORTS_AGGREGATION FROM METRICS_METADATA";
+    "SUPPORTS_AGGREGATION, IS_WHITELISTED FROM METRICS_METADATA";
 
   public static final String GET_HOSTED_APPS_METADATA_SQL = "SELECT " +
     "HOSTNAME, APP_IDS FROM HOSTED_APPS_METADATA";

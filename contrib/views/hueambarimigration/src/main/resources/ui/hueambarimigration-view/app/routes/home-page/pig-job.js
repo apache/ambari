@@ -19,20 +19,35 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
 
+  usernames: [],
+
   model: function() {
     var store = this.store;
     return Ember.RSVP.hash({
       usersdetail: store.findAll('usersdetail'),
-      piginstancedetail: store.findAll('piginstancedetail')
+      piginstancedetail: store.findAll('piginstancedetail'),
+      selections: []
 
     });
 
   },
 
   actions: {
+
+    addSelection: function(value) {
+      this.usernames.push(value);
+    },
+
+    removeSelection: function(value) {
+      var index = this.usernames.indexOf(value);
+      if(index > -1) {
+        this.usernames.splice(index,1);
+      }
+    },
+
     submitResult: function() {
 
-    if(this.controller.get('usernamehue')===undefined || this.controller.get('instancename') ===undefined){
+    if(this.usernames.length === 0 || this.controller.get('instancename') ===undefined){
       alert("Mandatory fields can not left blank");
     }
     else{
@@ -40,7 +55,7 @@ export default Ember.Route.extend({
       this.controller.set('progressBar', null);
       this.controller.set('completionStatus', null);
       var migration = this.store.queryRecord('returnjobid', {
-        username: this.controller.get('usernamehue'),
+        username: this.usernames.toString(),
         instance: this.controller.get('instancename'),
         startdate: this.controller.get('startdate'),
         enddate: this.controller.get('enddate'),
@@ -53,7 +68,7 @@ export default Ember.Route.extend({
       migration.then(function() {
         var jobid = migration.get('idforJob');
         var hivehistoryqueryjobstart = store.queryRecord('startmigration', {
-          username: control.get('usernamehue'),
+          username: repeat.usernames.toString(),
           instance: control.get('instancename'),
           startdate: control.get('startdate'),
           enddate: control.get('enddate'),
@@ -78,16 +93,15 @@ export default Ember.Route.extend({
       progress.then(function() {
         var progressPercentage = progress.get('progressPercentage');
         var numberOfQueryTransfered = progress.get('numberOfQueryTransfered');
-        var totalNoQuery = progress.get('totalNoQuery');
-        var intanceName = progress.get('intanceName');
-        var userNameofhue = progress.get('userNameofhue');
-        var totalTimeTaken = progress.get('totalTimeTaken');
-        var isNoQuerySelected = progress.get('isNoQuerySelected');
-        if (progressPercentage !== '100' && isNoQuerySelected === 'no') {
-          control.set('progressBar', progressPercentage);
-          repeat.progresscheck(jobid);
-        }
-        if (progressPercentage === '100' || isNoQuerySelected === 'yes') {
+        var flagForCompletion = parseInt(progress.get('flag'));
+        console.log("the progress percentage is="+progressPercentage);
+        console.log("flag completion status is "+flagForCompletion);
+
+        if (flagForCompletion === 1) {
+          var totalNoQuery = progress.get('totalNoQuery');
+          var intanceName = progress.get('intanceName');
+          var userNameofhue = progress.get('userNameofhue');
+          var totalTimeTaken = progress.get('totalTimeTaken');
           control.set('jobstatus', null);
           control.set('completionStatus', progressPercentage);
           control.set('progressBar', progressPercentage);
@@ -101,6 +115,9 @@ export default Ember.Route.extend({
           control.set('Username', userNameofhue);
           control.set('totalTimeTaken', totalTimeTaken);
 
+        } else {
+          control.set('progressBar', progressPercentage);
+          repeat.progresscheck(jobid);
         }
       });
     }, 500);

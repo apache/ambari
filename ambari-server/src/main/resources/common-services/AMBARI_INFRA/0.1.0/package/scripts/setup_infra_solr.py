@@ -101,7 +101,7 @@ def setup_infra_solr(name = None):
 
 
   elif name == 'client':
-    solr_cloud_util.setup_solr_client(params.config, custom_log4j=params.solr_client_custom_log4j)
+    solr_cloud_util.setup_solr_client(params.config)
 
   else :
     raise Fail('Nor client or server were selected to install.')

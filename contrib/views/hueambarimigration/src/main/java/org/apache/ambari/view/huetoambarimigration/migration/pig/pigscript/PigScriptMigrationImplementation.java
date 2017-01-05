@@ -19,11 +19,10 @@
 
 package org.apache.ambari.view.huetoambarimigration.migration.pig.pigscript;
 
-import org.apache.ambari.view.huetoambarimigration.migration.pig.pigjob.PigJobMigrationImplementation;
 import org.apache.ambari.view.huetoambarimigration.migration.configuration.ConfigurationCheckImplementation;
 import org.apache.ambari.view.huetoambarimigration.resources.scripts.models.PigModel;
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.savedscriptqueryset.QuerySetAmbariDB;
-import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.savedscriptqueryset.QuerySet;
+import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.savedscriptqueryset.QuerySetHueDb;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -48,11 +47,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.net.URI;
 
 
 public class PigScriptMigrationImplementation {
 
-  static final Logger logger = Logger.getLogger(PigJobMigrationImplementation.class);
+  static final Logger logger = Logger.getLogger(PigScriptMigrationImplementation.class);
 
   private static String readAll(Reader rd) throws IOException {
     StringBuilder sb = new StringBuilder();
@@ -286,7 +286,7 @@ public class PigScriptMigrationImplementation {
   }
 
 
-  public ArrayList<PigModel> fetchFromHueDatabase(String username, String startdate, String endtime, Connection connection, QuerySet huedatabase) throws ClassNotFoundException, IOException {
+  public ArrayList<PigModel> fetchFromHueDatabase(String username, String startdate, String endtime, Connection connection, QuerySetHueDb huedatabase) throws ClassNotFoundException, IOException {
     int id = 0;
     int i = 0;
     ResultSet rs1 = null;
@@ -297,6 +297,8 @@ public class PigScriptMigrationImplementation {
       connection.setAutoCommit(false);
       PreparedStatement prSt = null;
       ResultSet rs;
+      int ownerId;
+      String ownerName="";
       if (username.equals("all")) {
       } else {
 
@@ -348,9 +350,18 @@ public class PigScriptMigrationImplementation {
       // rs1 = statement.executeQuery("select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id ="+id+" AND date_created BETWEEN '"+ startdate +"' AND '"  +endtime +"';");
       while (rs1.next()) {
         PigModel pojopig = new PigModel();
+        ownerId = rs1.getInt("user_id");
+        if(username.equals("all")) {
+          prSt = huedatabase.getUserName(connection, ownerId);
+          ResultSet resultSet = prSt.executeQuery();
+          while(resultSet.next()) {
+            ownerName = resultSet.getString("username");
+          }
+        }
         String script = rs1.getString("pig_script");
         String title = rs1.getString("title");
         Date created_data = rs1.getDate("date_created");
+        pojopig.setUserName(ownerName);
         pojopig.setDt(created_data);
         pojopig.setScript(script);
         pojopig.setTitle(title);
@@ -436,10 +447,10 @@ public class PigScriptMigrationImplementation {
       ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
         public Boolean run() throws Exception {
-          FileSystem fs = FileSystem.get(conf);
+          URI uri = new URI(dir);
+          FileSystem fs = FileSystem.get(uri, conf, username);
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
           return b;
         }
       });
@@ -471,10 +482,10 @@ public class PigScriptMigrationImplementation {
 
         public Void run() throws Exception {
 
-          FileSystem fs = FileSystem.get(conf);
+          URI uri = new URI(dir);
+          FileSystem fs = FileSystem.get(uri, conf, username);
           Path src = new Path(dir);
           fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
           return null;
         }
       });
@@ -518,9 +529,7 @@ public class PigScriptMigrationImplementation {
           }
 
           Path path = new Path(dest1);
-          if (fileSystem.exists(path)) {
 
-          }
           FSDataOutputStream out = fileSystem.create(path);
 
           InputStream in = new BufferedInputStream(
@@ -533,7 +542,7 @@ public class PigScriptMigrationImplementation {
           }
           in.close();
           out.close();
-          fileSystem.setOwner(path,username,"hadoop");
+          fileSystem.setOwner(path, username, "hadoop");
           fileSystem.close();
           return null;
         }
@@ -579,9 +588,6 @@ public class PigScriptMigrationImplementation {
           }
 
           Path path = new Path(dest1);
-          if (fileSystem.exists(path)) {
-
-          }
 
           FSDataOutputStream out = fileSystem.create(path);
 
@@ -595,7 +601,7 @@ public class PigScriptMigrationImplementation {
           }
           in.close();
           out.close();
-          fileSystem.setOwner(path,username,"hadoop");
+          fileSystem.setOwner(path, username, "hadoop");
           fileSystem.close();
           return null;
         }

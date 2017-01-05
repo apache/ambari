@@ -328,6 +328,11 @@
       "name": "ranger_tagsync_ssl_xml_support",
       "description": "Ranger Tagsync ssl xml support.",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "ranger_solr_config_support",
+      "description": "Showing Ranger solrconfig.xml on UI",
+      "min_version": "2.6.0.0"
     }
   ]
 }

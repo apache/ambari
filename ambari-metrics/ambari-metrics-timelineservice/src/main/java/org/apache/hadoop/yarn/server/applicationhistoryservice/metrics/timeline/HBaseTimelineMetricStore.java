@@ -31,7 +31,6 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
@@ -56,13 +55,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
@@ -116,10 +113,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
           "initialize HA controller", e);
       }
 
-      String whitelistFile = metricsConf.get(TIMELINE_METRICS_WHITELIST_FILE, "");
-      if (!StringUtils.isEmpty(whitelistFile)) {
-        AggregatorUtils.populateMetricWhitelistFromFile(whitelistFile);
-      }
+      //Initialize whitelisting & blacklisting if needed
+      TimelineMetricsFilter.initializeMetricFilter(metricsConf);
 
       defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
@@ -358,13 +353,19 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   }
 
   @Override
-  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata() throws SQLException, IOException {
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException {
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata =
       metricMetadataManager.getMetadataCache();
+
+    boolean includeBlacklistedMetrics = StringUtils.isNotEmpty(query) && "all".equalsIgnoreCase(query);
 
     // Group Metadata by AppId
     Map<String, List<TimelineMetricMetadata>> metadataByAppId = new HashMap<>();
     for (TimelineMetricMetadata metricMetadata : metadata.values()) {
+
+      if (!includeBlacklistedMetrics && !metricMetadata.isWhitelisted()) {
+        continue;
+      }
       List<TimelineMetricMetadata> metadataList = metadataByAppId.get(metricMetadata.getAppId());
       if (metadataList == null) {
         metadataList = new ArrayList<>();

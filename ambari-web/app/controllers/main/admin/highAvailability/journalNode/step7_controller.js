@@ -20,7 +20,7 @@ var App = require('app');
 
 App.ManageJournalNodeWizardStep7Controller = Em.Controller.extend({
 
-  name:"manageJournalNodeWizardStep7Controller",
+  name: "manageJournalNodeWizardStep7Controller",
 
   done: function () {
     App.router.send("next");

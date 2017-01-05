@@ -36,6 +36,7 @@ public class TimelineMetricMetadata {
   private String type = "UNDEFINED";
   private Long seriesStartTime;
   boolean supportsAggregates = true;
+  boolean isWhitelisted = false;
   // Serialization ignored helper flag
   boolean isPersisted = false;
 
@@ -52,13 +53,14 @@ public class TimelineMetricMetadata {
 
   public TimelineMetricMetadata(String metricName, String appId, String units,
                                 String type, Long seriesStartTime,
-                                boolean supportsAggregates) {
+                                boolean supportsAggregates, boolean isWhitelisted) {
     this.metricName = metricName;
     this.appId = appId;
     this.units = units;
     this.type = type;
     this.seriesStartTime = seriesStartTime;
     this.supportsAggregates = supportsAggregates;
+    this.isWhitelisted = isWhitelisted;
   }
 
   @XmlElement(name = "metricname")
@@ -112,6 +114,11 @@ public class TimelineMetricMetadata {
     return supportsAggregates;
   }
 
+  @XmlElement(name = "isWhitelisted")
+  public boolean isWhitelisted() {
+    return isWhitelisted;
+  }
+
   public void setSupportsAggregates(boolean supportsAggregates) {
     this.supportsAggregates = supportsAggregates;
   }
@@ -140,7 +147,8 @@ public class TimelineMetricMetadata {
     return (this.units != null && !this.units.equals(metadata.getUnits())) ||
       (this.type != null && !this.type.equals(metadata.getType())) ||
       //!this.lastRecordedTime.equals(metadata.getLastRecordedTime()) || // TODO: support
-      !this.supportsAggregates == metadata.isSupportsAggregates();
+      !this.supportsAggregates == metadata.isSupportsAggregates() ||
+      this.isWhitelisted != metadata.isWhitelisted;
   }
 
   @Override

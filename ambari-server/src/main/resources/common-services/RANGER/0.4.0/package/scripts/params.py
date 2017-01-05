@@ -72,6 +72,7 @@ stack_supports_pid = check_stack_feature(StackFeature.RANGER_PID_SUPPORT, versio
 stack_supports_ranger_admin_password_change = check_stack_feature(StackFeature.RANGER_ADMIN_PASSWD_CHANGE, version_for_stack_feature_checks)
 stack_supports_ranger_setup_db_on_start = check_stack_feature(StackFeature.RANGER_SETUP_DB_ON_START, version_for_stack_feature_checks)
 stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature.RANGER_TAGSYNC_SSL_XML_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_solr_configs = check_stack_feature(StackFeature.RANGER_SOLR_CONFIG_SUPPORT, version_for_stack_feature_checks)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -302,6 +303,10 @@ solr_user = unix_user
 if has_infra_solr and not is_external_solrCloud_enabled:
   solr_user = default('/configurations/infra-solr-env/infra_solr_user', unix_user)
 custom_log4j = has_infra_solr and not is_external_solrCloud_enabled
+
+ranger_audit_max_retention_days = config['configurations']['ranger-solr-configuration']['ranger_audit_max_retention_days']
+ranger_audit_logs_merge_factor = config['configurations']['ranger-solr-configuration']['ranger_audit_logs_merge_factor']
+ranger_solr_config_content = config['configurations']['ranger-solr-configuration']['content']
 
 # get comma separated list of zookeeper hosts
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)

@@ -43,7 +43,7 @@ import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -826,7 +826,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @param event @HostRemovedEvent
    */
   @Subscribe
-  public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
+  public void invalidateCommandCacheOnHostRemove(HostsRemovedEvent event) {
     LOG.info("Invalidating HRC cache after receiveing {}", event);
     hostRoleCommandCache.invalidateAll();
   }

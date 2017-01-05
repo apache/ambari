@@ -21,6 +21,17 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
+    <name>oozie_log_maxhistory</name>
+    <value>720</value>
+    <description>The number of hours for which log files will be retained</description>
+    <display-name>Oozie Log: # Hours of Log Rentention</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>oozie-log4j template</display-name>
     <description>Custom log4j.properties</description>
@@ -60,7 +71,7 @@ log4j.appender.oozie.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[
 # value of log4j.appender.oozie.File
 log4j.appender.oozie.RollingPolicy.FileNamePattern=${log4j.appender.oozie.File}-%d{yyyy-MM-dd-HH}
 # The MaxHistory controls how many log files will be retained (720 hours / 24 hours per day = 30 days); -1 to disable
-log4j.appender.oozie.RollingPolicy.MaxHistory=720
+log4j.appender.oozie.RollingPolicy.MaxHistory={{oozie_log_maxhistory}}
 
 # Uncomment the below two lines to use the DailyRollingFileAppender instead
 # The DatePattern must end with either "dd" or "HH"

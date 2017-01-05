@@ -696,7 +696,7 @@ public class HostImpl implements Host {
   @Override
   public long getAvailableMemBytes() {
     HostStateEntity hostStateEntity = getHostStateEntity();
-    return hostStateEntity != null ? hostStateEntity.getAvailableMem() : null;
+    return hostStateEntity != null ? hostStateEntity.getAvailableMem() : 0;
   }
 
   @Override

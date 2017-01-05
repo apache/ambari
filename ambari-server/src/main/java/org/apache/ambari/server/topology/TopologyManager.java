@@ -59,7 +59,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
-import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
@@ -1020,33 +1020,37 @@ public class TopologyManager {
   /**
    *
    * Removes a host from the available hosts when the host gets deleted.
-   * @param hostRemovedEvent the event containing the hostname
+   * @param hostsRemovedEvent the event containing the hostname
    */
   @Subscribe
-  public void processHostRemovedEvent(HostRemovedEvent hostRemovedEvent) {
+  public void processHostRemovedEvent(HostsRemovedEvent hostsRemovedEvent) {
 
-    if (null == hostRemovedEvent.getHostName()) {
-      LOG.warn("Missing host name from host removed event [{}] !", hostRemovedEvent);
+    if (hostsRemovedEvent.getHostNames().isEmpty()) {
+      LOG.warn("Missing host name from host removed event [{}] !", hostsRemovedEvent);
       return;
     }
 
-    LOG.info("Removing host [{}] from available hosts on host removed event.", hostRemovedEvent.getHostName());
-    HostImpl toBeRemoved = null;
+    LOG.info("Removing hosts [{}] from available hosts on hosts removed event.", hostsRemovedEvent.getHostNames());
+    Set<HostImpl> toBeRemoved = new HashSet<>();
 
     // synchronization is required here as the list may be modified concurrently. See comments in this whole class.
     synchronized (availableHosts) {
       for (HostImpl hostImpl : availableHosts) {
-        if (hostRemovedEvent.getHostName().equals(hostImpl.getHostName())) {
-          toBeRemoved = hostImpl;
-          break;
+        for (String hostName : hostsRemovedEvent.getHostNames()) {
+          if (hostName.equals(hostImpl.getHostName())) {
+            toBeRemoved.add(hostImpl);
+            break;
+          }
         }
       }
 
-      if (null != toBeRemoved) {
-        availableHosts.remove(toBeRemoved);
-        LOG.info("Removed host: [{}] from available hosts", toBeRemoved.getHostName());
+      if (!toBeRemoved.isEmpty()) {
+        for (HostImpl host : toBeRemoved) {
+          availableHosts.remove(host);
+          LOG.info("Removed host: [{}] from available hosts", host.getHostName());
+        }
       } else {
-        LOG.debug("Host [{}] not found in available hosts", hostRemovedEvent.getHostName());
+        LOG.debug("No any host [{}] found in available hosts", hostsRemovedEvent.getHostNames());
       }
     }
   }

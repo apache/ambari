@@ -3409,7 +3409,9 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public boolean isUpgradeSuspended() {
-    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId);
+    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId,
+        Direction.UPGRADE);
+
     if (null != lastUpgradeItemForCluster) {
       return lastUpgradeItemForCluster.isSuspended();
     }

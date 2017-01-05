@@ -180,6 +180,8 @@
 
 #widget-preview {
   max-width: 200px;
+  margin: auto;
+  margin-bottom: 20px;
   .widget {
     .img-thumbnail .corner-icon {
       display: none;
@@ -475,11 +477,45 @@
 }
 
 .add-metric-menu{
-  .select-options-dropdown {
+  .dropdown-menu.select-options-dropdown {
     width: 240px;
-    border: none;
+    padding: 0px;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
+    border-bottom: 250px transparent solid;
+    border-left: none;
+    border-right: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
     &>li>div {
       padding: 3px;
+    }
+    li.metric-select {
+      padding: 5px;
+      padding-bottom: 0px;
+      border-left: 1px #ccc solid;
+      border-right: 1px #ccc solid;
+      border-bottom: none;
+      border-top: none;
+    }
+    li.aggregator-select {
+      padding: 5px;
+      padding-bottom: 0px;
+      border-left: 1px #ccc solid;
+      border-right: 1px #ccc solid;
+      border-bottom: none;
+      border-top: none;
+    }
+    li.actions-buttons{
+      padding: 5px;
+      padding-left: 8px;
+      border: 1px #ccc solid;
+      border-top: none;
+      button {
+        margin-right: 5px;
+      }
     }
   }
 }

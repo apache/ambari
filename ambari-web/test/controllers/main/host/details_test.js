@@ -592,15 +592,12 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }}, null, {
-        configs: {}
-      });
+      }});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=storm-site&tag=tag)',
-        configs: {}
+        urlParams: '(type=storm-site&tag=tag)'
       });
     });
   });
@@ -666,15 +663,12 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }}, null, {
-        configs: {}
-      });
+      }});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=hive-site&tag=tag)|(type=webhcat-site&tag=tag)|(type=hive-env&tag=tag)|(type=core-site&tag=tag)',
-        configs: {}
+        urlParams: '(type=hive-site&tag=tag)|(type=webhcat-site&tag=tag)|(type=hive-env&tag=tag)|(type=core-site&tag=tag)'
       });
     });
   });
@@ -693,15 +687,12 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }}, null, {
-        configs: {}
-      });
+      }});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)',
-        configs: {}
+        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)'
       });
     });
   });
@@ -2448,14 +2439,33 @@ describe('App.MainHostDetailsController', function () {
       controller.downloadClientConfigs({
         context: Em.Object.create({
           componentName: 'name',
-          hostName: 'host1',
-          displayName: 'dName'
+          hostName: 'host1'
         })
       });
       expect(controller.downloadClientConfigsCall.calledWith({
         componentName: 'name',
         hostName: 'host1',
-        displayName: 'dName'
+        resourceType: controller.resourceTypeEnum.HOST_COMPONENT
+      })).to.be.true;
+    });
+  });
+
+  describe('#downloadAllClientConfigs', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'downloadClientConfigsCall', Em.K);
+      sinon.stub(controller, 'get').withArgs('content.hostName').returns('host1');
+    });
+    afterEach(function () {
+      controller.downloadClientConfigsCall.restore();
+      controller.get.restore();
+    });
+
+    it('should launch controller.downloadClientConfigsCall method', function () {
+      controller.downloadAllClientConfigs();
+      expect(controller.downloadClientConfigsCall.calledWith({
+        hostName: 'host1',
+        resourceType: controller.resourceTypeEnum.HOST
       })).to.be.true;
     });
   });
@@ -3833,5 +3843,97 @@ describe('App.MainHostDetailsController', function () {
 
       });
     });
+  });
+
+  describe('#setConfigsChangesForDisplay', function () {
+
+    var propertiesToChange = [
+        {
+          propertyName: 'n0',
+          propertyFileName: 'f0'
+        },
+        {
+          propertyName: 'n1',
+          propertyFileName: 'f1'
+        },
+        {
+          propertyName: 'n2',
+          propertyFileName: 'f2'
+        },
+        {
+          propertyName: 'n3',
+          propertyFileName: 'f3'
+        }
+      ],
+      result = {
+        recommendedPropertiesToChange: [
+          {
+            propertyName: 'n0',
+            propertyFileName: 'f0',
+            saveRecommended: true
+          },
+          {
+            propertyName: 'n3',
+            propertyFileName: 'f3',
+            saveRecommended: true
+          }
+        ],
+        requiredPropertiesToChange: [
+          {
+            propertyName: 'n1',
+            propertyFileName: 'f1'
+          },
+          {
+            propertyName: 'n2',
+            propertyFileName: 'f2'
+          }
+        ]
+      };
+
+    beforeEach(function () {
+      controller.setProperties({
+        allPropertiesToChange: propertiesToChange,
+        recommendedPropertiesToChange: [],
+        requiredPropertiesToChange: []
+      });
+      sinon.stub(App.configsCollection, 'getConfigByName', function (propertyName) {
+        var map = {
+          n0: {
+            isEditable: true,
+            isReconfigurable: true
+          },
+          n1: {
+            isEditable: true,
+            isReconfigurable: false
+          },
+          n2: {
+            isEditable: false,
+            isReconfigurable: false
+          }
+        };
+        return map[propertyName];
+      });
+      sinon.stub(App, 'get').withArgs('router.clusterController.isConfigsPropertiesLoaded').returns(true);
+      controller.set('isConfigsLoadingInProgress', true);
+      controller.setConfigsChangesForDisplay();
+    });
+
+    afterEach(function () {
+      App.configsCollection.getConfigByName.restore();
+      App.get.restore();
+    });
+
+    it('editable changes', function () {
+      expect(controller.get('recommendedPropertiesToChange').toArray()).to.eql(result.recommendedPropertiesToChange);
+    });
+
+    it('non-editable changes', function () {
+      expect(controller.get('requiredPropertiesToChange').toArray()).to.eql(result.requiredPropertiesToChange);
+    });
+
+    it('isConfigsLoadingInProgress', function () {
+      expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
+    });
+
   });
 });

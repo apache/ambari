@@ -87,6 +87,16 @@
     }
   }
 
+  > thead > tr > th,  > thead > tr > td,
+  > tbody > tr > th,  > tbody > tr > td,
+  > tfoot > tr > th,  > tfoot > tr > td {
+    vertical-align: middle;
+  }
+
+  a.ui-icon-circle-close {
+    visibility: hidden;
+  }
+
   .filter-input-width {
     width: ~"calc(100% - 20px)";
   }
@@ -135,6 +145,12 @@
 }
 
 #alert-instances-table {
+  > thead > tr > th,  > thead > tr > td,
+  > tbody > tr > th,  > tbody > tr > td,
+  > tfoot > tr > th,  > tfoot > tr > td {
+    vertical-align: middle;
+  }
+
   .col0,
   td:first-child,
   th:first-child {

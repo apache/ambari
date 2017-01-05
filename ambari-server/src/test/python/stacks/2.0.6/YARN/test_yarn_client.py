@@ -305,7 +305,8 @@ class TestYarnClient(RMFTestCase):
       mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
+      content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content'] +
+        '\nYARN_OPTS="$YARN_OPTS -Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config=/usr/hdp/current/hadoop-client/conf/yarn_jaas.conf -Dzookeeper.sasl.clientconfig=Client"\n'),
       owner = 'yarn',
       group = 'hadoop',
       mode = 0755,
@@ -340,6 +341,11 @@ class TestYarnClient(RMFTestCase):
                               owner = 'root',
                               group = 'hadoop',
                               mode = 0644,
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn_jaas.conf',
+                              content = Template('yarn_jaas.conf.j2'),
+                              owner = 'yarn',
+                              group = 'hadoop',
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               owner = 'mapred',

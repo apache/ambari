@@ -730,15 +730,6 @@ describe('App.BackgroundOperationsController', function () {
       expect(controller.isInitLoading()).to.be.false;
     });
 
-    it("should return false when no request found", function() {
-      controller.set('levelInfo', Em.Object.create({
-        name: 'HOSTS_LIST',
-        requestId: 1
-      }));
-      controller.set('services', []);
-      expect(controller.isInitLoading()).to.be.false;
-    });
-
     it("should return false when request has hosts", function() {
       controller.set('levelInfo', Em.Object.create({
         name: 'HOSTS_LIST',
@@ -830,7 +821,7 @@ describe('App.BackgroundOperationsController', function () {
 
     beforeEach(function() {
       sinon.stub(controller, 'getRequestContextWithPrefix').returns({
-        parsedRequestContext: 'CTX_WITH_PREFIX'
+        requestContext: 'CTX_WITH_PREFIX'
       });
     });
 
@@ -840,19 +831,19 @@ describe('App.BackgroundOperationsController', function () {
 
     it("no requestContext specified", function() {
       expect(controller.parseRequestContext()).to.be.eql({
-        parsedRequestContext: Em.I18n.t('requestInfo.unspecified')
+        requestContext: Em.I18n.t('requestInfo.unspecified')
       });
     });
 
     it("requestContext specified", function() {
       expect(controller.parseRequestContext('CTX')).to.be.eql({
-        parsedRequestContext: 'CTX'
+        requestContext: 'CTX'
       });
     });
 
     it("requestContext specified with prefix", function() {
       expect(controller.parseRequestContext(App.BackgroundOperationsController.CommandContexts.PREFIX)).to.be.eql({
-        parsedRequestContext: 'CTX_WITH_PREFIX'
+        requestContext: 'CTX_WITH_PREFIX'
       });
     });
   });

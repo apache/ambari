@@ -45,6 +45,10 @@
       <outputDirectory>/ambari-server-${project.version}/conf</outputDirectory>
     </file>
     <file>
+      <source>${basedir}/conf/windows/metrics.properties</source>
+      <outputDirectory>/ambari-server-${project.version}/conf</outputDirectory>
+    </file>
+    <file>
       <source>${basedir}/conf/windows/ca.config</source>
       <outputDirectory>/ambari-server-${project.version}/keystore</outputDirectory>
     </file>

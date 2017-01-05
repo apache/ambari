@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
 
@@ -40,7 +41,10 @@ import com.google.inject.Singleton;
  * Checks that all hosts in maintenance state do not have master components.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 5.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.MAINTENANCE_MODE,
+    order = 5.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
 
   static final String KEY_NO_UPGRADE_NAME = "no_upgrade_name";
@@ -53,6 +57,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     super(CheckDescription.HOSTS_MASTER_MAINTENANCE);
   }
 
+  @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
       return super.isApplicable(request) && request.getRepositoryVersion() != null;
   }

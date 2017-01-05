@@ -258,7 +258,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateConfigurations(services, hosts)
 
     expectedItems = [
-      {"message": "Value is less than the recommended default of 512", "level": "WARN"},
+      {"message": "Value is less than the recommended default of 510", "level": "WARN"},
       {'message': 'Value should be set for yarn.nodemanager.linux-container-executor.group', 'level': 'ERROR'},
       {"message": "Value should be integer", "level": "ERROR"},
       {"message": "Value should be set", "level": "ERROR"}
@@ -419,6 +419,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 2,
       "hbaseRam": 1,
       "minContainerSize": 512,
+      "minContainerRam" : 512,
       "totalAvailableRam": 3072,
       "containers": 6,
       "ramPerContainer": 512,
@@ -487,15 +488,16 @@ class TestHDP206StackAdvisor(TestCase):
         })
     expected["referenceHost"] = hosts["items"][1]["Hosts"]
     expected["referenceNodeManagerHost"] = hosts["items"][1]["Hosts"]
-    expected["amMemory"] = 170.66666666666666
-    expected["containers"] = 3.0
+    expected["amMemory"] = 128
+    expected["containers"] = 4
     expected["cpu"] = 4
     expected["totalAvailableRam"] = 512
-    expected["mapMemory"] = 170
-    expected["minContainerSize"] = 256
-    expected["reduceMemory"] = 170.66666666666666
+    expected["mapMemory"] = 128
+    expected["minContainerSize"] = 128
+    expected["reduceMemory"] = 128
+    expected["minContainerRam"] = 128
     expected["ram"] = 0
-    expected["ramPerContainer"] = 170.66666666666666
+    expected["ramPerContainer"] = 128
     expected["reservedRam"] = 1
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
     self.assertEquals(result, expected)
@@ -536,7 +538,8 @@ class TestHDP206StackAdvisor(TestCase):
       "ramPerContainer": 3072,
       "mapMemory": 3072,
       "reduceMemory": 3072,
-      "amMemory": 3072,
+      "amMemory": 1024,
+      "minContainerRam": 1024,
       "referenceHost": hosts["items"][0]["Hosts"]
     }
 
@@ -592,7 +595,8 @@ class TestHDP206StackAdvisor(TestCase):
     services = {"configurations": configurations, "services": []}
     clusterData = {
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "yarn-env": {
@@ -619,7 +623,8 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {
       "mapMemory": 567,
       "reduceMemory": 345.6666666666666,
-      "amMemory": 123.54
+      "amMemory": 123.54,
+      "minContainerRam": 123.54
     }
     expected = {
       "mapred-site": {
@@ -655,13 +660,14 @@ class TestHDP206StackAdvisor(TestCase):
       "ram": 0,
       "reservedRam": 1,
       "hbaseRam": 1,
-      "minContainerSize": 256,
+      "minContainerSize": 128,
       "totalAvailableRam": 512,
       "containers": 3,
-      "ramPerContainer": 170.66666666666666,
+      "ramPerContainer": 170,
       "mapMemory": 170,
-      "reduceMemory": 170.66666666666666,
-      "amMemory": 170.66666666666666
+      "reduceMemory": 170,
+      "amMemory": 170,
+      "minContainerRam" : 170
     }
 
     self.assertEquals(result, expected)
@@ -1171,7 +1177,8 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     clusterData = {
-      "totalAvailableRam": 2048
+      "totalAvailableRam": 2048,
+      "totalAvailableRam": 256
     }
     ambariHostName = socket.getfqdn()
     expected = {'oozie-env':
@@ -1210,7 +1217,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_heapsize': '1024',
                       'proxyuser_group': 'users',
                       'namenode_opt_maxnewsize': '256',
-                      'namenode_opt_newsize': '256'}}}
+                      'namenode_opt_newsize': '128'}}}
 
     # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
     # and Hive Server Interactive Host (installed on different host compared to HiveServer).
@@ -1345,7 +1352,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_heapsize': '1024',
                       'proxyuser_group': 'users',
                       'namenode_opt_maxnewsize': '256',
-                      'namenode_opt_newsize': '256'}}}
+                      'namenode_opt_newsize': '128'}}}
 
     # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
     # and Hive Server Interactive Host (installed on same host compared to HiveServer).
@@ -1478,7 +1485,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_heapsize': '1024',
                       'proxyuser_group': 'users',
                       'namenode_opt_maxnewsize': '256',
-                      'namenode_opt_newsize': '256'}}}
+                      'namenode_opt_newsize': '128'}}}
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
     self.assertEquals(configurations, expected)
@@ -1506,6 +1513,190 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
     self.assertEquals(configurations, expected)
 
+
+  def test_recommendAmsConfigurations(self):
+    configurations = {
+      "hadoop-env": {
+        "properties": {
+          "hdfs_user": "hdfs",
+          "proxyuser_group": "users"
+        }
+      }
+    }
+
+    hosts = {
+      "items": [
+        {
+          "href": "/api/v1/hosts/host1",
+          "Hosts": {
+            "cpu_count": 1,
+            "host_name": "c6401.ambari.apache.org",
+            "os_arch": "x86_64",
+            "os_type": "centos6",
+            "ph_cpu_count": 1,
+            "public_host_name": "public.c6401.ambari.apache.org",
+            "rack_info": "/default-rack",
+            "total_mem": 2097152,
+            "disk_info": [{
+              "size": '80000000',
+              "mountpoint": "/"
+            }]
+          }
+        },
+        {
+          "href": "/api/v1/hosts/host2",
+          "Hosts": {
+            "cpu_count": 1,
+            "host_name": "c6402.ambari.apache.org",
+            "os_arch": "x86_64",
+            "os_type": "centos6",
+            "ph_cpu_count": 1,
+            "public_host_name": "public.c6402.ambari.apache.org",
+            "rack_info": "/default-rack",
+            "total_mem": 1048576,
+            "disk_info": [{
+              "size": '800000000',
+              "mountpoint": "/"
+            }]
+          }
+        }
+      ]}
+
+
+    services1 = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          }, "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NAMENODE",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+        },
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+              }
+            }
+          ]
+        }],
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+
+    clusterData = {
+      "totalAvailableRam": 2048
+    }
+
+    expected = {'ams-env': {'properties': {'metrics_collector_heapsize': '512'}},
+                  'ams-grafana-env': {'properties': {},
+                                                             'property_attributes': {'metrics_grafana_password': {'visible': 'false'}}},
+                  'ams-hbase-env': {'properties': {'hbase_log_dir': '/var/log/ambari-metrics-collector',
+                                                                                       'hbase_master_heapsize': '512',
+                                                                                       'hbase_master_xmn_size': '102',
+                                                                                       'hbase_regionserver_heapsize': '768',
+                                                                                       'regionserver_xmn_size': '128'}},
+                  'ams-hbase-site': {'properties': {'hbase.cluster.distributed': 'true',
+                                                                                         'hbase.hregion.memstore.flush.size': '134217728',
+                                                                                         'hbase.regionserver.global.memstore.lowerLimit': '0.3',
+                                                                                         'hbase.regionserver.global.memstore.upperLimit': '0.35',
+                                                                                         'hbase.rootdir': '/user/ams/hbase',
+                                                                                         'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase-tmp',
+                                                                                         'hbase.zookeeper.property.clientPort': '2181',
+                                                                                         'hfile.block.cache.size': '0.3'}},
+                  'ams-site': {'properties': {'timeline.metrics.cache.commit.interval': '10',
+                                                                             'timeline.metrics.cache.size': '100',
+                                                                             'timeline.metrics.cluster.aggregate.splitpoints': 'load_one',
+                                                                             'timeline.metrics.host.aggregate.splitpoints': 'load_one',
+                                                                             'timeline.metrics.service.handler.thread.count': '20',
+                                                                             'timeline.metrics.service.operation.mode': 'distributed',
+                                                                             'timeline.metrics.service.watcher.disabled': 'true',
+                                                                             'timeline.metrics.service.webapp.address': '0.0.0.0:6188'}},
+                  'hadoop-env': {'properties': {'hdfs_user': 'hdfs',
+                                                                                 'proxyuser_group': 'users'}}}
+
+    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services1, hosts)
+    self.assertEquals(configurations, expected)
+
+    services1 = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          }, "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NAMENODE",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+        },
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["c6401.ambari.apache.org"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+              }
+            }
+          ]
+        }],
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+    expected = {'ams-env': {'properties': {'metrics_collector_heapsize': '512'}},
+                  'ams-grafana-env': {'properties': {},
+                                                             'property_attributes': {'metrics_grafana_password': {'visible': 'false'}}},
+                  'ams-hbase-env': {'properties': {'hbase_log_dir': '/var/log/ambari-metrics-collector',
+                                                                                       'hbase_master_heapsize': '512',
+                                                                                       'hbase_master_xmn_size': '102',
+                                                                                       'hbase_regionserver_heapsize': '768',
+                                                                                       'regionserver_xmn_size': '128'}},
+                  'ams-hbase-site': {'properties': {'hbase.cluster.distributed': 'true',
+                                                                                         'hbase.hregion.memstore.flush.size': '134217728',
+                                                                                         'hbase.regionserver.global.memstore.lowerLimit': '0.3',
+                                                                                         'hbase.regionserver.global.memstore.upperLimit': '0.35',
+                                                                                         'hbase.rootdir': '/user/ams/hbase',
+                                                                                         'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase-tmp',
+                                                                                         'hbase.zookeeper.property.clientPort': '2181',
+                                                                                         'hfile.block.cache.size': '0.3',
+                                                                                         'phoenix.coprocessor.maxMetaDataCacheSize': '20480000'}},
+                  'ams-site': {'properties': {'timeline.metrics.cache.commit.interval': '10',
+                                                                             'timeline.metrics.cache.size': '100',
+                                                                             'timeline.metrics.cluster.aggregate.splitpoints': 'load_one',
+                                                                             'timeline.metrics.host.aggregate.splitpoints': 'load_one',
+                                                                             'timeline.metrics.service.handler.thread.count': '20',
+                                                                             'timeline.metrics.service.operation.mode': 'distributed',
+                                                                             'timeline.metrics.service.watcher.disabled': 'true',
+                                                                             'timeline.metrics.service.webapp.address': '0.0.0.0:6188'}},
+                  'hadoop-env': {'properties': {'hdfs_user': 'hdfs',
+                                                                                 'proxyuser_group': 'users'}}}
+    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services1, hosts)
+    self.assertEquals(configurations, expected)
 
   def test_getHostNamesWithComponent(self):
 
@@ -1915,6 +2106,168 @@ class TestHDP206StackAdvisor(TestCase):
     expected = []
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     self.assertEquals(validation_problems, expected)
+
+  def test_validateAmsSiteConfigurations(self):
+    configurations = {
+      "hdfs-site": {
+        "properties": {
+          'dfs.datanode.data.dir': "/hadoop/data"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
+        }
+      },
+      "ams-site": {
+        "properties": {
+          "timeline.metrics.service.operation.mode": "embedded"
+        }
+      }
+    }
+    recommendedDefaults = {
+      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir': '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false'
+    }
+    properties = {
+      'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase',
+      'hbase.tmp.dir' : '/var/lib/ambari-metrics-collector/hbase',
+      'hbase.cluster.distributed': 'false',
+      'timeline.metrics.service.operation.mode' : 'embedded'
+    }
+    host1 = {
+      "href" : "/api/v1/hosts/host1",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "host_name" : "host1",
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "host1",
+        "rack_info" : "/default-rack",
+        "total_mem" : 2097152,
+        "disk_info": [
+          {
+            "available": str(15<<30), # 15 GB
+            "type": "ext4",
+            "mountpoint": "/"
+          }
+        ]
+      }
+    }
+    host2 = {
+      "href" : "/api/v1/hosts/host2",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "host_name" : "host2",
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "host2",
+        "rack_info" : "/default-rack",
+        "total_mem" : 2097152,
+        "disk_info": [
+          {
+            "available": str(15<<30), # 15 GB
+            "type": "ext4",
+            "mountpoint": "/"
+          }
+        ]
+      }
+    }
+
+    hosts = {
+      "items" : [
+        host1, host2
+      ]
+    }
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["host1", "host2"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["host1", "host2"]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "DATANODE",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": configurations
+    }
+    # only 1 partition, enough disk space, no warnings
+    res = self.stackAdvisor.validateAmsSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = [{'config-name': 'timeline.metrics.service.operation.mode',
+                    'config-type': 'ams-site',
+                    'level': 'ERROR',
+                    'message': "Correct value should be 'distributed' for clusters with more then 1 Metrics collector",
+                    'type': 'configuration'}]
+    self.assertEquals(res, expected)
+
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["host1"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "DATANODE",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": configurations
+    }
+    res = self.stackAdvisor.validateAmsSiteConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    expected = []
+    self.assertEquals(res, expected)
 
   def test_validateAmsHbaseSiteConfigurations(self):
     configurations = {

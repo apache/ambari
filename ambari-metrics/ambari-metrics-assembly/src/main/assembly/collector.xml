@@ -44,6 +44,7 @@
         <include>ams-env.sh</include>
         <include>ams-site.xml</include>
         <include>log4j.properties</include>
+        <include>metrics_whitelist</include>
       </includes>
     </fileSet>
     <fileSet>
