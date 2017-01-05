@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,23 +80,23 @@ import com.google.inject.Module;
 @PrepareForTest(JpaHelper.class)
 public class DataStoreImplTest {
   private final static String xml = "<view>\n" +
-    "    <name>MY_VIEW</name>\n" +
-    "    <label>My View!</label>\n" +
-    "    <version>1.0.0</version>\n" +
-    "    <instance>\n" +
-    "        <name>INSTANCE1</name>\n" +
-    "    </instance>\n" +
-    "    <persistence>\n" +
-    "      <entity>\n" +
-    "        <class>org.apache.ambari.server.view.persistence.DataStoreImplTest$TestEntity</class>\n" +
-    "        <id-property>id</id-property>\n" +
-    "      </entity>\n" +
-    "      <entity>\n" +
-    "        <class>org.apache.ambari.server.view.persistence.DataStoreImplTest$TestSubEntity</class>\n" +
-    "        <id-property>id</id-property>\n" +
-    "      </entity>\n" +
-    "    </persistence>" +
-    "</view>";
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "    </instance>\n" +
+      "    <persistence>\n" +
+      "      <entity>\n" +
+      "        <class>org.apache.ambari.server.view.persistence.DataStoreImplTest$TestEntity</class>\n" +
+      "        <id-property>id</id-property>\n" +
+      "      </entity>\n" +
+      "      <entity>\n" +
+      "        <class>org.apache.ambari.server.view.persistence.DataStoreImplTest$TestSubEntity</class>\n" +
+      "        <id-property>id</id-property>\n" +
+      "      </entity>\n" +
+      "    </persistence>" +
+      "</view>";
 
   @Test
   public void testStore_create() throws Exception {
@@ -128,7 +128,7 @@ public class DataStoreImplTest {
       @Override
       public Object answer() throws Throwable {
         ((DynamicEntity) EasyMock.getCurrentArguments()[0])
-          .set("DS_id", 99); // for TestSubEntity
+            .set("DS_id", 99); // for TestSubEntity
         return null;
       }
     });
@@ -139,7 +139,7 @@ public class DataStoreImplTest {
       @Override
       public Object answer() throws Throwable {
         ((DynamicEntity) EasyMock.getCurrentArguments()[0])
-          .set("DS_id", 100); // for TestEntity
+            .set("DS_id", 100); // for TestEntity
         return null;
       }
     });
@@ -215,7 +215,7 @@ public class DataStoreImplTest {
 
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < 5000; ++i) {
       sb.append("A");
     }
@@ -352,8 +352,14 @@ public class DataStoreImplTest {
 
     dataStore.store(new TestEntity(100, "foo", new TestSubEntity(99, "bar")));
 
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
-    Assert.assertEquals(entityClassCapture2.getValue(), typeCapture2.getValue().getJavaClass());
+    if ((entityClassCapture.getValue() != typeCapture.getValue().getJavaClass()) &&
+        (entityClassCapture.getValue() != typeCapture2.getValue().getJavaClass())) {
+      Assert.fail();
+    }
+    if ((entityClassCapture2.getValue() != typeCapture.getValue().getJavaClass()) &&
+        (entityClassCapture2.getValue() != typeCapture2.getValue().getJavaClass())) {
+      Assert.fail();
+    }
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity, jpaEntityManager, session, databaseLogin, dynamicSubEntity);
@@ -396,13 +402,13 @@ public class DataStoreImplTest {
 
     entityManager.close();
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < 5000; ++i) {
       sb.append("A");
     }
     String longString = sb.toString();
 
-    expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity).once();
+    expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity).anyTimes();
 
     transaction.begin();
     expect(transaction.isActive()).andReturn(true).anyTimes();
@@ -470,7 +476,10 @@ public class DataStoreImplTest {
 
     dataStore.remove(new TestEntity(99, "foo", new TestSubEntity("bar")));
 
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    if ((entityClassCapture.getValue() != typeCapture.getValue().getJavaClass()) &&
+        (entityClassCapture.getValue() != typeCapture2.getValue().getJavaClass())) {
+      Assert.fail();
+    }
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper, transaction, schemaManager, dynamicEntity, jpaEntityManager, session, databaseLogin);
@@ -521,7 +530,11 @@ public class DataStoreImplTest {
 
     TestEntity entity = dataStore.find(TestEntity.class, 99);
 
-    Assert.assertEquals(entityClassCapture.getValue(), typeCapture.getValue().getJavaClass());
+    // Ensure the requested class type is one of the available types....
+    if ((entityClassCapture.getValue() != typeCapture.getValue().getJavaClass()) &&
+        (entityClassCapture.getValue() != typeCapture2.getValue().getJavaClass())) {
+      Assert.fail();
+    }
     Assert.assertEquals(99, (int) entity.getId());
     Assert.assertEquals("foo", entity.getName());
 
@@ -559,7 +572,7 @@ public class DataStoreImplTest {
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager).anyTimes();
     expect(entityManager.createQuery(
-      "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_id=99")).andReturn(query);
+        "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_id=99")).andReturn(query);
     entityManager.close();
 
     expect(query.getResultList()).andReturn(Collections.singletonList(dynamicEntity));
@@ -619,7 +632,7 @@ public class DataStoreImplTest {
 
     expect(entityManagerFactory.createEntityManager()).andReturn(entityManager).anyTimes();
     expect(entityManager.createQuery(
-      "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_name='foo'")).andReturn(query);
+        "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_name='foo'")).andReturn(query);
     entityManager.close();
 
     List<DynamicEntity> entityList = new LinkedList<DynamicEntity>();
@@ -646,7 +659,7 @@ public class DataStoreImplTest {
 
     // replay mocks
     replay(entityManagerFactory, entityManager, jpaDynamicHelper,
-      dynamicEntity1, dynamicEntity2, dynamicEntity3, query, schemaManager, jpaEntityManager, session, databaseLogin);
+        dynamicEntity1, dynamicEntity2, dynamicEntity3, query, schemaManager, jpaEntityManager, session, databaseLogin);
 
     DataStoreImpl dataStore = getDataStore(entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager);
 
@@ -660,14 +673,14 @@ public class DataStoreImplTest {
 
     // verify mocks
     verify(entityManagerFactory, entityManager, jpaDynamicHelper,
-      dynamicEntity1, dynamicEntity2, dynamicEntity3, query, schemaManager, jpaEntityManager, session, databaseLogin);
+        dynamicEntity1, dynamicEntity2, dynamicEntity3, query, schemaManager, jpaEntityManager, session, databaseLogin);
   }
 
   private DataStoreImpl getDataStore(EntityManagerFactory entityManagerFactory,
                                      JPADynamicHelper jpaDynamicHelper,
                                      DynamicClassLoader classLoader,
                                      SchemaManager schemaManager)
-    throws Exception {
+      throws Exception {
     ViewConfig viewConfig = ViewConfigTest.getConfig(xml);
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity(viewConfig);
 
@@ -677,7 +690,7 @@ public class DataStoreImplTest {
     setPersistenceEntities(viewInstanceEntity);
 
     Injector injector = Guice.createInjector(
-      new TestModule(viewInstanceEntity, entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager));
+        new TestModule(viewInstanceEntity, entityManagerFactory, jpaDynamicHelper, classLoader, schemaManager));
     return injector.getInstance(DataStoreImpl.class);
   }
 
@@ -709,13 +722,13 @@ public class DataStoreImplTest {
     public TestEntity() {
     }
 
-    public TestEntity(int id, String name, TestSubEntity subEntity) {
+    TestEntity(int id, String name, TestSubEntity subEntity) {
       this.id = id;
       this.name = name;
       this.subEntity = subEntity;
     }
 
-    public TestEntity(String name, TestSubEntity subEntity) {
+    TestEntity(String name, TestSubEntity subEntity) {
       this.name = name;
       this.subEntity = subEntity;
     }
@@ -756,11 +769,11 @@ public class DataStoreImplTest {
     public TestSubEntity() {
     }
 
-    public TestSubEntity(String name) {
+    TestSubEntity(String name) {
       this.name = name;
     }
 
-    public TestSubEntity(Integer id, String name) {
+    TestSubEntity(Integer id, String name) {
       this.id = id;
       this.name = name;
     }
@@ -794,27 +807,6 @@ public class DataStoreImplTest {
     }
 
     Integer id = null;
-    String f1;
-    String f2;
-    String f3;
-    String f4;
-    String f5;
-    String f6;
-    String f7;
-    String f8;
-    String f9;
-    String f10;
-    String f11;
-    String f12;
-    String f13;
-    String f14;
-    String f15;
-    String f16;
-    String f17;
-    String f18;
-    String f19;
-    String f20;
-    String f21;
 
     public Integer getId() {
       return id;
