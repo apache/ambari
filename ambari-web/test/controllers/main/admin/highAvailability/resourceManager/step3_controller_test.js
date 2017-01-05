@@ -374,19 +374,13 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
   });
 
   describe("#renderConfigs()", function () {
-    var serviceConfig = App.ServiceConfig.create({
-      serviceName: 'MISC',
-      displayName: 'MISC',
-      configCategories: [],
-      showConfig: true,
-      configs: []
-    });
 
     beforeEach(function() {
       sinon.stub(controller, 'renderConfigProperties');
       sinon.stub(App.Service, 'find').returns([Em.Object.create({
         serviceName: 'S1'
       })]);
+      controller.renderConfigs();
     });
 
     afterEach(function() {
@@ -395,22 +389,12 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
     });
 
     it("renderConfigProperties should be called", function() {
-      controller.renderConfigs();
-      expect(controller.renderConfigProperties.getCall(0).args[1]).to.be.eql(serviceConfig);
+      expect(controller.renderConfigProperties.getCall(0).args[1]).to.be.an('object').and.have.property('serviceName').equal('MISC');
     });
 
     it("App.ajax.send should be called", function() {
-      controller.renderConfigs();
       var args = testHelpers.findAjaxRequest('name', 'config.tags');
-      expect(args[0]).to.be.eql({
-        name: 'config.tags',
-        sender: controller,
-        success: 'loadConfigTagsSuccessCallback',
-        error: 'loadConfigsErrorCallback',
-        data: {
-          serviceConfig: serviceConfig
-        }
-      });
+      expect(args[0].data.serviceConfig).to.be.an('object').and.have.property('serviceName').equal('MISC');
     });
   });
 

@@ -158,6 +158,7 @@ App.ServiceConfig = Ember.Object.extend({
     this._super();
     this.set('dependentServiceNames', App.StackService.find(this.get('serviceName')).get('dependentServiceNames') || []);
     this.observeForeignKeys();
+    this.setActiveProperties();
   },
 
   hasConfigIssues: Em.computed.someBy('activeProperties', 'hasIssues', true)
