@@ -35,15 +35,18 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook, install_atlas_hook_packages, setup_atlas_jar_symlinks
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook, install_atlas_hook_packages, setup_atlas_jar_symlinks
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.constants import SERVICE
 from resource_management.core.logger import Logger
-
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 
 @OsFamilyFuncImpl(os_family = OsFamilyImpl.DEFAULT)
 def falcon(type, action = None, upgrade_type=None):
@@ -85,7 +88,7 @@ def falcon(type, action = None, upgrade_type=None):
       owner = params.falcon_user,
       group=params.user_group,
     )
-    
+
     PropertiesFile(params.falcon_conf_dir + '/client.properties',
       properties = params.falcon_client_properties,
       mode = 0644,
@@ -98,6 +101,12 @@ def falcon(type, action = None, upgrade_type=None):
 
     PropertiesFile(params.falcon_conf_dir + '/startup.properties',
       properties = params.falcon_startup_properties,
+      mode = 0644,
+      owner = params.falcon_user)
+
+    File(params.falcon_conf_dir + '/log4j.properties',
+      content = InlineTemplate(params.falcon_log4j),
+      group = params.user_group,
       mode = 0644,
       owner = params.falcon_user)
 

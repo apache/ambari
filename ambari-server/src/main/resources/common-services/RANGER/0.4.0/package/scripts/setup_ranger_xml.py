@@ -190,7 +190,7 @@ def setup_ranger_admin(upgrade_type=None):
     File(format('{ranger_home}/ews/webapp/WEB-INF/log4j.properties'),
       owner=params.unix_user,
       group=params.unix_group,
-      content=params.admin_log4j,
+      content=InlineTemplate(params.admin_log4j),
       mode=0644
     )
 
@@ -426,7 +426,7 @@ def setup_usersync(upgrade_type=None):
     File(format('{usersync_home}/conf/log4j.properties'),
       owner=params.unix_user,
       group=params.unix_group,
-      content=params.usersync_log4j,
+      content=InlineTemplate(params.usersync_log4j),
       mode=0644
     )
   elif upgrade_type is not None and not params.stack_supports_ranger_log4j:
@@ -558,7 +558,7 @@ def setup_tagsync(upgrade_type=None):
   File(format('{ranger_tagsync_conf}/log4j.properties'),
     owner=params.unix_user,
     group=params.unix_group,
-    content=params.tagsync_log4j,
+    content=InlineTemplate(params.tagsync_log4j),
     mode=0644
   )
 

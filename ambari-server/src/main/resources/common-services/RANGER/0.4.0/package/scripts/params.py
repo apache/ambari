@@ -265,6 +265,13 @@ tagsync_application_properties = dict(config["configurations"]["tagsync-applicat
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")
 
+ranger_usersync_log_maxfilesize = default('/configurations/usersync-log4j/ranger_usersync_log_maxfilesize',256) 
+ranger_usersync_log_maxbackupindex = default('/configurations/usersync-log4j/ranger_usersync_log_maxbackupindex',20)
+ranger_tagsync_log_maxfilesize = default('/configurations/tagsync-log4j/ranger_tagsync_log_maxfilesize',256)
+ranger_tagsync_log_number_of_backup_files = default('/configurations/tagsync-log4j/ranger_tagsync_log_number_of_backup_files',20)
+ranger_xa_log_maxfilesize = default('/configurations/admin-log4j/ranger_xa_log_maxfilesize',256)
+ranger_xa_log_maxbackupindex = default('/configurations/admin-log4j/ranger_xa_log_maxbackupindex',20)
+
 # ranger log4j.properties
 admin_log4j = config['configurations']['admin-log4j']['content']
 usersync_log4j = config['configurations']['usersync-log4j']['content']

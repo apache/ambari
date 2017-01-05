@@ -380,7 +380,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0644,
       owner = 'kms',
       group = 'kms',
-      content = self.getConfig()['configurations']['kms-log4j']['content']
+      content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
     )
 
   @patch("os.path.isfile")
@@ -712,7 +712,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0644,
       owner = 'kms',
       group = 'kms',
-      content = self.getConfig()['configurations']['kms-log4j']['content']
+      content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
     )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',

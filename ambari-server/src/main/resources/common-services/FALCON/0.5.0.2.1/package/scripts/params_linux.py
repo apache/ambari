@@ -114,6 +114,14 @@ falcon_client_properties = config['configurations']['falcon-client.properties']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 falcon_env_sh_template = config['configurations']['falcon-env']['content']
 
+#Log4j properties
+falcon_log_maxfilesize = default('/configurations/falcon-log4j/falcon_log_maxfilesize',256)
+falcon_log_maxbackupindex =  default('/configurations/falcon-log4j/falcon_log_maxbackupindex',20)
+falcon_security_log_maxfilesize = default('/configurations/falcon-log4j/falcon_security_log_maxfilesize',256)
+falcon_security_log_maxbackupindex = default('/configurations/falcon-log4j/falcon_security_log_maxbackupindex',20)
+
+falcon_log4j=config['configurations']['falcon-log4j']['content']
+
 falcon_apps_dir = config['configurations']['falcon-env']['falcon_apps_hdfs_dir']
 #for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
