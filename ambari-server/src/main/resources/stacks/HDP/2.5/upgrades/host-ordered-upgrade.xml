@@ -34,12 +34,6 @@
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
-      <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
-        <task xsi:type="execute" hosts="master">
-          <script>scripts/namenode.py</script>
-          <function>prepare_rolling_upgrade</function>
-        </task>
-      </execute-stage>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Check Tez Tarball">
         <task xsi:type="execute" hosts="any">
@@ -110,13 +104,6 @@
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize.</message>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
-        <task xsi:type="execute" hosts="master">
-          <script>scripts/namenode.py</script>
-          <function>finalize_rolling_upgrade</function>
         </task>
       </execute-stage>
 

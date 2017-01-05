@@ -19,6 +19,8 @@ limitations under the License.
 import os.path
 import time
 
+from ambari_commons import constants
+
 from resource_management.core import shell
 from resource_management.core.source import Template
 from resource_management.core.resources.system import File, Execute, Directory
@@ -119,18 +121,18 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         if not success:
           raise Fail("Could not bootstrap standby namenode")
 
-    if upgrade_type == "rolling" and params.dfs_ha_enabled:
+    if upgrade_type == constants.UPGRADE_TYPE_ROLLING and params.dfs_ha_enabled:
       # Most likely, ZKFC is up since RU will initiate the failover command. However, if that failed, it would have tried
       # to kill ZKFC manually, so we need to start it if not already running.
       safe_zkfc_op(action, env)
 
     options = ""
-    if upgrade_type == "rolling":
+    if upgrade_type == constants.UPGRADE_TYPE_ROLLING:
       if params.upgrade_direction == Direction.UPGRADE:
         options = "-rollingUpgrade started"
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
-    elif upgrade_type == "nonrolling":
+    elif upgrade_type == constants.UPGRADE_TYPE_NON_ROLLING:
       is_previous_image_dir = is_previous_fs_image()
       Logger.info("Previous file system image dir present is {0}".format(str(is_previous_image_dir)))
 
@@ -138,6 +140,9 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         options = "-rollingUpgrade started"
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
+    elif upgrade_type == constants.UPGRADE_TYPE_HOST_ORDERED:
+      # nothing special to do for HOU - should be very close to a normal restart
+      pass
     elif upgrade_type is None and upgrade_suspended is True:
       # the rollingUpgrade flag must be passed in during a suspended upgrade when starting NN
       if os.path.exists(namenode_upgrade.get_upgrade_in_progress_marker()):
@@ -193,7 +198,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
 
     # During an Express Upgrade, NameNode will not leave SafeMode until the DataNodes are started,
     # so always disable the Safemode check
-    if upgrade_type == "nonrolling":
+    if upgrade_type == constants.UPGRADE_TYPE_NON_ROLLING:
       ensure_safemode_off = False
 
     # some informative logging separate from the above logic to keep things a little cleaner
@@ -221,7 +226,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
   elif action == "stop":
     import params
     service(
-      action="stop", name="namenode", 
+      action="stop", name="namenode",
       user=params.hdfs_user
     )
   elif action == "status":
@@ -288,7 +293,7 @@ def create_hdfs_directories():
                        owner=params.smoke_user,
                        mode=params.smoke_hdfs_user_mode,
   )
-  params.HdfsResource(None, 
+  params.HdfsResource(None,
                       action="execute",
   )
 
@@ -355,15 +360,15 @@ def is_namenode_formatted(params):
     if os.path.isdir(mark_dir):
       marked = True
       Logger.info(format("{mark_dir} exists. Namenode DFS already formatted"))
-    
+
   # Ensure that all mark dirs created for all name directories
   if marked:
     for mark_dir in mark_dirs:
       Directory(mark_dir,
         create_parents = True
-      )      
-    return marked  
-  
+      )
+    return marked
+
   # Move all old format markers to new place
   for old_mark_dir in old_mark_dirs:
     if os.path.isdir(old_mark_dir):
@@ -374,7 +379,7 @@ def is_namenode_formatted(params):
         marked = True
       Directory(old_mark_dir,
         action = "delete"
-      )    
+      )
     elif os.path.isfile(old_mark_dir):
       for mark_dir in mark_dirs:
         Directory(mark_dir,
@@ -384,7 +389,7 @@ def is_namenode_formatted(params):
         action = "delete"
       )
       marked = True
-      
+
   if marked:
     return True
 
@@ -403,7 +408,7 @@ def is_namenode_formatted(params):
     except Fail:
       Logger.info(format("NameNode will not be formatted since {name_dir} exists and contains content"))
       return True
-       
+
   return False
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -414,13 +419,13 @@ def decommission():
   conf_dir = params.hadoop_conf_dir
   user_group = params.user_group
   nn_kinit_cmd = params.nn_kinit_cmd
-  
+
   File(params.exclude_file_path,
        content=Template("exclude_hosts_list.j2"),
        owner=hdfs_user,
        group=user_group
   )
-  
+
   if not params.update_exclude_file_only:
     Execute(nn_kinit_cmd,
             user=hdfs_user

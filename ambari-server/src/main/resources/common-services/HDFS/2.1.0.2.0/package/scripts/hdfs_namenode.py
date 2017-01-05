@@ -19,6 +19,8 @@ limitations under the License.
 import os.path
 import time
 
+from ambari_commons import constants
+
 from resource_management.core import shell
 from resource_management.core.source import Template
 from resource_management.core.resources.system import File, Execute, Directory
@@ -120,18 +122,18 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         if not success:
           raise Fail("Could not bootstrap standby namenode")
 
-    if upgrade_type == "rolling" and params.dfs_ha_enabled:
+    if upgrade_type == constants.UPGRADE_TYPE_ROLLING and params.dfs_ha_enabled:
       # Most likely, ZKFC is up since RU will initiate the failover command. However, if that failed, it would have tried
       # to kill ZKFC manually, so we need to start it if not already running.
       safe_zkfc_op(action, env)
 
     options = ""
-    if upgrade_type == "rolling":
+    if upgrade_type == constants.UPGRADE_TYPE_ROLLING:
       if params.upgrade_direction == Direction.UPGRADE:
         options = "-rollingUpgrade started"
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
-    elif upgrade_type == "nonrolling":
+    elif upgrade_type == constants.UPGRADE_TYPE_NON_ROLLING:
       is_previous_image_dir = is_previous_fs_image()
       Logger.info("Previous file system image dir present is {0}".format(str(is_previous_image_dir)))
 
@@ -139,6 +141,9 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
         options = "-rollingUpgrade started"
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
+    elif upgrade_type == constants.UPGRADE_TYPE_HOST_ORDERED:
+      # nothing special to do for HOU - should be very close to a normal restart
+      pass
     elif upgrade_type is None and upgrade_suspended is True:
       # the rollingUpgrade flag must be passed in during a suspended upgrade when starting NN
       if os.path.exists(namenode_upgrade.get_upgrade_in_progress_marker()):
@@ -194,7 +199,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
 
     # During an Express Upgrade, NameNode will not leave SafeMode until the DataNodes are started,
     # so always disable the Safemode check
-    if upgrade_type == "nonrolling":
+    if upgrade_type == constants.UPGRADE_TYPE_NON_ROLLING:
       ensure_safemode_off = False
 
     # some informative logging separate from the above logic to keep things a little cleaner
