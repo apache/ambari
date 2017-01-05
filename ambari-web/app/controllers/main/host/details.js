@@ -923,10 +923,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             fileName: fileName,
             name: propertyName,
             value: currentValue
-          };
-        var configProperty = initializer.initialValue(propertyDef, hostComponentsTopology, dependencies);
+          },
+          configProperty = initializer.initialValue(propertyDef, hostComponentsTopology, dependencies);
         initializer.updateSiteObj(configs[fileName], configProperty);
-        if (this.get('isReconfigureRequired') && currentValue !== propertyDef.value) {
+        if (this.get('isReconfigureRequired') && currentValue !== configs[fileName][propertyName]) {
           var service = App.config.get('serviceByConfigTypeMap')[fileName];
           propertiesToChange.pushObject({
             propertyFileName: fileName,
@@ -1101,9 +1101,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
               fileName: fileName,
               name: propertyName,
               value: currentValue
-            };
-          configs[fileName][propertyName] = Em.get(initializer.initialValue(propertyDef, localDB, dependencies), 'value');
-          if (this.get('isReconfigureRequired') && propertyDef.value !== currentValue) {
+            },
+            configProperty = initializer.initialValue(propertyDef, localDB, dependencies);
+          initializer.updateSiteObj(configs[fileName], configProperty);
+          if (this.get('isReconfigureRequired') && currentValue !== configs[fileName][propertyName]) {
             var service = App.config.get('serviceByConfigTypeMap')[fileName];
             propertiesToChange.pushObject({
               propertyFileName: fileName,
@@ -1286,50 +1287,55 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   onLoadRangerConfigs: function (data) {
     var properties = [
-      {
-        type: 'core-site',
-        name: 'hadoop.security.key.provider.path'
-      },
-      {
-        type: 'hdfs-site',
-        name: 'dfs.encryption.key.provider.uri'
-      }
-    ];
-    var hostToInstall = this.get('rangerKMSServerHost');
-    var rkmsHosts = this.getRangerKMSServerHosts();
-    var rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'];
-    var newValue = 'kms://http@' + rkmsHosts.join(';') + ':' + rkmsPort + '/kms';
-    var coreSiteConfigs = data.items.findProperty('type', 'core-site');
-    var hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site');
-    var groups = [
-      {
-        properties: {
-          'core-site': coreSiteConfigs.properties,
-          'hdfs-site': hdfsSiteConfigs.properties
+        {
+          type: 'core-site',
+          name: 'hadoop.security.key.provider.path'
         },
-        properties_attributes: {
-          'core-site': coreSiteConfigs.properties_attributes,
-          'hdfs-site': hdfsSiteConfigs.properties_attributes
+        {
+          type: 'hdfs-site',
+          name: 'dfs.encryption.key.provider.uri'
         }
-      }
-    ];
-    var propertiesToChange = this.get('allPropertiesToChange');
+      ],
+      hostToInstall = this.get('rangerKMSServerHost'),
+      rkmsHosts = this.getRangerKMSServerHosts().join(';'),
+      rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'],
+      newValue = 'kms://http@' + rkmsHosts + ':' + rkmsPort + '/kms',
+      coreSiteConfigs = data.items.findProperty('type', 'core-site'),
+      hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site'),
+      groups = [
+        {
+          properties: {
+            'core-site': coreSiteConfigs.properties,
+            'hdfs-site': hdfsSiteConfigs.properties
+          },
+          properties_attributes: {
+            'core-site': coreSiteConfigs.properties_attributes,
+            'hdfs-site': hdfsSiteConfigs.properties_attributes
+          }
+        }
+      ],
+      propertiesToChange = this.get('allPropertiesToChange');
 
     properties.forEach(function (property) {
       var typeConfigs = data.items.findProperty('type', property.type).properties,
-        currentValue = typeConfigs[property.name];
-      if (this.get('isReconfigureRequired') && currentValue !== newValue) {
-        var service = App.config.get('serviceByConfigTypeMap')[property.type];
-        propertiesToChange.pushObject({
-          propertyFileName: property.type,
-          propertyName: property.name,
-          serviceDisplayName: service && service.get('displayName'),
-          initialValue: currentValue,
-          recommendedValue: newValue,
-          saveRecommended: true
-        });
+        currentValue = typeConfigs[property.name],
+        pattern = new RegExp('^kms:\\/\\/http@(.+):' + rkmsPort + '\\/kms$'),
+        patternMatch = currentValue && currentValue.match(pattern),
+        currentHostsList = patternMatch && patternMatch[1].split(';').sort().join(';');
+      if (currentHostsList !== rkmsHosts) {
+        typeConfigs[property.name] = newValue;
+        if (this.get('isReconfigureRequired')) {
+          var service = App.config.get('serviceByConfigTypeMap')[property.type];
+          propertiesToChange.pushObject({
+            propertyFileName: property.type,
+            propertyName: property.name,
+            serviceDisplayName: service && service.get('displayName'),
+            initialValue: currentValue,
+            recommendedValue: newValue,
+            saveRecommended: true
+          });
+        }
       }
-      typeConfigs[property.name] = newValue;
     }, this);
     if (this.get('isReconfigureRequired')) {
       this.setConfigsChanges(groups);
