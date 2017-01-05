@@ -1,7 +1,7 @@
 {
   "services": [
     {
-      "name": "SPARK",
+      "name": "SPARK2",
       "identities": [
         {
           "name": "/smokeuser"
