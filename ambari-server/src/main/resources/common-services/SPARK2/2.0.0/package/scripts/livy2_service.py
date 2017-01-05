@@ -23,24 +23,25 @@ from resource_management.core.resources.system import File, Execute
 import threading
 
 def livy2_service(name, upgrade_type=None, action=None):
-    import params
+  import params
 
-    if action == 'start':
-        livyserver_no_op_test = format(
-            'ls {livy2_server_pid_file} >/dev/null 2>&1 && ps -p `cat {livy2_server_pid_file}` >/dev/null 2>&1')
-        Execute(format('{livy2_server_start}'),
-                user=params.livy2_user,
-                environment={'JAVA_HOME': params.java_home},
-                not_if=livyserver_no_op_test)
+  if action == 'start':
+    livyserver_no_op_test = format(
+      'ls {livy2_server_pid_file} >/dev/null 2>&1 && ps -p `cat {livy2_server_pid_file}` >/dev/null 2>&1')
+    Execute(format('{livy2_server_start}'),
+            user=params.livy2_user,
+            environment={'JAVA_HOME': params.java_home},
+            not_if=livyserver_no_op_test
+    )
 
-    elif action == 'stop':
-        Execute(format('{livy2_server_stop}'),
-                user=params.livy2_user,
-                environment={'JAVA_HOME': params.java_home}
-                )
-        File(params.livy2_server_pid_file,
-             action="delete"
-             )
+  elif action == 'stop':
+    Execute(format('{livy2_server_stop}'),
+            user=params.livy2_user,
+            environment={'JAVA_HOME': params.java_home}
+            )
+    File(params.livy2_server_pid_file,
+        action="delete"
+        )
 
 
 
