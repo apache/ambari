@@ -21,10 +21,10 @@ import CommonUtils from "../../utils/common-utils";
 
 var BundleXmlImporter= Ember.Object.extend({
   x2js : new X2JS(),
-  schemaVersions : null,
-  importBundle (xml, errors){
+  schemaVersions : SchemaVersions.create({}),
+  importBundle (xml){
     var bundleJson = this.get("x2js").xml_str2json(xml);
-    return this.processBundleXML(bundleJson, errors);
+    return this.processBundleXML(bundleJson);
   },
   processBundleXML(bundleJson){
     var errors=Ember.A([]);
@@ -36,16 +36,18 @@ var BundleXmlImporter= Ember.Object.extend({
         type : 'date'
       },
       coordinators : Ember.A([]),
-      schemaVersions : this.get("schemaVersions")
+      schemaVersions : {
+        bundleVersion : this.get("schemaVersions").getDefaultVersion('bundle')
+      }
     });
     var bundleApp=bundleJson["bundle-app"];
     bundle.name = bundleApp._name;
     var bundleVersion=CommonUtils.extractSchemaVersion(bundleApp._xmlns);
-    var maxBundleVersion = Math.max.apply(Math, bundle.schemaVersions.getBundleVersions());
-    if (bundleVersion < maxBundleVersion) {
-      bundle.schemaVersions.setCurrentBundleVersion(bundleVersion);
-    } else {
+    var maxBundleVersion = Math.max.apply(Math, this.get('schemaVersions').getSupportedVersions('bundle'));
+    if (bundleVersion > maxBundleVersion) {
       errors.push({message: "Unsupported bundle version - " + bundleVersion});
+    } else {
+      bundle.schemaVersions.bundleVersion = bundleVersion;
     }
     if(bundleApp.control && bundleApp.control["kick-off-time"]) {
       bundle.kickOffTime = this.extractDateField(bundleApp["control"]["kick-off-time"]);

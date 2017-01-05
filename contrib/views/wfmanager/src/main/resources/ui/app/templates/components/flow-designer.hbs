@@ -402,7 +402,7 @@
   {{#workflow-sla showWorkflowSla="showWorkflowSla" workflowSla=workflow.sla workflowSlaEnabled=workflow.slaEnabled}}{{/workflow-sla}}
 {{/if}}
 {{#if showVersionSettings}}
-  {{version-settings schemaVersions=workflow.schemaVersions showVersionSettings="showVersionSettings" }}
+  {{version-settings showVersionSettings="showVersionSettings" workflow=workflow}}
 {{/if}}
 {{#if showCredentials}}
   {{#workflow-credentials showCredentials="showCredentials" workflowCredentials=workflow.credentials}}{{/workflow-credentials}}

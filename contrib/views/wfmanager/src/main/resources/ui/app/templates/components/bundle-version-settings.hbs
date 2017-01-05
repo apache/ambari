@@ -27,9 +27,9 @@
           <div class="form-group">
             <label class="control-label col-xs-3"> Bundle Version</label>
             <div class="col-xs-7">
-              <select onchange={{action (mut currentBundleVersion) value="target.value"}} name="select-version" class="form-control">
+              <select onchange={{action (mut selectedBundleVersion) value="target.value"}} name="select-version" class="form-control">
                 {{#each bundleSchemaVersions as |version index|}}
-                  <option value={{version}} selected={{eq currentBundleVersion version}}>{{version}}</option>
+                  <option value={{version}} selected={{eq selectedBundleVersion version}}>{{version}}</option>
                 {{/each}}
               </select>
             </div>

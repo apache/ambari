@@ -17,16 +17,14 @@
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
+import SchemaVersions from '../domain/schema-versions';
 
 export default Ember.Component.extend({
+  schemaVersions : SchemaVersions.create({}),
   initialize : function(){
-    this.set('currentCoordinatorVersion', this.get('schemaVersions').getCurrentCoordinatorVersion());
-    this.set('coordinatorSchemaVersions', this.get('schemaVersions').getCoordinatorVersions());
-    this.get('schemaVersions').createCopy();
+    this.set('coordinatorSchemaVersions', this.get('schemaVersions').getSupportedVersions('coordinator'));
+    this.set('selectedCoordinatorVersion', this.get('coordinator').schemaVersions.coordinatorVersion);
   }.on('init'),
-  CoordinatorVersionObserver : Ember.observer('currentCoordinatorVersion',function(){
-    this.get('schemaVersions').setCurrentCoordinatorVersion(this.get('currentCoordinatorVersion'));
-  }),
   rendered : function(){
     this.$('#version-settings-dialog').modal({
       backdrop: 'static',
@@ -39,10 +37,10 @@ export default Ember.Component.extend({
   }.on('didInsertElement'),
   actions : {
     save (){
+      this.get('coordinator').schemaVersions.coordinatorVersion = this.get('selectedCoordinatorVersion');
       this.$('#version-settings-dialog').modal('hide');
     },
     cancel (){
-      this.get('schemaVersions').rollBack();
       this.$('#version-settings-dialog').modal('hide');
     }
   }

@@ -17,16 +17,14 @@
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
+import SchemaVersions from '../domain/schema-versions';
 
 export default Ember.Component.extend({
+  schemaVersions : SchemaVersions.create({}),
   initialize : function(){
-    this.set('currentBundleVersion', this.get('schemaVersions').getCurrentBundleVersion());
-    this.set('bundleSchemaVersions', this.get('schemaVersions').getBundleVersions());
-    this.get('schemaVersions').createCopy();
+    this.set('bundleSchemaVersions', this.get('schemaVersions').getSupportedVersions('bundle'));
+    this.set('selectedBundleVersion', this.get('bundle').schemaVersions.bundleVersion);
   }.on('init'),
-  BundleVersionObserver : Ember.observer('currentBundleVersion',function(){
-    this.get('schemaVersions').setCurrentBundleVersion(this.get('currentBundleVersion'));
-  }),
   rendered : function(){
     this.$('#version-settings-dialog').modal({
       backdrop: 'static',
@@ -39,10 +37,10 @@ export default Ember.Component.extend({
   }.on('didInsertElement'),
   actions : {
     save (){
+      this.get('bundle').schemaVersions.bundleVersion = this.get('selectedBundleVersion');
       this.$('#version-settings-dialog').modal('hide');
     },
     cancel (){
-      this.get('schemaVersions').rollBack();
       this.$('#version-settings-dialog').modal('hide');
     }
   }

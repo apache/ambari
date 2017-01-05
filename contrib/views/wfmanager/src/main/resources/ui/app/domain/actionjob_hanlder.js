@@ -33,7 +33,7 @@ var ActionJobHandler=Ember.Object.extend(MappingMixin,{
     var actionObj={};
     nodeObj[this.get("actionType")]=actionObj;
     if (this.get("nameSpace")){
-      var schemaVersion=this.schemaVersions.getActionVersion(this.get("actionType"));
+      var schemaVersion=this.schemaVersions.actionVersions.get(this.get("actionType"));
       if (this.get("nameSpace")){
         var schema=this.get("nameSpace");
         if (schemaVersion){

@@ -329,7 +329,7 @@ okBtnText="Continue" cancelBtnText="Cancel" onOk="resetCoordinator"}}{{/confirma
 {{#workflow-parameters type='coord' closeWorkFlowParam="closeWorkFlowParam" saveWorkFlowParam="saveWorkFlowParam" parameters=parameters}}{{/workflow-parameters}}
 {{/if}}
 {{#if showVersionSettings}}
-  {{coord-version-settings schemaVersions=coordinator.schemaVersions showVersionSettings="showVersionSettings" }}
+  {{coord-version-settings coordinator=coordinator showVersionSettings="showVersionSettings" }}
 {{/if}}
 {{#if showControlConfig}}
 <div id="control-dialog" class="modal fade" role="dialog">
