@@ -39,7 +39,7 @@ public class MigrationResponse implements Serializable,PersonalResource{
   private String intanceName="";
   private String userNameofhue="";
   private int totalNoQuery;
-  private int ProgressPercentage;
+  private int progressPercentage;
   private String owner = "";
   private String totalTimeTaken="";
   private String jobtype="";
@@ -126,11 +126,11 @@ public class MigrationResponse implements Serializable,PersonalResource{
 
 
   public int getProgressPercentage() {
-    return ProgressPercentage;
+    return progressPercentage;
   }
 
   public void setProgressPercentage(int progressPercentage) {
-    ProgressPercentage = progressPercentage;
+    this.progressPercentage = progressPercentage;
   }
 
   public String getOwner() {
