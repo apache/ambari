@@ -53,7 +53,10 @@ export default Ember.Component.extend({
     this.set("alertMessage",data.message);
   },
   actions: {
-    viewerError() {
+    viewerError(error) {
+      if (error.responseJSON && error.responseJSON.message && error.responseJSON.message.includes("Permission")) {
+        this.showNotification({"type": "error", "message": "Permission denied"});
+      }
     },
     createFolder(){
       var self=this;
