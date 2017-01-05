@@ -38,6 +38,9 @@ export default Ember.Component.extend(Validations, {
       this.set("actionModel.configuration", {});
       this.set("actionModel.configuration.property", Ember.A([]));
     }
+    if(this.get('actionModel.jobXml') === undefined){
+      this.set("actionModel.jobXml", Ember.A([]));
+    }
     var field = 'validations.attrs.actionModel.fsOps.isInvalid';
     this.set(field, false);
     this.sendAction('register', 'fsAction', this);
