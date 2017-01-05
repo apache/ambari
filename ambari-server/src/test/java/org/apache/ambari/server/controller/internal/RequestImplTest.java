@@ -128,8 +128,8 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/component_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/cluster_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/state"));
-    Assert.assertTrue(validPropertyIds.contains("ServiceComponents/display_name"));
-    Assert.assertTrue(validPropertyIds.contains("ServiceComponents/description"));
+    Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/display_name"));
+    Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/description"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Action));

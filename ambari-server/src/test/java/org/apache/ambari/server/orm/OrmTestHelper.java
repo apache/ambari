@@ -622,6 +622,7 @@ public class OrmTestHelper {
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
             String.valueOf(System.currentTimeMillis()), "");
       } catch (Exception ex) {
+        ex.printStackTrace();
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }

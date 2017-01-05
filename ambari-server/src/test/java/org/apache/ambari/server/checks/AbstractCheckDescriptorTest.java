@@ -49,8 +49,6 @@ import org.junit.Test;
 
 import com.google.inject.Provider;
 
-import junit.framework.Assert;
-
 /**
  * Unit tests for AbstractCheckDescriptor
  */

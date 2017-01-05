@@ -207,4 +207,24 @@ public class HostComponentStateDAO {
 
     em.clear();
   }
+
+  /**
+   * @param serviceName
+   * @param componentName
+   * @param version
+   * @return a list of host components whose version that does NOT match the give version
+   */
+  @RequiresSession
+  public List<HostComponentStateEntity> findByServiceAndComponentAndNotVersion(String serviceName,
+      String componentName, String version) {
+
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostComponentStateEntity.findByServiceAndComponentAndNotVersion", HostComponentStateEntity.class);
+
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("version", version);
+
+    return daoUtils.selectList(query);
+  }
 }

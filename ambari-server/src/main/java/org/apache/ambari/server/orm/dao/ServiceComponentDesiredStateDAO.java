@@ -199,4 +199,20 @@ public class ServiceComponentDesiredStateDAO {
     return daoUtils.selectList(query);
   }
 
+  @RequiresSession
+  public ServiceComponentVersionEntity findVersion(long clusterId, String serviceName,
+      String componentName, String version) {
+
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<ServiceComponentVersionEntity> query = entityManager.createNamedQuery(
+        "ServiceComponentVersionEntity.findByComponentAndVersion", ServiceComponentVersionEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+    query.setParameter("repoVersion", version);
+
+    return daoUtils.selectSingle(query);
+  }
+
 }

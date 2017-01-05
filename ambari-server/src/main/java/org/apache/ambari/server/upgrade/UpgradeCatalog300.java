@@ -19,8 +19,6 @@ package org.apache.ambari.server.upgrade;
 
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -30,6 +28,7 @@ import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +86,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    addServiceComponentColumn();
   }
 
   /**
@@ -123,6 +123,17 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     }
+
+  }
+
+  /**
+   * Updates the {@code servicecomponentdesiredstate} table.
+   *
+   * @throws SQLException
+   */
+  protected void addServiceComponentColumn() throws SQLException {
+    dbAccessor.addColumn(UpgradeCatalog250.COMPONENT_TABLE,
+        new DBColumnInfo("repo_state", String.class, 255, RepositoryVersionState.INIT.name(), false));
 
   }
 }

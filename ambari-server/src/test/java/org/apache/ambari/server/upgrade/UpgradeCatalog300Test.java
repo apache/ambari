@@ -17,39 +17,13 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import javax.persistence.EntityManager;
-
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.Capture;
-import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
 
 public class UpgradeCatalog300Test {
 
@@ -67,10 +41,28 @@ public class UpgradeCatalog300Test {
     upgradeCatalog300.addNewConfigurationsFromXml();
     upgradeCatalog300.showHcatDeletedUserMessage();
 
-
     replay(upgradeCatalog300);
 
     upgradeCatalog300.executeDMLUpdates();
+
+    verify(upgradeCatalog300);
+  }
+
+  @Test
+  public void testExecuteDDLUpdates() throws Exception {
+
+    Method addServiceComponentColumn = UpgradeCatalog300.class
+        .getDeclaredMethod("addServiceComponentColumn");
+
+    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
+        .addMockedMethod(addServiceComponentColumn)
+        .createMock();
+
+    upgradeCatalog300.addServiceComponentColumn();
+
+    replay(upgradeCatalog300);
+
+    upgradeCatalog300.executeDDLUpdates();
 
     verify(upgradeCatalog300);
   }

@@ -67,7 +67,12 @@ import com.google.common.base.Objects;
         query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostEntity.hostName=:hostName"),
     @NamedQuery(
         name = "HostComponentStateEntity.findByIndex",
-        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId AND hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostId=:hostId") })
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.clusterId=:clusterId AND hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.hostId=:hostId"),
+    @NamedQuery(
+        name = "HostComponentStateEntity.findByServiceAndComponentAndNotVersion",
+        query = "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.serviceName=:serviceName AND hcs.componentName=:componentName AND hcs.version != :version")
+})
+
 public class HostComponentStateEntity {
 
   @Id
