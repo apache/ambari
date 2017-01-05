@@ -25,38 +25,38 @@
     <name>logfeeder_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Logfeeder Log: backup file size</display-name>
+    <display-name>Log Feeder Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+  </property>
+  <property>
     <name>logfeeder_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Logfeeder Log: # of backup files</display-name>
+    <display-name>Log Feeder Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-   <property>
+  <property>
     <name>logfeeder_json_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Logfeeder Json Log: backup file size</display-name>
+    <display-name>Log Feeder Json Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+  </property>
+  <property>
     <name>logfeeder_json_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Logfeeder Json Log: # of backup files</display-name>
+    <display-name>Log Feeder Json Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -66,7 +66,7 @@
   <property>
     <name>content</name>
     <display-name>logfeeder-log4j template</display-name>
-    <description>This is the jinja template for log4j.xml file for logfeeder</description>
+    <description>This is the jinja template for log4j.xml file for Log Feeder</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>

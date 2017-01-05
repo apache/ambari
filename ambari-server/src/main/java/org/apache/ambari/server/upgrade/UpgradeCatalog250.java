@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -158,6 +159,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
     updateAtlasConfigs();
+    updateLogSearchConfigs();
     addManageServiceAutoStartPermissions();
   }
 
@@ -593,6 +595,84 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
   }
 
+  /**
+   * Updates Log Search configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateLogSearchConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
+          if (logSearchProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("logsearch.auth.external_auth.enabled", logSearchProperties.getProperties().get("logsearch.external.auth.enabled"));
+            newProperties.put("logsearch.auth.external_auth.host_url", logSearchProperties.getProperties().get("logsearch.external.auth.host_url"));
+            newProperties.put("logsearch.auth.external_auth.login_url", logSearchProperties.getProperties().get("logsearch.external.auth.login_url"));
+            
+            Set<String> removeProperties = new HashSet<>();
+            removeProperties.add("logsearch.external.auth.enabled");
+            removeProperties.add("logsearch.external.auth.host_url");
+            removeProperties.add("logsearch.external.auth.login_url");
+            
+            updateConfigurationPropertiesForCluster(cluster, "logsearch-properties", newProperties, removeProperties, true, true);
+          }
+          
+          Config logfeederEnvProperties = cluster.getDesiredConfigByType("logfeeder-env");
+          if (logfeederEnvProperties != null) {
+            String content = logfeederEnvProperties.getProperties().get("content");
+            if (content.contains("infra_solr_ssl_enabled")) {
+              content = content.replace("infra_solr_ssl_enabled", "logsearch_solr_ssl_enabled");
+              updateConfigurationPropertiesForCluster(cluster, "logfeeder-env", Collections.singletonMap("content", content), true, true);
+            }
+          }
+          
+          Config logsearchEnvProperties = cluster.getDesiredConfigByType("logsearch-env");
+          if (logsearchEnvProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            String content = logsearchEnvProperties.getProperties().get("content");
+            if (content.contains("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'")) {
+              content = content.replace("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'",
+                  "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl");
+            }
+            if (content.contains("infra_solr_ssl_enabled")) {
+              content = content.replace("infra_solr_ssl_enabled", "logsearch_solr_ssl_enabled");
+            }
+            if (!content.equals(logsearchEnvProperties.getProperties().get("content"))) {
+              newProperties.put("content", content);
+            }
+            
+            Set<String> removeProperties = new HashSet<>();
+            removeProperties.add("logsearch_solr_audit_logs_use_ranger");
+            removeProperties.add("logsearch_solr_audit_logs_zk_node");
+            removeProperties.add("logsearch_solr_audit_logs_zk_quorum");
+            
+            updateConfigurationPropertiesForCluster(cluster, "logsearch-env", newProperties, removeProperties, true, true);
+          }
+          
+          Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
+          if (logsearchLog4jProperties != null) {
+            String content = logsearchLog4jProperties.getProperties().get("content");
+            if (content.contains("{{logsearch_log_dir}}/logsearch.err")) {
+              content = content.replace("{{logsearch_log_dir}}/logsearch.err", "{{logsearch_log_dir}}/logsearch.log");
+            }
+            if (content.contains("<priority value=\"warn\"/>")) {
+              content = content.replace("<priority value=\"warn\"/>", "<priority value=\"info\"/>");
+            }
+            if (!content.equals(logsearchLog4jProperties.getProperties().get("content"))) {
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
+            }
+          }
+        }
+      }
+    }
+  }
+  
   /**
    * Add permissions for managing service auto-start.
    * <p>

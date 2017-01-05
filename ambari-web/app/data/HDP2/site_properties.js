@@ -1979,11 +1979,39 @@ var hdp2properties = [
   },
   /*logfeeder-log4j*/
   {
-    "name": "content",
+    "name": "logfeeder_log_maxfilesize",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-log4j.xml",
     "category": "Advanced logfeeder-log4j",
     "index": 1
+  },
+  {
+    "name": "logfeeder_log_maxbackupindex",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-log4j.xml",
+    "category": "Advanced logfeeder-log4j",
+    "index": 2
+  },
+  {
+    "name": "logfeeder_json_log_maxfilesize",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-log4j.xml",
+    "category": "Advanced logfeeder-log4j",
+    "index": 3
+  },
+  {
+    "name": "logfeeder_json_log_maxbackupindex",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-log4j.xml",
+    "category": "Advanced logfeeder-log4j",
+    "index": 4
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-log4j.xml",
+    "category": "Advanced logfeeder-log4j",
+    "index": 5
   },
   /*logsearch-admin-json*/
   {
@@ -2144,11 +2172,67 @@ var hdp2properties = [
   },
   /*logsearch-log4j*/
   {
-    "name": "content",
+    "name": "logsearch_log_maxfilesize",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-log4j.xml",
     "category": "Advanced logsearch-log4j",
     "index": 1
+  },
+  {
+    "name": "logsearch_log_maxbackupindex",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 2
+  },
+  {
+    "name": "logsearch_json_log_maxfilesize",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 3
+  },
+  {
+    "name": "logsearch_json_log_maxbackupindex",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 4
+  },
+  {
+    "name": "logsearch_audit_log_maxfilesize",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 5
+  },
+  {
+    "name": "logsearch_audit_log_maxbackupindex",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 6
+  },
+  {
+    "name": "logsearch_perf_log_maxfilesize",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 7
+  },
+  {
+    "name": "logsearch_perf_log_maxbackupindex",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 8
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-log4j.xml",
+    "category": "Advanced logsearch-log4j",
+    "index": 9
   },
   /*logsearch-service_logs-solrconfig*/
   {

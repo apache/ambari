@@ -22,84 +22,84 @@
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
   <!-- log4j.xml -->
-   <property>
+  <property>
     <name>logsearch_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Logsearch Log: backup file size</display-name>
+    <display-name>Log Search Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+  </property>
+  <property>
     <name>logsearch_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Logsearch Log: # of backup files</display-name>
+    <display-name>Log Search Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-   <property>
+  <property>
     <name>logsearch_json_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Logsearch Json Log: backup file size</display-name>
+    <display-name>Log Search Json Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+  </property>
+  <property>
     <name>logsearch_json_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Logsearch Json Log: # of backup files</display-name>
+    <display-name>Log Search Json Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-   <property>
+  <property>
     <name>logsearch_audit_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Logsearch Audit Log: backup file size</display-name>
+    <display-name>Log Search Audit Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+  </property>
+  <property>
     <name>logsearch_audit_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Logsearch Audit Log: # of backup files</display-name>
+    <display-name>Log Search Audit Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
- <property>
+  <property>
     <name>logsearch_perf_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Logsearch Performance Log: backup file size</display-name>
+    <display-name>Log Search Performance Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+  </property>
+  <property>
     <name>logsearch_perf_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Logsearch Performance Log: # of backup files</display-name>
+    <display-name>Log Search Performance Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -109,7 +109,7 @@
   <property>
     <name>content</name>
     <display-name>logsearch-log4j template</display-name>
-    <description>This is the jinja template for log4j.xml file for logsearch server</description>
+    <description>This is the jinja template for log4j.xml file for Log Search server</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>

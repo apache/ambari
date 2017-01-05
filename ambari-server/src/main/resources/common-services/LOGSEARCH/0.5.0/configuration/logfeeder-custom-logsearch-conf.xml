@@ -23,7 +23,7 @@
   <property>
     <name>service_component_mappings</name>
     <display-name>Service Component mapping</display-name>
-    <description>Logsearch service component logid mapping list (e.g.: SERVICE1=S1_COMPONENT1:logid1,logid2;S1_COMPONENT2:logid3|SERVICE2=...)</description>
+    <description>Log Search service component logid mapping list (e.g.: SERVICE1=S1_COMPONENT1:logid1,logid2;S1_COMPONENT2:logid3|SERVICE2=...)</description>
     <value></value>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -32,8 +32,8 @@
   </property>
   <property>
     <name>content</name>
-    <display-name>Logfeeder Config</display-name>
-    <description>Metadata jinja template for Logfeeder which contains grok patterns for reading service specific logs.</description>
+    <display-name>Log Feeder Config</display-name>
+    <description>Metadata jinja template for Log Feeder which contains grok patterns for reading service specific logs.</description>
     <value>
     </value>
     <value-attributes>
