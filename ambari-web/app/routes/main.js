@@ -557,6 +557,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     adminServiceAutoStart: Em.Route.extend({
       route: '/serviceAutoStart',
+      enter: function(router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "serviceAutoStart");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
