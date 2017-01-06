@@ -1507,6 +1507,60 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
     self.assertEquals(configurations, expected)
 
+    hosts = {
+      "items": [
+        {
+          "href": "/api/v1/hosts/host1",
+          "Hosts": {
+            "cpu_count": 1,
+            "host_name": "c6401.ambari.apache.org",
+            "os_arch": "x86_64",
+            "os_type": "centos6",
+            "ph_cpu_count": 1,
+            "public_host_name": "public.c6401.ambari.apache.org",
+            "rack_info": "/default-rack",
+            "total_mem": 2097152,
+            "disk_info": [{
+              "available" : "21039512",
+              "device" : "/dev/vda1",
+              "used" : "3316924",
+              "percent" : "14%",
+              "size" : "25666616",
+              "type" : "ext4",
+              "mountpoint" : "/"
+            },
+              {
+                "available" : "244732200",
+                "device" : "/dev/vdb",
+                "used" : "60508",
+                "percent" : "1%",
+                "size" : "257899908",
+                "type" : "ext4",
+                "mountpoint" : "/grid/0"
+              }]
+          }
+        }
+      ]}
+
+    expected["hdfs-site"] = {
+      'properties': {
+        'dfs.datanode.du.reserved': '33011188224',
+        'dfs.internal.nameservices': 'mycluster',
+        'dfs.ha.namenodes.mycluster': 'nn1,nn2',
+        'dfs.datanode.data.dir': '/hadoop/hdfs/data,/grid/0/hadoop/hdfs/data',
+        'dfs.namenode.name.dir': '/hadoop/hdfs/namenode,/grid/0/hadoop/hdfs/namenode',
+        'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
+      },
+      'property_attributes': {
+        'dfs.namenode.rpc-address': {
+          'delete': 'true'
+        }
+      }
+    }
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
+    self.assertEquals(configurations, expected)
+
+
 
   def test_recommendAmsConfigurations(self):
     configurations = {
