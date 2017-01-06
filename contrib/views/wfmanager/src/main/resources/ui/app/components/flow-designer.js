@@ -848,7 +848,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.set('currentNode.errorNode', transition.errorNode);
       }
       currentNode.transitions.forEach((trans)=>{
-        if(transition.okToNode){
+        if(transition.okToNode && trans.condition !== 'error'){
           if(trans.targetNode.id !== transition.okToNode.id){
             trans.targetNode = transition.okToNode;
             this.showUndo('transition');
