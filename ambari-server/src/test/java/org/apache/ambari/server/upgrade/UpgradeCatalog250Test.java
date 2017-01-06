@@ -75,6 +75,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.Binder;
@@ -276,6 +277,7 @@ public class UpgradeCatalog250Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
+    Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -288,6 +290,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateTEZInteractiveConfigs)
         .addMockedMethod(updateTablesForZeppelinViewRemoval)
         .addMockedMethod(updateAtlasConfigs)
+        .addMockedMethod(updateLogSearchConfigs)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -315,6 +318,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateAtlasConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateLogSearchConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.addManageServiceAutoStartPermissions();
@@ -369,7 +375,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockAmsEnv, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -442,7 +448,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockAmsHbaseSite, mockAmsSite, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -450,12 +456,12 @@ public class UpgradeCatalog250Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateAMSConfigs();
@@ -491,7 +497,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockKafkaBroker, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -512,6 +518,104 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testLogSearchUpdateConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
+    
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] {})
+        .addMockedMethod("createConfig")
+        .withConstructor(actionManager, clusters, injector)
+        .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    
+    Map<String, String> oldLogSearchProperties = ImmutableMap.of(
+        "logsearch.external.auth.enabled", "true",
+        "logsearch.external.auth.host_url", "host_url",
+        "logsearch.external.auth.login_url", "login_url");
+    
+    Map<String, String> expectedLogSearchProperties = ImmutableMap.of(
+        "logsearch.auth.external_auth.enabled", "true",
+        "logsearch.auth.external_auth.host_url", "host_url",
+        "logsearch.auth.external_auth.login_url", "login_url");
+    
+    Config mockLogSearchProperties = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(mockLogSearchProperties).atLeastOnce();
+    expect(mockLogSearchProperties.getProperties()).andReturn(oldLogSearchProperties).anyTimes();
+    Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchPropertiesCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogFeederEnv = ImmutableMap.of(
+        "content", "infra_solr_ssl_enabled");
+    
+    Map<String, String> expectedLogFeederEnv = ImmutableMap.of(
+        "content", "logsearch_solr_ssl_enabled");
+    
+    Config mockLogFeederEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
+    expect(mockLogFeederEnv.getProperties()).andReturn(oldLogFeederEnv).anyTimes();
+    Capture<Map<String, String>> logFeederEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederEnvCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogSearchEnv = ImmutableMap.of(
+        "logsearch_solr_audit_logs_use_ranger", "false",
+        "logsearch_solr_audit_logs_zk_node", "zk_node",
+        "logsearch_solr_audit_logs_zk_quorum", "zk_quorum",
+        "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
+    
+    Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
+        "content", "logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl");
+    
+    Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
+    expect(mockLogSearchEnv.getProperties()).andReturn(oldLogSearchEnv).anyTimes();
+    Capture<Map<String, String>> logSearchEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchEnvCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
+        "content", "{{logsearch_log_dir}}/logsearch.err\n" +
+                   "<priority value=\"warn\"/>");
+    
+    Map<String, String> expectedLogSearchLog4j = ImmutableMap.of(
+        "content", "{{logsearch_log_dir}}/logsearch.log\n" +
+                   "<priority value=\"info\"/>");
+    
+    Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
+    expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
+    Capture<Map<String, String>> logSearchLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockLogSearchProperties, mockLogFeederEnv, mockLogSearchEnv, mockLogSearchLog4j);
+    new UpgradeCatalog250(injector2).updateLogSearchConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedLogSearchProperties = logSearchPropertiesCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchProperties, updatedLogSearchProperties).areEqual());
+    
+    Map<String, String> updatedLogFeederEnv = logFeederEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederEnv, updatedLogFeederEnv).areEqual());
+    
+    Map<String, String> updatedLogSearchEnv = logSearchEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchEnv, updatedLogSearchEnv).areEqual());
+    
+    Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());
   }
 
   @Test
@@ -570,7 +674,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockAtlasConfig, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")

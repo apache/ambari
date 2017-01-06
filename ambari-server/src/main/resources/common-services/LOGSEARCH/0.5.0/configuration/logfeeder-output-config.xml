@@ -22,8 +22,8 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>content</name>
-    <display-name>LogFeeder output config</display-name>
-    <description>Output configuration for LogFeeder (data shipping)</description>
+    <display-name>Log Feeder output config</display-name>
+    <description>Output configuration for Log Feeder (data shipping)</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>

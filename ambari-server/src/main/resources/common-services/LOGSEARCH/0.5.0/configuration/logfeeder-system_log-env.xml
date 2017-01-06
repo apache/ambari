@@ -49,6 +49,8 @@
 
   <property>
     <name>logfeeder_system_log_enabled</name>
+    <display-name>Enable system logs</display-name>
+    <description>Enable Log Feeders to load system logs to the Log Search solr</description>
     <value>false</value>
     <value-attributes>
       <type>boolean</type>

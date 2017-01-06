@@ -22,7 +22,7 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>content</name>
-    <display-name>Ambari LogFeeder config</display-name>
+    <display-name>Ambari Log Feeder config</display-name>
     <description>Grok filters and input file locations for ambari related log files</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

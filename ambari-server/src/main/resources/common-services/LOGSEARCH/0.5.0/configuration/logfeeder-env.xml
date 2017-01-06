@@ -24,8 +24,8 @@
   <property>
     <name>logfeeder_pid_dir</name>
     <value>/var/run/ambari-logsearch-logfeeder</value>
-    <description>logfeeder Process ID Directory</description>
-    <display-name>Logfeeder pid dir</display-name>
+    <description>Log Feeder Process ID Directory</description>
+    <display-name>Log Feeder pid dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -34,8 +34,8 @@
   <property>
     <name>logfeeder_log_dir</name>
     <value>/var/log/ambari-logsearch-logfeeder</value>
-    <description>Log dir for logfeeder</description>
-    <display-name>Logfeeder log dir</display-name>
+    <description>Log dir for Log Feeder</description>
+    <display-name>Log Feeder log dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -45,7 +45,7 @@
     <name>logfeeder_max_mem</name>
     <value>512m</value>
     <description>Max Memory for Logfeeder</description>
-    <display-name>Logfeeder max memory</display-name>
+    <display-name>Log Feeder max memory</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -71,21 +71,21 @@
   <property>
     <name>logfeeder_truststore_location</name>
     <value>/etc/security/serverKeys/logsearch.trustStore.jks</value>
-    <display-name>Logfeeder trust store location</display-name>
+    <display-name>Log Feeder trust store location</display-name>
     <description>Location of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_truststore_type</name>
     <value>jks</value>
-    <display-name>Logfeeder trust store type</display-name>
+    <display-name>Log Feeder trust store type</display-name>
     <description>Type of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_truststore_password</name>
     <value>bigdata</value>
-    <display-name>Logfeeder trust store password</display-name>
+    <display-name>Log Feeder trust store password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password to open the trust store file.</description>
     <value-attributes>
@@ -96,21 +96,21 @@
   <property>
     <name>logfeeder_keystore_location</name>
     <value>/etc/security/serverKeys/logsearch.keyStore.jks</value>
-    <display-name>Logfeeder key store location</display-name>
+    <display-name>Log Feeder key store location</display-name>
     <description>Location of the key store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_keystore_type</name>
     <value>jks</value>
-    <display-name>Logfeeder store type</display-name>
+    <display-name>Log Feeder store type</display-name>
     <description>Type of the key store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_keystore_password</name>
     <value>bigdata</value>
-    <display-name>Logfeeder key store password</display-name>
+    <display-name>Log Feeder key store password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password to open the key store file.</description>
     <value-attributes>
@@ -121,29 +121,29 @@
   <property>
     <name>logfeeder_external_solr_kerberos_keytab</name>
     <value></value>
-    <display-name>Logfeeder External Solr keytab</display-name>
-    <description>The path to the Kerberos Keytab file containing service principal of Logfeeder e.g. /etc/security/keytabs/logfeeder.service.keytab</description>
+    <display-name>Log Feeder External Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of Log Feeder e.g. /etc/security/keytabs/logfeeder.service.keytab</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_external_solr_kerberos_principal</name>
     <value></value>
-    <display-name>Logfeeder External Solr principal</display-name>
-    <description>The service principal for Logfeeder which will be used to access SolrClient e.g. logfeeder/_HOST@REALM</description>
+    <display-name>Log Feeder External Solr principal</display-name>
+    <description>The service principal for Log Feeder which will be used to access SolrClient e.g. logfeeder/_HOST@REALM</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_kerberos_keytab</name>
     <value>/etc/security/keytabs/logfeeder.service.keytab</value>
-    <display-name>Logfeeder Solr keytab</display-name>
-    <description>The path to the Kerberos Keytab file containing service principal of the Logfeeder.</description>
+    <display-name>Log Feeder Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of the Log Feeder.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_kerberos_principal</name>
     <value>logfeeder</value>
-    <display-name>Logfeeder Solr principal</display-name>
-    <description>The service principal for Logfeeder which will be used to access Log Search Solr.</description>
+    <display-name>Log Feeder Solr principal</display-name>
+    <description>The service principal for Log Feeder which will be used to access Log Search Solr.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
