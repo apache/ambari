@@ -24,7 +24,7 @@
     <name>proxy</name>
     <service-class>org.apache.oozie.ambari.view.OozieProxyImpersonator</service-class>
   </resource>
-
+	
   <parameter>
     <name>oozie.service.uri</name>
     <description>Oozie service URI for the Oozie API.</description>
@@ -118,6 +118,23 @@
         <placeholder>auth=SIMPLE</placeholder>
         <label>WebHDFS Authorization</label>
         <required>false</required>
+    </parameter>
+	<parameter>
+        <name>hadoop.security.authentication</name>
+        <description>Security Authentication (simple/kerberos).</description>
+        <label>Security Authentication Type</label>
+        <placeholder>simple</placeholder>
+        <cluster-config>core-site/hadoop.security.authentication</cluster-config>
+		<default-value>simple</default-value>
+        <required>true</required>
+    </parameter>
+    <parameter>
+        <name>yarn.resourcemanager.address</name>
+        <description>yarn.resourcemanager.address</description>
+        <label>yarn.resourcemanager.address</label>
+        <placeholder>http://sandbox.hortonworks.com:8050</placeholder>
+        <cluster-config>yarn-site/yarn.resourcemanager.address</cluster-config>
+        <required>true</required>
     </parameter>
 
     <persistence>

@@ -57,9 +57,8 @@ public class AmbariIOUtil {
 	}
 
 	private boolean isSecurityEnabled() {
-		String authType = viewContext.getCluster().getConfigurationValue(
-				"core-site", "hadoop.security.authentication");
-		LOGGER.info("Auth Type=" + authType);
-		return !"simple".equalsIgnoreCase(authType);
+		String securityEnbaled = viewContext.getProperties()
+					             .get("hadoop.security.authentication");
+		return !"simple".equalsIgnoreCase(securityEnbaled);
 	}
 }
