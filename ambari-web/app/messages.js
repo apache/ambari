@@ -157,6 +157,7 @@ Em.I18n.translations = {
   'common.saveAnyway':'Save Anyway',
   'common.servers':'Servers',
   'common.clients':'Clients',
+  'common.all.clients':'All Clients',
   'common.user': 'User',
   'common.users': 'Users',
   'common.issues': 'Issues',
