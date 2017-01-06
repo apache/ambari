@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -120,6 +121,25 @@ public class DDLService extends BaseService {
     }
   }
 
+  @PUT
+  @Path("databases/{database_id}/tables/{table_id}/rename")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response renameTable(@PathParam("database_id") String oldDatabaseName, @PathParam("table_id") String oldTableName,
+                              @FormParam("new_database_id") String newDatabaseName, @FormParam("new_table_id")
+                                  String newTableName) {
+    try {
+      Job job = proxy.renameTable(oldDatabaseName, oldTableName, newDatabaseName, newTableName, getResourceManager());
+      JSONObject response = new JSONObject();
+      response.put("job", job);
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while renaming table for oldDatabaseName {}, oldTableName: {}, newDatabaseName : {}," +
+        " newTableName : {}", oldDatabaseName, oldTableName, newDatabaseName, newTableName, e);
+      throw new ServiceFormattedException(e);
+    }
+  }
+
   @POST
   @Path("databases/{database_id}/tables/ddl")
   @Produces(MediaType.APPLICATION_JSON)
@@ -130,7 +150,8 @@ public class DDLService extends BaseService {
       if (queryType.equals(CREATE_TABLE)) {
         query = proxy.generateCreateTableDDL(request.tableInfo.getDatabase(), request.tableInfo);
       }else if(queryType.equals(ALTER_TABLE)){
-        query = proxy.generateAlterTableQuery(context, getHiveConnectionConfig(), request.tableInfo.getDatabase(), request.tableInfo.getTable(), request.tableInfo);
+        query = proxy.generateAlterTableQuery(context, getHiveConnectionConfig(), request.tableInfo.getDatabase(),
+                request.tableInfo.getTable(), request.tableInfo);
       }else{
         throw new ServiceException("query_type = '" + queryType + "' is not supported");
       }
