@@ -28,12 +28,14 @@ import org.slf4j.LoggerFactory;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.util.DefaultPDUFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -112,15 +114,15 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
         pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(AMBARI_ALERT_TRAP_OID)));
         // Set notification body and subject for PDU objects with identifiers specified in dispatch properties.
         AlertNoticeDispatchService.AlertInfo alertInfo = alertNotification.getAlertInfo();
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_ID_OID, alertInfo.getAlertDefinitionId());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_NAME_OID, alertInfo.getAlertDefinition().getDefinitionName());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_HASH_OID, alertInfo.getAlertDefinitionHash());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_NAME_OID, alertInfo.getAlertName());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_TEXT_OID, alertInfo.getAlertText());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_STATE_OID, alertInfo.getAlertState().getIntValue());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_HOST_NAME_OID, alertInfo.getHostName());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_SERVICE_NAME_OID, alertInfo.getServiceName());
-        addVariableBindingCheckForNull(pdu, AMBARI_ALERT_COMPONENT_NAME_OID, alertInfo.getComponentName());
+        addIntVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_ID_OID, new BigDecimal(alertInfo.getAlertDefinitionId()).intValueExact());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_NAME_OID, alertInfo.getAlertDefinition().getDefinitionName());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_DEFINITION_HASH_OID, alertInfo.getAlertDefinitionHash());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_NAME_OID, alertInfo.getAlertName());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_TEXT_OID, alertInfo.getAlertText());
+        addIntVariableBindingCheckForNull(pdu, AMBARI_ALERT_STATE_OID, alertInfo.getAlertState().getIntValue());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_HOST_NAME_OID, alertInfo.getHostName());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_SERVICE_NAME_OID, alertInfo.getServiceName());
+        addStringVariableBindingCheckForNull(pdu, AMBARI_ALERT_COMPONENT_NAME_OID, alertInfo.getComponentName());
 
         return pdu;
     }
@@ -140,12 +142,27 @@ public class AmbariSNMPDispatcher extends SNMPDispatcher {
      * @param oid
      * @param val
      */
-    private void addVariableBindingCheckForNull(PDU pdu, String oid, Object val) {
+    private void addStringVariableBindingCheckForNull(PDU pdu, String oid, Object val) {
         if (val == null)  {
             pdu.add(new VariableBinding(new OID(oid), new OctetString("null")));
         } else {
             pdu.add(new VariableBinding(new OID(oid),
                     new OctetString(String.valueOf(val))));
+        }
+    }
+    /**
+     * Adds new {@link VariableBinding} using provided {@link OID} and value to {@link PDU}
+     * if val is null than adds {@link OctetString} with "null" value;
+     * @param pdu
+     * @param oid
+     * @param val
+     */
+    private void addIntVariableBindingCheckForNull(PDU pdu, String oid, Integer val) {
+        if (val == null)  {
+            pdu.add(new VariableBinding(new OID(oid), new OctetString("null")));
+        } else {
+            pdu.add(new VariableBinding(new OID(oid),
+                    new Integer32(val)));
         }
     }
 }
