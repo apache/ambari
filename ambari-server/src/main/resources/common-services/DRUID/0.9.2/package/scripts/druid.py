@@ -16,13 +16,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import json
 import os
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format
-from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.logger import Logger
 
@@ -34,7 +34,8 @@ def druid(upgrade_type=None, nodeType=None):
   # Environment Variables
   File(format("{params.druid_conf_dir}/druid-env.sh"),
        owner=params.druid_user,
-       content=InlineTemplate(params.druid_env_sh_template)
+       content=InlineTemplate(params.druid_env_sh_template),
+       mode = 0700
        )
 
   # common config
@@ -60,6 +61,7 @@ def druid(upgrade_type=None, nodeType=None):
                  properties=druid_common_config,
                  owner=params.druid_user,
                  group=params.user_group,
+                 mode = 0600
                  )
   Logger.info("Created common.runtime.properties")
 
@@ -92,6 +94,7 @@ def druid(upgrade_type=None, nodeType=None):
                    properties=node_config,
                    owner=params.druid_user,
                    group=params.user_group,
+                   mode = 0600
                    )
     Logger.info(format("Created druid-{node_type_lowercase} runtime.properties"))
 
@@ -177,16 +180,37 @@ def create_hadoop_directory(hadoop_dir):
 def ensure_base_directories():
   import params
   Directory(
-    [params.druid_log_dir, params.druid_pid_dir, params.druid_common_conf_dir, params.druid_coordinator_conf_dir,
-     params.druid_broker_conf_dir, params.druid_middlemanager_conf_dir, params.druid_historical_conf_dir,
-     params.druid_overlord_conf_dir, params.druid_router_conf_dir, params.druid_segment_infoDir],
+    [params.druid_log_dir, params.druid_pid_dir],
     mode=0755,
-    cd_access='a',
     owner=params.druid_user,
     group=params.user_group,
     create_parents=True,
     recursive_ownership=True,
   )
+
+  Directory(
+    [params.druid_conf_dir, params.druid_common_conf_dir, params.druid_coordinator_conf_dir,
+     params.druid_broker_conf_dir, params.druid_middlemanager_conf_dir, params.druid_historical_conf_dir,
+     params.druid_overlord_conf_dir, params.druid_router_conf_dir, params.druid_segment_infoDir,
+     params.druid_tasks_dir],
+    mode=0700,
+    owner=params.druid_user,
+    group=params.user_group,
+    create_parents=True,
+    recursive_ownership=True,
+  )
+
+  segment_cache_locations = json.loads(params.druid_segment_cache_locations)
+  for segment_cache_location in segment_cache_locations:
+    Directory(
+      segment_cache_location["path"],
+      mode=0700,
+      owner=params.druid_user,
+      group=params.user_group,
+      create_parents=True,
+      recursive_ownership=True,
+    )
+
 
 
 def get_daemon_cmd(params=None, node_type=None, command=None):
