@@ -134,6 +134,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   importBundle (filePath){
     this.set("bundleFilePath", filePath);
     this.set("isImporting", false);
+    filePath = this.appendFileName(filePath, 'bundle');
     var deferred = this.getFromHdfs(filePath);
     deferred.promise.then(function(data){
       this.getBundleFromXml(data);
@@ -172,19 +173,36 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   },
   getJobProperties(coordinatorPath){
     var deferred = Ember.RSVP.defer();
+    coordinatorPath = this.appendFileName(coordinatorPath, 'coord');
     this.getFromHdfs(coordinatorPath).promise.then((coordinatorXml)=>{
       var x2js = new X2JS();
       var coordProps = this.get('propertyExtractor').getDynamicProperties(coordinatorXml);
       var coordinatorJson = x2js.xml_str2json(coordinatorXml);
       var workflowPath = coordinatorJson['coordinator-app']['action']['workflow']['app-path'];
-      this.getFromHdfs(workflowPath).promise.then((workflowXml)=>{
-        var workflowProps = this.get('propertyExtractor').getDynamicProperties(workflowXml);
-        deferred.resolve(Array.from(coordProps.values()).concat(Array.from(workflowProps.values())));
-      });
+      if(this.get('propertyExtractor').containsParameters(workflowPath)){
+        deferred.resolve(Array.from(coordProps.values()));
+      }else{
+        workflowPath = this.appendFileName(workflowPath, 'wf');
+        this.getFromHdfs(workflowPath).promise.then((workflowXml)=>{
+          var workflowProps = this.get('propertyExtractor').getDynamicProperties(workflowXml);
+          deferred.resolve(Array.from(coordProps.values()).concat(Array.from(workflowProps.values())));
+        });
+      }
     }.bind(this)).catch((e)=>{
       deferred.reject({trace :e, path: coordinatorPath});
     });
     return deferred;
+  },
+  appendFileName(filePath, type){
+    if(!filePath.endsWith('.xml') && type === 'bundle'){
+      return filePath = `${filePath}/bundle.xml`;
+    }else if(!filePath.endsWith('.xml') && type === 'coord'){
+      return filePath = `${filePath}/coordinator.xml`;
+    }else if(!filePath.endsWith('.xml') && type === 'wf'){
+      return filePath = `${filePath}/workflow.xml`;
+    }else{
+      return filePath;
+    }
   },
   actions : {
     closeFileBrowser(){
@@ -261,20 +279,36 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       var propertyPromises = [];
       this.$('#loading').show();
       this.get('bundle.coordinators').forEach((coordinator) =>{
+        if(this.get('propertyExtractor').containsParameters(coordinator.appPath)){
+          return;
+        }
         var deferred = this.getJobProperties(coordinator.appPath);
         propertyPromises.push(deferred.promise);
       }, this);
       Ember.RSVP.Promise.all(propertyPromises).then(function(props){
         var combinedProps = [];
-        props.forEach((prop)=>{
+        var excludedProps = [];
+        props.forEach((prop, index)=>{
+          var coordinator = this.get('bundle.coordinators').objectAt(0);
+          if(coordinator.configuration && coordinator.configuration.property){
+            coordinator.configuration.property.forEach((config) => {
+              var idx = prop.indexOf('${'+config.name+'}');
+              if(idx >= 0){
+                excludedProps.push('${'+config.name+'}');
+              }
+            });
+          }
           combinedProps = combinedProps.concat(prop);
         });
         var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(bundleXml);
         combinedProps.forEach((prop)=>{
+          if(excludedProps.indexOf(prop) >= 0){
+            return;
+          }
           dynamicProperties.set(prop, prop);
         });
         this.$('#loading').hide();
-        var configForSubmit = {props : dynamicProperties, xml : bundleXml, params : this.get('bundle.parameters')};
+        var configForSubmit = {props : Array.from(dynamicProperties.values(), key => key), xml : bundleXml, params : this.get('bundle.parameters')};
         this.set("bundleConfigs", configForSubmit);
         this.set("showingJobConfig", true);
       }.bind(this)).catch(function(e){

@@ -48,6 +48,11 @@ export default Ember.Component.extend(Validations, {
   alertDetails : "",
   filePath : "",
   showErrorMessage: false,
+  customProps : {
+    configuration : {
+      property : Ember.A([])
+    }
+  },
   displayName : Ember.computed('type', function(){
     if(this.get('type') === 'wf'){
       return "Workflow";
@@ -57,26 +62,34 @@ export default Ember.Component.extend(Validations, {
       return "Bundle";
     }
   }),
-  initialize :function(){
-    this.set("configPropsExists", this.get("jobConfigs").props.size>0);
+  jobProps : Ember.computed.alias('jobConfigs.props'),
+  configPropsExists : Ember.computed('jobProps.[]', function(){
+    return this.get("jobProps").length > 0;
+  }),
+  configMap : Ember.computed('jobProps.[]', function(){
     var configProperties = [];
     configProperties.pushObjects(this.extractJobParams());
     configProperties.pushObjects(this.extractJobProperties());
+    return configProperties;
+  }),
+  initialize :function(){
     this.configureExecutionSettings();
-    this.set("configMap", configProperties);
     this.set("jobXml", this.get("jobConfigs").xml);
     this.set('filePath', Ember.copy(this.get('jobFilePath')));
     Object.keys(this.get('validations.attrs')).forEach((attr)=>{
-    var field = 'validations.attrs.'+attr+'.isDirty';
-    this.set(field, false);
+      var field = 'validations.attrs.'+ attr +'.isDirty';
+      this.set(field, false);
     }, this);
   }.on('init'),
   rendered : function(){
     this.$("#configureJob").on('hidden.bs.modal', function () {
       this.sendAction('closeJobConfigs');
     }.bind(this));
-    this.$("#configureJob").modal("show");    
+    this.$("#configureJob").modal("show");
   }.on('didInsertElement'),
+  onDestroy : function(){
+    this.$("#configureJob").modal("hide");
+  }.on('willDestroyElement'),
   extractJobParams(){
     var params = [];
     var jobParams = this.get("jobConfigs").params;
@@ -98,7 +111,7 @@ export default Ember.Component.extend(Validations, {
   extractJobProperties(){
     var jobProperties = [];
     var jobParams = this.get("jobConfigs").params;
-    this.get("jobConfigs").props.forEach(function(value) {
+    this.get("jobProps").forEach(function(value) {
       if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue){
         var propName = value.trim().substring(2, value.length-1);
         var isRequired = true;
@@ -159,9 +172,14 @@ export default Ember.Component.extend(Validations, {
     var submitConfigs = this.get("configMap");
     submitConfigs.forEach(function(item) {
       url = url + "&config." + item.name + "=" + item.value;
-    }, this); 
+    }, this);
+    if(this.get('customProps.configuration.property')){
+      this.get('customProps.configuration.property').forEach(function(item) {
+        url = url + "&config." + item.name + "=" + item.value;
+      }, this);
+    }
     this.get('systemConfigs').forEach((config)=>{
-      if(config.name === 'runOnSubmit' && !isDryrun){
+      if(config.name === 'runOnSubmit' && config.value && !isDryrun){
         url = url + "&oozieparam.action=start";
       }else if(config.name !== 'runOnSubmit'){
         url = url + "&oozieconfig." + config.name + "=" + config.value;
@@ -170,7 +188,7 @@ export default Ember.Component.extend(Validations, {
     if(isDryrun){
       url = url + "&oozieparam.action=dryrun";
     }
-    if ( this.get("jobConfigs").props.has("${resourceManager}")){
+    if (this.get("jobProps").indexOf("${resourceManager}") >= 0){
       url= url + "&resourceManager=useDefault";
     }
     this.set("savingInProgress", true);
@@ -268,12 +286,13 @@ export default Ember.Component.extend(Validations, {
         detail=jsonResp.message;
       }
     }else{
-      detail=response; 
+      detail=response;
     }
     return detail;
   },
   actions: {
-    selectFile(){
+    selectFile(property){
+      this.set('fileModel', property);
       this.set("showingFileBrowser",true);
     },
     showStackTrace(){
@@ -284,6 +303,8 @@ export default Ember.Component.extend(Validations, {
     },
     closeFileBrowser(){
       this.set("showingFileBrowser",false);
+      this.$(`input[name=${this.get('fileModel')}]`).val(this.get('selectedPath'))
+      this.$(`input[name=${this.get('fileModel')}]`).trigger('change');
     },
     dryrun(){
       this.set('showErrorMessage', true);
@@ -291,6 +312,7 @@ export default Ember.Component.extend(Validations, {
     },
     save(){
       this.set('showErrorMessage', true);
+      this.get('nameValueContext').trigger('bindInputPlaceholder');
       this.prepareJobForSubmission(false);
     },
     previewXml(){
@@ -298,6 +320,15 @@ export default Ember.Component.extend(Validations, {
     },
     closePreview(){
       this.set("showingPreview",false);
+    },
+    next(){
+      this.sendAction("extractProperties", this.get('parameterizedWorkflowPath'));
+    },
+    skip(){
+      this.set('containsParameteriedPaths', false);
+    },
+    register(context){
+      this.set('nameValueContext', context);
     }
   }
 });
