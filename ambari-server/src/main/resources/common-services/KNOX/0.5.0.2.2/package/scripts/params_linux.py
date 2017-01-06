@@ -408,3 +408,27 @@ HdfsResource = functools.partial(
   default_fs = default_fs,
   immutable_paths = get_not_managed_resources()
 )
+
+druid_coordinator_urls = ""
+if "druid-coordinator" in config['configurations']:
+  port = config['configurations']['druid-coordinator']['druid.port']
+  for host in config['clusterHostInfo']['druid_coordinator_hosts']:
+    druid_coordinator_urls += buildUrlElement("http", host, port, "")
+
+druid_overlord_urls = ""
+if "druid-overlord" in config['configurations']:
+  port = config['configurations']['druid-overlord']['druid.port']
+  for host in config['clusterHostInfo']['druid_overlord_hosts']:
+    druid_overlord_urls += buildUrlElement("http", host, port, "")
+
+druid_broker_urls = ""
+if "druid-broker" in config['configurations']:
+  port = config['configurations']['druid-broker']['druid.port']
+  for host in config['clusterHostInfo']['druid_broker_hosts']:
+    druid_broker_urls += buildUrlElement("http", host, port, "")
+
+druid_router_urls = ""
+if "druid-router" in config['configurations']:
+  port = config['configurations']['druid-router']['druid.port']
+  for host in config['clusterHostInfo']['druid_router_hosts']:
+    druid_router_urls += buildUrlElement("http", host, port, "")
