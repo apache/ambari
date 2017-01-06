@@ -291,6 +291,36 @@ computed.ifThenElse = function (dependentKey, trueValue, falseValue) {
 };
 
 /**
+ * A computed property that returns value for trueKey property if dependent value is true and falseKey-value otherwise
+ * App.*-keys are supported
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: true,
+ *  p2: 1,
+ *  p3: 2,
+ *  p4: Em.computed.ifThenElseByKeys('p1', 'p2', 'p3')
+ * });
+ * console.log(o.get('p4')); // 1
+ * o.set('p1', false);
+ * console.log(o.get('p4')); // 2
+ *
+ * o.set('p3', 3);
+ * console.log(o.get('p4')); // 3
+ * </pre>
+ *
+ * @method ifThenElseByKeys
+ * @param {string} dependentKey
+ * @param {string} trueKey
+ * @param {string} falseKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.ifThenElseByKeys = function (dependentKey, trueKey, falseKey) {
+  return computed(dependentKey, trueKey, falseKey, function () {
+    return smartGet(this, dependentKey) ? smartGet(this, trueKey) : smartGet(this, falseKey);
+  });
+};
+
+/**
  * A computed property that is equal to the logical 'and'
  * Takes any number of arguments
  * Returns true if all of them are truly, false - otherwise

@@ -187,6 +187,7 @@ require('test/aliases/computed/notEqual');
 require('test/aliases/computed/equalProperties');
 require('test/aliases/computed/notEqualProperties');
 require('test/aliases/computed/ifThenElse');
+require('test/aliases/computed/ifThenElseByKeys');
 require('test/aliases/computed/sumProperties');
 require('test/aliases/computed/countBasedMessage');
 require('test/aliases/computed/firstNotBlank');

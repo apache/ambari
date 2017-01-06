@@ -63,13 +63,16 @@ App.Tab = DS.Model.extend({
   tooltipMsg: Em.computed.ifThenElse('isHiddenByFilter', Em.I18n.t('services.service.config.nothing.to.display') , ''),
 
   /**
+   * @type {boolean}
+   */
+  allSectionsAreHiddenByFilter: Em.computed.everyBy('sections', 'isHiddenByFilter', true),
+
+  /**
    * Determines if tab is filtered out (all it's sections should be hidden)
    * If it's an Advanced Tab it can't be hidden
    * @type {boolean}
    */
-  isHiddenByFilter: function () {
-    return this.get('isAdvanced') ? this.get('isAdvancedHidden') : this.get('sections').everyProperty('isHiddenByFilter', true);
-  }.property('isAdvanced', 'sections.@each.isHiddenByFilter', 'isAdvancedHidden')
+  isHiddenByFilter: Em.computed.ifThenElseByKeys('isAdvanced', 'isAdvancedHidden', 'allSectionsAreHiddenByFilter')
 
 });
 

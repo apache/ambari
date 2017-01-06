@@ -79,24 +79,6 @@ var serviceConfigProperty,
       isOverridable: true
     }
   ],
-  overriddenFalseData = [
-    {
-      overrides: null,
-      isOriginalSCP: true
-    },
-    {
-      overrides: [],
-      isOriginalSCP: true
-    }
-  ],
-  overriddenTrueData = [
-    {
-      overrides: configsData[0].overrides
-    },
-    {
-      isOriginalSCP: false
-    }
-  ],
   removableFalseData = [
     {
       isEditable: false
@@ -172,8 +154,7 @@ var serviceConfigProperty,
     isEditable: true,
     value: 'value',
     savedValue: 'default'
-  },
-  types = ['componentHost', 'componentHosts', 'radio button'];
+  };
 
 
 function getProperty() {
@@ -187,6 +168,8 @@ describe('App.ServiceConfigProperty', function () {
   });
 
   App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
+
+  App.TestAliases.testAsComputedAnd(getProperty(), 'isActive', ['isVisible', '!hiddenBySubSection', '!hiddenBySection']);
 
   describe('#placeholder', function () {
       [
@@ -232,20 +215,7 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
-  describe('#isOverridden', function () {
-    overriddenFalseData.forEach(function (item) {
-      it('should be false', function () {
-        serviceConfigProperty.setProperties(item);
-        expect(serviceConfigProperty.get('isOverridden')).to.be.false;
-      });
-    });
-    overriddenTrueData.forEach(function (item) {
-      it('should be true', function () {
-        serviceConfigProperty.setProperties(item);
-        expect(serviceConfigProperty.get('isOverridden')).to.be.true;
-      });
-    });
-  });
+  App.TestAliases.testAsComputedOr(getProperty(), 'isOverridden', ['overrides.length', '!isOriginalSCP']);
 
   describe('#isRemovable', function () {
     removableFalseData.forEach(function (item) {
@@ -292,18 +262,7 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
-  describe('#cantBeUndone', function () {
-    types.forEach(function (item) {
-      it('should be true', function () {
-        serviceConfigProperty.set('displayType', item);
-        expect(serviceConfigProperty.get('cantBeUndone')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      serviceConfigProperty.set('displayType', 'type');
-      expect(serviceConfigProperty.get('cantBeUndone')).to.be.false;
-    });
-  });
+  App.TestAliases.testAsComputedExistsIn(getProperty(), 'cantBeUndone', 'displayType', ['componentHost', 'componentHosts', 'radio button']);
 
   describe('#isValid', function () {
     it('should be true', function () {
@@ -346,5 +305,9 @@ describe('App.ServiceConfigProperty', function () {
     });
 
   });
+
+  App.TestAliases.testAsComputedOr(getProperty(), 'hasIssues', ['error', 'warn', 'overridesWithIssues.length']);
+
+  App.TestAliases.testAsComputedFilterBy(getProperty(), 'overridesWithIssues', 'overrides', 'hasIssues', true);
 
 });

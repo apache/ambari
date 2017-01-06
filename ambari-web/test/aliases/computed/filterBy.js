@@ -52,7 +52,7 @@ App.TestAliases.testAsComputedFilterBy = function (context, propertyName, collec
       expect(value).to.eql([]);
     });
 
-    it('should be an array objects from  ' + JSON.stringify(collectionName) + ' with ' + JSON.stringify(keyName) + ' equal to the ' + JSON.stringify(neededValue), function () {
+    it('should be an array of objects from  ' + JSON.stringify(collectionName) + ' with ' + JSON.stringify(keyName) + ' equal to the ' + JSON.stringify(neededValue), function () {
       var collection = [{}, {}, {}];
       collection.forEach(function (item) {
         Ember.setFullPath(item, keyName, neededValue);

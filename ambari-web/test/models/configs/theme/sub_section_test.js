@@ -37,6 +37,8 @@ describe('App.SubSection', function () {
 
   App.TestAliases.testAsComputedAnd(getModel(), 'isSectionVisible', ['!isHiddenByFilter', '!isHiddenByConfig', 'someConfigIsVisible']);
 
+  App.TestAliases.testAsComputedFilterBy(getModel(), 'visibleTabs', 'subSectionTabs', 'isVisible', true);
+
   describe('#errorsCount', function () {
 
     beforeEach(function () {

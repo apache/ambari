@@ -209,9 +209,7 @@ App.ServiceConfigProperty = Em.Object.extend({
    * When <code>true</code> means that property is shown and may affect validation process.
    * When <code>false</code> means that property won't affect validation.
    */
-  isActive: function() {
-    return this.get('isVisible') && !this.get('hiddenBySubSection') && !this.get('hiddenBySection');
-  }.property('isVisible', 'hiddenBySubSection', 'hiddenBySection'),
+  isActive: Em.computed.and('isVisible', '!hiddenBySubSection', '!hiddenBySection'),
 
   /**
    * @type {boolean}
@@ -265,9 +263,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     return overrideable && (editable || !overrides || !overrides.length) && (!["componentHost", "password"].contains(dt));
   }.property('isEditable', 'displayType', 'isOverridable', 'overrides.length'),
 
-  isOverridden: function() {
-    return (this.get('overrides') != null && this.get('overrides.length') > 0) || !this.get('isOriginalSCP');
-  }.property('overrides', 'overrides.length', 'isOriginalSCP'),
+  isOverridden: Em.computed.or('overrides.length', '!isOriginalSCP'),
 
   isOverrideChanged: function () {
     if (Em.isNone(this.get('overrides')) && this.get('overrideValues.length') === 0) return false;

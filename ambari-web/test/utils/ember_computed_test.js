@@ -25,7 +25,9 @@ describe('Ember.computed macros', function () {
       someRandomTestingKey: function () {
         return this.get('someAnotherKey');
       }.property('someAnotherKey'),
-      someAnotherKey: ''
+      someAnotherKey: '',
+      appProp1: 1,
+      appProp2: 2
     });
   });
 
@@ -218,6 +220,44 @@ describe('Ember.computed macros', function () {
 
     it('prop3 dependent keys are valid', function () {
       expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['App.someRandomTestingKey']);
+    });
+
+  });
+
+  describe('#ifThenElseByKeys', function () {
+
+    beforeEach(function () {
+      App.set('someAnotherKey', true);
+      this.obj = Em.Object.create({
+        prop1: true,
+        prop2: Em.computed.ifThenElseByKeys('prop1', 'prop4', 'prop5'),
+        prop3: Em.computed.ifThenElseByKeys('App.someRandomTestingKey', 'App.appProp1', 'App.appProp2'),
+        prop4: 1,
+        prop5: 2
+      });
+    });
+
+    it('`1` if `prop1` is true', function () {
+      expect(this.obj.get('prop2')).to.equal(1);
+    });
+
+    it('`0` if `prop1` is false', function () {
+      this.obj.set('prop1', false);
+      expect(this.obj.get('prop2')).to.equal(2);
+    });
+
+    it('prop2 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1', 'prop4', 'prop5']);
+    });
+
+    it('prop3 depends on App.* key', function () {
+      expect(this.obj.get('prop3')).to.equal(1);
+      App.set('someAnotherKey', false);
+      expect(this.obj.get('prop3')).to.equal(2);
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['App.someRandomTestingKey', 'App.appProp1', 'App.appProp2']);
     });
 
   });
