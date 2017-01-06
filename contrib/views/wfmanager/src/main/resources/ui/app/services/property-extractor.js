@@ -25,6 +25,10 @@ export default Ember.Service.extend({
   dynamicPropertyWithWfMethod : /^\${wf:[A-Za-z_][0-9A-Za-z_]*\((([A-Za-z_][0-9A-Za-z_]*)(,([A-Za-z_][0-9A-Za-z_]*))*)*\)}$/i,
   hadoopEL : /^\${hadoop:.*}$/,
   extractor : /\${.+?\}/g,
+  containsParameters(path) {
+    var matches = path.match(this.get('extractor'));
+    return matches !== null;
+  },
   extract : function(property) {
     var matches = property.match(this.get('extractor'));
     var dynamicProperties = [];

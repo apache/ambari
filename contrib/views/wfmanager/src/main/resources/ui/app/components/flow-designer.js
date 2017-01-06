@@ -300,13 +300,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   importWorkflow(filePath){
     var self = this;
     this.set("isWorkflowImporting", true);
-    this.set("workflowFilePath", filePath);
     this.resetDesigner();
     //this.set("isWorkflowImporting", true);
     var workflowXmlDefered=this.getWorkflowFromHdfs(filePath);
     workflowXmlDefered.promise.then(function(data){
       this.importWorkflowFromString(data);
       this.set("isWorkflowImporting", false);
+      this.set("workflowFilePath", filePath);
     }.bind(this)).catch(function(data){
       console.error(data);
       var stackTraceMsg = self.getStackTrace(data.responseText);
@@ -636,7 +636,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set('errors',this.get('workflowContext').getErrors());
     }else{
       var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
-      var configForSubmit={props:dynamicProperties,xml:workflowXml,params:this.get('workflow.parameters')};
+      var configForSubmit={props:Array.from(dynamicProperties.values(), key => key),xml:workflowXml,params:this.get('workflow.parameters')};
       this.set("workflowSubmitConfigs",configForSubmit);
       this.set("showingWorkflowConfigProps",true);
     }

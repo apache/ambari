@@ -25,9 +25,56 @@
         {{else}}
           <h4 class="modal-title">Submit {{displayName}}</h4>
         {{/if}}
-
       </div>
       <div class="modal-body">
+        {{designer-errors errors=jobConfigs.errors}}
+        {{#if (and (eq type 'bundle') containsParameteriedPaths)}}
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="col-xs-24">
+              <span>The underlying workflow path is templatized.
+                 Please enter the workflow path to deduce the templatized properties in the workflow.
+               </span>
+            </div>
+            {{#each parameterizedPaths as |path index|}}
+            <div class="row form-group">
+              <div class="col-xs-3">
+                <label class="control-label" for="path">Workflow path</label><span class="requiredField">&nbsp;*</span>
+              </div>
+              <div class="col-xs-8">
+                <div class="input-group">
+                  {{input class="form-control" type="text" name=path.name value=path.value}}
+                  <span class="input-group-btn">
+                    <button type="button" class="btn btn-primary" {{action "selectFile" path.name}}>Browse</button>
+                  </span>
+                </div>
+                {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{else if (and (eq type 'coord') containsParameteriedPaths)}}
+        <div class="col-xs-24">
+          <div class="alert alert-warning" role="alert">
+            Workflow path contains variables. Please provide the absolute path to auto detect templatized variables. Skip this step if you have configured all the templatized varibales of the workflow in the coordinator.
+          </div>
+        </div>
+        <div class="row form-group">
+          <div class="col-xs-3">
+            <label class="control-label" for="path">Workflow path</label><span class="requiredField">&nbsp;*</span>
+          </div>
+          <div class="col-xs-8">
+            <div class="input-group">
+              {{input class="form-control" type="text" name='wfPath' value=parameterizedWorkflowPath}}
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-primary" {{action "selectFile" 'wfPath'}}>Browse</button>
+              </span>
+            </div>
+            {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}
+          </div>
+        </div>
+        {{else}}
         <div class="panel panel-default">
           <div class="panel-body">
             {{#if alertType}}
@@ -51,9 +98,9 @@
               </div>
               <div class="col-xs-8">
                 <div class="input-group">
-                  {{input class="form-control" type="text" name="{{type}}-path"  value=filePath}}
+                  {{input class="form-control" name="filePath" type="text" value=filePath}}
                   <span class="input-group-btn">
-                    <button type="button" class="btn btn-primary" {{action "selectFile"}}>Browse</button>
+                    <button type="button" class="btn btn-primary" {{action "selectFile" "filePath"}}>Browse</button>
                   </span>
                 </div>
                 {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}
@@ -76,51 +123,65 @@
         </div>
         <div id="jobProperties">
           {{#if configMap.length}}
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              Job Properties
-            </div>
-            <div class="panel-body">
-              {{field-error model=this field='configMap' showErrorMessage=showErrorMessage}}
-              {{#each configMap as |prop|}}
-              <div class="row form-group">
-                <div class="col-xs-3">
-                  <label class="control-label" for="{{prop}}">{{prop.name}}</label>
-                  {{#if prop.isRequired}}
-                  <span class="requiredField">&nbsp;*</span>
-                  {{/if}}
-                </div>
-                <div class="col-xs-8">
-                  {{input class="form-control" type="text" value=prop.value}}
-                </div>
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                Job Properties
               </div>
-              {{/each}}
+              <div class="panel-body">
+                {{field-error model=this field='configMap' showErrorMessage=showErrorMessage}}
+                {{#each configMap as |prop index|}}
+                  <div class="row form-group">
+                    <div class="col-xs-3">
+                      <label class="control-label" for="{{prop}}">{{prop.name}}</label>
+                      {{#if prop.isRequired}}
+                        <span class="requiredField">&nbsp;*</span>
+                      {{/if}}
+                    </div>
+                    <div class="col-xs-8">
+                      {{input class="form-control" type="text" value=prop.value}}
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          {{/if}}
+          <div class=" panel panel-default">
+            <div class="panel-heading">Custom Job Properties</div>
+            <div class="panel-body handlerPanel">
+              <form class="form-horizontal">
+                {{#name-value-config configuration=customProps.configuration register="register"}}{{/name-value-config}}
+              </form>
             </div>
           </div>
-          {{/if}}
         </div>
-      </div>
-      <div class="modal-footer">
-        {{#if savingInProgress}}
-        {{spin-spinner lines=10 length=10 width=5 radius=10 }}
-        <span class="pull-left">Saving {{displayName}}</span>
-        {{/if}}
-        {{#if startingInProgress}}
-        {{spin-spinner lines=8 length=5 width=10 radius=5}}
-        <span class="pull-left">Starting {{displayName}}</span>
-        {{/if}}
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        {{#if isDryrun}}
-          <button type="button" class="btn btn-primary" {{action "dryrun"}}>Validate</button>
-        {{else}}
-          <button type="button" class="btn btn-default" {{action "dryrun"}}>Validate</button>
-          <button type="button" class="btn btn-primary" {{action "save"}}>Submit</button>
         {{/if}}
 
+      </div>
+      <div class="modal-footer">
+        {{#if containsParameteriedPaths}}
+          <button type="button" class="btn btn-default" {{action "skip"}}>Skip</button>
+          <button type="button" class="btn btn-primary" {{action "next"}}>Next</button>
+        {{else}}
+          {{#if savingInProgress}}
+            {{spin-spinner lines=10 length=10 width=5 radius=10 }}
+            <span class="pull-left">Saving {{displayName}}</span>
+            {{/if}}
+          {{#if startingInProgress}}
+            {{spin-spinner lines=8 length=5 width=10 radius=5}}
+            <span class="pull-left">Starting {{displayName}}</span>
+          {{/if}}
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          {{#if isDryrun}}
+            <button type="button" class="btn btn-primary" {{action "dryrun"}}>Validate</button>
+          {{else}}
+            <button type="button" class="btn btn-default" {{action "dryrun"}}>Validate</button>
+            <button type="button" class="btn btn-primary" {{action "save"}}>Submit</button>
+          {{/if}}
+        {{/if}}
       </div>
     </div>
   </div>
 </div>
 {{#if showingFileBrowser}}
-{{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath}}
+{{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=selectedPath}}
 {{/if}}

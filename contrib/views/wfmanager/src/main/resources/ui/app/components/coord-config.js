@@ -247,6 +247,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     return deferred;
   },
   importCoordinator (filePath){
+    filePath = this.appendFileName(filePath, 'coord');
     this.set("coordinatorFilePath", filePath);
     this.set("isImporting", false);
     var deferred = this.readFromHdfs(filePath);
@@ -276,6 +277,15 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       deferred.reject(e);
     });
     return deferred;
+  },
+  appendFileName(filePath, type){
+    if(!filePath.endsWith('.xml') && type === 'coord'){
+      return filePath = `${filePath}/coordinator.xml`;
+    }else if(!filePath.endsWith('.xml') && type === 'wf'){
+      return filePath = `${filePath}/workflow.xml`;
+    }else{
+      return filePath;
+    }
   },
   getCoordinatorFromXml(coordinatorXml){
     var coordinatorXmlImporter = CoordinatorXmlImporter.create({});
@@ -399,27 +409,41 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         this.set('showErrorMessage', true);
         return;
       }
-      this.$('#loading').show();
-      var deferred = this.readFromHdfs(this.get('coordinator.workflow.appPath'));
+      var coordGenerator = CoordinatorGenerator.create({coordinator:this.get("coordinator")});
+      var coordinatorXml = coordGenerator.process();
+      var configForSubmit={props:Ember.A([]), xml:coordinatorXml,params:this.get('coordinator.parameters'), errors:Ember.A([])};
+      this.set("coordinatorConfigs", configForSubmit);
+      this.set("showingJobConfig", true);
+      var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(coordinatorXml);
+      this.get('coordinatorConfigs.props').pushObjects(Array.from(dynamicProperties.values(), key => key));
+      var path = this.get('coordinator.workflow.appPath');
+      if(this.get('propertyExtractor').containsParameters(path)){
+        this.set('parameterizedWorkflowPath', path);
+        this.set('containsParameteriedPaths', true);
+        return;
+      }
+      this.send('extractProperties', path);
+    },
+    extractProperties(workflowPath){
+      this.set("coordinatorConfigs.errors", Ember.A([]));
+      workflowPath = this.appendFileName(workflowPath, 'wf');
+      var deferred = this.readFromHdfs(workflowPath);
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var workflowJson = x2js.xml_str2json(data);
         this.set('workflowName', workflowJson["workflow-app"]._name);
         var workflowProps = this.get('propertyExtractor').getDynamicProperties(data);
-        var coordGenerator = CoordinatorGenerator.create({coordinator:this.get("coordinator")});
-        var coordinatorXml = coordGenerator.process();
-        var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(coordinatorXml);
+        var dynamicProperties = this.get('coordinatorConfigs.props');
         workflowProps.forEach((prop)=>{
-          dynamicProperties.set(prop, prop);
-        });
-        this.$('#loading').hide();
-        var configForSubmit={props:dynamicProperties,xml:coordinatorXml,params:this.get('coordinator.parameters')};
-        this.set("coordinatorConfigs", configForSubmit);
-        this.set("showingJobConfig", true);
+          var name = prop.trim().substring(2, prop.length-1);
+          if(dynamicProperties.indexOf(prop)>=0 || this.get('coordinator.workflow.configuration.property') && this.get('coordinator.workflow.configuration.property').findBy('name', name)){
+              return;
+          }
+          dynamicProperties.pushObject(prop);
+        }, this);
+        this.set('containsParameteriedPaths', false);
       }.bind(this)).catch(function(e){
-        this.set('workflowProps',[]);
-        this.$('#loading').hide();
-        this.get("errors").pushObject({'message' : 'Could not process workflow from ' + this.get('coordinator.workflow.appPath')});
+        this.get("coordinatorConfigs.errors").pushObject({'message' : 'Could not process workflow from ' + this.get('coordinator.workflow.appPath')});
         throw new Error(e);
       }.bind(this));
     },
@@ -541,7 +565,8 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     showWorkflowName(){
       this.set('workflowName', null);
-      var deferred = this.readFromHdfs(this.get('coordinator.workflow.appPath'));
+      var path = this.appendFileName(this.get('coordinator.workflow.appPath'), 'wf');
+      var deferred = this.readFromHdfs(path);
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var workflowJson = x2js.xml_str2json(data);

@@ -315,7 +315,11 @@
 {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath}}
 {{/if}}
 {{#if showingJobConfig}}
-{{job-config type='coord' closeJobConfigs="closeCoordSubmitConfig" jobFilePath=coordinatorFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=coordinatorConfigs}}
+  {{job-config type='coord' closeJobConfigs="closeCoordSubmitConfig"
+    parameterizedWorkflowPath=parameterizedWorkflowPath
+    extractProperties="extractProperties" containsParameteriedPaths=containsParameteriedPaths
+    jobFilePath=coordinatorFilePath openFileBrowser="openFileBrowser"
+    closeFileBrowser="closeFileBrowser" jobConfigs=coordinatorConfigs}}
 {{/if}}
 {{#if showingResetConfirmation}}
 {{#confirmation-dialog title="Confirm Coordinator Reset"
