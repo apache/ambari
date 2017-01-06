@@ -198,6 +198,12 @@ class Controller(threading.Thread):
         self.config.update_configuration_from_registration(ret)
         logger.debug("Updated config:" + str(self.config))
 
+        if self.statusCommandsExecutor is None:
+          self.spawnStatusCommandsExecutorProcess()
+        elif self.statusCommandsExecutor.is_alive():
+          logger.info("Terminating statusCommandsExecutor as agent re-registered with server.")
+          self.statusCommandsExecutor.kill()
+
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
@@ -461,7 +467,6 @@ class Controller(threading.Thread):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
       self.actionQueue.start()
-      self.spawnStatusCommandsExecutorProcess()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
  
