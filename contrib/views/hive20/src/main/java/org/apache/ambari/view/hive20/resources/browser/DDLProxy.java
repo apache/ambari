@@ -43,6 +43,7 @@ import org.apache.ambari.view.hive20.internal.parsers.TableMetaParserImpl;
 import org.apache.ambari.view.hive20.internal.query.generators.AlterTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.CreateTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.DeleteTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.RenameTableQueryGenerator;
 import org.apache.ambari.view.hive20.resources.jobs.JobServiceInternal;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobController;
@@ -297,6 +298,36 @@ public class DDLProxy {
       return alterQuery.get();
     }else{
       throw new ServiceException("Failed to generate alter table query for table " + oldTableMeta.getDatabase() + "." + oldTableMeta.getTable());
+    }
+  }
+
+  public Job renameTable(String oldDatabaseName, String oldTableName, String newDatabaseName, String newTableName,
+                         JobResourceManager resourceManager)
+    throws ServiceException {
+    RenameTableQueryGenerator queryGenerator = new RenameTableQueryGenerator(oldDatabaseName, oldTableName,
+      newDatabaseName, newTableName);
+    Optional<String> renameTable = queryGenerator.getQuery();
+    if(renameTable.isPresent()) {
+      String renameQuery = renameTable.get();
+      LOG.info("Creating job for : {}", renameQuery);
+      Map jobInfo = new HashMap<>();
+      jobInfo.put("title", "Rename table " + oldDatabaseName + "." + oldTableName + " to " + newDatabaseName + "." + newTableName);
+      jobInfo.put("forcedContent", renameQuery);
+      jobInfo.put("dataBase", oldDatabaseName);
+
+      try {
+        Job job = new JobImpl(jobInfo);
+        JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
+        Job returnableJob = createdJobController.getJobPOJO();
+        LOG.info("returning job with id {} for rename table {}", returnableJob.getId(), oldTableName);
+        return returnableJob;
+      } catch (Throwable e) {
+        LOG.error("Exception occurred while renaming the table for rename Query : {}", renameQuery, e);
+        throw new ServiceException(e);
+      }
+    }else{
+      throw new ServiceException("Failed to generate rename table query for table " + oldDatabaseName + "." +
+        oldTableName);
     }
   }
 }
