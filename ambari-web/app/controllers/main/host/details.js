@@ -67,6 +67,44 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   isOozieServerAddable: true,
 
+  zooKeeperRelatedServices: [
+    {
+      serviceName: 'HIVE',
+      typesToLoad: ['hive-site', 'webhcat-site'],
+      typesToSave: ['hive-site', 'webhcat-site']
+    },
+    {
+      serviceName: 'YARN',
+      typesToLoad: ['yarn-site', 'zoo.cfg'],
+      typesToSave: ['yarn-site']
+    },
+    {
+      serviceName: 'HBASE',
+      typesToLoad: ['hbase-site'],
+      typesToSave: ['hbase-site']
+    },
+    {
+      serviceName: 'ACCUMULO',
+      typesToLoad: ['accumulo-site'],
+      typesToSave: ['accumulo-site']
+    },
+    {
+      serviceName: 'KAFKA',
+      typesToLoad: ['kafka-broker'],
+      typesToSave: ['kafka-broker']
+    },
+    {
+      serviceName: 'ATLAS',
+      typesToLoad: ['application-properties', 'infra-solr-env'],
+      typesToSave: ['application-properties']
+    },
+    {
+      serviceName: 'STORM',
+      typesToLoad: ['storm-site'],
+      typesToSave: ['storm-site']
+    }
+  ],
+
   /**
    * Open dashboard page
    * @method routeHome
@@ -1352,30 +1390,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (App.get('isHaEnabled')) {
       urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
     }
-    if (services.someProperty('serviceName', 'HBASE')) {
-      urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'HIVE')) {
-      urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
-      urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'STORM')) {
-      urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'YARN')) {
-      urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
-      urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'ACCUMULO')) {
-      urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'KAFKA')) {
-      urlParams.push('(type=kafka-broker&tag=' + data.Clusters.desired_configs['kafka-broker'].tag + ')');
-    }
-    if (services.someProperty('serviceName', 'ATLAS')) {
-      urlParams.push('(type=application-properties&tag=' + data.Clusters.desired_configs['application-properties'].tag + ')');
-      urlParams.push('(type=infra-solr-env&tag=' + data.Clusters.desired_configs['infra-solr-env'].tag + ')');
-    }
+    this.get('zooKeeperRelatedServices').forEach(function (service) {
+      if (services.someProperty('serviceName', service.serviceName)) {
+        service.typesToLoad.forEach(function (type) {
+          if (data.Clusters.desired_configs[type]) {
+            urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+          }
+        });
+      }
+    });
     return urlParams;
   },
 
@@ -1393,79 +1416,21 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }, this);
 
     this.updateZkConfigs(configs);
-    var groups = [
-      {
-        properties: {
-          'hive-site': configs['hive-site'],
-          'webhcat-site': configs['webhcat-site']
-        },
-        properties_attributes: {
-          'hive-site': attributes['hive-site'],
-          'webhcat-site': attributes['webhcat-site']
-        }
-      }
-    ];
+    var groups = [];
     var installedServiceNames = App.Service.find().mapProperty('serviceName');
-    if (installedServiceNames.contains('YARN')) {
-      groups.push(
-        {
-          properties: {
-            'yarn-site': configs['yarn-site']
-          },
-          properties_attributes: {
-            'yarn-site': attributes['yarn-site']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('HBASE')) {
-      groups.push(
-        {
-          properties: {
-            'hbase-site': configs['hbase-site']
-          },
-          properties_attributes: {
-            'hbase-site': attributes['hbase-site']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('ACCUMULO')) {
-      groups.push(
-        {
-          properties: {
-            'accumulo-site': configs['accumulo-site']
-          },
-          properties_attributes: {
-            'accumulo-site': attributes['accumulo-site']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('KAFKA')) {
-      groups.push(
-        {
-          properties: {
-            'kafka-broker': configs['kafka-broker']
-          },
-          properties_attributes: {
-            'kafka-broker': attributes['kafka-broker']
-          }
-        }
-      );
-    }
-    if (installedServiceNames.contains('ATLAS')) {
-      groups.push(
-        {
-          properties: {
-            'application-properties': configs['application-properties']
-          },
-          properties_attributes: {
-            'application-properties': attributes['application-properties']
-          }
-        }
-      );
-    }
+    this.get('zooKeeperRelatedServices').forEach(function (service) {
+      if (installedServiceNames.contains(service.serviceName)) {
+        var group = {
+          properties: {},
+          properties_attributes: {}
+        };
+        service.typesToSave.forEach(function (type) {
+          group.properties[type] = configs[type];
+          group.properties_attributes[type] = attributes[type];
+        });
+        groups.push(group);
+      }
+    });
     this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
   },
 

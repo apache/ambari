@@ -935,6 +935,9 @@ describe('App.MainHostDetailsController', function () {
           },
           'accumulo-site': {
             tag: 1
+          },
+          'application-properties': {
+            tag: 1
           }
         }
       }
@@ -969,7 +972,7 @@ describe('App.MainHostDetailsController', function () {
 
     it('HIVE is installed', function () {
       loadService('HIVE');
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=webhcat-site&tag=1)', '(type=hive-site&tag=1)']);
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=hive-site&tag=1)', '(type=webhcat-site&tag=1)']);
     });
 
     it('STORM is installed', function () {
@@ -985,6 +988,11 @@ describe('App.MainHostDetailsController', function () {
     it('ACCUMULO is installed', function () {
       loadService('ACCUMULO');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
+    });
+
+    it('ATLAS is installed, AMBARI_INFRA isn\'t installed', function () {
+      loadService('ATLAS');
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=application-properties&tag=1)']);
     });
   });
 
