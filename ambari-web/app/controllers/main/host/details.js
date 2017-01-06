@@ -1496,7 +1496,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.get('zooKeeperRelatedServices').forEach(function (service) {
       if (services.someProperty('serviceName', service.serviceName)) {
         service.typesToLoad.forEach(function (type) {
-          urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+          if (data.Clusters.desired_configs[type]) {
+            urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+          }
         });
       }
     });

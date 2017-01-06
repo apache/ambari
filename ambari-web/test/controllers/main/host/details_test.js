@@ -877,6 +877,9 @@ describe('App.MainHostDetailsController', function () {
           },
           'accumulo-site': {
             tag: 1
+          },
+          'application-properties': {
+            tag: 1
           }
         }
       }
@@ -927,6 +930,11 @@ describe('App.MainHostDetailsController', function () {
     it('ACCUMULO is installed', function () {
       loadService('ACCUMULO');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
+    });
+
+    it('ATLAS is installed, AMBARI_INFRA isn\'t installed', function () {
+      loadService('ATLAS');
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=application-properties&tag=1)']);
     });
   });
 
@@ -1017,7 +1025,7 @@ describe('App.MainHostDetailsController', function () {
         ];
       });
 
-      controller.saveZkConfigs(data, null, {});
+      controller.saveZkConfigs(data);
       this.groups = controller.saveConfigsBatch.args[0][0];
     });
     afterEach(function () {
