@@ -56,6 +56,11 @@ class TestNamenode(RMFTestCase):
                        call_mocks = [(0,"")],
     )
     self.assert_configure_default()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
                               path = ['/usr/bin'],
@@ -64,11 +69,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
                               create_parents = True,
                               )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
-                              owner = 'hdfs',
-                              content = Template('exclude_hosts_list.j2'),
-                              group = 'hadoop',
-                              )
+
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -171,6 +172,11 @@ class TestNamenode(RMFTestCase):
                        call_mocks = [(0,"")],
     )
     self.assert_configure_default()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
@@ -179,11 +185,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
         create_parents = True,
     )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
-                              owner = 'hdfs',
-                              content = Template('exclude_hosts_list.j2'),
-                              group = 'hadoop',
-                              )
+
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -299,6 +301,11 @@ class TestNamenode(RMFTestCase):
                        call_mocks = [(0,"")],
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
@@ -307,11 +314,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
         create_parents = True,
     )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
-                              owner = 'hdfs',
-                              content = Template('exclude_hosts_list.j2'),
-                              group = 'hadoop',
-                              )
+
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -724,6 +727,11 @@ class TestNamenode(RMFTestCase):
     self.assert_configure_default()
 
     # verify that active namenode was formatted
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
@@ -732,11 +740,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
         create_parents = True,
     )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
-                              owner = 'hdfs',
-                              content = Template('exclude_hosts_list.j2'),
-                              group = 'hadoop',
-                              )
+
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
