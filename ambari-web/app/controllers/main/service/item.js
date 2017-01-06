@@ -95,7 +95,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('App.services.noConfigTypes','content.serviceName'),
 
   clientComponents: function () {
-    var clientNames = [];
+    var clientNames = [{
+      action:  'downloadAllClientConfigs',
+      context: {
+        label: Em.I18n.t('common.all.clients')
+      }
+    }];
     var clients = App.StackServiceComponent.find().filterProperty('serviceName', this.get('content.serviceName')).filterProperty('isClient');
     clients.forEach(function (item) {
       clientNames.push({
@@ -1092,6 +1097,17 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       serviceName: this.get('content.serviceName'),
       componentName: (event && event.name) || component.get('componentName'),
       resourceType: this.resourceTypeEnum.SERVICE_COMPONENT
+    });
+  },
+
+  /**
+   * This method is called when user event to download configs for "All Clients"
+   * is made from service action menu
+   */
+  downloadAllClientConfigs: function() {
+    this.downloadClientConfigsCall({
+      serviceName: this.get('content.serviceName'),
+      resourceType: this.resourceTypeEnum.SERVICE
     });
   },
 

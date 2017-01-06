@@ -1231,6 +1231,42 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+  describe('#downloadAllClientConfigs()', function () {
+
+    var mainServiceItemController = App.MainServiceItemController.create({
+      content: {
+        clientComponents: [
+          Em.Object.create({
+            totalCount: 1,
+            componentName: 'C1',
+            displayName: 'd1'
+          }),
+          Em.Object.create({
+            totalCount: 1,
+            componentName: 'C2',
+            displayName: 'd2'
+          })
+        ],
+        serviceName: 'S1'
+      }
+    });
+
+    beforeEach(function () {
+      sinon.stub(mainServiceItemController, 'downloadClientConfigsCall', Em.K);
+    });
+    afterEach(function () {
+      mainServiceItemController.downloadClientConfigsCall.restore();
+    });
+
+    it('should call downloadClientConfigsCall method for all clients', function () {
+      mainServiceItemController.downloadAllClientConfigs();
+      expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
+        serviceName: 'S1',
+        resourceType: mainServiceItemController.resourceTypeEnum.SERVICE
+      })).to.be.true;
+    });
+  });
+
   describe('#startLdapKnox() and #stopLdapKnox() should call startStopLdapKnox once: ', function () {
 
 
