@@ -66,7 +66,7 @@ export default Ember.Object.create({
       }, this);
     }, this);
     validTransitionsTo = validTransitionsTo.reject((node)=>{
-      return node.get('type') === 'placeholder';
+      return node.get('type') === 'placeholder' || node.get('type') === 'kill';
     }, this);
     return validTransitionsTo;
   }
