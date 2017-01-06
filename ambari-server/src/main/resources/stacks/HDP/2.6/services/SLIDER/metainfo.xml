@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SLIDER</name>
-      <version>0.91.0.2.6</version>
+      <version>0.91.0</version>
     </service>
   </services>
 </metainfo>
