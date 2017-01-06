@@ -101,9 +101,13 @@ class ActionQueue(threading.Thread):
     if not self.statusCommandQueue.empty():
       #Clear all status commands. Was supposed that we got all set of statuses, we don't need to keep old ones
       statusCommandQueueSize = 0
-      while not self.statusCommandQueue.empty():
-        self.statusCommandQueue.get()
-        statusCommandQueueSize = statusCommandQueueSize + 1
+      try:
+        while not self.statusCommandQueue.empty():
+          self.statusCommandQueue.get(False)
+          statusCommandQueueSize = statusCommandQueueSize + 1
+      except Queue.Empty:
+        pass
+
       logger.info("Number of status commands removed from queue : " + str(statusCommandQueueSize))
 
     for command in commands:
