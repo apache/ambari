@@ -1168,14 +1168,33 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # Test - with no 'changed-configurations', we should get updated 'maximum's.
     services.pop("changed-configurations", None)
+    services["changed-configurations"] = [{
+        "type": "yarn-site",
+        "name": "yarn.nodemanager.resource.memory-mb",
+        "old_value": "1280"
+    }]
     services.pop("configurations", None)
-    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321', "yarn.nodemanager.resource.cpu-vcores": '9'}}}
-    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
-    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321'}}}
+
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] = '4321'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-mb"]["maximum"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-mb"]["maximum"] = '4321'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services["changed-configurations"].append({
+        "type": "yarn-site",
+        "name": "yarn.nodemanager.resource.cpu-vcores",
+        "old_value": "7"
+    })
+    services.pop("configurations", None)
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.cpu-vcores": '9', "yarn.nodemanager.resource.memory-mb": '4321'}}}
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '9'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '9'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
