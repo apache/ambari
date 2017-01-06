@@ -145,15 +145,45 @@ define([
               var timeSeries = {};
               var metricData = res.metrics;
               _.map(metricData, function (data) {
+                var totalCountFlag = false;
                 var aliasSuffix = data.hostname ? ' on ' + data.hostname : '';
+                var op = '';
+                var user = '';
                 if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "hbase-tables") {
                   var tableName = "Tables.";
                   var tableSuffix = data.metricname.substring(data.metricname.indexOf(tableName) + tableName.length,
                   data.metricname.lastIndexOf("_metric"));
-                  var aliasSuffix = ' on ' + tableSuffix;
+                  aliasSuffix = ' on ' + tableSuffix;
                 }
                 if(templateSrv.variables[0].query === "callers") {
                   alias = data.metricname.substring(data.metricname.indexOf('(')+1, data.metricname.indexOf(')'));
+                }
+                // Set legend and alias for HDFS - TopN dashboard
+                if(data.metricname.indexOf('dfs.NNTopUserOpCounts') === 0) {
+                  var metricname_arr = data.metricname.split(".");
+                  _.map(metricname_arr, function (segment) {
+                    if(segment.indexOf('op=') === 0) {
+                      var opKey = 'op=';
+                      op = segment.substring(segment.indexOf(opKey) + opKey.length);
+                    } else if(segment.indexOf('user=') === 0) {
+                      var userKey = 'user=';
+                      user = segment.substring(segment.indexOf(userKey) + userKey.length);
+                    }
+                  });
+                  // Check if metric is TotalCount
+                  if(data.metricname.indexOf('TotalCount') > 0) {
+                    totalCountFlag = true;
+                    if (op !== '*') {
+                      alias = op;
+                    } else {
+                      alias = 'Total Count';
+                    }
+                  } else if (op !== '*') {
+                    alias = op + ' by ' + user;
+                  } else {
+                    alias = user;
+                  }
+                  aliasSuffix = '';
                 }
                 timeSeries = {
                   target: alias + aliasSuffix,
@@ -164,7 +194,9 @@ define([
                     timeSeries.datapoints.push([data.metrics[k], (k - k % 1000)]);
                   }
                 }
-                series.push(timeSeries);
+                if( (user !== '*') || (totalCountFlag) ) {
+                  series.push(timeSeries);
+                }
               });
               return $q.when({data: series});
             };
