@@ -55,7 +55,7 @@
   </property>
   <property>
     <name>druid.indexer.task.baseTaskDir</name>
-    <value>/tmp/persistent/tasks</value>
+    <value>/apps/druid/tasks</value>
     <description>
       Base temporary working directory for druid tasks.
     </description>

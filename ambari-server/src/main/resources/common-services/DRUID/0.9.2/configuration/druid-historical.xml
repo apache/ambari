@@ -61,7 +61,7 @@
   </property>
   <property>
     <name>druid.segmentCache.locations</name>
-    <value>[{"path":"/apps/druid/segmentCache","maxSize"\:300000000000}]</value>
+    <value>[{"path":"/apps/druid/segmentCache","maxSize":300000000000}]</value>
     <description>Segments assigned to a Historical node are first stored on the local file system (in a disk cache) and
       then served by the Historical node. These locations define where that local cache resides.
     </description>
@@ -78,7 +78,7 @@
   </property>
   <property>
     <name>druid.segmentCache.infoDir</name>
-    <value>/apps/druid/segmentCache</value>
+    <value>/apps/druid/segmentCache/info_dir</value>
     <description>Historical nodes keep track of the segments they are serving so that when the process is restarted they
       can reload the same segments without waiting for the Coordinator to reassign. This path defines where this
       metadata is kept. Directory will be created if needed.
