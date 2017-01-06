@@ -30,7 +30,9 @@
         </label>
 
         <div>
-          {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="col-sm-3"}}
+          <div class="col-sm-3 cluster-name-input">
+            {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="form-control"}}
+          </div>
           {{#if clusterNameError}}
             <p class="help-block validation-block col-sm-9">{{clusterNameError}}</p>
           {{/if}}
