@@ -64,5 +64,25 @@ App.ConfigAction.FIXTURES = [
     if:'${hive-interactive-env/enable_hive_interactive}',
     then:'add',
     else: 'delete'
+  },
+  {
+    id: 2,
+    service_name: 'YARN',
+    component_name: 'RESOURCEMANAGER',
+    config_name: "capacity-scheduler",
+    file_name: "capacity-scheduler.xml",
+    action_type: "showPopup",
+    popup_properties: {
+      primaryButton: {
+        label: Em.I18n.t('popup.confirmation.refreshYarnQueues.buttonText'),
+        metaData: {
+          name: 'service.item.refreshQueueYarnRequest',
+          command: "REFRESHQUEUES",
+          context: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context')
+        }
+      },
+      body: Em.I18n.t('popup.confirmation.refreshYarnQueues.body'),
+      errorMessage: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error')
+    }
   }
 ];
