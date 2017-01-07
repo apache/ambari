@@ -39,7 +39,6 @@
   </authentication-manager>
 
   <beans:bean id="ambariEntryPoint" class="org.apache.ambari.server.security.AmbariEntryPoint">
-    <beans:constructor-arg ref="ambariConfiguration"/>
   </beans:bean>
 
   <beans:bean id="ambariDelegatingAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter">

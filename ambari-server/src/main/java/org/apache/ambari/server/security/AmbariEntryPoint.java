@@ -17,45 +17,26 @@
  */
 package org.apache.ambari.server.security;
 
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
 public class AmbariEntryPoint implements AuthenticationEntryPoint {
-
-  /**
-   * A Boolean value declaring whether Kerberos authentication has been enabled (<code>true</code>)
-   * or not (<code>false</code>).
-   * <p>
-   * This value determines the behavior this entry point when authentication fails.
-   */
-  private final boolean kerberosAuthenticationEnabled;
-
-  public AmbariEntryPoint(Configuration configuration) {
-    AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = (configuration == null)
-        ? null
-        : configuration.getKerberosAuthenticationProperties();
-
-    kerberosAuthenticationEnabled = (kerberosAuthenticationProperties != null) && kerberosAuthenticationProperties.isKerberosAuthenticationEnabled();
-  }
-
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
     /* *****************************************************************************************
-     * If Kerberos authentication is enabled (authentication.kerberos.enabled = true), respond such
-     * that the client is challenged to Negotiate and reissue the request with a Kerberos token.
-     * This response is an HTTP 401 status with the "WWW-Authenticate: Negotiate" header.
+     * To maintain backward compatibility and respond with the appropriate response when
+     * authentication is needed, by default return an HTTP 403 status.
      *
-     * If Kerberos authentication is not enabled, return an HTTP 403 status.
+     * However if requested by the user, respond such that the client is challenged to Negotiate
+     * and reissue the request with a Kerberos token.  This response is an HTTP 401 status with the
+     * WWW-Authenticate: Negotiate" header.
      * ****************************************************************************************** */
-    if (kerberosAuthenticationEnabled) {
+    if ("true".equalsIgnoreCase(request.getHeader("X-Negotiate-Authentication"))) {
       response.setHeader("WWW-Authenticate", "Negotiate");
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication requested");
     } else {
