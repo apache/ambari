@@ -61,10 +61,15 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
 
         if (configs.length) {
           if(config_action.get('fileName') === 'capacity-scheduler.xml' && !self.isYarnQueueRefreshed) {
-            self.configAction = config_action;
-            App.showConfirmationPopup(function () {
+            if(self.get('content.serviceName') === 'HIVE') {
+              // Auto refresh yarn capacity scheduler if capacity-scheduler configs are changed from Hive configs page
               self.popupPrimaryButtonCallback(config_action);
-            }, config_action.get('popupProperties').body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+            } else {
+              self.configAction = config_action;
+              App.showConfirmationPopup(function () {
+                self.popupPrimaryButtonCallback(config_action);
+              }, config_action.get('popupProperties').body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+            }
           }
         }
       });
