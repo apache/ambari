@@ -96,12 +96,12 @@ public class AggregateDefinitionMapping {
    *
    * @param clusterId
    *          the ID of the cluster that the definition is bound to.
-   * @param aggregatedDefinitonName
+   * @param aggregatedDefinitionName
    *          the unique name of the definition for which aggregates should be
    *          unassociated (not {@code null}).
    */
   public void removeAssociatedAggregate(long clusterId,
-      String aggregatedDefinitonName) {
+      String aggregatedDefinitionName) {
     Long id = Long.valueOf(clusterId);
 
     if (!m_aggregateMap.containsKey(id)) {
@@ -109,7 +109,7 @@ public class AggregateDefinitionMapping {
     }
 
     Map<String, AlertDefinition> map = m_aggregateMap.get(id);
-    map.remove(aggregatedDefinitonName);
+    map.remove(aggregatedDefinitionName);
   }
 
   /**

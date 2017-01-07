@@ -465,18 +465,18 @@ public class Configuration {
 
   /**
    * Used in conjunction with {@link #API_GZIP_COMPRESSION_ENABLED}, determines
-   * the mininum size (in bytes) that an HTTP request must be before it should be
+   * the minimum size (in bytes) that an HTTP request must be before it should be
    * compressed.
    */
-  @Markdown(description = "Used in conjunction with `api.gzip.compression.enabled`, determines the mininum size that an HTTP request must be before it should be compressed. This is measured in bytes.")
+  @Markdown(description = "Used in conjunction with `api.gzip.compression.enabled`, determines the minimum size that an HTTP request must be before it should be compressed. This is measured in bytes.")
   public static final ConfigurationProperty<String> API_GZIP_MIN_COMPRESSION_SIZE = new ConfigurationProperty<>(
       "api.gzip.compression.min.size", "10240");
 
   /**
-   * Determiens whether communication with the Ambari Agents should have the
+   * Determines whether communication with the Ambari Agents should have the
    * JSON payloads compressed with GZIP.
    */
-  @Markdown(description = "Determiens whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP.")
+  @Markdown(description = "Determines whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP.")
   public static final ConfigurationProperty<String> AGENT_API_GZIP_COMPRESSION_ENABLED = new ConfigurationProperty<>(
       "agent.api.gzip.compression.enabled", "true");
 

@@ -232,7 +232,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
           }
           break;
         default:
-          LOG.error("Unsuported Resource Type for Metrics");
+          LOG.error("Unsupported Resource Type for Metrics");
           return false;
       }
     }

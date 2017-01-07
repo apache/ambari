@@ -765,7 +765,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Remove a current alert whose history entry matches the specfied ID.
+   * Remove a current alert whose history entry matches the specified ID.
    *
    * @param   historyId the ID of the history entry.
    * @return  the number of alerts removed.
@@ -979,7 +979,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Merge the speicified alert with the existing alert in the database.
+   * Merge the specified alert with the existing alert in the database.
    *
    * @param alert
    *          the alert to merge (not {@code null}).
@@ -1027,7 +1027,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Merge the speicified current alert with the existing alert in the database.
+   * Merge the specified current alert with the existing alert in the database.
    *
    * @param alert
    *          the current alert to merge (not {@code null}).

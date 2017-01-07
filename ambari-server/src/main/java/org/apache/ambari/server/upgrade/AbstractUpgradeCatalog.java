@@ -479,7 +479,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   /**
    * Create a new cluster scoped configuration with the new properties added
-   * with the values from the coresponding xml files.
+   * with the values from the corresponding xml files.
    *
    * If xml owner service is not in the cluster, the configuration won't be added.
    *

@@ -1447,13 +1447,13 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
     expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
     expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
-    // First host contains versionable components
+    // First host contains versioned components
     final List<ServiceComponentHost> schsH1 = new ArrayList<ServiceComponentHost>(){{
       add(schDatanode);
       add(schNamenode);
       add(schAMS);
     }};
-    // Second host does not contain versionable components
+    // Second host does not contain versioned components
     final List<ServiceComponentHost> schsH2 = new ArrayList<ServiceComponentHost>(){{
       add(schAMS);
     }};

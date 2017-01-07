@@ -1663,7 +1663,7 @@ public class BlueprintConfigurationProcessor {
     private final String configPropertyType;
 
     /**
-     * Name of property which is used to determine if DB is new or existing (exernal).
+     * Name of property which is used to determine if DB is new or existing (external).
      */
     private final String conditionalPropertyName;
 

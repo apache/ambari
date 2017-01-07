@@ -510,7 +510,7 @@ public class AlertDispatchDAO {
   }
 
   /**
-   * Merge the speicified alert group with the existing group in the database.
+   * Merge the specified alert group with the existing group in the database.
    *
    * @param alertGroup
    *          the group to merge (not {@code null}).
@@ -621,7 +621,7 @@ public class AlertDispatchDAO {
   }
 
   /**
-   * Merge the speicified alert target with the existing target in the database.
+   * Merge the specified alert target with the existing target in the database.
    *
    * @param alertTarget
    *          the target to merge (not {@code null}).

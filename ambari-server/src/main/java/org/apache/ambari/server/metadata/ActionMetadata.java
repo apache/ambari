@@ -57,7 +57,7 @@ public class ActionMetadata {
   }
 
   private void fillHostComponentCommands() {
-    //Standart commands for any host component
+    //Standard commands for any host component
     defaultHostComponentCommands.add("RESTART");
     defaultHostComponentCommands.add("START");
     defaultHostComponentCommands.add("STOP");

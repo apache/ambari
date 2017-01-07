@@ -730,7 +730,7 @@ public class AmbariServer {
    * The {@link SelectChannelConnector} uses the
    * {@link Runtime#availableProcessors()} as a way to determine how many
    * acceptors and selectors to create. If the number of processors is too
-   * great, then there will be no threads left to fullfil connection requests.
+   * great, then there will be no threads left to fulfil connection requests.
    * This method ensures that the pool size is configured correctly, taking into
    * account the number of available processors (sockets x core x
    * threads-per-core).
