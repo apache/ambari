@@ -20,6 +20,7 @@ import Ember from 'ember';
 import tabs from '../../../../configs/table-level-tabs';
 
 export default Ember.Route.extend({
+  tableOperations: Ember.inject.service(),
   model(params) {
     let database = this.modelFor('databases.database').get('name');
     let table = params.name;
@@ -40,5 +41,55 @@ export default Ember.Route.extend({
     controller.set('tabs', newTabs);
   },
 
-  actions: {}
+  actions: {
+    deleteTable(table) {
+      this.deleteTable(table);
+    },
+
+    editTable(table) {
+      console.log("Edit table");
+    }
+  },
+
+  deleteTable(tableInfo) {
+    this.controller.set('showDeleteTableModal', true);
+    this.controller.set('deleteTableMessage', 'Submitting request to delete table');
+    let databaseModel = this.controllerFor('databases.database').get('model');
+    this.get('tableOperations').deleteTable(databaseModel.get('name'), tableInfo.get('table'))
+      .then((job) => {
+        this.controller.set('deleteTableMessage', 'Waiting for the table to be deleted');
+        this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
+          .then((status) => {
+            this.controller.set('deleteTableMessage', "Successfully Deleted table");
+            Ember.run.later(() => {
+              this.controller.set('showDeleteTableModal', false);
+              this.controller.set('deleteTableMessage');
+              this._removeTableLocally(databaseModel.get('name'), tableInfo.get('table'));
+              this._resetModelInTablesController(databaseModel.get('name'), tableInfo.get('table'));
+              this.transitionTo('databases.database', databaseModel.get('name'));
+            }, 2 * 1000);
+          }, (error) => {
+            // TODO: handle error
+            Ember.run.later(() => {
+              this.controller.set('showDeleteTableModal', false);
+              this.controller.set('deleteTableMessage');
+              this.transitionTo('databases.database', databaseModel.get('name'));
+            }, 2 * 1000);
+          });
+      }, (error) => {
+        console.log("Error encountered", error);
+        this.controller.set('showDeleteTableModal', true);
+      });
+  },
+
+  _removeTableLocally(database, table) {
+    let tableToBeRemoved = this.store.peekRecord('table', `${database}/${table}`);
+    this.store.deleteRecord(tableToBeRemoved);
+  },
+
+  _resetModelInTablesController(database, tables) {
+    let tablesController = this.controllerFor('databases.database.tables');
+    let currentTables = this.store.peekRecord('database', database).get('tables');
+    tablesController.set('model', currentTables);
+  }
 });

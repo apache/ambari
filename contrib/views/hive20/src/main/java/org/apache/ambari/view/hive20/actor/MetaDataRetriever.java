@@ -91,13 +91,15 @@ public class MetaDataRetriever extends HiveActor {
 
   private void refreshTablesInfo(String database) throws ConnectionException, SQLException {
     HiveConnection connection = getHiveConnection();
+    Set<String> currentTableNames = new HashSet<>();
     try (ResultSet tables = connection.getMetaData().getTables("", database, null, null)) {
       while (tables.next()) {
         TableInfo info = new TableInfo(tables.getString(3), tables.getString(4));
+        currentTableNames.add(info.getName());
         getSender().tell(new TableRefreshed(info, database), getSelf());
       }
     }
-    getSender().tell(new AllTableRefreshed(database), getSelf());
+    getSender().tell(new AllTableRefreshed(database, currentTableNames), getSelf());
   }
 
   public static  Props props(Connectable connectable) {
@@ -153,13 +155,19 @@ public class MetaDataRetriever extends HiveActor {
 
   public static class AllTableRefreshed {
     private final String database;
+    private final Set<String> currentTableNames;
 
-    public AllTableRefreshed(String database) {
+    public AllTableRefreshed(String database, Set<String> currentTableNames) {
       this.database = database;
+      this.currentTableNames = currentTableNames;
     }
 
     public String getDatabase() {
       return database;
+    }
+
+    public Set<String> getCurrentTableNames() {
+      return currentTableNames;
     }
   }
 }
