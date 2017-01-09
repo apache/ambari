@@ -115,7 +115,7 @@ java64_home = config['hostLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
-java_io_tmpdir = config['configurations']['hbase-env']['hbase_java_io_tmpdir']
+java_io_tmpdir = default("/configurations/hbase-env/hbase_java_io_tmpdir", "/tmp")
 master_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_master_heapsize'])
 
 regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_regionserver_heapsize'])
