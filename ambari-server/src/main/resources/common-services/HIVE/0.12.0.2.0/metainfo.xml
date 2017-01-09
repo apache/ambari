@@ -268,7 +268,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>redhat6,kylin4,debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
