@@ -20,9 +20,15 @@ package org.apache.ambari.server.metrics.system;
 
 import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
 
-public interface MetricsSource extends Runnable{
+public interface MetricsSource{
+
   /**
-   * initialize sink
+   * Initialize the source, set up configs etc.
    **/
   void init(MetricsConfiguration configuration, MetricsSink sink);
+
+  /**
+   * Start the source
+   **/
+  void start();
 }

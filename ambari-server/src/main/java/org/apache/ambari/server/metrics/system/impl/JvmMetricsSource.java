@@ -21,6 +21,9 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.metrics.system.MetricsSink;
 import org.apache.ambari.server.metrics.system.SingleMetric;
@@ -38,24 +41,42 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 
+/**
+ * @{link JvmMetricsSource} collects JVM Metrics using codahale and publish to Metrics Sink.
+ */
 public class JvmMetricsSource extends AbstractMetricsSource {
   static final MetricRegistry registry = new MetricRegistry();
   private static Logger LOG = LoggerFactory.getLogger(JvmMetricsSource.class);
+  private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+  private static String JVM_PREFIX = "jvm";
+  private int interval = 10;
 
   @Override
   public void init(MetricsConfiguration configuration, MetricsSink sink) {
     super.init(configuration, sink);
-    registerAll("jvm.gc", new GarbageCollectorMetricSet(), registry);
-    registerAll("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()), registry);
-    registerAll("jvm.memory", new MemoryUsageGaugeSet(), registry);
-    registerAll("jvm.threads", new ThreadStatesGaugeSet(), registry);
-    registry.register("jvm.file.open.descriptor.ratio", new FileDescriptorRatioGauge());
+    registerAll(JVM_PREFIX + ".gc", new GarbageCollectorMetricSet(), registry);
+    registerAll(JVM_PREFIX + ".buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()), registry);
+    registerAll(JVM_PREFIX + ".memory", new MemoryUsageGaugeSet(), registry);
+    registerAll(JVM_PREFIX + ".threads", new ThreadStatesGaugeSet(), registry);
+    registry.register(JVM_PREFIX + ".file.open.descriptor.ratio", new FileDescriptorRatioGauge());
+    interval = Integer.parseInt(configuration.getProperty("interval", "10"));
+    LOG.info("JVM Metrics source initialized.");
   }
 
   @Override
-  public void run() {
-    sink.publish(getMetrics());
-    LOG.debug("********* Published system metrics to sink **********");
+  public void start() {
+    LOG.info("Starting JVM Metrics source...");
+    try {
+      executor.scheduleWithFixedDelay(new Runnable() {
+        @Override
+        public void run() {
+          sink.publish(getMetrics());
+          LOG.debug("********* Published JVM metrics to sink **********");
+        }
+      }, interval, interval, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      LOG.info("Throwing exception when starting metric source", e);
+    }
   }
 
   private void registerAll(String prefix, MetricSet metricSet, MetricRegistry registry) {
@@ -68,7 +89,6 @@ public class JvmMetricsSource extends AbstractMetricsSource {
     }
   }
 
-  @Override
   public List<SingleMetric> getMetrics() {
 
     List<SingleMetric> metrics = new ArrayList<>();

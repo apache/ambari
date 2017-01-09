@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,18 +18,36 @@
 
 package org.apache.ambari.server.metric.system.impl;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.metrics.system.MetricsSink;
+import org.apache.ambari.server.metrics.system.SingleMetric;
+import org.apache.ambari.server.metrics.system.impl.AmbariMetricSinkImpl;
+import org.apache.ambari.server.metrics.system.impl.DatabaseMetricsSource;
 import org.apache.ambari.server.metrics.system.impl.JvmMetricsSource;
 import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockRunner;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class JvmMetricsSourceTest {
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import junit.framework.Assert;
+
+@RunWith(EasyMockRunner.class)
+public class MetricsSourceTest {
 
   @Test
   public void testJvmSourceInit_PreJVM1_8() {
@@ -102,4 +120,52 @@ public class JvmMetricsSourceTest {
 
     }
   }
+
+  @Test(timeout=20000)
+  public void testDatabaseMetricSourcePublish() throws InterruptedException {
+    Map<String, Long> metricsMap = new HashMap<>();
+
+    metricsMap.put("Timer.UpdateObjectQuery.HostRoleCommandEntity", 10000l); // Should be accepted.
+    metricsMap.put("Timer.UpdateObjectQuery.HostRoleCommandEntity.SqlPrepare", 5000l); // Should be accepted.
+    metricsMap.put("Timer.DirectReadQuery", 6000l); // Should be accepted.
+    metricsMap.put("Timer.ReadAllQuery.StackEntity.StackEntity.findByNameAndVersion.SqlPrepare", 15000l); //Should be discarded
+
+    metricsMap.put("Counter.UpdateObjectQuery.HostRoleCommandEntity", 10l); // Should be accepted & should add a computed metric.
+    metricsMap.put("Counter.ReadObjectQuery.RequestEntity.request", 4330l); //Should be discarded
+    metricsMap.put("Counter.ReadObjectQuery.MetainfoEntity.readMetainfoEntity.CacheMisses", 15l); // Should be accepted.
+
+    DatabaseMetricsSource source = new DatabaseMetricsSource();
+
+    MetricsConfiguration configuration = MetricsConfiguration.getSubsetConfiguration(
+      MetricsConfiguration.getMetricsConfiguration(), "source.database.");
+
+    MetricsSink sink = EasyMock.createMock(AmbariMetricSinkImpl.class);
+    Capture<List<SingleMetric>> metricsCapture = EasyMock.newCapture();
+    sink.publish(capture(metricsCapture));
+    expectLastCall().once();
+
+    replay(sink);
+    source.init(configuration, sink);
+    source.start();
+    source.publish(metricsMap);
+    Thread.sleep(5000l);
+    verify(sink);
+
+    Assert.assertTrue(metricsCapture.getValue().size() == 6);
+  }
+
+  @Test
+  public void testDatabaseMetricsSourceAcceptMetric() {
+
+    DatabaseMetricsSource source = new DatabaseMetricsSource();
+    MetricsConfiguration configuration = MetricsConfiguration.getSubsetConfiguration(
+      MetricsConfiguration.getMetricsConfiguration(), "source.database.");
+    MetricsSink sink = new TestAmbariMetricsSinkImpl();
+    source.init(configuration, sink);
+
+    Assert.assertTrue(source.acceptMetric("Timer.UpdateObjectQuery.HostRoleCommandEntity.SqlPrepare"));
+    Assert.assertFalse(source.acceptMetric("Counter.ReadObjectQuery.RequestEntity.request"));
+    Assert.assertTrue(source.acceptMetric("Counter.ReadObjectQuery.MetainfoEntity.readMetainfoEntity.CacheMisses"));
+  }
+
 }

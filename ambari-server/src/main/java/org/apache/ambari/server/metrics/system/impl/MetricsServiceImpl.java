@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,16 +17,15 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.metrics.system.MetricsSink;
+import org.apache.ambari.server.metrics.system.MetricsSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +36,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class MetricsServiceImpl implements MetricsService {
   private static Logger LOG = LoggerFactory.getLogger(MetricsServiceImpl.class);
-  private Map<String, AbstractMetricsSource> sources = new HashMap<>();
-  private MetricsSink sink = null;
+  private static Map<String, MetricsSource> sources = new HashMap<>();
+  private static MetricsSink sink = null;
   private MetricsConfiguration configuration = null;
 
   @Inject
@@ -57,7 +56,8 @@ public class MetricsServiceImpl implements MetricsService {
       initializeMetricSources();
 
       if (!sink.isInitialized()) {
-        //If Sink is not initialized, Service will check for every 5 mins.
+        // If Sink is not initialized (say, cluster has not yet been deployed or AMS had not been installed)
+        // Service will check for every 5 mins.
         Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(new Runnable() {
           @Override
           public void run() {
@@ -86,41 +86,42 @@ public class MetricsServiceImpl implements MetricsService {
       String commaSeparatedSources = configuration.getProperty("metric.sources");
 
       if (StringUtils.isEmpty(commaSeparatedSources)) {
-        LOG.info("No sources configured.");
+        LOG.info("No metric sources configured.");
         return;
       }
 
       String[] sourceNames = commaSeparatedSources.split(",");
-      for (String sourceName: sourceNames) {
+      for (String sourceName : sourceNames) {
+
+        if (StringUtils.isEmpty(sourceName)) {
+          continue;
+        }
+        sourceName = sourceName.trim();
+
         String className = configuration.getProperty("source." + sourceName + ".class");
-        Class t = Class.forName(className);
-        AbstractMetricsSource src = (AbstractMetricsSource)t.newInstance();
-        src.init(configuration, sink);
+        Class sourceClass;
+        try {
+          sourceClass = Class.forName(className);
+        } catch (ClassNotFoundException ex) {
+          LOG.info("Source class not found for source name :" + sourceName);
+          continue;
+        }
+        AbstractMetricsSource src = (AbstractMetricsSource) sourceClass.newInstance();
+        src.init(MetricsConfiguration.getSubsetConfiguration(configuration, "source." + sourceName + "."), sink);
         sources.put(sourceName, src);
+        src.start();
       }
 
-      final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-      for (Map.Entry<String, AbstractMetricsSource> entry : sources.entrySet()) {
-        startSource(executor, entry);
-      }
     } catch (Exception e) {
       LOG.error("Error when configuring metric sink and source", e);
     }
   }
 
-  private void startSource(ScheduledExecutorService executor, Map.Entry<String, AbstractMetricsSource> entry) {
-    String className = entry.getKey();
-    AbstractMetricsSource source = entry.getValue();
-    String interval = "source." + className + ".interval";
-    int duration = Integer.parseInt(configuration.getProperty(interval, "10")); // default value 10 seconds
-    try {
-      executor.scheduleWithFixedDelay(source, 0, duration, TimeUnit.SECONDS);
-    } catch (Exception e) {
-      LOG.info("Throwing exception when starting metric source", e);
-    }
+  public static MetricsSource getSource(String type) {
+    return sources.get(type);
   }
 
-  public Collection<AbstractMetricsSource> getSources() {
-    return sources.values();
+  public static MetricsSink getSink() {
+    return sink;
   }
 }

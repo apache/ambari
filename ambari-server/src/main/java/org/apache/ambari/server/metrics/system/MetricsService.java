@@ -18,20 +18,13 @@
 
 package org.apache.ambari.server.metrics.system;
 
-import java.util.Collection;
-
-import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
-
-
+/**
+ * Interface for Metrics Service.
+ */
 public interface MetricsService{
   /**
-   * Set up configuration
+   * Start the service
    **/
   void start();
 
-  /**
-   * Get Configured sources
-   * @return
-   */
-  Collection<AbstractMetricsSource> getSources();
 }
