@@ -75,7 +75,7 @@ public class DatabaseManager extends HiveActor {
 
     Object message = hiveMessage.getMessage();
     if (message instanceof Refresh) {
-      handleRefresh();
+      handleRefresh((Refresh) message);
     } else if (message instanceof SelfRefresh) {
       handleSelfRefresh();
     } else if (message instanceof MetaDataRetriever.DBRefreshed) {
@@ -83,7 +83,7 @@ public class DatabaseManager extends HiveActor {
     } else if (message instanceof MetaDataRetriever.TableRefreshed) {
       handleTableRefreshed((MetaDataRetriever.TableRefreshed) message);
     } else if (message instanceof MetaDataRetriever.AllTableRefreshed) {
-      handleAllTableRefeshed((MetaDataRetriever.AllTableRefreshed) message);
+      handleAllTableRefreshed((MetaDataRetriever.AllTableRefreshed) message);
     } else if (message instanceof GetDatabases) {
       handleGetDatabases((GetDatabases) message);
     }
@@ -96,11 +96,11 @@ public class DatabaseManager extends HiveActor {
           getSelf(), new SelfRefresh(), getContext().dispatcher(), getSelf());
     } else {
       selfRefreshQueued = false;
-      refresh();
+      refresh(true);
     }
   }
 
-  private void handleRefresh() {
+  private void handleRefresh(Refresh message) {
     if (refreshInProgress && selfRefreshQueued) {
       return; // We will not honor refresh message when a refresh is going on and another self refresh is queued in mailbox
     } else if (refreshInProgress) {
@@ -108,7 +108,7 @@ public class DatabaseManager extends HiveActor {
       getContext().system().scheduler().scheduleOnce(Duration.create(500, TimeUnit.MILLISECONDS),
           getSelf(), new SelfRefresh(), getContext().dispatcher(), getSelf());
     } else {
-      refresh();
+      refresh(message.initiateScheduler());
     }
   }
 
@@ -157,8 +157,9 @@ public class DatabaseManager extends HiveActor {
     databaseChangeNotifier.tell(new DatabaseChangeNotifier.TableUpdated(message.getTable()), getSelf());
   }
 
-  private void handleAllTableRefeshed(MetaDataRetriever.AllTableRefreshed message) {
+  private void handleAllTableRefreshed(MetaDataRetriever.AllTableRefreshed message) {
     ActorRef databaseChangeNotifier = getDatabaseChangeNotifier(message.getDatabase());
+    updateRemovedTables(message.getDatabase(), message.getCurrentTableNames());
     databaseChangeNotifier.tell(new DatabaseChangeNotifier.AllTablesUpdated(message.getDatabase()), getSelf());
     if (checkIfAllTablesOfAllDatabaseRefeshed(message)) {
       refreshInProgress = false;
@@ -193,12 +194,14 @@ public class DatabaseManager extends HiveActor {
     return databaseChangeNotifier;
   }
 
-  private void refresh() {
+  private void refresh(boolean initiateScheduler) {
     LOG.info("Received refresh for user");
     refreshInProgress = true;
     metaDataRetriever.tell(new MetaDataRetriever.RefreshDB(), getSelf());
 
-    scheduleRefreshAfter(1, TimeUnit.MINUTES);
+    if (initiateScheduler) {
+      scheduleRefreshAfter(1, TimeUnit.MINUTES);
+    }
   }
 
   private void scheduleRefreshAfter(long time, TimeUnit timeUnit) {
@@ -220,6 +223,20 @@ public class DatabaseManager extends HiveActor {
     }
   }
 
+  private void updateRemovedTables(String database, Set<String> currentTableNames) {
+    DatabaseWrapper wrapper = databases.get(database);
+    HashSet<TableInfo> notRemovedTables = new HashSet<>();
+    if (wrapper != null) {
+      DatabaseInfo info = wrapper.getDatabase();
+      for (TableInfo tableInfo : info.getTables()) {
+        if (currentTableNames.contains(tableInfo.getName())) {
+          notRemovedTables.add(tableInfo);
+        }
+      }
+      info.setTables(notRemovedTables);
+    }
+  }
+
   public static Props props(ViewContext context) {
     ConnectionConfig config = ConnectionFactory.create(context);
     Connectable connectable = new HiveConnectionWrapper(config.getJdbcUrl(), config.getUsername(), config.getPassword(), new AuthParams(context));
@@ -228,13 +245,24 @@ public class DatabaseManager extends HiveActor {
 
   public static class Refresh {
     private final String username;
+    private final boolean initiateScheduler;
+
 
     public Refresh(String username) {
+      this(username, true);
+    }
+
+    public Refresh(String username, boolean initiateScheduler) {
       this.username = username;
+      this.initiateScheduler = initiateScheduler;
     }
 
     public String getUsername() {
       return username;
+    }
+
+    public boolean initiateScheduler() {
+      return initiateScheduler;
     }
   }
 

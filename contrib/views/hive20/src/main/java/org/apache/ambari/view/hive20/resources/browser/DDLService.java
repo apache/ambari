@@ -114,7 +114,7 @@ public class DDLService extends BaseService {
       Job job = proxy.createTable(databaseName, request.tableInfo, getResourceManager());
       JSONObject response = new JSONObject();
       response.put("job", job);
-      return Response.status(Response.Status.ACCEPTED).entity(job).build();
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
     } catch (ServiceException e) {
       LOG.error("Exception occurred while creatint table for db {} with details : {}", databaseName, request.tableInfo, e);
       throw new ServiceFormattedException(e);
@@ -192,7 +192,7 @@ public class DDLService extends BaseService {
       Job job = proxy.alterTable(context, hiveConnectionConfig, databaseName, oldTableName, tableMetaRequest.tableInfo, getResourceManager());
       JSONObject response = new JSONObject();
       response.put("job", job);
-      return Response.status(Response.Status.ACCEPTED).entity(job).build();
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
     } catch (ServiceException e) {
       LOG.error("Exception occurred while creatint table for db {} with details : {}", databaseName, tableMetaRequest.tableInfo, e);
       throw new ServiceFormattedException(e);

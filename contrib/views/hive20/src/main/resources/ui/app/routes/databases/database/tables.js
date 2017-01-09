@@ -44,4 +44,9 @@ export default Ember.Route.extend({
       this.transitionTo('databases.database.tables.table', table.get('name'));
     }
   }
+
+
+
+
+
 });

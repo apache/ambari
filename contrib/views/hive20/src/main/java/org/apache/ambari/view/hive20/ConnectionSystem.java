@@ -124,6 +124,10 @@ public class ConnectionSystem {
     return metaDataManager;
   }
 
+  public synchronized Optional<ActorRef> getMetaDataManagerIfPresent(String instanceName) {
+    return Optional.fromNullable(metaDataManagerMap.get(instanceName));
+  }
+
   private ActorRef createMetaDataManager(SafeViewContext safeViewContext) {
     return actorSystem.actorOf(MetaDataManager.props(safeViewContext));
   }

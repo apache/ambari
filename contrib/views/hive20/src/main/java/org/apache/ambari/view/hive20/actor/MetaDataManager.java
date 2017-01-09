@@ -72,6 +72,9 @@ public class MetaDataManager extends HiveActor {
       databaseManagers.put(context.getUsername(), databaseManager);
       databaseManager.tell(new DatabaseManager.Refresh(context.getUsername()), getSelf());
     } else {
+      if(message.isImmediate()) {
+        databaseManager.tell(new DatabaseManager.Refresh(context.getUsername(), false), getSelf());
+      }
       cancelTerminationScheduler(message.getUsername());
     }
     scheduleTermination(context.getUsername());
