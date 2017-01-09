@@ -278,6 +278,7 @@ public class UpgradeCatalog250Test {
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -291,6 +292,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateTablesForZeppelinViewRemoval)
         .addMockedMethod(updateAtlasConfigs)
         .addMockedMethod(updateLogSearchConfigs)
+        .addMockedMethod(updateAmbariInfraConfigs)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -321,6 +323,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateLogSearchConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateAmbariInfraConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.addManageServiceAutoStartPermissions();
@@ -616,6 +621,95 @@ public class UpgradeCatalog250Test {
     
     Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
     assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());
+  }
+
+  @Test
+  public void testAmbariInfraUpdateConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
+    
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] {})
+        .addMockedMethod("createConfig")
+        .withConstructor(actionManager, clusters, injector)
+        .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<String, String> oldInfraSolrEnv = ImmutableMap.of(
+        "content", "SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}\n" +
+                   "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}\n" +
+                   "SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}\n" +
+                   "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST} -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}\"");
+    
+    Map<String, String> expectedInfraSolrEnv = ImmutableMap.of(
+        "content", "SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}\n" +
+                   "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}\n" +
+                   "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"\n" +
+                   "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST}\"");
+    
+    Config mockInfraSolrEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("infra-solr-env")).andReturn(mockInfraSolrEnv).atLeastOnce();
+    expect(mockInfraSolrEnv.getProperties()).andReturn(oldInfraSolrEnv).anyTimes();
+    Capture<Map<String, String>> infraSolrEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrEnvCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldInfraSolrLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.MaxFileSize=15MB\n" +
+                   "log4j.appender.file.MaxBackupIndex=5\n");
+    
+    Map<String, String> expectedInfraSolrLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.MaxFileSize={{infra_log_maxfilesize}}MB\n" +
+                   "log4j.appender.file.MaxBackupIndex={{infra_log_maxbackupindex}}\n",
+        "infra_log_maxfilesize", "15",
+        "infra_log_maxbackupindex", "5");
+    
+    Config mockInfraSolrLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("infra-solr-log4j")).andReturn(mockInfraSolrLog4j).atLeastOnce();
+    expect(mockInfraSolrLog4j.getProperties()).andReturn(oldInfraSolrLog4j).anyTimes();
+    Capture<Map<String, String>> infraSolrLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldInfraSolrClientLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.File\u003d{{infra_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
+                   "log4j.appender.file.MaxFileSize=55MB\n" +
+                   "log4j.appender.file.MaxBackupIndex=10\n");
+    
+    Map<String, String> expectedInfraSolrClientLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.File\u003d{{solr_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
+                   "log4j.appender.file.MaxFileSize={{solr_client_log_maxfilesize}}MB\n" +
+                   "log4j.appender.file.MaxBackupIndex={{solr_client_log_maxbackupindex}}\n",
+        "infra_client_log_maxfilesize", "55",
+        "infra_client_log_maxbackupindex", "10");
+    
+    Config mockInfraSolrClientLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("infra-solr-client-log4j")).andReturn(mockInfraSolrClientLog4j).atLeastOnce();
+    expect(mockInfraSolrClientLog4j.getProperties()).andReturn(oldInfraSolrClientLog4j).anyTimes();
+    Capture<Map<String, String>> infraSolrClientLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrClientLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockInfraSolrEnv, mockInfraSolrLog4j, mockInfraSolrClientLog4j);
+    new UpgradeCatalog250(injector2).updateAmbariInfraConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedInfraSolrEnv = infraSolrEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedInfraSolrEnv, updatedInfraSolrEnv).areEqual());
+
+    Map<String, String> updatedInfraSolrLog4j = infraSolrLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedInfraSolrLog4j, updatedInfraSolrLog4j).areEqual());
+
+    Map<String, String> updatedInfraSolrClientLog4j = infraSolrClientLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedInfraSolrClientLog4j, updatedInfraSolrClientLog4j).areEqual());
   }
 
   @Test
