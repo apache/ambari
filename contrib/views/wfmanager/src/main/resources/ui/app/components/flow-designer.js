@@ -204,7 +204,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   workflowXmlDownload(workflowXml){
       var link = document.createElement("a");
       link.download = "workflow.xml";
-      link.href = "data:text/xml,"+workflowXml;
+      link.href = "data:text/xml,"+encodeURIComponent(vkbeautify.xml(workflowXml));
       link.click();
   },
   nodeRendered: function(){
