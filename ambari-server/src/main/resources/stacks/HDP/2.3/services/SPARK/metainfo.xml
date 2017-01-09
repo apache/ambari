@@ -38,7 +38,7 @@
               </packages>
             </osSpecific>
             <osSpecific>
-              <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+              <osFamily>kylin4,debian7,ubuntu12,ubuntu14</osFamily>
               <packages>
                 <package>
                   <name>spark-2-3-.*</name>

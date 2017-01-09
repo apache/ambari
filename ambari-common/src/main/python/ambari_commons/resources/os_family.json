@@ -30,6 +30,15 @@
       7
     ]
   },
+  "kylin": {
+    "extends" : "ubuntu",
+    "distro": [
+      "kylin"
+    ],
+    "versions": [
+      4
+    ]
+  },
   "ubuntu": {
     "distro": [
       "ubuntu"
