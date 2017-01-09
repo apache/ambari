@@ -33,6 +33,9 @@ PROVIDERS = dict(
   debian=dict(
     Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
   ),
+  kylin=dict(
+    Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
+  ),
   winsrv=dict(
     Msi="resource_management.libraries.providers.msi.MsiProvider"
   ),

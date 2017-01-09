@@ -53,6 +53,9 @@ PROVIDERS = dict(
   debian=dict(
     Package="resource_management.core.providers.package.apt.AptProvider",
   ),
+  kylin=dict(
+    Package="resource_management.core.providers.package.apt.AptProvider",
+  ),
   winsrv=dict(
     Service="resource_management.core.providers.windows.service.ServiceProvider",
     ServiceConfig="resource_management.core.providers.windows.service.ServiceConfigProvider",
