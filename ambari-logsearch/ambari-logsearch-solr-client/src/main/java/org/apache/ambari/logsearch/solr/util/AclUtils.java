@@ -18,11 +18,18 @@
  */
 package org.apache.ambari.logsearch.solr.util;
 
+import org.apache.solr.common.cloud.SolrZooKeeper;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Id;
+import org.apache.zookeeper.data.Stat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AclUtils {
@@ -57,15 +64,54 @@ public class AclUtils {
     return aclResult;
   }
 
-  public static boolean isPermissionDiffersForScheme(List<ACL> acls, String scheme, int permission) {
-    boolean result = false;
-    if (!acls.isEmpty()) {
-      for (ACL acl : acls) {
-        if (scheme.equals(acl.getId().getScheme()) && acl.getPerms() == permission) {
-          result = true;
-        }
+  public static List<ACL> mergeAcls(List<ACL> originalAcls, List<ACL> updateAcls) {
+    Map<String, ACL> aclMap = new HashMap<>();
+    List<ACL> acls = new ArrayList<>();
+    if (originalAcls != null) {
+      for (ACL acl : originalAcls) {
+        aclMap.put(acl.getId().getId(), acl);
       }
     }
-    return result;
+
+    if (updateAcls != null) {
+      for (ACL acl : updateAcls) {
+        aclMap.put(acl.getId().getId(), acl);
+      }
+    }
+
+    for (Map.Entry<String, ACL> aclEntry : aclMap.entrySet()) {
+      acls.add(aclEntry.getValue());
+    }
+    return acls;
+  }
+
+  public static List<ACL> createAclListFromSaslUsers(String[] saslUsers) {
+    List<ACL> saslUserList = new ArrayList<>();
+    for (String saslUser : saslUsers) {
+      ACL acl = new ACL();
+      acl.setId(new Id("sasl", saslUser));
+      acl.setPerms(ZooDefs.Perms.ALL);
+      saslUserList.add(acl);
+    }
+    return saslUserList;
+  }
+
+  public static void setRecursivelyOn(SolrZooKeeper solrZooKeeper, String node, List<ACL> acls) throws KeeperException, InterruptedException {
+    setRecursivelyOn(solrZooKeeper, node, acls, new ArrayList<String>());
+  }
+
+  public static void setRecursivelyOn(SolrZooKeeper solrZooKeeper, String node, List<ACL> acls, List<String> excludePaths)
+    throws KeeperException, InterruptedException {
+    if (!excludePaths.contains(node)) {
+      List<ACL> newAcls = AclUtils.mergeAcls(solrZooKeeper.getACL(node, new Stat()), acls);
+      solrZooKeeper.setACL(node, newAcls, -1);
+      for (String child : solrZooKeeper.getChildren(node, null)) {
+        setRecursivelyOn(solrZooKeeper, path(node, child), acls, excludePaths);
+      }
+    }
+  }
+
+  private static String path(String node, String child) {
+    return node.endsWith("/") ? node + child : node + "/" + child;
   }
 }
