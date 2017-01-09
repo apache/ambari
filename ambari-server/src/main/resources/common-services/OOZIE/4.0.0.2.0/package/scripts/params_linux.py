@@ -143,8 +143,8 @@ oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
 
 limits_conf_dir = "/etc/security/limits.d"
 
-oozie_user_nofile_limit = config['configurations']['oozie-env']['oozie_user_nofile_limit']
-oozie_user_nproc_limit = config['configurations']['oozie-env']['oozie_user_nproc_limit']
+oozie_user_nofile_limit = default('/configurations/oozie-env/oozie_user_nofile_limit', 32000)
+oozie_user_nproc_limit = default('/configurations/oozie-env/oozie_user_nproc_limit', 16000)
 
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
