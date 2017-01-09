@@ -160,6 +160,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateTablesForZeppelinViewRemoval();
     updateAtlasConfigs();
     updateLogSearchConfigs();
+    updateAmbariInfraConfigs();
     addManageServiceAutoStartPermissions();
   }
 
@@ -667,6 +668,75 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             if (!content.equals(logsearchLog4jProperties.getProperties().get("content"))) {
               updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
             }
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Updates Log Search configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateAmbariInfraConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config infraSolrEnvProperties = cluster.getDesiredConfigByType("infra-solr-env");
+          if (infraSolrEnvProperties != null) {
+            String content = infraSolrEnvProperties.getProperties().get("content");
+            if (content.contains("SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}")) {
+              content = content.replace("SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}", "SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}");
+            }
+            if (content.contains("SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}")) {
+              content = content.replace("SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}", "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}");
+            }
+            if (content.contains("SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}")) {
+              content = content.replace("SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}", "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"");
+            }
+            if (content.contains(" -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}")) {
+              content = content.replace(" -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}", "");
+            }
+            if (!content.equals(infraSolrEnvProperties.getProperties().get("content"))) {
+              updateConfigurationPropertiesForCluster(cluster, "infra-solr-env", Collections.singletonMap("content", content), true, true);
+            }
+          }
+          
+          Config infraSolrLog4jProperties = cluster.getDesiredConfigByType("infra-solr-log4j");
+          if (infraSolrLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
+            String content = infraSolrLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_log_maxfilesize", "infra_log_maxfilesize",
+                "log4j.appender.file.MaxFileSize=(\\w+)MB", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_log_maxbackupindex", "infra_log_maxbackupindex",
+                "log4j.appender.file.MaxBackupIndex=(\\w+)\n", "9", newProperties);
+            
+            newProperties.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "infra-solr-log4j", newProperties, true, true);
+          }
+          
+          Config infraSolrClientLog4jProperties = cluster.getDesiredConfigByType("infra-solr-client-log4j");
+          if (infraSolrClientLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
+            String content = infraSolrClientLog4jProperties.getProperties().get("content");
+            if (content.contains("infra_client_log")) {
+              content = content.replace("infra_client_log", "solr_client_log");
+            }
+            
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_client_log_maxfilesize", "solr_client_log_maxfilesize",
+                "log4j.appender.file.MaxFileSize=(\\w+)MB", "80", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_client_log_maxbackupindex", "solr_client_log_maxbackupindex",
+                "log4j.appender.file.MaxBackupIndex=(\\w+)\n", "60", newProperties);
+            
+            newProperties.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "infra-solr-client-log4j", newProperties, true, true);
           }
         }
       }
