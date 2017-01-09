@@ -125,7 +125,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['minContainerRam']))
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
@@ -1005,8 +1005,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 
     cluster["minContainerSize"] = {
-      cluster["ram"] <= 3: 128,
-      3 < cluster["ram"] <= 4: 256,
+      cluster["ram"] <= 4: 256,
       4 < cluster["ram"] <= 8: 512,
       8 < cluster["ram"] <= 24: 1024,
       24 < cluster["ram"]: 2048
@@ -1017,22 +1016,20 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       totalAvailableRam -= cluster["hbaseRam"]
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = int(round(max(3,
+    cluster["containers"] = round(max(3,
                                 min(2 * cluster["cpu"],
                                     min(ceil(1.8 * cluster["disk"]),
-                                            cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
+                                            cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
 
     '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
+    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
     '''If greater than 1GB, value will be in multiples of 512.'''
     if cluster["ramPerContainer"] > 1024:
       cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
 
-    cluster["minContainerRam"] = min(1024, cluster["ramPerContainer"])
-
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
-    cluster["amMemory"] = min(cluster["mapMemory"], cluster["minContainerRam"])
+    cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
 
     return cluster
 
