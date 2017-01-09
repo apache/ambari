@@ -2225,8 +2225,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Map<String, String>> configCredentials;
     configCredentials = configCredentialsForService.get(clusterService.getName());
     if (configCredentials == null) {
-      configCredentials = configHelper.getPropertiesWithPropertyType(stackId, clusterService,
-              PropertyType.PASSWORD);
+      configCredentials = configHelper.getCredentialStoreEnabledProperties(stackId, clusterService);
       configCredentialsForService.put(clusterService.getName(), configCredentials);
     }
 

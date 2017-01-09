@@ -86,6 +86,9 @@ public class ValueAttributesInfo {
   @JsonProperty("property-file-type")
   private String propertyFileType;
 
+  @XmlElement(name = "keystore")
+  private boolean keyStore;
+
   public ValueAttributesInfo() {
 
   }
@@ -248,6 +251,26 @@ public class ValueAttributesInfo {
 
   public void setCopy(String copy) {
     this.copy = copy;
+  }
+
+  /**
+   * Get the keystore element, indicating whether this
+   * password property is to be encrypted in a keystore
+   * when credential store use is enabled
+   *
+   * @return "true", "false"
+   */
+  public boolean isKeyStore() {
+    return keyStore;
+  }
+
+  /**
+   * Set the keystore element.
+   *
+   * @param keyStore - "true", "false"
+   */
+  public void setKeyStore(boolean keyStore) {
+    this.keyStore = keyStore;
   }
 
   @Override
