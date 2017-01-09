@@ -20,8 +20,10 @@ package org.apache.ambari.server.metrics.system.impl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,5 +87,41 @@ public class MetricsConfiguration {
    */
   public String getProperty(String key, String defaultValue) {
     return properties.getProperty(key, defaultValue);
+  }
+
+  public Properties getProperties() {
+    return properties;
+  }
+
+  /**
+   * Get
+   *
+   * @param metricsConfiguration
+   * @param prefix
+   * @return subset configuration which contains the Key-Value pairs whose keys start with the passed in prefix.
+   */
+  public static MetricsConfiguration getSubsetConfiguration(MetricsConfiguration metricsConfiguration, String prefix) {
+
+    if (null == metricsConfiguration) {
+      return null;
+    }
+
+    Properties properties = metricsConfiguration.getProperties();
+    if (null == properties || StringUtils.isEmpty(prefix)) {
+      return new MetricsConfiguration(properties);
+    }
+
+    Properties subsetProperties = new Properties();
+
+    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+      String key = entry.getKey().toString();
+      String val = entry.getValue().toString();
+      if (key.startsWith(prefix)) {
+        key = key.substring(prefix.length());
+        subsetProperties.put(key, val);
+      }
+    }
+
+    return new MetricsConfiguration(subsetProperties);
   }
 }
