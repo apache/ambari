@@ -325,6 +325,7 @@ class TestMain(unittest.TestCase):
   @patch.object(Controller, "is_alive")
   @patch.object(Controller, "start")
   @patch.object(Controller, "getStatusCommandsExecutor")
+  @patch.object(Controller, "killStatusCommandsExecutorProcess")
   @patch("optparse.OptionParser.parse_args")
   @patch.object(DataCleaner,"start")
   @patch.object(DataCleaner,"__init__")
@@ -333,7 +334,8 @@ class TestMain(unittest.TestCase):
   @patch.object(ExitHelper,"execute_cleanup")
   @patch.object(ExitHelper, "exit")
   def test_main(self, exithelper_exit_mock, cleanup_mock, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
-                parse_args_mock, start_mock, Controller_getStatusCommandsExecutor, Controller_is_alive_mock, Controller_init_mock, try_to_connect_mock,
+                parse_args_mock, start_mock, Controller_killStatusCommandsExecutorProcess,
+                Controller_getStatusCommandsExecutor, Controller_is_alive_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 ambari_config_mock,
                 stop_mock, bind_signal_handlers_mock,

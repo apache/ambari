@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import multiprocessing
 import logging
 import ambari_simplejson as json
 import sys
@@ -202,7 +203,7 @@ class Controller(threading.Thread):
           self.spawnStatusCommandsExecutorProcess()
         elif self.statusCommandsExecutor.is_alive():
           logger.info("Terminating statusCommandsExecutor as agent re-registered with server.")
-          self.statusCommandsExecutor.kill()
+          self.killStatusCommandsExecutorProcess()
 
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
@@ -457,8 +458,22 @@ class Controller(threading.Thread):
         self.DEBUG_STOP_HEARTBEATING=True
 
   def spawnStatusCommandsExecutorProcess(self):
+    # Re-create the status command queue as in case the consumer
+    # process is killed the queue may deadlock (see http://bugs.python.org/issue20527).
+    # The queue must be re-created by the producer process.
+    if self.actionQueue.statusCommandQueue is not None:
+      self.actionQueue.statusCommandQueue.close()
+      self.actionQueue.statusCommandQueue.join_thread()
+
+    self.actionQueue.statusCommandQueue = multiprocessing.Queue()
+
     self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
     self.statusCommandsExecutor.start()
+
+  def killStatusCommandsExecutorProcess(self):
+    self.statusCommandsExecutor.kill()
+
+
 
   def getStatusCommandsExecutor(self):
     return self.statusCommandsExecutor

@@ -75,7 +75,10 @@ class ActionQueue(threading.Thread):
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = multiprocessing.Queue()
+    self.statusCommandQueue = None # the queue this field points to is re-created whenever
+                                   # a new StatusCommandExecutor child process is spawned
+                                   # by Controller
+    # multiprocessing.Queue()
     self.statusCommandResultQueue = multiprocessing.Queue() # this queue is filled by StatuCommandsExecutor.
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
