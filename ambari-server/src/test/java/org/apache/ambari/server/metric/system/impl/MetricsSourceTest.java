@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.metric.system.impl;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +43,6 @@ import org.hamcrest.Description;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 import junit.framework.Assert;
 

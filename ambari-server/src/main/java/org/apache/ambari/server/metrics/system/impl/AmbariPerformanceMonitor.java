@@ -18,19 +18,20 @@
 
 package org.apache.ambari.server.metrics.system.impl;
 
-import com.google.inject.Singleton;
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.persistence.sessions.SessionProfiler;
-import org.eclipse.persistence.tools.profiler.PerformanceMonitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.persistence.sessions.SessionProfiler;
+import org.eclipse.persistence.tools.profiler.PerformanceMonitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Singleton;
 
 /**
  * Class to extend the EclipseLink PerformanceMonitor, and dump the collected metrics to the AmbariServer Database Metrics source.
