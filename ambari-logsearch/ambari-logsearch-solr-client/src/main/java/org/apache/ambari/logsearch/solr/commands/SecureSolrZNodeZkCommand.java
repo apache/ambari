@@ -20,18 +20,25 @@ package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
 import org.apache.ambari.logsearch.solr.util.AclUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.SolrZooKeeper;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
+import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class SecureZNodeZkCommand extends AbstractZookeeperRetryCommand<Boolean> {
+public class SecureSolrZNodeZkCommand extends AbstractZookeeperRetryCommand<Boolean> {
 
-  public SecureZNodeZkCommand(int maxRetries, int interval) {
+  private static final Logger LOG = LoggerFactory.getLogger(SecureSolrZNodeZkCommand.class);
+
+  public SecureSolrZNodeZkCommand(int maxRetries, int interval) {
     super(maxRetries, interval);
   }
 
@@ -42,8 +49,26 @@ public class SecureZNodeZkCommand extends AbstractZookeeperRetryCommand<Boolean>
     List<ACL> saslUserList = AclUtils.createAclListFromSaslUsers(client.getSaslUsers().split(","));
     newAclList.addAll(saslUserList);
     newAclList.add(new ACL(ZooDefs.Perms.READ, new Id("world", "anyone")));
-    AclUtils.setRecursivelyOn(client.getSolrZkClient().getSolrZooKeeper(), zNode, newAclList);
+
+    String configsPath = String.format("%s/%s", zNode, "configs");
+    String collectionsPath = String.format("%s/%s", zNode, "collections");
+    List<String> exlustePaths = Arrays.asList(configsPath, collectionsPath);
+
+    AclUtils.setRecursivelyOn(client.getSolrZkClient().getSolrZooKeeper(), zNode, newAclList, exlustePaths);
+
+    List<ACL> commonConfigAcls = new ArrayList<>();
+    commonConfigAcls.addAll(saslUserList);
+    commonConfigAcls.add(new ACL(ZooDefs.Perms.READ | ZooDefs.Perms.CREATE, new Id("world", "anyone")));
+
+    LOG.info("Set sasl users for znode '{}' : {}", client.getZnode(), StringUtils.join(saslUserList, ","));
+    LOG.info("Skip {}/configs and {}/collections", client.getZnode(), client.getZnode());
+    solrZooKeeper.setACL(configsPath, AclUtils.mergeAcls(solrZooKeeper.getACL(configsPath, new Stat()), commonConfigAcls), -1);
+    solrZooKeeper.setACL(collectionsPath, AclUtils.mergeAcls(solrZooKeeper.getACL(collectionsPath, new Stat()), commonConfigAcls), -1);
+
+    LOG.info("Set world:anyone to 'cr' on  {}/configs and {}/collections", client.getZnode(), client.getZnode());
+    AclUtils.setRecursivelyOn(solrZooKeeper, configsPath, saslUserList);
+    AclUtils.setRecursivelyOn(solrZooKeeper, collectionsPath, saslUserList);
+
     return true;
   }
-
 }

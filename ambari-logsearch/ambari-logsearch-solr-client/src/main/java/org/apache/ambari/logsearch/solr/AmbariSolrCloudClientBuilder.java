@@ -52,7 +52,6 @@ public class AmbariSolrCloudClientBuilder {
   String propName;
   String propValue;
   boolean secure;
-  String copyFromZnode;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -198,11 +197,6 @@ public class AmbariSolrCloudClientBuilder {
 
   public AmbariSolrCloudClientBuilder withSecure(boolean isSecure) {
     this.secure = isSecure;
-    return this;
-  }
-
-  public AmbariSolrCloudClientBuilder withCopyFromZnode(String copyFromZnode) {
-    this.copyFromZnode = copyFromZnode;
     return this;
   }
 
