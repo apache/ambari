@@ -1,4 +1,4 @@
-/*
+/**
 *    Licensed to the Apache Software Foundation (ASF) under one or more
 *    contributor license agreements.  See the NOTICE file distributed with
 *    this work for additional information regarding copyright ownership.
@@ -16,22 +16,6 @@
 */
 
 import Ember from 'ember';
-import config from './config/environment';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+export default Ember.Component.extend({
 });
-
-Router.map(function () {
-  this.route('dashboard');
-  this.route('design', function() {
-    this.route('dashboardtab');
-    this.route('jobtab');
-    this.route('projManagerTab');
-  });
-  this.route('designtest');
-  this.route('job');
-  this.route('connection-error');
-});
-
-export default Router;

@@ -16,13 +16,15 @@
 */
 import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
+import Constants from '../utils/constants';
 export default Ember.Component.extend({
   workspaceManager : Ember.inject.service('workspace-manager'),
   assetManager : Ember.inject.service('asset-manager'),
   xmlAppPath : null,
   appPath : null,
   type : 'wf',
-  tabId: 0,
+  tabId : 0,
+  //isProjectManagerEnabled : Constants.isProjectManagerEnabled,
   hasMultitabSupport : true,
   tabCounter : new Map(),
   tabs : Ember.A([]),
@@ -33,6 +35,11 @@ export default Ember.Component.extend({
     this.get('workspaceManager').saveTabs(this.get('tabs'));
   }),
   initialize : function(){
+    if (Constants.isProjectManagerEnabled) {
+      this.set("isProjectManagerEnabled", "true");
+    } else {
+      this.set("isProjectManagerEnabled", "false");
+    }
     this.get('tabCounter').set('wf', 0);
     this.get('tabCounter').set('coord', 0);
     this.get('tabCounter').set('bundle', 0);
@@ -56,7 +63,10 @@ export default Ember.Component.extend({
       var tab = this.get('tabs').findBy('id', id);
       if(tab.type === 'dashboard'){
         this.sendAction('showDashboard');
-      }else{
+      } else if (tab.type === 'Projects') {
+        this.createOrShowProjManager();
+      }
+      else{
         this.sendAction('hideDashboard');
       }
     }.bind(this));
@@ -107,6 +117,24 @@ export default Ember.Component.extend({
     this.get('tabCounter').set(type, ++count);
     return count;
   },
+  createOrShowProjManager(){
+    var projectsTab = this.get('tabs').findBy('type', 'Projects');
+    if(projectsTab && projectsTab.type === 'Projects'){
+      this.$('.nav-tabs a[href="#' + projectsTab.id + '"]').tab('show');
+    }else{
+      var tab = {
+        type : 'Projects',
+        id : this.generateTabId(),
+        name : 'Projects'
+      };
+      this.$('.nav-tabs li').removeClass('active');
+      this.$('.tab-content .tab-pane').removeClass('active');
+      this.get('tabs').pushObject(tab);
+      this.$('.nav-tabs a[href="#' + tab.id + '"]').tab('show');
+    }
+    this.sendAction('showProjManager');
+    return;
+  },
   createOrshowDashboard(){
     var dashboardTab = this.get('tabs').findBy('type', 'dashboard');
     if(dashboardTab && dashboardTab.type === 'dashboard'){
@@ -147,6 +175,9 @@ export default Ember.Component.extend({
     },
     showDashboard(){
       this.createOrshowDashboard();
+    },
+    showProjectManager(){
+      this.createOrShowProjManager();
     },
     closeTab(index){
       if(index < this.get('tabs').length - 1){

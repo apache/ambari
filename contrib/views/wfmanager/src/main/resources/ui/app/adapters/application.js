@@ -16,22 +16,12 @@
 */
 
 import Ember from 'ember';
-import config from './config/environment';
+import DS from 'ember-data';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+export default DS.RESTAdapter.extend({
+  namespace: Ember.ENV.API_URL,
+  headers:{
+    "X-XSRF-HEADER":Math.round(Math.random()*100000),
+    "X-Requested-By":"Ambari"
+  }
 });
-
-Router.map(function () {
-  this.route('dashboard');
-  this.route('design', function() {
-    this.route('dashboardtab');
-    this.route('jobtab');
-    this.route('projManagerTab');
-  });
-  this.route('designtest');
-  this.route('job');
-  this.route('connection-error');
-});
-
-export default Router;

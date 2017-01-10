@@ -32,6 +32,7 @@ export default Ember.Object.create({
   rmDefaultValue: "${resourceManager}",
   defaultNameNodeValue : "${nameNode}",
   useCytoscape : true,
+  isProjectManagerEnabled : false,
   autoRestoreWorkflowEnabled : true,
   actions:{
     hiveAction:{name : "hive",supportsSchema : true, currentVersion:''},
