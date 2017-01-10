@@ -76,7 +76,7 @@ public class OozieProxyImpersonator {
   private final HDFSFileUtils hdfsFileUtils;
   private final WorkflowFilesService workflowFilesService;
   private WorkflowManagerService workflowManagerService;
-  private static final boolean PROJ_MANAGER_ENABLED = false;
+  private static final boolean PROJ_MANAGER_ENABLED = true;
   private final OozieDelegate oozieDelegate;
   private final OozieUtils oozieUtils = new OozieUtils();
   private final AssetResource assetResource;

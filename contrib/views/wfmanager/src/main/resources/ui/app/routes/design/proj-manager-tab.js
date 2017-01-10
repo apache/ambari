@@ -16,22 +16,14 @@
 */
 
 import Ember from 'ember';
-import config from './config/environment';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+export default Ember.Route.extend({
+  model:function(params) {
+    return this.store.findAll('wfproject');
+  },
+  actions: {
+    routeToDesigner(options){
+      this.transitionTo("design", options);
+    }
+  }
 });
-
-Router.map(function () {
-  this.route('dashboard');
-  this.route('design', function() {
-    this.route('dashboardtab');
-    this.route('jobtab');
-    this.route('projManagerTab');
-  });
-  this.route('designtest');
-  this.route('job');
-  this.route('connection-error');
-});
-
-export default Router;

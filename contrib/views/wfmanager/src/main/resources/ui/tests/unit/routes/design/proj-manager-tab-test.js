@@ -15,23 +15,14 @@
 *    limitations under the License.
 */
 
-import Ember from 'ember';
-import config from './config/environment';
+import { moduleFor, test } from 'ember-qunit';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+moduleFor('route:design/proj-manager-tab', 'Unit | Route | design/proj manager tab', {
+  // Specify the other units that are required for this test.
+  // needs: ['controller:foo']
 });
 
-Router.map(function () {
-  this.route('dashboard');
-  this.route('design', function() {
-    this.route('dashboardtab');
-    this.route('jobtab');
-    this.route('projManagerTab');
-  });
-  this.route('designtest');
-  this.route('job');
-  this.route('connection-error');
+test('it exists', function(assert) {
+  let route = this.subject();
+  assert.ok(route);
 });
-
-export default Router;

@@ -15,23 +15,11 @@
 *    limitations under the License.
 */
 
-import Ember from 'ember';
-import config from './config/environment';
+import DS from 'ember-data';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+export default DS.Model.extend({
+	workflowDefinitionPath: DS.attr("string"),
+	type: DS.attr("string"),
+	updatedAt: DS.attr("string"),
+	owner:DS.attr("string")
 });
-
-Router.map(function () {
-  this.route('dashboard');
-  this.route('design', function() {
-    this.route('dashboardtab');
-    this.route('jobtab');
-    this.route('projManagerTab');
-  });
-  this.route('designtest');
-  this.route('job');
-  this.route('connection-error');
-});
-
-export default Router;

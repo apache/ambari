@@ -73,8 +73,16 @@ export default Ember.Route.extend(Ember.Evented, {
       this.controller.set('dashboardShown', true);
       this.transitionTo('design.dashboardtab');
     },
+    showProjManager(){
+      //this.controller.set('ProjManagerShown', true);
+      this.transitionTo('design.projManagerTab');
+    },
     hideDashboard(){
       this.controller.set('dashboardShown', false);
+      this.transitionTo('design');
+    },
+    hideProjManager(){
+      //this.controller.set('ProjManagerShown', false);
       this.transitionTo('design');
     }
   }

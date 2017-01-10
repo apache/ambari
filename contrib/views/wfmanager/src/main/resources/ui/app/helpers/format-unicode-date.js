@@ -16,22 +16,9 @@
 */
 
 import Ember from 'ember';
-import config from './config/environment';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
-});
+export function formatUnicodeDate(params) {
+  return new Date(parseInt(params[0])).toUTCString();
+}
 
-Router.map(function () {
-  this.route('dashboard');
-  this.route('design', function() {
-    this.route('dashboardtab');
-    this.route('jobtab');
-    this.route('projManagerTab');
-  });
-  this.route('designtest');
-  this.route('job');
-  this.route('connection-error');
-});
-
-export default Router;
+export default Ember.Helper.helper(formatUnicodeDate);
