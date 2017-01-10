@@ -194,6 +194,7 @@ def ensure_base_directories():
      params.druid_overlord_conf_dir, params.druid_router_conf_dir, params.druid_segment_infoDir,
      params.druid_tasks_dir],
     mode=0700,
+    cd_access='a',
     owner=params.druid_user,
     group=params.user_group,
     create_parents=True,
@@ -209,6 +210,7 @@ def ensure_base_directories():
       group=params.user_group,
       create_parents=True,
       recursive_ownership=True,
+      cd_access='a'
     )
 
 
