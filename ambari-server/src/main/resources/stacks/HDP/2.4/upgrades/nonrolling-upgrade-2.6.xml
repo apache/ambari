@@ -344,6 +344,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
+      </execute-stage>
+
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs Namenode HA">
         <task xsi:type="configure" id="hdp_2_5_0_0_namenode_ha_adjustments"/>

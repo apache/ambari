@@ -228,6 +228,11 @@
               if-type="ranger-env" if-key="is_solrCloud_enabled" if-value="true"/>
           </definition>
 
+          <definition xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="bind_anonymous" />
+          </definition>
+
         </changes>
       </component>
     </service>
