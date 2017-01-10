@@ -39,11 +39,11 @@ describe('App.configTheme', function() {
     });
 
     it("theme configs empty", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: false
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: []
@@ -51,15 +51,15 @@ describe('App.configTheme', function() {
       ]);
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.called).to.be.false;
-      expect(configs[0].hiddenBySection).to.be.false;
+      expect(configs[0].get('hiddenBySection')).to.be.false;
     });
 
     it("theme resource is not 'config'", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: false
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -68,15 +68,15 @@ describe('App.configTheme', function() {
       ]);
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.called).to.be.false;
-      expect(configs[0].hiddenBySection).to.be.false;
+      expect(configs[0].get('hiddenBySection')).to.be.false;
     });
 
     it("property_value_attributes is null", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: false
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -90,15 +90,15 @@ describe('App.configTheme', function() {
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.calledOnce).to.be.true;
       expect(App.configTheme.getThemeResource.called).to.be.false;
-      expect(configs[0].hiddenBySection).to.be.false;
+      expect(configs[0].get('hiddenBySection')).to.be.false;
     });
 
     it("property_value_attributes.visible is null", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: false
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -114,15 +114,15 @@ describe('App.configTheme', function() {
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.calledOnce).to.be.true;
       expect(App.configTheme.getThemeResource.called).to.be.false;
-      expect(configs[0].hiddenBySection).to.be.false;
+      expect(configs[0].get('hiddenBySection')).to.be.false;
     });
 
     it("config not in the theme", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: false
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -139,15 +139,15 @@ describe('App.configTheme', function() {
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.calledOnce).to.be.true;
       expect(App.configTheme.getThemeResource.calledOnce).to.be.true;
-      expect(configs[0].hiddenBySection).to.be.false;
+      expect(configs[0].get('hiddenBySection')).to.be.false;
     });
 
     it("configCondition type is 'config' and hiddenBySection is true", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: true
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -165,15 +165,15 @@ describe('App.configTheme', function() {
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.calledOnce).to.be.true;
       expect(App.configTheme.getThemeResource.calledOnce).to.be.true;
-      expect(configs[0].hiddenBySection).to.be.true;
+      expect(configs[0].get('hiddenBySection')).to.be.true;
     });
 
     it("hiddenBySection should be true", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: false
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -191,15 +191,15 @@ describe('App.configTheme', function() {
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.calledOnce).to.be.true;
       expect(App.configTheme.getThemeResource.calledOnce).to.be.true;
-      expect(configs[0].hiddenBySection).to.be.true;
+      expect(configs[0].get('hiddenBySection')).to.be.true;
     });
 
     it("hiddenBySection should be false", function() {
-      var configs = [{
+      var configs = [Em.Object.create({
         name: 'conf1',
         filename: 'file1',
         hiddenBySection: true
-      }];
+      })];
       this.mockThemeCondition.returns([
         Em.Object.create({
           configs: [{}],
@@ -216,7 +216,7 @@ describe('App.configTheme', function() {
       App.configTheme.resolveConfigThemeConditions(configs);
       expect(App.configTheme.calculateConfigCondition.calledOnce).to.be.true;
       expect(App.configTheme.getThemeResource.calledOnce).to.be.true;
-      expect(configs[0].hiddenBySection).to.be.false;
+      expect(configs[0].get('hiddenBySection')).to.be.false;
     });
   });
 

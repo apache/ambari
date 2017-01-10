@@ -38,11 +38,11 @@ App.configTheme = Em.Object.create({
             if (themeResource) {
               themeResource.get('configProperties').forEach(function (_configId) {
                 configs.forEach(function (item) {
-                  if (App.config.configId(item.name, item.filename) === _configId) {
+                  if (App.config.configId(item.get('name'), item.get('filename')) === _configId) {
                     // if config has already been hidden by condition with "subsection" or "subsectionTab" type
                     // then ignore condition of "config" type
-                    if (configCondition.get('type') === 'config' && item.hiddenBySection) return false;
-                    item.hiddenBySection = !valueAttributes.visible;
+                    if (configCondition.get('type') === 'config' && item.get('hiddenBySection')) return false;
+                    item.set('hiddenBySection', !valueAttributes.visible);
                   }
                 }, this);
               }, this);
