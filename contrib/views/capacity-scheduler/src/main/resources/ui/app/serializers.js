@@ -97,8 +97,6 @@ App.SerializerMixin = Em.Mixin.create({
           state:                         props[base_path + ".state"] || null,
           acl_administer_queue:          props[base_path + ".acl_administer_queue"] || null,
           acl_submit_applications:       props[base_path + ".acl_submit_applications"] || null,
-          capacity:                      (props[base_path + ".capacity"])?+props[base_path + ".capacity"]:null,
-          maximum_capacity:              (props[base_path + ".maximum-capacity"])?+props[base_path + ".maximum-capacity"]:null,
           user_limit_factor:             (props[base_path + ".user-limit-factor"])?+props[base_path + ".user-limit-factor"]:null,
           minimum_user_limit_percent:    (props[base_path + ".minimum-user-limit-percent"])?+props[base_path + ".minimum-user-limit-percent"]:null,
           maximum_applications:          (props[base_path + ".maximum-applications"])?+props[base_path + ".maximum-applications"]:null,
@@ -110,6 +108,10 @@ App.SerializerMixin = Em.Mixin.create({
           disable_preemption:            props[base_path + '.disable_preemption'] || '',
           isPreemptionInherited:         (props[base_path + '.disable_preemption'] !== undefined)?false:true
         };
+
+    //Converting capacity and max-capacity into two decimal point float numbers
+    q.capacity = (props[base_path + ".capacity"])? +parseFloat(props[base_path + ".capacity"]).toFixed(2) : null;
+    q.maximum_capacity = (props[base_path + ".maximum-capacity"])? +parseFloat(props[base_path + ".maximum-capacity"]).toFixed(2) : null;
 
     switch ((props.hasOwnProperty(labelsPath))?props[labelsPath]:'') {
       case '*':
