@@ -34,6 +34,8 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -276,6 +278,8 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(HookService.class).toInstance(createMock(HookService.class));
       binder.install(new FactoryModuleBuilder().implement(
           Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
+
+      binder.bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
 
       try {
         AmbariMetaInfo ambariMetaInfo = EasyMock.createNiceMock(AmbariMetaInfo.class);

@@ -110,6 +110,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -477,6 +478,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(StackManagerFactory.class));
     install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
+    install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

@@ -97,6 +97,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
@@ -290,6 +291,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static Gson s_gson;
 
+  /**
+   * Used to create instances of {@link UpgradeContext} with injected
+   * dependencies.
+   */
+  @Inject
+  private static UpgradeContextFactory s_upgradeContextFactory;
+
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
@@ -385,8 +393,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
 
-        final UpgradeContext upgradeContext = new UpgradeContext(cluster, upgradeType, direction,
-            requestMap);
+        final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, upgradeType,
+            direction, requestMap);
 
         UpgradePack upgradePack = validateRequest(upgradeContext);
         upgradeContext.setUpgradePack(upgradePack);
@@ -1459,7 +1467,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
-
     request.addStages(Collections.singletonList(stage));
   }
 

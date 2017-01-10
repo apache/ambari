@@ -17,24 +17,26 @@
  */
 package org.apache.ambari.server.stageplanner;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.CommandExecutionType;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.metadata.RoleCommandOrder;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 public class RoleGraph {
 
@@ -49,13 +51,20 @@ public class RoleGraph {
   @Inject
   private StageFactory stageFactory;
 
+  /**
+   * Used for created {@link HostRoleCommand}s when building structures to
+   * represent an ordered set of stages.
+   */
+  @Inject
+  private HostRoleCommandFactory hrcFactory;
+
   @AssistedInject
   public RoleGraph() {
   }
 
   @AssistedInject
   public RoleGraph(@Assisted RoleCommandOrder rd) {
-    this.roleDependencies = rd;
+    roleDependencies = rd;
   }
 
   public CommandExecutionType getCommandExecutionType() {
@@ -68,15 +77,41 @@ public class RoleGraph {
 
   /**
    * Given a stage builds a DAG of all execution commands within the stage.
+   *
+   * @see #getStages()
    */
   public void build(Stage stage) {
     if (stage == null) {
       throw new IllegalArgumentException("Null stage");
     }
-    graph = new TreeMap<String, RoleGraphNode>();
+
+    if (commandExecutionType == CommandExecutionType.DEPENDENCY_ORDERED) {
+      LOG.info("Build stage with DEPENDENCY_ORDERED commandExecutionType: {} ",
+          stage.getRequestContext());
+    }
+
     initialStage = stage;
 
     Map<String, Map<String, HostRoleCommand>> hostRoleCommands = stage.getHostRoleCommands();
+    build(hostRoleCommands);
+  }
+
+  /**
+   * Initializes {@link #graph} with the supplied unordered commands. The
+   * commands specified are in the following format: Input:
+   *
+   * <pre>
+   * {c6401={NAMENODE=STOP}, c6402={DATANODE=STOP}, NODEMANAGER=STOP}}
+   * </pre>
+   *
+   * @param hostRoleCommands
+   *          the unordered commands to build a DAG from. The map is keyed first
+   *          by host and the for each host it is keyed by {@link Role} to
+   *          {@link RoleCommand}.
+   */
+  private void build(Map<String, Map<String, HostRoleCommand>> hostRoleCommands) {
+    graph = new TreeMap<String, RoleGraphNode>();
+
     for (String host : hostRoleCommands.keySet()) {
       for (String role : hostRoleCommands.get(host).keySet()) {
         HostRoleCommand hostRoleCommand = hostRoleCommands.get(host).get(role);
@@ -111,10 +146,9 @@ public class RoleGraph {
           }
         }
       }
-    } else {
-      LOG.info("Build stage with DEPENDENCY_ORDERED commandExecutionType: {} ", stage.getRequestContext());
     }
   }
+
   /**
    * This method return more detailed RoleCommand type. For now, i've added code
    * only for RESTART name of CUSTOM COMMAND, but in future i think all other will be added too.
@@ -137,7 +171,7 @@ public class RoleGraph {
     List<RoleGraphNode> firstStageNodes = new ArrayList<RoleGraphNode>();
     while (!graph.isEmpty()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug(this.stringifyGraph());
+        LOG.debug(stringifyGraph());
       }
 
       for (String role: graph.keySet()) {
@@ -152,7 +186,7 @@ public class RoleGraph {
       //Remove first stage nodes from the graph, we know that none of
       //these nodes have an incoming edges.
       for (RoleGraphNode rgn : firstStageNodes) {
-        if (this.sameHostOptimization) {
+        if (sameHostOptimization) {
           //Perform optimization
         }
         removeZeroInDegreeNode(rgn.getRole().toString());
@@ -163,11 +197,82 @@ public class RoleGraph {
   }
 
   /**
+   * Gets a representation of the role ordering of the specified commands
+   * without constructing {@link Stage} instances. The commands to order are
+   * supplied as mapping of host to role/command. Each item of the returned list
+   * represents a single stage. The map is of host to commands. For example:
+   * <br/>
+   * <br/>
+   * Input:
+   * <pre>
+   * {c6401={NAMENODE=STOP}, c6402={DATANODE=STOP}, NODEMANAGER=STOP}}
+   * </pre>
+   *
+   * Output:
+   * <pre>
+   * [{c6402=[NODEMANAGER/STOP, DATANODE-STOP]}, c6401=[NAMENODE/STOP]]
+   *
+   * <pre>
+   *
+   * @param unorderedCommands
+   *          a mapping of {@link Role} to {@link HostRoleCommand} by host.
+   * @return and ordered list where each item represents a single stage and each
+   *         stage's commands are mapped by host.
+   */
+  public List<Map<String, List<HostRoleCommand>>> getOrderedHostRoleCommands(
+      Map<String, Map<String, HostRoleCommand>> unorderedCommands) {
+    build(unorderedCommands);
+
+    // represents an ordered list of stages
+    List<Map<String, List<HostRoleCommand>>> orderedCommands = new ArrayList<>();
+
+    List<RoleGraphNode> firstStageNodes = new ArrayList<RoleGraphNode>();
+    while (!graph.isEmpty()) {
+      for (String role : graph.keySet()) {
+        RoleGraphNode rgn = graph.get(role);
+        if (rgn.getInDegree() == 0) {
+          firstStageNodes.add(rgn);
+        }
+      }
+
+      // represents a stage
+      Map<String, List<HostRoleCommand>> commandsPerHost = new HashMap<>();
+
+      for (RoleGraphNode rgn : firstStageNodes) {
+        // for every host for this stage, create the ordered commands
+        for (String host : rgn.getHosts()) {
+          List<HostRoleCommand> commands = commandsPerHost.get(host);
+          if (null == commands) {
+            commands = new ArrayList<>();
+            commandsPerHost.put(host, commands);
+          }
+
+          HostRoleCommand hrc = hrcFactory.create(host, rgn.getRole(), null, rgn.getCommand());
+          commands.add(hrc);
+        }
+      }
+
+      // add the stage to the list of stages
+      orderedCommands.add(commandsPerHost);
+
+      // Remove first stage nodes from the graph, we know that none of
+      // these nodes have an incoming edges.
+      for (RoleGraphNode rgn : firstStageNodes) {
+        removeZeroInDegreeNode(rgn.getRole().toString());
+      }
+
+      firstStageNodes.clear();
+    }
+
+    return orderedCommands;
+  }
+
+  /**
    * Assumes there are no incoming edges.
    */
   private synchronized void removeZeroInDegreeNode(String role) {
     RoleGraphNode nodeToRemove = graph.remove(role);
-    for (RoleGraphNode edgeNode: nodeToRemove.getEdges()) {
+    for (RoleGraphNode edgeNode : nodeToRemove.getEdges()) {
       edgeNode.decrementInDegree();
     }
   }

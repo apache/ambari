@@ -19,16 +19,25 @@
 package org.apache.ambari.server.metadata;
 
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.stageplanner.RoleGraph;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,12 +54,16 @@ public class RoleGraphTest {
 
   private Injector injector;
   private RoleCommandOrderProvider roleCommandOrderProvider;
+  private RoleGraphFactory roleGraphFactory;
+  private HostRoleCommandFactory hrcFactory;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     roleCommandOrderProvider = injector.getInstance(RoleCommandOrderProvider.class);
+    roleGraphFactory = injector.getInstance(RoleGraphFactory.class);
+    hrcFactory = injector.getInstance(HostRoleCommandFactory.class);
   }
 
   @After
@@ -137,5 +150,65 @@ public class RoleGraphTest {
     Assert.assertEquals(1, rco.order(nn_start, jn_start));
     Assert.assertEquals(1, rco.order(nn_start, zk_server_start));
     Assert.assertEquals(1, rco.order(zkfc_start, nn_start));
+  }
+
+  /**
+   * Tests the ordering of
+   * {@link RoleGraph#getOrderedHostRoleCommands(java.util.Map)}.
+   *
+   * @throws AmbariException
+   */
+  @Test
+  public void testGetOrderedHostRoleCommands() throws AmbariException {
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getClusterId()).thenReturn(1L);
+
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    RoleGraph roleGraph = roleGraphFactory.createNew(rco);
+
+    Map<String, Map<String, HostRoleCommand>> unorderedCommands = new HashMap<>();
+    Map<String, HostRoleCommand> c6401Commands = new HashMap<>();
+    Map<String, HostRoleCommand> c6402Commands = new HashMap<>();
+    Map<String, HostRoleCommand> c6403Commands = new HashMap<>();
+
+    HostRoleCommand hrcNameNode = hrcFactory.create("c6041", Role.NAMENODE, null, RoleCommand.START);
+    HostRoleCommand hrcZooKeeperHost1 = hrcFactory.create("c6041", Role.ZOOKEEPER_SERVER, null, RoleCommand.START);
+    HostRoleCommand hrcHBaseMaster = hrcFactory.create("c6042", Role.HBASE_MASTER, null, RoleCommand.START);
+    HostRoleCommand hrcZooKeeperHost3 = hrcFactory.create("c6043", Role.ZOOKEEPER_SERVER, null, RoleCommand.START);
+
+    c6401Commands.put(hrcNameNode.getRole().name(), hrcNameNode);
+    c6401Commands.put(hrcZooKeeperHost1.getRole().name(), hrcZooKeeperHost1);
+    c6402Commands.put(hrcHBaseMaster.getRole().name(), hrcHBaseMaster);
+    c6403Commands.put(hrcZooKeeperHost3.getRole().name(), hrcZooKeeperHost3);
+
+    unorderedCommands.put("c6401", c6401Commands);
+    unorderedCommands.put("c6402", c6402Commands);
+    unorderedCommands.put("c6403", c6403Commands);
+
+    List<Map<String, List<HostRoleCommand>>> stages = roleGraph.getOrderedHostRoleCommands(unorderedCommands);
+
+    Assert.assertEquals(2, stages.size());
+
+    Map<String, List<HostRoleCommand>> stage1 = stages.get(0);
+    Map<String, List<HostRoleCommand>> stage2 = stages.get(1);
+
+    Assert.assertEquals(2, stage1.size());
+    Assert.assertEquals(1, stage2.size());
+
+    List<HostRoleCommand> stage1CommandsHost1 = stage1.get("c6401");
+    List<HostRoleCommand> stage1CommandsHost3 = stage1.get("c6403");
+    List<HostRoleCommand> stage2CommandsHost2 = stage2.get("c6402");
+
+    Assert.assertEquals(3, stage1CommandsHost1.size() + stage1CommandsHost3.size());
+    Assert.assertEquals(1, stage2CommandsHost2.size());
+
+    List<Role> stage1Roles = Lists.newArrayList(stage1CommandsHost1.get(0).getRole(),
+        stage1CommandsHost1.get(1).getRole(), stage1CommandsHost3.get(0).getRole());
+
+    Assert.assertTrue(stage1Roles.contains(Role.NAMENODE));
+    Assert.assertTrue(stage1Roles.contains(Role.ZOOKEEPER_SERVER));
+    Assert.assertEquals(Role.ZOOKEEPER_SERVER, stage1CommandsHost3.get(0).getRole());
+    Assert.assertEquals(Role.HBASE_MASTER, stage2CommandsHost2.get(0).getRole());
   }
 }

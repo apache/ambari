@@ -26,12 +26,18 @@ import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 /**
  * Used to hold various helper objects required to process an upgrade pack.
@@ -121,6 +127,20 @@ public class UpgradeContext {
   private UpgradeScope m_scope = UpgradeScope.ANY;
 
   /**
+   * Used by some {@link Grouping}s to generate commands. It is exposed here
+   * mainly for injection purposes since the XML is not created by Guice.
+   */
+  @Inject
+  private HostRoleCommandFactory m_hrcFactory;
+
+  /**
+   * Used by some {@link Grouping}s to determine command ordering. It is exposed
+   * here mainly for injection purposes since the XML is not created by Guice.
+   */
+  @Inject
+  private RoleGraphFactory m_roleGraphFactory;
+
+  /**
    * Constructor.
    *
    * @param cluster
@@ -132,8 +152,9 @@ public class UpgradeContext {
    * @param upgradeRequestMap
    *          the original map of paramters used to create the upgrade
    */
-  public UpgradeContext(Cluster cluster, UpgradeType type, Direction direction,
-      Map<String, Object> upgradeRequestMap) {
+  @Inject
+  public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeType type,
+      @Assisted Direction direction, @Assisted Map<String, Object> upgradeRequestMap) {
     m_cluster = cluster;
     m_type = type;
     m_direction = direction;
@@ -481,5 +502,23 @@ public class UpgradeContext {
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public boolean isScoped(UpgradeScope scope) {
     return m_scope.isScoped(scope);
+  }
+
+  /**
+   * Gets the injected instance of a {@link RoleGraphFactory}.
+   *
+   * @return a {@link RoleGraphFactory} instance (never {@code null}).
+   */
+  public RoleGraphFactory getRoleGraphFactory() {
+    return m_roleGraphFactory;
+  }
+
+  /**
+   * Gets the injected instance of a {@link HostRoleCommandFactory}.
+   *
+   * @return a {@link HostRoleCommandFactory} instance (never {@code null}).
+   */
+  public HostRoleCommandFactory getHostRoleCommandFactory() {
+    return m_hrcFactory;
   }
 }
