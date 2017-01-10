@@ -20,6 +20,7 @@ package org.apache.ambari.server.metadata;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,39 +37,38 @@ import org.apache.ambari.server.state.StackInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
  * This class is used to establish the order between two roles. This class
  * should not be used to determine the dependencies.
  */
-public class RoleCommandOrder {
+public class RoleCommandOrder implements Cloneable {
 
   @Inject AmbariMetaInfo ambariMetaInfo;
-
-  private boolean hasGLUSTERFS;
-  private boolean isNameNodeHAEnabled;
-  private boolean isResourceManagerHAEnabled;
 
   private final static Logger LOG =
 			LoggerFactory.getLogger(RoleCommandOrder.class);
 
+  /**
+   * The section names used to add overides in addition to the
+   * {@link #GENERAL_DEPS_KEY} section.
+   */
+  private LinkedHashSet<String> sectionKeys;
+
   private final static String GENERAL_DEPS_KEY = "general_deps";
-  private final static String GLUSTERFS_DEPS_KEY = "optional_glusterfs";
-  private final static String NO_GLUSTERFS_DEPS_KEY = "optional_no_glusterfs";
-  private final static String NAMENODE_HA_DEPS_KEY = "namenode_optional_ha";
-  private final static String RESOURCEMANAGER_HA_DEPS_KEY = "resourcemanager_optional_ha";
-  private final static String COMMENT_STR = "_comment";
+  public final static String GLUSTERFS_DEPS_KEY = "optional_glusterfs";
+  public final static String NO_GLUSTERFS_DEPS_KEY = "optional_no_glusterfs";
+  public final static String NAMENODE_HA_DEPS_KEY = "namenode_optional_ha";
+  public final static String RESOURCEMANAGER_HA_DEPS_KEY = "resourcemanager_optional_ha";
+  public final static String COMMENT_STR = "_comment";
 
   /**
    * Commands that are independent, role order matters
    */
-  private static final Set<RoleCommand> independentCommands =
-          new HashSet<RoleCommand>() {{
-            add(RoleCommand.START);
-            add(RoleCommand.EXECUTE);
-            add(RoleCommand.SERVICE_CHECK);
-          }};
+  private static final Set<RoleCommand> independentCommands = Sets.newHashSet(RoleCommand.START,
+      RoleCommand.EXECUTE, RoleCommand.SERVICE_CHECK);
 
   /**
    * key -> blocked role command value -> set of blocker role commands.
@@ -84,19 +84,23 @@ public class RoleCommandOrder {
    * @param blockerCommand The command on the blocking role
    */
   private void addDependency(Role blockedRole,
-       RoleCommand blockedCommand, Role blockerRole, RoleCommand blockerCommand) {
+      RoleCommand blockedCommand, Role blockerRole, RoleCommand blockerCommand,
+      boolean overrideExisting) {
     RoleCommandPair rcp1 = new RoleCommandPair(blockedRole, blockedCommand);
     RoleCommandPair rcp2 = new RoleCommandPair(blockerRole, blockerCommand);
-    if (this.dependencies.get(rcp1) == null) {
-      this.dependencies.put(rcp1, new HashSet<RoleCommandPair>());
+
+    if (dependencies.get(rcp1) == null || overrideExisting) {
+      dependencies.put(rcp1, new HashSet<RoleCommandPair>());
     }
-    this.dependencies.get(rcp1).add(rcp2);
+
+    dependencies.get(rcp1).add(rcp2);
   }
 
   void addDependencies(Map<String, Object> jsonSection) {
-    if(jsonSection == null) // in case we don't have a certain section or role_command_order.json at all.
+    if(jsonSection == null) {
       return;
-    
+    }
+
     for (Object blockedObj : jsonSection.keySet()) {
       String blocked = (String) blockedObj;
       if (COMMENT_STR.equals(blocked)) {
@@ -108,18 +112,26 @@ public class RoleCommandOrder {
         String blockedRole = blockedTuple[0];
         String blockedCommand = blockedTuple[1];
 
+        // 3rd position is -OVERRIDE
+        boolean overrideExisting = blockedTuple.length == 3;
+
         String [] blockerTuple = blocker.split("-");
         String blockerRole = blockerTuple[0];
         String blockerCommand = blockerTuple[1];
 
-        addDependency(
-                Role.valueOf(blockedRole), RoleCommand.valueOf(blockedCommand),
-                Role.valueOf(blockerRole), RoleCommand.valueOf(blockerCommand));
+        addDependency(Role.valueOf(blockedRole), RoleCommand.valueOf(blockedCommand),
+            Role.valueOf(blockerRole), RoleCommand.valueOf(blockerCommand), overrideExisting);
       }
     }
   }
 
-  public void initialize(Cluster cluster) {
+  @SuppressWarnings("unchecked")
+  public void initialize(Cluster cluster, LinkedHashSet<String> sectionKeys) {
+
+    // in the event that initialize is called twice, ensure that we start with a
+    // clean RCO instance
+    this.sectionKeys = sectionKeys;
+    dependencies.clear();
 
     StackId stackId = cluster.getCurrentStackVersion();
     StackInfo stack = null;
@@ -132,26 +144,15 @@ public class RoleCommandOrder {
     Map<String,Object> userData = stack.getRoleCommandOrder().getContent();
     Map<String,Object> generalSection =
       (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
+
     addDependencies(generalSection);
-    if (hasGLUSTERFS) {
-      Map<String,Object> glusterfsSection =
-        (Map<String, Object>) userData.get(GLUSTERFS_DEPS_KEY);
-      addDependencies(glusterfsSection);
-    } else {
-      Map<String,Object> noGlusterFSSection =
-        (Map<String, Object>) userData.get(NO_GLUSTERFS_DEPS_KEY);
-      addDependencies(noGlusterFSSection);
+
+    for (String sectionKey : sectionKeys) {
+      Map<String, Object> section = (Map<String, Object>) userData.get(sectionKey);
+
+      addDependencies(section);
     }
-    if (isNameNodeHAEnabled) {
-      Map<String,Object> NAMENODEHASection =
-        (Map<String, Object>) userData.get(NAMENODE_HA_DEPS_KEY);
-      addDependencies(NAMENODEHASection);
-    }
-    if (isResourceManagerHAEnabled) {
-      Map<String,Object> ResourceManagerHASection =
-        (Map<String, Object>) userData.get(RESOURCEMANAGER_HA_DEPS_KEY);
-      addDependencies(ResourceManagerHASection);
-    }
+
     extendTransitiveDependency();
     addMissingRestartDependencies();
   }
@@ -159,7 +160,7 @@ public class RoleCommandOrder {
   /**
    * Returns the dependency order. -1 => rgn1 before rgn2, 0 => they can be
    * parallel 1 => rgn2 before rgn1
-   * 
+   *
    * @param rgn1 roleGraphNode1
    * @param rgn2 roleGraphNode2
    */
@@ -168,11 +169,11 @@ public class RoleCommandOrder {
         rgn1.getCommand());
     RoleCommandPair rcp2 = new RoleCommandPair(rgn2.getRole(),
         rgn2.getCommand());
-    if ((this.dependencies.get(rcp1) != null)
-        && (this.dependencies.get(rcp1).contains(rcp2))) {
+    if ((dependencies.get(rcp1) != null)
+        && (dependencies.get(rcp1).contains(rcp2))) {
       return 1;
-    } else if ((this.dependencies.get(rcp2) != null)
-        && (this.dependencies.get(rcp2).contains(rcp1))) {
+    } else if ((dependencies.get(rcp2) != null)
+        && (dependencies.get(rcp2).contains(rcp1))) {
       return -1;
     } else if (!rgn2.getCommand().equals(rgn1.getCommand())) {
       return compareCommands(rgn1, rgn2);
@@ -194,7 +195,7 @@ public class RoleCommandOrder {
     Set<RoleCommandPair> allDeps = new HashSet<RoleCommandPair>();
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       RoleCommandPair rcp = new RoleCommandPair(Role.valueOf(sc.getName()), cmd);
-      Set<RoleCommandPair> deps = this.dependencies.get(rcp);
+      Set<RoleCommandPair> deps = dependencies.get(rcp);
       if (deps != null) {
         allDeps.addAll(deps);
       }
@@ -218,23 +219,23 @@ public class RoleCommandOrder {
    * A => B and B => C implies A => B,C and B => C
    */
   private void extendTransitiveDependency() {
-    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : this.dependencies.entrySet()) {
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : dependencies.entrySet()) {
       HashSet<RoleCommandPair> visited = new HashSet<RoleCommandPair>();
       HashSet<RoleCommandPair> transitiveDependencies = new HashSet<RoleCommandPair>();
-      for (RoleCommandPair directlyBlockedOn : this.dependencies.get(roleCommandPairSetEntry.getKey())) {
+      for (RoleCommandPair directlyBlockedOn : dependencies.get(roleCommandPairSetEntry.getKey())) {
         visited.add(directlyBlockedOn);
         identifyTransitiveDependencies(directlyBlockedOn, visited, transitiveDependencies);
       }
       if (transitiveDependencies.size() > 0) {
-        this.dependencies.get(roleCommandPairSetEntry.getKey()).addAll(transitiveDependencies);
+        dependencies.get(roleCommandPairSetEntry.getKey()).addAll(transitiveDependencies);
       }
     }
   }
 
   private void identifyTransitiveDependencies(RoleCommandPair rcp, HashSet<RoleCommandPair> visited,
                                                      HashSet<RoleCommandPair> transitiveDependencies) {
-    if (this.dependencies.get(rcp) != null) {
-      for (RoleCommandPair blockedOn : this.dependencies.get(rcp)) {
+    if (dependencies.get(rcp) != null) {
+      for (RoleCommandPair blockedOn : dependencies.get(rcp)) {
         if (!visited.contains(blockedOn)) {
           visited.add(blockedOn);
           transitiveDependencies.add(blockedOn);
@@ -253,11 +254,11 @@ public class RoleCommandOrder {
    */
   private void addMissingRestartDependencies() {
     Map<RoleCommandPair, Set<RoleCommandPair>> missingDependencies = new HashMap<>();
-    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : this.dependencies.entrySet()) {
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : dependencies.entrySet()) {
       RoleCommandPair roleCommandPair = roleCommandPairSetEntry.getKey();
       if (roleCommandPair.getCmd().equals(RoleCommand.START)) {
         RoleCommandPair restartPair = new RoleCommandPair(roleCommandPair.getRole(), RoleCommand.RESTART);
-        if (!this.dependencies.containsKey(restartPair)) {
+        if (!dependencies.containsKey(restartPair)) {
           // Assumption that if defined the RESTART deps are complete
           Set<RoleCommandPair> roleCommandDeps = new HashSet<>();
           for (RoleCommandPair rco : roleCommandPairSetEntry.getValue()) {
@@ -274,7 +275,7 @@ public class RoleCommandOrder {
       }
     }
     if (!missingDependencies.isEmpty()) {
-      this.dependencies.putAll(missingDependencies);
+      dependencies.putAll(missingDependencies);
     }
   }
 
@@ -291,7 +292,7 @@ public class RoleCommandOrder {
     if (independentCommands.contains(rc1) && independentCommands.contains(rc2)) {
       return 0;
     }
-    
+
     if (rc1.equals(RoleCommand.INSTALL)) {
       return -1;
     } else if (rc2.equals(RoleCommand.INSTALL)) {
@@ -318,7 +319,7 @@ public class RoleCommandOrder {
     }
 
     // Check for key set match
-    if (!this.dependencies.keySet().equals(rco.dependencies.keySet())){
+    if (!dependencies.keySet().equals(rco.dependencies.keySet())){
       LOG.debug("dependency keysets differ");
       return 1;
     }
@@ -326,8 +327,8 @@ public class RoleCommandOrder {
 
     // So far so good.  Since the keysets match, let's check the
     // actual entries against each other
-    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : this.dependencies.entrySet()) {
-      v1 = this.dependencies.get(roleCommandPairSetEntry.getKey());
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : dependencies.entrySet()) {
+      v1 = dependencies.get(roleCommandPairSetEntry.getKey());
       v2 = rco.dependencies.get(roleCommandPairSetEntry.getKey());
       if (!v1.equals(v2)) {
         LOG.debug("different entry found for key ("
@@ -340,28 +341,18 @@ public class RoleCommandOrder {
     return 0;
   }
 
-  public boolean isHasGLUSTERFS() {
-    return hasGLUSTERFS;
-  }
-
-  public void setHasGLUSTERFS(boolean hasGLUSTERFS) {
-    this.hasGLUSTERFS = hasGLUSTERFS;
-  }
-
-  public boolean isNameNodeHAEnabled() {
-    return isNameNodeHAEnabled;
-  }
-
-  public void setIsNameNodeHAEnabled(boolean isNameNodeHAEnabled) {
-    this.isNameNodeHAEnabled = isNameNodeHAEnabled;
-  }
-
-  public boolean isResourceManagerHAEnabled() {
-    return isResourceManagerHAEnabled;
-  }
-
-  public void setIsResourceManagerHAEnabled(boolean isResourceManagerHAEnabled) {
-    this.isResourceManagerHAEnabled = isResourceManagerHAEnabled;
+  /**
+   * Gets the collection of section names that was used to initialize this
+   * {@link RoleCommandOrder} instance. If this instance has not been
+   * initialized, this will be {@code null}.
+   * <p/>
+   * The ordering of this collection is maintained.
+   *
+   * @return the section keys used to initialize this instance or {@code null}
+   *         if it has not been initialized.
+   */
+  public LinkedHashSet<String> getSectionKeys() {
+    return sectionKeys;
   }
 
   /**
@@ -369,5 +360,17 @@ public class RoleCommandOrder {
    */
   public Map<RoleCommandPair, Set<RoleCommandPair>> getDependencies() {
     return dependencies;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    RoleCommandOrder clone = (RoleCommandOrder) super.clone();
+    clone.sectionKeys = new LinkedHashSet<>(sectionKeys);
+    clone.dependencies = new HashMap<>(dependencies);
+
+    return clone;
   }
 }

@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -437,6 +438,69 @@ public class RoleCommandOrderTest {
     Assert.assertFalse(transitiveServices.isEmpty());
     Assert.assertEquals(1, transitiveServices.size());
     Assert.assertTrue(transitiveServices.contains(hdfsService));
+  }
+
+  /**
+   * Tests the ability to override any previous mapping by using the
+   * {@code -OVERRIDE} placeholder. For example:
+   *
+   * <pre>
+   * "host_ordered_upgrade" : {
+   *   "DATANODE-START-OVERRIDE" : ["NAMENODE-START"],
+   *   "NODEMANAGER-START-OVERRIDE": ["RESOURCEMANAGER-START"],
+   *   "RESOURCEMANAGER-START-OVERRIDE": ["NAMENODE-START"]
+   * }
+   * </pre>
+   *
+   * @throws IOException
+   */
+  @Test
+  public void testOverride() throws Exception {
+    ClusterImpl cluster = createMock(ClusterImpl.class);
+    expect(cluster.getService("GLUSTERFS")).andReturn(null).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L).atLeastOnce();
+    Service hdfsService = createMock(Service.class);
+
+    expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
+    expect(cluster.getService("YARN")).andReturn(null).atLeastOnce();
+    expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
+
+    // There is no rco file in this stack, should use default
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2.0")).atLeastOnce();
+
+    replay(cluster);
+    replay(hdfsService);
+
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+
+    // create command pairs
+    RoleCommandPair startDN = new RoleCommandPair(Role.DATANODE, RoleCommand.START);
+    RoleCommandPair startNM = new RoleCommandPair(Role.NODEMANAGER, RoleCommand.START);
+    RoleCommandPair startNN = new RoleCommandPair(Role.NAMENODE, RoleCommand.START);
+    RoleCommandPair startRM = new RoleCommandPair(Role.RESOURCEMANAGER, RoleCommand.START);
+
+    Set<RoleCommandPair> startDNDeps = rco.getDependencies().get(startDN);
+    Set<RoleCommandPair> startNMDeps = rco.getDependencies().get(startNM);
+
+    Assert.assertNull(startDNDeps);
+    Assert.assertTrue(startNMDeps.contains(startDN));
+
+    rco = (RoleCommandOrder) rco.clone();
+    LinkedHashSet<String> keys = rco.getSectionKeys();
+    keys.add("host_ordered_upgrade");
+    rco.initialize(cluster, keys);
+
+    startDNDeps = rco.getDependencies().get(startDN);
+    startNMDeps = rco.getDependencies().get(startNM);
+
+    // now ensure that the role orders have been modified correctly
+    Assert.assertTrue(startDNDeps.contains(startNN));
+    Assert.assertTrue(startNMDeps.contains(startRM));
+    Assert.assertFalse(startNMDeps.contains(startDN));
+    Assert.assertEquals(2, startNMDeps.size());
+
+    verify(cluster);
+    verify(hdfsService);
   }
 
   private boolean dependenciesContainBlockedRole(Map<RoleCommandPair,

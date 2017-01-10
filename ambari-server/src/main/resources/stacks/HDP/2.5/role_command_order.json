@@ -22,5 +22,11 @@
   "optional_no_glusterfs": {
     "SPARK2_JOBHISTORYSERVER-START" : ["NAMENODE-START", "DATANODE-START"],
     "SPARK2_THRIFTSERVER-START" : ["NAMENODE-START", "DATANODE-START", "HIVE_SERVER-START"]
+  },
+  "_comment" : "Dependencies that are used during a Host-Ordered Stack Upgrade",
+  "host_ordered_upgrade" : {
+    "DATANODE-START-OVERRIDE" : ["NAMENODE-START"],
+    "NODEMANAGER-START-OVERRIDE": ["RESOURCEMANAGER-START"],
+    "RESOURCEMANAGER-START-OVERRIDE": ["NAMENODE-START"]
   }
 }
