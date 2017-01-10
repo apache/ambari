@@ -581,6 +581,7 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction">
             <summary>Configuring Ranger Alerts</summary>
           </task>
+          <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
 
           <task xsi:type="execute" hosts="all">
             <script>scripts/ranger_admin.py</script>
