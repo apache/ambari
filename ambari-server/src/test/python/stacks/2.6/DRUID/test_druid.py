@@ -340,7 +340,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/_common'),
@@ -348,7 +349,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/coordinator'),
@@ -356,7 +358,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/broker'),
@@ -364,7 +367,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/middleManager'),
@@ -372,7 +376,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/historical'),
@@ -380,7 +385,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/overlord'),
@@ -388,7 +394,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/router'),
@@ -396,7 +403,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/segmentCache/info_dir',
@@ -404,7 +412,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/tasks',
@@ -412,7 +421,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/segmentCache',
@@ -420,7 +430,8 @@ class TestDruid(RMFTestCase):
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('File', format('/usr/hdp/current/{role}/conf/druid-env.sh'),
