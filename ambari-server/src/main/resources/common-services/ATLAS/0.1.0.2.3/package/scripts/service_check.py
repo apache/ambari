@@ -31,9 +31,13 @@ class AtlasServiceCheck(Script):
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}"),
               user=params.smoke_test_user)
-
-    Execute(params.smoke_cmd, user=params.smoke_test_user, tries = 5,
-            try_sleep = 10)
+    for atlas_host in params.atlas_hosts:
+      if params.security_enabled:
+        smoke_cmd = format('curl -k --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{atlas_host}:{metadata_port}/')
+      else:
+        smoke_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{atlas_host}:{metadata_port}/')
+      Execute(smoke_cmd , user=params.smoke_test_user, tries = 5,
+          try_sleep = 10)
 
 
 if __name__ == "__main__":
