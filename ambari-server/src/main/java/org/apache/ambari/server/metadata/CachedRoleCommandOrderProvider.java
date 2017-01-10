@@ -19,6 +19,7 @@
 package org.apache.ambari.server.metadata;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -100,10 +101,24 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
     RoleCommandOrder rco = rcoMap.get(clusterCacheId);
     if (rco == null) {
       rco = injector.getInstance(RoleCommandOrder.class);
-      rco.setHasGLUSTERFS(hasGLUSTERFS);
-      rco.setIsNameNodeHAEnabled(isNameNodeHAEnabled);
-      rco.setIsResourceManagerHAEnabled(isResourceManagerHAEnabled);
-      rco.initialize(cluster);
+
+      LinkedHashSet<String> sectionKeys = new LinkedHashSet<>();
+
+      if (hasGLUSTERFS) {
+        sectionKeys.add(RoleCommandOrder.GLUSTERFS_DEPS_KEY);
+      } else {
+        sectionKeys.add(RoleCommandOrder.NO_GLUSTERFS_DEPS_KEY);
+      }
+
+      if (isNameNodeHAEnabled) {
+        sectionKeys.add(RoleCommandOrder.NAMENODE_HA_DEPS_KEY);
+      }
+
+      if (isResourceManagerHAEnabled) {
+        sectionKeys.add(RoleCommandOrder.RESOURCEMANAGER_HA_DEPS_KEY);
+      }
+
+      rco.initialize(cluster, sectionKeys);
       rcoMap.put(clusterCacheId, rco);
     }
     return rco;

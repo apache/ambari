@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -144,6 +145,10 @@ public class HostOrderGrouping extends Grouping {
 
       HostRoleCommandFactory hrcFactory = upgradeContext.getHostRoleCommandFactory();
 
+      // get a role command order instance that we can adjust for HOU since HOU
+      // may use a different ordering than normal start operations
+      RoleCommandOrder roleCommandOrder = getRoleCommandOrderForUpgrade(cluster);
+
       for (String hostName : hosts) {
         // initialize the collection for all stop tasks for every component on
         // the host
@@ -207,7 +212,6 @@ public class HostOrderGrouping extends Grouping {
         // now process the HRCs created so that we can create the appropriate
         // stage/task wrappers for the RESTARTs
         RoleGraphFactory roleGraphFactory = upgradeContext.getRoleGraphFactory();
-        RoleCommandOrder roleCommandOrder = cluster.getRoleCommandOrder();
         RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
         List<Map<String, List<HostRoleCommand>>> stages = roleGraph.getOrderedHostRoleCommands(
             restartCommandsForHost);
@@ -334,6 +338,30 @@ public class HostOrderGrouping extends Grouping {
        return false;
       }
     }
-  }
 
+    /**
+     * Gets a {@link RoleCommandOrder} instance initialized with
+     * {@code host_ordered_upgrade} overrides.
+     *
+     * @param cluster
+     *          the cluster to get the {@link RoleCommandOrder} instance for.
+     * @return the order of commands for the cluster
+     */
+    private RoleCommandOrder getRoleCommandOrderForUpgrade(Cluster cluster) {
+      RoleCommandOrder roleCommandOrder = cluster.getRoleCommandOrder();
+
+      try {
+        roleCommandOrder = (RoleCommandOrder) roleCommandOrder.clone();
+      } catch (CloneNotSupportedException cloneNotSupportedException) {
+        LOG.warn("Unable to clone role command order and apply overrides for this upgrade",
+            cloneNotSupportedException);
+      }
+
+      LinkedHashSet<String> sectionKeys = roleCommandOrder.getSectionKeys();
+      sectionKeys.add("host_ordered_upgrade");
+
+      roleCommandOrder.initialize(cluster, sectionKeys);
+      return roleCommandOrder;
+    }
+  }
 }
