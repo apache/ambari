@@ -591,7 +591,8 @@ Em.I18n.translations = {
   'installer.step0.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
 
   'installer.step1.header':'Select Version',
-  'installer.step1.body':'Select the software version and method of delivery for your cluster. Using a Public Repository requires Internet connectivity. Using a Local Repository requires you have configured the software in a repository available in your network.',
+  'installer.step1.body':'Select the software version and method of delivery for your cluster.',
+  'installer.step1.repo.body':'Using a Public Repository requires Internet connectivity. Using a Local Repository requires you have configured the software in a repository available in your network.',
   'installer.step1.addVersion.title':'Add Version',
   'installer.step1.changeVersion.defaultVersion':'Default Version Definition',
   'installer.step1.selectUseRepoOptions.public':'Use Public Repository',
