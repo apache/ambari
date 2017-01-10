@@ -37,6 +37,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
     self.modifyHeapSizeProperties()
     self.modifyNotValuableComponents()
     self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
 
   def modifyMastersWithMultipleInstances(self):
     """
@@ -78,6 +79,28 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
     Must be overriden in child class.
     """
     self.notPreferableOnServerComponents |= set(['GANGLIA_SERVER'])
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes = {
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+    }
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -330,23 +353,6 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
-  # TODO, move to Service Advisors.
-  def getComponentLayoutSchemes(self):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      }
-
 class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
 
   def __init__(self):
@@ -357,6 +363,7 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     self.modifyHeapSizeProperties()
     self.modifyNotValuableComponents()
     self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
 
   def modifyMastersWithMultipleInstances(self):
     """
@@ -396,6 +403,18 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     """
     self.notPreferableOnServerComponents |= set(['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS'])
 
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes.update({
+      'APP_TIMELINE_SERVER': {31: 1, "else": 2},
+      'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
+    })
+
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(BIGTOP08StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
@@ -429,16 +448,6 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     putTezProperty("tez.am.java.opts",
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
-
-  # TODO, move to Service Advisors.
-  def getComponentLayoutSchemes(self):
-    parentSchemes = super(BIGTOP08StackAdvisor, self).getComponentLayoutSchemes()
-    childSchemes = {
-        'APP_TIMELINE_SERVER': {31: 1, "else": 2},
-        'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
-    }
-    parentSchemes.update(childSchemes)
-    return parentSchemes
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(BIGTOP08StackAdvisor, self).getServiceConfigurationValidators()

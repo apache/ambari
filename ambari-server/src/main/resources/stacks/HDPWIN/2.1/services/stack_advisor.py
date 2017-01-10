@@ -37,6 +37,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     self.modifyHeapSizeProperties()
     self.modifyNotValuableComponents()
     self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
 
   def modifyMastersWithMultipleInstances(self):
     """
@@ -78,6 +79,32 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     Must be overriden in child class.
     """
     self.notPreferableOnServerComponents |= set(['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS'])
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes = {
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      'APP_TIMELINE_SERVER': {31: 1, "else": 2},
+      'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
+    }
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -560,26 +587,6 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     validationItems = [{"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
                         {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
-
-
-  # TODO, move to Service Advisors.
-  def getComponentLayoutSchemes(self):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      'APP_TIMELINE_SERVER': {31: 1, "else": 2},
-      'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
-      }
 
   def getHostsWithComponent(self, serviceName, componentName, services, hosts):
     if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:

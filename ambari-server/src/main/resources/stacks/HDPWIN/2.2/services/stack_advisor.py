@@ -33,27 +33,6 @@ def getSiteProperties(configurations, siteName):
     return None
   return siteConfig.get("properties")
 
-def getPort(address):
-  """
-  Extracts port from the address like 0.0.0.0:1019
-  """
-  if address is None:
-    return None
-  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
-  if m is not None:
-    return int(m.group(2))
-  else:
-    return None
-
-def isSecurePort(port):
-  """
-  Returns True if port is root-owned at *nix systems
-  """
-  if port is not None:
-    return port < 1024
-  else:
-    return False
-
 class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
   def __init__(self):
@@ -822,15 +801,15 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       data_transfer_protection = 'dfs.data.transfer.protection'
 
       try: # Params may be absent
-        privileged_dfs_dn_port = isSecurePort(getPort(hdfs_site[dfs_datanode_address]))
+        privileged_dfs_dn_port = self.isSecurePort(self.getPort(hdfs_site[dfs_datanode_address]))
       except KeyError:
         privileged_dfs_dn_port = False
       try:
-        privileged_dfs_http_port = isSecurePort(getPort(hdfs_site[datanode_http_address]))
+        privileged_dfs_http_port = self.isSecurePort(self.getPort(hdfs_site[datanode_http_address]))
       except KeyError:
         privileged_dfs_http_port = False
       try:
-        privileged_dfs_https_port = isSecurePort(getPort(hdfs_site[datanode_https_address]))
+        privileged_dfs_https_port = self.isSecurePort(self.getPort(hdfs_site[datanode_https_address]))
       except KeyError:
         privileged_dfs_https_port = False
       try:

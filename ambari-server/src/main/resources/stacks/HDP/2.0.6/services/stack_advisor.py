@@ -42,6 +42,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     self.modifyHeapSizeProperties()
     self.modifyNotValuableComponents()
     self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
 
   def modifyMastersWithMultipleInstances(self):
     """
@@ -83,6 +84,29 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     Must be overriden in child class.
     """
     self.notPreferableOnServerComponents |= set(['GANGLIA_SERVER', 'METRICS_COLLECTOR'])
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes.update({
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      'METRICS_COLLECTOR': {3: 2, 6: 2, 31: 3, "else": 5},
+    })
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -248,17 +272,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
          ambari_user = ambari_user.split('@')[0]
     return ambari_user
 
-  def recommendAmbariProxyUsersForHDFS(self, services, configurations, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
-    if "HDFS" in servicesList:
-      ambari_user = self.getAmbariUser(services)
-      ambariHostName = socket.getfqdn()
-      self.put_proxyuser_value(ambari_user, ambariHostName, services=services, configurations=configurations, put_function=putCoreSiteProperty)
-      self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
-      old_ambari_user = self.getOldAmbariUser(services)
-      if old_ambari_user is not None:
-        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
-        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
-
   def getAmbariProxyUsersForHDFSValidationItems(self, properties, services):
     validationItems = []
     servicesList = self.get_services_list(services)
@@ -269,216 +282,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         "hadoop.proxyuser.{0}.hosts".format(ambari_user),
         "hadoop.proxyuser.{0}.groups".format(ambari_user)
       )
-      for prop in props:
-        validationItems.append({"config-name": prop, "item": self.validatorNotEmpty(properties, prop)})
-
-    return validationItems
-
-  def _getHadoopProxyUsersForService(self, serviceName, serviceUserComponents, services, hosts, configurations):
-    Logger.info("Calculating Hadoop Proxy User recommendations for {0} service.".format(serviceName))
-    servicesList = self.get_services_list(services)
-    resultUsers = {}
-
-    if serviceName in servicesList:
-      usersComponents = {}
-      for values in serviceUserComponents:
-
-        # Filter, if 4th argument is present in the tuple
-        filterFunction = values[3:]
-        if filterFunction and not filterFunction[0](services, hosts):
-          continue
-
-        userNameConfig, userNameProperty, hostSelectorMap = values[:3]
-        user = get_from_dict(services, ("configurations", userNameConfig, "properties", userNameProperty), None)
-        if user:
-          usersComponents[user] = (userNameConfig, userNameProperty, hostSelectorMap)
-
-      for user, (userNameConfig, userNameProperty, hostSelectorMap) in usersComponents.iteritems():
-        proxyUsers = {"config": userNameConfig, "propertyName": userNameProperty}
-        for proxyPropertyName, hostSelector in hostSelectorMap.iteritems():
-          componentHostNamesString = hostSelector if isinstance(hostSelector, basestring) else '*'
-          if isinstance(hostSelector, (list, tuple)):
-            _, componentHostNames = self.get_data_for_proxyuser(user, services, configurations) # preserve old values
-            for component in hostSelector:
-              componentHosts = self.getHostsWithComponent(serviceName, component, services, hosts)
-              if componentHosts is not None:
-                for componentHost in componentHosts:
-                  componentHostName =  componentHost["Hosts"]["host_name"]
-                  componentHostNames.add(componentHostName)
-
-            componentHostNamesString = ",".join(sorted(componentHostNames))
-            Logger.info("Host List for [service='{0}'; user='{1}'; components='{2}']: {3}".format(serviceName, user, ','.join(hostSelector), componentHostNamesString))
-
-          if not proxyPropertyName in proxyUsers:
-            proxyUsers[proxyPropertyName] = componentHostNamesString
-
-        if not user in resultUsers:
-          resultUsers[user] = proxyUsers
-
-    return resultUsers
-
-  def getHadoopProxyUsers(self, services, hosts, configurations):
-    """
-    Gets Hadoop Proxy User recommendations based on the configuration that is provided by
-    getServiceHadoopProxyUsersConfigurationDict.
-
-    See getServiceHadoopProxyUsersConfigurationDict
-    """
-    servicesList = self.get_services_list(services)
-    users = {}
-
-    for serviceName, serviceUserComponents in self.getServiceHadoopProxyUsersConfigurationDict().iteritems():
-      users.update(self._getHadoopProxyUsersForService(serviceName, serviceUserComponents, services, hosts, configurations))
-
-    return users
-
-  def get_data_for_proxyuser(self, user_name, services, configurations, groups=False):
-    """
-    Returns values of proxyuser properties for given user. Properties can be
-    hadoop.proxyuser.username.groups or hadoop.proxyuser.username.hosts
-    :param user_name:
-    :param services:
-    :param groups: if true, will return values for group property, not hosts
-    :return: tuple (wildcard_value, set[values]), where wildcard_value indicates if property value was *
-    """
-    if "core-site" in services["configurations"]:
-      coreSite = services["configurations"]["core-site"]['properties']
-    else:
-      coreSite = {}
-    if groups:
-      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
-    else:
-      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
-    if property_name in coreSite:
-      property_value = coreSite[property_name]
-      if property_value == "*":
-        return True, set()
-      else:
-        result_values = set()
-        if "core-site" in configurations:
-          if property_name in configurations["core-site"]['properties']:
-            result_values = result_values.union(configurations["core-site"]['properties'][property_name].split(","))
-        result_values = result_values.union(property_value.split(","))
-        return False, result_values
-    return False, set()
-
-  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, configurations=None, put_function=None):
-    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, configurations, is_groups)
-    result_value = "*"
-    result_values_set = self.merge_proxyusers_values(current_value, value)
-    if len(result_values_set) > 0:
-      result_value = ",".join(sorted([val for val in result_values_set if val]))
-
-    if is_groups:
-      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
-    else:
-      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
-
-    put_function(property_name, result_value)
-
-  def merge_proxyusers_values(self, first, second):
-    result = set()
-    def append(data):
-      if isinstance(data, str) or isinstance(data, unicode):
-        if data != "*":
-          result.update(data.split(","))
-      else:
-        result.update(data)
-    append(first)
-    append(second)
-    return result
-
-  def getServiceHadoopProxyUsersConfigurationDict(self):
-    """
-    Returns a map that is used by 'getHadoopProxyUsers' to determine service
-    user properties and related components and get proxyuser recommendations.
-    This method can be overridden in stackadvisors for the further stacks to
-    add additional services or change the previous logic.
-
-    Example of the map format:
-    {
-      "serviceName": [
-        ("configTypeName1", "userPropertyName1", {"propertyHosts": "*", "propertyGroups": "exact string value"})
-        ("configTypeName2", "userPropertyName2", {"propertyHosts": ["COMPONENT1", "COMPONENT2", "COMPONENT3"], "propertyGroups": "*"}),
-        ("configTypeName3", "userPropertyName3", {"propertyHosts": ["COMPONENT1", "COMPONENT2", "COMPONENT3"]}, filterFunction)
-      ],
-      "serviceName2": [
-        ...
-    }
-
-    If the third element of a tuple is map that maps proxy property to it's value.
-    The key could be either 'propertyHosts' or 'propertyGroups'. (Both are optional)
-    If the map value is a string, then this string will be used for the proxyuser
-    value (e.g. 'hadoop.proxyuser.{user}.hosts' = '*').
-    Otherwise map value should be alist or a tuple with component names.
-    All hosts with the provided components will be added
-    to the property (e.g. 'hadoop.proxyuser.{user}.hosts' = 'host1,host2,host3')
-
-    The forth element of the tuple is optional and if it's provided,
-    it should be a function that takes two arguments: services and hosts.
-    If it returns False, proxyusers for the tuple will not be added.
-    """
-    ALL_WILDCARD = "*"
-    HOSTS_PROPERTY = "propertyHosts"
-    GROUPS_PROPERTY = "propertyGroups"
-
-    return {
-      "HDFS":   [("hadoop-env", "hdfs_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
-      "OOZIE":  [("oozie-env", "oozie_user", {HOSTS_PROPERTY: ["OOZIE_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
-      "HIVE":   [("hive-env", "hive_user", {HOSTS_PROPERTY: ["HIVE_SERVER", "HIVE_SERVER_INTERACTIVE"], GROUPS_PROPERTY: ALL_WILDCARD}),
-                 ("hive-env", "webhcat_user", {HOSTS_PROPERTY: ["WEBHCAT_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
-      "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)) > 1)],
-      "FALCON": [("falcon-env", "falcon_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
-      "SPARK":  [("livy-env", "livy_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})]
-    }
-
-  def recommendHadoopProxyUsers(self, configurations, services, hosts):
-    servicesList = self.get_services_list(services)
-
-    if 'forced-configurations' not in services:
-      services["forced-configurations"] = []
-
-    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
-    putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
-
-    users = self.getHadoopProxyUsers(services, hosts, configurations)
-
-    # Force dependencies for HIVE
-    if "HIVE" in servicesList:
-      hive_user = get_from_dict(services, ("configurations", "hive-env", "properties", "hive_user"), default_value=None)
-      if hive_user and get_from_dict(users, (hive_user, "propertyHosts"), default_value=None):
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
-
-    for user_name, user_properties in users.iteritems():
-
-      # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
-      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
-      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
-      if "propertyGroups" in user_properties:
-        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
-
-      # Remove old properties if user was renamed
-      userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
-      if userOldValue is not None and userOldValue != user_name:
-        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(userOldValue), 'delete', 'true')
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(userOldValue)})
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(user_name)})
-
-        if "propertyGroups" in user_properties:
-          putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(userOldValue), 'delete', 'true')
-          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
-          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
-
-    self.recommendAmbariProxyUsersForHDFS(services, configurations, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
-
-  def getHadoopProxyUsersValidationItems(self, properties, services, hosts, configurations):
-    validationItems = []
-    users = self.getHadoopProxyUsers(services, hosts, configurations)
-    for user_name, user_properties in users.iteritems():
-      props = ["hadoop.proxyuser.{0}.hosts".format(user_name)]
-      if "propertyGroups" in user_properties:
-        props.append("hadoop.proxyuser.{0}.groups".format(user_name))
-
       for prop in props:
         validationItems.append({"config-name": prop, "item": self.validatorNotEmpty(properties, prop)})
 
@@ -536,7 +339,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
       maxFreeVolumeSizeForHost = 0l #kBytes
       for dataDir in dataDirs:
-        mp = getMountPointForDir(dataDir, mountPoints)
+        mp = self.getMountPointForDir(dataDir, mountPoints)
         for i in range(len(mountPoints)):
           if mp == mountPoints[i]:
             if mountPointDiskAvailableSpace[i] > maxFreeVolumeSizeForHost:
@@ -974,43 +777,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     pass
 
-  def getHostNamesWithComponent(self, serviceName, componentName, services):
-    """
-    Returns the list of hostnames on which service component is installed
-    """
-    if services is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
-      service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
-      components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
-      if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
-        componentHostnames = components[0]["StackServiceComponents"]["hostnames"]
-        return componentHostnames
-    return []
-
-  def getHostsWithComponent(self, serviceName, componentName, services, hosts):
-    if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
-      service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
-      components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
-      if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
-        componentHostnames = components[0]["StackServiceComponents"]["hostnames"]
-        componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] in componentHostnames]
-        return componentHosts
-    return []
-
-  def getHostWithComponent(self, serviceName, componentName, services, hosts):
-    componentHosts = self.getHostsWithComponent(serviceName, componentName, services, hosts)
-    if (len(componentHosts) > 0):
-      return componentHosts[0]
-    return None
-
-  def getHostComponentsByCategories(self, hostname, categories, services, hosts):
-    components = []
-    if services is not None and hosts is not None:
-      for service in services["services"]:
-          components.extend([componentEntry for componentEntry in service["components"]
-                              if componentEntry["StackServiceComponents"]["component_category"] in categories
-                              and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
-    return components
-
   # TODO, move this to a generic stack advisor.
   def getZKHostPortString(self, services, include_port=True):
     """
@@ -1312,8 +1078,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
               mountPoints.append(mountPoint["mountpoint"])
-            hbase_rootdir_mountpoint = getMountPointForDir(hbase_rootdir, mountPoints)
-            hbase_tmpdir_mountpoint = getMountPointForDir(hbase_tmpdir, mountPoints)
+            hbase_rootdir_mountpoint = self.getMountPointForDir(hbase_rootdir, mountPoints)
+            hbase_tmpdir_mountpoint = self.getMountPointForDir(hbase_tmpdir, mountPoints)
             preferred_mountpoints = self.getPreferredMountPoints(host['Hosts'])
             # hbase.rootdir and hbase.tmp.dir shouldn't point to the same partition
             # if multiple preferred_mountpoints exist
@@ -1331,7 +1097,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             if dn_hosts and collectorHostName in dn_hosts and ams_site and \
               dfs_datadirs and len(preferred_mountpoints) > len(dfs_datadirs):
               for dfs_datadir in dfs_datadirs:
-                dfs_datadir_mountpoint = getMountPointForDir(dfs_datadir, mountPoints)
+                dfs_datadir_mountpoint = self.getMountPointForDir(dfs_datadir, mountPoints)
                 if dfs_datadir_mountpoint == hbase_rootdir_mountpoint:
                   item = self.getWarnItem("Consider not using {0} partition for storing metrics data. "
                                           "{0} is already used by datanode to store HDFS data".format(hbase_rootdir_mountpoint))
@@ -1383,10 +1149,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if logDirItem:
       validationItems.extend([{"config-name": "hbase_log_dir", "item": logDirItem}])
 
-    hbase_master_heapsize = to_number(properties["hbase_master_heapsize"])
-    hbase_master_xmn_size = to_number(properties["hbase_master_xmn_size"])
-    hbase_regionserver_heapsize = to_number(properties["hbase_regionserver_heapsize"])
-    hbase_regionserver_xmn_size = to_number(properties["regionserver_xmn_size"])
+    hbase_master_heapsize = self.to_number(properties["hbase_master_heapsize"])
+    hbase_master_xmn_size = self.to_number(properties["hbase_master_xmn_size"])
+    hbase_regionserver_heapsize = self.to_number(properties["hbase_regionserver_heapsize"])
+    hbase_regionserver_xmn_size = self.to_number(properties["regionserver_xmn_size"])
 
     # Validate Xmn settings.
     masterXmnItem = None
@@ -1476,14 +1242,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
             heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
             xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
-            hbase_needs_increase = to_number(properties[heapPropertyToIncrease]) * mb < 32 * gb
+            hbase_needs_increase = self.to_number(properties[heapPropertyToIncrease]) * mb < 32 * gb
 
             if unusedMemory > 4*gb and hbase_needs_increase:  # warn user, if more than 4GB RAM is unused
 
-              recommended_hbase_heapsize = int((unusedMemory - 4*gb)*4/5) + to_number(properties.get(heapPropertyToIncrease))*mb
+              recommended_hbase_heapsize = int((unusedMemory - 4*gb)*4/5) + self.to_number(properties.get(heapPropertyToIncrease))*mb
               recommended_hbase_heapsize = min(32*gb, recommended_hbase_heapsize) #Make sure heapsize <= 32GB
               recommended_hbase_heapsize = round_to_n(recommended_hbase_heapsize/mb,128) # Round to 128m multiple
-              if to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
+              if self.to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
                 hbaseHeapsizeItem = self.getWarnItem("Consider allocating {0} MB to {1} in ams-hbase-env to use up some "
                                                      "unused memory on host"
                                                          .format(recommended_hbase_heapsize,
@@ -1491,7 +1257,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 validationItems.extend([{"config-name": heapPropertyToIncrease, "item": hbaseHeapsizeItem}])
 
               recommended_xmn_size = round_to_n(0.15*recommended_hbase_heapsize,128)
-              if to_number(properties[xmnPropertyToIncrease]) < recommended_xmn_size:
+              if self.to_number(properties[xmnPropertyToIncrease]) < recommended_xmn_size:
                 xmnPropertyToIncreaseItem = self.getWarnItem("Consider allocating {0} MB to use up some unused memory "
                                                              "on host".format(recommended_xmn_size))
                 validationItems.extend([{"config-name": xmnPropertyToIncrease, "item": xmnPropertyToIncreaseItem}])
@@ -1505,7 +1271,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     mb = 1024 * 1024
     gb = 1024 * mb
     validationItems = []
-    collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
+    collector_heapsize = self.to_number(ams_env.get("metrics_collector_heapsize"))
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     for collectorHostName in amsCollectorHosts:
       for host in hosts["items"]:
@@ -1550,13 +1316,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           if len(heapsize) > 1 and heapsize[-1] in '0123456789':
             heapsize = str(heapsize) + "m"
 
-          totalMemoryRequired += formatXmxSizeToBytes(heapsize)
+          totalMemoryRequired += self.formatXmxSizeToBytes(heapsize)
       else:
         if component == "METRICS_MONITOR" or "CLIENT" in component:
           heapsize = '512m'
         else:
           heapsize = '1024m'
-        totalMemoryRequired += formatXmxSizeToBytes(heapsize)
+        totalMemoryRequired += self.formatXmxSizeToBytes(heapsize)
     return totalMemoryRequired
 
   def getPreferredMountPoints(self, hostInfo):
@@ -1573,130 +1339,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 mountpoint["mountpoint"].startswith(("/boot", "/mnt")) or
                 mountpoint["type"] in undesirableFsTypes or
                 mountpoint["available"] == str(0)):
-          mountPointsDict[mountpoint["mountpoint"]] = to_number(mountpoint["available"])
+          mountPointsDict[mountpoint["mountpoint"]] = self.to_number(mountpoint["available"])
       if mountPointsDict:
         mountPoints = sorted(mountPointsDict, key=mountPointsDict.get, reverse=True)
     mountPoints.append("/")
     return mountPoints
 
-  def validatorNotRootFs(self, properties, recommendedDefaults, propertyName, hostInfo):
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set")
-    dir = properties[propertyName]
-    if not dir.startswith("file://") or dir == recommendedDefaults.get(propertyName):
-      return None
-
-    dir = re.sub("^file://", "", dir, count=1)
-    mountPoints = []
-    for mountPoint in hostInfo["disk_info"]:
-      mountPoints.append(mountPoint["mountpoint"])
-    mountPoint = getMountPointForDir(dir, mountPoints)
-
-    if "/" == mountPoint and self.getPreferredMountPoints(hostInfo)[0] != mountPoint:
-      return self.getWarnItem("It is not recommended to use root partition for {0}".format(propertyName))
-
-    return None
-
-  def validatorEnoughDiskSpace(self, properties, propertyName, hostInfo, reqiuredDiskSpace):
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set")
-    dir = properties[propertyName]
-    if not dir.startswith("file://"):
-      return None
-
-    dir = re.sub("^file://", "", dir, count=1)
-    mountPoints = {}
-    for mountPoint in hostInfo["disk_info"]:
-      mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
-    mountPoint = getMountPointForDir(dir, mountPoints.keys())
-
-    if not mountPoints:
-      return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
-
-    if mountPoints[mountPoint] < reqiuredDiskSpace:
-      msg = "Ambari Metrics disk space requirements not met. \n" \
-            "Recommended disk space for partition {0} is {1}G"
-      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace/1048576)) # in Gb
-    return None
-
-  def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
-    if propertyName not in recommendedDefaults:
-      # If a property name exists in say hbase-env and hbase-site (which is allowed), then it will exist in the
-      # "properties" dictionary, but not necessarily in the "recommendedDefaults" dictionary". In this case, ignore it.
-      return None
-
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set")
-    value = to_number(properties[propertyName])
-    if value is None:
-      return self.getErrorItem("Value should be integer")
-    defaultValue = to_number(recommendedDefaults[propertyName])
-    if defaultValue is None:
-      return None
-    if value < defaultValue:
-      return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
-    return None
-
-  def validatorEqualsPropertyItem(self, properties1, propertyName1,
-                                  properties2, propertyName2,
-                                  emptyAllowed=False):
-    if not propertyName1 in properties1:
-      return self.getErrorItem("Value should be set for %s" % propertyName1)
-    if not propertyName2 in properties2:
-      return self.getErrorItem("Value should be set for %s" % propertyName2)
-    value1 = properties1.get(propertyName1)
-    if value1 is None and not emptyAllowed:
-      return self.getErrorItem("Empty value for %s" % propertyName1)
-    value2 = properties2.get(propertyName2)
-    if value2 is None and not emptyAllowed:
-      return self.getErrorItem("Empty value for %s" % propertyName2)
-    if value1 != value2:
-      return self.getWarnItem("It is recommended to set equal values "
-             "for properties {0} and {1}".format(propertyName1, propertyName2))
-
-    return None
-
-  def validatorEqualsToRecommendedItem(self, properties, recommendedDefaults,
-                                       propertyName):
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set for %s" % propertyName)
-    value = properties.get(propertyName)
-    if not propertyName in recommendedDefaults:
-      return self.getErrorItem("Value should be recommended for %s" % propertyName)
-    recommendedValue = recommendedDefaults.get(propertyName)
-    if value != recommendedValue:
-      return self.getWarnItem("It is recommended to set value {0} "
-             "for property {1}".format(recommendedValue, propertyName))
-    return None
-
-  def validatorNotEmpty(self, properties, propertyName):
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set for {0}".format(propertyName))
-    value = properties.get(propertyName)
-    if not value:
-      return self.getWarnItem("Empty value for {0}".format(propertyName))
-    return None
-
-  def validateMinMemorySetting(self, properties, defaultValue, propertyName):
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set")
-    if defaultValue is None:
-      return self.getErrorItem("Config's default value can't be null or undefined")
-
-    value = properties[propertyName]
-    if value is None:
-      return self.getErrorItem("Value can't be null or undefined")
-    try:
-      valueInt = to_number(value)
-      # TODO: generify for other use cases
-      defaultValueInt = int(str(defaultValue).strip())
-      if valueInt < defaultValueInt:
-        return self.getWarnItem("Value is less than the minimum recommended default of -Xmx" + str(defaultValue))
-    except:
-      return None
-
-    return None
-
+  # TODO, move to YARN Service Advisor
   def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
     if propertyName not in properties:
       return self.getErrorItem("Value should be set")
@@ -1712,6 +1361,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return None
 
+  # TODO, move to YARN Service Advisor
   def recommendYarnQueue(self, services, catalog_name=None, queue_property=None):
     old_queue_name = None
 
@@ -1737,15 +1387,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     defaultValue = recommendedDefaults[propertyName]
     if defaultValue is None:
       return self.getErrorItem("Config's default value can't be null or undefined")
-    if not checkXmxValueFormat(value) and checkXmxValueFormat(defaultValue):
+    if not self.checkXmxValueFormat(value) and self.checkXmxValueFormat(defaultValue):
       # Xmx is in the default-value but not the value, should be an error
       return self.getErrorItem('Invalid value format')
-    if not checkXmxValueFormat(defaultValue):
+    if not self.checkXmxValueFormat(defaultValue):
       # if default value does not contain Xmx, then there is no point in validating existing value
       return None
-    valueInt = formatXmxSizeToBytes(getXmxSize(value))
-    defaultValueXmx = getXmxSize(defaultValue)
-    defaultValueInt = formatXmxSizeToBytes(defaultValueXmx)
+    valueInt = self.formatXmxSizeToBytes(self.getXmxSize(value))
+    defaultValueXmx = self.getXmxSize(defaultValue)
+    defaultValueInt = self.formatXmxSizeToBytes(defaultValueXmx)
     if valueInt < defaultValueInt:
       return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
     return None
@@ -1836,24 +1486,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if dataNodeHosts is not None:
         return dataNodeHosts
     return []
-
-  # TODO, move to Service Advisors.
-  def getComponentLayoutSchemes(self):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      'METRICS_COLLECTOR': {3: 2, 6: 2, 31: 3, "else": 5},
-    }
 
   def get_system_min_uid(self):
     login_defs = '/etc/login.defs'
@@ -2038,17 +1670,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
            "security_enabled" in services["configurations"]["cluster-env"]["properties"] and\
            services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
 
-  def get_services_list(self, services):
-    """
-    Returns available services as list
 
-    :type services dict
-    :rtype list
-    """
-    if not services:
-      return []
-
-    return [service["StackServices"]["service_name"] for service in services["services"]]
 
   def get_components_list(self, service, services):
     """
@@ -2103,88 +1725,7 @@ def getServicesSiteProperties(services, siteName):
     return None
   return siteConfig.get("properties")
 
-def to_number(s):
-  try:
-    return int(re.sub("\D", "", s))
-  except ValueError:
-    return None
 
-def checkXmxValueFormat(value):
-  p = re.compile('-Xmx(\d+)(b|k|m|g|p|t|B|K|M|G|P|T)?')
-  matches = p.findall(value)
-  return len(matches) == 1
-
-def getXmxSize(value):
-  p = re.compile("-Xmx(\d+)(.?)")
-  result = p.findall(value)[0]
-  if len(result) > 1:
-    # result[1] - is a space or size formatter (b|k|m|g etc)
-    return result[0] + result[1].lower()
-  return result[0]
-
-def formatXmxSizeToBytes(value):
-  value = value.lower()
-  if len(value) == 0:
-    return 0
-  modifier = value[-1]
-
-  if modifier == ' ' or modifier in "0123456789":
-    modifier = 'b'
-  m = {
-    modifier == 'b': 1,
-    modifier == 'k': 1024,
-    modifier == 'm': 1024 * 1024,
-    modifier == 'g': 1024 * 1024 * 1024,
-    modifier == 't': 1024 * 1024 * 1024 * 1024,
-    modifier == 'p': 1024 * 1024 * 1024 * 1024 * 1024
-    }[1]
-  return to_number(value) * m
-
-def getPort(address):
-  """
-  Extracts port from the address like 0.0.0.0:1019
-  """
-  if address is None:
-    return None
-  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
-  if m is not None:
-    return int(m.group(2))
-  else:
-    return None
-
-def isSecurePort(port):
-  """
-  Returns True if port is root-owned at *nix systems
-  """
-  if port is not None:
-    return port < 1024
-  else:
-    return False
-
-def getMountPointForDir(dir, mountPoints):
-  """
-  :param dir: Directory to check, even if it doesn't exist.
-  :return: Returns the closest mount point as a string for the directory.
-  if the "dir" variable is None, will return None.
-  If the directory does not exist, will return "/".
-  """
-  bestMountFound = None
-  if dir:
-    dir = re.sub("^file://", "", dir, count=1).strip().lower()
-
-    # If the path is "/hadoop/hdfs/data", then possible matches for mounts could be
-    # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
-    # So take the one with the greatest number of segments.
-    for mountPoint in mountPoints:
-      # Ensure that the mount path and the dir path ends with "/"
-      # The mount point "/hadoop" should not match with the path "/hadoop1"
-      if os.path.join(dir, "").startswith(os.path.join(mountPoint, "")):
-        if bestMountFound is None:
-          bestMountFound = mountPoint
-        elif os.path.join(bestMountFound, "").count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
-          bestMountFound = mountPoint
-
-  return bestMountFound
 
 def round_to_n(mem_size, n=128):
   return int(round(mem_size / float(n))) * int(n)

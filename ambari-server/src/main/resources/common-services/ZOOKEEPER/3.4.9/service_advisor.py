@@ -48,6 +48,9 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()
     self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
 
   def modifyMastersWithMultipleInstances(self):
     """
@@ -72,22 +75,46 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
                                                        "property": "zk_server_heapsize",
                                                        "default": "1024m"}]}
 
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
     Get a list of errors. Zookeeper does not have any validations in this version.
     """
-    service_name = services["services"][0]["StackServices"]["service_name"]
-    Logger.info("Class: %s, Method: %s. Validating Service Component Layout for Service: %s." %
-                (self.__class__.__name__, inspect.stack()[0][3], service_name))
+    Logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
+                (self.__class__.__name__, inspect.stack()[0][3]))
     return self.as_super.getServiceComponentLayoutValidations(services, hosts)
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     """
     Recommend configurations to set. Zookeeper does not have any recommendations in this version.
     """
-    service_name = services["services"][0]["StackServices"]["service_name"]
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations for Service: %s." %
-                (self.__class__.__name__, inspect.stack()[0][3], service_name))
+    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+                (self.__class__.__name__, inspect.stack()[0][3]))
 
     self.recommendConfigurations(configurations, clusterData, services, hosts)
 
@@ -95,9 +122,8 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Recommend configurations for this service.
     """
-    service_name = services["services"][0]["StackServices"]["service_name"]
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations for Service: %s." %
-                (self.__class__.__name__, inspect.stack()[0][3], service_name))
+    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+                (self.__class__.__name__, inspect.stack()[0][3]))
 
     Logger.info("Setting zoo.cfg to default dataDir to /hadoop/zookeeper on the best matching mount")
 
@@ -110,9 +136,8 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Validate configurations for the service. Return a list of errors.
     """
-    service_name = services["services"][0]["StackServices"]["service_name"]
-    Logger.info("Class: %s, Method: %s. Validating Configurations for Service: %s." %
-                (self.__class__.__name__, inspect.stack()[0][3], service_name))
+    Logger.info("Class: %s, Method: %s. Validating Configurations." %
+                (self.__class__.__name__, inspect.stack()[0][3]))
 
     items = []
 

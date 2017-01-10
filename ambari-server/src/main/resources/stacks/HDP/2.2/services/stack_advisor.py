@@ -30,6 +30,7 @@ import xml.etree.ElementTree as ET
 # Local Imports
 from resource_management.core.logger import Logger
 
+
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def __init__(self):
@@ -1202,23 +1203,23 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'mapreduce.job.queuename', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'mapreduce.job.queuename', services)} ]
 
     if 'mapreduce.map.java.opts' in properties and \
-      checkXmxValueFormat(properties['mapreduce.map.java.opts']):
-      mapreduceMapJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.map.java.opts'])) / (1024.0 * 1024)
-      mapreduceMapMemoryMb = to_number(properties['mapreduce.map.memory.mb'])
+      self.checkXmxValueFormat(properties['mapreduce.map.java.opts']):
+      mapreduceMapJavaOpts = self.formatXmxSizeToBytes(self.getXmxSize(properties['mapreduce.map.java.opts'])) / (1024.0 * 1024)
+      mapreduceMapMemoryMb = self.to_number(properties['mapreduce.map.memory.mb'])
       if mapreduceMapJavaOpts > mapreduceMapMemoryMb:
         validationItems.append({"config-name": 'mapreduce.map.java.opts', "item": self.getWarnItem("mapreduce.map.java.opts Xmx should be less than mapreduce.map.memory.mb ({0})".format(mapreduceMapMemoryMb))})
 
     if 'mapreduce.reduce.java.opts' in properties and \
-      checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
-      mapreduceReduceJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.reduce.java.opts'])) / (1024.0 * 1024)
-      mapreduceReduceMemoryMb = to_number(properties['mapreduce.reduce.memory.mb'])
+      self.checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
+      mapreduceReduceJavaOpts = self.formatXmxSizeToBytes(self.getXmxSize(properties['mapreduce.reduce.java.opts'])) / (1024.0 * 1024)
+      mapreduceReduceMemoryMb = self.to_number(properties['mapreduce.reduce.memory.mb'])
       if mapreduceReduceJavaOpts > mapreduceReduceMemoryMb:
         validationItems.append({"config-name": 'mapreduce.reduce.java.opts', "item": self.getWarnItem("mapreduce.reduce.java.opts Xmx should be less than mapreduce.reduce.memory.mb ({0})".format(mapreduceReduceMemoryMb))})
 
     if 'yarn.app.mapreduce.am.command-opts' in properties and \
-      checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
-      yarnAppMapreduceAmCommandOpts = formatXmxSizeToBytes(getXmxSize(properties['yarn.app.mapreduce.am.command-opts'])) / (1024.0 * 1024)
-      yarnAppMapreduceAmResourceMb = to_number(properties['yarn.app.mapreduce.am.resource.mb'])
+      self.checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
+      yarnAppMapreduceAmCommandOpts = self.formatXmxSizeToBytes(self.getXmxSize(properties['yarn.app.mapreduce.am.command-opts'])) / (1024.0 * 1024)
+      yarnAppMapreduceAmResourceMb = self.to_number(properties['yarn.app.mapreduce.am.resource.mb'])
       if yarnAppMapreduceAmCommandOpts > yarnAppMapreduceAmResourceMb:
         validationItems.append({"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.getWarnItem("yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb ({0})".format(yarnAppMapreduceAmResourceMb))})
 
@@ -1283,7 +1284,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     for address_property in address_properties:
       if address_property in hdfs_site:
         value = hdfs_site[address_property]
-        if not is_valid_host_port_authority(value):
+        if not self.is_valid_host_port_authority(value):
           validationItems.append({"config-name" : address_property, "item" :
             self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
 
@@ -1312,15 +1313,15 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       data_transfer_protection = 'dfs.data.transfer.protection'
 
       try: # Params may be absent
-        privileged_dfs_dn_port = isSecurePort(getPort(hdfs_site[dfs_datanode_address]))
+        privileged_dfs_dn_port = self.isSecurePort(self.getPort(hdfs_site[dfs_datanode_address]))
       except KeyError:
         privileged_dfs_dn_port = False
       try:
-        privileged_dfs_http_port = isSecurePort(getPort(hdfs_site[datanode_http_address]))
+        privileged_dfs_http_port = self.isSecurePort(self.getPort(hdfs_site[datanode_http_address]))
       except KeyError:
         privileged_dfs_http_port = False
       try:
-        privileged_dfs_https_port = isSecurePort(getPort(hdfs_site[datanode_https_address]))
+        privileged_dfs_https_port = self.isSecurePort(self.getPort(hdfs_site[datanode_https_address]))
       except KeyError:
         privileged_dfs_https_port = False
       try:
@@ -1769,16 +1770,4 @@ def is_number(s):
   except ValueError:
     pass
 
-  return False
-
-def is_valid_host_port_authority(target):
-  has_scheme = "://" in target
-  if not has_scheme:
-    target = "dummyscheme://"+target
-  try:
-    result = urlparse(target)
-    if result.hostname is not None and result.port is not None:
-      return True
-  except ValueError:
-    pass
   return False
