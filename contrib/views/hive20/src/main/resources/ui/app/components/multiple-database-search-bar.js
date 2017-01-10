@@ -28,36 +28,41 @@ export default Ember.Component.extend({
   heading: 'database',
   subHeading: 'Select or search database/schema',
 
-  selectedDatabase: Ember.computed('databases.@each.selected', function() {
-    return this.get('databases').findBy('selected', true);
+
+  selectedDatabase: Ember.computed('selectedMultiDb', function() {
+    // return this.get('databases').findBy('selected', true) || {'name': "default"};
+    //return  {'name': "default"};
+    return  this.get('selectedMultiDb');
   }),
 
   filteredDatabases: Ember.computed('filterText', 'databases.@each', function() {
     return this.get('databases').filter((item) => {
-      return item.get('name');
-    });
+        return item.get('name');
+  });
   }),
 
   resetDatabaseSelection() {
     this.get('databases').forEach(x => {
       if (x.get('selected')) {
-        x.set('selected', false);
-      }
-    });
+      x.set('selected', false);
+    }
+  });
   },
 
-  allDbs: Ember.computed('selectedDatabase','filteredDatabases', function() {
+  allDbs: Ember.computed('selectedMultiDb','filteredDatabases', function() {
     let dblist =[];
     this.get('filteredDatabases').forEach(db => {
       dblist.push(db.get('name'));
-    });
+  });
 
     return dblist;
   }),
 
-  selectedDbs: Ember.computed('selectedDatabase','filteredDatabases', function() {
+  selectedDbs: Ember.computed('selectedMultiDb','filteredDatabases', function() {
     let selecteddblist =[];
-    selecteddblist.push(this.get('selectedDatabase.name')); //As of now for single selection but will convert this for multiple DBs selected.
+    this.get('selectedMultiDb').forEach((item => {
+        selecteddblist.push(item.name);
+  }));
     return selecteddblist;
   }),
 
@@ -75,8 +80,7 @@ export default Ember.Component.extend({
     },
 
     updateTables(){
-      console.log('updateTables for selected databases.', this.get('selectedDbs'));
-      this.sendAction('xyz', this.get('selectedDbs'));
+      this.sendAction('changeDbHandler', this.get('selectedDbs'));
     }
 
   }

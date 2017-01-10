@@ -286,6 +286,9 @@ pre {
 .query-editor {
   border: 1px solid darken($database-search-background, 25%);
   margin-right: 0;
+  .expand-button{
+    position: absolute;right: 5px;top: 5px;z-index: 9999;cursor: pointer;
+  }
 }
 
 .query-editor-full-width {
@@ -785,6 +788,20 @@ pre {
 
 .jobs-table {
   margin-top: 10px;
+}
+
+.worksheet-container{
+  width:100%;padding: 10px 0;
+}
+
+.worksheet-nav {
+  li{
+    margin-left:5px;
+    a {
+      border : 1px solid #bbbbb9;
+    }
+    button.new-worksheet {margin-left: -5px; margin-top: 4px}
+  }
 }
 
 

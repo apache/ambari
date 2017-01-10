@@ -50,8 +50,10 @@ Router.map(function() {
     this.route('message', {path: '/:message_id'});
   });
 
-  this.route('query', function() {
+  this.route('queries', function() {
+    this.route('query', {path: '/:worksheetId'}, function() {
 
+    });
   });
 
 });
