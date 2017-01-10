@@ -94,6 +94,21 @@ public class DDLService extends BaseService {
     return Response.ok(response).build();
   }
 
+  @DELETE
+  @Path("databases/{database_id}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response deleteDatabase(@PathParam("database_id") String databaseId) {
+    Job job = null;
+    try {
+      job = proxy.deleteDatabase(databaseId, getResourceManager());
+      JSONObject response = new JSONObject();
+      response.put("job", job);
+      return Response.status(Response.Status.ACCEPTED).entity(job).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while delete database {}", databaseId, e);
+      throw new ServiceFormattedException(e);
+    }
+  }
 
   @GET
   @Path("databases/{database_id}/tables")
