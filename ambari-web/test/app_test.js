@@ -406,9 +406,11 @@ describe('App', function () {
 
     testCases.forEach(function (test) {
       it(test.key + ' should contain ' + test.result, function () {
-        expect(App.get('components.' + test.key)).to.eql(test.result);
-      })
-    })
+        var key = 'components.' + test.key;
+        App.components.propertyDidChange(test.key);
+        expect(App.get(key)).to.eql(test.result);
+      });
+    });
   });
 
   describe('#upgradeIsRunning', function () {

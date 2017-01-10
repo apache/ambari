@@ -19,6 +19,10 @@
 var App = require('app');
 require('views/main/service/menu');
 
+function getView() {
+  return App.MainServiceMenuView.create();
+}
+
 describe('App.MainServiceMenuView', function () {
 
   var mainServiceMenuView;
@@ -64,4 +68,15 @@ describe('App.MainServiceMenuView', function () {
       expect(mainServiceMenuView.get('itemViewClass.alertsCount')).to.equal(item.result);
     });
   });
+
+  describe('#itemViewClass', function () {
+
+    function getItemViewClass() {
+      return getView().get('itemViewClass').create();
+    }
+
+    App.TestAliases.testAsComputedNotExistsInByKey(getItemViewClass(), 'isConfigurable', 'content.serviceName', 'App.services.noConfigTypes', ['HDFS', 'ZOOKEEPER']);
+
+  });
+
 });

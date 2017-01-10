@@ -384,24 +384,7 @@ describe('App.HostComponentView', function() {
     });
   });
 
-  describe("#isDeletableComponent", function() {
-    beforeEach(function(){
-      sinon.stub(App, 'get').returns(['C1']);
-    });
-    afterEach(function(){
-      App.get.restore();
-    });
-    it("component deletable", function() {
-      hostComponentView.set('content.componentName', 'C1');
-      hostComponentView.propertyDidChange('isDeletableComponent');
-      expect(hostComponentView.get('isDeletableComponent')).to.be.true;
-    });
-    it("component is not deletable", function() {
-      hostComponentView.set('content.componentName', 'C2');
-      hostComponentView.propertyDidChange('isDeletableComponent');
-      expect(hostComponentView.get('isDeletableComponent')).to.be.false;
-    });
-  });
+  App.TestAliases.testAsComputedExistsInByKey(getView(), 'isDeletableComponent', 'content.componentName', 'App.components.deletable', ['DATANODE', 'HDFS_CLIENT', 'NFS_GATEWAY'])
 
   describe("#isMoveComponentDisabled", function() {
     beforeEach(function(){
@@ -476,24 +459,9 @@ describe('App.HostComponentView', function() {
     });
   });
 
-  describe("#isRestartableComponent", function() {
-    beforeEach(function(){
-      sinon.stub(App, 'get').returns(['C1']);
-    });
-    afterEach(function(){
-      App.get.restore();
-    });
-    it("component deletable", function() {
-      hostComponentView.set('content.componentName', 'C1');
-      hostComponentView.propertyDidChange('isRestartableComponent');
-      expect(hostComponentView.get('isRestartableComponent')).to.be.true;
-    });
-    it("component is not deletable", function() {
-      hostComponentView.set('content.componentName', 'C2');
-      hostComponentView.propertyDidChange('isRestartableComponent');
-      expect(hostComponentView.get('isRestartableComponent')).to.be.false;
-    });
-  });
+  App.TestAliases.testAsComputedExistsInByKey(getView(), 'isRestartableComponent', 'content.componentName', 'App.components.restartable', ['DATANODE', 'JOURNALNODE', 'NAMENODE']);
+
+  App.TestAliases.testAsComputedExistsInByKey(getView(), 'isRefreshConfigsAllowed', 'content.componentName', 'App.components.refreshConfigsAllowed', ['FLUME_HANDLER']);
 
   describe("#isRefreshConfigsAllowed", function() {
     beforeEach(function(){

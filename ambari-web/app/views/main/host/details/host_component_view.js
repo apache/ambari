@@ -173,9 +173,7 @@ App.HostComponentView = Em.View.extend({
    * Shows whether we need to show Delete button
    * @type {bool}
    */
-  isDeletableComponent: function () {
-    return App.get('components.deletable').contains(this.get('content.componentName'));
-  }.property('content'),
+  isDeletableComponent: Em.computed.existsInByKey('content.componentName', 'App.components.deletable'),
 
   /**
    * Host component with some <code>workStatus</code> can't be moved (so, disable such action in the dropdown list)
@@ -230,9 +228,7 @@ App.HostComponentView = Em.View.extend({
    * Check if component is restartable
    * @type {bool}
    */
-  isRestartableComponent: function() {
-    return App.get('components.restartable').contains(this.get('content.componentName'));
-  }.property('content'),
+  isRestartableComponent: Em.computed.existsInByKey('content.componentName', 'App.components.restartable'),
 
   /**
    * Host component with some <code>workStatus</code> can't be restarted (so, disable such action in the dropdown list)
@@ -244,9 +240,7 @@ App.HostComponentView = Em.View.extend({
    * Check if component configs can be refreshed
    * @type {bool}
    */
-  isRefreshConfigsAllowed: function() {
-    return App.get('components.refreshConfigsAllowed').contains(this.get('content.componentName'));
-  }.property('content'),
+  isRefreshConfigsAllowed: Em.computed.existsInByKey('content.componentName', 'App.components.refreshConfigsAllowed'),
 
   willInsertElement: function() {
     //make link to view instance to get decommission state

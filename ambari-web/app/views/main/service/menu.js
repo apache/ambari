@@ -75,9 +75,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 
     hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
 
-    isConfigurable: function () {
-      return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
-    }.property('App.services.noConfigTypes','content.serviceName'),
+    isConfigurable: Em.computed.notExistsInByKey('content.serviceName', 'App.services.noConfigTypes'),
 
     link: function() {
       var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
