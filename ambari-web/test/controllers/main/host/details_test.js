@@ -525,6 +525,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, "checkComponentDependencies", Em.K);
       sinon.stub(controller, "showAddComponentPopup", Em.K);
+      sinon.stub(controller, "clearConfigsChanges", Em.K);
       sinon.stub(App, "showConfirmationPopup", Em.K);
       controller.set('content', {
         hostComponents: [Em.Object.create({
@@ -536,6 +537,7 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       controller.checkComponentDependencies.restore();
       controller.showAddComponentPopup.restore();
+      controller.clearConfigsChanges.restore();
       App.showConfirmationPopup.restore();
     });
 
@@ -618,7 +620,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
       controller.set('nimbusHost', 'host2');
-      controller.onLoadStormConfigs(data, null, {});
+      controller.onLoadStormConfigs(data);
     });
     afterEach(function () {
       controller.getStormNimbusHosts.restore();
@@ -3945,6 +3947,42 @@ describe('App.MainHostDetailsController', function () {
 
     it('isConfigsLoadingInProgress', function () {
       expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
+    });
+
+  });
+
+  describe('#clearConfigsChanges', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'abortRequests', Em.K);
+      controller.setProperties({
+        allPropertiesToChange: [{}],
+        recommendedPropertiesToChange: [{}],
+        requiredPropertiesToChange: [{}],
+        groupedPropertiesToChange: [{}],
+        isReconfigureRequired: true
+      });
+      controller.clearConfigsChanges();
+    });
+
+    afterEach(function () {
+      controller.abortRequests.restore();
+    });
+
+    it('allPropertiesToChange', function () {
+      expect(controller.get('allPropertiesToChange')).to.have.length(0);
+    });
+
+    it('recommendedPropertiesToChange', function () {
+      expect(controller.get('recommendedPropertiesToChange')).to.have.length(0);
+    });
+
+    it('groupedPropertiesToChange', function () {
+      expect(controller.get('groupedPropertiesToChange')).to.have.length(0);
+    });
+
+    it('isReconfigureRequired', function () {
+      expect(controller.get('isReconfigureRequired')).to.be.false;
     });
 
   });
