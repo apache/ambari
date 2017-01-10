@@ -50,7 +50,12 @@ export default Ember.Route.extend(Ember.Evented, {
           request.setRequestHeader("X-Requested-By", "workflow-designer");
         },
         success : function(response){
-          resolve(JSON.parse(response));
+          try {
+            resolve(JSON.parse(response));
+          } catch (e) {
+            console.error(e);
+            reject(response);
+          }
         },
         error : function(response){
           reject(response);

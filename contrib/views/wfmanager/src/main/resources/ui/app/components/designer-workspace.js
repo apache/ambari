@@ -179,7 +179,20 @@ export default Ember.Component.extend({
     showProjectManager(){
       this.createOrShowProjManager();
     },
-    closeTab(index){
+    showWarning(index){
+      var tab = this.get('tabs').objectAt(index);
+      this.set('indexToClose', index);
+      if(tab && tab.type ==='dashboard'){
+        this.send('closeTab');
+        return;
+      }
+      this.set('showingWarning', true);
+      Ember.run.later(()=>{
+        this.$('#ConfirmDialog').modal('show');
+      });
+    },
+    closeTab(){
+      var index = this.get('indexToClose');
       if(index < this.get('tabs').length - 1){
         var previousTab = this.get('tabs').objectAt(index + 1);
         this.$('.nav-tabs a[href="#'+ previousTab.id + '"]').tab('show');
@@ -188,7 +201,6 @@ export default Ember.Component.extend({
       this.get('tabs').removeAt(index);
       Ember.run.later(()=>{
         var type = this.$('.nav-tabs').find('.active').attr('data-type');
-        console.error(type);
         if(type === 'dashboard'){
           this.createOrshowDashboard();
         }

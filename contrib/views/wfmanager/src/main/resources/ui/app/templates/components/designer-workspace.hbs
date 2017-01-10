@@ -95,7 +95,7 @@
           <i class="fa fa-th marginright5"></i>
           {{/if}}
           {{tab.name}}
-          <span class="closeTab" {{action "closeTab" index bubbles=false }}>x</span>
+          <span class="closeTab" {{action "showWarning" index bubbles=false }}>x</span>
         </a>
       </li>
       {{/each}}
@@ -127,6 +127,11 @@
   </div>
   {{#if showingAssetManager}}
     {{#asset-manager showAssetManager="showAssetManager" deleteAsset="deleteAsset" assetList=assetList}}{{/asset-manager}}
+  {{/if}}
+  {{#if showingWarning}}
+  {{#confirmation-dialog title="Confirm workflow reset"
+    confirmationMessage="Any unsaved changes may be lost. Do you want to close this tab ?"
+    okBtnText="Continue" cancelBtnText="Cancel" onOk="closeTab"}}{{/confirmation-dialog}}
   {{/if}}
   <!--
   {{#if (eq type 'wf')}}
