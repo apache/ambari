@@ -847,6 +847,7 @@ Em.I18n.translations = {
   'installer.step4.limitedFunctionality.popup.header':'Limited Functionality Warning',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
   'installer.step4.ambariInfraCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Atlas work. Are you sure you want to proceed?',
+  'installer.step4.ambariLogsearchCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Log Search work. Are you sure you want to proceed?',
   'installer.step4.smartSenseCheck.popup.body':'SmartSense securely collects cluster diagnostics in order to send you recommendations and automate analysis for ' +
   'troubleshooting support cases. If you choose not to install SmartSense, you will not receive any recommendations, and you ' +
   'will need to collect configuration and logs manually for troubleshooting support cases. ' +

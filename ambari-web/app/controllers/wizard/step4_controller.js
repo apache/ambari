@@ -181,11 +181,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       this.serviceValidation(callback, 'AMBARI_METRICS', 'ambariMetricsCheck');
       this.serviceValidation(callback, 'SMARTSENSE', 'smartSenseCheck');
     }
-    var atlasService = this.findProperty('serviceName', 'ATLAS');
-    var ambariInfraService = this.findProperty('serviceName', 'AMBARI_INFRA');
-    if (atlasService && atlasService.get('isSelected') && ambariInfraService && !ambariInfraService.get('isSelected')) {
-      this.serviceValidation(callback, 'AMBARI_INFRA', 'ambariInfraCheck');
-    }
+    this.dependentServiceValidation('ATLAS', 'AMBARI_INFRA', 'ambariInfraCheck', callback);
+    this.dependentServiceValidation('LOGSEARCH', 'AMBARI_INFRA', 'ambariLogsearchCheck', callback);
     this.rangerValidation(callback);
     this.sparkValidation(callback);
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
@@ -196,6 +193,21 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       result = true;
     }
     return result;
+  },
+
+  /**
+   * display validation warning if dependent service not selected
+   * @param {string} selectedService
+   * @param {string} dependentService
+   * @param {string} checkId
+   * @param {Function} callback
+   */
+  dependentServiceValidation: function(selectedService, dependentService, checkId, callback) {
+    var selected = this.findProperty('serviceName', selectedService);
+    var dependent = this.findProperty('serviceName', dependentService);
+    if (selected && selected.get('isSelected') && dependent && !dependent.get('isSelected')) {
+      this.serviceValidation(callback, dependentService, checkId);
+    }
   },
 
   /**

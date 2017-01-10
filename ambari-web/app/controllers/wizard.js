@@ -656,7 +656,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.installedServiceNames', savedInstalledServices);
     if (!savedSelectedServices) {
       jsonData.items.forEach(function (service) {
-        service.StackServices.is_selected = true;
+        service.StackServices.is_selected = !(service.StackServices.selection === "TECH_PREVIEW");
       }, this);
     } else {
       jsonData.items.forEach(function (service) {

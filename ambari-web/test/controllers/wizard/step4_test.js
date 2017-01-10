@@ -24,11 +24,19 @@ require('controllers/wizard/step4_controller');
 describe('App.WizardStep4Controller', function () {
 
   var services = [
-    'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER', 'SMARTSENSE',
+    'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER', 'SMARTSENSE', 'LOGSEARCH',
     'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK', 'SLIDER', 'ATLAS', 'AMBARI_INFRA'
   ];
+  var controller;
 
-  var controller = App.WizardStep4Controller.create();
+  beforeEach(function() {
+    controller = App.WizardStep4Controller.create();
+    services.forEach(function(serviceName) {
+      controller.pushObject(Ember.Object.create({
+        'serviceName':serviceName, 'isSelected': true, 'isHiddenOnSelectServicePage': false, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
+      }));
+    });
+  });
 
   var generateSelectedServicesContent = function(selectedServiceNames) {
     var allServices = services.slice(0);
@@ -57,12 +65,6 @@ describe('App.WizardStep4Controller', function () {
 
     return allServices;
   };
-
-  services.forEach(function(serviceName) {
-    controller.pushObject(Ember.Object.create({
-      'serviceName':serviceName, 'isSelected': true, 'isHiddenOnSelectServicePage': false, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
-    }));
-  });
 
   describe('#isSubmitDisabled', function () {
     it('should return false if at least one selected service is not installed', function () {
@@ -322,6 +324,10 @@ describe('App.WizardStep4Controller', function () {
         {
           services: ['ATLAS', 'AMBARI_METRICS', 'SMARTSENSE'],
           errorsExpected: ['ambariInfraCheck']
+        },
+        {
+          services: ['LOGSEARCH', 'AMBARI_METRICS', 'SMARTSENSE'],
+          errorsExpected: ['ambariLogsearchCheck']
         }
       ],
       controllerNames = ['installerController', 'addServiceController'],
@@ -979,11 +985,75 @@ describe('App.WizardStep4Controller', function () {
           this.popup.onClose();
           expect(target.clb.calledWith(id)).to.be.true;
         });
-
       });
+    });
+  });
 
+  describe('#dependentServiceValidation', function() {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'serviceValidation');
     });
 
+    afterEach(function() {
+      controller.serviceValidation.restore();
+      controller.clear();
+    });
+
+    it('serviceValidation should not be called when selected service does not exist', function() {
+      controller.dependentServiceValidation('S1', 'S2', 'check', Em.K);
+      expect(controller.serviceValidation.called).to.be.false;
+    });
+
+    it('serviceValidation should not be called when service not selected', function() {
+      controller.pushObject(Em.Object.create({
+        serviceName: 'S1',
+        isSelected: false
+      }));
+      controller.dependentServiceValidation('S1', 'S2', 'check', Em.K);
+      expect(controller.serviceValidation.called).to.be.false;
+    });
+
+    it('serviceValidation should not be called when dependent service does not exist', function() {
+      controller.pushObjects([
+        Em.Object.create({
+          serviceName: 'S1',
+          isSelected: true
+        })
+      ]);
+      controller.dependentServiceValidation('S1', 'S2', 'check', Em.K);
+      expect(controller.serviceValidation.called).to.be.false;
+    });
+
+    it('serviceValidation should not be called when dependent service is selected', function() {
+      controller.pushObjects([
+        Em.Object.create({
+          serviceName: 'S1',
+          isSelected: true
+        }),
+        Em.Object.create({
+          serviceName: 'S2',
+          isSelected: true
+        })
+      ]);
+      controller.dependentServiceValidation('S1', 'S2', 'check', Em.K);
+      expect(controller.serviceValidation.called).to.be.false;
+    });
+
+    it('serviceValidation should be called when dependent service is not selected', function() {
+      controller.pushObjects([
+        Em.Object.create({
+          serviceName: 'S1',
+          isSelected: true
+        }),
+        Em.Object.create({
+          serviceName: 'S2',
+          isSelected: false
+        })
+      ]);
+      controller.dependentServiceValidation('S1', 'S2', 'check', Em.K);
+      expect(controller.serviceValidation.calledOnce).to.be.true;
+    });
   });
 
 });
