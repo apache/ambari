@@ -19,6 +19,7 @@ import Ember from 'ember';
 import HdfsViewerConfig from '../utils/hdfsviewer';
 export default Ember.Component.extend({
   config: HdfsViewerConfig.create(),
+  uploaderService : Ember.inject.service('hdfs-file-uploader'),
   initialize:function(){
     var self=this;
     self.$("#filediv").modal("show");
@@ -96,6 +97,7 @@ export default Ember.Component.extend({
       this.set("uploadSelected",false);
     },
     uploadSuccess(e){
+      this.get('uploaderService').trigger('uploadSuccess');
     },
     uploadFailure(textStatus,errorThrown){
       this.showNotification({

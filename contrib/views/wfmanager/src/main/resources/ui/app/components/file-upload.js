@@ -19,11 +19,8 @@ import Ember from 'ember';
 import EmberUploader from 'ember-uploader';
 export default EmberUploader.FileField.extend({
   filesDidChange: function(files) {
-    if (!this.get("selectedPath") || this.get("selectedPath")===""){
-      this.sendAction("uploadValidation","No file selected");
-    }
     const uploader = EmberUploader.Uploader.create({
-      url: Ember.ENV.FILE_API_URL+"/upload",
+      url: `${Ember.ENV.FILE_API_URL}/upload`,
       method: 'PUT',
       ajaxSettings: {
         headers: {
@@ -35,14 +32,20 @@ export default EmberUploader.FileField.extend({
       this.sendAction("uploadProgress",e);
     });
     uploader.on('didUpload', (e) => {
-      this.sendAction("uploadSuccess",e);
+      this.sendAction("uploadSuccess", e);
     });
     uploader.on('didError', (jqXHR, textStatus, errorThrown) => {
-
-      this.sendAction("uploadFailure",textStatus,errorThrown);
+      var message = jqXHR.responseJSON.message.substr(0, jqXHR.responseJSON.message.indexOf("\n"));
+      if(message.indexOf("already exists") > 0){
+        message = `File ${message.substr(0, message.indexOf("for"))} exists`;
+      }else if(message.indexOf('Permission denied') >= 0){
+        message = `Permission Denied.`;
+      }
+      this.sendAction("uploadFailure", message, errorThrown);
     });
     if (!Ember.isEmpty(files)) {
-      uploader.upload(files[0], { path: "/user/admin/"});
+      var path = Ember.isEmpty(this.get('selectedPath')) ? '/' : this.get('selectedPath');
+      uploader.upload(files[0], { path: path});
     }
   }
 });
