@@ -39,6 +39,7 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('Directory', '/var/run/zeppelin',
         owner = 'zeppelin',
         create_parents = True,
@@ -79,7 +80,7 @@ class TestZeppelinMaster(RMFTestCase):
         content = StaticFile('/etc/spark/conf/hive-site.xml'),
         group = 'zeppelin',
     )
- 
+
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/log/zeppelin',
         owner = 'zeppelin',
@@ -88,6 +89,7 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('Directory', '/var/run/zeppelin',
         owner = 'zeppelin',
         create_parents = True,
@@ -166,6 +168,9 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+        sudo = True,
+    )
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh stop >> /var/log/zeppelin/zeppelin-setup.log',
         user = 'zeppelin',
     )
@@ -185,6 +190,9 @@ class TestZeppelinMaster(RMFTestCase):
         create_parents = True,
         mode = 0755,
         cd_access = 'a',
+    )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+        sudo = True,
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh stop >> /var/log/zeppelin/zeppelin-setup.log',
         user = 'zeppelin',
