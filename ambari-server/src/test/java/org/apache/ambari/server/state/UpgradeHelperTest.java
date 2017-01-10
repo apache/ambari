@@ -107,6 +107,7 @@ public class UpgradeHelperTest {
   private ConfigHelper m_configHelper;
   private AmbariManagementController m_managementController;
   private Gson m_gson = new Gson();
+  private UpgradeContextFactory m_upgradeContextFactory;
 
   /**
    * Because test cases need to share config mocks, put common ones in this function.
@@ -147,6 +148,7 @@ public class UpgradeHelperTest {
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
+    m_upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -1879,9 +1881,15 @@ public class UpgradeHelperTest {
     assertTrue(groups.isEmpty());
   }
 
+  /**
+   * Tests {@link UpgradeType#HOST_ORDERED}, specifically that the orchestration
+   * can properly expand the single {@link HostOrderGrouping} and create the
+   * correct stages based on the dependencies of the components.
+   *
+   * @throws Exception
+   */
   @Test
   public void testHostGroupingOrchestration() throws Exception {
-
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
 
@@ -1894,12 +1902,13 @@ public class UpgradeHelperTest {
 
     helper.getOrCreateRepositoryVersion(stackId,
         c.getDesiredStackVersion().getStackVersion());
-    helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+    helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
 
     c.createClusterVersion(stackId,
         c.getDesiredStackVersion().getStackVersion(), "admin",
         RepositoryVersionState.INSTALLING);
 
+    // create 2 hosts
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);
@@ -1914,19 +1923,24 @@ public class UpgradeHelperTest {
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
-    // !!! add storm
+    // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
+    // how the HOU breaks out dependencies into stages
     c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
-
-    Service s = c.getService("ZOOKEEPER");
-    ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
-    ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
-    ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
+    c.addService(serviceFactory.createNew(c, "HBASE"));
+    Service zookeeper = c.getService("ZOOKEEPER");
+    Service hbase = c.getService("HBASE");
+    ServiceComponent zookeeperServer = zookeeper.addServiceComponent("ZOOKEEPER_SERVER");
+    ServiceComponentHost zookeeperServer1 = zookeeperServer.addServiceComponentHost("h1");
+    ServiceComponentHost zookeeperServer2 = zookeeperServer.addServiceComponentHost("h2");
+    ServiceComponent hbaseMaster = hbase.addServiceComponent("HBASE_MASTER");
+    ServiceComponentHost hbaseMaster1 = hbaseMaster.addServiceComponentHost("h1");
 
     // !!! make a custom grouping
     HostOrderItem hostItem = new HostOrderItem(HostOrderActionType.HOST_UPGRADE,
         Lists.newArrayList("h1", "h2"));
+
     HostOrderItem checkItem = new HostOrderItem(HostOrderActionType.SERVICE_CHECK,
-        Lists.newArrayList("ZOOKEEPER", "STORM"));
+        Lists.newArrayList("ZOOKEEPER", "HBASE"));
 
     Grouping g = new HostOrderGrouping();
     ((HostOrderGrouping) g).setHostOrderItems(Lists.newArrayList(hostItem, checkItem));
@@ -1943,9 +1957,11 @@ public class UpgradeHelperTest {
     field.setAccessible(true);
     field.set(upgradePack, UpgradeType.HOST_ORDERED);
 
-
     MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
-    UpgradeContext context = new UpgradeContext(c, UpgradeType.HOST_ORDERED, Direction.UPGRADE, new HashMap<String, Object>());
+
+    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED,
+        Direction.UPGRADE, new HashMap<String, Object>());
+
     context.setResolver(resolver);
     context.setSourceAndTargetStacks(stackId, stackId2);
     context.setVersion("2.2.0");
@@ -1954,13 +1970,13 @@ public class UpgradeHelperTest {
     assertEquals(1, groups.size());
 
     UpgradeGroupHolder holder = groups.get(0);
-    assertEquals(7, holder.items.size());
+    assertEquals(9, holder.items.size());
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
       StageWrapper w = holder.items.get(i);
-      if (i == 0 || i == 3) {
+      if (i == 0 || i == 4) {
         assertEquals(StageWrapper.Type.STOP, w.getType());
-      } else if (i == 1 || i == 4) {
+      } else if (i == 1 || i == 5) {
         assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, w.getType());
         assertEquals(1, w.getTasks().size());
         assertEquals(1, w.getTasks().get(0).getTasks().size());
@@ -1976,33 +1992,43 @@ public class UpgradeHelperTest {
         assertEquals(StageWrapper.Type.RESTART, w.getType());
       }
     }
-    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(6).getType());
+
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(7).getType());
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(8).getType());
 
     // !!! test downgrade when all host components have failed
-    sch1.setVersion("2.1.1");
-    sch2.setVersion("2.1.1");
+    zookeeperServer1.setVersion("2.1.1");
+    zookeeperServer2.setVersion("2.1.1");
+    hbaseMaster1.setVersion("2.1.1");
     resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
-    context = new UpgradeContext(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE, new HashMap<String, Object>());
+
+    m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE,
+        new HashMap<String, Object>());
+
     context.setResolver(resolver);
     context.setSourceAndTargetStacks(stackId2, stackId);
     context.setVersion("2.1.1");
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
-    assertEquals(1, groups.get(0).items.size());
+    assertEquals(2, groups.get(0).items.size());
 
     // !!! test downgrade when one of the hosts had failed
-    sch1.setVersion("2.1.1");
-    sch2.setVersion("2.2.0");
+    zookeeperServer1.setVersion("2.1.1");
+    zookeeperServer2.setVersion("2.2.0");
+    hbaseMaster1.setVersion("2.1.1");
     resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
-    context = new UpgradeContext(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE, new HashMap<String, Object>());
+
+    m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE,
+        new HashMap<String, Object>());
+
     context.setResolver(resolver);
     context.setSourceAndTargetStacks(stackId2, stackId);
     context.setVersion("2.1.1");
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
-    assertEquals(4, groups.get(0).items.size());
+    assertEquals(5, groups.get(0).items.size());
   }
 
   /**

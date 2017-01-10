@@ -19,13 +19,22 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.stageplanner.RoleGraph;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -114,9 +123,16 @@ public class HostOrderGrouping extends Grouping {
     }
 
     /**
-     * @param upgradeContext  the context
-     * @param hosts           the list of hostnames
-     * @return  the wrappers for a host
+     * Builds the stages for each host which typically consist of a STOP, a
+     * manual wait, and a START. The starting of components can be a single
+     * stage or may consist of several stages if the host components have
+     * dependencies on each other.
+     *
+     * @param upgradeContext
+     *          the context
+     * @param hosts
+     *          the list of hostnames
+     * @return the wrappers for a host
      */
     private List<StageWrapper> buildHosts(UpgradeContext upgradeContext, List<String> hosts) {
       if (CollectionUtils.isEmpty(hosts)) {
@@ -126,11 +142,20 @@ public class HostOrderGrouping extends Grouping {
       Cluster cluster = upgradeContext.getCluster();
       List<StageWrapper> wrappers = new ArrayList<>();
 
+      HostRoleCommandFactory hrcFactory = upgradeContext.getHostRoleCommandFactory();
+
       for (String hostName : hosts) {
-
+        // initialize the collection for all stop tasks for every component on
+        // the host
         List<TaskWrapper> stopTasks = new ArrayList<>();
-        List<TaskWrapper> upgradeTasks = new ArrayList<>();
 
+        // initialize the collection which will be passed into the RoleGraph for
+        // ordering
+        Map<String, Map<String, HostRoleCommand>> restartCommandsForHost = new HashMap<>();
+        Map<String, HostRoleCommand> restartCommandsByRole = new HashMap<>();
+        restartCommandsForHost.put(hostName, restartCommandsByRole);
+
+        // iterating over every host component, build the commands
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostName)) {
           if (!isVersionAdvertised(upgradeContext, sch)) {
             continue;
@@ -149,31 +174,90 @@ public class HostOrderGrouping extends Grouping {
             continue;
           }
 
+          // create a STOP task for this host component
           if (!sch.isClientComponent()) {
             stopTasks.add(new TaskWrapper(sch.getServiceName(), sch.getServiceComponentName(),
                 Collections.singleton(hostName), new StopTask()));
           }
 
-          // !!! simple restart will do
-          upgradeTasks.add(new TaskWrapper(sch.getServiceName(), sch.getServiceComponentName(),
-              Collections.singleton(hostName), new RestartTask()));
+          // generate a placeholder HRC that can be used to generate the
+          // dependency graph - we must use START here since that's what the
+          // role command order is defined with - each of these will turn into a
+          // RESTART when we create the wrappers later on
+          Role role = Role.valueOf(sch.getServiceComponentName());
+          HostRoleCommand hostRoleCommand = hrcFactory.create(hostName, role, null,
+              RoleCommand.START);
+
+          // add the newly created HRC RESTART
+          restartCommandsByRole.put(role.name(), hostRoleCommand);
         }
 
-        if (stopTasks.isEmpty() && upgradeTasks.isEmpty()) {
-          LOG.info("No tasks for {}", hostName);
+        // short circuit and move to the next host if there are no commands
+        if (stopTasks.isEmpty() && restartCommandsByRole.isEmpty()) {
+          LOG.info("There were no {} commands generated for {}",
+              upgradeContext.getDirection().getText(false), hostName);
+
           continue;
         }
 
+        // build the single STOP stage
         StageWrapper stopWrapper = new StageWrapper(StageWrapper.Type.STOP, String.format("Stop on %s", hostName),
             stopTasks.toArray(new TaskWrapper[stopTasks.size()]));
 
-        StageWrapper startWrapper = new StageWrapper(StageWrapper.Type.RESTART, String.format("Start on %s", hostName),
-            upgradeTasks.toArray(new TaskWrapper[upgradeTasks.size()]));
+        // now process the HRCs created so that we can create the appropriate
+        // stage/task wrappers for the RESTARTs
+        RoleGraphFactory roleGraphFactory = upgradeContext.getRoleGraphFactory();
+        RoleCommandOrder roleCommandOrder = cluster.getRoleCommandOrder();
+        RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
+        List<Map<String, List<HostRoleCommand>>> stages = roleGraph.getOrderedHostRoleCommands(
+            restartCommandsForHost);
 
-        String message = String.format("Please acknowledge that host %s has been prepared.", hostName);
+        // initialize the list of stage wrappers
+        List<StageWrapper> stageWrappers = new ArrayList<>();
 
+        // for every stage, create a stage wrapper around the tasks
+        int phaseCounter = 1;
+        for (Map<String, List<HostRoleCommand>> stage : stages) {
+          List<HostRoleCommand> stageCommandsForHost = stage.get(hostName);
+          String stageTitle = String.format("Starting components on %s (phase %d)", hostName,
+              phaseCounter++);
+
+          // create task wrappers
+          List<TaskWrapper> taskWrappers = new ArrayList<>();
+          for (HostRoleCommand command : stageCommandsForHost) {
+            StackId stackId = upgradeContext.getEffectiveStackId();
+            String componentName = command.getRole().name();
+
+            String serviceName = null;
+
+            try {
+              AmbariMetaInfo ambariMetaInfo = upgradeContext.getAmbariMetaInfo();
+              serviceName = ambariMetaInfo.getComponentToService(stackId.getStackName(),
+                  stackId.getStackVersion(), componentName);
+            } catch (AmbariException ambariException) {
+              LOG.error("Unable to lookup service by component {} for stack {}-{}", componentName,
+                  stackId.getStackName(), stackId.getStackVersion());
+            }
+
+            TaskWrapper taskWrapper = new TaskWrapper(serviceName, componentName,
+                Collections.singleton(hostName), new RestartTask());
+
+            taskWrappers.add(taskWrapper);
+          }
+
+          if (!taskWrappers.isEmpty()) {
+            StageWrapper startWrapper = new StageWrapper(StageWrapper.Type.RESTART, stageTitle,
+                taskWrappers.toArray(new TaskWrapper[taskWrappers.size()]));
+
+            stageWrappers.add(startWrapper);
+          }
+        }
+
+        // create the manual task between the STOP and START stages
         ManualTask mt = new ManualTask();
+        String message = String.format("Please acknowledge that host %s has been prepared.", hostName);
         mt.messages.add(message);
+
         JsonObject structuredOut = new JsonObject();
         structuredOut.addProperty(TYPE, HostOrderItem.HostOrderActionType.HOST_UPGRADE.toString());
         structuredOut.addProperty(HOST, hostName);
@@ -184,9 +268,9 @@ public class HostOrderGrouping extends Grouping {
 
         wrappers.add(stopWrapper);
         wrappers.add(manualWrapper);
-        // !!! TODO install_packages for hdp and conf-select changes.  Hopefully these will no-op.
-        wrappers.add(startWrapper);
 
+        // !!! TODO install_packages for hdp and conf-select changes.  Hopefully these will no-op.
+        wrappers.addAll(stageWrappers);
       }
 
       return wrappers;

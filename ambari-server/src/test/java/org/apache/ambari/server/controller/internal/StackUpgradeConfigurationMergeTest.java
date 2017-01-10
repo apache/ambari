@@ -24,6 +24,8 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -53,6 +55,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -295,7 +298,8 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(RepositoryVersionDAO.class).toInstance(createNiceMock(RepositoryVersionDAO.class));
       binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
       binder.bind(HookService.class).toInstance(createMock(HookService.class));
-
+      binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+      binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
     }
