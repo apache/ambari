@@ -354,6 +354,89 @@
 				"description": "RENAME TABLE"
 			},
 			"response": []
+		},
+		{
+			"name": "fetch job",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/jobs/202",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "new_database_id",
+							"value": "default",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "new_table_id",
+							"value": "t2",
+							"type": "text",
+							"enabled": true
+						}
+					]
+				},
+				"description": "fetches the job"
+			},
+			"response": []
+		},
+		{
+			"name": "delete  database",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d2",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "drop database "
+			},
+			"response": []
 		}
 	]
 }

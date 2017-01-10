@@ -42,6 +42,7 @@ import org.apache.ambari.view.hive20.internal.dto.TableResponse;
 import org.apache.ambari.view.hive20.internal.parsers.TableMetaParserImpl;
 import org.apache.ambari.view.hive20.internal.query.generators.AlterTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.CreateTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.DeleteDatabaseQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.DeleteTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.RenameTableQueryGenerator;
 import org.apache.ambari.view.hive20.resources.jobs.JobServiceInternal;
@@ -328,6 +329,32 @@ public class DDLProxy {
     }else{
       throw new ServiceException("Failed to generate rename table query for table " + oldDatabaseName + "." +
         oldTableName);
+    }
+  }
+
+  public Job deleteDatabase(String databaseName, JobResourceManager resourceManager) throws ServiceException {
+    DeleteDatabaseQueryGenerator queryGenerator = new DeleteDatabaseQueryGenerator(databaseName);
+    Optional<String> deleteDatabase = queryGenerator.getQuery();
+    if(deleteDatabase.isPresent()) {
+      String deleteQuery = deleteDatabase.get();
+      LOG.info("Creating job for : {}", deleteQuery );
+      Map jobInfo = new HashMap<>();
+      jobInfo.put("title", "Delete database " + databaseName);
+      jobInfo.put("forcedContent", deleteQuery);
+      jobInfo.put("dataBase", databaseName);
+
+      try {
+        Job job = new JobImpl(jobInfo);
+        JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
+        Job returnableJob = createdJobController.getJobPOJO();
+        LOG.info("returning job with id {} for deleting database {}", returnableJob.getId(), databaseName);
+        return returnableJob;
+      } catch (Throwable e) {
+        LOG.error("Exception occurred while renaming the table for rename Query : {}", deleteQuery, e);
+        throw new ServiceException(e);
+      }
+    }else{
+      throw new ServiceException("Failed to generate delete database query for database " + databaseName);
     }
   }
 }
