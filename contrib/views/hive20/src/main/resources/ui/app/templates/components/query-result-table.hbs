@@ -18,7 +18,7 @@
 
 {{#if columns.length}}
   <div class="clearfix" style="text-align: right; padding-right:5px">
-    <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" }}  disabled={{ hidePreviousButton}}  >{{fa-icon "arrow-left"}} </button>
+    <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" }}  >{{fa-icon "arrow-left"}} </button>
     <button class="btn btn-default" title="Next Page" {{action "goNextPage" }}>{{fa-icon "arrow-right"}} </button> &nbsp;
     <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
   </div>
@@ -50,3 +50,4 @@
 </div>
 
 {{yield}}
+

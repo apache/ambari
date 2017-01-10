@@ -16,29 +16,17 @@
 * limitations under the License.
 }}
 
-<div class="col-md-2">
-  <p class="text-left text-uppercase"><strong>{{heading}}</strong></p>
-  <p class="text-left text-muted"><small>{{subHeading}}</small></p>
-</div>
-<div class="col-md-9">
-  <div class="input-group-lg">
-
-    {{#power-select-multiple
-    placeholder="Search databases"
-    options=allDbs
-    selected=selectedMultiDb
-    onchange=(pipe-action (action (mut selectedDbs)) (action "updateTables"))
-    onkeydown=(action "createOnEnter")
-    as |number|}}
-      {{fa-icon "database"}} {{number}}
-    {{/power-select-multiple}}
-
-    <span class="input-group-btn" style="top: 0;right: 130px;position: absolute;">
-      <button type="button" class="btn btn-default">{{fa-icon "folder"}} Browse <span class="caret"></span></button>
-    </span>
-
-
-  </div>
+<div class="worksheet-container">
+  <ul class="worksheet-nav row nav nav-tabs inverse">
+    {{#each worksheets as |worksheet| }}
+      <li class="{{if worksheet.selected 'active'}}" style="">
+        {{#link-to 'queries.query' worksheet.title }}{{ worksheet.title }}{{/link-to}}
+      </li>
+    {{/each}}
+    <li>
+      <button class="btn btn-default new-worksheet" title="New Worksheet" {{action "createNewWorksheet" }}>{{fa-icon "plus"}}</button>
+    </li>
+  </ul>
 </div>
 
-{{yield}}
+{{outlet}}

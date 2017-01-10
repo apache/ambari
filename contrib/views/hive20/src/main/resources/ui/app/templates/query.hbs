@@ -16,44 +16,34 @@
 * limitations under the License.
 }}
 
-{{multiple-database-search-bar databases=model selected=selected xyz="xyz" }}
+{{multiple-database-search-bar databases=model selected=selected changeDbHandler="changeDbHandler" }}
 
 <div class="clearfix col-md-9 query-editor-panel">
   <div class="query-editor-container">
     <div class="row query-editor" style="position:relative">
-      <span style="position: absolute;right: 5px;top: 5px;z-index: 9999;cursor: pointer;" {{action "expandQueryEdidorPanel" }} >
+      <span class="expand-button" {{action "expandQueryEdidorPanel" }} >
         {{fa-icon "expand"}}
       </span>
       {{query-editor query=currentQuery }}
     </div>
     <div class="row query-editor-controls">
       <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
-
       {{#if isQueryRunning}}
         <img src="http://www.bba-reman.com/images/fbloader.gif" height="22" width="32" />
       {{/if}}
-
-
     </div>
   </div>
-
-
   <div class="clearfix row query-editor-results" style="position: relative">
     {{query-result-table queryResult=queryResult hidePreviousButton=hidePreviousButton goNextPage='goNextPage' goPrevPage='goPrevPage' expandQueryResultPanel='expandQueryResultPanel' }}
   </div>
-
-
 </div>
 
 <div class="col-md-3 database-panel">
-
   <div class="database-container">
     <div class="row">
     <div class="panel-group database-panel" id="accordion" role="tablist" aria-multiselectable="true">
-
       {{#each selectedTablesModels as |tableModel|}}
         <div class="panel panel-default">
-
           <div class="panel-heading" role="tab">
             <h4 class="panel-title">
               <a role="button" data-toggle="collapse" data-parent="#accordion"
@@ -64,7 +54,6 @@
               <small class="pull-right">Tables({{tableModel.tables.length}})</small>
             </h4>
           </div>
-
           <div id={{ tableModel.dbname }} class="panel-collapse collapse {{if singleDbModel 'in'}}" role="tabpanel"
           aria-labelledby="headingOne">
           <div class="panel-body">
@@ -81,16 +70,12 @@
             {{/if}}
           </div>
         </div>
-
       </div>
       {{/each}}
-
     </div>
   </div>
 </div>
-
 </div>
-
 
 {{#if databaseNotEmpty}}
   {{database-not-empty name=databaseName close="notEmptyDialogClosed"}}

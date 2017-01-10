@@ -1,0 +1,90 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{multiple-database-search-bar databases=alldatabases selectedMultiDb=selectedMultiDb changeDbHandler="changeDbHandler" }}
+
+<div class="clearfix col-md-9 query-editor-panel">
+  <div class="tab-results">
+    <div class="query-editor-container">
+      <div class="row query-editor" style="position:relative">
+        <span class="expand-button" {{action "expandQueryEdidorPanel" }} >
+          {{fa-icon "expand"}}
+        </span>
+        {{query-editor query=currentQuery }}
+      </div>
+      <div class="row query-editor-controls">
+        <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
+        {{#if isQueryRunning}}
+          <img src="http://www.bba-reman.com/images/fbloader.gif" height="22" width="32" />
+        {{/if}}
+      </div>
+    </div>
+    <div class="clearfix row query-editor-results" style="position: relative">
+      {{query-result-table
+        queryResult=queryResult
+        updateQuery='updateQuery'
+        previousPage=worksheet.previousPage
+        hidePreviousButton=hidePreviousButton
+        goNextPage='goNextPage'
+        goPrevPage='goPrevPage'
+        expandQueryResultPanel='expandQueryResultPanel'}}
+    </div>
+  </div>
+</div>
+
+
+<div class="col-md-3 database-panel">
+  <div class="database-container">
+    <div class="row">
+    <div class="panel-group database-panel" id="accordion" role="tablist" aria-multiselectable="true">
+      {{#each selectedTablesModels as |tableModel|}}
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab">
+            <h4 class="panel-title">
+              <a role="button" data-toggle="collapse" data-parent="#accordion"
+                 href="javascript:void(0)" {{action 'showTables' tableModel.dbname }} aria-expanded="true"
+                 aria-controls={{tableModel.dbname}}>
+                {{ tableModel.dbname }}
+              </a>
+              <small class="pull-right">Tables({{tableModel.tables.length}})</small>
+            </h4>
+          </div>
+          <div id={{ tableModel.dbname }} class="db-tables collapse panel-collapse {{if singleDbModel 'in'}}" role="tabpanel"
+          aria-labelledby="headingOne">
+            <div class="panel-body">
+              {{#if tableModel.tables.length }}
+                {{#list-filter header="tables" items=tableModel.tables
+                placeholder="Search Tables"
+                as |filteredItems|}}
+                  {{#list-group class="table-list" items=filteredItems as |item|}}
+                    {{list-item item=item itemClicked="tableSelected"}}
+                  {{/list-group}}
+                {{/list-filter}}
+              {{else}}
+                <div class="empty">No Table found.</div>
+              {{/if}}
+            </div>
+          </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+</div>
+
+{{outlet}}

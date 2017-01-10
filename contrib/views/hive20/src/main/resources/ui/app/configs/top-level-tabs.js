@@ -22,7 +22,7 @@ let topLevelTabs = [
   Ember.Object.create({
     name: 'query',
     label: 'QUERY',
-    link: 'query',
+    link: 'queries',
     faIcon: 'paper-plane'
   }),
   Ember.Object.create({
