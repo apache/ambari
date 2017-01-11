@@ -177,6 +177,7 @@
         <config-type>hive-site</config-type>
         <config-type>tez-site</config-type>
         <config-type>mapred-site</config-type>
+        <config-type>core-site</config-type>
       </configuration-dependencies>
 
       <quickLinksConfigurations>
