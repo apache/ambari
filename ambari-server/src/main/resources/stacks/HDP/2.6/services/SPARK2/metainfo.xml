@@ -25,6 +25,98 @@
       <name>SPARK2</name>
       <comment>Apache Spark 2.1 is a fast and general engine for large-scale data processing. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
       <version>2.1.x</version>
+
+      <components>
+        <component>
+          <name>LIVY2_SERVER</name>
+          <displayName>Livy for Spark2 Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>SPARK2/SPARK2_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/livy2_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>livy2_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+      </components>
+
+      <extends>common-services/SPARK2/2.0.0</extends>
+
+      <configuration-dependencies>
+        <config-type>spark2-defaults</config-type>
+        <config-type>spark2-env</config-type>
+        <config-type>spark2-log4j-properties</config-type>
+        <config-type>spark2-metrics-properties</config-type>
+        <config-type>spark2-thrift-sparkconf</config-type>
+        <config-type>spark2-hive-site-override</config-type>
+        <config-type>spark2-thrift-fairscheduler</config-type>
+        <config-type>livy2-conf</config-type>
+        <config-type>livy2-env</config-type>
+        <config-type>livy2-log4j-properties</config-type>
+        <config-type>livy2-spark-blacklist</config-type>
+      </configuration-dependencies>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>spark2_${stack_version}</name>
+            </package>
+            <package>
+              <name>spark2_${stack_version}-python</name>
+            </package>
+            <package>
+              <name>livy2_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <packages>
+            <package>
+              <name>spark2-${stack_version}</name>
+            </package>
+            <package>
+              <name>spark2-${stack_version}-python</name>
+            </package>
+            <package>
+              <name>livy2-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
     </service>
   </services>
 </metainfo>

@@ -60,6 +60,7 @@ class StackFeature:
   SPARK_16PLUS = "spark_16plus"
   SPARK_THRIFTSERVER = "spark_thriftserver"
   SPARK_LIVY = "spark_livy"
+  SPARK_LIVY2 = "spark_livy2"
   STORM_KERBEROS = "storm_kerberos"
   STORM_AMS = "storm_ams"
   CREATE_KAFKA_BROKER_ID = "create_kafka_broker_id"
