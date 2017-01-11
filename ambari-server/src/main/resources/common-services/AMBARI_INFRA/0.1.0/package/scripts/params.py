@@ -31,6 +31,16 @@ def get_port_from_url(address):
   else:
     return address
 
+def get_name_from_principal(principal):
+  if not principal:  # return if empty
+    return principal
+  slash_split = principal.split('/')
+  if len(slash_split) == 2:
+    return slash_split[0]
+  else:
+    at_split = principal.split('@')
+    return at_split[0]
+
 # config object that holds the configurations declared in the -site.xml file
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -50,6 +60,7 @@ fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_
 
 # shared configs
 java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts_list.sort()
 # get comma separated list of zookeeper hosts from clusterHostInfo
@@ -107,6 +118,7 @@ if security_enabled:
   infra_solr_web_kerberos_keytab = config['configurations']['infra-solr-env']['infra_solr_web_kerberos_keytab']
   infra_solr_web_kerberos_principal = config['configurations']['infra-solr-env']['infra_solr_web_kerberos_principal'].replace('_HOST',_hostname_lowercase)
   infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules'].replace('$', '\$')
+  infra_solr_sasl_user = get_name_from_principal(infra_solr_kerberos_principal)
 
 #Solr log4j
 infra_log_maxfilesize = default('configurations/infra-solr-log4j/infra_log_maxfilesize',10)

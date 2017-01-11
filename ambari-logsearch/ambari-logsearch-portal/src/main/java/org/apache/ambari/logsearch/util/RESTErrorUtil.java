@@ -41,14 +41,18 @@ public class RESTErrorUtil {
     return createRESTException(response, HttpServletResponse.SC_BAD_REQUEST);
   }
 
-  public static WebApplicationException createRESTException(String errorMessage, MessageEnums messageEnum) {
-    List<MessageData> messageList = new ArrayList<MessageData>();
+  public static VResponse createMessageResponse(String errorMessage, MessageEnums messageEnum) {
+    List<MessageData> messageList = new ArrayList<>();
     messageList.add(messageEnum.getMessage());
-
     VResponse response = new VResponse();
     response.setStatusCode(VResponse.STATUS_ERROR);
     response.setMsgDesc(errorMessage);
     response.setMessageList(messageList);
+    return response;
+  }
+
+  public static WebApplicationException createRESTException(String errorMessage, MessageEnums messageEnum) {
+    VResponse response = createMessageResponse(errorMessage, messageEnum);
     WebApplicationException webAppEx = createRESTException(response);
     logger.error("Operation error. response=" + response, webAppEx);
     return webAppEx;

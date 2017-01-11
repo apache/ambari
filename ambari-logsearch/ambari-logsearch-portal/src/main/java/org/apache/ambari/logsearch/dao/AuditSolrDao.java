@@ -25,6 +25,10 @@ import javax.inject.Named;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.conf.SolrAuditLogPropsConfig;
+import org.apache.ambari.logsearch.conf.SolrPropsConfig;
+import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.configurer.SolrAuditAliasConfigurer;
+import org.apache.ambari.logsearch.configurer.SolrCollectionConfigurer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -42,13 +46,8 @@ public class AuditSolrDao extends SolrDaoBase {
   private SolrTemplate auditSolrTemplate;
 
   @Inject
-  private SolrAliasDao solrAliasDao;
-
-  @Inject
-  private SolrCollectionDao solrCollectionDao;
-
-  @Inject
-  private SolrSchemaFieldDao solrSchemaFieldDao;
+  @Named("solrAuditLogsState")
+  private SolrCollectionState solrAuditLogsState;
 
   public AuditSolrDao() {
     super(LogType.AUDIT);
@@ -59,26 +58,37 @@ public class AuditSolrDao extends SolrDaoBase {
     return auditSolrTemplate;
   }
 
+  @Override
+  public void setSolrTemplate(SolrTemplate solrTemplate) {
+    this.auditSolrTemplate = solrTemplate;
+  }
+
   @PostConstruct
   public void postConstructor() {
     String aliasNameIn = solrAuditLogPropsConfig.getAliasNameIn();
     String rangerAuditCollection = solrAuditLogPropsConfig.getRangerCollection();
 
     try {
-      solrCollectionDao.checkSolrStatus(getSolrClient());
+      new SolrCollectionConfigurer(this).start();
       boolean createAlias = (aliasNameIn != null && StringUtils.isNotBlank(rangerAuditCollection));
-      solrCollectionDao.setupCollections(getSolrClient(), solrAuditLogPropsConfig);
       if (createAlias) {
-        solrAliasDao.setupAlias(getSolrClient(), solrAuditLogPropsConfig);
+        new SolrAuditAliasConfigurer(this).start();
       }
-      solrSchemaFieldDao.auditCollectionSetUp();
     } catch (Exception e) {
       LOG.error("Error while connecting to Solr for audit logs : solrUrl=" + solrAuditLogPropsConfig.getSolrUrl() + ", zkConnectString=" +
-          solrAuditLogPropsConfig.getZkConnectString() + ", collection=" + solrAuditLogPropsConfig.getCollection(), e);
+        solrAuditLogPropsConfig.getZkConnectString() + ", collection=" + solrAuditLogPropsConfig.getCollection(), e);
     }
   }
 
-  public SolrSchemaFieldDao getSolrSchemaFieldDao() {
-    return solrSchemaFieldDao;
+  @Override
+  public SolrCollectionState getSolrCollectionState() {
+    return this.solrAuditLogsState;
   }
+
+  @Override
+  public SolrPropsConfig getSolrPropsConfig() {
+    return this.solrAuditLogPropsConfig;
+  }
+
+
 }

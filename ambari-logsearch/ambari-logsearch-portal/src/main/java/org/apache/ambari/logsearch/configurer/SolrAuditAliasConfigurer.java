@@ -16,9 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.dao;
+package org.apache.ambari.logsearch.configurer;
 
 import org.apache.ambari.logsearch.conf.SolrAuditLogPropsConfig;
+import org.apache.ambari.logsearch.conf.global.SolrAuditLogsState;
+import org.apache.ambari.logsearch.dao.AuditSolrDao;
+import org.apache.ambari.logsearch.handler.ListCollectionHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -27,30 +30,33 @@ import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-@Named
-class SolrAliasDao {
+public class SolrAuditAliasConfigurer implements SolrConfigurer {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SolrAliasDao.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SolrAuditAliasConfigurer.class);
 
-  private static final int ALIAS_SETUP_RETRY_SECOND = 30*60;
+  private static final int ALIAS_SETUP_RETRY_SECOND = 30 * 60;
 
-  @Inject
-  private SolrCollectionDao solrCollectionDao;
+  private final AuditSolrDao auditSolrDao;
 
-  void setupAlias(final CloudSolrClient solrClient, final SolrAuditLogPropsConfig solrPropsConfig) throws Exception {
+  public SolrAuditAliasConfigurer(final AuditSolrDao auditSolrDao) {
+    this.auditSolrDao = auditSolrDao;
+  }
+
+  @Override
+  public void start() {
+    final SolrAuditLogPropsConfig solrPropsConfig = (SolrAuditLogPropsConfig) auditSolrDao.getSolrPropsConfig();
+    final SolrAuditLogsState state = (SolrAuditLogsState) auditSolrDao.getSolrCollectionState();
     final Collection<String> collectionListIn =
-        Arrays.asList(solrPropsConfig.getCollection(), solrPropsConfig.getRangerCollection().trim());
+      Arrays.asList(solrPropsConfig.getCollection(), solrPropsConfig.getRangerCollection().trim());
 
-    if (solrPropsConfig.getAliasNameIn() == null || collectionListIn.size() == 0 || solrClient == null) {
-      LOG.info("Will not create alias " + solrPropsConfig.getAliasNameIn() + " for " +
-        collectionListIn.toString() + ", solrCloudClient=" + solrClient);
+    if (solrPropsConfig.getAliasNameIn() == null || collectionListIn.size() == 0) {
+      LOG.info("Will not create alias {} for {}", solrPropsConfig.getAliasNameIn(), collectionListIn.toString());
       return;
     }
 
@@ -63,20 +69,24 @@ class SolrAliasDao {
           ", collections=" + collectionListIn.toString());
         int retryCount = 0;
         while (true) {
-          try {
-            int count = createAlias(solrClient, solrPropsConfig.getAliasNameIn(), collectionListIn);
-            if (count > 0) {
-              solrClient.setDefaultCollection(solrPropsConfig.getAliasNameIn());
-              if (count == collectionListIn.size()) {
-                LOG.info("Setup for alias " + solrPropsConfig.getAliasNameIn() + " is successful. Exiting setup retry thread. " +
-                  "Collections=" + collectionListIn);
-                break;
+          if (state.isSolrCollectionReady()) {
+            try {
+              CloudSolrClient solrClient = auditSolrDao.getSolrClient();
+              int count = createAlias(solrClient, solrPropsConfig.getAliasNameIn(), collectionListIn);
+              if (count > 0) {
+                solrClient.setDefaultCollection(solrPropsConfig.getAliasNameIn());
+                if (count == collectionListIn.size()) {
+                  LOG.info("Setup for alias " + solrPropsConfig.getAliasNameIn() + " is successful. Exiting setup retry thread. " +
+                    "Collections=" + collectionListIn);
+                  state.setSolrAliasReady(true);
+                  break;
+                }
+              } else {
+                LOG.warn("Not able to create alias=" + solrPropsConfig.getAliasNameIn() + ", retryCount=" + retryCount);
               }
-            } else {
-              LOG.warn("Not able to create alias=" + solrPropsConfig.getAliasNameIn() + ", retryCount=" + retryCount);
+            } catch (Exception e) {
+              LOG.error("Error setting up alias=" + solrPropsConfig.getAliasNameIn(), e);
             }
-          } catch (Exception e) {
-            LOG.error("Error setting up alias=" + solrPropsConfig.getAliasNameIn(), e);
           }
           try {
             Thread.sleep(ALIAS_SETUP_RETRY_SECOND * 1000);
@@ -94,7 +104,12 @@ class SolrAliasDao {
 
   private int createAlias(final CloudSolrClient solrClient, String aliasNameIn, Collection<String> collectionListIn)
     throws SolrServerException, IOException {
-    List<String> collectionToAdd = solrCollectionDao.getCollections(solrClient);
+    List<String> collectionToAdd = new ArrayList<>();
+    try {
+      collectionToAdd = new ListCollectionHandler().handle(solrClient, null);
+    } catch (Exception e) {
+      LOG.error("Invalid state during getting collections for creating alias");
+    }
     collectionToAdd.retainAll(collectionListIn);
 
     String collectionsCSV = null;
@@ -110,7 +125,7 @@ class SolrAliasDao {
         return 0;
       }
     }
-    if ( collectionToAdd.size() == collectionListIn.size()) {
+    if (collectionToAdd.size() == collectionListIn.size()) {
       LOG.info("Created alias for all collections. alias=" + aliasNameIn + ", collectionsCSV=" + collectionsCSV);
     } else {
       LOG.info("Created alias for " + collectionToAdd.size() + " out of " + collectionListIn.size() + " collections. " +

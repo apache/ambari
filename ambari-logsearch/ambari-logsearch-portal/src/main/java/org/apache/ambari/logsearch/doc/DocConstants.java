@@ -115,4 +115,11 @@ public class DocConstants {
     public static final String GET_USER_FILTER_BY_ID_OD = "Get user filter by id";
     public static final String GET_ALL_USER_NAMES_OD = "Get all user names";
   }
+
+  public class StatusOperationDescriptions {
+    public static final String STATUS_OD = "Get statuses for collections (not health state - show true if something already done)";
+    public static final String SERVICE_LOGS_STATUS_OD = "Get statuses for service log collection (not health state - show true if something already done)";
+    public static final String AUDIT_LOGS_STATUS_OD = "Get statuses for collections (not health state - show true if something already done)";
+    public static final String USER_CONFIG_STATUS_OD = "Get statuses for userconfig collection (not health state - show true if something already done)";
+  }
 }

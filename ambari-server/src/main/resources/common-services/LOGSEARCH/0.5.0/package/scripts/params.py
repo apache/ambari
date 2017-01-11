@@ -33,6 +33,16 @@ def get_port_from_url(address):
   else:
     return address
 
+def get_name_from_principal(principal):
+  if not principal:  # return if empty
+    return principal
+  slash_split = principal.split('/')
+  if len(slash_split) == 2:
+    return slash_split[0]
+  else:
+    at_split = principal.split('@')
+    return at_split[0]
+
 
 # config object that holds the configurations declared in the -site.xml file
 config = Script.get_config()
@@ -148,8 +158,6 @@ else:
 
 zookeeper_quorum = logsearch_solr_zk_quorum
 
-
-
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
@@ -228,6 +236,14 @@ logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
 logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 
 logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
+
+logsearch_acls = ''
+if 'infra-solr-env' in config['configurations'] and security_enabled and not logsearch_use_external_solr:
+  acl_infra_solr_principal = get_name_from_principal(config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'])
+  acl_logsearch_principal = get_name_from_principal(config['configurations']['logsearch-env']['logsearch_kerberos_principal'])
+  logsearch_acls = format('world:anyone:r,sasl:{acl_infra_solr_principal}:cdrwa,sasl:{acl_logsearch_principal}:cdrwa')
+  logsearch_properties['logsearch.solr.zk.acls'] = logsearch_acls
+  logsearch_properties['logsearch.solr.audit.logs.zk.acls'] = logsearch_acls
 
 # load config values
 

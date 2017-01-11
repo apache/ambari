@@ -67,7 +67,7 @@ class TestRangerAdmin(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-infra-solr-client/log4j.properties',
-        content = InlineTemplate(self.getConfig()['configurations']['infra-solr-client-log4j']['content']),
+        content = self.getConfig()['configurations']['infra-solr-client-log4j']['content'],
         mode = 0644,
     )
     self.assertResourceCalled('File', '/var/log/ambari-infra-solr-client/solr-client.log',
@@ -148,7 +148,7 @@ class TestRangerAdmin(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-infra-solr-client/log4j.properties',
-        content = InlineTemplate(self.getConfig()['configurations']['infra-solr-client-log4j']['content']),
+        content = self.getConfig()['configurations']['infra-solr-client-log4j']['content'],
         mode = 0644,
     )
     self.assertResourceCalled('File', '/var/log/ambari-infra-solr-client/solr-client.log',

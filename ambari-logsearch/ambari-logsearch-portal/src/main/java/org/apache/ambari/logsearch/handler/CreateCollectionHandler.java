@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.dao;
+package org.apache.ambari.logsearch.handler;
 
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.commons.lang.StringUtils;
@@ -28,15 +28,12 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
-import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ROUTER_FIELD;
 
-import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,119 +41,30 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@Named
-class SolrCollectionDao {
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ROUTER_FIELD;
 
-  private static final Logger LOG = LoggerFactory.getLogger(SolrCollectionDao.class);
+public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
 
-  private static final int SETUP_RETRY_SECOND = 30;
+  private static final Logger LOG = LoggerFactory.getLogger(CreateCollectionHandler.class);
+
   private static final String MODIFY_COLLECTION_QUERY = "/admin/collections?action=MODIFYCOLLECTION&collection=%s&%s=%d";
   private static final String MAX_SHARDS_PER_NODE = "maxShardsPerNode";
 
-  /**
-   * This will try to get the collections from the Solr. Ping doesn't work if
-   * collection is not given
-   */
-  boolean checkSolrStatus(CloudSolrClient cloudSolrClient) {
-    int waitDurationMS = 3 * 60 * 1000;
-    boolean status = false;
-    try {
-      long beginTimeMS = System.currentTimeMillis();
-      long waitIntervalMS = 2000;
-      int pingCount = 0;
-      while (true) {
-        pingCount++;
-        try {
-          List<String> collectionList = getCollections(cloudSolrClient);
-          if (collectionList != null) {
-            LOG.info("checkSolrStatus(): Solr getCollections() is success. collectionList=" + collectionList);
-            status = true;
-            break;
-          }
-        } catch (Exception ex) {
-          LOG.error("Error while doing Solr check", ex);
-        }
-        if (System.currentTimeMillis() - beginTimeMS > waitDurationMS) {
-          LOG.error("Solr is not reachable even after " + (System.currentTimeMillis() - beginTimeMS) + " ms. " +
-            "If you are using alias, then you might have to restart LogSearch after Solr is up and running.");
-          break;
-        } else {
-          LOG.warn("Solr is not not reachable yet. getCollections() attempt count=" + pingCount + ". " +
-            "Will sleep for " + waitIntervalMS + " ms and try again.");
-        }
-        Thread.sleep(waitIntervalMS);
+  private List<String> allCollectionList;
 
-      }
-    } catch (Throwable t) {
-      LOG.error("Seems Solr is not up.");
-    }
-    return status;
+  public CreateCollectionHandler(List<String> allCollectionList) {
+    this.allCollectionList = allCollectionList;
   }
 
-  void setupCollections(final CloudSolrClient solrClient, final SolrPropsConfig solrPropsConfig) throws Exception {
-    boolean setupStatus = createCollectionsIfNeeded(solrClient, solrPropsConfig);
-    LOG.info("Setup status for " + solrPropsConfig.getCollection() + " is " + setupStatus);
-    if (!setupStatus) {
-      // Start a background thread to do setup
-      Thread setupThread = new Thread("setup_collection_" + solrPropsConfig.getCollection()) {
-        @Override
-        public void run() {
-          LOG.info("Started monitoring thread to check availability of Solr server. collection=" + solrPropsConfig.getCollection());
-          int retryCount = 0;
-          while (true) {
-            try {
-              Thread.sleep(SETUP_RETRY_SECOND * 1000);
-              retryCount++;
-              boolean setupStatus = createCollectionsIfNeeded(solrClient, solrPropsConfig);
-              if (setupStatus) {
-                LOG.info("Setup for collection " + solrPropsConfig.getCollection() + " is successful. Exiting setup retry thread");
-                break;
-              }
-            } catch (InterruptedException sleepInterrupted) {
-              LOG.info("Sleep interrupted while setting up collection " + solrPropsConfig.getCollection());
-              break;
-            } catch (Exception e) {
-              LOG.error("Error setting up collection=" + solrPropsConfig.getCollection(), e);
-            }
-            LOG.error("Error setting collection. collection=" + solrPropsConfig.getCollection() + ", retryCount=" + retryCount);
-          }
-        }
-      };
-      setupThread.setDaemon(true);
-      setupThread.start();
-    }
-  }
-
-  private boolean createCollectionsIfNeeded(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) {
-    boolean result = false;
-    try {
-      List<String> allCollectionList = getCollections(solrClient);
-      if (solrPropsConfig.getSplitInterval().equalsIgnoreCase("none")) {
-        result = createCollection(solrClient, solrPropsConfig, allCollectionList);
-      } else {
-        result = setupCollectionsWithImplicitRouting(solrClient, solrPropsConfig, allCollectionList);
-      }
-    } catch (Exception ex) {
-      LOG.error("Error creating collection. collectionName=" + solrPropsConfig.getCollection(), ex);
+  @Override
+  public Boolean handle(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) throws Exception {
+    boolean result;
+    if (solrPropsConfig.getSplitInterval().equalsIgnoreCase("none")) {
+      result = createCollection(solrClient, solrPropsConfig, this.allCollectionList);
+    } else {
+      result = setupCollectionsWithImplicitRouting(solrClient, solrPropsConfig, this.allCollectionList);
     }
     return result;
-  }
-
-  @SuppressWarnings("unchecked")
-  List<String> getCollections(CloudSolrClient solrClient) throws SolrServerException,
-    IOException {
-    try {
-      CollectionAdminRequest.List colListReq = new CollectionAdminRequest.List();
-      CollectionAdminResponse response = colListReq.process(solrClient);
-      if (response.getStatus() != 0) {
-        LOG.error("Error getting collection list from solr.  response=" + response);
-        return null;
-      }
-      return (List<String>) response.getResponse().get("collections");
-    } catch (SolrException e) {
-      LOG.error("getCollections() operation failed", e);
-      return new ArrayList<>();
-    }
   }
 
   private boolean setupCollectionsWithImplicitRouting(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig, List<String> allCollectionList)
@@ -232,20 +140,31 @@ class SolrCollectionDao {
     return returnValue;
   }
 
-  private String getRandomBaseUrl(Collection<Slice> slices) {
-    String coreUrl = null;
-    if (slices != null) {
-      for (Slice slice : slices) {
-        if (!slice.getReplicas().isEmpty()) {
-          Replica replica = slice.getReplicas().iterator().next();
-          coreUrl = replica.getStr("base_url");
-          if (coreUrl != null) {
-            break;
-          }
-        }
-      }
+  private boolean createCollection(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig, List<String> allCollectionList) throws SolrServerException, IOException {
+
+    if (allCollectionList.contains(solrPropsConfig.getCollection())) {
+      LOG.info("Collection " + solrPropsConfig.getCollection() + " is already there. Won't create it");
+      return true;
     }
-    return coreUrl;
+
+    LOG.info("Creating collection " + solrPropsConfig.getCollection() + ", numberOfShards=" + solrPropsConfig.getNumberOfShards() +
+      ", replicationFactor=" + solrPropsConfig.getReplicationFactor());
+
+    CollectionAdminRequest.Create collectionCreateRequest = new CollectionAdminRequest.Create();
+    collectionCreateRequest.setCollectionName(solrPropsConfig.getCollection());
+    collectionCreateRequest.setNumShards(solrPropsConfig.getNumberOfShards());
+    collectionCreateRequest.setReplicationFactor(solrPropsConfig.getReplicationFactor());
+    collectionCreateRequest.setConfigName(solrPropsConfig.getConfigName());
+    collectionCreateRequest.setMaxShardsPerNode(calculateMaxShardsPerNode(solrPropsConfig));
+    CollectionAdminResponse createResponse = collectionCreateRequest.process(solrClient);
+    if (createResponse.getStatus() != 0) {
+      LOG.error("Error creating collection. collectionName=" + solrPropsConfig.getCollection() + ", response=" + createResponse);
+      return false;
+    } else {
+      LOG.info("Created collection " + solrPropsConfig.getCollection() + ", numberOfShards=" + solrPropsConfig.getNumberOfShards() +
+        ", replicationFactor=" + solrPropsConfig.getReplicationFactor());
+      return true;
+    }
   }
 
   private void updateMaximumNumberOfShardsPerCore(Collection<Slice> slices, SolrPropsConfig solrPropsConfig) throws IOException {
@@ -280,34 +199,24 @@ class SolrCollectionDao {
     return list;
   }
 
-  private boolean createCollection(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig, List<String> allCollectionList) throws SolrServerException, IOException {
-
-    if (allCollectionList.contains(solrPropsConfig.getCollection())) {
-      LOG.info("Collection " + solrPropsConfig.getCollection() + " is already there. Won't create it");
-      return true;
+  private String getRandomBaseUrl(Collection<Slice> slices) {
+    String coreUrl = null;
+    if (slices != null) {
+      for (Slice slice : slices) {
+        if (!slice.getReplicas().isEmpty()) {
+          Replica replica = slice.getReplicas().iterator().next();
+          coreUrl = replica.getStr("base_url");
+          if (coreUrl != null) {
+            break;
+          }
+        }
+      }
     }
-
-    LOG.info("Creating collection " + solrPropsConfig.getCollection() + ", numberOfShards=" + solrPropsConfig.getNumberOfShards() +
-      ", replicationFactor=" + solrPropsConfig.getReplicationFactor());
-
-    CollectionAdminRequest.Create collectionCreateRequest = new CollectionAdminRequest.Create();
-    collectionCreateRequest.setCollectionName(solrPropsConfig.getCollection());
-    collectionCreateRequest.setNumShards(solrPropsConfig.getNumberOfShards());
-    collectionCreateRequest.setReplicationFactor(solrPropsConfig.getReplicationFactor());
-    collectionCreateRequest.setConfigName(solrPropsConfig.getConfigName());
-    collectionCreateRequest.setMaxShardsPerNode(calculateMaxShardsPerNode(solrPropsConfig));
-    CollectionAdminResponse createResponse = collectionCreateRequest.process(solrClient);
-    if (createResponse.getStatus() != 0) {
-      LOG.error("Error creating collection. collectionName=" + solrPropsConfig.getCollection() + ", response=" + createResponse);
-      return false;
-    } else {
-      LOG.info("Created collection " + solrPropsConfig.getCollection() + ", numberOfShards=" + solrPropsConfig.getNumberOfShards() +
-        ", replicationFactor=" + solrPropsConfig.getReplicationFactor());
-      return true;
-    }
+    return coreUrl;
   }
 
   private Integer calculateMaxShardsPerNode(SolrPropsConfig solrPropsConfig) {
     return solrPropsConfig.getReplicationFactor() * solrPropsConfig.getNumberOfShards();
   }
+
 }
