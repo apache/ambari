@@ -26,6 +26,7 @@ import time
 import glob
 import subprocess
 import logging
+import platform
 from ambari_commons import OSConst,OSCheck
 
 logger = logging.getLogger(__name__)
@@ -302,3 +303,8 @@ def check_reverse_lookup():
   except socket.error:
     pass
   return False
+
+def on_powerpc():
+  """ True if we are running on a Power PC platform."""
+  return platform.processor() == 'powerpc' or \
+         platform.machine().startswith('ppc')
