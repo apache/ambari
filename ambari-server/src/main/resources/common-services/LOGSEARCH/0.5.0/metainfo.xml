@@ -98,6 +98,28 @@
             <config-type>logfeeder-ambari-config</config-type>
             <config-type>logfeeder-output-config</config-type>
             <config-type>logfeeder-custom-logsearch-config</config-type>
+            <config-type>accumulo-logsearch-conf</config-type>
+            <config-type>ams-logsearch-conf</config-type>
+            <config-type>atlas-logsearch-conf</config-type>
+            <config-type>falcon-logsearch-conf</config-type>
+            <config-type>flume-logsearch-conf</config-type>
+            <config-type>hbase-logsearch-conf</config-type>
+            <config-type>hdfs-logsearch-conf</config-type>
+            <config-type>hive-logsearch-conf</config-type>
+            <config-type>infra-logsearch-conf</config-type>
+            <config-type>kafka-logsearch-conf</config-type>
+            <config-type>knox-logsearch-conf</config-type>
+            <config-type>mapred-logsearch-conf</config-type>
+            <config-type>nifi-logsearch-conf</config-type>
+            <config-type>oozie-logsearch-conf</config-type>
+            <config-type>ranger-kms-logsearch-conf</config-type>
+            <config-type>ranger-logsearch-conf</config-type>
+            <config-type>spark-logsearch-conf</config-type>
+            <config-type>spark2-logsearch-conf</config-type>
+            <config-type>storm-logsearch-conf</config-type>
+            <config-type>yarn-logsearch-conf</config-type>
+            <config-type>zeppelin-logsearch-conf</config-type>
+            <config-type>zookeeper-logsearch-conf</config-type>
           </configuration-dependencies>
         </component>
 
