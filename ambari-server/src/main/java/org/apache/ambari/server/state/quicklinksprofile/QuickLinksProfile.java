@@ -25,15 +25,17 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
- * A quicklinks profile is essentially a set of filters defined on three levels:
+ * A quicklinks profile is essentially a set of quick link filters defined on three levels:
  * <ul>
  *   <li>global level</li>
  *   <li>service level</li>
  *   <li>component level (within a service)</li>
  * </ul>
- *
- * For each link, filters are evaluated bottom up: component level filters take priority to service level filters
- * and service level filters take priority to global filters.
+ * <p>For each link, filters are evaluated bottom up: component level filters take priority to service level filters
+ * and service level filters take priority to global filters.</p>
+ * <p>When a quick link profile is set in Ambari, then each quick link's visibility flag is updated according to the profile
+ * before being returned by {@link org.apache.ambari.server.controller.internal.QuickLinkArtifactResourceProvider}.</p>
+ * <p>When no profile is set, all quick link's visibility flat will be set to {@code true} by the provider</p>
  */
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

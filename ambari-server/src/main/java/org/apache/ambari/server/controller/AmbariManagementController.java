@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 
 /**
@@ -911,6 +912,12 @@ public interface AmbariManagementController {
    * @return {@link MetricsCollectorHAManager}
    */
   MetricsCollectorHAManager getMetricsCollectorHAManager();
+
+  /**
+   * @return the visibility controller that decides which quicklinks should be visible
+   * based on the actual quick links profile. If no profile is set, all links will be shown.
+   */
+  QuickLinkVisibilityController getQuicklinkVisibilityController();
 
 }
 

@@ -43,6 +43,15 @@
           ]
         }
       ]
+    },
+    {
+      "name": "YARN",
+      "filters": [
+        {
+          "link_name": "resourcemanager_ui",
+          "visible": true
+        }
+      ]
     }
   ]
 }
