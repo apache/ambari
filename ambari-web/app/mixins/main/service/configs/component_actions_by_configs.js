@@ -66,9 +66,17 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
               self.popupPrimaryButtonCallback(config_action);
             } else {
               self.configAction = config_action;
+              var body = config_action.get('popupProperties').body;
+              if(config_action.get('popupProperties').hasOwnProperty('conditionalWarning') && config_action.get('popupProperties').conditionalWarning === true) {
+                // Check if Hive Server 2 Interactive is enabled and show a warning message if it is enabled
+                var hsiInstance = App.HostComponent.find().filterProperty('componentName', "HIVE_SERVER_INTERACTIVE");
+                if(hsiInstance.length > 0) {
+                  body += "<br/><br/>" + config_action.get('popupProperties').warningMessage;
+                }
+              }
               App.showConfirmationPopup(function () {
                 self.popupPrimaryButtonCallback(config_action);
-              }, config_action.get('popupProperties').body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+              }, body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
             }
           }
         }

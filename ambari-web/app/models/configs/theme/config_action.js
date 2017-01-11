@@ -82,6 +82,8 @@ App.ConfigAction.FIXTURES = [
         }
       },
       body: Em.I18n.t('popup.confirmation.refreshYarnQueues.body'),
+      conditionalWarning: true,
+      warningMessage: Em.I18n.t('popup.warning.refreshYarnQueues.body'),
       errorMessage: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error')
     }
   }
