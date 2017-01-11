@@ -19,14 +19,18 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+  tableOperations: Ember.inject.service(),
 
   model() {
-    return this.store.findAll('database');
+    return this.store.findAll('database', {reload: true});
   },
 
   afterModel(model) {
     if (model.get('length') > 0) {
       this.selectDatabase(model);
+      if (this.controller) {
+        this.setupController(this.controller, model);
+      }
     }
   },
 
@@ -62,7 +66,7 @@ export default Ember.Route.extend({
         return;
       }
 
-      this.get('controller').set('databaseName', selectedModel.get('name'));
+      this.get('controller').set('databaseToDelete', selectedModel);
 
       if (selectedModel.get('tables.length') > 0) {
         this.get('controller').set('databaseNotEmpty', true);
@@ -78,19 +82,48 @@ export default Ember.Route.extend({
 
     notEmptyDialogClosed() {
       this.get('controller').set('databaseNotEmpty', false);
-      this.get('controller').set('databaseName', undefined);
+      this.get('controller').set('databaseToDelete', undefined);
     },
 
     databaseDropConfirmed() {
       console.log('drop confirmed');
       this.get('controller').set('confirmDropDatabase', false);
-      this.get('controller').set('databaseName', undefined);
+
+      this.controller.set('showDeleteDatabaseModal', true);
+      this.controller.set('deleteDatabaseMessage', 'Submitting request to delete database');
+      let databaseModel = this.controller.get('databaseToDelete');
+      this.get('tableOperations').deleteDatabase(databaseModel)
+        .then((job) => {
+          this.controller.set('deleteDatabaseMessage', 'Waiting for the database to be deleted');
+          this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
+            .then((status) => {
+              this.controller.set('deleteDatabaseMessage', "Successfully Deleted table");
+              Ember.run.later(() => {
+                this.store.unloadRecord(databaseModel);
+                this.controller.set('showDeleteDatabaseModal', false);
+                this.controller.set('deleteDatabaseMessage');
+                this.replaceWith('databases');
+                this.refresh();
+              }, 2 * 1000);
+            }, (error) => {
+              // TODO: handle error
+              Ember.run.later(() => {
+                this.controller.set('showDeleteDatabaseModal', false);
+                this.controller.set('deleteDatabaseMessage');
+                this.replaceWith('databases');
+                this.refresh();
+              }, 2 * 1000);
+            });
+        }, (error) => {
+          console.log("Error encountered", error);
+          this.controller.set('showDeleteDatabaseModal', false);
+        });
     },
 
     databaseDropDeclined() {
       console.log('drop declined');
       this.get('controller').set('confirmDropDatabase', false);
-      this.get('controller').set('databaseName', undefined);
+      this.get('controller').set('databaseToDelete', undefined);
     }
   }
 });

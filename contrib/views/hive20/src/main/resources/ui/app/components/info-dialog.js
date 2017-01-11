@@ -19,14 +19,20 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-  name: '',
-  actions: {
-    confirm() {
-      this.sendAction('yes');
-    },
+  title: null,
+  label: null,
+  okText: 'Ok',
+  okIcon: 'check',
+  titleIcon: null,
+  labelIcon: null,
 
-    cancel() {
-      this.sendAction('no');
+  okClass: 'primary',
+  titleClass: 'primary',
+
+  closable: true,
+  actions: {
+    ok() {
+      this.sendAction('ok');
     }
   }
 });

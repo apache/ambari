@@ -19,4 +19,8 @@
 import DDLAdapter from './ddl';
 
 export default DDLAdapter.extend({
+  deleteDatabase(databaseName) {
+    let deletURL = this.urlForFindRecord(databaseName, 'database');
+    return this.ajax(deletURL, 'DELETE');
+  }
 });
