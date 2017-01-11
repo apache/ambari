@@ -21,6 +21,7 @@ package org.apache.ambari.tools.zk;
 import static org.apache.zookeeper.ZooDefs.Perms.DELETE;
 import static org.apache.zookeeper.ZooDefs.Perms.READ;
 import static org.apache.zookeeper.ZooDefs.Perms.WRITE;
+import static org.apache.zookeeper.ZooDefs.Perms.ALL;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -84,6 +85,48 @@ public class ZkMigratorTest {
   }
 
   @Test
+  public void testSupportsWildcard() throws Exception {
+    // Given
+    path("/abc123");
+    path("/abcdef/efg");
+    path("/abc/123");
+    path("/x");
+    path("/y/a");
+    path("/ab");
+    // When
+    setAcls("/abc*", "ip:127.0.0.1:r");
+    // Then
+    assertHasAcl("/abc123", "ip", "127.0.0.1", READ);
+    assertHasAcl("/abcdef/efg", "ip", "127.0.0.1", READ);
+    assertHasAcl("/abc/123", "ip", "127.0.0.1", READ);
+    assertHasAcl("/x", "world", "anyone", ALL);
+    assertHasAcl("/y/a", "world", "anyone", ALL);
+    assertHasAcl("/ab", "world", "anyone", ALL);
+  }
+
+  @Test
+  public void testSupportsMultupleWildcards() throws Exception {
+    // Given
+    path("/abc123");
+    path("/a/abcdef");
+    path("/def/abc");
+    path("/xy/abc/efg");
+    path("/a/xyabc");
+    path("/a/b/abc");
+    path("/b");
+    // When
+    setAcls("/*/abc*", "ip:127.0.0.1:r");
+    // Then
+    assertHasAcl("/a/abcdef", "ip", "127.0.0.1", READ);
+    assertHasAcl("/xy/abc/efg", "ip", "127.0.0.1", READ);
+    assertHasAcl("/def/abc", "ip", "127.0.0.1", READ);
+    assertHasAcl("/a/xyabc", "world", "anyone", ALL);
+    assertHasAcl("/abc123", "world", "anyone", ALL);
+    assertHasAcl("/a/b/abc", "world", "anyone", ALL);
+    assertHasAcl("/b", "world", "anyone", ALL);
+  }
+
+  @Test
   public void testSupportsWorldScheme() throws Exception {
     // Given
     path("/unprotected");
@@ -125,7 +168,7 @@ public class ZkMigratorTest {
   }
 
   private String path(String s) throws Exception {
-    return cli.create().forPath(s, "any".getBytes());
+    return cli.create().creatingParentsIfNeeded().forPath(s, "any".getBytes());
   }
 
   private void setAcls(String path, String acl) throws Exception {

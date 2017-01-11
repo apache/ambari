@@ -33,7 +33,7 @@ class ZkMigrator:
     self.user = user
     self.zkmigrator_jar = "/var/lib/ambari-agent/tools/zkmigrator.jar"
 
-  def set_acls(self, znode, acl, tries=1):
+  def set_acls(self, znode, acl, tries=3):
     Logger.info(format("Setting ACL on znode {znode} to {acl}"))
     Execute(
       self._command(znode, acl), \

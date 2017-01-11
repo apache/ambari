@@ -177,6 +177,11 @@ class TestHiveClient(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/zkmigrator_jaas.conf',
+                              content = Template('zkmigrator_jaas.conf.j2'),
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
         mode = 0644,

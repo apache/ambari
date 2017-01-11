@@ -96,6 +96,12 @@ def hive(name=None):
        mode=0644,
        content=Template("hive.conf.j2")
        )
+  if params.security_enabled:
+    File(os.path.join(params.hive_config_dir, 'zkmigrator_jaas.conf'),
+         owner=params.hive_user,
+         group=params.user_group,
+         content=Template("zkmigrator_jaas.conf.j2")
+         )
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
