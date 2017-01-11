@@ -46,16 +46,17 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -145,6 +146,7 @@ public class UpgradeResourceProviderTest {
   private AmbariMetaInfo ambariMetaInfo;
   private TopologyManager topologyManager;
   private ConfigFactory configFactory;
+  private HostRoleCommandDAO hrcDAO;
 
   @Before
   public void before() throws Exception {
@@ -185,6 +187,7 @@ public class UpgradeResourceProviderTest {
     upgradeDao = injector.getInstance(UpgradeDAO.class);
     requestDao = injector.getInstance(RequestDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
+    hrcDAO = injector.getInstance(HostRoleCommandDAO.class);
 
     AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
     replay(publisher);
@@ -297,6 +300,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -357,6 +361,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -402,6 +407,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -554,6 +560,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     // tests skipping SC failure options
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, "true");
@@ -637,9 +644,9 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
-    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -671,6 +678,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -680,6 +688,12 @@ public class UpgradeResourceProviderTest {
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
+    UpgradeEntity upgrade = upgrades.get(0);
+
+    // now abort the upgrade so another can be created
+    abortUpgrade(upgrade.getRequestId());
+
+    // create another upgrade which should fail
     requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
@@ -693,14 +707,15 @@ public class UpgradeResourceProviderTest {
       // !!! expected
     }
 
+    // fix the properties and try again
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<>();
-    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
 
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
     RequestStatus status = upgradeResourceProvider.createResources(request);
@@ -750,6 +765,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, "NON_ROLLING");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -760,7 +776,8 @@ public class UpgradeResourceProviderTest {
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
-    List<UpgradeGroupEntity> groups = upgrades.get(0).getUpgradeGroups();
+    UpgradeEntity upgrade = upgrades.get(0);
+    List<UpgradeGroupEntity> groups = upgrade.getUpgradeGroups();
     boolean isHiveGroupFound = false;
     boolean isZKGroupFound = false;
 
@@ -780,6 +797,9 @@ public class UpgradeResourceProviderTest {
     isZKGroupFound = false;
     sch.setVersion("2.2.0.0");
 
+    // now abort the upgrade so another can be created
+    abortUpgrade(upgrade.getRequestId());
+
     // create downgrade with one upgraded service
     StackId stackId = new StackId("HDP", "2.2.0");
     cluster.setDesiredStackVersion(stackId, true);
@@ -789,9 +809,9 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
     Map<String, String> requestInfoProperties = new HashMap<>();
-    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
 
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
     RequestStatus status = upgradeResourceProvider.createResources(request);
@@ -929,6 +949,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.3");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_direction");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -949,6 +970,8 @@ public class UpgradeResourceProviderTest {
       Assert.assertFalse(item.getText().toLowerCase().contains("downgrade"));
     }
 
+    // now abort the upgrade so another can be created
+    abortUpgrade(upgrade.getRequestId());
 
     requestProps.clear();
     // Now perform a downgrade
@@ -957,11 +980,9 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_direction");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.3");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
 
-    Map<String, String> requestInfoProps = new HashMap<String, String>();
-    requestInfoProps.put("downgrade", "true");
-
-    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProps);
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     upgradeResourceProvider.createResources(request);
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -1056,6 +1077,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -1209,7 +1231,13 @@ public class UpgradeResourceProviderTest {
    * @return the provider
    */
   private UpgradeResourceProvider createProvider(AmbariManagementController amc) {
-    return new UpgradeResourceProvider(amc);
+    ResourceProviderFactory factory = injector.getInstance(ResourceProviderFactory.class);
+    AbstractControllerResourceProvider.init(factory);
+
+    Resource.Type type = Type.Upgrade;
+    return (UpgradeResourceProvider) AbstractControllerResourceProvider.getResourceProvider(type,
+        PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
+        amc);
   }
 
   private RequestStatus testCreateResources() throws Exception {
@@ -1224,6 +1252,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -1405,11 +1434,12 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     // this will cause a NPE when creating the upgrade, allowing us to test
     // rollback
     UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
-    upgradeResourceProvider.s_upgradeDAO = null;
+    UpgradeResourceProvider.s_upgradeDAO = null;
 
     try {
       Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -1442,6 +1472,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_host_ordered");
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.HOST_ORDERED.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -1485,6 +1516,31 @@ public class UpgradeResourceProviderTest {
     JsonObject msg = (JsonObject) msgArray.get(0);
 
     return msg.get("message").getAsString();
+  }
+
+  /**
+   * Aborts and upgrade.
+   *
+   * @param requestId
+   * @throws Exception
+   */
+  private void abortUpgrade(long requestId) throws Exception {
+    // now abort the upgrade so another can be created
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, String.valueOf(requestId));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "false");
+    Request request = PropertyHelper.getUpdateRequest(requestProps, null);
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    upgradeResourceProvider.updateResources(request, null);
+
+    // !!! this is required since the ActionManager/ActionScheduler isn't
+    // running and can't remove queued PENDING - it's a cheap way of ensuring
+    // that the upgrade commands do get aborted
+    hrcDAO.updateStatusByRequestId(requestId, HostRoleStatus.ABORTED,
+        HostRoleStatus.IN_PROGRESS_STATUSES);
   }
 
   /**
