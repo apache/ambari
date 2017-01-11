@@ -18,11 +18,7 @@
 <div id="prepareHolder">
   {{#each prepare as |prep index|}}
     <div class="form-group">
-      {{#if (eq index 0)}}
-        <label class="control-label col-xs-2">Prepare</label>
-      {{else}}
-        <label class="control-label col-xs-2"></label>
-      {{/if}}
+      <label class="control-label col-xs-2 {{if (not-eq index 0) 'visibility-hidden'}}">Prepare</label>
       <div class=" col-xs-2">
         <select class="form-control" onchange={{action (mut prep.type) value="target.value"}}>
           <option value="mkdir" selected={{eq prep.type "mkdir"}}>mkdir</option>
@@ -44,7 +40,7 @@
   {{/each}}
   <div class="form-group">
     {{#if prepare}}
-      <label class="control-label col-xs-2"></label>
+      <label class="control-label col-xs-2 visibility-hidden">Prepare</label>
     {{else}}
       <label class="control-label col-xs-2">Prepare</label>
     {{/if}}
