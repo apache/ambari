@@ -50,6 +50,7 @@
     <resourcesFolder>${ambari.server.module}/src/main/resources</resourcesFolder>
     <customActionsLocation>${target.cache.dir}/custom_actions</customActionsLocation>
     <empty.dir>src/packages/tarball</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
+    <python.test.mask>[Tt]est*.py</python.test.mask>
   </properties>
   <dependencies>
     <dependency>
@@ -164,6 +165,7 @@
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
+                <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
                 <PYTHONPATH>${path.python.1}${pathsep}$PYTHONPATH</PYTHONPATH>
