@@ -995,6 +995,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
