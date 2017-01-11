@@ -17,22 +17,22 @@
 }}
 
 {{#modal-dialog
-close="close"
-translucentOverlay=true
-clickOutsideToClose=true
-container-class="modal-dialog"}}
+  translucentOverlay=true
+  clickOutsideToClose=false
+  container-class="modal-dialog"}}
   <div class="modal-content">
-    <div class="modal-header text-danger">
-      <button type="button" class="close" {{action "close"}}><span aria-hidden="true">&times;</span></button>
-      <h4 class="modal-title">{{fa-icon "exclamation-triangle" size="lg"}} Error</h4>
+    <div class="modal-header text-{{titleClass}}">
+      {{#if closable}}
+        <button type="button" class="close" {{action "ok"}}><span aria-hidden="true">&times;</span></button>
+      {{/if}}
+      <p class="modal-title">{{#if titleIcon}}{{fa-icon titleIcon size="lg"}}{{/if}} {{title}}</p>
     </div>
-    <div class="modal-body text-center">
-      <p class="">Cannot drop database. Database <span class="text-uppercase"><strong>'{{name}}'</strong></span> is not empty !</p>
-      <div class="clearfix">
-        <div class="col-md-offset-4 col-md-4">
-          <button type="button" class="btn btn-warning btn-block" {{action "close"}}>{{fa-icon "times"}} Ok</button>
-        </div>
-      </div>
+    <div class="modal-body">
+      <p class="lead">{{#if labelIcon}}{{fa-icon labelIcon size="lg"}}{{/if}} {{label}}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-{{okClass}}" {{action "ok"}}>{{#if okIcon}}{{fa-icon okIcon}} {{/if}}{{okText}}</button>
     </div>
   </div><!-- /.modal-content -->
 {{/modal-dialog}}
+

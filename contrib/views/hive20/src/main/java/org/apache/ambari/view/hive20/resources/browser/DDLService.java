@@ -103,7 +103,7 @@ public class DDLService extends BaseService {
       job = proxy.deleteDatabase(databaseId, getResourceManager());
       JSONObject response = new JSONObject();
       response.put("job", job);
-      return Response.status(Response.Status.ACCEPTED).entity(job).build();
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
     } catch (ServiceException e) {
       LOG.error("Exception occurred while delete database {}", databaseId, e);
       throw new ServiceFormattedException(e);

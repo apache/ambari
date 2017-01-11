@@ -17,21 +17,23 @@
 }}
 
 {{#modal-dialog
-close="cancel"
-translucentOverlay=true
-clickOutsideToClose=true
-container-class="modal-dialog"}}
+  close="reject"
+  translucentOverlay=true
+  clickOutsideToClose=true
+  container-class="modal-dialog"}}
   <div class="modal-content">
-    <div class="modal-header text-danger">
-      <button type="button" class="close" {{action "cancel"}}><span aria-hidden="true">&times;</span></button>
-      <h4 class="modal-title">{{fa-icon "exclamation-triangle" size="lg"}} Confirm</h4>
+    <div class="modal-header text-{{titleClass}}">
+      {{#if closable}}
+        <button type="button" class="close" {{action "reject"}}><span aria-hidden="true">&times;</span></button>
+      {{/if}}
+      <p class="modal-title">{{#if titleIcon}}{{fa-icon titleIcon size="lg"}}{{/if}} {{title}}</p>
     </div>
-    <div class="modal-body text-center">
-      <p class="">Are you sure you want to drop <span class="text-uppercase"><strong>'{{name}}'</strong></span> database?</p>
+    <div class="modal-body">
+      <p class="lead">{{#if labelIcon}}{{fa-icon labelIcon size="lg"}}{{/if}} {{label}}</p>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-default" {{action "cancel"}}>{{fa-icon "times"}} Cancel</button>
-      <button type="button" class="btn btn-primary" {{action "confirm"}}>{{fa-icon "check"}} Confirm</button>
+      <button type="button" class="btn btn-{{rejectClass}}" {{action "reject"}}>{{#if rejectIcon}}{{fa-icon rejectIcon}} {{/if}}{{rejectText}}</button>
+      <button type="button" class="btn btn-{{confirmClass}}" {{action "confirm"}}>{{#if confirmIcon}}{{fa-icon confirmIcon}} {{/if}}{{confirmText}}</button>
     </div>
   </div><!-- /.modal-content -->
 {{/modal-dialog}}

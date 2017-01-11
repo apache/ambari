@@ -19,11 +19,28 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-  name: '',
+  title: null,
+  label: null,
+  confirmText: 'Confirm',
+  rejectText: 'Reject',
+
+  titleIcon: null,
+  labelIcon: null,
+  confirmIcon: null,
+  rejectIcon: null,
+
+  closable: true,
+  titleClass: 'primary',
+  confirmClass: 'primary',
+  rejectClass: 'default',
 
   actions: {
-    close() {
-      this.sendAction('close');
+    confirm() {
+      this.sendAction('confirm');
+    },
+
+    reject() {
+      this.sendAction('reject');
     }
   }
 });

@@ -19,10 +19,10 @@
 {{database-search-bar databases=model selected="databaseSelected"}}
 <div class="hv-dropdown database-dropdown">
   <div class="dropdown">
-    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1121" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
       {{fa-icon "navicon"}}
     </button>
-    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu1121">
+    <ul class="dropdown-menu dropdown-menu-right">
       <li><a href="#" {{action "dropDatabase"}} class="text-uppercase">{{fa-icon "trash"}} drop database</a></li>
       <li><a href="#" {{action "createTable"}} class="text-uppercase">{{fa-icon "plus"}} create table</a></li>
     </ul>
@@ -30,10 +30,43 @@
 </div>
 
 {{#if databaseNotEmpty}}
-  {{database-not-empty name=databaseName close="notEmptyDialogClosed"}}
+  {{info-dialog
+    title="Info"
+    label="Database not empty. Cannot delete the database."
+    titleIcon="exclamation"
+    labelIcon="exclamation-triangle"
+    closable=false
+    ok="notEmptyDialogClosed"
+  }}
 {{/if}}
 
 {{#if confirmDropDatabase}}
-  {{database-drop-confirm name=databaseName yes="databaseDropConfirmed" no="databaseDropDeclined"}}
+  {{confirm-dialog
+    title="Confirm"
+    label="Do You want to delete the database?"
+    titleIcon="minus"
+    labelIcon="database"
+    rejectIcon="times"
+    confirmIcon="check"
+    closable=false
+    confirmClass="success"
+    confirm="databaseDropConfirmed"
+    reject="databaseDropDeclined"
+  }}
+{{/if}}
+
+{{#if showDeleteDatabaseModal}}
+  {{#modal-dialog
+    translucentOverlay=true
+    container-class="modal-dialog modal-sm"}}
+    <div class="modal-content">
+      <div class="modal-header text-danger">
+        <p class="modal-title">{{fa-icon "minus"}}&nbsp;&nbsp;&nbsp; Delete Database</p>
+      </div>
+      <div class="modal-body text-center text-primary">
+        <p>{{deleteDatabaseMessage}}</p>
+      </div>
+    </div><!-- /.modal-content -->
+  {{/modal-dialog}}
 {{/if}}
 {{outlet}}
