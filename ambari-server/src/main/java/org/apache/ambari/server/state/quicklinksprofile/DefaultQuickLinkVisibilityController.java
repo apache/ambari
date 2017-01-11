@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,19 +37,25 @@ import com.google.common.base.Optional;
 /**
  * This class can evaluate whether a quicklink has to be shown or hidden based on the received {@link QuickLinksProfile}.
  */
-public class QuickLinksProfileEvaluator {
-  private final Evaluator globalRules;
-  private final Map<String, Evaluator> serviceRules = new HashMap<>();
-  private final Map<ServiceComponent, Evaluator> componentRules = new HashMap<>();
+public class DefaultQuickLinkVisibilityController implements QuickLinkVisibilityController {
+  private final FilterEvaluator globalRules;
+  private final Map<String, FilterEvaluator> serviceRules = new HashMap<>();
+  private final Map<ServiceComponent, FilterEvaluator> componentRules = new HashMap<>();
 
-  public QuickLinksProfileEvaluator(QuickLinksProfile profile) throws QuickLinksProfileEvaluatorException {
-    globalRules = new Evaluator(profile.getFilters());
+  public DefaultQuickLinkVisibilityController(QuickLinksProfile profile) throws QuickLinksProfileEvaluationException {
+    int filterCount = size(profile.getFilters());
+    globalRules = new FilterEvaluator(profile.getFilters());
     for (Service service: nullToEmptyList(profile.getServices())) {
-      serviceRules.put(service.getName(), new Evaluator(service.getFilters()));
+      filterCount += size(service.getFilters());
+      serviceRules.put(service.getName(), new FilterEvaluator(service.getFilters()));
       for (Component component: nullToEmptyList(service.getComponents())) {
+        filterCount += size(component.getFilters());
         componentRules.put(ServiceComponent.of(service.getName(), component.getName()),
-            new Evaluator(component.getFilters()));
+            new FilterEvaluator(component.getFilters()));
       }
+    }
+    if (filterCount == 0) {
+      throw new QuickLinksProfileEvaluationException("At least one filter must be defined.");
     }
   }
 
@@ -74,12 +81,16 @@ public class QuickLinksProfileEvaluator {
     return globalRules.isVisible(quickLink).or(false);
   }
 
+  private int size(@Nullable Collection<?> collection) {
+    return null == collection ? 0 : collection.size();
+  }
+
   private Optional<Boolean> evaluateComponentRules(@Nonnull String service, @Nonnull Link quickLink) {
     if (null == quickLink.getComponentName()) {
       return Optional.absent();
     }
     else {
-      Evaluator componentEvaluator = componentRules.get(ServiceComponent.of(service, quickLink.getComponentName()));
+      FilterEvaluator componentEvaluator = componentRules.get(ServiceComponent.of(service, quickLink.getComponentName()));
       return componentEvaluator != null ? componentEvaluator.isVisible(quickLink) : Optional.<Boolean>absent();
     }
   }
@@ -108,18 +119,18 @@ public class QuickLinksProfileEvaluator {
  *   </ol>
  * </p>
  */
-class Evaluator {
+class FilterEvaluator {
   private final Map<String, Boolean> linkNameFilters = new HashMap<>();
   private final Set<String> showAttributes = new HashSet<>();
   private final Set<String> hideAttributes = new HashSet<>();
   private Optional<Boolean> acceptAllFilter = Optional.absent();
 
-  Evaluator(List<Filter> filters) throws QuickLinksProfileEvaluatorException {
-    for (Filter filter: QuickLinksProfileEvaluator.nullToEmptyList(filters)) {
+  FilterEvaluator(List<Filter> filters) throws QuickLinksProfileEvaluationException {
+    for (Filter filter: DefaultQuickLinkVisibilityController.nullToEmptyList(filters)) {
       if (filter instanceof LinkNameFilter) {
         String linkName = ((LinkNameFilter)filter).getLinkName();
         if (linkNameFilters.containsKey(linkName) && linkNameFilters.get(linkName) != filter.isVisible()) {
-          throw new QuickLinksProfileEvaluatorException("Contradicting filters for link name [" + linkName + "]");
+          throw new QuickLinksProfileEvaluationException("Contradicting filters for link name [" + linkName + "]");
         }
         linkNameFilters.put(linkName, filter.isVisible());
       }
@@ -132,13 +143,13 @@ class Evaluator {
           hideAttributes.add(linkAttribute);
         }
         if (showAttributes.contains(linkAttribute) && hideAttributes.contains(linkAttribute)) {
-          throw new QuickLinksProfileEvaluatorException("Contradicting filters for link attribute [" + linkAttribute + "]");
+          throw new QuickLinksProfileEvaluationException("Contradicting filters for link attribute [" + linkAttribute + "]");
         }
       }
-      // If none of the above, it is an accept-all filter. We expect only one for an Evaluator
+      // If none of the above, it is an accept-all filter. We expect only one of this type for an Evaluator
       else {
         if (acceptAllFilter.isPresent() && !acceptAllFilter.get().equals(filter.isVisible())) {
-          throw new QuickLinksProfileEvaluatorException("Contradicting accept-all filters.");
+          throw new QuickLinksProfileEvaluationException("Contradicting accept-all filters.");
         }
         acceptAllFilter = Optional.of(filter.isVisible());
       }
@@ -158,10 +169,10 @@ class Evaluator {
 
     // process second priority filters based on link attributes
     // 'hide' rules take precedence over 'show' rules
-    for (String attribute: QuickLinksProfileEvaluator.nullToEmptyList(quickLink.getAttributes())) {
+    for (String attribute: DefaultQuickLinkVisibilityController.nullToEmptyList(quickLink.getAttributes())) {
       if (hideAttributes.contains(attribute)) return Optional.of(false);
     }
-    for (String attribute: QuickLinksProfileEvaluator.nullToEmptyList(quickLink.getAttributes())) {
+    for (String attribute: DefaultQuickLinkVisibilityController.nullToEmptyList(quickLink.getAttributes())) {
       if (showAttributes.contains(attribute)) return Optional.of(true);
     }
 

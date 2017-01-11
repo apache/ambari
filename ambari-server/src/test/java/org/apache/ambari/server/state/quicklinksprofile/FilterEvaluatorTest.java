@@ -33,7 +33,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-public class EvaluatorTest {
+public class FilterEvaluatorTest {
 
   static final String NAMENODE = "NAMENODE";
   static final String NAMENODE_UI = "namenode_ui";
@@ -44,12 +44,13 @@ public class EvaluatorTest {
   private Link namenodeUi;
   private Link nameNodeJmx;
 
-  public EvaluatorTest() {
+  public FilterEvaluatorTest() {
     namenodeUi = new Link();
     namenodeUi.setComponentName(NAMENODE);
     namenodeUi.setName(NAMENODE_UI);
     namenodeUi.setAttributes(ImmutableList.of(AUTHENTICATED));
 
+    // this is a "legacy" link with no attributes defined
     nameNodeJmx = new Link();
     nameNodeJmx.setComponentName(NAMENODE);
     nameNodeJmx.setName(NAMENODE_JMX);
@@ -60,22 +61,22 @@ public class EvaluatorTest {
    */
   @Test
   public void testWithEmptyFilters() throws Exception {
-    Evaluator evaluator = new Evaluator(new ArrayList<Filter>());
+    FilterEvaluator evaluator = new FilterEvaluator(new ArrayList<Filter>());
     assertEquals(Optional.absent(), evaluator.isVisible(namenodeUi));
 
-    Evaluator evaluator2 = new Evaluator(null);
+    FilterEvaluator evaluator2 = new FilterEvaluator(null);
     assertEquals(Optional.absent(), evaluator2.isVisible(namenodeUi));
   }
 
   /**
-   * Evaluator should return {@link Optional#absent()} when the link doesn't match any filters
+   * FilterEvaluator should return {@link Optional#absent()} when the link doesn't match any filters
    */
   @Test
   public void testNoMatchingFilter() throws Exception {
     List<Filter> filters = Lists.newArrayList(
         linkNameFilter(NAMENODE_JMX, true),
         linkAttributeFilter(SSO, false));
-    Evaluator evaluator = new Evaluator(filters);
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     assertEquals(Optional.absent(), evaluator.isVisible(namenodeUi));
   }
 
@@ -85,12 +86,12 @@ public class EvaluatorTest {
   @Test
   public void testLinkNameFiltersEvaluatedFirst() throws Exception {
     List<Filter> filters = Lists.newArrayList(
-      acceptAllFilter(false),
-      linkNameFilter(NAMENODE_UI, true),
-      linkNameFilter(NAMENODE_JMX, false),
-      linkAttributeFilter(AUTHENTICATED, false),
-      linkAttributeFilter(SSO, false));
-    Evaluator evaluator = new Evaluator(filters);
+        acceptAllFilter(false),
+        linkNameFilter(NAMENODE_UI, true),
+        linkNameFilter(NAMENODE_JMX, false),
+        linkAttributeFilter(AUTHENTICATED, false),
+        linkAttributeFilter(SSO, false));
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     assertEquals(Optional.of(true), evaluator.isVisible(namenodeUi));
   }
 
@@ -104,9 +105,10 @@ public class EvaluatorTest {
         linkNameFilter(NAMENODE_JMX, false),
         linkAttributeFilter(AUTHENTICATED, true),
         linkAttributeFilter(SSO, true));
-    Evaluator evaluator = new Evaluator(filters);
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     assertEquals(Optional.of(true), evaluator.isVisible(namenodeUi));
   }
+
 
   /**
    * Link attribute filters work with links with null attributes. (No NPE is thrown)
@@ -117,7 +119,7 @@ public class EvaluatorTest {
         acceptAllFilter(true),
         linkAttributeFilter(AUTHENTICATED, false),
         linkAttributeFilter(SSO, false));
-    Evaluator evaluator = new Evaluator(filters);
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     assertEquals(Optional.of(true), evaluator.isVisible(nameNodeJmx));
   }
 
@@ -130,7 +132,7 @@ public class EvaluatorTest {
     List<Filter> filters = Lists.<Filter>newArrayList(
         linkAttributeFilter(AUTHENTICATED, false),
         linkAttributeFilter(SSO, true));
-    Evaluator evaluator = new Evaluator(filters);
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     namenodeUi.setAttributes(ImmutableList.of(AUTHENTICATED, SSO));
     assertEquals(Optional.of(false), evaluator.isVisible(namenodeUi));
   }
@@ -144,44 +146,57 @@ public class EvaluatorTest {
         acceptAllFilter(false),
         linkNameFilter(NAMENODE_JMX, true),
         linkAttributeFilter(SSO, true));
-    Evaluator evaluator = new Evaluator(filters);
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     assertEquals(Optional.of(false), evaluator.isVisible(namenodeUi));
   }
 
   /**
-   * Contradicting link name filters should result in {@link QuickLinksProfileEvaluatorException}.
+   * Contradicting link name filters should result in {@link QuickLinksProfileEvaluationException}.
    */
-  @Test(expected = QuickLinksProfileEvaluatorException.class)
+  @Test(expected = QuickLinksProfileEvaluationException.class)
   public void contradictingLinkNameFiltersRejected() throws Exception {
     List<Filter> filters = Lists.newArrayList(
         linkNameFilter(NAMENODE_JMX, true),
         linkNameFilter(NAMENODE_JMX, false),
         linkAttributeFilter(SSO, true));
-    new Evaluator(filters);
+    new FilterEvaluator(filters);
   }
 
   /**
-   * Contradicting link attribute filters should result in {@link QuickLinksProfileEvaluatorException}.
+   * Contradicting property filters should result in {@link QuickLinksProfileEvaluationException}.
+   * @throws Exception
    */
-  @Test(expected = QuickLinksProfileEvaluatorException.class)
+  @Test(expected = QuickLinksProfileEvaluationException.class)
+  public void contradictingPropertyFiltersRejected() throws Exception {
+    List<Filter> filters = Lists.<Filter>newArrayList(
+        linkAttributeFilter(SSO, true),
+        linkAttributeFilter(SSO, false));
+    new FilterEvaluator(filters);
+  }
+
+
+  /**
+   * Contradicting link attribute filters should result in {@link QuickLinksProfileEvaluationException}.
+   */
+  @Test(expected = QuickLinksProfileEvaluationException.class)
   public void contradictingLinkAttributeFiltersRejected() throws Exception {
     List<Filter> filters = Lists.<Filter>newArrayList(
         linkAttributeFilter(SSO, true),
         linkAttributeFilter(SSO, false));
-    new Evaluator(filters);
+    new FilterEvaluator(filters);
   }
 
   /**
-   * Contradicting accept-all filters should result in {@link QuickLinksProfileEvaluatorException}.
+   * Contradicting accept-all filters should result in {@link QuickLinksProfileEvaluationException}.
    */
-  @Test(expected = QuickLinksProfileEvaluatorException.class)
+  @Test(expected = QuickLinksProfileEvaluationException.class)
   public void contradictingAcceptAllFiltersRejected() throws Exception {
     List<Filter> filters = Lists.newArrayList(
         linkNameFilter(NAMENODE_JMX, true),
         linkAttributeFilter(SSO, true),
         acceptAllFilter(true),
         acceptAllFilter(false));
-    new Evaluator(filters);
+    new FilterEvaluator(filters);
   }
 
   /**
@@ -196,7 +211,7 @@ public class EvaluatorTest {
         linkNameFilter(NAMENODE_JMX, false),
         linkAttributeFilter(SSO, false),
         linkAttributeFilter(SSO, false));
-    Evaluator evaluator = new Evaluator(filters);
+    FilterEvaluator evaluator = new FilterEvaluator(filters);
     assertEquals(Optional.of(true), evaluator.isVisible(namenodeUi));
   }
 

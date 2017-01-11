@@ -18,9 +18,13 @@
 
 package org.apache.ambari.server.state.quicklinksprofile;
 
-public class QuickLinksProfileEvaluatorException extends Exception {
+/**
+ * Exception that is thrown if a {@link QuickLinkVisibilityController} cannot be build due to errors in the
+ * {@link QuickLinksProfile}.
+ */
+public class QuickLinksProfileEvaluationException extends Exception {
 
-  public QuickLinksProfileEvaluatorException(String message) {
+  public QuickLinksProfileEvaluationException(String message) {
     super(message);
   }
 

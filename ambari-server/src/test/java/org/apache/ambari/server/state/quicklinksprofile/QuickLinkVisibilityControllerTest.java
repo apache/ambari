@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class QuickLinksProfileEvaluatorTest {
+public class QuickLinkVisibilityControllerTest {
 
   static final String AUTHENTICATED = "authenticated";
   static final String SSO = "sso";
@@ -37,7 +37,7 @@ public class QuickLinksProfileEvaluatorTest {
 
   private Link namenodeUi;
 
-  public QuickLinksProfileEvaluatorTest() {
+  public QuickLinkVisibilityControllerTest() {
     namenodeUi = new Link();
     namenodeUi.setComponentName(NAMENODE);
     namenodeUi.setName(NAMENODE_UI);
@@ -45,18 +45,31 @@ public class QuickLinksProfileEvaluatorTest {
   }
 
   /**
-   * Test to prove that {@link QuickLinksProfileEvaluator} can accept quicklink profiles with null values.
+   * Test to prove that {@link DefaultQuickLinkVisibilityController} can accept quicklink profiles with null values.
    */
   @Test
   public void testNullsAreAccepted() throws Exception {
-    QuickLinksProfile profile = new QuickLinksProfile();
-    QuickLinksProfileEvaluator evaluator = new QuickLinksProfileEvaluator(profile);
-    assertFalse("Link should be hidden as there are no applicable filters", evaluator.isVisible(HDFS, namenodeUi));
+    QuickLinksProfile profile = QuickLinksProfile.create(ImmutableList.<Filter>of(Filter.acceptAllFilter(true)), null);
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
+    evaluator.isVisible(HDFS, namenodeUi); //should not throw NPE
 
-    Service service = Service.create(HDFS, null, null);
+    Service service = Service.create(HDFS, ImmutableList.<Filter>of(Filter.acceptAllFilter(true)), null);
     profile = QuickLinksProfile.create(null, ImmutableList.of(service));
-    evaluator = new QuickLinksProfileEvaluator(profile);
-    assertFalse("Link should be hidden as there are no applicable filters", evaluator.isVisible(HDFS, namenodeUi));
+    evaluator = new DefaultQuickLinkVisibilityController(profile);
+    evaluator.isVisible(HDFS, namenodeUi); //should not throw NPE
+
+  }
+
+  /**
+   * Quicklinks profile must contain at least one filter (can be on any level: global/component/service), otherwise
+   * an exception is thrown.
+   */
+  @Test(expected = QuickLinksProfileEvaluationException.class)
+  public void testProfileMustContainAtLeastOneFilter() throws Exception {
+    Component component = Component.create("NAMENODE", null);
+    Service service = Service.create(HDFS, null, ImmutableList.of(component));
+    QuickLinksProfile profile = QuickLinksProfile.create(null, ImmutableList.of(service));
+    QuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
   }
 
   /**
@@ -70,7 +83,7 @@ public class QuickLinksProfileEvaluatorTest {
     Service service = Service.create(HDFS, ImmutableList.<Filter>of(), ImmutableList.of(component));
 
     QuickLinksProfile profile = QuickLinksProfile.create(ImmutableList.<Filter>of(), ImmutableList.of(service));
-    QuickLinksProfileEvaluator evaluator = new QuickLinksProfileEvaluator(profile);
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     namenodeUi.setComponentName(null);
     assertFalse("Link should be hidden as there are no applicable filters", evaluator.isVisible(HDFS, namenodeUi));
   }
@@ -93,7 +106,7 @@ public class QuickLinksProfileEvaluatorTest {
         ImmutableList.<Filter>of(Filter.acceptAllFilter(false)),
         ImmutableList.of(service));
 
-    QuickLinksProfileEvaluator evaluator = new QuickLinksProfileEvaluator(profile);
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     assertTrue("Component level filter should have been applied.", evaluator.isVisible(HDFS, namenodeUi));
   }
 
@@ -113,7 +126,7 @@ public class QuickLinksProfileEvaluatorTest {
         ImmutableList.<Filter>of(Filter.acceptAllFilter(false)),
         ImmutableList.of(service));
 
-    QuickLinksProfileEvaluator evaluator = new QuickLinksProfileEvaluator(profile);
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     assertTrue("Component level filter should have been applied.", evaluator.isVisible(HDFS, namenodeUi));
   }
 
@@ -133,7 +146,7 @@ public class QuickLinksProfileEvaluatorTest {
         ImmutableList.<Filter>of(Filter.acceptAllFilter(true)),
         ImmutableList.of(service));
 
-    QuickLinksProfileEvaluator evaluator = new QuickLinksProfileEvaluator(profile);
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     assertTrue("Global filter should have been applied.", evaluator.isVisible(HDFS, namenodeUi));
   }
 
@@ -160,7 +173,7 @@ public class QuickLinksProfileEvaluatorTest {
         ImmutableList.<Filter>of(Filter.linkAttributeFilter(SSO, true)),
         ImmutableList.of(service1, service2));
 
-    QuickLinksProfileEvaluator evaluator = new QuickLinksProfileEvaluator(profile);
+    DefaultQuickLinkVisibilityController evaluator = new DefaultQuickLinkVisibilityController(profile);
     assertFalse("No filters should have been applied, so default false should have been returned.",
         evaluator.isVisible(HDFS, namenodeUi));
   }
