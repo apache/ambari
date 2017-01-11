@@ -589,13 +589,169 @@ public class UpgradeCatalog250Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
-    Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
-        "content", "{{logsearch_log_dir}}/logsearch.err\n" +
-                   "<priority value=\"warn\"/>");
+    Map<String, String> oldLogFeederLog4j = ImmutableMap.of(
+        "content",
+        "    <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"11MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"12\"/>\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\"/>\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\"\n" +
+        "    class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"13MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"14\" />\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\" />\n" +
+        "  </appender>");
     
-    Map<String, String> expectedLogSearchLog4j = ImmutableMap.of(
-        "content", "{{logsearch_log_dir}}/logsearch.log\n" +
-                   "<priority value=\"info\"/>");
+    Map<String, String> expectedLogFeederLog4j = ImmutableMap.of(
+        "content",
+        "    <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logfeeder_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logfeeder_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\"/>\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\"\n" +
+        "    class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logfeeder_json_log_maxfilesize}}MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logfeeder_json_log_maxbackupindex}}\" />\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\" />\n" +
+        "  </appender>",
+        "logfeeder_log_maxfilesize", "11",
+        "logfeeder_log_maxbackupindex", "12",
+        "logfeeder_json_log_maxfilesize", "13",
+        "logfeeder_json_log_maxbackupindex", "14");
+    
+    Config mockLogFeederLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
+    expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
+    Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederLog4jCapture), anyString(),
+      anyObject(Map.class))).andReturn(config).once();
+
+    Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
+        "content",
+        "  <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.err\" />\n" +
+        "    <param name=\"Threshold\" value=\"info\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"11MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"12\" />\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\" />\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"13MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"14\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"audit_rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"15MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"16\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"performance_analyzer_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+        "    <param name=\"Threshold\" value=\"info\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"17MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"18\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.audit\" additivity=\"true\">\n" +
+        "     <appender-ref ref=\"audit_rolling_file_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.performance\" additivity=\"false\">\n" +
+        "    <appender-ref ref=\"performance_analyzer_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <category name=\"org.apache.ambari.logsearch\" additivity=\"false\">\n" +
+        "    <priority value=\"warn\"/>\n" +
+        "    <appender-ref ref=\"rolling_file_json\"/>\n" +
+        "  </category>");
+    
+    Map<String, String> expectedLogSearchLog4j = new HashMap<>();
+      expectedLogSearchLog4j.put("content",
+        "  <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.log\" />\n" +
+        "    <param name=\"Threshold\" value=\"info\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_log_maxfilesize}}MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_log_maxbackupindex}}\" />\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\" />\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_json_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_json_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"audit_rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_audit_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_audit_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"performance_analyzer_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+        "    <param name=\"Threshold\" value=\"info\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_perf_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_perf_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.audit\" additivity=\"true\">\n" +
+        "     <appender-ref ref=\"audit_rolling_file_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.performance\" additivity=\"false\">\n" +
+        "    <appender-ref ref=\"performance_analyzer_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <category name=\"org.apache.ambari.logsearch\" additivity=\"false\">\n" +
+        "    <priority value=\"info\"/>\n" +
+        "    <appender-ref ref=\"rolling_file_json\"/>\n" +
+        "  </category>");
+
+      expectedLogSearchLog4j.put("logsearch_log_maxfilesize", "11");
+      expectedLogSearchLog4j.put("logsearch_log_maxbackupindex", "12");
+      expectedLogSearchLog4j.put("logsearch_json_log_maxfilesize", "13");
+      expectedLogSearchLog4j.put("logsearch_json_log_maxbackupindex", "14");
+      expectedLogSearchLog4j.put("logsearch_audit_log_maxfilesize", "15");
+      expectedLogSearchLog4j.put("logsearch_audit_log_maxbackupindex", "16");
+      expectedLogSearchLog4j.put("logsearch_perf_log_maxfilesize", "17");
+      expectedLogSearchLog4j.put("logsearch_perf_log_maxbackupindex", "18");
     
     Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
@@ -606,7 +762,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, cluster);
     replay(controller, injector2);
-    replay(mockLogSearchProperties, mockLogFeederEnv, mockLogSearchEnv, mockLogSearchLog4j);
+    replay(mockLogSearchProperties, mockLogFeederEnv, mockLogSearchEnv, mockLogFeederLog4j, mockLogSearchLog4j);
     new UpgradeCatalog250(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
@@ -618,6 +774,9 @@ public class UpgradeCatalog250Test {
     
     Map<String, String> updatedLogSearchEnv = logSearchEnvCapture.getValue();
     assertTrue(Maps.difference(expectedLogSearchEnv, updatedLogSearchEnv).areEqual());
+    
+    Map<String, String> updatedLogFeederLog4j = logFeederLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederLog4j, updatedLogFeederLog4j).areEqual());
     
     Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
     assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());

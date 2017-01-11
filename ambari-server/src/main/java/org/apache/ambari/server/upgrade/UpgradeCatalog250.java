@@ -656,8 +656,38 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, "logsearch-env", newProperties, removeProperties, true, true);
           }
           
+          Config logfeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");
+          if (logfeederLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
+            String content = logfeederLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_log_maxfilesize", "logfeeder_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_log_maxbackupindex", "logfeeder_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logfeeder_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_json_log_maxfilesize", "logfeeder_json_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\" />", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_json_log_maxbackupindex", "logfeeder_json_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logfeeder_json_log_maxfilesize}}MB\" />\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\" />", "10", newProperties);
+            
+            newProperties.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-log4j", newProperties, true, true);
+          }
+          
           Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
           if (logsearchLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
             String content = logsearchLog4jProperties.getProperties().get("content");
             if (content.contains("{{logsearch_log_dir}}/logsearch.err")) {
               content = content.replace("{{logsearch_log_dir}}/logsearch.err", "{{logsearch_log_dir}}/logsearch.log");
@@ -665,8 +695,51 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             if (content.contains("<priority value=\"warn\"/>")) {
               content = content.replace("<priority value=\"warn\"/>", "<priority value=\"info\"/>");
             }
+            
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_log_maxfilesize", "logsearch_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.log\" />\n" +
+                "    <param name=\"Threshold\" value=\"info\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\" />\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_log_maxbackupindex", "logsearch_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.log\" />\n" +
+                "    <param name=\"Threshold\" value=\"info\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_log_maxfilesize}}MB\" />\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\" />\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_json_log_maxfilesize", "logsearch_json_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_json_log_maxbackupindex", "logsearch_json_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_json_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_audit_log_maxfilesize", "logsearch_audit_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_audit_log_maxbackupindex", "logsearch_audit_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_audit_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_perf_log_maxfilesize", "logsearch_perf_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+                "    <param name=\"Threshold\" value=\"info\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_perf_log_maxbackupindex", "logsearch_perf_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+                "    <param name=\"Threshold\" value=\"info\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_perf_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>\n", "10", newProperties);
+            
+            newProperties.put("content", content);
             if (!content.equals(logsearchLog4jProperties.getProperties().get("content"))) {
-              updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", newProperties, true, true);
             }
           }
         }
@@ -675,7 +748,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   }
   
   /**
-   * Updates Log Search configs.
+   * Updates Ambari Infra configs.
    *
    * @throws AmbariException
    */
