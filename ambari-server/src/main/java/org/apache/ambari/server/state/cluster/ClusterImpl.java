@@ -1023,12 +1023,10 @@ public class ClusterImpl implements Cluster {
         return mostRecentUpgrade;
       }
 
-      List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList<>();
-      UNFINISHED_STATUSES.add(HostRoleStatus.PENDING);
-      UNFINISHED_STATUSES.add(HostRoleStatus.ABORTED);
-
+      // look for any item from the prior upgrade which is still in progress
+      // (not failed, completed, or aborted)
       List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(
-          mostRecentUpgrade.getRequestId(), UNFINISHED_STATUSES);
+          mostRecentUpgrade.getRequestId(), HostRoleStatus.IN_PROGRESS_STATUSES);
 
       if (!commands.isEmpty()) {
         return mostRecentUpgrade;

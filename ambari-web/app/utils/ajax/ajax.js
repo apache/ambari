@@ -1711,7 +1711,8 @@ var urls = {
             "repository_version": data.value,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
-            "skip_service_check_failures": data.skipSCFailures
+            "skip_service_check_failures": data.skipSCFailures,
+            "direction": "UPGRADE"
           }
         })
       }
@@ -1724,13 +1725,11 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          "RequestInfo": {
-            "downgrade": "true"
-          },
           "Upgrade": {
             "from_version": data.from,
             "repository_version": data.value,
-            "upgrade_type": data.upgradeType
+            "upgrade_type": data.upgradeType,
+            "direction": "DOWNGRADE"
           }
         })
       }
@@ -1743,9 +1742,6 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          "RequestInfo": {
-            "downgrade": data.isDowngrade
-          },
           "Upgrade": {
             "request_status": "ABORTED",
             "suspended": "false"
@@ -1761,9 +1757,6 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
-          "RequestInfo": {
-            "downgrade": data.isDowngrade
-          },
           "Upgrade": {
             "request_status": "ABORTED",
             "suspended": "true"
