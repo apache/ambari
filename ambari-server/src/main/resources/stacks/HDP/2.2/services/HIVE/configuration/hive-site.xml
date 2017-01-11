@@ -361,6 +361,7 @@ limitations under the License.
       <type>password</type>
       <overridable>false</overridable>
       <hidden>HIVE_CLIENT,WEBHCAT_SERVER,HCAT,CONFIG_DOWNLOAD</hidden>
+      <keystore>true</keystore>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
