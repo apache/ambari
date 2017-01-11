@@ -588,6 +588,7 @@ class JDKSetup(object):
   def _populate_jdk_configs(self, properties, jdk_num):
     if properties.has_key(JDK_RELEASES):
       jdk_names = properties[JDK_RELEASES].split(',')
+      jdk_names = filter(None, jdk_names)
       jdks = []
       for jdk_name in jdk_names:
         jdkR = JDKRelease.from_properties(properties, jdk_name)
