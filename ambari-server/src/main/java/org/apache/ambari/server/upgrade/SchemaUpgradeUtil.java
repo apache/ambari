@@ -65,8 +65,9 @@ public class SchemaUpgradeUtil {
     if (m.find()) {
       propertyValue = m.group(1);
       
-      String toReplace = propertyPattern.replace("(\\w+)", propertyValue);
-      String replaceWith = propertyPattern.replace("(\\w+)", "{{" + variableName + "}}");
+      String unescapedPattern = propertyPattern.replace("\\{", "{");
+      String toReplace = unescapedPattern.replace("(\\w+)", propertyValue);
+      String replaceWith = unescapedPattern.replace("(\\w+)", "{{" + variableName + "}}");
       content = content.replace(toReplace, replaceWith);
     }
     newProperties.put(propertyName, propertyValue);

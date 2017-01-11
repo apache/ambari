@@ -30,7 +30,7 @@
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_log_maxbackupindex</name>
@@ -41,7 +41,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_json_log_maxfilesize</name>
@@ -51,7 +51,7 @@
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_json_log_maxbackupindex</name>
@@ -62,7 +62,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_audit_log_maxfilesize</name>
@@ -72,7 +72,7 @@
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_audit_log_maxbackupindex</name>
@@ -83,7 +83,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_perf_log_maxfilesize</name>
@@ -93,7 +93,7 @@
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_perf_log_maxbackupindex</name>
@@ -104,7 +104,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>content</name>
