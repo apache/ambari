@@ -18,11 +18,7 @@
 <div id="fileHolder">
   {{#each files as |file index|}}
   <div class="form-group">
-    {{#if (eq index 0)}}
-      <label class="control-label col-xs-2">{{title}}</label>
-    {{else}}
-      <label class="control-label col-xs-2"></label>
-    {{/if}}
+    <label class="control-label col-xs-2 {{if (not-eq index 0) 'visibility-hidden'}}">{{title}}</label>
     <div class="col-xs-7">
       <div class="input-group">
         {{input type="text" class="form-control" value=file.value placeholder=title}}
@@ -38,7 +34,7 @@
   {{/each}}
   <div class="form-group">
     {{#if files}}
-      <label class="control-label col-xs-2"></label>
+      <label class="control-label col-xs-2 visibility-hidden">{{title}}</label>
     {{else}}
       <label class="control-label col-xs-2">{{title}}</label>
     {{/if}}
