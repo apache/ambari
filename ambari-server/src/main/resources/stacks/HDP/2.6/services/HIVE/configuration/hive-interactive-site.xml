@@ -62,4 +62,11 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
 
+  <property>
+    <name>hive.tez.cartesian-product.enabled</name>
+    <value>true</value>
+    <description>Use Tez cartesian product edge for Hive cartesian product</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>
