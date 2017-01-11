@@ -39,6 +39,7 @@ from resource_management.core.logger import Logger
 import hive_server_upgrade
 from hive import hive
 from hive_service import hive_service
+from resource_management.core.resources.zkmigrator import ZkMigrator
 
 
 class HiveServer(Script):
@@ -195,6 +196,25 @@ class HiveServerDefault(HiveServer):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+
+  def _base_node(self, path):
+    if not path.startswith('/'):
+      path = '/' + path
+    try:
+      return '/' + path.split('/')[1]
+    except IndexError:
+      return path
+
+  def disable_security(self, env):
+    import params
+    zkmigrator = ZkMigrator(params.hive_zookeeper_quorum, params.java_exec, params.java64_home, params.jaas_file, params.hive_user)
+    if params.hive_cluster_token_zkstore:
+      zkmigrator.set_acls(self._base_node(params.hive_cluster_token_zkstore), 'world:anyone:crdwa')
+    if params.hive_zk_namespace:
+      zkmigrator.set_acls(
+        params.hive_zk_namespace if params.hive_zk_namespace.startswith('/') else '/' + params.hive_zk_namespace,
+        'world:anyone:crdwa')
+    zkmigrator.set_acls(params.zkdtsm_pattern, 'world:anyone:crdwa')
 
   def get_log_folder(self):
     import params

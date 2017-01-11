@@ -415,6 +415,7 @@ else:
 hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
 
 java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 java_version = expect("/hostLevelParams/java_version", int)
 
 ##### MYSQL
@@ -652,6 +653,11 @@ repo_config_username = config['configurations']['ranger-hive-plugin-properties']
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-hive-plugin-properties']
 policy_user = config['configurations']['ranger-hive-plugin-properties']['policy_user']
+
+hive_cluster_token_zkstore = default("/configurations/hive-site/hive.cluster.delegation.token.store.zookeeper.znode", None)
+jaas_file = os.path.join(hive_config_dir, 'zkmigrator_jaas.conf')
+zkdtsm_pattern = '/zkdtsm_*'
+hive_zk_namespace = default("/configurations/hive-site/hive.zookeeper.namespace", None)
 
 if security_enabled:
   hive_principal = hive_server_principal.replace('_HOST',hostname.lower())

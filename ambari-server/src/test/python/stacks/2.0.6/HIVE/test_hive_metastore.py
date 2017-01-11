@@ -95,7 +95,7 @@ class TestHiveMetastore(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assert_configure_default()
+    self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
@@ -333,6 +333,11 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'root',
                               group = 'root',
                               mode = 0644,
+                              )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/zkmigrator_jaas.conf',
+                              content = Template('zkmigrator_jaas.conf.j2'),
+                              owner = 'hive',
+                              group = 'hadoop',
                               )
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
