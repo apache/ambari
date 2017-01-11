@@ -101,10 +101,10 @@ notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 zeppelin_env_content = config['configurations']['zeppelin-env']['zeppelin_env_content']
 
 # shiro.ini
-shiro_ini_content = config['configurations']['zeppelin-env']['shiro_ini_content']
+shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
 
 # log4j.properties
-log4j_properties_content = config['configurations']['zeppelin-env']['log4j_properties_content']
+log4j_properties_content = config['configurations']['zeppelin-log4j-properties']['log4j_properties_content']
 
 # detect configs
 master_configs = config['clusterHostInfo']
