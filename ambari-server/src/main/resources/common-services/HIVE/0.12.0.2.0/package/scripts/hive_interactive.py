@@ -42,6 +42,8 @@ from resource_management.core.shell import as_sudo
 from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
 from resource_management.core import utils
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from ambari_commons.constants import SERVICE
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -123,7 +125,18 @@ def hive_interactive(name=None):
   Hive2 doesn't have support for Atlas, we need to remove the Hook 'org.apache.atlas.hive.hook.HiveHook',
   which would have come in config 'hive.exec.post.hooks' during the site merge logic, if Atlas is installed.
   '''
-  remove_atlas_hook_if_exists(merged_hive_interactive_site)
+  # Generate atlas-application.properties.xml file
+  if params.enable_atlas_hook and params.stack_supports_atlas_hook_for_hive_interactive:
+    Logger.info("Setup for Atlas Hive2 Hook started.")
+
+    atlas_hook_filepath = os.path.join(params.hive_server_interactive_conf_dir, params.atlas_hook_filename)
+    setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
+
+    Logger.info("Setup for Atlas Hive2 Hook done.")
+  else:
+    # Required for HDP 2.5 stacks
+    Logger.info("Skipping setup for Atlas Hook, as it is disabled/ not supported.")
+    remove_atlas_hook_if_exists(merged_hive_interactive_site)
 
   '''
   As tez_hive2/tez-site.xml only contains the new + the changed props compared to tez/tez-site.xml,

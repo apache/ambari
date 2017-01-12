@@ -338,6 +338,11 @@
       "name": "ranger_solr_config_support",
       "description": "Showing Ranger solrconfig.xml on UI",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "hive_interactive_atlas_hook_required",
+      "description": "Registering Atlas Hook for Hive Interactive.",
+      "min_version": "2.6.0.0"
     }
   ]
 }
