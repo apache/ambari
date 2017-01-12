@@ -30,7 +30,10 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.FileSystem;
 
 /**
- * Used to: 1) copy files/directories from localFS to hadoopFs 2) create empty
+ * Used to:
+ *   1) copy files/directories from localFS to hadoopFs
+ *   2) create empty
+ *   3) download files/directories from hadoopFs to localFS
  * files/directories in hadoopFs
  */
 public class Resource {
@@ -153,47 +156,55 @@ public class Resource {
     ArrayList<String> actionsAvailable = new ArrayList<String>();
     actionsAvailable.add("create");
     actionsAvailable.add("delete");
+    actionsAvailable.add("download");
     ArrayList<String> typesAvailable = new ArrayList<String>();
     typesAvailable.add("file");
     typesAvailable.add("directory");
 
-    if (resource.getTarget() == null)
-      throw new IllegalArgumentException(
-          "Path to resource in HadoopFs must be filled.");
-
-    if (resource.getAction() == null
-        || !actionsAvailable.contains(resource.getAction()))
+    if (resource.getAction() == null || !actionsAvailable.contains(resource.getAction())) {
       throw new IllegalArgumentException("Action is not supported.");
+    }
 
-    if (resource.getType() == null
-        || !typesAvailable.contains(resource.getType()))
+    String dfsPath = resource.getTarget();
+    String localPath = resource.getSource();
+    if (resource.getAction().equals("download")) {
+      dfsPath = resource.getSource();
+      localPath = resource.getTarget();
+    }
+
+    if (dfsPath == null) {
+      throw new IllegalArgumentException("Path to resource in HadoopFs must be filled.");
+    }
+
+    if (resource.getType() == null || !typesAvailable.contains(resource.getType())) {
       throw new IllegalArgumentException("Type is not supported.");
+    }
 
     // Check consistency for ("type":"file" == file in hadoop)
-    if (dfs.isFile(new Path(resource.getTarget()))
-        && !"file".equals(resource.getType()))
+    if (dfs.isFile(new Path(dfsPath)) && !"file".equals(resource.getType())) {
       throw new IllegalArgumentException(
-          "Cannot create a directory " + resource.getTarget() +
+          "Cannot create a directory " + dfsPath +
               " because file is present on the given path.");
+    }
     // Check consistency for ("type":"directory" == directory in hadoop)
-    else if (dfs.isDirectory(new Path(resource.getTarget()))
-        && !"directory".equals(resource.getType()))
+    else if (dfs.isDirectory(new Path(dfsPath)) && !"directory".equals(resource.getType())) {
       throw new IllegalArgumentException(
-          "Cannot create a file " + resource.getTarget() +
+          "Cannot create a file " + dfsPath +
               " because directory is present on the given path.");
-    
-    if(resource.getSource() != null) {
-      File source = new File(resource.getSource());
-      if(source.isFile()
-          && !"file".equals(resource.getType()))
+    }
+
+    if(localPath != null) {
+      File local = new File(localPath);
+      if(local.isFile() && !"file".equals(resource.getType())) {
         throw new IllegalArgumentException(
-            "Cannot create a directory " + resource.getTarget() +
-                " because source " + resource.getSource() + "is a file");
-      else if(source.isDirectory()
-          && !"directory".equals(resource.getType()))
+            "Cannot create a directory " + dfsPath +
+                " because source " + localPath + "is a file");
+      }
+      else if(local.isDirectory() && !"directory".equals(resource.getType())) {
         throw new IllegalArgumentException(
-            "Cannot create a file " + resource.getTarget() +
-                " because source " + resource.getSource() + "is a directory");      
+            "Cannot create a file " + dfsPath +
+                " because source " + localPath + "is a directory");
+      }
     }
   }
 

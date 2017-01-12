@@ -30,7 +30,7 @@ The cause is that for every call new connection initialized, with datanodes, nam
 While this resource can gather the directories/files to create/delete/copyFromLocal.
 And after just with one call create all that.
 
-action = create_on_execute / delete_on_execute. Are for gathering information  about what you want
+action = create_on_execute / delete_on_execute / download_on_execute. Are for gathering information  about what you want
 to create.
 
 After everything is gathered you should execute action = execute. To perform delayed actions
@@ -43,6 +43,7 @@ The resource is a replacement for the following operations:
   5) hadoop fs -touchz
   6) hadoop fs -chmod
   7) hadoop fs -chown
+  8) hadoop fs -copyToLocal
 """
 
 
@@ -52,7 +53,7 @@ class HdfsResource(Resource):
   target = ResourceArgument(default=lambda obj: obj.name)
   # "directory" or "file"
   type = ResourceArgument()
-  # "create_on_execute" or "delete_on_execute" or "execute"
+  # "create_on_execute" or "delete_on_execute" or "download_on_execute" or "execute"
   action = ForcedListArgument()
   # if present - copies file/directory from local path {source} to hadoop path - {target}
   source = ResourceArgument()
@@ -102,6 +103,6 @@ class HdfsResource(Resource):
   # To support HCFS
   dfs_type = ResourceArgument(default="")
 
-  #action 'execute' immediately creates all pending files/directories in efficient manner
-  #action 'create_on_execute/delete_on_execute' adds file/directory to list of pending directories
-  actions = Resource.actions + ["create_on_execute", "delete_on_execute", "execute"]
+  #action 'execute' immediately performs all pending actions in an efficient manner
+  #action 'create_on_execute/delete_on_execute/download_on_execute' adds to the list of pending actions
+  actions = Resource.actions + ["create_on_execute", "delete_on_execute", "download_on_execute", "execute"]
