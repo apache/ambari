@@ -650,11 +650,8 @@
 
             //populate the calendar with date objects
             var startDay = daysInLastMonth - dayOfWeek + this.locale.firstDay + 1;
-            if (startDay > daysInLastMonth)
+            if (startDay > daysInLastMonth + 1)
                 startDay -= 7;
-
-            if (dayOfWeek == this.locale.firstDay)
-                startDay = daysInLastMonth - 6;
 
             var curDate = moment([lastYear, lastMonth, startDay, 12, minute, second]);
 
@@ -663,6 +660,8 @@
                 if (i > 0 && col % 7 === 0) {
                     col = 0;
                     row++;
+                    if (curDate.month() != month)
+                        break
                 }
                 calendar[row][col] = curDate.clone().hour(hour).minute(minute).second(second);
                 curDate.hour(12);
@@ -707,7 +706,7 @@
                 html += '<th></th>';
             }
 
-            var dateHtml = this.locale.monthNames[calendar[1][1].month()] + calendar[1][1].format(" YYYY");
+            var dateHtml = this.locale.monthNames[calendar[1][1].month()] + " " + calendar[1][1].year();
 
             if (this.showDropdowns) {
                 var currentMonth = calendar[1][1].month();
@@ -774,6 +773,9 @@
             }
 
             for (var row = 0; row < 6; row++) {
+                if (calendar[row].length == 0)
+                    continue
+
                 html += '<tr>';
 
                 // add week number
