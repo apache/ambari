@@ -633,7 +633,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         # The PQS hosts we want to ensure are set
         new_value = ','.join(phoenix_query_server_hosts)
         # Update the proxyuser setting, deferring to out callback to merge results together
-        self.put_proxyuser_value("HTTP", new_value, services=services, put_function=putCoreSiteProperty)
+        self.put_proxyuser_value("HTTP", new_value, services=services, configurations=configurations, put_function=putCoreSiteProperty)
       else:
         Logger.debug("No phoenix query server hosts to update")
     else:

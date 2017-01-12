@@ -143,7 +143,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
 
       meta = self.get_service_component_meta("HIVE", "WEBHCAT_SERVER", services)
       if "hostnames" in meta:
-        self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, put_function=putCoreSiteProperty)
+        self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")

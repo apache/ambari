@@ -200,7 +200,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
          ambari_user = ambari_user.split('@')[0]
     return ambari_user
 
-  def get_data_for_proxyuser(self, user_name, services, groups=False):
+  def get_data_for_proxyuser(self, user_name, services, configurations, groups=False):
     """
     Returns values of proxyuser properties for given user. Properties can be
     hadoop.proxyuser.username.groups or hadoop.proxyuser.username.hosts
@@ -222,11 +222,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if property_value == "*":
         return True, set()
       else:
-        return False, set(property_value.split(","))
+        result_values = set()
+        if "core-site" in configurations:
+          if property_name in configurations["core-site"]['properties']:
+            result_values = result_values.union(configurations["core-site"]['properties'][property_name].split(","))
+        result_values = result_values.union(property_value.split(","))
+        return False, result_values
     return False, set()
 
-  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, put_function=None):
-    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, is_groups)
+  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, configurations=None, put_function=None):
+    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, configurations, is_groups)
     result_value = "*"
     result_values_set = self.merge_proxyusers_values(current_value, value)
     if len(result_values_set) > 0:
@@ -251,13 +256,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     append(second)
     return result
 
-  def recommendAmbariProxyUsersForHDFS(self, services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
+  def recommendAmbariProxyUsersForHDFS(self, services, configurations, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
       if "HDFS" in servicesList:
           ambari_user = self.getAmbariUser(services)
           ambariHostName = socket.getfqdn()
 
-          self.put_proxyuser_value(ambari_user,ambariHostName,services=services,put_function=putCoreSiteProperty)
-          self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, put_function=putCoreSiteProperty)
+          self.put_proxyuser_value(ambari_user,ambariHostName,services=services, configurations=configurations, put_function=putCoreSiteProperty)
+          self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
           old_ambari_user = self.getOldAmbariUser(services)
           if old_ambari_user is not None:
@@ -364,10 +369,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if "propertyHosts" in user_properties:
           services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
-      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, put_function=putCoreSiteProperty)
+      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
       Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(hive_user, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
-        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, put_function=putCoreSiteProperty)
+        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
       # Remove old properties if user was renamed
       userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
@@ -381,7 +386,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
           services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
 
-    self.recommendAmbariProxyUsersForHDFS(services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
+    self.recommendAmbariProxyUsersForHDFS(services, configurations, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
