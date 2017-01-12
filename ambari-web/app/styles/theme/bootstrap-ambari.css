@@ -589,7 +589,7 @@ h2.table-title {
   color: #999;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-index {
-  line-height: 18px;
+  line-height: 16px;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-description {
   font-family: 'Roboto', sans-serif;
@@ -699,6 +699,9 @@ input[type="radio"].disabled + label:hover:before {
   background-color: #b2b8c1;
   border-color: #b2b8c1;
 }
+input[type="checkbox"] + label {
+  margin-top: -2px;
+}
 input[type="checkbox"] + label:before {
   content: '';
   position: absolute;
@@ -719,13 +722,14 @@ input[type="checkbox"]:checked + label:after {
   top: 2px;
   left: 2px;
   font-size: 9px;
+  line-height: 1.42;
 }
 input[type="radio"] + label:before,
 input.radio + label:before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0;
+  top: 2px;
   width: 12px;
   height: 12px;
   box-sizing: border-box;
@@ -739,7 +743,7 @@ input.radio:checked + label:after {
   content: '';
   background-color: #FFF;
   position: absolute;
-  top: 3px;
+  top: 5px;
   left: 3px;
   width: 6px;
   height: 6px;

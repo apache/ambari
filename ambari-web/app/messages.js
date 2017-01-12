@@ -638,7 +638,7 @@ Em.I18n.translations = {
   'installer.step1.advancedRepo.localRepo.label.baseUrl':'Repository Base URL',
   'installer.step1.advancedRepo.localRepo.label.stack':'Stack',
   'installer.step1.advancedRepo.localRepo.placeholder': 'Enter Base URL or remove this OS',
-  'installer.step1.advancedRepo.skipValidation.tooltip':'<b>Warning:</b> This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
+  'installer.step1.advancedRepo.skipValidation.tooltip':'Warning: This is for advanced users only. Use this option if you want to skip validation for Repository Base URLs.',
   'installer.step1.advancedRepo.useRedhatSatellite.tooltip':'Disable distributed repositories and use RedHat Satellite/Spacewalk channels instead',
   'installer.step1.advancedRepo.useRedhatSatellite.disabled.tooltip':'Use of RedHat Satellite/Spacewalk is not available when is using Public Repositories',
   'installer.step1.advancedRepo.skipValidation.message':'Skip Repository Base URL validation (Advanced)',

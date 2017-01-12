@@ -24,20 +24,19 @@
     <div class="panel-body">
 
       <div class="panel panel-default panel-internal">
-        <div class="panel-heading">
+        <div class="panel-heading compact-panel-heading">
           <div class="button-section">
-            {{#unless isBackDisabled}}
-              <button class="btn btn-primary step3-remove-selected-btn" {{bindAttr disabled="view.noHostsSelected"}}
-                {{action removeSelectedHosts target="controller" }}>
+            {{#unless view.noHostsSelected}}
+              <button class="btn btn-primary step3-remove-selected-btn" {{action removeSelectedHosts target="controller" }}>
                 <i class="glyphicon glyphicon-trash glyphicon-white"></i>
                 <span class="hidden-sm">{{t installer.step3.removeSelected}}</span>
               </button>
             {{/unless}}
             {{#unless isRetryDisabled}}
-              <a class="btn btn-primary decommission" href="#" {{action retrySelectedHosts target="view"}}>
+              <button class="btn btn-primary decommission" {{action retrySelectedHosts target="view"}}>
                 <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
                 <span class="hidden-sm">{{t installer.step3.retryFailed}}</span>
-              </a>
+              </button>
             {{/unless}}
 
             <div id="host-filter" class="pull-right">
@@ -123,24 +122,24 @@
           </table>
         </div>
       </div>
-
-      {{#if hasMoreRegisteredHosts}}
-        <div {{bindAttr class=":alert :alert-warning"}}>
-          <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
-        </div>
-      {{/if}}
-      {{#unless disableHostCheck}}
-        <div {{bindAttr class=":alert :alert-warning view.status isWarningsBoxVisible::hidden"}}>
-          {{view.message}}
-          <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
-          {{#unless isBootstrapFailed}}
-            {{#unless isWarningsLoaded}}
-              {{view App.SpinnerView}}
+      <div id="warningsSection">
+        {{#if hasMoreRegisteredHosts}}
+          <div {{bindAttr class=":alert :alert-warning"}}>
+            <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
+          </div>
+        {{/if}}
+        {{#unless disableHostCheck}}
+          <div {{bindAttr class=":alert :alert-warning view.status isWarningsBoxVisible::hidden"}}>
+            {{view.message}}
+            <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
+            {{#unless isBootstrapFailed}}
+              {{#unless isWarningsLoaded}}
+                {{view App.SpinnerView}}
+              {{/unless}}
             {{/unless}}
-          {{/unless}}
-        </div>
-      {{/unless}}
-
+          </div>
+        {{/unless}}
+      </div>
     </div>
   </div>
 </div>

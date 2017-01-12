@@ -23,7 +23,9 @@ App.SshKeyFileUploader = Em.View.extend({
   //TODO: rewrite it using tagName and attribute binding
   //TODO: rewrite it as independent component and place it somewhere in utils
   // alternative is to move it to App.WizardStep2View
-  template: Em.Handlebars.compile('<input type="file" {{bindAttr disabled="view.disabled"}} />'),
+  template: Em.Handlebars.compile('<input class="inputfileUgly" type="file" name="file" id="file" {{bindAttr disabled="view.disabled"}} />' +
+      '<label class="btn btn-default" for="file" {{bindAttr disabled="view.disabled"}}>Choose file</label>' +
+      '<span id="selectedFileName">No file selected</span>'),
 
   classNames: ['ssh-key-input-indentation'],
 
@@ -35,6 +37,9 @@ App.SshKeyFileUploader = Em.View.extend({
 
       reader.onload = (function () {
         return function (e) {
+          var fileNameArray = $("#file").val().toString().split("\\");
+          var selectedFileName = fileNameArray[fileNameArray.length -1];
+          $('#selectedFileName').html(selectedFileName);
           $('#sshKey').html(e.target.result);
           self.get("controller").setSshKey(e.target.result);
         };

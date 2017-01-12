@@ -81,7 +81,7 @@
           <div class="panel-body version-contents-body">
             <div class="row radio-group">
               {{! Public Repository radio }}
-              <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio"}}>
+              <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}}>
                 {{view view.usePublicRepoRadioButton classNames="display-inline-block"}}
                 {{#if networkIssuesExist}}
                   <a id="public-disabled-link" class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
@@ -164,7 +164,7 @@
                       </td>
                       <td class="col-sm-1">
                         <a class="action remove-icon" href="#" {{action "removeOS" operatingSystem target="view"}}>
-                          <span class="icon icon-minus" {{translateAttr title="common.remove"}}></span>
+                          <span class="icon icon-minus"></span>
                             {{t common.remove}}
                         </a>
                       </td>
@@ -176,17 +176,17 @@
             {{! OSes and Repositories END }}
 
             {{! Skip Repository Base URL validation }}
-            <div id="skip-validation" {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled :checkbox"}}>
-                {{#view App.CheckboxView
-                  labelTranslate="installer.step1.advancedRepo.skipValidation.message"
-                  labelClassNamesBinding="controller.selectedStack.useRedhatSatellite:disabled"
-                  checkedBinding="skipValidationChecked"
-                  disabledBinding="controller.selectedStack.useRedhatSatellite"
-                }}
-                  <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
-                  data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
-                  </i>
-                {{/view}}
+            <div id="skip-validation" {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled"}}>
+              {{#view App.CheckboxView
+                labelTranslate="installer.step1.advancedRepo.skipValidation.message"
+                labelClassNamesBinding="controller.selectedStack.useRedhatSatellite:disabled"
+                checkedBinding="skipValidationChecked"
+                disabledBinding="controller.selectedStack.useRedhatSatellite"
+              }}
+                <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
+                data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
+                </i>
+              {{/view}}
               <div class="clearfix"></div>
             </div>
             {{! Skip Repository Base URL validation END }}
@@ -200,7 +200,7 @@
                   {{t installer.step1.advancedRepo.useRedhatSatellite.message}}
                 </label>
                 <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
-                data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
+                data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
                 </i>
               {{/view}}
             </div>
