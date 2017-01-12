@@ -18,7 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import com.google.gson.Gson;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -29,8 +30,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import java.util.Collections;
-import java.util.Map;
+
+import com.google.gson.Gson;
 
 /**
  * Entity representing an Artifact.
