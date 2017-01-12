@@ -258,7 +258,7 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateConfigurations(services, hosts)
 
     expectedItems = [
-      {"message": "Value is less than the recommended default of 512", "level": "WARN"},
+      {"message": "Value is less than the recommended default of 510", "level": "WARN"},
       {'message': 'Value should be set for yarn.nodemanager.linux-container-executor.group', 'level': 'ERROR'},
       {"message": "Value should be integer", "level": "ERROR"},
       {"message": "Value should be set", "level": "ERROR"}
@@ -387,6 +387,348 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
+  def test__getConfigurationClusterSummary_withContext1(self):
+    servicesList = ["HDFS", "YARN"]
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "host_name" : "host1",
+            "cpu_count" : 2,
+            "total_mem" : 20471556,
+            "disk_info" : [
+              {
+                "available" : "21052800",
+                "device" : "/dev/vda1",
+                "used" : "3303636",
+                "percent" : "14%",
+                "size" : "25666616",
+                "type" : "ext4",
+                "mountpoint" : "/"
+              },
+              {
+                "available" : "244732200",
+                "device" : "/dev/vdb",
+                "used" : "60508",
+                "percent" : "1%",
+                "size" : "257899908",
+                "type" : "ext4",
+                "mountpoint" : "/grid/0"
+              }
+            ]
+          }
+        }
+      ]
+    }
+
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site" : {
+                    "properties" : {
+                      "yarn.scheduler.minimum-allocation-mb" : "1024",
+                      "yarn.scheduler.maximum-allocation-mb" : "2048"
+                    }
+                  }
+                },
+                "changed-configurations" : [ ]
+    }
+
+    expected = {
+      "hBaseInstalled": False,
+      "components": components,
+      "cpu": 2,
+      "disk": 2,
+      "ram": 19,
+      "reservedRam": 4,
+      "hbaseRam": 4,
+      "minContainerSize": 1024,
+      "minContainerRam" : 1024,
+      "totalAvailableRam": 15360,
+      "containers": 4,
+      "ramPerContainer": 3072,
+      "mapMemory": 3072,
+      "reduceMemory": 3072,
+      "amMemory": 3072,
+      "referenceHost": hosts["items"][0]["Hosts"],
+      "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
+    }
+
+    # Cluster create call
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected)
+
+    # Validate configuration call - pick user specified value which is same as what was set
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                   }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "1024",
+                      "yarn.scheduler.maximum-allocation-mb": "2048"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "context": {'call_type': 'validateConfigurations'}
+    }
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected)
+
+    # Validate configuration call - pick user specified value
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "2048",
+                      "yarn.scheduler.maximum-allocation-mb": "12288"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "context": {'call_type': 'validateConfigurations'}
+    }
+
+    expected_2048 = {
+      "hBaseInstalled": False,
+      "components": components,
+      "cpu": 2,
+      "disk": 2,
+      "ram": 19,
+      "reservedRam": 4,
+      "hbaseRam": 4,
+      "minContainerSize": 2048,
+      "minContainerRam" : 2048,
+      "totalAvailableRam": 15360,
+      "containers": 4,
+      "ramPerContainer": 2048,
+      "mapMemory": 2048,
+      "reduceMemory": 2048,
+      "amMemory": 2048,
+      "referenceHost": hosts["items"][0]["Hosts"],
+      "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
+    }
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected_2048)
+
+    # Recommend config dependencies call - pick user specified value
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "2048",
+                      "yarn.scheduler.maximum-allocation-mb": "12288"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "context": {'call_type': 'recommendConfigurationDependencies'}
+    }
+
+    expected_2048 = {
+      "hBaseInstalled": False,
+      "components": components,
+      "cpu": 2,
+      "disk": 2,
+      "ram": 19,
+      "reservedRam": 4,
+      "hbaseRam": 4,
+      "minContainerSize": 2048,
+      "minContainerRam" : 2048,
+      "totalAvailableRam": 15360,
+      "containers": 4,
+      "ramPerContainer": 2048,
+      "mapMemory": 2048,
+      "reduceMemory": 2048,
+      "amMemory": 2048,
+      "referenceHost": hosts["items"][0]["Hosts"],
+      "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
+    }
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected_2048)
+
+    # Recommend config dependencies call - pick user specified value of 4096 for min
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "4096",
+                      "yarn.scheduler.maximum-allocation-mb": "12288"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "context": {'call_type': 'recommendConfigurationDependencies'}
+    }
+
+    expected_4096 = {
+      "hBaseInstalled": False,
+      "components": components,
+      "cpu": 2,
+      "disk": 2,
+      "ram": 19,
+      "reservedRam": 4,
+      "hbaseRam": 4,
+      "minContainerSize": 4096,
+      "minContainerRam" : 4096,
+      "totalAvailableRam": 15360,
+      "containers": 3,
+      "ramPerContainer": 4096,
+      "mapMemory": 4096,
+      "reduceMemory": 4096,
+      "amMemory": 4096,
+      "referenceHost": hosts["items"][0]["Hosts"],
+      "referenceNodeManagerHost": hosts["items"][0]["Hosts"]
+    }
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected_4096)
+
+
+
   def test_getConfigurationClusterSummary_withHBaseAnd6gbRam(self):
     servicesList = ["HBASE"]
     components = []
@@ -419,6 +761,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 2,
       "hbaseRam": 1,
       "minContainerSize": 512,
+      "minContainerRam" : 512,
       "totalAvailableRam": 3072,
       "containers": 6,
       "ramPerContainer": 512,
@@ -487,15 +830,16 @@ class TestHDP206StackAdvisor(TestCase):
         })
     expected["referenceHost"] = hosts["items"][1]["Hosts"]
     expected["referenceNodeManagerHost"] = hosts["items"][1]["Hosts"]
-    expected["amMemory"] = 170.66666666666666
-    expected["containers"] = 3.0
+    expected["amMemory"] = 128
+    expected["containers"] = 4
     expected["cpu"] = 4
     expected["totalAvailableRam"] = 512
-    expected["mapMemory"] = 170
-    expected["minContainerSize"] = 256
-    expected["reduceMemory"] = 170.66666666666666
+    expected["mapMemory"] = 128
+    expected["minContainerSize"] = 128
+    expected["reduceMemory"] = 128
+    expected["minContainerRam"] = 128
     expected["ram"] = 0
-    expected["ramPerContainer"] = 170.66666666666666
+    expected["ramPerContainer"] = 128
     expected["reservedRam"] = 1
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
     self.assertEquals(result, expected)
@@ -537,6 +881,7 @@ class TestHDP206StackAdvisor(TestCase):
       "mapMemory": 3072,
       "reduceMemory": 3072,
       "amMemory": 3072,
+      "minContainerRam": 1024,
       "referenceHost": hosts["items"][0]["Hosts"]
     }
 
@@ -592,7 +937,8 @@ class TestHDP206StackAdvisor(TestCase):
     services = {"configurations": configurations, "services": []}
     clusterData = {
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "yarn-env": {
@@ -619,7 +965,8 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {
       "mapMemory": 567,
       "reduceMemory": 345.6666666666666,
-      "amMemory": 123.54
+      "amMemory": 123.54,
+      "minContainerRam": 123.54
     }
     expected = {
       "mapred-site": {
@@ -655,13 +1002,14 @@ class TestHDP206StackAdvisor(TestCase):
       "ram": 0,
       "reservedRam": 1,
       "hbaseRam": 1,
-      "minContainerSize": 256,
+      "minContainerSize": 128,
       "totalAvailableRam": 512,
       "containers": 3,
-      "ramPerContainer": 170.66666666666666,
+      "ramPerContainer": 170,
       "mapMemory": 170,
-      "reduceMemory": 170.66666666666666,
-      "amMemory": 170.66666666666666
+      "reduceMemory": 170,
+      "amMemory": 170,
+      "minContainerRam" : 170
     }
 
     self.assertEquals(result, expected)
@@ -1171,7 +1519,8 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     clusterData = {
-      "totalAvailableRam": 2048
+      "totalAvailableRam": 2048,
+      "totalAvailableRam": 256
     }
     ambariHostName = socket.getfqdn()
     expected = {'oozie-env':
@@ -1210,7 +1559,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_heapsize': '1024',
                       'proxyuser_group': 'users',
                       'namenode_opt_maxnewsize': '256',
-                      'namenode_opt_newsize': '256'}}}
+                      'namenode_opt_newsize': '128'}}}
 
     # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
     # and Hive Server Interactive Host (installed on different host compared to HiveServer).
@@ -1345,7 +1694,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_heapsize': '1024',
                       'proxyuser_group': 'users',
                       'namenode_opt_maxnewsize': '256',
-                      'namenode_opt_newsize': '256'}}}
+                      'namenode_opt_newsize': '128'}}}
 
     # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
     # and Hive Server Interactive Host (installed on same host compared to HiveServer).
@@ -1472,7 +1821,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_heapsize': '1024',
                       'proxyuser_group': 'users',
                       'namenode_opt_maxnewsize': '256',
-                      'namenode_opt_newsize': '256'}}}
+                      'namenode_opt_newsize': '128'}}}
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
     self.assertEquals(configurations, expected)

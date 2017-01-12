@@ -125,7 +125,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['minContainerRam']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
@@ -1010,7 +1010,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 
     cluster["minContainerSize"] = {
-      cluster["ram"] <= 4: 256,
+      cluster["ram"] <= 3: 128,
+      3 < cluster["ram"] <= 4: 256,
       4 < cluster["ram"] <= 8: 512,
       8 < cluster["ram"] <= 24: 1024,
       24 < cluster["ram"]: 2048
@@ -1020,21 +1021,63 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if cluster["hBaseInstalled"]:
       totalAvailableRam -= cluster["hbaseRam"]
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
+    Logger.info("Memory for YARN apps - cluster[totalAvailableRam]: " + str(cluster["totalAvailableRam"]))
+
+    suggestedMinContainerRam = 1024
+    callContext = getCallContext(services)
+
+    if services:  # its never None but some unit tests pass it as None
+      if None != getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
+              'recommendConfigurations' != callContext:
+        '''yarn.scheduler.minimum-allocation-mb has changed - then pick this value up'''
+        if "yarn-site" in services["configurations"] and \
+                "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
+                str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]).isdigit():
+          Logger.info("Using user provided yarn.scheduler.minimum-allocation-mb = " +
+                      str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
+          cluster["minContainerRam"] = int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+          Logger.info("Minimum ram per container due to user input - cluster[minContainerRam]: " + str(cluster["minContainerRam"]))
+          if cluster["minContainerRam"] > cluster["totalAvailableRam"]:
+            cluster["minContainerRam"] = cluster["totalAvailableRam"]
+            Logger.info("Minimum ram per container after checking against limit - cluster[minContainerRam]: " + str(cluster["minContainerRam"]))
+            pass
+          cluster["minContainerSize"] = cluster["minContainerRam"]
+          suggestedMinContainerRam = cluster["minContainerRam"]
+          pass
+        pass
+      pass
+
+
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = round(max(3,
+    cluster["containers"] = int(round(max(3,
                                 min(2 * cluster["cpu"],
                                     min(ceil(1.8 * cluster["disk"]),
-                                            cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
+                                            cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
+    Logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
 
-    '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
-    '''If greater than 1GB, value will be in multiples of 512.'''
-    if cluster["ramPerContainer"] > 1024:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
+    if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
+      cluster["containers"] = ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"])
+      Logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
+      pass
+
+    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
+    cluster["minContainerRam"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
+    Logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
+
+    '''If greater than cluster["minContainerRam"], value will be in multiples of cluster["minContainerRam"]'''
+    if cluster["ramPerContainer"] > cluster["minContainerRam"]:
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["minContainerRam"]) * cluster["minContainerRam"]
+
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
     cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
+
+    Logger.info("Min container size - cluster[minContainerRam]: " + str(cluster["minContainerRam"]))
+    Logger.info("Available memory for map - cluster[mapMemory]: " + str(cluster["mapMemory"]))
+    Logger.info("Available memory for reduce - cluster[reduceMemory]: " + str(cluster["reduceMemory"]))
+    Logger.info("Available memory for am - cluster[amMemory]: " + str(cluster["amMemory"]))
+
 
     return cluster
 
@@ -1900,6 +1943,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     service_meta = service_meta[0]
     return [item[__stack_service_components]["component_name"] for item in service_meta["components"]]
+
+def getCallContext(services):
+  if services:
+    if 'context' in services:
+      Logger.info("context : " + str (services['context']))
+      return services['context']['call_type']
+  return ""
 
 
 def getOldValue(self, services, configType, propertyName):

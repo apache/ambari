@@ -211,6 +211,9 @@ class TestHDP23StackAdvisor(TestCase):
       ]
     }
     services = {
+      "context" : {
+        "call_type" : "recommendConfigurations"
+      },
       "services" : [ {
         "StackServices":{
           "service_name": "YARN",

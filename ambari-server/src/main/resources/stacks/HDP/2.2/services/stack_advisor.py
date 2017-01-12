@@ -1093,7 +1093,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     nodemanagerMinRam = 1048576 # 1TB in mb
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
-    putMapredProperty('yarn.app.mapreduce.am.resource.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+    putMapredProperty('yarn.app.mapreduce.am.resource.mb', max(int(clusterData['ramPerContainer']),int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     min_mapreduce_map_memory_mb = 0
@@ -1103,8 +1103,19 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       min_mapreduce_map_memory_mb = 1536
       min_mapreduce_reduce_memory_mb = 1536
       min_mapreduce_map_java_opts = 1024
-    putMapredProperty('mapreduce.map.memory.mb', min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), max(min_mapreduce_map_memory_mb, int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))))
-    putMapredProperty('mapreduce.reduce.memory.mb', min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), max(min_mapreduce_reduce_memory_mb, min(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(nodemanagerMinRam)))))
+
+    putMapredProperty('mapreduce.map.memory.mb',
+                      min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]),
+                          max(min_mapreduce_map_memory_mb,
+                              max(int(clusterData['ramPerContainer']),
+                                  int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))))
+    putMapredProperty('mapreduce.reduce.memory.mb',
+                      min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]),
+                          max(max(min_mapreduce_reduce_memory_mb,
+                                  int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])),
+                              min(2*int(clusterData['ramPerContainer']),
+                                  int(nodemanagerMinRam)))))
+
     mapredMapXmx = int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]));
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(max(min_mapreduce_map_java_opts, mapredMapXmx)) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.reduce.memory.mb"]))) + "m")
