@@ -2070,7 +2070,7 @@ class TestHDP206StackAdvisor(TestCase):
       'hdfs-user': {'propertyName': 'hdfs_user', 'config': 'hadoop-env', 'propertyHosts': '*', 'propertyGroups': '*'},
       'yarn-user': {'propertyName': 'yarn_user', 'config': 'yarn-env', 'propertyHosts': 'host1,host2'}
     }
-    res = self.stackAdvisor.getHadoopProxyUsers(services, hosts)
+    res = self.stackAdvisor.getHadoopProxyUsers(services, hosts, configurations)
     self.assertEquals(res, res_expected)
 
     # 2) test filter function: only one RESOURCE_MANAGER
@@ -2078,7 +2078,7 @@ class TestHDP206StackAdvisor(TestCase):
     res_expected = {
         'hdfs-user': {'propertyName': 'hdfs_user', 'config': 'hadoop-env', 'propertyHosts': '*', 'propertyGroups': '*'}
     }
-    res = self.stackAdvisor.getHadoopProxyUsers(services, hosts)
+    res = self.stackAdvisor.getHadoopProxyUsers(services, hosts, configurations)
     self.assertEquals(res, res_expected)
 
   def test_validateOneDataDirPerPartition(self):
