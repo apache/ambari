@@ -31,7 +31,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.util.Collections;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Entity representing an Artifact.
