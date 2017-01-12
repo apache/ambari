@@ -100,18 +100,23 @@ def main(argv=None):
   hosts = stackAdvisor.filterHostMounts(hosts, services)
 
   if action == RECOMMEND_COMPONENT_LAYOUT_ACTION:
+    services['context'] = {'call_type': 'recommendComponentLayout'}
     result = stackAdvisor.recommendComponentLayout(services, hosts)
     result_file = os.path.join(actionDir, "component-layout.json")
   elif action == VALIDATE_COMPONENT_LAYOUT_ACTION:
+    services['context'] = {'call_type': 'validateComponentLayout'}
     result = stackAdvisor.validateComponentLayout(services, hosts)
     result_file = os.path.join(actionDir, "component-layout-validation.json")
   elif action == RECOMMEND_CONFIGURATIONS:
+    services['context'] = {'call_type': 'recommendConfigurations'}
     result = stackAdvisor.recommendConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
+    services['context'] = {'call_type': 'recommendConfigurationDependencies'}
     result = stackAdvisor.recommendConfigurationDependencies(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
   else:  # action == VALIDATE_CONFIGURATIONS
+    services['context'] = {'call_type': 'validateConfigurations'}
     result = stackAdvisor.validateConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations-validation.json")
 

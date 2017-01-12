@@ -374,7 +374,8 @@ class TestHDP25StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers": 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       "spark2-defaults": {
@@ -801,7 +802,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
-      }
+      },
+      "minContainerRam": 512
     }
 
 
@@ -969,7 +971,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
-      }
+      },
+      "minContainerRam": 512
     }
 
     configurations = {
@@ -1149,7 +1152,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
-      }
+      },
+      "minContainerRam": 512
     }
 
 
@@ -1348,7 +1352,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 2048
-      }
+      },
+      "minContainerRam": 512
     }
 
 
@@ -1542,7 +1547,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 1024,
       "referenceNodeManagerHost" : {
         "total_mem" : 51200 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
     configurations = {
@@ -1744,7 +1750,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 2048,
       "referenceNodeManagerHost" : {
         "total_mem" : 40960 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
     configurations = {
@@ -1940,7 +1947,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 341,
       "referenceNodeManagerHost" : {
         "total_mem" : 12288 * 1024
-      }
+      },
+      "minContainerRam": 341
     }
 
 
@@ -2138,7 +2146,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 2048,
       "referenceNodeManagerHost" : {
         "total_mem" : 204800 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
     configurations = {
@@ -2340,7 +2349,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 3072,
       "referenceNodeManagerHost" : {
         "total_mem" : 40960 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
 
@@ -2538,7 +2548,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 341,
       "referenceNodeManagerHost" : {
         "total_mem" : 204800 * 1024
-      }
+      },
+      "minContainerRam": 341
     }
 
 
@@ -2735,7 +2746,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 82240,
       "referenceNodeManagerHost" : {
         "total_mem" : 204800 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
     configurations = {
@@ -2927,7 +2939,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 82240,
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
 
@@ -3148,7 +3161,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
-      }
+      },
+      "minContainerRam": 512
     }
 
     configurations = {
@@ -3374,7 +3388,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
-      }
+      },
+      "minContainerRam": 512
     }
 
     configurations = {
@@ -3566,7 +3581,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 82240,
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
     configurations = {
@@ -3748,7 +3764,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 82240,
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
-      }
+      },
+      "minContainerRam": 1024
     }
 
     configurations = {
@@ -3880,7 +3897,8 @@ class TestHDP25StackAdvisor(TestCase):
       "ramPerContainer": 512,
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
-      }
+      },
+      "minContainerRam": 512
     }
 
     configurations = {
@@ -3925,7 +3943,8 @@ class TestHDP25StackAdvisor(TestCase):
       "amMemory": 2000,
       "reduceMemory": 2056,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "minContainerRam": 256
     }
     expected = {
       'application-properties': {
@@ -4660,7 +4679,8 @@ class TestHDP25StackAdvisor(TestCase):
       "cpu": 4,
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
-      }
+      },
+      "minContainerRam": 256
     }
     hosts = {
       "items" : [
