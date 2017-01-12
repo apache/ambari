@@ -112,7 +112,7 @@ public class ArtifactEntity {
    *
    * @param foreignKeys  ordered map of foreign key property names to values
    */
-  public void setForeignKeys(TreeMap<String, String> foreignKeys) {
+  public void setForeignKeys(Map<String, String> foreignKeys) {
     this.foreignKeys = serializeForeignKeys(foreignKeys);
   }
 
@@ -134,7 +134,7 @@ public class ArtifactEntity {
    *
    * @return string representation of the foreign keys map
    */
-  public static String serializeForeignKeys(TreeMap<String, String> foreignKeys) {
+  public static String serializeForeignKeys(Map<String, String> foreignKeys) {
     return jsonSerializer.toJson(foreignKeys);
   }
 }

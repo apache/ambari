@@ -75,6 +75,9 @@ public class UpgradeUserKerberosDescriptor extends AbstractServerAction {
    */
   private static final String TARGET_STACK_KEY = "target_stack";
 
+  private final static String KERBEROS_DESCRIPTOR_NAME = "kerberos_descriptor";
+  private final static String KERBEROS_DESCRIPTOR_BACKUP_NAME = "kerberos_descriptor_backup";
+
   @Inject
   private ArtifactDAO artifactDAO;
 
@@ -116,49 +119,52 @@ public class UpgradeUserKerberosDescriptor extends AbstractServerAction {
       if (userDescriptor != null) {
         StackId originalStackId = getStackIdFromCommandParams(ORIGINAL_STACK_KEY);
         StackId targetStackId = getStackIdFromCommandParams(TARGET_STACK_KEY);
-        boolean isDowngrade = isDowngrade();
 
-        StackId newVersion = (isDowngrade) ? originalStackId : targetStackId;
-        StackId previousVersion = (isDowngrade) ? targetStackId : originalStackId;
-        KerberosDescriptor newDescriptor = null;
-        KerberosDescriptor previousDescriptor = null;
-
-        if (newVersion == null) {
-          logErrorMessage(messages, errorMessages, "The new stack version information was not found.");
+        if (isDowngrade()) {
+          restoreDescriptor(foreignKeys, messages, errorMessages);
         } else {
-          logMessage(messages, String.format("Obtaining new stack Kerberos descriptor for %s.", newVersion.toString()));
-          newDescriptor = ambariMetaInfo.getKerberosDescriptor(newVersion.getStackName(), newVersion.getStackVersion());
+          backupDescriptor(foreignKeys, messages, errorMessages);
 
-          if (newDescriptor == null) {
-            logErrorMessage(messages, errorMessages, String.format("The Kerberos descriptor for the new stack version, %s, was not found.", newVersion.toString()));
+          KerberosDescriptor newDescriptor = null;
+          KerberosDescriptor previousDescriptor = null;
+
+          if (targetStackId == null) {
+            logErrorMessage(messages, errorMessages, "The new stack version information was not found.");
+          } else {
+            logMessage(messages, String.format("Obtaining new stack Kerberos descriptor for %s.", targetStackId.toString()));
+            newDescriptor = ambariMetaInfo.getKerberosDescriptor(targetStackId.getStackName(), targetStackId.getStackVersion());
+
+            if (newDescriptor == null) {
+              logErrorMessage(messages, errorMessages, String.format("The Kerberos descriptor for the new stack version, %s, was not found.", targetStackId.toString()));
+            }
           }
-        }
 
-        if (previousVersion == null) {
-          logErrorMessage(messages, errorMessages, "The previous stack version information was not found.");
-        } else {
-          logMessage(messages, String.format("Obtaining previous stack Kerberos descriptor for %s.", previousVersion.toString()));
-          previousDescriptor = ambariMetaInfo.getKerberosDescriptor(previousVersion.getStackName(), previousVersion.getStackVersion());
+          if (originalStackId == null) {
+            logErrorMessage(messages, errorMessages, "The previous stack version information was not found.");
+          } else {
+            logMessage(messages, String.format("Obtaining previous stack Kerberos descriptor for %s.", originalStackId.toString()));
+            previousDescriptor = ambariMetaInfo.getKerberosDescriptor(originalStackId.getStackName(), originalStackId.getStackVersion());
 
-          if (newDescriptor == null) {
-            logErrorMessage(messages, errorMessages, String.format("The Kerberos descriptor for the previous stack version, %s, was not found.", previousVersion.toString()));
+            if (newDescriptor == null) {
+              logErrorMessage(messages, errorMessages, String.format("The Kerberos descriptor for the previous stack version, %s, was not found.", originalStackId.toString()));
+            }
           }
-        }
 
-        if (errorMessages.isEmpty()) {
-          logMessage(messages, "Updating the user-specified Kerberos descriptor.");
+          if (errorMessages.isEmpty()) {
+            logMessage(messages, "Updating the user-specified Kerberos descriptor.");
 
-          KerberosDescriptor updatedDescriptor = KerberosDescriptorUpdateHelper.updateUserKerberosDescriptor(
-              previousDescriptor,
-              newDescriptor,
-              userDescriptor);
+            KerberosDescriptor updatedDescriptor = KerberosDescriptorUpdateHelper.updateUserKerberosDescriptor(
+                previousDescriptor,
+                newDescriptor,
+                userDescriptor);
 
-          logMessage(messages, "Storing updated user-specified Kerberos descriptor.");
+            logMessage(messages, "Storing updated user-specified Kerberos descriptor.");
 
-          entity.setArtifactData(updatedDescriptor.toMap());
-          artifactDAO.merge(entity);
+            entity.setArtifactData(updatedDescriptor.toMap());
+            artifactDAO.merge(entity);
 
-          logMessage(messages, "Successfully updated the user-specified Kerberos descriptor.");
+            logMessage(messages, "Successfully updated the user-specified Kerberos descriptor.");
+          }
         }
       } else {
         logMessage(messages, "A user-specified Kerberos descriptor was not found. No updates are necessary.");
@@ -202,4 +208,66 @@ public class UpgradeUserKerberosDescriptor extends AbstractServerAction {
     messages.add(message);
     errorMessages.add(message);
   }
+
+  /**
+   * Create copy of user defined kerberos descriptor and stores it with name {@code kerberos_descriptor_backup}.
+   *
+   * @param foreignKeys   keys specific for cluster
+   * @param messages      list of log messages
+   * @param errorMessages list of error log messages
+   */
+  private void backupDescriptor(TreeMap<String, String> foreignKeys, List<String> messages, List<String> errorMessages) {
+    ArtifactEntity backupEntity = artifactDAO.findByNameAndForeignKeys(KERBEROS_DESCRIPTOR_BACKUP_NAME, foreignKeys);
+    if (backupEntity != null) {
+      artifactDAO.remove(backupEntity);
+    }
+
+    ArtifactEntity entity = artifactDAO.findByNameAndForeignKeys(KERBEROS_DESCRIPTOR_NAME, foreignKeys);
+    if (entity != null) {
+      backupEntity = new ArtifactEntity();
+      backupEntity.setArtifactName(KERBEROS_DESCRIPTOR_BACKUP_NAME);
+      backupEntity.setForeignKeys(entity.getForeignKeys());
+      backupEntity.setArtifactData(entity.getArtifactData());
+
+      artifactDAO.create(backupEntity);
+      logMessage(messages, "Created backup of kerberos descriptor");
+    } else {
+      logErrorMessage(
+          messages,
+          errorMessages,
+          "No backup of kerberos descriptor created due to missing original kerberos descriptor"
+      );
+    }
+
+
+  }
+
+  /**
+   * Restores user defined kerberos descriptor from artifact with name {@code kerberos_descriptor_backup}.
+   *
+   * @param foreignKeys   keys specific for cluster
+   * @param messages      list of log messages
+   * @param errorMessages list of error log messages
+   */
+  private void restoreDescriptor(TreeMap<String, String> foreignKeys, List<String> messages, List<String> errorMessages) {
+    ArtifactEntity backupEntity = artifactDAO.findByNameAndForeignKeys(KERBEROS_DESCRIPTOR_BACKUP_NAME, foreignKeys);
+
+    if (backupEntity != null) {
+      ArtifactEntity entity = artifactDAO.findByNameAndForeignKeys(KERBEROS_DESCRIPTOR_NAME, foreignKeys);
+      if (entity != null) {
+        artifactDAO.remove(entity);
+      }
+
+      entity = new ArtifactEntity();
+      entity.setArtifactName(KERBEROS_DESCRIPTOR_NAME);
+      entity.setForeignKeys(backupEntity.getForeignKeys());
+      entity.setArtifactData(backupEntity.getArtifactData());
+
+      artifactDAO.create(entity);
+      logMessage(messages, "Restored kerberos descriptor from backup");
+    } else {
+      logErrorMessage(messages, errorMessages, "No backup of kerberos descriptor found");
+    }
+  }
+
 }
