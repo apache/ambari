@@ -107,3 +107,4 @@ class StackFeature:
   PHOENIX_CORE_HDFS_SITE_REQUIRED = "phoenix_core_hdfs_site_required"
   RANGER_TAGSYNC_SSL_XML_SUPPORT="ranger_tagsync_ssl_xml_support"
   RANGER_SOLR_CONFIG_SUPPORT='ranger_solr_config_support'
+  HIVE_INTERACTIVE_ATLAS_HOOK_REQUIRED="hive_interactive_atlas_hook_required"
