@@ -839,26 +839,27 @@ define(['require',
 	    	moment.tz.setDefault(zone)
 	    }
 	    this.getRelativeDateString =function(){}
-	    this.getLast1HourRange = function(){
-	    	return [moment().hour(moment().hours() - 1).minute(moment().minutes() - 1).seconds(moment().seconds() - 1), moment().hour(moment().hours()).minute(moment().minutes()).seconds(moment().seconds())];
+	    this.getLast1HourRange = function() {
+	        var m = moment()
+	        return [moment().hour(m.hours() - 1).minute(m.minutes()).seconds(m.seconds()).milliseconds(m.milliseconds() + 1), moment().hour(m.hours()).minute(m.minutes()).seconds(m.seconds()).milliseconds(m.milliseconds())];
 	    }
-	    this.getTodayRange = function() {
-	        return [moment().hour('0').minute('0').seconds('01').milliseconds("000"), moment().hour('23').minute('59').seconds('59').milliseconds("999")];
+      this.getTodayRange = function() {
+	        return [moment().hour('0').minute('0').seconds('0').milliseconds("000"), moment().hour('23').minute('59').seconds('59').milliseconds("999")];
 	    }
 	    this.getYesterdayRange = function() {
-	        return [moment().subtract(1, 'days').hour('0').minute('0').seconds('01').milliseconds("000"), moment().subtract(1, 'days').hour('23').minute('59').seconds('59').milliseconds("999")];
+	        return [moment().subtract(1, 'days').hour('0').minute('0').seconds('0').milliseconds("000"), moment().subtract(1, 'days').hour('23').minute('59').seconds('59').milliseconds("999")];
 	    }
 	    this.getLast7DaysRange = function() {
-	        return [moment().subtract(6, 'days').hour('0').minute('0').seconds('01').milliseconds("000"), moment().hour('23').minute('59').seconds('59').milliseconds("999")];
+	        return [moment().subtract(6, 'days').hour('0').minute('0').seconds('0').milliseconds("000"), moment().hour('23').minute('59').seconds('59').milliseconds("999")];
 	    }
 	    this.getLast30DaysRange = function() {
-	        return [moment().subtract(29, 'days').hour('0').minute('0').seconds('01').milliseconds("000"), moment().hour('23').minute('59').seconds('59').milliseconds("999")];
+	        return [moment().subtract(29, 'days').hour('0').minute('0').seconds('0').milliseconds("000"), moment().hour('23').minute('59').seconds('59').milliseconds("999")];
 	    }
 	    this.getThisMonthRange = function() {
-	        return [moment().startOf('month').hour('0').minute('0').seconds('01').milliseconds("000"), moment().endOf('month').hour('23').minute('59').seconds('59').milliseconds("999")];
+	        return [moment().startOf('month').hour('0').minute('0').seconds('0').milliseconds("000"), moment().endOf('month').hour('23').minute('59').seconds('59').milliseconds("999")];
 	    }
 	    this.getLastMonthRange = function() {
-	        return [moment().subtract(1, 'month').startOf('month').hour('0').minute('0').seconds('01').milliseconds("000"), moment().subtract(1, 'month').endOf('month').hour('23').minute('59').seconds('59').milliseconds("999")];
+	        return [moment().subtract(1, 'month').startOf('month').hour('0').minute('0').seconds('0').milliseconds("000"), moment().subtract(1, 'month').endOf('month').hour('23').minute('59').seconds('59').milliseconds("999")];
 	    }
 	    this.getOneDayTimeDiff = function(checkTime) {
 	    	var hourDiff = checkTime.getHourDiff();
