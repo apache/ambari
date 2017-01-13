@@ -19,7 +19,7 @@ limitations under the License.
 from resource_management import Script, Logger, ComponentIsNotRunning, \
   Execute
 from resource_management.libraries.functions import format
-
+from resource_management.core.exceptions import Fail
 
 class AtlasServiceCheck(Script):
 
@@ -31,13 +31,21 @@ class AtlasServiceCheck(Script):
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}"),
               user=params.smoke_test_user)
+    atlas_host_call_count = 0
+
     for atlas_host in params.atlas_hosts:
       if params.security_enabled:
         smoke_cmd = format('curl -k --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{atlas_host}:{metadata_port}/')
       else:
         smoke_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{atlas_host}:{metadata_port}/')
-      Execute(smoke_cmd , user=params.smoke_test_user, tries = 5,
-          try_sleep = 10)
+      try:
+        Execute(smoke_cmd , user=params.smoke_test_user, tries = 5,
+              try_sleep = 10)
+      except Exception, err:
+        atlas_host_call_count =  atlas_host_call_count + 1
+        Logger.error("ATLAS service check failed for host {0} with error {1}".format(atlas_host,err))
+    if atlas_host_call_count == len(params.atlas_hosts):
+      raise Fail("All instances of ATLAS METADATA SERVER are down.")
 
 
 if __name__ == "__main__":
