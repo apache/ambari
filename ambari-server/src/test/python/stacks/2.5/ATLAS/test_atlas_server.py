@@ -182,6 +182,8 @@ class TestAtlasServer(RMFTestCase):
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
+    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")

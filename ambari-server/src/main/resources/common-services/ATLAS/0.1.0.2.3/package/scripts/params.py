@@ -221,6 +221,7 @@ for host in zookeeper_hosts:
 # Atlas Ranger plugin configurations
 stack_supports_atlas_ranger_plugin = check_stack_feature(StackFeature.ATLAS_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+stack_supports_atlas_hdfs_site_on_namenode_ha = check_stack_feature(StackFeature.ATLAS_HDFS_SITE_ON_NAMENODE_HA, version_for_stack_feature_checks)
 retry_enabled = default("/commandParams/command_retry_enabled", False)
 
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
@@ -283,10 +284,11 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
     kafka_jaas_principal = None
     kafka_keytab_path = None
 
+namenode_host = set(default("/clusterHostInfo/namenode_host", []))
+has_namenode = not len(namenode_host) == 0
+
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory
-  namenode_host = set(default("/clusterHostInfo/namenode_host", []))
-  has_namenode = not len(namenode_host) == 0
   hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
   hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']  if has_namenode else None
   hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None

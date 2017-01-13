@@ -30,6 +30,7 @@ from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.stack_features import check_stack_feature, get_stack_feature_version
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.resources.xml_config import XmlConfig
 
 
 def metadata(type='server'):
@@ -162,6 +163,18 @@ def metadata(type='server'):
              group=params.user_group,
              owner=params.kafka_user,
              content=Template("kafka_jaas.conf.j2"))
+
+    if params.stack_supports_atlas_hdfs_site_on_namenode_ha and len(params.namenode_host) > 1:
+      XmlConfig("hdfs-site.xml",
+                conf_dir=params.conf_dir,
+                configurations=params.config['configurations']['hdfs-site'],
+                configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+                owner=params.metadata_user,
+                group=params.user_group,
+                mode=0644
+                )
+    else:
+      File(format('{conf_dir}/hdfs-site.xml'), action="delete")
 
 
 def upload_conf_set(config_set, jaasFile):
