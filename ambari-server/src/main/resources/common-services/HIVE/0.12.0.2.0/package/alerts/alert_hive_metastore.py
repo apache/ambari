@@ -176,7 +176,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
 
     if STACK_ROOT in configurations:
-      hive_conf_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/conf/conf.server")
+      hive_conf_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/conf")
       hive_bin_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/bin")
 
       if os.path.exists(hive_conf_dir):
