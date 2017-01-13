@@ -197,50 +197,50 @@ dfs_type = default("/commandParams/dfs_type", "")
 # livy for spark2 is only supported from HDP 2.6
 has_livyserver = False
 
-#if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
-livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
-livy2_conf = format("{stack_root}/current/{livy2_component_directory}/conf")
-livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
-livy2_pid_dir = status_params.livy2_pid_dir
-livy2_home = format("{stack_root}/current/{livy2_component_directory}")
-livy2_user = status_params.livy2_user
-livy2_group = status_params.livy2_group
-user_group = status_params.user_group
-livy2_hdfs_user_dir = format("/user/{livy2_user}")
-livy2_server_pid_file = status_params.livy2_server_pid_file
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
+  livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
+  livy2_conf = format("{stack_root}/current/{livy2_component_directory}/conf")
+  livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
+  livy2_pid_dir = status_params.livy2_pid_dir
+  livy2_home = format("{stack_root}/current/{livy2_component_directory}")
+  livy2_user = status_params.livy2_user
+  livy2_group = status_params.livy2_group
+  user_group = status_params.user_group
+  livy2_hdfs_user_dir = format("/user/{livy2_user}")
+  livy2_server_pid_file = status_params.livy2_server_pid_file
 
-livy2_server_start = format("{livy2_home}/bin/livy-server start")
-livy2_server_stop = format("{livy2_home}/bin/livy-server stop")
-livy2_logs_dir = format("{livy2_home}/logs")
+  livy2_server_start = format("{livy2_home}/bin/livy-server start")
+  livy2_server_stop = format("{livy2_home}/bin/livy-server stop")
+  livy2_logs_dir = format("{livy2_home}/logs")
 
-livy2_env_sh = config['configurations']['livy2-env']['content']
-livy2_log4j_properties = config['configurations']['livy2-log4j-properties']['content']
-livy2_spark_blacklist_properties = config['configurations']['livy2-spark-blacklist']['content']
+  livy2_env_sh = config['configurations']['livy2-env']['content']
+  livy2_log4j_properties = config['configurations']['livy2-log4j-properties']['content']
+  livy2_spark_blacklist_properties = config['configurations']['livy2-spark-blacklist']['content']
 
-if 'livy.server.kerberos.keytab' in config['configurations']['livy2-conf']:
-  livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.kerberos.keytab']
-else:
-  livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.launch.kerberos.keytab']
-if 'livy.server.kerberos.principal' in config['configurations']['livy2-conf']:
-  livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.kerberos.principal']
-else:
-  livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.launch.kerberos.principal']
+  if 'livy.server.kerberos.keytab' in config['configurations']['livy2-conf']:
+    livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.kerberos.keytab']
+  else:
+    livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.launch.kerberos.keytab']
+  if 'livy.server.kerberos.principal' in config['configurations']['livy2-conf']:
+    livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.kerberos.principal']
+  else:
+    livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.launch.kerberos.principal']
 
-livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
+  livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
 
   # ats 1.5 properties
-entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
-entity_groupfs_active_dir_mode = 01777
-entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
-entity_groupfs_store_dir_mode = 0700
-is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
+  entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
+  entity_groupfs_active_dir_mode = 01777
+  entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
+  entity_groupfs_store_dir_mode = 0700
+  is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
 
-if len(livy2_livyserver_hosts) > 0:
-  has_livyserver = True
-  if security_enabled:
-    livy2_principal = livy_kerberos_principal.replace('_HOST', config['hostname'].lower())
+  if len(livy2_livyserver_hosts) > 0:
+    has_livyserver = True
+    if security_enabled:
+      livy2_principal = livy_kerberos_principal.replace('_HOST', config['hostname'].lower())
 
-livy2_livyserver_port = default('configurations/livy2-conf/livy.server.port',8999)
+  livy2_livyserver_port = default('configurations/livy2-conf/livy.server.port',8999)
 
 
 import functools
