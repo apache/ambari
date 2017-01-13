@@ -62,6 +62,13 @@
           </xs:sequence>
         </xs:complexType>
       </xs:element>
+      <xs:element name="used-by" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="property" type="propertyDependencyInfo" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:all>
     <xs:attribute name="require-input" type="xs:boolean" use="optional"/>
   </xs:complexType>
@@ -87,6 +94,7 @@
       <xs:element name="editable-only-at-install" type="xs:boolean" minOccurs="0"/>
       <xs:element name="show-property-name" type="xs:boolean" minOccurs="0"/>
       <xs:element name="increment-step" type="xs:string" minOccurs="0"/>
+      <xs:element name="keystore" type="xs:boolean" minOccurs="0"/>
       <xs:element name="entries" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
