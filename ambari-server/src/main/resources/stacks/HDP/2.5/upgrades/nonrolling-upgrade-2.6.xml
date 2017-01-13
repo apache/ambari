@@ -775,6 +775,8 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -796,6 +798,8 @@
             <function>configure_atlas_user_for_tagsync</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task"/>

@@ -705,6 +705,8 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task"/>

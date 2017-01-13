@@ -612,7 +612,7 @@
           </task>
         </pre-upgrade>
 
-        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -713,6 +713,8 @@
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -870,6 +872,8 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths"/>
         </pre-upgrade>
+        
+        <pre-downgrade />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -1115,6 +1119,8 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -1130,6 +1136,8 @@
           </task>
         </pre-upgrade>
 
+        <pre-downgrade copy-upgrade="true" />
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -1139,6 +1147,9 @@
             <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
           </task>
         </post-upgrade>
+        
+        <post-downgrade copy-upgrade="true" />
+        
       </component>
     </service>
 

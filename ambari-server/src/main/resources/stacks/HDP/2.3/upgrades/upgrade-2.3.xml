@@ -449,6 +449,8 @@
             <function>stop</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -492,6 +494,8 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -590,6 +594,8 @@
           </task>
         </pre-upgrade>
 
+        <pre-downgrade copy-upgrade="true" />
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -628,6 +634,8 @@
           <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
           <task xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing"/>
         </pre-upgrade>
+        
+        <pre-downgrade />
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -662,6 +670,9 @@
             <summary>Verifying LZO codec path for Tez</summary>
           </task>  
         </pre-upgrade>
+
+        <pre-downgrade copy-upgrade="true" />
+        
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -811,6 +822,8 @@
 
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
         </pre-upgrade>
+        
+        <pre-downgrade />
 
         <upgrade>
           <task xsi:type="restart-task"/>

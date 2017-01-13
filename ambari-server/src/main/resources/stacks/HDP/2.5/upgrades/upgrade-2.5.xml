@@ -511,6 +511,8 @@
             <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -622,6 +624,8 @@
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -688,6 +692,9 @@
             <summary>Verifying LZO codec path for Tez</summary>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
+        
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -864,6 +871,8 @@
 
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
         </pre-upgrade>
+        
+        <pre-downgrade />
 
         <upgrade>
           <task xsi:type="restart-task" />

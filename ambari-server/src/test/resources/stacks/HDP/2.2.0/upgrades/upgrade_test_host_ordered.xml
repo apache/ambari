@@ -67,12 +67,14 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
         <post-upgrade>
           <task xsi:type="configure" id="foo" />
         </post-upgrade>
+        <post-downgrade copy-upgrade="true" />
       </component>
     </service>
   </processing>
