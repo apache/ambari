@@ -36,7 +36,7 @@ class SparkServiceCheck(Script):
         livy_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
         Execute(livy_kinit_cmd, user=params.livy2_user)
 
-    Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{spark_history_server_host}:{spark_history_ui_port} | grep 200"),
+    Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {spark_history_scheme}://{spark_history_server_host}:{spark_history_ui_port} | grep 200"),
             tries=5,
             try_sleep=3,
             logoutput=True
