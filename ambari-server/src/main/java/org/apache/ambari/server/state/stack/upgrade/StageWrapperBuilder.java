@@ -214,12 +214,10 @@ public abstract class StageWrapperBuilder {
     if (forUpgrade) {
       interim = preTasks ? pc.preTasks : pc.postTasks;
     } else {
-      interim = preTasks ?
-        (null == pc.preDowngradeTasks ? pc.preTasks : pc.preDowngradeTasks) :
-        (null == pc.postDowngradeTasks ? pc.postTasks : pc.postDowngradeTasks);
+      interim = preTasks ? pc.preDowngradeTasks : pc.postDowngradeTasks;
     }
 
-    if (null == interim || interim.isEmpty()) {
+    if (CollectionUtils.isEmpty(interim)) {
       return Collections.emptyList();
     }
 

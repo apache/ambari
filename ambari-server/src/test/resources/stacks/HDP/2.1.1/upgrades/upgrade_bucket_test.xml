@@ -58,6 +58,8 @@
           </task>
         </pre-upgrade>
         
+        <pre-downgrade copy-upgrade="true" />
+        
         <upgrade />
         
         <post-upgrade>
@@ -85,6 +87,8 @@
           </task>
           
         </post-upgrade>
+        
+        <post-downgrade copy-upgrade="true" />
         
         
       </component>
