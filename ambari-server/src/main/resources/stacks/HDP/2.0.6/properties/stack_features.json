@@ -353,6 +353,11 @@
       "name": "atlas_install_hook_package_support",
       "description": "Stop installing packages from 2.6",
       "max_version": "2.5.9.9"
+    },
+    {
+      "name": "atlas_hdfs_site_on_namenode_ha",
+      "description": "Need to create hdfs-site under atlas-conf dir when Namenode-HA is enabled.",
+      "min_version": "2.6.0.0"
     }
   ]
 }

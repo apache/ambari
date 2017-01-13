@@ -28,7 +28,9 @@
           <default>true</default>
         </theme>
       </themes>
-
+      <configuration-dependencies>
+        <config-type>hdfs-site</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
