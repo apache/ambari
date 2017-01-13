@@ -63,12 +63,14 @@ App.ExperimentalController = Em.Controller.extend(App.UserPref, {
         template: Ember.Handlebars.compile(Em.I18n.t('reset.ui.states.body'))
       }),
       primary: Em.I18n.t('yes'),
+      context: self,
       onPrimary: function () {
         var router = App.router;
         App.db.cleanUp();
         router.clearAllSteps();
         App.cache.clear();
         App.clusterStatus.setClusterStatus({});
+        this.context.postUserPref('wizard-data', {});
         this.hide();
         router.transitionTo('root.index');
       }
