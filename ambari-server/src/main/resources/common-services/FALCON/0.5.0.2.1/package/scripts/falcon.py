@@ -93,7 +93,7 @@ def falcon(type, action = None, upgrade_type=None):
       properties = params.falcon_client_properties,
       mode = 0644,
       owner = params.falcon_user)
-      
+
     PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
       properties = params.falcon_runtime_properties,
       mode = 0644,
@@ -129,8 +129,9 @@ def falcon(type, action = None, upgrade_type=None):
     # Generate atlas-application.properties.xml file
     if params.falcon_atlas_support and params.enable_atlas_hook:
       # If Atlas is added later than Falcon, this package will be absent.
-      install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
-                                  params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)
+      if check_stack_feature(StackFeature.ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT,params.current_version_formatted):
+        install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
+                                    params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)
 
       atlas_hook_filepath = os.path.join(params.falcon_conf_dir, params.atlas_hook_filename)
       setup_atlas_hook(SERVICE.FALCON, params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
@@ -272,7 +273,7 @@ in the Falcon documentation.
       except:
         show_logs(params.falcon_log_dir, params.falcon_user)
         raise
-      
+
       File(params.server_pid_file, action = 'delete')
 
 

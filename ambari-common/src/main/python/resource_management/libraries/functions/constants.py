@@ -109,3 +109,4 @@ class StackFeature:
   RANGER_SOLR_CONFIG_SUPPORT='ranger_solr_config_support'
   HIVE_INTERACTIVE_ATLAS_HOOK_REQUIRED="hive_interactive_atlas_hook_required"
   CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT='core_site_for_ranger_plugins'
+  ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT="atlas_install_hook_package_support"
