@@ -17,12 +17,17 @@
 }}
 
 {{#if anyHostsWithoutComponent}}
-  {{selectHostMsg}}<br />
-  <div>
-    {{view Ember.Select contentBinding="hostsWithoutComponent" selectionBinding="selectedHost"}}
+  <p>{{selectHostMsg}}</p>
+  <div class="row">
+    <div class="col-md-12">
+      {{view Ember.Select contentBinding="hostsWithoutComponent" selectionBinding="selectedHost" classNames="form-control"}}
+    </div>
   </div>
-
-  {{addComponentMsg}}<br /><br />
+  <div class="row">
+    <div class="col-md-12">
+      <p>{{addComponentMsg}}</p>
+    </div>
+  </div>
 {{else}}
-  {{thereIsNoHostsMsg}}
+  <p>{{thereIsNoHostsMsg}}</p>
 {{/if}}
