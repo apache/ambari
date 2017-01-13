@@ -68,6 +68,9 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
+#spark_conf
+spark_conf_dir = format("{stack_root}/current/spark-client/conf")
+
 #hadoop params
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,stack_version_formatted):
   stack_version = None
