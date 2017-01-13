@@ -17,6 +17,7 @@ limitations under the License.
 from resource_management.core.logger import Logger
 from resource_management.core.resources import File, Execute
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_core_site_for_required_plugins
 
 def setup_ranger_kafka():
   import params
@@ -80,5 +81,10 @@ def setup_ranger_kafka():
         group = params.user_group,
         mode = 0755
       )
+    if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_kafka and params.has_namenode and params.security_enabled:
+      Logger.info("Stack supports core-site.xml creation for Ranger plugin, creating create core-site.xml from namenode configuraitions")
+      setup_core_site_for_required_plugins(component_user=params.kafka_user,component_group=params.user_group,create_core_site_path = params.conf_dir, config = params.config)
+    else:
+      Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
   else:
     Logger.info('Ranger admin not installed')

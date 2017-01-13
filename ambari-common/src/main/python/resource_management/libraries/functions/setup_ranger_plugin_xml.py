@@ -33,6 +33,7 @@ from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
 
 def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         component_downloaded_custom_connector, component_driver_curl_source,
@@ -214,4 +215,15 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     owner = component_user,
     group = component_group,
     mode = 0640
+  )
+
+
+def setup_core_site_for_required_plugins(component_user, component_group, create_core_site_path, config):
+  XmlConfig('core-site.xml',
+    conf_dir=create_core_site_path,
+    configurations=config['configurations']['core-site'],
+    configuration_attributes=config['configuration_attributes']['core-site'],
+    owner=component_user,
+    group=component_group,
+    mode=0644
   )

@@ -343,6 +343,11 @@
       "name": "hive_interactive_atlas_hook_required",
       "description": "Registering Atlas Hook for Hive Interactive.",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "core_site_for_ranger_plugins",
+      "description": "Adding core-site.xml in when Ranger plugin is enabled for Storm, Kafka, and Knox.",
+      "min_version": "2.6.0.0"
     }
   ]
 }

@@ -18,6 +18,10 @@ limitations under the License.
 
 """
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_core_site_for_required_plugins
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources import File, Directory
 
 def setup_ranger_storm(upgrade_type=None):
   """
@@ -93,8 +97,37 @@ def setup_ranger_storm(upgrade_type=None):
                         plugin_security_properties=params.config['configurations']['ranger-storm-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-storm-security'],
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-storm-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-storm-policymgr-ssl'],
                         component_list=['storm-client', 'storm-nimbus'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
-                        credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
+                        credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password,
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
+
+
+    site_files_create_path = format('{storm_component_home_dir}/extlib-daemon/ranger-storm-plugin-impl/conf')
+    Directory(site_files_create_path,
+            owner = params.storm_user,
+            group = params.user_group,
+            mode=0775,
+            create_parents = True,
+            cd_access = 'a'
+            )
+
+    if params.stack_supports_core_site_for_ranger_plugin and params.enable_ranger_storm and params.has_namenode and params.security_enabled:
+      Logger.info("Stack supports core-site.xml creation for Ranger plugin, creating create core-site.xml from namenode configuraitions")
+      setup_core_site_for_required_plugins(component_user=params.storm_user,component_group=params.user_group,create_core_site_path = site_files_create_path, config = params.config)
+      if len(params.namenode_hosts) > 1:
+        Logger.info('Ranger Storm plugin is enabled along with security and NameNode is HA , creating hdfs-site.xml')
+        XmlConfig("hdfs-site.xml",
+          conf_dir=site_files_create_path,
+          configurations=params.config['configurations']['hdfs-site'],
+          configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+          owner=params.storm_user,
+          group=params.user_group,
+          mode=0644
+        )
+      else:
+        Logger.info('Ranger Storm plugin is not enabled or security is disabled, removing hdfs-site.xml')
+        File(format('{site_files_create_path}/hdfs-site.xml'), action="delete")
+    else:
+      Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
   else:
     Logger.info('Ranger admin not installed')
