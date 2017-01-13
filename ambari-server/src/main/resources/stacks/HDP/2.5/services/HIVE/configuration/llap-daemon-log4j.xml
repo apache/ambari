@@ -21,6 +21,27 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
+    <name>hive_llap_log_maxfilesize</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Hive LLAP Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive_llap_log_maxbackupindex</name>
+    <value>240</value>
+    <description>The number of backup files</description>
+    <display-name>Hive LLAP Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>llap-deamon-log4j template</display-name>
     <description>Custom llap-daemon-log4j2.properties</description>
@@ -58,8 +79,8 @@ property.llap.daemon.root.logger = console
 property.llap.daemon.log.dir = .
 property.llap.daemon.log.file = llapdaemon.log
 property.llap.daemon.historylog.file = llapdaemon_history.log
-property.llap.daemon.log.maxfilesize = 256MB
-property.llap.daemon.log.maxbackupindex = 240
+property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB
+property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}
 
 # list of all appenders
 appenders = console, RFA, HISTORYAPPENDER, query-routing
