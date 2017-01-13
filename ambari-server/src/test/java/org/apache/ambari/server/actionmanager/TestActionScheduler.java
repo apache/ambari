@@ -106,6 +106,8 @@ import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -935,6 +937,7 @@ public class TestActionScheduler {
 
     aq.enqueue(Stage.INTERNAL_HOSTNAME, s.getExecutionCommands(null).get(0).getExecutionCommand());
     List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
+    Multimap<String, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
 
     boolean taskShouldBeSkipped = stageSupportsAutoSkip && autoSkipFailedTask;
     db.timeoutHostRole(EasyMock.anyString(), EasyMock.anyLong(), EasyMock.anyLong(),
@@ -953,7 +956,7 @@ public class TestActionScheduler {
 
     EasyMock.replay(scheduler, fsm, host, db, cluster, ambariEventPublisher, service, serviceComponent, serviceComponentHost);
 
-    scheduler.processInProgressStage(s, commandsToSchedule);
+    scheduler.processInProgressStage(s, commandsToSchedule, commandsToEnqueue);
 
     EasyMock.verify(scheduler, fsm, host, db, cluster, ambariEventPublisher, service, serviceComponent, serviceComponentHost);
 

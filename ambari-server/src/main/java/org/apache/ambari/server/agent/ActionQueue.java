@@ -18,10 +18,12 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -59,6 +61,24 @@ public class ActionQueue {
    * @throws NullPointerException - if hostname is {@code}null{@code}
    */
   public void enqueue(String hostname, AgentCommand cmd) {
+    Queue<AgentCommand> q = getHostQueue(hostname);
+
+    q.add(cmd);
+  }
+
+  /**
+   * Adds commands to queue (atomically) for given hostname
+   * @param hostname - hostname of node
+   * @param commands - list of commands to add to queue
+   * @throws NullPointerException - if hostname is {@code}null{@code}
+   */
+  public void enqueue(String hostname, Collection<AgentCommand> commands) {
+    Queue<AgentCommand> q = getHostQueue(hostname);
+
+    q.addAll(commands);
+  }
+
+  private Queue<AgentCommand> getHostQueue(String hostname) {
     Queue<AgentCommand> q = getQueue(hostname);
 
     if (q == null) {
@@ -70,8 +90,17 @@ public class ActionQueue {
       }
       //otherwise we got existing queue (and put nothing!)
     }
+    return q;
+  }
 
-    q.add(cmd);
+  /**
+   * Adds command map to queue
+   * @param commandMap - map with hostname as key and command list as value
+   */
+  public void enqueueAll(Map<String, Collection<AgentCommand>> commandMap) {
+    for (Map.Entry<String, Collection<AgentCommand>> entry : commandMap.entrySet()) {
+      enqueue(entry.getKey(), entry.getValue());
+    }
   }
 
   /**
