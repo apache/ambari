@@ -459,7 +459,7 @@ def export_ca_certs(dir_path):
 
   if (params.metric_truststore_type.lower() == 'jks'):
     # Convert truststore from JKS to PKCS12
-    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
+    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -srcalias {metric_truststore_alias} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
     Execute(cmd,
     )
     truststore = truststore_p12
