@@ -441,6 +441,12 @@ hcat_pid_dir = status_params.hcat_pid_dir
 hcat_log_dir = config['configurations']['hive-env']['hcat_log_dir']
 hcat_env_sh_template = config['configurations']['hcat-env']['content']
 
+#Hive log4j properties
+webhcat_log_maxfilesize = default("/configurations/webhcat-log4j/webhcat_log_maxfilesize", 256)
+webhcat_log_maxbackupindex = default("/configurations/webhcat-log4j/webhcat_log_maxbackupindex", 20)
+hive_log_maxfilesize = default("/configurations/hive-log4j/hive_log_maxfilesize", 256)
+hive_log_maxbackupindex = default("/configurations/hive-log4j/hive_log_maxbackupindex", 30)
+
 #hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
   log4j_props = config['configurations']['hive-log4j']['content']
@@ -582,6 +588,11 @@ HdfsResource = functools.partial(
 # Hive Interactive related
 hive_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
 has_hive_interactive = len(hive_interactive_hosts) > 0
+
+#llap log4j properties
+hive_llap_log_maxfilesize = default('/configurations/llap-daemon-log4j/hive_llap_log_maxfilesize', 256)
+hive_llap_log_maxbackupindex = default('/configurations/llap-daemon-log4j/hive_llap_log_maxbackupindex', 240)
+
 if has_hive_interactive:
   llap_daemon_log4j = config['configurations']['llap-daemon-log4j']['content']
   llap_cli_log4j2 = config['configurations']['llap-cli-log4j2']['content']

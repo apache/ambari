@@ -86,6 +86,9 @@ log4j_props = config['configurations']['druid-log4j']['content']
 druid_log_level = config['configurations']['druid-log4j']['druid_log_level']
 metamx_log_level = config['configurations']['druid-log4j']['metamx_log_level']
 root_log_level = config['configurations']['druid-log4j']['root_log_level']
+
+druid_log_maxbackupindex = default('/configurations/druid-logrotate/druid_log_maxbackupindex', 7)
+druid_log_maxfilesize = default('/configurations/druid-logrotate/druid_log_maxfilesize', 256)
 logrotate_props = config['configurations']['druid-logrotate']['content']
 
 # Metadata storage

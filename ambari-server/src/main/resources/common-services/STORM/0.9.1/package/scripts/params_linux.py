@@ -252,6 +252,17 @@ repo_config_username = config['configurations']['ranger-storm-plugin-properties'
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-storm-plugin-properties']
 policy_user = storm_user
+
+#Storm log4j properties
+storm_a1_maxfilesize = default('/configurations/storm-cluster-log4j/storm_a1_maxfilesize', 100)
+storm_a1_maxbackupindex = default('/configurations/storm-cluster-log4j/storm_a1_maxbackupindex', 9)
+storm_wrkr_a1_maxfilesize = default('/configurations/storm-worker-log4j/storm_wrkr_a1_maxfilesize', 100)
+storm_wrkr_a1_maxbackupindex = default('/configurations/storm-worker-log4j/storm_wrkr_a1_maxbackupindex', 9)
+storm_wrkr_out_maxfilesize = default('/configurations/storm-worker-log4j/storm_wrkr_out_maxfilesize', 100)
+storm_wrkr_out_maxbackupindex = default('/configurations/storm-worker-log4j/storm_wrkr_out_maxbackupindex', 4)
+storm_wrkr_err_maxfilesize = default('/configurations/storm-worker-log4j/storm_wrkr_err_maxfilesize', 100)
+storm_wrkr_err_maxbackupindex = default('/configurations/storm-worker-log4j/storm_wrkr_err_maxbackupindex', 4)
+
 storm_cluster_log4j_content = config['configurations']['storm-cluster-log4j']['content']
 storm_worker_log4j_content = config['configurations']['storm-worker-log4j']['content']
 

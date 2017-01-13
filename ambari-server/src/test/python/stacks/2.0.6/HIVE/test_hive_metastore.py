@@ -184,7 +184,7 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0644,
@@ -302,7 +302,7 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0644,
@@ -451,7 +451,7 @@ class TestHiveMetastore(RMFTestCase):
       owner = 'hive')
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-      content = 'log4jproperties\nline2',
+      content = InlineTemplate('log4jproperties\nline2'),
       mode = 420,
       group = 'hadoop',
       owner = 'hive')
