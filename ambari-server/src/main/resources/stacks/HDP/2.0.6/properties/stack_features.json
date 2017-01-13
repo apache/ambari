@@ -348,6 +348,11 @@
       "name": "core_site_for_ranger_plugins",
       "description": "Adding core-site.xml in when Ranger plugin is enabled for Storm, Kafka, and Knox.",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "atlas_install_hook_package_support",
+      "description": "Stop installing packages from 2.6",
+      "max_version": "2.5.9.9"
     }
   ]
 }
