@@ -44,279 +44,6 @@
           "datasource": null,
           "editable": true,
           "error": false,
-          "fill": 0,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": null,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 3,
-          "isNew": true,
-          "legend": {
-            "alignAsTable": false,
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": false,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 1,
-          "points": true,
-          "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "Total Count",
-              "lines": true
-            }
-          ],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "app": "namenode",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=60000.op=*.TotalCount",
-              "precision": "default",
-              "refId": "A",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "none",
-              "alias": "operation by user",
-              "app": "namenode",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "TopN - Operations by User - 1min Sliding Window",
-          "tooltip": {
-            "shared": false,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "none",
-            "short"
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 0,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": null,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 7,
-          "isNew": true,
-          "legend": {
-            "alignAsTable": false,
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": false,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 1,
-          "points": true,
-          "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "Total Count",
-              "lines": true
-            }
-          ],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "app": "namenode",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=300000.op=*.TotalCount",
-              "precision": "default",
-              "refId": "A",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "none",
-              "alias": "operation by user",
-              "app": "namenode",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "TopN - Operations by User - 5min Sliding Window",
-          "tooltip": {
-            "shared": false,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "none",
-            "short"
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 0,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": null,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 8,
-          "isNew": true,
-          "legend": {
-            "alignAsTable": false,
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": false,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 1,
-          "points": true,
-          "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "Total Count",
-              "lines": true
-            }
-          ],
-          "span": 12,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "app": "namenode",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=*.TotalCount",
-              "precision": "default",
-              "refId": "A",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "none",
-              "alias": "operation by user",
-              "app": "namenode",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "TopN - Operations by User - 25min Sliding Window",
-          "tooltip": {
-            "shared": false,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "none",
-            "short"
-          ]
-        }
-      ],
-      "showTitle": true,
-      "title": "TopN - Operations By User"
-    },
-    {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
           "fill": 1,
           "grid": {
             "leftLogBase": 1,
@@ -743,6 +470,279 @@
       ],
       "showTitle": true,
       "title": "TOPN - Total Operations Count by User"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 3,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 1,
+          "points": true,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "Total Count",
+              "lines": true
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "namenode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.NNTopUserOpCounts.windowMs=60000.op=*.TotalCount",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "alias": "operation by user",
+              "app": "namenode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%",
+              "precision": "default",
+              "refId": "B",
+              "seriesAggregator": "none",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "TopN - Operations by User - 1min Sliding Window",
+          "tooltip": {
+            "shared": false,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "none",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 7,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 1,
+          "points": true,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "Total Count",
+              "lines": true
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "namenode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.NNTopUserOpCounts.windowMs=300000.op=*.TotalCount",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "alias": "operation by user",
+              "app": "namenode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%",
+              "precision": "default",
+              "refId": "B",
+              "seriesAggregator": "none",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "TopN - Operations by User - 5min Sliding Window",
+          "tooltip": {
+            "shared": false,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "none",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 8,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 1,
+          "points": true,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "Total Count",
+              "lines": true
+            }
+          ],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "namenode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=*.TotalCount",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "alias": "operation by user",
+              "app": "namenode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%",
+              "precision": "default",
+              "refId": "B",
+              "seriesAggregator": "none",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "TopN - Operations by User - 25min Sliding Window",
+          "tooltip": {
+            "shared": false,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "none",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "TopN - Operations By User"
     }
   ],
   "time": {
