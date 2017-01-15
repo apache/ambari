@@ -39,7 +39,6 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('Directory', '/var/run/zeppelin',
         owner = 'zeppelin',
         create_parents = True,
@@ -54,6 +53,7 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',
@@ -89,7 +89,6 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('Directory', '/var/run/zeppelin',
         owner = 'zeppelin',
         create_parents = True,
@@ -104,6 +103,7 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',

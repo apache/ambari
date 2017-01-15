@@ -116,7 +116,6 @@ class Master(Script):
     env.set_params(params)
     env.set_params(status_params)
     self.create_zeppelin_log_dir(env)
-    self.chown_zeppelin_pid_dir(env)
 
     # create the pid and zeppelin dirs
     Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
@@ -126,6 +125,7 @@ class Master(Script):
               create_parents=True,
               mode=0755
     )
+    self.chown_zeppelin_pid_dir(env)
 
     # write out zeppelin-site.xml
     XmlConfig("zeppelin-site.xml",
