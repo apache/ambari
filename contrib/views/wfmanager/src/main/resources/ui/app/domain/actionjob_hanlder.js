@@ -17,6 +17,7 @@
 
 import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
+import CustomMappingHandler from "../domain/custom-mapping-handler";
 import {MappingMixin,ConfigurationMapper,PrepareMapper} from "../domain/mapping-utils";
 var ActionJobHandler=Ember.Object.extend(MappingMixin,{
   type:"actionJob",
@@ -42,7 +43,15 @@ var ActionJobHandler=Ember.Object.extend(MappingMixin,{
         nodeObj[this.get("actionType")]["_xmlns"]=schema;
       }
     }
-    this.handleMapping(nodeDomain,actionObj,this.mapping,nodeName);
+    var customMapping = CustomMappingHandler.getMapping(nodeName);
+    var mapping = this.mapping.copy();
+    if(customMapping){
+      Object.keys(customMapping).forEach((customProp)=>{
+        var index = mapping.indexOf(mapping.findBy('xml',customMapping[customProp].prevSibling));
+        mapping.insertAt(index+1, {xml:customProp,domain:customProp});
+      }.bind(this));
+    }
+    this.handleMapping(nodeDomain,actionObj,mapping,nodeName);
   },
   /* jshint unused:vars */
   validate(nodeDomain){
@@ -50,6 +59,23 @@ var ActionJobHandler=Ember.Object.extend(MappingMixin,{
   },
   handleImport(actionNode,json){
     this.handleImportMapping(actionNode,json,this.mapping);
+    var customMapping = {};
+    var x2js = new X2JS();
+    var actionXml = x2js.json2xml({action:json});
+    Object.keys(json).forEach((propKey)=>{
+      if(!this.mapping.findBy('xml', propKey) && propKey !== '_xmlns'){
+        var eltInXml = actionXml.getElementsByTagName(propKey)[0];
+        var previousSiblingXml = eltInXml.previousSibling;
+        var prevSibling = previousSiblingXml ? Object.keys(x2js.xml_str2json(new XMLSerializer().serializeToString(previousSiblingXml)))[0] : undefined;
+        customMapping[propKey] = {
+          prevSibling : prevSibling,
+          mapping : {xml:propKey,domain:propKey}
+        };
+      }
+    });
+    if(!Ember.isEmpty(Object.keys(customMapping))){
+      actionNode.customMapping = customMapping;
+    }
   }
 });
 var JavaActionJobHandler=ActionJobHandler.extend({

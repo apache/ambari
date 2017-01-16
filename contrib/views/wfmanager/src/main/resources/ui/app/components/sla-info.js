@@ -148,6 +148,7 @@ export default Ember.Component.extend(Validations, {
     this.$('input[name="nominalTime"]').datetimepicker({
       useCurrent: false,
       showClose : true,
+      format: 'MM/DD/YYYY hh:mm A',
       defaultDate : this.get('slaInfo.nominalTime')
     });
     this.sendAction('register','slaInfo', this);
