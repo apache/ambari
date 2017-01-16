@@ -16,13 +16,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -66,7 +66,8 @@ class JournalNodeDefault(JournalNode):
     )
 
   def post_upgrade_restart(self, env, upgrade_type=None):
-    if upgrade_type == "nonrolling":
+    # express upgrade cannot determine if the JN quorum is established
+    if upgrade_type == UPGRADE_TYPE_NON_ROLLING:
       return
 
     Logger.info("Executing Stack Upgrade post-restart")
