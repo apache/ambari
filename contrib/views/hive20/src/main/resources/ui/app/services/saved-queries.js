@@ -19,36 +19,34 @@
 import Ember from 'ember';
 
 export default Ember.Service.extend({
+
   store: Ember.inject.service(),
-  getQuery(jobId) {
-    return this.get('store').findRecord('job', jobId).then((job) => {
-      return this.get('store').findRecord('file', job.get('queryFile'));
+
+  getAllQueries(){
+    let url = this.get('store').adapterFor('saved-query').buildURL();
+    return $.ajax(url, 'GET')
+  },
+
+  saveQuery(payload){
+    return $.ajax({
+      type: "POST",
+      url: this.get('store').adapterFor('saved-query').buildURL(),
+      data: JSON.stringify({savedQuery: payload}) ,
+      contentType:"application/json; charset=utf-8",
+      dataType:"json",
+      headers: {'X-Requested-By': 'ambari'}
     })
   },
+  deleteSaveQuery(id){
+    let deletURL = this.get('store').adapterFor('saved-query').buildURL() + id;
 
-  waitForJobToComplete(jobId, after) {
-    return new Ember.RSVP.Promise((resolve, reject) => {
-      Ember.run.later(() => {
-        this.get('store').findRecord('job', jobId, {reload: true})
-          .then((job) => {
-            let status = job.get('status').toLowerCase();
-            if (status === 'succeeded') {
-              this._fetchDummyResult(jobId);
-              resolve();
-            } else if (status === 'error') {
-              reject()
-            } else {
-              resolve(this.waitForJobToComplete(jobId, after));
-            }
-          }, (error) => {
-            reject(error);
-          });
-      }, after);
-    });
-  },
-
-  _fetchDummyResult(jobId) {
-    this.get('store').adapterFor('job').fetchResult(jobId);
+    return $.ajax({
+      type: "DELETE",
+      url: deletURL,
+      contentType:"application/json; charset=utf-8",
+      dataType:"json",
+      headers: {'X-Requested-By': 'ambari'}
+    })
   }
 
 });

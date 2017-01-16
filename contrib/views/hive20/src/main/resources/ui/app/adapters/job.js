@@ -27,5 +27,11 @@ export default ApplicationAdapter.extend({
   getQuery(job) {
     let queryUrl = this.buildURL() + "/file" + encodeURI(job.get('queryFile'));
     console.log(queryUrl);
+  },
+
+  saveToHDFS(jobId, path){
+    let resultUrl = this.urlForFindRecord(jobId, 'job').replace('/resources','')  + "/results/csv/saveToHDFS?commence=true&file=" + path + ".csv";
+    return this.ajax(resultUrl, 'GET');
   }
+
 });

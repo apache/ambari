@@ -40,6 +40,18 @@ export default Ember.Service.extend({
           reject(err);
       });
     });
+  },
+
+  saveToHDFS(jobId, path){
+    let self = this;
+    return new Promise( (resolve, reject) => {
+      this.get('store').adapterFor('job').saveToHDFS(jobId, path).then(function(data) {
+        resolve(data);
+      }, function(err) {
+          reject(err);
+      });
+    });
   }
+
 
 });

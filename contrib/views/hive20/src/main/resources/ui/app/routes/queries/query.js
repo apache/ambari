@@ -21,6 +21,8 @@ import Ember from 'ember';
 export default Ember.Route.extend({
 
   query: Ember.inject.service(),
+  jobs: Ember.inject.service(),
+  savedQueries: Ember.inject.service(),
 
   beforeModel(){
     let existingWorksheets = this.store.peekAll('worksheet');
@@ -30,9 +32,7 @@ export default Ember.Route.extend({
   },
 
   afterModel(model) {
-
     let dbmodel = this.store.findAll('database');
-
     if (dbmodel.get('length') > 0) {
       this.selectDatabase(dbmodel);
     }
@@ -48,6 +48,10 @@ export default Ember.Route.extend({
 
     this._super(...arguments);
 
+    controller.set('showWorksheetModal',false);
+    controller.set('worksheetModalSuccess',false);
+    controller.set('worksheetModalFail',false);
+
     let self = this;
     let alldatabases = this.store.findAll('database');
 
@@ -61,7 +65,8 @@ export default Ember.Route.extend({
     selectedTablesModels.pushObject(
       {
         'dbname': selecteDBName ,
-        'tables': this.store.query('table', {databaseId: selecteDBName})
+        'tables': this.store.query('table', {databaseId: selecteDBName}),
+        'isSelected': true
       }
     )
 
@@ -74,6 +79,7 @@ export default Ember.Route.extend({
     controller.set('isQueryRunning', false);
     controller.set('currentQuery', model.get('query'));
     controller.set('queryResult', model.get('queryResult'));
+    controller.set('currentJobId', null);
 
   },
 
@@ -86,11 +92,12 @@ export default Ember.Route.extend({
       let selectedTablesModels =[];
       let selectedMultiDb = [];
 
-      selectedDBs.forEach(function(db){
+      selectedDBs.forEach(function(db, index){
         selectedTablesModels.pushObject(
           {
             'dbname': db ,
-            'tables':self.store.query('table', {databaseId: db})
+            'tables':self.store.query('table', {databaseId: db}),
+            'isSelected': (index === 0) ? true :false
           }
         )
         selectedMultiDb.pushObject(db);
@@ -103,23 +110,26 @@ export default Ember.Route.extend({
       this.get('controller').set('selectedMultiDb', selectedMultiDb );
       this.get('controller.model').set('selectedMultiDb', selectedMultiDb );
 
-
     },
 
     showTables(db){
+      let self = this;
       //should we do this by writing a seperate component.
       $('#' + db).toggle();
       this.get('controller.model').set('selectedDb', db);
     },
 
     executeQuery(isFirstCall){
+
       let self = this;
+      this.get('controller').set('currentJobId', null);
       let queryInput = this.get('controller').get('currentQuery');
       this.get('controller.model').set('query', queryInput);
 
       let dbid = this.get('controller.model').get('selectedDb');
       let worksheetTitle = this.get('controller.model').get('title');
 
+      self.get('controller.model').set('jobData', []);
       self.get('controller').set('isQueryRunning', true);
 
       //Making the result set emply every time query runs.
@@ -145,18 +155,21 @@ export default Ember.Route.extend({
         "confFile":null,
         "globalSettings":""};
 
-
       this.get('query').createJob(payload).then(function(data) {
         // applying a timeout otherwise it goes for status code 409, although that condition is also handled in the code.
         setTimeout(function(){
           self.get('controller.model').set('currentJobData', data);
+          self.get('controller.model').set('queryFile', data.job.queryFile);
+
+          self.get('controller').set('currentJobId', data.job.id);
+
           self.send('getJob', data);
-        }, 2000);
+         }, 2000);
       }, function(reason) {
         console.log(reason);
       });
-
     },
+
     getJob(data){
 
       var self = this;
@@ -187,7 +200,6 @@ export default Ember.Route.extend({
       }, function(reason) {
         // on rejection
         console.log('reason' , reason);
-
         if( reason.errors[0].status == 409 ){
           setTimeout(function(){
             self.send('getJob',data);
@@ -197,7 +209,7 @@ export default Ember.Route.extend({
     },
 
     updateQuery(){
-      console.log('I am in update query.')
+      console.log('I am in update query.');
     },
 
     goNextPage(){
@@ -285,8 +297,65 @@ export default Ember.Route.extend({
       }else {
         Ember.$('.ember-light-table').css('height', '70vh');
       }
+    },
+
+
+    openWorksheetModal(){
+      this.get('controller').set('showWorksheetModal', true);
+    },
+
+    saveWorksheetModal(){
+      console.log('I am in saveWorksheetModal');
+      let newTitle = $('#worksheet-title').val();
+
+      let currentQuery = this.get('controller').get('currentQuery');
+      let selectedDb = this.get('controller.model').get('selectedDb');
+      let owner = this.get('controller.model').get('owner');
+      let queryFile = this.get('controller.model').get('queryFile');
+
+      let payload = {"title" : newTitle,
+                     "dataBase": selectedDb,
+                     "owner" : owner,
+                     "shortQuery" : (currentQuery.length > 0) ? currentQuery : ";",
+                     "queryFile" : queryFile };
+
+      this.get('savedQueries').saveQuery(payload)
+        .then((data) => {
+          console.log('Created saved query.', data);
+          this.get('controller.model').set('title', newTitle);
+          this.get('controller').set('worksheetModalSuccess', true);
+
+          Ember.run.later(() => {
+            this.get('controller').set('showWorksheetModal', false);
+          }, 2 * 1000);
+
+        }, (error) => {
+          console.log("Error encountered", error);
+          Ember.run.later(() => {
+            this.get('controller').set('worksheetModalFail', true);
+          }, 2 * 1000);
+        });
+    },
+
+    closeWorksheetModal(){
+      this.get('controller').set('showWorksheetModal', false);
+    },
+
+    saveToHDFS(jobId, path){
+
+      console.log('saveToHDFS query route with jobId == ', jobId);
+      console.log('saveToHDFS query route with path == ', path);
+
+      this.get('query').saveToHDFS(jobId, path)
+         .then((data) => {
+            Ember.run.later(() => {
+              console.log('successfully saveToHDFS', data);
+            }, 2 * 1000);
+
+          }, (error) => {
+            console.log("Error encountered", error);
+          });
+
     }
-
-
   }
 });
