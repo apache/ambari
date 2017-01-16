@@ -39,6 +39,26 @@ def setup_logfeeder():
             recursive_ownership=True
             )
 
+  Directory(params.logsearch_logfeeder_keys_folder,
+            cd_access='a',
+            mode=0755,
+            owner=params.logsearch_user,
+            group=params.user_group)
+
+  File(format("{logsearch_logfeeder_keys_folder}/ks_pass.txt"),
+       content=params.logfeeder_keystore_password,
+       mode=0600,
+       owner=params.logsearch_user,
+       group=params.user_group
+       )
+
+  File(format("{logsearch_logfeeder_keys_folder}/ts_pass.txt"),
+       content=params.logfeeder_truststore_password,
+       mode=0600,
+       owner=params.logsearch_user,
+       group=params.user_group
+       )
+
   File(params.logfeeder_log,
        mode=0644,
        content=''

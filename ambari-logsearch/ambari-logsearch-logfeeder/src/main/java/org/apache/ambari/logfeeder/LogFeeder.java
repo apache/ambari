@@ -45,6 +45,7 @@ import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.AliasUtil;
 import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.SSLUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -97,6 +98,7 @@ public class LogFeeder {
     mergeAllConfigs();
     
     LogConfigHandler.handleConfig();
+    SSLUtil.ensureStorePasswords();
     
     outputManager.init();
     inputManager.init();

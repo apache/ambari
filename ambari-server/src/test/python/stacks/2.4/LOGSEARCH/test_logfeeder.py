@@ -55,6 +55,26 @@ class TestLogFeeder(RMFTestCase):
                               cd_access='a',
                               mode=0755
                               )
+    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf/keys',
+                              owner = 'logsearch',
+                              group = 'hadoop',
+                              cd_access = 'a',
+                              mode = 0755
+                              )
+
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/keys/ks_pass.txt',
+                              owner='logsearch',
+                              group='hadoop',
+                              mode=0600,
+                              content='bigdata'
+                              )
+
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/keys/ts_pass.txt',
+                              owner='logsearch',
+                              group='hadoop',
+                              mode=0600,
+                              content='bigdata'
+                              )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-logfeeder/logfeeder.out',
                               mode=0644,
