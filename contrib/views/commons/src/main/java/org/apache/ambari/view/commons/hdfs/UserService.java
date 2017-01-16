@@ -30,6 +30,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
+import java.util.Map;
 
 /**
  * User related info service
@@ -45,6 +46,15 @@ public class UserService extends HdfsService {
   }
 
   /**
+   * takes context and any extra custom properties that needs to be included into config
+   * @param context
+   * @param customProperties
+   */
+  public UserService(ViewContext context, Map<String, String> customProperties) {
+    super(context, customProperties);
+  }
+
+  /**
    * Returns home directory
    * @return home directory
    */
@@ -53,9 +63,9 @@ public class UserService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response homeDir() {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       return Response
-        .ok(getApi(context).fileStatusToJSON(api.getFileStatus(api.getHomeDir()
+        .ok(getApi().fileStatusToJSON(api.getFileStatus(api.getHomeDir()
           .toString()))).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -73,7 +83,7 @@ public class UserService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response trashEnabled() {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       return Response.ok(new FileOperationResult(api.trashEnabled())).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -91,9 +101,9 @@ public class UserService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response trashdir() {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       return Response.ok(
-        getApi(context).fileStatusToJSON(api.getFileStatus(api.getTrashDir()
+        getApi().fileStatusToJSON(api.getFileStatus(api.getTrashDir()
           .toString()))).build();
     } catch (WebApplicationException ex) {
       throw ex;

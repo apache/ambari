@@ -18,10 +18,12 @@
 
 package org.apache.ambari.view.hive2.resources.files;
 
+import com.google.common.base.Optional;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.commons.hdfs.UserService;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.hive2.BaseService;
 import org.apache.ambari.view.hive2.utils.*;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
@@ -46,6 +48,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * File access resource
@@ -60,6 +63,8 @@ import java.util.HashMap;
  *      update file content
  */
 public class FileService extends BaseService {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
+
   public static final String FAKE_FILE = "fakefile://";
   public static final String JSON_PATH_FILE = "jsonpath:";
 
@@ -226,7 +231,13 @@ public class FileService extends BaseService {
    */
   public static void hdfsSmokeTest(ViewContext context) {
     try {
-      HdfsApi api = HdfsUtil.connectToHDFSApi(context);
+      Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+      HdfsApi api;
+      if(props.isPresent()){
+        api = HdfsUtil.connectToHDFSApi(context, props.get());
+      }else{
+        api = HdfsUtil.connectToHDFSApi(context);
+      }
       api.getStatus();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -241,7 +252,7 @@ public class FileService extends BaseService {
    */
   public static void userhomeSmokeTest(ViewContext context) {
     try {
-      UserService userservice = new UserService(context);
+      UserService userservice = new UserService(context, getViewConfigs(context));
       userservice.homeDir();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -263,4 +274,10 @@ public class FileService extends BaseService {
     }
     return filePath;
   }
+
+  private static Map<String,String> getViewConfigs(ViewContext context) {
+    Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+    return props.isPresent()? props.get() : new HashMap<String, String>();
+  }
+
 }

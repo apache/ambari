@@ -18,9 +18,11 @@
 
 package org.apache.ambari.view.pig.resources.files;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
 import org.apache.ambari.view.pig.utils.FilePaginator;
@@ -53,8 +55,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -70,6 +74,8 @@ import java.util.List;
  *      update file content
  */
 public class FileService extends BaseService {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
+
   @Inject
   ViewResourceHandler handler;
 
@@ -213,7 +219,14 @@ public class FileService extends BaseService {
    */
   public static void hdfsSmokeTest(ViewContext context) {
     try {
-      HdfsApi api = HdfsUtil.connectToHDFSApi(context);
+      Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+      HdfsApi api;
+      if(props.isPresent()){
+        api = HdfsUtil.connectToHDFSApi(context, props.get());
+      }else{
+        api = HdfsUtil.connectToHDFSApi(context);
+      }
+
       api.getStatus();
     } catch (WebApplicationException ex) {
       LOG.error("Error occurred : ", ex);
@@ -231,7 +244,7 @@ public class FileService extends BaseService {
    */
   public static void userhomeSmokeTest(ViewContext context) {
     try {
-      UserService  userservice = new UserService(context);
+      UserService  userservice = new UserService(context, getViewConfigs(context));
       userservice.homeDir();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -252,5 +265,10 @@ public class FileService extends BaseService {
       filePath = "/" + filePath;  // some servers strip double slashes in URL
     }
     return filePath;
+  }
+
+  private static Map<String,String> getViewConfigs(ViewContext context) {
+    Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+    return props.isPresent()? props.get() : new HashMap<String, String>();
   }
 }

@@ -194,6 +194,13 @@
         <required>false</required>
     </parameter>
 
+    <parameter>
+        <name>view.conf.keyvalues</name>
+        <description>The key values that will be copied to hdfs connection configuration verbatim.</description>
+        <label>View Configs</label>
+        <required>false</required>
+    </parameter>
+
     <resource>
         <name>script</name>
         <plural-name>scripts</plural-name>

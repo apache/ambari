@@ -18,9 +18,6 @@
 
 package org.apache.ambari.view.commons.hdfs;
 
-import javax.ws.rs.WebApplicationException;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
@@ -29,6 +26,8 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.WebApplicationException;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +41,7 @@ public abstract class HdfsService {
   protected static final Logger logger = LoggerFactory.getLogger(HdfsService.class);
 
   protected final ViewContext context;
+  private Map<String, String> customProperties;
 
   /**
    * Constructor
@@ -49,6 +49,11 @@ public abstract class HdfsService {
    */
   public HdfsService(ViewContext context) {
     this.context = context;
+  }
+
+  public HdfsService(ViewContext context, Map<String, String> customProperties) {
+    this.context = context;
+    this.customProperties = customProperties;
   }
 
   /**
@@ -84,14 +89,18 @@ public abstract class HdfsService {
 
   /**
    * Ger HdfsApi instance
-   * @param context View Context instance
    * @return HdfsApi business delegate
    */
-  public HdfsApi getApi(ViewContext context) {
+  public HdfsApi getApi() {
     if (_api == null) {
       try {
-        _api = HdfsUtil.connectToHDFSApi(context);
+        if(this.customProperties != null){
+          _api = HdfsUtil.connectToHDFSApi(context, customProperties);
+        }else{
+          _api = HdfsUtil.connectToHDFSApi(context);
+        }
       } catch (Exception ex) {
+        logger.error("Exception while connecting to hdfs : {}", ex.getMessage(), ex);
         throw new ServiceFormattedException("HdfsApi connection failed. Check \"webhdfs.url\" property", ex);
       }
     }

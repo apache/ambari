@@ -216,6 +216,12 @@
         <required>true</required>
     </parameter>
 
+    <parameter>
+        <name>view.conf.keyvalues</name>
+        <description>The key values that will be copied to hdfs connection configuration verbatim.</description>
+        <label>View Configs</label>
+        <required>false</required>
+    </parameter>
 
     <parameter>
         <name>use.hive.interactive.mode</name>
