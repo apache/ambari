@@ -35,6 +35,9 @@
                 {{#decision-config actionModel=actionModel register="registerChild"}}{{/decision-config}}
               {{/if}}
               {{#if (eq nodeType 'action')}}
+                {{#if containsUnsupportedProperties}}
+                  <span class="unsupported-elt-warning"> <p><a href='#unsupported-props'><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Action contains elements that are not currently supported by the designer.</a></p></span>
+                {{/if}}
                 {{#if (eq actionType 'java')}}
                   {{#java-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/java-action}}
                 {{else if (eq actionType 'hive')}}
@@ -61,6 +64,14 @@
                   {{#fs-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/fs-action}}
                 {{else if (eq actionType 'sub-workflow')}}
                   {{#sub-workflow actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/sub-workflow}}
+              {{/if}}
+              {{#if containsUnsupportedProperties}}
+                <div id="unsupported-props" class=" panel panel-default">
+                  <div class="panel-heading">Unsupported Properties</div>
+                  <div class="panel-body handlerPanel">
+                    {{textarea class="unsupported-xml" value=unsupportedPropertiesXml}}
+                  </div>
+                </div>
               {{/if}}
               {{/if}}
               {{#if (eq nodeType 'kill')}}

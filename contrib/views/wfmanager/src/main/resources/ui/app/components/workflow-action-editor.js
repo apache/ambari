@@ -58,6 +58,15 @@ export default Ember.Component.extend( Ember.Evented,{
     return this.get('actionIcons')[this.get('actionType')];
   }),
   saveClicked : false,
+  containsUnsupportedProperties : Ember.computed('actionModel.unsupportedProperties', function(){
+    return this.get('actionModel.unsupportedProperties') ? !Ember.isEmpty(Object.keys(this.get('actionModel.unsupportedProperties'))) : false;
+  }),
+  unsupportedPropertiesXml : Ember.computed('actionModel.unsupportedProperties', function(){
+    if(this.get('containsUnsupportedProperties')){
+      var x2js = new X2JS();
+      return vkbeautify.xml(x2js.json2xml_str(this.get('actionModel.unsupportedProperties')));
+    }
+  }),
   fileBrowser : Ember.inject.service('file-browser'),
   onDestroy : function(){
     this.set('transition',{});

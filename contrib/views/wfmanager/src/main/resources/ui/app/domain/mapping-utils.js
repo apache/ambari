@@ -62,12 +62,20 @@ var MappingMixin= Ember.Mixin.create({
   },
 
   handleImportMapping(actionNode,json,mappings){
-    var domain={};
+    var domain={
+      unsupportedProperties : {}
+    };
     if (json._xmlns){
       var version=CommonUtils.extractSchemaVersion(json._xmlns);
       //this.schemaVersions.setActionVersion(actionNode.actionType,version);
     }
     actionNode.set("domain",domain);
+    Object.keys(json).forEach((propKey)=>{
+       if(!mappings.findBy('xml', propKey) && propKey !=='_xmlns'){
+         domain.unsupportedProperties[propKey] = json[propKey];
+         domain[propKey] = json[propKey];
+       }
+    });
     mappings.forEach(function(mapping){
       if (!mapping.occurs) {
         mapping.occurs = "once";
@@ -210,13 +218,13 @@ var SLAMapper= Ember.Object.extend({
       if (sla.nominalTime){
         slaInfo[slaPrefix+":"+"nominal-time"]=sla.nominalTime;
       }
-      if (sla.shouldStart){
+      if (sla.shouldStart && sla.shouldStart.time){
         slaInfo[slaPrefix+":"+"should-start"]="${"+sla.shouldStart.time+ "*"+sla.shouldStart.unit+"}";
       }
-      if (sla.shouldEnd){
+      if (sla.shouldEnd && sla.shouldEnd.time){
         slaInfo[slaPrefix+":"+"should-end"]="${"+sla.shouldEnd.time+ "*"+sla.shouldEnd.unit+"}";
       }
-      if (sla.maxDuration){
+      if (sla.maxDuration && sla.maxDuration.time){
         slaInfo[slaPrefix+":"+"max-duration"]="${"+sla.maxDuration.time+ "*"+sla.maxDuration.unit+"}";
       }
       if (sla.alertEvents){
