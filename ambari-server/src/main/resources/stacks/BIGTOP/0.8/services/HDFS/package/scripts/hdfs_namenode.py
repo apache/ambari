@@ -112,8 +112,7 @@ def format_namenode(force=None):
       ExecuteHadoop('namenode -format',
                     kinit_override=True,
                     bin_dir=params.hadoop_bin_dir,
-                    conf_dir=hadoop_conf_dir,
-                    logoutput=True)
+                    conf_dir=hadoop_conf_dir)
     else:
       File(format("{tmp_dir}/checkForFormat.sh"),
            content=StaticFile("checkForFormat.sh"),
