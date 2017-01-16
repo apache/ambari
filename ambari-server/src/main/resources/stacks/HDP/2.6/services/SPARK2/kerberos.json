@@ -9,7 +9,7 @@
         {
           "name": "spark2user",
           "principal": {
-            "value": "${spark2-env/spark_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${spark2-env/spark_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "spark2-defaults/spark.history.kerberos.principal",
             "local_username" : "${spark2-env/spark_user}"
@@ -44,7 +44,7 @@
           "livy2-conf": {
             "livy.server.auth.type": "kerberos",
             "livy.impersonation.enabled": "true",
-            "livy.superusers": "zeppelin-${cluster_name}"
+            "livy.superusers": "zeppelin${principal_suffix}"
           }
         },
         {

@@ -21,7 +21,7 @@
       "configuration": "cluster-env/smokeuser_principal_name",
       "type": "user",
       "local_username": "${cluster-env/smokeuser}",
-      "value": "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}"
+      "value": "${cluster-env/smokeuser}${principal_suffix}@${realm}"
     },
     "name": "smokeuser",
     "keytab": {
@@ -318,7 +318,7 @@
         "configuration": "hadoop-env/hdfs_principal_name",
         "type": "user",
         "local_username": "${hadoop-env/hdfs_user}",
-        "value": "${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${hadoop-env/hdfs_user}${principal_suffix}@${realm}"
       },
       "name": "hdfs",
       "keytab": {
@@ -370,7 +370,7 @@
         "configuration": "spark-defaults/spark.history.kerberos.principal",
         "type": "user",
         "local_username": "${spark-env/spark_user}",
-        "value": "${spark-env/spark_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${spark-env/spark_user}${principal_suffix}@${realm}"
       },
       "name": "sparkuser",
       "keytab": {
@@ -411,7 +411,7 @@
         "configuration": "accumulo-env/accumulo_principal_name",
         "type": "user",
         "local_username": "${accumulo-env/accumulo_user}",
-        "value": "${accumulo-env/accumulo_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${accumulo-env/accumulo_user}${principal_suffix}@${realm}"
       },
       "name": "accumulo",
       "keytab": {
@@ -451,7 +451,7 @@
         "configuration": "accumulo-site/trace.user",
         "type": "user",
         "local_username": "${accumulo-env/accumulo_user}",
-        "value": "tracer-${cluster_name|toLower()}@${realm}"
+        "value": "tracer${principal_suffix}@${realm}"
       },
       "name": "accumulo_tracer",
       "keytab": {
@@ -591,7 +591,7 @@
         "configuration": "hbase-env/hbase_principal_name",
         "type": "user",
         "local_username": "${hbase-env/hbase_user}",
-        "value": "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${hbase-env/hbase_user}${principal_suffix}@${realm}"
       },
       "name": "hbase",
       "keytab": {
@@ -940,7 +940,7 @@
       "principal": {
         "configuration": "storm-env/storm_principal_name",
         "type": "user",
-        "value": "${storm-env/storm_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${storm-env/storm_user}${principal_suffix}@${realm}"
       },
       "name": "storm_components",
       "keytab": {

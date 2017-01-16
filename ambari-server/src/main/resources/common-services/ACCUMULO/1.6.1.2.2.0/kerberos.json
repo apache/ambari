@@ -6,7 +6,7 @@
         {
           "name": "accumulo",
           "principal": {
-            "value": "${accumulo-env/accumulo_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${accumulo-env/accumulo_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "accumulo-env/accumulo_principal_name",
             "local_username": "${accumulo-env/accumulo_user}"

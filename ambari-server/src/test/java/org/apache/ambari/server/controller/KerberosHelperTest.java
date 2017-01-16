@@ -2484,12 +2484,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     String ambariServerPrincipalNameExpected;
 
     if(ambariServerPrincipalAsService) {
-      ambariServerPrincipalName = "ambari-server-${cluster_name}/_HOST@${realm}";
+      ambariServerPrincipalName = "ambari-server${principal_suffix}/_HOST@${realm}";
       ambariServerPrincipalType = KerberosPrincipalType.SERVICE;
       ambariServerPrincipalNameExpected = String.format("ambari-server-%s/%s@%s", clusterName, ambariServerHostname, realm);
     }
     else {
-      ambariServerPrincipalName = "ambari-server-${cluster_name}@${realm}";
+      ambariServerPrincipalName = "ambari-server${principal_suffix}@${realm}";
       ambariServerPrincipalType = KerberosPrincipalType.USER;
       ambariServerPrincipalNameExpected = String.format("ambari-server-%s@%s", clusterName, realm);
     }
@@ -2543,6 +2543,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     kerberosDescriptorProperties.put("additional_realms", "");
     kerberosDescriptorProperties.put("keytab_dir", "/etc/security/keytabs");
     kerberosDescriptorProperties.put("realm", "${kerberos-env/realm}");
+    kerberosDescriptorProperties.put("principal_suffix", "-${cluster_name|toLower()}");
 
     ArrayList<KerberosIdentityDescriptor> service1Component1Identities = new ArrayList<KerberosIdentityDescriptor>();
     service1Component1Identities.add(createMockIdentityDescriptor(
@@ -3896,7 +3897,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     if (createAmbariIdentities) {
-      String ambariServerPrincipalName = "ambari-server-${cluster_name}@${realm}";
+      String ambariServerPrincipalName = "ambari-server${principal_suffix}@${realm}";
       KerberosPrincipalType ambariServerPrincipalType = KerberosPrincipalType.USER;
       String ambariServerKeytabFilePath = new File("ambari.server.keytab").getAbsolutePath();
 

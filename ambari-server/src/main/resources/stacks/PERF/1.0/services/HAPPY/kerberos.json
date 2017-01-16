@@ -9,7 +9,7 @@
         {
           "name": "happy",
           "principal": {
-            "value": "${happy-site/happy_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${happy-site/happy_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "happy-site/happy_principal_name",
             "local_username": "${happy-site/happy_user}"

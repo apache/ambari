@@ -9,7 +9,7 @@
         {
           "name": "snow",
           "principal": {
-            "value": "${snow-site/snow_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${snow-site/snow_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "snow-site/snow_principal_name",
             "local_username": "${snow-site/snow_user}"

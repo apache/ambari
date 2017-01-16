@@ -43,7 +43,7 @@
             {
               "name": "hdfs",
               "principal": {
-                "value": "${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}",
+                "value": "${hadoop-env/hdfs_user}${principal_suffix}@${realm}",
                 "type" : "user" ,
                 "configuration": "hadoop-env/hdfs_principal_name",
                 "local_username" : "${hadoop-env/hdfs_user}"

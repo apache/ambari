@@ -9,7 +9,7 @@
         {
           "name": "sleepy",
           "principal": {
-            "value": "${sleepy-site/sleepy_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${sleepy-site/sleepy_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "sleepy-site/sleepy_principal_name",
             "local_username": "${sleepy-site/sleepy_user}"

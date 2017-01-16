@@ -9,7 +9,7 @@
         {
           "name": "grumpy",
           "principal": {
-            "value": "${grumpy-site/grumpy_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${grumpy-site/grumpy_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "grumpy-site/grumpy_principal_name",
             "local_username": "${grumpy-site/grumpy_user}"

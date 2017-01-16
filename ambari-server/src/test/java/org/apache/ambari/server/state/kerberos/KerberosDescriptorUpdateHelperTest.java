@@ -206,7 +206,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "    {" +
             "      \"name\": \"old_identity\"," +
             "      \"principal\": {" +
-            "        \"value\": \"foobar-${cluster_name|toLower()}@${realm}\"," +
+            "        \"value\": \"foobar${principal_suffix}@${realm}\"," +
             "        \"type\": \"user\"," +
             "        \"configuration\": \"cluster-env/ambari_principal_name\"" +
             "      }," +
@@ -241,7 +241,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "    {" +
             "      \"name\": \"smokeuser\"," +
             "      \"principal\": {" +
-            "        \"value\": \"${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}\"," +
+            "        \"value\": \"${cluster-env/smokeuser}${principal_suffix}@${realm}\"," +
             "        \"type\": \"user\"," +
             "        \"configuration\": \"cluster-env/smokeuser_principal_name\"," +
             "        \"local_username\": \"${cluster-env/smokeuser}\"" +
@@ -262,7 +262,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "    {" +
             "      \"name\": \"ambari-server\"," +
             "      \"principal\": {" +
-            "        \"value\": \"ambari-server-${cluster_name|toLower()}@${realm}\"," +
+            "        \"value\": \"ambari-server${principal_suffix}@${realm}\"," +
             "        \"type\": \"user\"," +
             "        \"configuration\": \"cluster-env/ambari_principal_name\"" +
             "      }," +
@@ -318,7 +318,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "    {" +
             "      \"name\": \"old_identity\"," +
             "      \"principal\": {" +
-            "        \"value\": \"foobar-${cluster_name|toLower()}@${realm}\"," +
+            "        \"value\": \"foobar${principal_suffix}@${realm}\"," +
             "        \"type\": \"user\"," +
             "        \"configuration\": \"cluster-env/ambari_principal_name\"" +
             "      }," +
@@ -360,7 +360,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
                 "    {\n" +
                 "      \"name\": \"smokeuser\",\n" +
                 "      \"principal\": {\n" +
-                "        \"value\": \"${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}\",\n" +
+                "        \"value\": \"${cluster-env/smokeuser}${principal_suffix}@${realm}\",\n" +
                 "        \"local_username\": \"${cluster-env/smokeuser}\",\n" +
                 "        \"configuration\": \"cluster-env/smokeuser_principal_name\",\n" +
                 "        \"type\": \"user\"\n" +
@@ -393,7 +393,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
                 "    {\n" +
                 "      \"name\": \"ambari-server\",\n" +
                 "      \"principal\": {\n" +
-                "        \"value\": \"ambari-server-${cluster_name|toLower()}@${realm}\",\n" +
+                "        \"value\": \"ambari-server${principal_suffix}@${realm}\",\n" +
                 "        \"configuration\": \"cluster-env/ambari_principal_name\",\n" +
                 "        \"type\": \"user\"\n" +
                 "      },\n" +
@@ -422,7 +422,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
                 "    {\n" +
                 "      \"name\": \"smokeuser\",\n" +
                 "      \"principal\": {\n" +
-                "        \"value\": \"${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}\",\n" +
+                "        \"value\": \"${cluster-env/smokeuser}${principal_suffix}@${realm}\",\n" +
                 "        \"local_username\": \"${cluster-env/smokeuser}\",\n" +
                 "        \"configuration\": \"cluster-env/smokeuser_principal_name\",\n" +
                 "        \"type\": \"user\"\n" +
@@ -749,7 +749,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "                \"configuration\": \"hadoop-env/hdfs_principal_name\",\n" +
             "                \"type\": \"user\",\n" +
             "                \"local_username\": \"${hadoop-env/hdfs_user}\",\n" +
-            "                \"value\": \"${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}\"\n" +
+            "                \"value\": \"${hadoop-env/hdfs_user}${principal_suffix}@${realm}\"\n" +
             "              },\n" +
             "              \"name\": \"hdfs\",\n" +
             "              \"keytab\": {\n" +
@@ -1251,7 +1251,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
             "                \"configuration\": \"hadoop-env/hdfs_principal_name\",\n" +
             "                \"type\": \"user\",\n" +
             "                \"local_username\": \"${hadoop-env/hdfs_user}\",\n" +
-            "                \"value\": \"${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}\"\n" +
+            "                \"value\": \"${hadoop-env/hdfs_user}${principal_suffix}@${realm}\"\n" +
             "              },\n" +
             "              \"name\": \"hdfs\",\n" +
             "              \"keytab\": {\n" +
@@ -1674,7 +1674,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
                 "                \"configuration\": \"hadoop-env/hdfs_principal_name\",\n" +
                 "                \"type\": \"user\",\n" +
                 "                \"local_username\": \"${hadoop-env/hdfs_user}\",\n" +
-                "                \"value\": \"${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}\"\n" +
+                "                \"value\": \"${hadoop-env/hdfs_user}${principal_suffix}@${realm}\"\n" +
                 "              },\n" +
                 "              \"name\": \"hdfs\",\n" +
                 "              \"keytab\": {\n" +
@@ -2075,7 +2075,7 @@ public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
                 "                \"configuration\": \"hadoop-env/hdfs_principal_name\",\n" +
                 "                \"type\": \"user\",\n" +
                 "                \"local_username\": \"${hadoop-env/hdfs_user}\",\n" +
-                "                \"value\": \"${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}\"\n" +
+                "                \"value\": \"${hadoop-env/hdfs_user}${principal_suffix}@${realm}\"\n" +
                 "              },\n" +
                 "              \"name\": \"hdfs\",\n" +
                 "              \"keytab\": {\n" +

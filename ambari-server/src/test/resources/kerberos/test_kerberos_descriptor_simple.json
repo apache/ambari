@@ -25,7 +25,7 @@
     {
       "name": "hdfs",
       "principal": {
-        "value": "${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}",
+        "value": "${hadoop-env/hdfs_user}${principal_suffix}@${realm}",
         "type": "user",
         "configuration": "hadoop-env/hdfs_principal_name",
         "local_username": "${hadoop-env/hdfs_user}"
@@ -46,7 +46,7 @@
     {
       "name": "smokeuser",
       "principal": {
-        "value": "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}",
+        "value": "${cluster-env/smokeuser}${principal_suffix}@${realm}",
         "type": "user",
         "configuration": "cluster-env/smokeuser_principal_name",
         "local_username": "${cluster-env/smokeuser}"
