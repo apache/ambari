@@ -243,6 +243,15 @@
         <required>true</required>
     </parameter>
 
+    <parameter>
+        <name>view.conf.keyvalues</name>
+        <description>The key values that will be copied to hdfs connection configuration verbatim. Format : key1=value1;
+          key2=value2</description>
+        <label>View Configs</label>
+        <required>false</required>
+    </parameter>
+
+
     <resource>
         <name>savedQuery</name>
         <plural-name>savedQueries</plural-name>

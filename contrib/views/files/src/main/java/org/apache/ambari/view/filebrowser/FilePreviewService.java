@@ -37,6 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * File Preview Service
@@ -49,6 +50,10 @@ public class FilePreviewService extends HdfsService {
   public FilePreviewService(ViewContext context) {
     super(context);
 
+    initCompressionCodecFactory();
+  }
+
+  private void initCompressionCodecFactory() {
     Configuration conf = new Configuration();
     conf.set("io.compression.codecs","org.apache.hadoop.io.compress.GzipCodec," +
       "org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec," +
@@ -57,13 +62,22 @@ public class FilePreviewService extends HdfsService {
     compressionCodecFactory = new CompressionCodecFactory(conf);
   }
 
+  /**
+   * @param context
+   * @param viewConfigs : extra properties that needs to be included into configs
+   */
+  public FilePreviewService(ViewContext context, Map<String, String> viewConfigs) {
+    super(context, viewConfigs);
+    initCompressionCodecFactory();
+  }
+
   @GET
   @Path("/file")
   @Produces(MediaType.APPLICATION_JSON)
   public Response previewFile(@QueryParam("path") String path, @QueryParam("start") int start, @QueryParam("end") int end) {
     LOG.info("previewing file {}, from start {}, till end {}", path, start, end);
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       FileStatus status = api.getFileStatus(path);
 
       CompressionCodec codec = compressionCodecFactory.getCodec(status.getPath());

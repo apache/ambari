@@ -18,7 +18,9 @@
 
 package org.apache.ambari.view.hive20.utils;
 
+import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.hive20.persistence.IStorageFactory;
 import org.apache.ambari.view.hive20.persistence.Storage;
 import org.apache.ambari.view.hive20.persistence.utils.StorageFactory;
@@ -45,6 +47,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * will use different connection.
  */
 public class SharedObjectsFactory implements IStorageFactory {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
+
   protected final static Logger LOG =
       LoggerFactory.getLogger(SharedObjectsFactory.class);
 
@@ -123,7 +127,15 @@ public class SharedObjectsFactory implements IStorageFactory {
   public HdfsApi getHdfsApi() {
     if (!localObjects.get(HdfsApi.class).containsKey(getTagName())) {
       try {
-        localObjects.get(HdfsApi.class).put(getTagName(), HdfsUtil.connectToHDFSApi(context));
+        Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+        HdfsApi api;
+        if(props.isPresent()){
+          api = HdfsUtil.connectToHDFSApi(context, props.get());
+        }else{
+          api = HdfsUtil.connectToHDFSApi(context);
+        }
+
+        localObjects.get(HdfsApi.class).put(getTagName(), api);
       } catch (HdfsApiException e) {
         String message = "F060 Couldn't open connection to HDFS";
         LOG.error(message);

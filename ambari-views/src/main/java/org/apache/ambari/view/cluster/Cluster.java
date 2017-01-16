@@ -19,6 +19,7 @@
 package org.apache.ambari.view.cluster;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * View associated cluster.  A cluster may be associated with a view instance so that the view instance may pull
@@ -42,6 +43,11 @@ public interface Cluster {
    */
   public String getConfigurationValue(String type, String key);
 
+  /**
+   * @param type : the type (site) for which the configurations are required.
+   * @return : return a map containing all the key values of configurations
+   */
+  public Map<String,String> getConfigByType(String type);
   /**
    * Get the hosts for service and componet
    *

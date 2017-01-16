@@ -31,7 +31,8 @@
   <properties>
     <ambari.version>2.5.0.0.0</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
-    <hadoop.version>2.7.1</hadoop.version>
+    <hadoop.version>2.7.3</hadoop.version>
+    <aws-java-sdk.version>1.10.6</aws-java-sdk.version>
     <views.jars.dir>views-jars</views.jars.dir>
     <views.jars.dir.rel>../target/${views.jars.dir}</views.jars.dir.rel>
   </properties>

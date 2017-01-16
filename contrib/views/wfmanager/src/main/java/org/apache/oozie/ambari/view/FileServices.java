@@ -17,14 +17,19 @@
  */
 package org.apache.oozie.ambari.view;
 
-import javax.ws.rs.Path;
-
+import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.commons.hdfs.FileOperationService;
 import org.apache.ambari.view.commons.hdfs.UploadService;
 import org.apache.ambari.view.commons.hdfs.UserService;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
+
+import javax.ws.rs.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FileServices {
+	public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
 
 	private ViewContext context;
 
@@ -38,7 +43,7 @@ public class FileServices {
 	 */
 	@Path("/upload")
 	public UploadService upload() {
-		return new UploadService(context);
+		return new UploadService(context, getViewConfigs());
 	}
 
 	/**
@@ -47,7 +52,7 @@ public class FileServices {
 	 */
 	@Path("/fileops")
 	public FileOperationService fileOps() {
-		return new FileOperationService(context);
+		return new FileOperationService(context, getViewConfigs());
 	}
 
 	/**
@@ -56,6 +61,11 @@ public class FileServices {
 	 */
 	@Path("/user")
 	public UserService userService() {
-		return new UserService(context);
+		return new UserService(context, getViewConfigs());
+	}
+
+	private Map<String,String> getViewConfigs() {
+		Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+		return props.isPresent()? props.get() : new HashMap<String, String>();
 	}
 }
