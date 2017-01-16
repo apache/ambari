@@ -254,7 +254,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     namenode_format_marker = os.path.join(params.hadoop_conf_dir,"NN_FORMATTED")
     if not os.path.exists(namenode_format_marker):
       hadoop_cmd = "cmd /C %s" % (os.path.join(params.hadoop_home, "bin", "hadoop.cmd"))
-      Execute("%s namenode -format" % (hadoop_cmd), logoutput=True)
+      Execute("%s namenode -format" % (hadoop_cmd))
       open(namenode_format_marker, 'a').close()
     Service(params.namenode_win_service_name, action=action)
   elif action == "stop":
@@ -311,14 +311,12 @@ def format_namenode(force=None):
     if force:
       ExecuteHadoop('namenode -format',
                     bin_dir=params.hadoop_bin_dir,
-                    conf_dir=hadoop_conf_dir,
-                    logoutput=True)
+                    conf_dir=hadoop_conf_dir)
     else:
       if not is_namenode_formatted(params):
         Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
                 user = params.hdfs_user,
-                path = [params.hadoop_bin_dir],
-                logoutput=True
+                path = [params.hadoop_bin_dir]
         )
         for m_dir in mark_dir:
           Directory(m_dir,
@@ -332,16 +330,14 @@ def format_namenode(force=None):
       if force:
         ExecuteHadoop('namenode -format',
                       bin_dir=params.hadoop_bin_dir,
-                      conf_dir=hadoop_conf_dir,
-                      logoutput=True)
+                      conf_dir=hadoop_conf_dir)
       else:
         nn_name_dirs = params.dfs_name_dir.split(',')
         if not is_namenode_formatted(params):
           try:
             Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
                     user = params.hdfs_user,
-                    path = [params.hadoop_bin_dir],
-                    logoutput=True
+                    path = [params.hadoop_bin_dir]
             )
           except Fail:
             # We need to clean-up mark directories, so we can re-run format next time.
