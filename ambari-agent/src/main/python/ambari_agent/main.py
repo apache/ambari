@@ -291,15 +291,15 @@ def run_threads(server_hostname, heartbeat_stop_callback):
   while controller.is_alive():
     time.sleep(0.1)
 
-    if controller.getStatusCommandsExecutor() is not None and (not controller.getStatusCommandsExecutor().is_alive() or controller.getStatusCommandsExecutor().hasTimeoutedEvent.is_set()):
-      if controller.getStatusCommandsExecutor().is_alive():
-        logger.info("Terminating statusCommandsExecutor")
-        controller.killStatusCommandsExecutorProcess()
-      logger.info("Respawning statusCommandsExecutor")
-      controller.spawnStatusCommandsExecutorProcess()
+    with controller.getSpawnKillStatusCommandExecutorLock():
+      # We need to lock as Controller.py may try to spawn StatusCommandExecutor child in parallel as well
+      if controller.getStatusCommandsExecutor() is not None \
+          and (not controller.getStatusCommandsExecutor().is_alive()
+              or controller.getStatusCommandsExecutor().hasTimeoutedEvent.is_set()):
+        controller.spawnStatusCommandsExecutorProcess()
 
-  if controller.getStatusCommandsExecutor() is not None and controller.getStatusCommandsExecutor().is_alive():
-    controller.killStatusCommandsExecutorProcess()
+
+  controller.killStatusCommandsExecutorProcess()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
