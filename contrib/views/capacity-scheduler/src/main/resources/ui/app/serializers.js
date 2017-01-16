@@ -113,7 +113,7 @@ App.SerializerMixin = Em.Mixin.create({
     q.capacity = (props[base_path + ".capacity"])? +parseFloat(props[base_path + ".capacity"]).toFixed(2) : null;
     q.maximum_capacity = (props[base_path + ".maximum-capacity"])? +parseFloat(props[base_path + ".maximum-capacity"]).toFixed(2) : null;
 
-    switch ((props.hasOwnProperty(labelsPath))?props[labelsPath]:'') {
+    switch ((props.hasOwnProperty(labelsPath))?props[labelsPath].trim():'') {
       case '*':
         q.labels = this.get('store.nodeLabels.content').map(function(item) {
           return [q.id,item.name].join('.');
