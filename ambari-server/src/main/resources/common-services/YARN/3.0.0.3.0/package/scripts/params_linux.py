@@ -119,7 +119,7 @@ if stack_supports_ru:
 
 if stack_supports_timeline_state_store:
   # Timeline Service property that was added timeline_state_store stack feature
-  ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
+  ats_leveldb_state_store_dir = default('/configurations/yarn-site/yarn.timeline-service.leveldb-state-store.path', '/hadoop/yarn/timeline')
 
 # ats 1.5 properties
 entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
