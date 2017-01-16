@@ -101,7 +101,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
       controller.removeCurrentFromDependentList(config, saveRecommended);
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0) 
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0)
          || (config.get('displayType') === 'user' && config.get('oldValue') !== config.get('value'))) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
@@ -156,6 +156,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
 App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
   onValueUpdate: function () {
+    if (!this.get('isVisible')) return;
     var self = this, config = this.get('serviceConfig'),
     controller = this.get('controller');
     delay(function(){

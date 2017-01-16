@@ -22,7 +22,13 @@
 {{#if view.supportSwitchToTextBox}}
   {{#unless view.isPropertyUndefined}}
     <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
-      {{view App.PlainConfigTextField sectionBinding="view.section" subSectionBinding="view.subSection" configBinding="view.config" serviceConfigBinding="view.config" disabledBinding="view.canNotEdit"}}
+      {{view App.PlainConfigTextField
+        isVisibleBinding="view.config.showAsTextBox"
+        sectionBinding="view.section"
+        subSectionBinding="view.subSection"
+        configBinding="view.config"
+        serviceConfigBinding="view.config"
+        disabledBinding="view.canNotEdit"}}
     </div>
   {{/unless}}
 {{/if}}
