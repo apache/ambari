@@ -190,34 +190,23 @@
       <outputDirectory>/var/lib/${project.artifactId}/data</outputDirectory>
     </file>
   </files>
-  <moduleSets>
-    <moduleSet>
-      <binaries>
-        <includeDependencies>false</includeDependencies>
-        <outputDirectory>/var/lib/${project.artifactId}/cred/lib</outputDirectory>
-        <unpack>false</unpack>
-        <directoryMode>755</directoryMode>
-        <fileMode>644</fileMode>
-        <dependencySets>
-          <dependencySet>
-            <outputDirectory>/var/lib/${project.artifactId}/cred/lib</outputDirectory>
-            <unpack>false</unpack>
-            <includes>
-              <include>commons-cli:commons-cli</include>
-              <include>commons-collections:commons-collections</include>
-              <include>commons-configuration:commons-configuration</include>
-              <include>commons-io:commons-io:jar:${commons.io.version}</include>
-              <include>commons-lang:commons-lang</include>
-              <include>commons-logging:commons-logging</include>
-              <include>com.google.guava:guava</include>
-              <include>org.slf4j:slf4j-api</include>
-              <include>org.apache.hadoop:hadoop-common</include>
-              <include>org.apache.hadoop:hadoop-auth</include>
-              <include>org.apache.htrace:htrace-core</include>
-            </includes>
-          </dependencySet>
-        </dependencySets>
-      </binaries>
-    </moduleSet>
-  </moduleSets>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>/var/lib/${project.artifactId}/cred/lib</outputDirectory>
+      <unpack>false</unpack>
+      <includes>
+        <include>commons-cli:commons-cli</include>
+        <include>commons-collections:commons-collections</include>
+        <include>commons-configuration:commons-configuration</include>
+        <include>commons-io:commons-io</include>
+        <include>commons-lang:commons-lang</include>
+        <include>commons-logging:commons-logging</include>
+        <include>com.google.guava:guava</include>
+        <include>org.slf4j:slf4j-api</include>
+        <include>org.apache.hadoop:hadoop-common</include>
+        <include>org.apache.hadoop:hadoop-auth</include>
+        <include>org.apache.htrace:htrace-core</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
 </assembly>
