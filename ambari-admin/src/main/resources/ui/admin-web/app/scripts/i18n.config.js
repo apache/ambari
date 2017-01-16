@@ -354,7 +354,7 @@ angular.module('ambariAdminConsole')
         'ambariAdmin': 'Ambari Administrator',
         'viewUser': 'View User',
         'none': 'None',
-        'oneRolePerUser': 'Only 1 role allowed per user',
+        'oneRolePerUserOrGroup': 'Only 1 role allowed per user or group',
         'permissionLevel': '{{level}}-level Permissions'
       },
 
