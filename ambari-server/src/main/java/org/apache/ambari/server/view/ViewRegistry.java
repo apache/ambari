@@ -117,6 +117,7 @@ import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
 import org.apache.ambari.view.migration.ViewDataMigrationException;
 import org.apache.ambari.view.validation.Validator;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -969,25 +970,31 @@ public class ViewRegistry {
         String viewName = viewEntity.getName();
         ViewConfig viewConfig = viewEntity.getConfiguration();
         AutoInstanceConfig autoConfig = viewConfig.getAutoInstance();
-        Collection<String> roles = autoConfig.getRoles();
+        Collection<String> roles = com.google.common.collect.Lists.newArrayList();
+        if (autoConfig != null && !CollectionUtils.isEmpty(autoConfig.getRoles())) {
+          roles.addAll(autoConfig.getRoles());
+        }
 
         try {
           if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
-
-            LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
-            ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
-            viewInstanceEntity.setClusterHandle(clusterId);
-            installViewInstance(viewInstanceEntity);
-            setViewInstanceRoleAccess(viewInstanceEntity, roles);
+            installAutoInstance(clusterId, clusterName, viewEntity, viewName, viewConfig, autoConfig, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
-              ".  Caught exception :" + e.getMessage(), e);
+            ".  Caught exception :" + e.getMessage(), e);
         }
       }
     } catch (AmbariException e) {
       LOG.warn("Unknown cluster id " + clusterId + ".");
     }
+  }
+
+  private void installAutoInstance(Long clusterId, String clusterName, ViewEntity viewEntity, String viewName, ViewConfig viewConfig, AutoInstanceConfig autoConfig, Collection<String> roles) throws SystemException, ValidationException {
+    LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
+    ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
+    viewInstanceEntity.setClusterHandle(clusterId);
+    installViewInstance(viewInstanceEntity);
+    setViewInstanceRoleAccess(viewInstanceEntity, roles);
   }
 
   @Subscribe
@@ -1860,11 +1867,7 @@ public class ViewRegistry {
         try {
 
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
-            LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
-            ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoInstanceConfig);
-            viewInstanceEntity.setClusterHandle(clusterId);
-            installViewInstance(viewInstanceEntity);
-            setViewInstanceRoleAccess(viewInstanceEntity, roles);
+            installAutoInstance(clusterId, clusterName, viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
