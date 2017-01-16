@@ -68,7 +68,6 @@ angular.module('ambariAdminConsole')
 
   function loadMembers(){
     $scope.group.getMembers().then(function(members) {
-      $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
       $scope.groupMembers = members;
       $scope.group.editingUsers = angular.copy($scope.groupMembers);
     });
@@ -76,10 +75,11 @@ angular.module('ambariAdminConsole')
   
   $scope.group.isLDAP().then(function(isLDAP) {
     $scope.group.ldap_group = isLDAP;
+    $scope.group.getGroupType().then(function() {
+      $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
+    });
     loadMembers();
   });
-
-  $scope.group.getGroupType();
 
   $scope.deleteGroup = function(group) {
     ConfirmationModal.show(
