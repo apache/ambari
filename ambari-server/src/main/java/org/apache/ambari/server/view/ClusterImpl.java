@@ -18,14 +18,15 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.view.cluster.Cluster;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * View associated cluster implementation.
