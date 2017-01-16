@@ -18,63 +18,66 @@
 
 <div class="wizard-content col-md-9">
   <h4 class="step-title">{{t admin.manageJournalNode.wizard.step2.header}}</h4>
+  <p class="step-description">
+    {{t admin.manageJournalNode.wizard.step3.confirm.hosts.body}}
+  </p>
   <div class="panel panel-default">
     <div class="panel-body">
-    <div id="manage-journal-node-step2-content" class="well pre-scrollable">
-      <div id="step8-info">
-        <table id="manage-journal-node-step2-review-table">
+      <div id="manage-journal-node-step2-content" class="well pre-scrollable">
+        <div id="step8-info">
+          <table id="manage-journal-node-step2-review-table">
             {{#if view.journalNodesToAdd.length}}
-            <tr>
+              <tr>
                 <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
                 <td>
-                    <ul>
-                        {{#each item in view.journalNodesToAdd}}
-                            <li>{{item}}</li>
-                        {{/each}}
-                    </ul>
+                  <ul>
+                    {{#each item in view.journalNodesToAdd}}
+                      <li>{{item}}</li>
+                    {{/each}}
+                  </ul>
                 </td>
                 <td>
-                    <ul>
-                        {{#each item in view.journalNodesToAdd}}
-                            <li><span class="to-be-installed-green"><i class="icon-plus"></i>
+                  <ul>
+                    {{#each item in view.journalNodesToAdd}}
+                      <li><span class="to-be-installed-green"><i class="icon-plus"></i>
                                 &nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
-                        {{/each}}
-                    </ul>
+                    {{/each}}
+                  </ul>
                 </td>
-            </tr>
+              </tr>
             {{/if}}
 
             {{#if view.journalNodesToDelete.length}}
-            <tr>
+              <tr>
                 <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
                 <td>
-                    <ul>
-                        {{#each item in view.journalNodesToDelete}}
-                            <li>{{item}}</li>
-                        {{/each}}
-                    </ul>
+                  <ul>
+                    {{#each item in view.journalNodesToDelete}}
+                      <li>{{item}}</li>
+                    {{/each}}
+                  </ul>
                 </td>
                 <td>
-                    <ul>
-                        {{#each item in view.journalNodesToDelete}}
-                            <li><span class="to-be-disabled-red"><i class="icon-minus"></i>
+                  <ul>
+                    {{#each item in view.journalNodesToDelete}}
+                      <li><span class="to-be-disabled-red"><i class="icon-minus"></i>
                                 &nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></li>
-                        {{/each}}
-                    </ul>
+                    {{/each}}
+                  </ul>
                 </td>
-            </tr>
+              </tr>
             {{/if}}
-        </table>
+          </table>
+        </div>
       </div>
-    </div>
       <div id="serviceConfig">
         {{#if controller.isLoaded}}
           <div class="alert alert-info">
             {{{t admin.manageJournalNode.wizard.step3.confirm.config.body}}}
           </div>
-            {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
+          {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
         {{else}}
-            {{view App.SpinnerView}}
+          {{view App.SpinnerView}}
         {{/if}}
       </div>
     </div>

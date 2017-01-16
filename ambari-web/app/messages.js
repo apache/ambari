@@ -1316,7 +1316,8 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
 
   'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
-  'admin.manageJournalNode.wizard.step3.confirm.config.body': '<b>Configuration Change Review.</b></br>' +
+  'admin.manageJournalNode.wizard.step3.confirm.hosts.body': '<b>Confirm your host selections.</b>',
+  'admin.manageJournalNode.wizard.step3.confirm.config.body': '<p><b>Review Configuration Changes.</b></p>' +
   'As part of this process, configuration changes are required. Please review the changes below, and note that they are for <b>review only</b>.  Future steps in this wizard will update this configuration, and restart <b>all</b> services automatically.',
 
   'admin.manageJournalNode.wizard.step4.task0.title' : 'Stop Standby NameNode',
@@ -1541,7 +1542,7 @@ Em.I18n.translations = {
     '</ol>',
   'admin.highAvailability.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
   'admin.highAvailability.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
-    '<b>Review Configuration Changes.</b></br>' +
+    '<p><b>Review Configuration Changes.</b></p>' +
     'The following lists the configuration changes that will be made by the Wizard to enable NameNode HA. This information is for <b> review only </b> and is not editable except for the  <b>dfs.journalnode.edits.dir</b> property' +
     '</div>',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running the additional NameNode.<br/> In addition,' +
@@ -1568,7 +1569,7 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step3.header': 'Review',
   'admin.rm_highAvailability.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
   'admin.rm_highAvailability.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b></br>' +
+      '<p><b>Review Configuration Changes.</b></p>' +
       'The following lists the configuration changes that will be made by the Wizard to enable ResourceManager HA. This information is for <b> review only </b> and is not editable.' +
       '</div>',
   'admin.rm_highAvailability.wizard.step3.currentRM': 'Current ResourceManager',
@@ -1600,7 +1601,7 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.wizard.step3.alert_message': '<b>Confirm your host selections.</b>',
   'admin.ra_highAvailability.wizard.step3.currentRA': 'Current Ranger Admin',
   'admin.ra_highAvailability.wizard.step3.additionalRA': 'Additional Ranger Admin',
-  'admin.rm_highAvailability.wizard.step3.configs_changes': '<b>Review Configuration Changes.</b></br>' +
+  'admin.rm_highAvailability.wizard.step3.configs_changes': '<p><b>Review Configuration Changes.</b></p>' +
   '<i>policymgr_external_url</i> in admin-properties.xml will be changed by the Wizard to enable Ranger Admin HA',
   'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
   'admin.ra_highAvailability.wizard.step4.task0.title': 'Stop All Services',
@@ -2284,10 +2285,12 @@ Em.I18n.translations = {
   'services.reassign.step2.body':'Assign {0} to new host.',
   'services.reassign.step2.body.namenodeHA':'Move {0} to new host. You can move only one master component at a time.',
   'services.reassign.step3.header':'Review',
-  'services.reassign.step3.body':'Please review the changes you made',
+  'services.reassign.step3.body':'<b>Confirm your host selections.</b>',
   'services.reassign.step3.targetHost':'Target Host:',
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
+  'services.reassign.step3.configs':'<div class="alert alert-info">' +
+    '<p><b>Review Configuration Changes.</b></p>The Wizard will make the following configuration changes.</div>',
   'services.reassign.step4.header':'Configure Component',
 
   'services.reassign.step4.tasks.stopRequiredServices.title':'Stop Required Services',
@@ -3245,8 +3248,8 @@ Em.I18n.translations = {
   'admin.addHawqStandby.wizard.step3.header': 'Review',
   'admin.addHawqStandby.wizard.step3.configs_changes': 'Review Configuration Changes.',
   'admin.addHawqStandby.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
-  'admin.addHawqStandby.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b><br/><br/>' +
+  'admin.addHawqStandby.wizard.step3.confirm.config.body':'<p class="alert alert-info">' +
+      '<p><b>Review Configuration Changes.</b></p>' +
       'The following lists the configuration changes that will be made by the Wizard to add HAWQ Standby Master. ' +
       'This information is for <b> review only </b> and is not editable.</div>',
   'admin.addHawqStandby.wizard.step3.hawqMaster': 'Current HAWQ Master',
@@ -3277,7 +3280,7 @@ Em.I18n.translations = {
   'admin.removeHawqStandby.wizard.step2.header': 'Review',
   'admin.removeHawqStandby.wizard.step2.hawqStandby': '<b>Current HAWQ Standby:</b>',
   'admin.removeHawqStandby.wizard.step2.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b></br></br>After removing the HAWQ Standby Master, the Wizard removes the ' +
+      '<p><b>Review Configuration Changes.</b></p>After removing the HAWQ Standby Master, the Wizard removes the ' +
       'hawq_standby_address_host property from hawq-site.xml. As a best practice, you should configure a new HAWQ Standby Master host after the Wizard completes.</div>',
   'admin.removeHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Standby Master role changes.</b>',
   'admin.removeHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with removing HAWQ Standby Master? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
@@ -3312,7 +3315,7 @@ Em.I18n.translations = {
   'admin.activateHawqStandby.wizard.step2.toBeActivated': 'TO BE ACTIVATED AS NEW HAWQ MASTER',
   'admin.activateHawqStandby.step4.save.configuration.note': 'This configuration is created by Activate HAWQ Standby wizard',
   'admin.activateHawqStandby.wizard.step2.confirm.config.body': '<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b><br/><br/>The Wizard will make the following configuration changes. '+
+      '<p><b>Review Configuration Changes.</b></p>The Wizard will make the following configuration changes. '+
       'This information is for review only, and cannot be edited.<br/><br/><b>After activating the HAWQ Standby ' +
       'Master, the wizard removes the hawq_standby_address_host property from hawq-site.xml.</b> ' +
       'As a best practice, you should configure a new HAWQ Standby Master host after the wizard completes.</div>',

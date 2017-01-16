@@ -27,8 +27,8 @@ App.ReassignMasterWizardStep3View = Em.View.extend({
 
   targetHost: Em.computed.alias('controller.content.reassignHosts.target'),
 
-  printReview: function () {
-    $("#step8-info").jqprint();
+  didInsertElement: function () {
+    this.get('controller').loadStep();
   },
 
   jdbcSetupMessage: function() {
