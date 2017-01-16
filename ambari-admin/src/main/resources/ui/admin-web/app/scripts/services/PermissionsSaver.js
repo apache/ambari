@@ -66,7 +66,7 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
       deferred.reject({
         data: {
-          message: $t('users.roles.oneRolePerUser')
+          message: $t('users.roles.oneRolePerUserOrGroup')
         }
       });
       return deferred.promise;
