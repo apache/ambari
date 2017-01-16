@@ -65,6 +65,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
                               path = ['/usr/bin'],
                               user = 'hdfs',
+                              logoutput = True,
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
                               create_parents = True,
@@ -181,6 +182,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
         user = 'hdfs',
+        logoutput = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
         create_parents = True,
@@ -310,6 +312,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
         user = 'hdfs',
+        logoutput = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
         create_parents = True,
@@ -736,6 +739,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
         user = 'hdfs',
+        logoutput = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
         create_parents = True,
