@@ -25,6 +25,7 @@ from urlparse import urlparse
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions.get_config import get_config
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.resources.service import ServiceConfig
@@ -270,13 +271,15 @@ def setup_metastore():
   import params
   
   if params.hive_metastore_site_supported:
-    XmlConfig("hivemetastore-site.xml",
-              conf_dir=params.hive_server_conf_dir,
-              configurations=params.config['configurations']['hivemetastore-site'],
-              configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
-              owner=params.hive_user,
-              group=params.user_group,
-              mode=0600)
+    hivemetastore_site_config = get_config("hivemetastore-site")
+    if hivemetastore_site_config:
+      XmlConfig("hivemetastore-site.xml",
+                conf_dir=params.hive_server_conf_dir,
+                configurations=params.config['configurations']['hivemetastore-site'],
+                configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
+                owner=params.hive_user,
+                group=params.user_group,
+                mode=0600)
   
   File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
        owner=params.hive_user,

@@ -22,6 +22,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.get_config import get_config
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.core.resources.system import File, Execute, Directory
 from resource_management.core.shell import as_user
@@ -61,17 +62,20 @@ def knox():
        content=InlineTemplate(params.topology_template)
   )
 
-  File(os.path.join(params.knox_conf_dir, "topologies", "admin.xml"),
-     group=params.knox_group,
-     owner=params.knox_user,
-     content=InlineTemplate(params.admin_topology_template)
-  )
+  if params.admin_topology_template:
+    File(os.path.join(params.knox_conf_dir, "topologies", "admin.xml"),
+       group=params.knox_group,
+       owner=params.knox_user,
+       content=InlineTemplate(params.admin_topology_template)
+    )
 
   if params.version_formatted and check_stack_feature(StackFeature.KNOX_SSO_TOPOLOGY, params.version_formatted):
+    knoxsso_topology_template_content = get_config("knoxsso-topology")
+    if knoxsso_topology_template_content:
       File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=InlineTemplate(params.knoxsso_topology_template)
+        group=params.knox_group,
+        owner=params.knox_user,
+        content=InlineTemplate(params.knoxsso_topology_template)
       )
 
   if params.security_enabled:
@@ -118,19 +122,22 @@ def knox():
          owner=params.knox_user,
          content=InlineTemplate(params.topology_template)
     )
-    File(format("{params.knox_conf_dir}/topologies/admin.xml"),
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=InlineTemplate(params.admin_topology_template)
-    )
+
+    if params.admin_topology_template:
+      File(format("{params.knox_conf_dir}/topologies/admin.xml"),
+           group=params.knox_group,
+           owner=params.knox_user,
+           content=InlineTemplate(params.admin_topology_template)
+      )
 
     if params.version_formatted and check_stack_feature(StackFeature.KNOX_SSO_TOPOLOGY, params.version_formatted):
+      knoxsso_topology_template_content = get_config("knoxsso-topology")
+      if knoxsso_topology_template_content:
         File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
             group=params.knox_group,
             owner=params.knox_user,
             content=InlineTemplate(params.knoxsso_topology_template)
         )
-
 
     if params.security_enabled:
       TemplateConfig( format("{knox_conf_dir}/krb5JAASLogin.conf"),
