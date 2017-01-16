@@ -9,7 +9,7 @@
         {
           "name": "zeppelin_user",
           "principal": {
-            "value": "${zeppelin-env/zeppelin_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${zeppelin-env/zeppelin_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "zeppelin-env/zeppelin.server.kerberos.principal",
             "local_username" : "${zeppelin-env/zeppelin_user}"

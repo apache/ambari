@@ -2,7 +2,8 @@
   "properties": {
     "realm": "${kerberos-env/realm}",
     "keytab_dir": "/etc/security/keytabs",
-    "additional_realms": ""
+    "additional_realms": "",
+    "principal_suffix": "-${cluster_name|toLower()}"
   },
   "identities": [
     {
@@ -26,7 +27,7 @@
     {
       "name": "smokeuser",
       "principal": {
-        "value": "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}",
+        "value": "${cluster-env/smokeuser}${principal_suffix}@${realm}",
         "type" : "user",
         "configuration": "cluster-env/smokeuser_principal_name",
         "local_username" : "${cluster-env/smokeuser}"
@@ -47,7 +48,7 @@
     {
       "name": "ambari-server",
       "principal": {
-        "value": "ambari-server-${cluster_name|toLower()}@${realm}",
+        "value": "ambari-server${principal_suffix}@${realm}",
         "type" : "user",
         "configuration": "cluster-env/ambari_principal_name"
       },
