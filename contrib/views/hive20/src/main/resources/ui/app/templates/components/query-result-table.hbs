@@ -18,6 +18,15 @@
 
 {{#if columns.length}}
   <div class="clearfix" style="text-align: right; padding-right:5px">
+
+    <span class="dropdown">
+      <button class="btn btn-default dropdown-toggle" title="Actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">{{fa-icon "bars"}} </button>
+      <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu">
+        <li><a href="#" {{action "openSaveHdfsModal" }} class="text-uppercase">{{fa-icon "save"}} Save To HDFS</a></li>
+        <li><a href="#" {{action "openDownloadCsvModal" }} class="text-uppercase">{{fa-icon "download"}} Download As CSV</a></li>
+      </ul>
+    </span>&nbsp;
+
     <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" }}  >{{fa-icon "arrow-left"}} </button>
     <button class="btn btn-default" title="Next Page" {{action "goNextPage" }}>{{fa-icon "arrow-right"}} </button> &nbsp;
     <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
@@ -48,6 +57,26 @@
     {{/if}}
   {{/light-table}}
 </div>
+
+{{#if showSaveHdfsModal}}
+  {{save-hdfs
+  confirmText="OK"
+  rejectText="CLOSE"
+  label="Please enter save path and name."
+  jobId=jobId
+  labelIcon="save"
+  rejectIcon="times"
+  confirmIcon="check"
+  closable=false
+  confirmClass="success"
+  confirm="saveToHDFS"
+  reject="closeSaveHdfsModal"
+  }}
+{{/if}}
+
+{{#if showDownloadCsvModal}}
+Yahoo
+{{/if}}
 
 {{yield}}
 

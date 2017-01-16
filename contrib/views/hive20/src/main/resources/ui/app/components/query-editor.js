@@ -21,6 +21,7 @@ import Ember from 'ember';
 export default Ember.Component.extend({
 
   tagName: "query-editor",
+  readOnly: false,
 
   _initializeEditor: function() {
 
@@ -41,6 +42,7 @@ export default Ember.Component.extend({
       lineNumbers: true,
       matchBrackets : true,
       autofocus: true,
+      readOnly: self.get('readOnly'),
       extraKeys: {'Ctrl-Space': 'autocomplete'}
     }));
 

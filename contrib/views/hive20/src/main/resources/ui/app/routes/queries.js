@@ -69,10 +69,6 @@ export default Ember.Route.extend({
       this.set('controller.worksheets', this.store.peekAll('worksheet'));
 
       this.transitionTo('queries.query', localWs.title);
-    },
-
-    saveWorksheet(){
-      // Here we will save the worksheet with some title.
     }
 
   }

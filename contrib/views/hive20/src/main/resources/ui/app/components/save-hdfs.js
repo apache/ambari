@@ -16,22 +16,37 @@
  * limitations under the License.
  */
 
-import DS from 'ember-data';
+import Ember from 'ember';
 
-export default DS.Model.extend({
-  title: DS.attr('string'),
-  query: DS.attr('string'),
-  selectedDb: DS.attr('string'),
-  owner: DS.attr('string'),
-  queryResult: DS.attr({defaultValue: {'schema' :[], 'rows' :[]}}),
-  currentPage: DS.attr('number', {defaultValue: 0}),
-  previousPage: DS.attr('number', {defaultValue: -1}),
-  nextPage: DS.attr('number', {defaultValue: 1}),
-  selected: DS.attr('boolean', {transient: true, defaultValue: false}),
-  jobData: DS.attr({defaultValue: []}),
-  currentJobData: DS.attr({defaultValue: null}),
-  hidePreviousButton: DS.attr('boolean', { defaultValue: true}),
-  selectedTablesModels: DS.attr(),
-  selectedMultiDb: DS.attr(),
-  queryFile: DS.attr('string', {defaultValue: ""})
+export default Ember.Component.extend({
+
+  label: null,
+  confirmText: 'Confirm',
+  rejectText: 'Reject',
+
+  jobId: 0,
+
+  savePathName: Ember.computed('jobId', function() {
+    return 'Worksheet_' + this.get('jobId');
+  }),
+
+  labelIcon: null,
+  confirmIcon: null,
+  rejectIcon: null,
+
+  closable: true,
+  titleClass: 'primary',
+  confirmClass: 'primary',
+  rejectClass: 'default',
+
+  actions: {
+    confirm() {
+      let pathName = $("input.path-name").val();
+      this.sendAction('confirm', this.get('jobId'), pathName);
+    },
+
+    reject() {
+      this.sendAction('reject');
+    }
+  }
 });

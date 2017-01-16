@@ -18,20 +18,12 @@
 
 import DS from 'ember-data';
 
-export default DS.Model.extend({
+var Model = DS.Model.extend({
+  dataBase: DS.attr('string'),
   title: DS.attr('string'),
-  query: DS.attr('string'),
-  selectedDb: DS.attr('string'),
+  queryFile: DS.attr('string'),
   owner: DS.attr('string'),
-  queryResult: DS.attr({defaultValue: {'schema' :[], 'rows' :[]}}),
-  currentPage: DS.attr('number', {defaultValue: 0}),
-  previousPage: DS.attr('number', {defaultValue: -1}),
-  nextPage: DS.attr('number', {defaultValue: 1}),
-  selected: DS.attr('boolean', {transient: true, defaultValue: false}),
-  jobData: DS.attr({defaultValue: []}),
-  currentJobData: DS.attr({defaultValue: null}),
-  hidePreviousButton: DS.attr('boolean', { defaultValue: true}),
-  selectedTablesModels: DS.attr(),
-  selectedMultiDb: DS.attr(),
-  queryFile: DS.attr('string', {defaultValue: ""})
+  shortQuery: DS.attr('string')
 });
+
+export default Model;
