@@ -60,14 +60,6 @@
         <div class="col-md-10">{{actionInfo.externalStatus}}</div>
       </div>
       <div class="col-md-12">
-        <div class="col-md-2">Console URL</div>
-        {{#unless (eq "-" actionInfo.consoleUrl)}}
-        <div class="col-md-10"><a target="_blank" href="{{actionInfo.consoleUrl}}">{{actionInfo.consoleUrl}}</a></div>
-        {{else}}
-        <div class="col-md-10">{{actionInfo.consoleUrl}}</div>
-        {{/unless}}
-      </div>
-      <div class="col-md-12">
         <div class="col-md-2">Tracker URI</div>
         {{#unless (eq "-" actionInfo.trackerUri)}}
         <div class="col-md-10"><a target="_blank" href="{{actionInfo.trackerUri}}">{{actionInfo.trackerUri}}</a></div>

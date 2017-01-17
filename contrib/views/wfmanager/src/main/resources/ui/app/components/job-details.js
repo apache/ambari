@@ -329,7 +329,21 @@ export default Ember.Component.extend({
         this.sendAction('close');
       },
       doRefresh : function(){
-        this.sendAction('doRefresh');
+        var tab = this.$(this.get('currentTab')).prop('href');
+        var currentTabHref = tab.substr(tab.indexOf('#')+1);
+        if(currentTabHref === 'jobLog'){
+          this.send('getJobLog', this.get('logParams'));
+        }else if(currentTabHref === 'jobErrorLog'){
+          this.send('getErrorLog');
+        }else if(currentTabHref === 'jobAuditLog'){
+          this.send('getAuditLog');
+        }else if(currentTabHref === 'jobDag'){
+          this.send('getJobDag');
+        }else if(currentTabHref === 'coordActionReruns'){
+          this.send('getCoordActionReruns');
+        }else{
+          this.sendAction('doRefresh');
+        }
       },
       getJobDefinition : function () {
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=definition&timezone=GMT',function(response){
@@ -342,6 +356,7 @@ export default Ember.Component.extend({
         this.set('model.actionDetails', this.get('model.actions')[0]);
       },
       getJobLog : function (params){
+        this.set('logParams', params);
         var url = Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=log';
         if(params && params.logFilter){
           url = url + '&logfilter=' + params.logFilter;
@@ -350,7 +365,9 @@ export default Ember.Component.extend({
           url = url + '&type=action&scope='+ params.logActionList;
         }
         Ember.$.get(url,function(response){
-          response = response.trim().length > 0 ? response : "No messages present";
+          if(Ember.isBlank(response)){
+            response = 'No Logs';
+          }
           this.set('model.jobLog', response);
         }.bind(this)).fail(function(error){
           this.set('error', error);
@@ -358,7 +375,9 @@ export default Ember.Component.extend({
       },
       getErrorLog : function (){
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=errorlog',function(response){
-          response = response.trim().length > 0 ? response : "No messages present";
+          if(Ember.isBlank(response)){
+            response = 'No Errors';
+          }
           this.set('model.errorLog', response);
         }.bind(this)).fail(function(error){
           this.set('error', error);
@@ -366,7 +385,9 @@ export default Ember.Component.extend({
       },
       getAuditLog : function (){
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=auditlog',function(response){
-          response = response.trim().length > 0 ? response : "No messages present";
+          if(Ember.isBlank(response)){
+            response = 'No Logs';
+          }
           this.set('model.auditLog', response);
         }.bind(this)).fail(function(error){
           this.set('error', error);
