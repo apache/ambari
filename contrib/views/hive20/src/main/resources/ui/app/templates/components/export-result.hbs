@@ -27,7 +27,16 @@
     </div>
     <div class="modal-body">
       <p class="lead">{{#if labelIcon}}{{fa-icon labelIcon size="lg"}}{{/if}} {{label}}</p>
-      {{input class="form-control path-name" type="text" value=savePathName}}
+      {{input class="form-control path-name" type="text" value=pathName}}
+      <div>
+        {{#if isExportResultSuccessMessege}}
+          <span class="text-success">Successfully done.</span>
+        {{/if}}
+        {{#if isExportResultFailureMessege}}
+          <span class="text-danger">Error encountered.</span>
+        {{/if}}
+        &nbsp;
+      </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-{{rejectClass}}" {{action "reject"}}>{{#if rejectIcon}}{{fa-icon rejectIcon}} {{/if}}{{rejectText}}</button>

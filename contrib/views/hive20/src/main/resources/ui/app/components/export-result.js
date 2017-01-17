@@ -23,10 +23,12 @@ export default Ember.Component.extend({
   label: null,
   confirmText: 'Confirm',
   rejectText: 'Reject',
+  isExportResultSuccessMessege:false,
+  isExportResultFailureMessege:false,
 
   jobId: 0,
 
-  savePathName: Ember.computed('jobId', function() {
+  pathName: Ember.computed('jobId', function() {
     return 'Worksheet_' + this.get('jobId');
   }),
 

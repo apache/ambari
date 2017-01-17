@@ -67,7 +67,12 @@ export default Ember.Component.extend({
 
   showSaveHdfsModal:false,
 
-  showDownloadCsvModal:false,
+  showDownloadCsvModal: false,
+
+  isExportResultSuccessMessege:false,
+
+  isSaveHdfsErrorMessege:false,
+
 
   actions: {
     onScrolledToBottom() {
@@ -88,20 +93,39 @@ export default Ember.Component.extend({
     },
 
     openSaveHdfsModal(){
-      this.set('showSaveHdfsModal',true)
+      this.set('showSaveHdfsModal',true);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
     },
 
     closeSaveHdfsModal(){
-      this.set('showSaveHdfsModal',false)
+      this.set('showSaveHdfsModal',false);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
+    },
+
+    openDownloadCsvModal(){
+      this.set('showDownloadCsvModal',true);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
+    },
+
+    closeDownloadCsvModal(){
+      this.set('showDownloadCsvModal',false);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
     },
 
     saveToHDFS(jobId, pathName){
       console.log('saveToHDFS with jobId == ', jobId );
       console.log('saveToHDFS with pathName == ', pathName );
-
       this.sendAction('saveToHDFS', jobId,  pathName);
+    },
 
-
+    downloadAsCsv(jobId, pathName){
+      console.log('downloadAsCsv with jobId == ', jobId );
+      console.log('downloadAsCsv with pathName == ', pathName );
+      this.sendAction('downloadAsCsv', jobId,  pathName);
     }
 
   }

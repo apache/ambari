@@ -46,6 +46,10 @@
       goPrevPage='goPrevPage'
       expandQueryResultPanel='expandQueryResultPanel'
       saveToHDFS='saveToHDFS'
+      downloadAsCsv='downloadAsCsv'
+      isExportResultSuccessMessege=isExportResultSuccessMessege
+      isExportResultFailureMessege=isExportResultFailureMessege
+      showSaveHdfsModal=showSaveHdfsModal
       }}
     </div>
   </div>
@@ -91,7 +95,6 @@
 </div>
 
 {{#if showWorksheetModal}}
-
   {{#modal-dialog translucentOverlay=true clickOutsideToClose=true container-class="modal-dialog  modal-sm"}}
     <div class="modal-content">
       <div class="modal-header">
@@ -105,15 +108,12 @@
               {{input type="text" class="form-control" id="worksheet-title" placeholder="Title" value=worksheet.title }}
             </div>
           </div>
-
           {{#if worksheetModalSuccess }}
             <div class="text-success">Successfully Saved.</div>
           {{/if}}
           {{#if worksheetModalFail }}
             <div class="text-danger">Error</div>
           {{/if}}
-
-
         </div>
       </div>
 
@@ -123,12 +123,6 @@
       </div>
     </div>
   {{/modal-dialog}}
-
-
 {{/if}}
-
-
-
-
 
 {{outlet}}
