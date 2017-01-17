@@ -16,18 +16,24 @@
  * limitations under the License.
  */
 
-import TableMetaRouter from './table-meta-router';
+import Ember from 'ember';
 
-export default TableMetaRouter.extend({
+export function formatColumnSize(params/*, hash*/) {
+  const precision = params[0];
+  const scale = params[1];
+  if (Ember.isEmpty(precision) && Ember.isEmpty(scale)) {
+    return '';
+  }
+  let sizeString = '( ';
+  if (precision) {
+    sizeString = `${sizeString}${precision}`
+  }
+  if (scale) {
+    sizeString = `${sizeString}, ${scale}`;
+  }
+  sizeString = `${sizeString} )`;
 
-  setupController: function (controller, model) {
-    this._super(controller, model);
-    let table = controller.get('table');
-    let clusteredColumns = table.get('storageInfo.bucketCols');
-    let columns = table.get('columns');
-    columns.forEach((column) => {
-      column.isClustered = !!clusteredColumns.contains(column.name);
-    });
-  },
+  return sizeString;
+}
 
-});
+export default Ember.Helper.helper(formatColumnSize);

@@ -29,7 +29,7 @@
     {{#each model.partitionInfo.columns as |column|}}
       <tr>
         <th>{{column.name}}</th>
-        <td>{{column.type}}</td>
+        <td>{{column.type}} {{format-column-size column.precision column.scale}}</td>
         <td>{{column.comment}}</td>
       </tr>
     {{/each}}
