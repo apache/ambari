@@ -27,17 +27,12 @@ limitations under the License.
   </property>
   <property>
     <name>hive.service.metrics.reporter</name>
-    <value>JSON_FILE, JMX, HADOOP2</value>
+    <value>HADOOP2</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.service.metrics.hadoop2.component</name>
     <value>hivemetastore</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>hive.service.metrics.file.location</name>
-    <value>/var/log/hive/hivemetastore-report.json</value>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

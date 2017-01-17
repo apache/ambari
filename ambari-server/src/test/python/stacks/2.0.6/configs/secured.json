@@ -538,7 +538,7 @@
         },
         "hiveserver2-site": {
             "hive.metastore.metrics.enabled": "true",
-            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+            "hive.service.metrics.reporter": "HADOOP2"
         },
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
