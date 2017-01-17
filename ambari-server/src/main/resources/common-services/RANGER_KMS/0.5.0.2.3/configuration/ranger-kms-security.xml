@@ -36,6 +36,12 @@
     <value>{{policymgr_mgr_url}}</value>
     <description>URL to Ranger Admin</description>
     <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>policymgr_external_url</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>ranger.plugin.kms.policy.rest.ssl.config.file</name>

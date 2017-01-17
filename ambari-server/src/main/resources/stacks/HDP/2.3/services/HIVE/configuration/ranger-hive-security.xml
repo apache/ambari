@@ -23,37 +23,43 @@
     <name>ranger.plugin.hive.service.name</name>
     <value>{{repo_name}}</value>
     <description>Name of the Ranger service containing policies for this HIVE instance</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.plugin.hive.policy.source.impl</name>
     <value>org.apache.ranger.admin.client.RangerAdminRESTClient</value>
     <description>Class to retrieve policies from the source</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.plugin.hive.policy.rest.url</name>
     <value>{{policymgr_mgr_url}}</value>
     <description>URL to Ranger Admin</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
+    <depends-on>
+      <property>
+        <type>admin-properties</type>
+        <name>policymgr_external_url</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>ranger.plugin.hive.policy.rest.ssl.config.file</name>
     <value>/usr/hdp/current/hive-server2/conf/conf.server/ranger-policymgr-ssl.xml</value>
     <description>Path to the file containing SSL details to contact Ranger Admin</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.plugin.hive.policy.pollIntervalMs</name>
     <value>30000</value>
     <description>How often to poll for changes in policies?</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.plugin.hive.policy.cache.dir</name>
     <value>/etc/ranger/{{repo_name}}/policycache</value>
     <description>Directory where Ranger policies are cached after successful retrieval from the source</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>xasecure.hive.update.xapolicies.on.grant.revoke</name>
@@ -63,6 +69,6 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

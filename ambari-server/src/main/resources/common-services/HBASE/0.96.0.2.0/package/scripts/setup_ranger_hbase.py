@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_hbase:
 
     stack_version = None
 
@@ -103,4 +103,4 @@ def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger HBase plugin is not enabled')

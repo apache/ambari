@@ -535,10 +535,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
     this.selectProperService();
-    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    /* var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
-    }
+    } */
     console.timeEnd('applyServicesConfigs execution time: ');
     console.time('loadConfigRecommendations execution time: ');
     this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));

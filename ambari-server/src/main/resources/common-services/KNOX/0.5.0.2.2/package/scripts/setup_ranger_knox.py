@@ -25,8 +25,7 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import setu
 def setup_ranger_knox(upgrade_type=None):
   import params
 
-  if params.has_ranger_admin:
-
+  if params.enable_ranger_knox:
 
     stack_version = None
     if upgrade_type is not None:
@@ -105,4 +104,4 @@ def setup_ranger_knox(upgrade_type=None):
       Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
 
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Knox plugin is not enabled')

@@ -166,6 +166,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateLogSearchConfigs();
     updateAmbariInfraConfigs();
     updateYarnSite();
+    updateRangerUrlConfigs();
     addManageServiceAutoStartPermissions();
   }
 
@@ -874,5 +875,41 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         "CLUSTER.ADMINISTRATOR:CLUSTER",
         "CLUSTER.OPERATOR:CLUSTER");
     addRoleAuthorization("CLUSTER.MANAGE_AUTO_START", "Manage service auto-start configuration", roles);
+  }
+
+  /**
+   * Updates Ranger admin url for Ranger plugin supported configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateRangerUrlConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+
+      Config ranger_admin_properties = cluster.getDesiredConfigByType("admin-properties");
+      if(null != ranger_admin_properties) {
+        String policyUrl = ranger_admin_properties.getProperties().get("policymgr_external_url");
+        if (null != policyUrl) {
+          updateRangerUrl(cluster, "ranger-hdfs-security", "ranger.plugin.hdfs.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-hive-security", "ranger.plugin.hive.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-hbase-security", "ranger.plugin.hbase.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-knox-security", "ranger.plugin.knox.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-storm-security", "ranger.plugin.storm.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-yarn-security", "ranger.plugin.yarn.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-kafka-security", "ranger.plugin.kafka.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-atlas-security", "ranger.plugin.atlas.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-kms-security", "ranger.plugin.kms.policy.rest.url", policyUrl);
+        }
+      }
+    }
+  }
+
+  protected void updateRangerUrl(Cluster cluster, String configType, String configProperty, String policyUrl) throws AmbariException {
+    Config componentSecurity = cluster.getDesiredConfigByType(configType);
+    if(componentSecurity != null && componentSecurity.getProperties().containsKey(configProperty)) {
+      Map<String, String> updateProperty = new HashMap<>();
+      updateProperty.put(configProperty, policyUrl);
+      updateConfigurationPropertiesForCluster(cluster, configType, updateProperty, true, false);
+    }
   }
 }

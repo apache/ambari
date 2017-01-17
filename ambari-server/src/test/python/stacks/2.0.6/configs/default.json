@@ -534,6 +534,9 @@
             "yarn.http.policy": "HTTP_ONLY",
             "yarn.resourcemanager.webapp.https.address": "c6402.ambari.apache.org:8090"
         },
+        "ranger-yarn-plugin-properties": {
+            "ranger-yarn-plugin-enabled": "No"
+        },
         "tez-site": {
             "tez.am.log.level": "WARN",
             "tez.lib.uris": "hdfs:///apps/tez/,hdfs:///apps/tez/lib/",
@@ -582,7 +585,8 @@
             "hive_log_dir": "/var/log/hive",
             "hive_user": "hive",
             "hcat_log_dir": "/var/log/webhcat",
-            "hive_database": "New MySQL Database"
+            "hive_database": "New MySQL Database",
+            "hive_security_authorization": "None"
         },
         "ranger-env": {
             "xml_configurations_supported" : "false"
@@ -750,7 +754,7 @@
             "XAAUDIT.HDFS.IS_ENABLED": "false",
             "SQL_CONNECTOR_JAR": "{{sql_connector_jar}}",
             "XAAUDIT.HDFS.LOCAL_BUFFER_FILE": "%time:yyyyMMdd-HHmm.ss%.log",
-            "ranger-hbase-plugin-enabled": "Yes",
+            "ranger-hbase-plugin-enabled": "No",
             "REPOSITORY_NAME": "{{repo_name}}",
             "SSL_KEYSTORE_PASSWORD": "myKeyFilePassword",
             "XAAUDIT.DB.IS_ENABLED": "true",
@@ -791,7 +795,7 @@
             "XAAUDIT.SOLR.SOLR_URL": "http://localhost:6083/solr/ranger_audits",
             "XAAUDIT.SOLR.IS_ENABLED": "false",
             "hadoop.rpc.protection": "-",
-            "ranger-hdfs-plugin-enabled": "Yes",
+            "ranger-hdfs-plugin-enabled": "No",
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks",
             "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60",
             "policy_user": "ambari-qa",

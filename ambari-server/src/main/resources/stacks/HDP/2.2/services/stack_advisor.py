@@ -452,14 +452,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if webhcat_queue is not None:
       putWebhcatSiteProperty("templeton.hadoop.queue.name", webhcat_queue)
 
-
-    # Recommend Ranger Hive authorization as per Ranger Hive plugin property
-    if "ranger-env" in services["configurations"] and "hive-env" in services["configurations"] and \
-        "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
-      rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
-      if (rangerEnvHivePluginProperty.lower() == "yes"):
-        putHiveEnvProperty("hive_security_authorization", "RANGER")
-
     # Security
     if ("configurations" not in services) or ("hive-env" not in services["configurations"]) or \
               ("properties" not in services["configurations"]["hive-env"]) or \
@@ -1178,9 +1170,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateHDFSRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if (ranger_plugin_enabled.lower() == 'yes'):
+    if 'RANGER' in servicesList and (ranger_plugin_enabled.lower() == 'yes'):
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-hdfs-plugin-enabled' in ranger_env or \
@@ -1410,6 +1403,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     hive_env = properties
     hive_site = getSiteProperties(configurations, "hive-site")
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if "hive_security_authorization" in hive_env and \
         str(hive_env["hive_security_authorization"]).lower() == "none" \
       and str(hive_site["hive.security.authorization.enabled"]).lower() == "true":
@@ -1419,12 +1413,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if "hive_security_authorization" in hive_env and \
         str(hive_env["hive_security_authorization"]).lower() == "ranger":
       # ranger-hive-plugin must be enabled in ranger-env
-      ranger_env = getServicesSiteProperties(services, 'ranger-env')
-      if not ranger_env or not 'ranger-hive-plugin-enabled' in ranger_env or \
-          ranger_env['ranger-hive-plugin-enabled'].lower() != 'yes':
-        validationItems.append({"config-name": 'hive_security_authorization',
-                                "item": self.getWarnItem(
-                                  "ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger")})
+      if 'RANGER' in servicesList:
+        ranger_env = getServicesSiteProperties(services, 'ranger-env')
+        if not ranger_env or not 'ranger-hive-plugin-enabled' in ranger_env or \
+            ranger_env['ranger-hive-plugin-enabled'].lower() != 'yes':
+          validationItems.append({"config-name": 'hive_security_authorization',
+                                  "item": self.getWarnItem(
+                                    "ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger")})
     return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1578,9 +1573,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateHBASERangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-hbase-plugin-enabled' in ranger_env or \
@@ -1592,9 +1588,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateKnoxRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-knox-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-knox-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-knox-plugin-enabled' in ranger_env or \
@@ -1610,7 +1607,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     security_enabled = self.isSecurityEnabled(services)
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-kafka-plugin-enabled' in ranger_env or \
@@ -1631,7 +1628,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-storm-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     security_enabled = self.isSecurityEnabled(services)
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-storm-plugin-enabled' in ranger_env or \
@@ -1664,9 +1661,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateYARNRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-yarn-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-yarn-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-yarn-plugin-enabled' in ranger_env or \

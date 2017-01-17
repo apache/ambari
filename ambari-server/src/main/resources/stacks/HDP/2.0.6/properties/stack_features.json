@@ -122,7 +122,7 @@
       "name": "ranger_audit_db_support",
       "description": "Ranger Audit to DB support",
       "min_version": "2.2.0.0",
-      "max_version": "2.5.0.0"
+      "max_version": "2.4.99.99"
     },
     {
       "name": "accumulo_kerberos_user_auth",
@@ -332,6 +332,21 @@
       "name": "ranger_tagsync_ssl_xml_support",
       "description": "Ranger Tagsync ssl xml support.",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "ranger_xml_configuration",
+      "description": "Ranger code base support xml configurations",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "kafka_ranger_plugin_support",
+      "description": "Ambari stack changes for Ranger Kafka Plugin (AMBARI-11299)",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "yarn_ranger_plugin_support",
+      "description": "Implement Stack changes for Ranger Yarn Plugin integration (AMBARI-10866)",
+      "min_version": "2.3.0.0"
     },
     {
       "name": "ranger_solr_config_support",

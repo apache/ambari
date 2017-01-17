@@ -39,6 +39,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import is_empty
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
 
 # server configurations
 config = Script.get_config()
@@ -261,82 +262,86 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   knox_principal_name = config['configurations']['knox-env']['knox_principal_name'].replace('_HOST',_hostname_lowercase)
 
+# for curl command in ranger plugin to get db connector
+jdk_location = config['hostLevelParams']['jdk_location']
+
+# ranger knox plugin start section
+
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 
+# ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
+xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
+
+# ambari-server hostname
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-# ranger knox properties
-policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
-  policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
-xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
-xa_db_host = config['configurations']['admin-properties']['db_host']
-repo_name = str(config['clusterName']) + '_knox'
-repo_name_value = config['configurations']['ranger-knox-security']['ranger.plugin.knox.service.name']
-if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
-  repo_name = repo_name_value
+# ranger knox plugin enabled property
+enable_ranger_knox = default("/configurations/ranger-knox-plugin-properties/ranger-knox-plugin-enabled", "No")
+enable_ranger_knox = True if enable_ranger_knox.lower() == 'yes' else False
 
-knox_home = config['configurations']['ranger-knox-plugin-properties']['KNOX_HOME']
-common_name_for_certificate = config['configurations']['ranger-knox-plugin-properties']['common.name.for.certificate']
+# get ranger knox properties if enable_ranger_knox is True
+if enable_ranger_knox:
+  # get ranger policy url
+  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+  if xml_configurations_supported:
+    policymgr_mgr_url = config['configurations']['ranger-knox-security']['ranger.plugin.knox.policy.rest.url']
 
-repo_config_username = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
+  if not is_empty(policymgr_mgr_url) and policymgr_mgr_url.endswith('/'):
+    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
 
-ranger_env = config['configurations']['ranger-env']
-ranger_plugin_properties = config['configurations']['ranger-knox-plugin-properties']
-policy_user = config['configurations']['ranger-knox-plugin-properties']['policy_user']
+  # ranger audit db user
+  xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 
-#For curl command in ranger plugin to get db connector
-jdk_location = config['hostLevelParams']['jdk_location']
-java_share_dir = '/usr/share/java'
-if has_ranger_admin:
-  enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
+  # ranger knox service/repositry name
+  repo_name = str(config['clusterName']) + '_knox'
+  repo_name_value = config['configurations']['ranger-knox-security']['ranger.plugin.knox.service.name']
+  if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+    repo_name = repo_name_value
+
+  knox_home = config['configurations']['ranger-knox-plugin-properties']['KNOX_HOME']
+  common_name_for_certificate = config['configurations']['ranger-knox-plugin-properties']['common.name.for.certificate']
+  repo_config_username = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
+
+  # ranger-env config
+  ranger_env = config['configurations']['ranger-env']
+
+  # create ranger-env config having external ranger credential properties
+  if not has_ranger_admin and enable_ranger_knox:
+    external_admin_username = default('/configurations/ranger-knox-plugin-properties/external_admin_username', 'admin')
+    external_admin_password = default('/configurations/ranger-knox-plugin-properties/external_admin_password', 'admin')
+    external_ranger_admin_username = default('/configurations/ranger-knox-plugin-properties/external_ranger_admin_username', 'amb_ranger_admin')
+    external_ranger_admin_password = default('/configurations/ranger-knox-plugin-properties/external_ranger_admin_password', 'amb_ranger_admin')
+    ranger_env = {}
+    ranger_env['admin_username'] = external_admin_username
+    ranger_env['admin_password'] = external_admin_password
+    ranger_env['ranger_admin_username'] = external_ranger_admin_username
+    ranger_env['ranger_admin_password'] = external_ranger_admin_password
+
+  ranger_plugin_properties = config['configurations']['ranger-knox-plugin-properties']
+  policy_user = config['configurations']['ranger-knox-plugin-properties']['policy_user']
+  repo_config_password = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
+
   xa_audit_db_password = ''
-  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
-    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
-  repo_config_password = unicode(config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
-  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
-  previous_jdbc_jar_name= None
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db and has_ranger_admin:
+    xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
 
-  if stack_supports_ranger_audit_db:
-    if xa_audit_db_flavor == 'mysql':
-      jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-      jdbc_driver = "com.mysql.jdbc.Driver"
-    elif xa_audit_db_flavor == 'oracle':
-      jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
-      colon_count = xa_db_host.count(':')
-      if colon_count == 2 or colon_count == 0:
-        audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
-      else:
-        audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
-      jdbc_driver = "oracle.jdbc.OracleDriver"
-    elif xa_audit_db_flavor == 'postgres':
-      jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-      jdbc_driver = "org.postgresql.Driver"
-    elif xa_audit_db_flavor == 'mssql':
-      jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-      jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-    elif xa_audit_db_flavor == 'sqla':
-      jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
-      jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  downloaded_custom_connector = None
+  previous_jdbc_jar_name = None
+  driver_curl_source = None
+  driver_curl_target = None
+  previous_jdbc_jar = None
 
-  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  driver_curl_target = format("{stack_root}/current/knox-server/ext/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  previous_jdbc_jar = format("{stack_root}/current/knox-server/ext/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  sql_connector_jar = ''
+  if has_ranger_admin and stack_supports_ranger_audit_db:
+    xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+    jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver = get_audit_configs(config)
+
+    downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    driver_curl_target = format("{stack_root}/current/knox-server/ext/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    previous_jdbc_jar = format("{stack_root}/current/knox-server/ext/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    sql_connector_jar = ''
 
   knox_ranger_plugin_config = {
     'username': repo_config_username,
@@ -369,20 +374,20 @@ if has_ranger_admin:
       'type': 'knox'
     }
 
-
-
   xa_audit_db_is_enabled = False
-  ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   if xml_configurations_supported and stack_supports_ranger_audit_db:
     xa_audit_db_is_enabled = config['configurations']['ranger-knox-audit']['xasecure.audit.destination.db']
-  xa_audit_hdfs_is_enabled = config['configurations']['ranger-knox-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
-  ssl_keystore_password = unicode(config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
-  ssl_truststore_password = unicode(config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
-  credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
 
-  #For SQLA explicitly disable audit to DB for Ranger
-  if xa_audit_db_flavor == 'sqla':
+  xa_audit_hdfs_is_enabled = config['configurations']['ranger-knox-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else False
+  ssl_keystore_password = config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'] if xml_configurations_supported else None
+  ssl_truststore_password = config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'] if xml_configurations_supported else None
+  credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
+
+  # for SQLA explicitly disable audit to DB for Ranger
+  if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
+
+# ranger knox plugin end section
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab'] if has_namenode else None

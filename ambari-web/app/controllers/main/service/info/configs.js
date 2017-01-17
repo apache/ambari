@@ -515,12 +515,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+    /* if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.router.get('mainServiceInfoSummaryController').updateRangerPluginsStatus();
       this.setVisibilityForRangerProperties(selectedService);
     } else {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
-    }
+    } */
     this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
     App.loadTimer.finish('Service Configs Page');
   },

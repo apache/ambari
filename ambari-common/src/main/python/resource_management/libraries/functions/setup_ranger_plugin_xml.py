@@ -17,8 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-__all__ = ["setup_ranger_plugin"]
-
+__all__ = ["setup_ranger_plugin", "get_audit_configs"]
 
 import os
 import ambari_simplejson as json
@@ -34,6 +33,7 @@ from resource_management.libraries.functions.ranger_functions_v2 import Rangerad
 from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 
 def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         component_downloaded_custom_connector, component_driver_curl_source,
@@ -164,8 +164,8 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         group = component_group,
         mode=0744) 
 
-    #This should be done by rpm
-    #setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
+    # creating symblink should be done by rpm package
+    # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
@@ -175,7 +175,6 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
     File(format('{component_conf_dir}/ranger-security.xml'),
       action="delete"      
     )    
-
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
@@ -217,7 +216,6 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     mode = 0640
   )
 
-
 def setup_core_site_for_required_plugins(component_user, component_group, create_core_site_path, config):
   XmlConfig('core-site.xml',
     conf_dir=create_core_site_path,
@@ -227,3 +225,40 @@ def setup_core_site_for_required_plugins(component_user, component_group, create
     group=component_group,
     mode=0644
   )
+
+def get_audit_configs(config):
+  xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR'].lower()
+  xa_db_host = config['configurations']['admin-properties']['db_host']
+  xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+
+  if xa_audit_db_flavor == 'mysql':
+    jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "com.mysql.jdbc.Driver"
+  elif xa_audit_db_flavor == 'oracle':
+    jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+    colon_count = xa_db_host.count(':')
+    if colon_count == 2 or colon_count == 0:
+      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+    else:
+      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+    jdbc_driver = "oracle.jdbc.OracleDriver"
+  elif xa_audit_db_flavor == 'postgres':
+    jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "org.postgresql.Driver"
+  elif xa_audit_db_flavor == 'mssql':
+    jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  elif xa_audit_db_flavor == 'sqla':
+    jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+
+  return jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver

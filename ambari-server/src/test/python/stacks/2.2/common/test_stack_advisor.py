@@ -3656,7 +3656,18 @@ class TestHDP22StackAdvisor(TestCase):
       }
     ]
 
-    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, {}, {})
+    services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ]
+    }
+
+    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
     self.assertEquals(res, res_expected)
 
     # 2) fail: hive_security_authorization=Ranger but ranger plugin is disabled in ranger-env
@@ -3674,6 +3685,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3944,6 +3963,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3980,6 +4007,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -4016,6 +4051,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -4052,6 +4095,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
