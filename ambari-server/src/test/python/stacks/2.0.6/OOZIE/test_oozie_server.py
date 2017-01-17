@@ -601,7 +601,7 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(shell, "call")
-  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
+  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True, True]))
   def test_configure_secured(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -616,7 +616,7 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(shell, "call")
-  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
+  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True, True]))
   def test_configure_secured_ha(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
 
@@ -648,7 +648,7 @@ class TestOozieServer(RMFTestCase):
 
   @patch.object(shell, "call")
   @patch("os.path.isfile")
-  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
+  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True, True]))
   def test_start_secured(self, isfile_mock, call_mocks):
     isfile_mock.return_value = True
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
@@ -1125,9 +1125,14 @@ class TestOozieServer(RMFTestCase):
                               group = 'hadoop',
                               recursive_ownership = True,
     )
+    self.assertResourceCalled('File', '/etc/oozie/conf/zkmigrator_jaas.conf',
+                              owner = 'oozie',
+                              group = 'hadoop',
+                              content = Template('zkmigrator_jaas.conf.j2')
+                              )
 
   @patch.object(shell, "call")
-  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
+  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True, True]))
   def test_configure_default_hdp22(self, call_mocks):
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     config_file = "stacks/2.0.6/configs/default.json"
