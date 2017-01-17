@@ -30,8 +30,13 @@ export default ApplicationAdapter.extend({
   },
 
   saveToHDFS(jobId, path){
-    let resultUrl = this.urlForFindRecord(jobId, 'job').replace('/resources','')  + "/results/csv/saveToHDFS?commence=true&file=" + path + ".csv";
+    let resultUrl = this.urlForFindRecord(jobId, 'job') + "/results/csv/saveToHDFS?commence=true&file=" + path + ".csv";
     return this.ajax(resultUrl, 'GET');
+  },
+
+  downloadAsCsv(jobId, path){
+    let resultUrl = this.urlForFindRecord(jobId, 'job') + "/results/csv/?fileName=" + path + ".csv";
+    return resultUrl;
   }
 
 });

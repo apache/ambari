@@ -59,7 +59,7 @@
 </div>
 
 {{#if showSaveHdfsModal}}
-  {{save-hdfs
+  {{export-result
   confirmText="OK"
   rejectText="CLOSE"
   label="Please enter save path and name."
@@ -71,11 +71,27 @@
   confirmClass="success"
   confirm="saveToHDFS"
   reject="closeSaveHdfsModal"
+  isExportResultSuccessMessege=isExportResultSuccessMessege
+  isExportResultFailureMessege=isExportResultFailureMessege
   }}
 {{/if}}
 
 {{#if showDownloadCsvModal}}
-Yahoo
+  {{export-result
+  confirmText="OK"
+  rejectText="CLOSE"
+  label="Download results as CSV"
+  jobId=jobId
+  labelIcon="download"
+  rejectIcon="times"
+  confirmIcon="check"
+  closable=false
+  confirmClass="success"
+  confirm="downloadAsCsv"
+  reject="closeDownloadCsvModal"
+  isExportResultSuccessMessege=isExportResultSuccessMessege
+  isExportResultFailureMessege=isExportResultFailureMessege
+  }}
 {{/if}}
 
 {{yield}}

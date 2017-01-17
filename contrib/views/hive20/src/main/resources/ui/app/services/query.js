@@ -51,7 +51,15 @@ export default Ember.Service.extend({
           reject(err);
       });
     });
+  },
+
+
+  downloadAsCsv(jobId, path){
+    let self = this;
+    return this.get('store').adapterFor('job').downloadAsCsv(jobId, path);
+
   }
+
 
 
 });
