@@ -764,12 +764,26 @@
       </component>
 
       <component name="HIVE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options"/>
+          <task xsi:type="configure" id="hdp_2_6_0_0_hive_append_heap_dump_options"/>
+        </pre-upgrade>
+        
+        <pre-downgrade />
+        
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
       <component name="HIVE_SERVER_INTERACTIVE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_java_heap_dump_options"/>
+          <task xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_heap_dump_options"/>
+        </pre-upgrade>
+        
+        <pre-downgrade />
+      
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

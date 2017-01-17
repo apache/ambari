@@ -38,7 +38,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -57,6 +56,8 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.InsertType;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
@@ -100,8 +101,6 @@ public class ConfigureActionTest {
   @Inject
   private Clusters clusters;
   @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-  @Inject
   private ConfigFactory cf;
   @Inject
   private ConfigureAction action;
@@ -139,13 +138,13 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<>();
     ConfigurationKeyValue keyValue = new ConfigurationKeyValue();
     configurations.add(keyValue);
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -203,7 +202,7 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -272,7 +271,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -402,14 +401,14 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
     // copy with coerce
-    List<Transfer> transfers = new ArrayList<Transfer>();
+    List<Transfer> transfers = new ArrayList<>();
     Transfer transfer = new Transfer();
     transfer.operation = TransferOperation.COPY;
     transfer.coerceTo = TransferCoercionType.YAML_ARRAY;
@@ -466,14 +465,14 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
     // Replacement task
-    List<Replace> replacements = new ArrayList<Replace>();
+    List<Replace> replacements = new ArrayList<>();
     Replace replace = new Replace();
     replace.key = "key_to_replace";
     replace.find = "New Cat";
@@ -538,14 +537,14 @@ public class ConfigureActionTest {
     c.addDesiredConfig("user", Collections.singleton(config));
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
     commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
 
     // Replacement task
-    List<Replace> replacements = new ArrayList<Replace>();
+    List<Replace> replacements = new ArrayList<>();
     Replace replace = new Replace();
     replace.key = "missing";
     replace.find = "foo";
@@ -596,7 +595,7 @@ public class ConfigureActionTest {
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
     // create several configurations
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<>();
     ConfigurationKeyValue fooKey2 = new ConfigurationKeyValue();
     configurations.add(fooKey2);
     fooKey2.key = "fooKey2";
@@ -608,7 +607,7 @@ public class ConfigureActionTest {
     fooKey3.value = "barValue3";
     fooKey3.mask = true;
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -662,7 +661,7 @@ public class ConfigureActionTest {
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
     // create several configurations
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<>();
     ConfigurationKeyValue fooKey1 = new ConfigurationKeyValue();
     configurations.add(fooKey1);
     fooKey1.key = "fooKey1";
@@ -698,7 +697,7 @@ public class ConfigureActionTest {
     fooKey5.ifKeyState= PropertyKeyState.ABSENT;
 
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -756,7 +755,7 @@ public class ConfigureActionTest {
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
     // create several configurations
-    List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>();
+    List<ConfigurationKeyValue> configurations = new ArrayList<>();
     ConfigurationKeyValue fooKey3 = new ConfigurationKeyValue();
     configurations.add(fooKey3);
     fooKey3.key = "fooKey3";
@@ -782,7 +781,7 @@ public class ConfigureActionTest {
     fooKey5.ifKeyState= PropertyKeyState.PRESENT;
 
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -839,7 +838,7 @@ public class ConfigureActionTest {
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
     // create several configurations
-    List<Replace> replacements = new ArrayList<Replace>();
+    List<Replace> replacements = new ArrayList<>();
     Replace replace = new Replace();
     replace.key = "replace.key.3";
     replace.find = "a";
@@ -876,7 +875,7 @@ public class ConfigureActionTest {
     replace4.ifKeyState = PropertyKeyState.ABSENT;
     replacements.add(replace4);
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -931,7 +930,7 @@ public class ConfigureActionTest {
     assertEquals(2, c.getConfigsByType("zoo.cfg").size());
 
     // create several configurations
-    List<Replace> replacements = new ArrayList<Replace>();
+    List<Replace> replacements = new ArrayList<>();
 
     Replace replace2 = new Replace();
     replacements.add(replace2);
@@ -963,7 +962,7 @@ public class ConfigureActionTest {
     replace4.ifKeyState = PropertyKeyState.PRESENT;
     replacements.add(replace4);
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1018,7 +1017,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1131,7 +1130,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1226,7 +1225,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1333,7 +1332,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1434,7 +1433,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1532,7 +1531,7 @@ public class ConfigureActionTest {
     keyValue.key = "initLimit";
     keyValue.value = "11";
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("upgrade_direction", "upgrade");
     commandParams.put("version", HDP_2_2_0_1);
     commandParams.put("clusterName", "c1");
@@ -1600,6 +1599,94 @@ public class ConfigureActionTest {
     }
   }
 
+  /**
+   * Tests using the {@code <insert/>} element in a configuration upgrade pack.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testInsert() throws Exception {
+    makeUpgradeCluster();
+
+    Cluster c = clusters.getCluster("c1");
+    assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    c.setDesiredStackVersion(HDP_220_STACK);
+    Config config = cf.createNew(c, "zoo.cfg", "version2", new HashMap<String, String>() {
+      {
+        put("key_to_append", "append");
+        put("key_to_prepend", "prepend");
+      }
+    }, new HashMap<String, Map<String, String>>());
+
+    c.addDesiredConfig("user", Collections.singleton(config));
+    assertEquals(2, c.getConfigsByType("zoo.cfg").size());
+
+    Map<String, String> commandParams = new HashMap<>();
+    commandParams.put("upgrade_direction", "upgrade");
+    commandParams.put("version", HDP_2_2_0_1);
+    commandParams.put("clusterName", "c1");
+    commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
+
+    // define the changes
+    final String prependValue = "This should be on a newline";
+    final String appendValue = " this will be after...";
+
+    // insert tasks
+    List<Insert> insertions = new ArrayList<>();
+
+    Insert prepend = new Insert();
+    prepend.insertType = InsertType.PREPEND;
+    prepend.key = "key_to_prepend";
+    prepend.value = prependValue;
+    prepend.newlineBefore = false;
+    prepend.newlineAfter = true;
+
+    Insert append = new Insert();
+    append.insertType = InsertType.APPEND;
+    append.key = "key_to_append";
+    append.value = appendValue;
+    append.newlineBefore = false;
+    append.newlineAfter = false;
+
+    // add them to the list
+    insertions.add(prepend);
+    insertions.add(append);
+
+    // just for fun, add them again - this will test their idempotence
+    insertions.add(prepend);
+    insertions.add(append);
+
+    commandParams.put(ConfigureTask.PARAMETER_INSERTIONS, new Gson().toJson(insertions));
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+
+    assertEquals(3, c.getConfigsByType("zoo.cfg").size());
+
+    config = c.getDesiredConfigByType("zoo.cfg");
+    assertNotNull(config);
+    assertFalse("version2".equals(config.getTag()));
+
+    // build the expected values
+    String expectedPrepend = prependValue + System.lineSeparator() + "prepend";
+    String expectedAppend = "append" + appendValue;
+
+    assertEquals(expectedPrepend, config.getProperties().get("key_to_prepend"));
+    assertEquals(expectedAppend, config.getProperties().get("key_to_append"));
+  }
+
   private void makeUpgradeCluster() throws Exception {
     String clusterName = "c1";
     String hostName = "h1";
@@ -1632,7 +1719,7 @@ public class ConfigureActionTest {
 
     Host host = clusters.getHost(hostName);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);

@@ -30,10 +30,9 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.commons.lang.StringUtils;
@@ -85,6 +84,12 @@ public class ConfigureTask extends ServerSideActionTask {
    * objects.
    */
   public static final String PARAMETER_REPLACEMENTS = "configure-task-replacements";
+
+  /**
+   * Insertions can be several per task, so they're passed in as a json-ified
+   * list of objects.
+   */
+  public static final String PARAMETER_INSERTIONS = "configure-task-insertions";
 
   public static final String actionVerb = "Configuring";
 
@@ -222,6 +227,12 @@ public class ConfigureTask extends ServerSideActionTask {
       configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(allowedReplacements));
     }
 
+    // inserts
+    List<Insert> insertions = definition.getInsertions();
+    if (!insertions.isEmpty()) {
+      configParameters.put(ConfigureTask.PARAMETER_INSERTIONS, m_gson.toJson(insertions));
+    }
+
     return configParameters;
   }
 
@@ -295,33 +306,5 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     return isValid;
-  }
-
-  /**
-   * Gets the value of the specified cluster property.
-   *
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @param configType
-   *          the configuration type (ie hdfs-site) (not {@code null}).
-   * @param propertyKey
-   *          the key to retrieve (not {@code null}).
-   * @return the value or {@code null} if it does not exist.
-   */
-  private String getDesiredConfigurationValue(Cluster cluster,
-      String configType, String propertyKey) {
-
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    if (null == desiredConfig) {
-      return null;
-    }
-
-    Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (null == config) {
-      return null;
-    }
-
-    return config.getProperties().get(propertyKey);
   }
 }
