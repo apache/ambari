@@ -26,7 +26,7 @@
     <display-name>Policy user for Atlas</display-name>
     <description>This user must be system user and also present at Ranger
       admin portal</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -36,7 +36,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -54,7 +54,7 @@
       <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -63,7 +63,7 @@
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -76,7 +76,55 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>external_admin_username</name>
+    <value></value>
+    <display-name>External Ranger admin username</display-name>
+    <description>Add ranger default admin username if want to communicate to external ranger</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>external_admin_password</name>
+    <value></value>
+    <display-name>External Ranger admin password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Add ranger default admin password if want to communicate to external ranger</description>
+    <value-attributes>
+      <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>external_ranger_admin_username</name>
+    <value></value>
+    <display-name>External Ranger Ambari admin username</display-name>
+    <description>Add ranger default ambari admin username if want to communicate to external ranger</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>external_ranger_admin_password</name>
+    <value></value>
+    <display-name>External Ranger Ambari admin password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Add ranger default ambari admin password if want to communicate to external ranger</description>
+    <value-attributes>
+      <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

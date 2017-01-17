@@ -284,6 +284,7 @@ public class UpgradeCatalog250Test {
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
+    Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -298,6 +299,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateAtlasConfigs)
         .addMockedMethod(updateLogSearchConfigs)
         .addMockedMethod(updateAmbariInfraConfigs)
+        .addMockedMethod(updateRangerUrlConfigs)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -331,6 +333,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateAmbariInfraConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateRangerUrlConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.addManageServiceAutoStartPermissions();
@@ -1128,4 +1133,109 @@ public class UpgradeCatalog250Test {
     Assert.assertTrue(clusterAdministratorAuthorizations.contains(clusterRunCustomCommandEntity));
   }
 
+  @Test
+  public void testUpdateRangerUrlConfigs() throws Exception {
+    Map<String, String> oldHdfsProperties = new HashMap<String, String>();
+    Map<String, String> newHdfsProperties = new HashMap<String, String>();
+    oldHdfsProperties.put("ranger.plugin.hdfs.policy.rest.url", "{{policymgr_mgr_url}}");
+    newHdfsProperties.put("ranger.plugin.hdfs.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldHdfsProperties, newHdfsProperties, "ranger-hdfs-security");
+
+    Map<String, String> oldHiveProperties = new HashMap<String, String>();
+    Map<String, String> newHiveProperties = new HashMap<String, String>();
+    oldHiveProperties.put("ranger.plugin.hive.policy.rest.url", "{{policymgr_mgr_url}}");
+    newHiveProperties.put("ranger.plugin.hive.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldHiveProperties, newHiveProperties, "ranger-hive-security");
+
+    Map<String, String> oldHbaseProperties = new HashMap<String, String>();
+    Map<String, String> newHbaseProperties = new HashMap<String, String>();
+    oldHbaseProperties.put("ranger.plugin.hbase.policy.rest.url", "{{policymgr_mgr_url}}");
+    newHbaseProperties.put("ranger.plugin.hbase.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldHbaseProperties, newHbaseProperties, "ranger-hbase-security");
+
+    Map<String, String> oldKnoxProperties = new HashMap<String, String>();
+    Map<String, String> newKnoxProperties = new HashMap<String, String>();
+    oldKnoxProperties.put("ranger.plugin.knox.policy.rest.url", "{{policymgr_mgr_url}}");
+    newKnoxProperties.put("ranger.plugin.knox.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldKnoxProperties, newKnoxProperties, "ranger-knox-security");
+
+    Map<String, String> oldStormProperties = new HashMap<String, String>();
+    Map<String, String> newStormProperties = new HashMap<String, String>();
+    oldStormProperties.put("ranger.plugin.storm.policy.rest.url", "{{policymgr_mgr_url}}");
+    newStormProperties.put("ranger.plugin.storm.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldStormProperties, newStormProperties, "ranger-storm-security");
+
+    Map<String, String> oldYarnProperties = new HashMap<String, String>();
+    Map<String, String> newYarnProperties = new HashMap<String, String>();
+    oldYarnProperties.put("ranger.plugin.yarn.policy.rest.url", "{{policymgr_mgr_url}}");
+    newYarnProperties.put("ranger.plugin.yarn.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldYarnProperties, newYarnProperties, "ranger-yarn-security");
+
+    Map<String, String> oldKafkaProperties = new HashMap<String, String>();
+    Map<String, String> newKafkaProperties = new HashMap<String, String>();
+    oldKafkaProperties.put("ranger.plugin.kafka.policy.rest.url", "{{policymgr_mgr_url}}");
+    newKafkaProperties.put("ranger.plugin.kafka.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldKafkaProperties, newKafkaProperties, "ranger-kafka-security");
+
+    Map<String, String> oldAtlasProperties = new HashMap<String, String>();
+    Map<String, String> newAtlasProperties = new HashMap<String, String>();
+    oldAtlasProperties.put("ranger.plugin.atlas.policy.rest.url", "{{policymgr_mgr_url}}");
+    newAtlasProperties.put("ranger.plugin.atlas.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldAtlasProperties, newAtlasProperties, "ranger-atlas-security");
+
+    Map<String, String> oldKmsProperties = new HashMap<String, String>();
+    Map<String, String> newKmsProperties = new HashMap<String, String>();
+    oldKmsProperties.put("ranger.plugin.kms.policy.rest.url", "{{policymgr_mgr_url}}");
+    newKmsProperties.put("ranger.plugin.kms.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldKmsProperties, newKmsProperties, "ranger-kms-security");
+  }
+
+  public void testUpdateRangerUrl(Map<String, String> oldProperties, Map<String, String> newProperties, String configType) throws Exception {
+    Map<String, String> adminProperties = new HashMap<String, String>() {
+      {
+        put("policymgr_external_url", "http://localhost:6080");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    reset(clusters, cluster);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+
+    Config mockRangerPluginConfig = easyMockSupport.createNiceMock(Config.class);
+    Config mockRangerAdminProperties = easyMockSupport.createNiceMock(Config.class);
+
+    expect(cluster.getDesiredConfigByType("admin-properties")).andReturn(mockRangerAdminProperties).anyTimes();
+    expect(mockRangerAdminProperties.getProperties()).andReturn(adminProperties).anyTimes();
+
+    expect(cluster.getDesiredConfigByType(configType)).andReturn(mockRangerPluginConfig).anyTimes();
+    expect(mockRangerPluginConfig.getProperties()).andReturn(oldProperties).anyTimes();
+
+    replay(clusters, mockRangerPluginConfig, mockRangerAdminProperties, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+    .addMockedMethod("createConfiguration")
+    .addMockedMethod("getClusters", new Class[] { })
+    .addMockedMethod("createConfig")
+    .withConstructor(actionManager, clusters, injector)
+    .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog250(injector2).updateRangerUrlConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
 }

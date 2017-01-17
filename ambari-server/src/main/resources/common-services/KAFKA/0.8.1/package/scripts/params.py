@@ -34,6 +34,7 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
 
 # server configurations
 config = Script.get_config()
@@ -166,41 +167,66 @@ else:
     kafka_jaas_principal = None
     kafka_keytab_path = None
 
-# ***********************  RANGER PLUGIN CHANGES ***********************
+# for curl command in ranger plugin to get db connector
+jdk_location = config['hostLevelParams']['jdk_location']
+
+# ranger kafka plugin section start
+
 # ranger host
-# **********************************************************************
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
+
+# ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
+xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
+
+# ambari-server hostname
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
-is_supported_kafka_ranger = config['configurations']['kafka-env']['is_supported_kafka_ranger']
 
-#ranger kafka properties
-if has_ranger_admin and is_supported_kafka_ranger:
+# ranger kafka plugin enabled property
+enable_ranger_kafka = default("configurations/ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled", "No")
+enable_ranger_kafka = True if enable_ranger_kafka.lower() == 'yes' else False
 
-  enable_ranger_kafka = config['configurations']['ranger-kafka-plugin-properties']['ranger-kafka-plugin-enabled']
-  enable_ranger_kafka = not is_empty(enable_ranger_kafka) and enable_ranger_kafka.lower() == 'yes'
-  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-  if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
+# ranger kafka-plugin supported flag, instead of dependending on is_supported_kafka_ranger/kafka-env.xml, using stack feature
+is_supported_kafka_ranger = check_stack_feature(StackFeature.KAFKA_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks)
+
+# ranger kafka properties
+if enable_ranger_kafka and is_supported_kafka_ranger:
+  # get ranger policy url
+  policymgr_mgr_url = config['configurations']['ranger-kafka-security']['ranger.plugin.kafka.policy.rest.url']
+
+  if not is_empty(policymgr_mgr_url) and policymgr_mgr_url.endswith('/'):
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-  xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
-  xa_audit_db_flavor = xa_audit_db_flavor.lower() if xa_audit_db_flavor else None
-  xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+
+  # ranger audit db user
   xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
+
   xa_audit_db_password = ''
-  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
-    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
-  xa_db_host = config['configurations']['admin-properties']['db_host']
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db and has_ranger_admin:
+    xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+
+  # ranger kafka service/repository name
   repo_name = str(config['clusterName']) + '_kafka'
   repo_name_value = config['configurations']['ranger-kafka-security']['ranger.plugin.kafka.service.name']
   if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
     repo_name = repo_name_value
 
   ranger_env = config['configurations']['ranger-env']
-  ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
 
+  # create ranger-env config having external ranger credential properties
+  if not has_ranger_admin and enable_ranger_kafka:
+    external_admin_username = default('/configurations/ranger-kafka-plugin-properties/external_admin_username', 'admin')
+    external_admin_password = default('/configurations/ranger-kafka-plugin-properties/external_admin_password', 'admin')
+    external_ranger_admin_username = default('/configurations/ranger-kafka-plugin-properties/external_ranger_admin_username', 'amb_ranger_admin')
+    external_ranger_admin_password = default('/configurations/ranger-kafka-plugin-properties/external_ranger_admin_password', 'amb_ranger_admin')
+    ranger_env = {}
+    ranger_env['admin_username'] = external_admin_username
+    ranger_env['admin_password'] = external_admin_password
+    ranger_env['ranger_admin_username'] = external_ranger_admin_username
+    ranger_env['ranger_admin_password'] = external_ranger_admin_password
+
+  ranger_plugin_properties = config['configurations']['ranger-kafka-plugin-properties']
   ranger_kafka_audit = config['configurations']['ranger-kafka-audit']
   ranger_kafka_audit_attrs = config['configuration_attributes']['ranger-kafka-audit']
   ranger_kafka_security = config['configurations']['ranger-kafka-security']
@@ -212,7 +238,7 @@ if has_ranger_admin and is_supported_kafka_ranger:
 
   ranger_plugin_config = {
     'username' : config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
-    'password' : unicode(config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
+    'password' : config['configurations']['ranger-kafka-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'],
     'zookeeper.connect' : config['configurations']['ranger-kafka-plugin-properties']['zookeeper.connect'],
     'commonNameForCertificate' : config['configurations']['ranger-kafka-plugin-properties']['common.name.for.certificate']
   }
@@ -232,63 +258,39 @@ if has_ranger_admin and is_supported_kafka_ranger:
     ranger_plugin_config['tag.download.auth.users'] = kafka_user
     ranger_plugin_config['ambari.service.check.user'] = policy_user
 
-  #For curl command in ranger plugin to get db connector
-  jdk_location = config['hostLevelParams']['jdk_location']
-  java_share_dir = '/usr/share/java'
+  downloaded_custom_connector = None
   previous_jdbc_jar_name = None
+  driver_curl_source = None
+  driver_curl_target = None
+  previous_jdbc_jar = None
 
-  if stack_supports_ranger_audit_db:
-    if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
-      jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-      jdbc_driver = "com.mysql.jdbc.Driver"
-    elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
-      jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
-      colon_count = xa_db_host.count(':')
-      if colon_count == 2 or colon_count == 0:
-        audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
-      else:
-        audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
-      jdbc_driver = "oracle.jdbc.OracleDriver"
-    elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
-      jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-      jdbc_driver = "org.postgresql.Driver"
-    elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
-      jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-      jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-    elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
-      jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
-      audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
-      jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  if has_ranger_admin and stack_supports_ranger_audit_db:
+    xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+    jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver = get_audit_configs(config)
 
-  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  driver_curl_target = format("{kafka_home}/libs/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
-  previous_jdbc_jar = format("{kafka_home}/libs/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    driver_curl_target = format("{kafka_home}/libs/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+    previous_jdbc_jar = format("{kafka_home}/libs/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
 
   xa_audit_db_is_enabled = False
-  ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   if xml_configurations_supported and stack_supports_ranger_audit_db:
     xa_audit_db_is_enabled = config['configurations']['ranger-kafka-audit']['xasecure.audit.destination.db']
+
   xa_audit_hdfs_is_enabled = default('/configurations/ranger-kafka-audit/xasecure.audit.destination.hdfs', False)
-  ssl_keystore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
-  ssl_truststore_password = unicode(config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
-  credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
+  ssl_keystore_password = config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'] if xml_configurations_supported else None
+  ssl_truststore_password = config['configurations']['ranger-kafka-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'] if xml_configurations_supported else None
+  credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
 
   stack_version = get_stack_version('kafka-broker')
   setup_ranger_env_sh_source = format('{stack_root}/{stack_version}/ranger-kafka-plugin/install/conf.templates/enable/kafka-ranger-env.sh')
   setup_ranger_env_sh_target = format("{conf_dir}/kafka-ranger-env.sh")
 
-  #For SQLA explicitly disable audit to DB for Ranger
-  if xa_audit_db_flavor == 'sqla':
+  # for SQLA explicitly disable audit to DB for Ranger
+  if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor.lower() == 'sqla':
     xa_audit_db_is_enabled = False
+
+# ranger kafka plugin section end
 
 namenode_hosts = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_hosts) == 0

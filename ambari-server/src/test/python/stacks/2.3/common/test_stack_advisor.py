@@ -1557,7 +1557,8 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {
           'ranger-storm-plugin-enabled': 'No',
         }
-      }
+      },
+      'ranger-knox-security': {'properties': {}}
     }
 
     recommendedConfigurations = {}

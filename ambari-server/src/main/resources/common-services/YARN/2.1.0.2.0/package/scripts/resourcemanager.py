@@ -115,7 +115,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    if params.has_ranger_admin and params.is_supported_yarn_ranger:
+    if params.enable_ranger_yarn and params.is_supported_yarn_ranger:
       setup_ranger_yarn() #Ranger Yarn Plugin related calls
 
     # wait for active-dir and done-dir to be created by ATS if needed

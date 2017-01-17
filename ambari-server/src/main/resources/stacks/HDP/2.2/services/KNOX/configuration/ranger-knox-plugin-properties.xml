@@ -24,6 +24,6 @@
     <value>/usr/hdp/current/knox-server</value>
     <display-name>Knox Home</display-name>
     <description>Knox home folder</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -1978,6 +1978,13 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
         putAtlasRangerAuditProperty('xasecure.audit.destination.hdfs',xasecure_audit_destination_hdfs)
         putAtlasRangerAuditProperty('xasecure.audit.destination.hdfs.dir',xasecure_audit_destination_hdfs_dir)
         putAtlasRangerAuditProperty('xasecure.audit.destination.solr',xasecure_audit_destination_solr)
+    required_services = [
+      {'service_name': 'ATLAS', 'config_type': 'ranger-atlas-security'}
+    ]
+
+    # recommendation for ranger url for ranger-supported plugins
+    self.recommendRangerUrlConfigurations(configurations, services, required_services)
+
 
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = properties

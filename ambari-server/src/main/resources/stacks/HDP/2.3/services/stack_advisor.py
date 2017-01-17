@@ -777,6 +777,40 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
       putRangerAdminProperty('ranger.sso.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
+    required_services = [
+      {'service_name': 'HDFS', 'config_type': 'ranger-hdfs-security'},
+      {'service_name': 'YARN', 'config_type': 'ranger-yarn-security'},
+      {'service_name': 'HBASE', 'config_type': 'ranger-hbase-security'},
+      {'service_name': 'HIVE', 'config_type': 'ranger-hive-security'},
+      {'service_name': 'KNOX', 'config_type': 'ranger-knox-security'},
+      {'service_name': 'KAFKA', 'config_type': 'ranger-kafka-security'},
+      {'service_name': 'RANGER_KMS','config_type': 'ranger-kms-security'},
+      {'service_name': 'STORM', 'config_type': 'ranger-storm-security'}
+    ]
+
+    # recommendation for ranger url for ranger-supported plugins
+    self.recommendRangerUrlConfigurations(configurations, services, required_services)
+
+  def recommendRangerUrlConfigurations(self, configurations, services, requiredServices):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    policymgr_external_url = ""
+    if 'admin-properties' in services['configurations'] and 'policymgr_external_url' in services['configurations']['admin-properties']['properties']:
+      if 'admin-properties' in configurations and 'policymgr_external_url' in configurations['admin-properties']['properties']:
+        policymgr_external_url = configurations['admin-properties']['properties']['policymgr_external_url']
+      else:
+        policymgr_external_url = services['configurations']['admin-properties']['properties']['policymgr_external_url']
+
+    for index in range(len(requiredServices)):
+      if requiredServices[index]['service_name'] in servicesList:
+        component_config_type = requiredServices[index]['config_type']
+        component_name = requiredServices[index]['service_name']
+        component_config_property = 'ranger.plugin.{0}.policy.rest.url'.format(component_name.lower())
+        if requiredServices[index]['service_name'] == 'RANGER_KMS':
+          component_config_property = 'ranger.plugin.kms.policy.rest.url'
+        putRangerSecurityProperty = self.putProperty(configurations, component_config_type, services)
+        if component_config_type in services["configurations"] and component_config_property in services["configurations"][component_config_type]["properties"]:
+          putRangerSecurityProperty(component_config_property, policymgr_external_url)
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)

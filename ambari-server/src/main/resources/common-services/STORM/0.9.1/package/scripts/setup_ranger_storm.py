@@ -28,7 +28,7 @@ def setup_ranger_storm(upgrade_type=None):
   :param upgrade_type: Upgrade Type such as "rolling" or "nonrolling"
   """
   import params
-  if params.has_ranger_admin and params.security_enabled:
+  if params.enable_ranger_storm and params.security_enabled:
 
     stack_version = None
     if upgrade_type is not None:
@@ -130,4 +130,4 @@ def setup_ranger_storm(upgrade_type=None):
     else:
       Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Storm plugin is not enabled')

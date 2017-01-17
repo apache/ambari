@@ -22,7 +22,7 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import setu
 def setup_ranger_kafka():
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_kafka:
 
     from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
 
@@ -87,4 +87,4 @@ def setup_ranger_kafka():
     else:
       Logger.info("Stack does not support core-site.xml creation for Ranger plugin, skipping core-site.xml configurations")
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Kafka plugin is not enabled')

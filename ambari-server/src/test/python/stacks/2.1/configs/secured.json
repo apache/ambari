@@ -102,7 +102,7 @@
             "XAAUDIT.DB.DATABASE_NAME": "{{xa_audit_db_name}}", 
             "XAAUDIT.DB.HOSTNAME": "{{xa_db_host}}", 
             "XAAUDIT.SOLR.IS_ENABLED": "false", 
-            "ranger-storm-plugin-enabled": "Yes", 
+            "ranger-storm-plugin-enabled": "No", 
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
             "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60", 
             "XAAUDIT.DB.USER_NAME": "{{xa_audit_db_user}}", 
@@ -640,7 +640,8 @@
             "hive_log_dir": "/var/log/hive", 
             "hive_user": "hive", 
             "hcat_log_dir": "/var/log/webhcat", 
-            "hive_database": "New MySQL Database"
+            "hive_database": "New MySQL Database",
+            "hive_security_authorization": "None"
         },
         "hbase-env": {
             "hbase_pid_dir": "/var/run/hbase", 
