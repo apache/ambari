@@ -42,7 +42,10 @@ limitations under the License.
   <property>
     <name>hive.mapjoin.hybridgrace.hashtable</name>
     <value>true</value>
-    <description>Whether to use hybrid grace hash join as the join method for mapjoin. Tez only.</description>
+    <description>Whether to use hybrid grace hash join as the join method for mapjoin.
+      Applies to dynamically partitioned joins when running in LLAP, but not to regular
+      broadcast(map) joins. hive.llap.enable.grace.join.in.llap is used for this.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
 

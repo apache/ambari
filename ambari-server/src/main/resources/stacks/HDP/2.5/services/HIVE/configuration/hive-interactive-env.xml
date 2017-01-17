@@ -94,8 +94,8 @@
   <property>
     <name>llap_heap_size</name>
     <value>0</value>
-    <description>Heap Size used by LLAP app.</description>
-    <display-name>LLAP heap size</display-name>
+    <description>LLAP Daemon Heap Size in MB.</description>
+    <display-name>LLAP Daemon Heap Size (MB)</display-name>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -163,8 +163,12 @@
   <property>
     <name>llap_headroom_space</name>
     <value>6144</value>
-    <description>LLAP app headroom space</description>
-    <display-name>LLAP's reserved headroom for YARN container</display-name>
+    <description>
+      Maximum headroom reserved from the YARN container running LLAP daemons.
+      This is an upper limit used during automatic size calculations, and the actual
+      value may be lower.
+    </description>
+    <display-name>LLAP Daemon Container Max Headroom</display-name>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
@@ -174,14 +178,14 @@
   <property>
     <name>llap_log_level</name>
     <value>INFO</value>
-    <description>LLAP app logging level (WARN/INFO/DEBUG/TRACE)</description>
-    <display-name>LLAP app logging level (WARN/INFO/DEBUG/TRACE)</display-name>
+    <description>LLAP daemon log level (WARN/INFO/DEBUG/TRACE)</description>
+    <display-name>LLAP daemon log level (WARN/INFO/DEBUG/TRACE)</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_aux_jars</name>
     <value/>
-    <description>A list of comma separated JARs</description>
+    <description>List of jars to be made available to LLAP daemons</description>
     <display-name>Auxillary JAR list</display-name>
     <on-ambari-upgrade add="true"/>
     <value-attributes>
@@ -198,8 +202,8 @@
   <property>
     <name>llap_java_opts</name>
     <value>-XX:+AlwaysPreTouch {% if java_version > 7 %}-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200{% else %}-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{% endif %}</value>
-    <description>Java opts for llap application</description>
-    <display-name>LLAP app java opts</display-name>
+    <description>Java opts for llap daemons</description>
+    <display-name>LLAP daemon java opts</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

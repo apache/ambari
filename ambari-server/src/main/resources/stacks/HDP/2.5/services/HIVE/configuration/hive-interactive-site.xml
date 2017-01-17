@@ -384,7 +384,7 @@ limitations under the License.
     <value>@llap0</value>
     <description>
       Explicitly specified hosts to use for LLAP scheduling. Useful for testing. By default,
-      YARN registry is used.
+      a ZooKeeper based registry is used.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -434,8 +434,8 @@ limitations under the License.
   </property>
   <property>
     <name>hive.llap.daemon.num.executors</name>
-    <display-name>Maximum CPUs per Daemon</display-name>
-    <description>The maximum number of CPUs a single LLAP daemon will use. Usually this should be equal to the number of available CPUs.</description>
+    <display-name>Number of executors per LLAP Daemon</display-name>
+    <description>The number of fragments that a single LLAP daemon will run concurrently. Usually, this will be the same as the number of available CPUs</description>
     <value>1</value>
     <value-attributes>
       <type>int</type>
@@ -476,8 +476,13 @@ limitations under the License.
   </property>
   <property>
     <name>hive.llap.daemon.yarn.container.mb</name>
-    <display-name>Memory per daemon</display-name>
-    <description>Total memory used by individual LLAP daemons. This includes memory for the cache as well as for the query execution.</description>
+    <display-name>Memory per Daemon</display-name>
+    <description>
+      Total memory used by individual LLAP daemons (YARN Container size). This includes memory
+      for the cache as well as for the query execution. Should be larger than the sum of
+      the Daemon cache size and the daemon heap size, and should leave some headroom
+      after this (In most cases: cache size + heap size + headroom = Memory Per Daemon).
+    </description>
     <value>0</value>
     <value-attributes>
       <type>int</type>
