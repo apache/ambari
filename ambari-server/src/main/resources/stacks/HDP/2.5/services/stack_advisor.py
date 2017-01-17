@@ -650,6 +650,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       return [host['Hosts']['host_name'] for host in phoenix_query_server_hosts]
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
+    Logger.info("DBG: Invoked recommendHiveConfiguration")
     super(HDP25StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
@@ -676,6 +677,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             putHiveInteractiveSiteProperty("hive.server2.tez.default.queues", hive_tez_default_queue)
             Logger.debug("Updated 'hive.server2.tez.default.queues' config : '{0}'".format(hive_tez_default_queue))
     else:
+      Logger.info("DBG: Setting visibility for num_llap_nodes to false")
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
       putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "visible", "false")
 
@@ -736,6 +738,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
       Note: All memory calculations are in MB, unless specified otherwise.
     """
+    Logger.info("DBG: Entered updateLlapConfigs");
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
@@ -786,14 +789,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', first_leaf_queue)
           putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', first_leaf_queue)
           llap_named_queue_selected_in_curr_invocation = False
+      Logger.info("DBG: llap_named_queue_selected_in_curr_invocation = {0}".format(llap_named_queue_selected_in_curr_invocation))
 
       if (len(leafQueueNames) == 2 and (llap_daemon_selected_queue_name and llap_daemon_selected_queue_name == llap_queue_name) or
         llap_named_queue_selected_in_curr_invocation) or \
         (len(leafQueueNames) == 1 and llap_daemon_selected_queue_name == 'default' and llap_named_queue_selected_in_curr_invocation):
+          Logger.info("Setting visibility of num_llap_nodes to true.")
           putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "visible", "true")
           selected_queue_is_ambari_managed_llap = True
+          Logger.info("DBG: Selected YARN queue for LLAP is : '{0}'. Current YARN queues : {1}. Setting 'Number of LLAP nodes' "
+                        "slider visibility to 'True'".format(llap_queue_name, list(leafQueueNames)))
       else:
+        Logger.info("Setting visibility of num_llap_nodes to false.")
         putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "visible", "false")
+        Logger.info("Selected YARN queue for LLAP is : '{0}'. Current YARN queues : {1}. Setting 'Number of LLAP nodes' "
+                     "visibility to 'False'.".format(llap_daemon_selected_queue_name, list(leafQueueNames)))
         selected_queue_is_ambari_managed_llap = False
 
       if not llap_named_queue_selected_in_curr_invocation:  # We would be creating the 'llap' queue later. Thus, cap-sched doesn't have
@@ -834,13 +844,17 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     if not changed_configs_in_hive_int_env and not llap_concurrency_in_changed_configs and \
       not llap_daemon_queue_in_changed_configs and services["changed-configurations"]:
-
+      Logger.info("DBG: LLAP parameters not modified. Not adjusting LLAP configs.")
+      Logger.info("DBG: Current 'changed-configuration' received is : {0}".format(services["changed-configurations"]))
       return
 
+    Logger.info("\nDBG: Performing LLAP config calculations ......")
     node_manager_host_list = self.getHostsForComponent(services, "YARN", "NODEMANAGER")
     node_manager_cnt = len(node_manager_host_list)
     yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
     total_cluster_capacity = node_manager_cnt * yarn_nm_mem_in_mb
+    Logger.info("DBG: Calculated total_cluster_capacity : {0}, using following : node_manager_cnt : {1}, "
+                "yarn_nm_mem_in_mb : {2}".format(total_cluster_capacity, node_manager_cnt, yarn_nm_mem_in_mb))
     yarn_min_container_size = float(self.get_yarn_min_container_size(services, configurations))
     tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_capacity))
     normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
@@ -850,10 +864,16 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
+    Logger.info("DBG Calculated normalized_tez_am_container_size : {0}, using following : tez_am_container_size : {1}, "
+                "total_cluster_capacity : {2}".format(normalized_tez_am_container_size, tez_am_container_size,
+                                                      total_cluster_capacity))
 
     # Calculate the available memory for LLAP app
     yarn_nm_mem_in_mb_normalized = self._normalizeDown(yarn_nm_mem_in_mb, yarn_min_container_size)
     mem_per_thread_for_llap = self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host)
+    Logger.info("DBG: Calculated mem_per_thread_for_llap : {0}, using following: yarn_nm_mem_in_mb_normalized : {1}, "
+                  "cpu_per_nm_host : {2}".format(mem_per_thread_for_llap, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
+
 
     if mem_per_thread_for_llap is None:
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
@@ -861,6 +881,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     mem_per_thread_for_llap = float(mem_per_thread_for_llap)
 
+    Logger.info("DBG: selected_queue_is_ambari_managed_llap = {0}".format(selected_queue_is_ambari_managed_llap))
     if not selected_queue_is_ambari_managed_llap:
       llap_daemon_selected_queue_cap = self.__getSelectedQueueTotalCap(capacity_scheduler_properties, llap_daemon_selected_queue_name, total_cluster_capacity)
 
@@ -871,16 +892,29 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         return
 
       total_llap_mem_normalized = self._normalizeDown(llap_daemon_selected_queue_cap, yarn_min_container_size)
-      num_llap_nodes_requested = math.floor(total_llap_mem_normalized / yarn_nm_mem_in_mb_normalized)
+      Logger.info("DBG: Calculated '{0}' queue available capacity : {1}, using following: llap_daemon_selected_queue_cap : {2}, "
+                    "yarn_min_container_size : {3}".format(llap_daemon_selected_queue_name, total_llap_mem_normalized,
+                                                           llap_daemon_selected_queue_cap, yarn_min_container_size))
+      '''Rounding up numNodes so that we run more daemons, and utilitze more CPUs. The rest of the calcaulkations will take care of cutting this down if required'''
+      num_llap_nodes_requested = math.ceil(total_llap_mem_normalized / yarn_nm_mem_in_mb_normalized)
+      Logger.info("DBG: Calculated 'num_llap_nodes_requested' : {0}, using following: total_llap_mem_normalized : {1}, "
+                    "yarn_nm_mem_in_mb_normalized : {2}".format(num_llap_nodes_requested, total_llap_mem_normalized, yarn_nm_mem_in_mb_normalized))
       queue_am_fraction_perc = float(self.__getQueueAmFractionFromCapacityScheduler(capacity_scheduler_properties, llap_daemon_selected_queue_name))
       hive_tez_am_cap_available = queue_am_fraction_perc * total_llap_mem_normalized
+      Logger.info("DBG: Calculated 'hive_tez_am_cap_available' : {0}, using following: queue_am_fraction_perc : {1}, "
+                    "total_llap_mem_normalized : {2}".format(hive_tez_am_cap_available, queue_am_fraction_perc, total_llap_mem_normalized))
     else:  # Ambari managed 'llap' named queue at root level.
       num_llap_nodes_requested = self.get_num_llap_nodes(services, configurations) #Input
       total_llap_mem = num_llap_nodes_requested * yarn_nm_mem_in_mb_normalized
+      Logger.info("DBG: Calculated 'total_llap_mem' : {0}, using following: num_llap_nodes_requested : {1}, "
+                    "yarn_nm_mem_in_mb_normalized : {2}".format(total_llap_mem, num_llap_nodes_requested, yarn_nm_mem_in_mb_normalized))
       total_llap_mem_normalized = float(self._normalizeDown(total_llap_mem, yarn_min_container_size))
+      Logger.info("DBG: Calculated 'total_llap_mem_normalized' : {0}, using following: total_llap_mem : {1}, "
+                    "yarn_min_container_size : {2}".format(total_llap_mem_normalized, total_llap_mem, yarn_min_container_size))
 
       # What percent is 'total_llap_mem' of 'total_cluster_capacity' ?
       llap_named_queue_cap_fraction = math.ceil(total_llap_mem_normalized / total_cluster_capacity * 100)
+      Logger.info("DBG: Calculated '{0}' queue capacity percent = {1}.".format(llap_queue_name, llap_named_queue_cap_fraction))
 
       if llap_named_queue_cap_fraction > 100:
         Logger.warning("Calculated '{0}' queue size = {1}. Cannot be > 100.".format(llap_queue_name, llap_named_queue_cap_fraction))
@@ -890,14 +924,19 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Adjust capacity scheduler for the 'llap' named queue.
       self.checkAndManageLlapQueue(services, configurations, hosts, llap_queue_name, llap_named_queue_cap_fraction)
       hive_tez_am_cap_available = total_llap_mem_normalized
+      Logger.info("DBG: hive_tez_am_cap_available : {0}".format(hive_tez_am_cap_available))
 
     # Common calculations now, irrespective of the queue selected.
 
     # Get calculated value for Slider AM container Size
     slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size),
                                                  yarn_min_container_size)
+    Logger.info("DBG: Calculated 'slider_am_container_size' : {0}, using following: yarn_min_container_size : "
+                  "{1}".format(slider_am_container_size, yarn_min_container_size))
 
     llap_mem_for_tezAm_and_daemons = total_llap_mem_normalized - slider_am_container_size
+    Logger.info("DBG: Calculated 'llap_mem_for_tezAm_and_daemons' : {0}, using following : total_llap_mem_normalized : {1}, "
+                  "slider_am_container_size : {2}".format(llap_mem_for_tezAm_and_daemons, total_llap_mem_normalized, slider_am_container_size))
 
     if llap_mem_for_tezAm_and_daemons < 2 * yarn_min_container_size:
       Logger.warning("Not enough capacity available on the cluster to run LLAP")
@@ -914,12 +953,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.recommendDefaultLlapConfiguration(configurations, services, hosts)
         return
 
+      Logger.info("DBG: Calculated 'max_executors_per_node' : {0}, using following: yarn_nm_mem_in_mb_normalized : {1}, cpu_per_nm_host : {2}, "
+                    "mem_per_thread_for_llap: {3}".format(max_executors_per_node, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host, mem_per_thread_for_llap))
+
       # Default 1 AM for every 20 executor threads.
       # The second part of the min calculates based on mem required for DEFAULT_EXECUTOR_TO_AM_RATIO executors + 1 AM,
       # making use of total memory. However, it's possible that total memory will not be used - and the numExecutors is
       # instead limited by #CPUs. Use maxPerNode to factor this in.
       llap_concurreny_limit = min(math.floor(max_executors_per_node * num_llap_nodes_requested / DEFAULT_EXECUTOR_TO_AM_RATIO), MAX_CONCURRENT_QUERIES)
+      Logger.info("DBG: Calculated 'llap_concurreny_limit' : {0}, using following : max_executors_per_node : {1}, num_llap_nodes_requested : {2}, DEFAULT_EXECUTOR_TO_AM_RATIO "
+                    ": {3}, MAX_CONCURRENT_QUERIES : {4}".format(llap_concurreny_limit, max_executors_per_node, num_llap_nodes_requested, DEFAULT_EXECUTOR_TO_AM_RATIO, MAX_CONCURRENT_QUERIES))
       llap_concurrency = min(llap_concurreny_limit, math.floor(llap_mem_for_tezAm_and_daemons / (DEFAULT_EXECUTOR_TO_AM_RATIO * mem_per_thread_for_llap + normalized_tez_am_container_size)))
+      Logger.info("DBG: Calculated 'llap_concurrency' : {0}, using following : llap_concurreny_limit : {1}, llap_mem_for_tezAm_and_daemons : "
+                    "{2}, DEFAULT_EXECUTOR_TO_AM_RATIO : {3}, mem_per_thread_for_llap : {4}, normalized_tez_am_container_size : "
+                    "{5}".format(llap_concurrency, llap_concurreny_limit, llap_mem_for_tezAm_and_daemons, DEFAULT_EXECUTOR_TO_AM_RATIO,
+                                 mem_per_thread_for_llap, normalized_tez_am_container_size))
       if llap_concurrency == 0:
         llap_concurrency = 1
 
@@ -930,6 +978,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           Logger.warning("Calculated 'LLAP Concurrent Queries' = {0}. Expected value >= 1.".format(llap_concurrency))
           self.recommendDefaultLlapConfiguration(configurations, services, hosts)
           return
+        Logger.info("DBG: Adjusted 'llap_concurrency' : {0}, using following: hive_tez_am_cap_available : {1}, normalized_tez_am_container_size: "
+                      "{2}".format(llap_concurrency, hive_tez_am_cap_available, normalized_tez_am_container_size))
     else:
       # Read current value
       if 'hive.server2.tez.sessions.per.default.queue' in hsi_site:
@@ -938,6 +988,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           Logger.warning("'hive.server2.tez.sessions.per.default.queue' current value : {0}. Expected value : >= 1".format(llap_concurrency))
           self.recommendDefaultLlapConfiguration(configurations, services, hosts)
           return
+        Logger.info("DBG: Read 'llap_concurrency' : {0}".format(llap_concurrency ))
       else:
         llap_concurrency = 1
         Logger.warning("Couldn't retrieve Hive Server interactive's 'hive.server2.tez.sessions.per.default.queue' config. Setting default value 1.")
@@ -946,10 +997,19 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Calculate 'Max LLAP Consurrency', irrespective of whether 'llap_concurrency' was read or calculated.
     max_llap_concurreny_limit = min(math.floor(max_executors_per_node * num_llap_nodes_requested / MIN_EXECUTOR_TO_AM_RATIO), MAX_CONCURRENT_QUERIES)
+    Logger.info("DBG: Calculated 'max_llap_concurreny_limit' : {0}, using following : max_executors_per_node : {1}, num_llap_nodes_requested "
+                  ": {2}, MIN_EXECUTOR_TO_AM_RATIO : {3}, MAX_CONCURRENT_QUERIES : {4}".format(max_llap_concurreny_limit, max_executors_per_node,
+                                                                                               num_llap_nodes_requested, MIN_EXECUTOR_TO_AM_RATIO,
+                                                                                               MAX_CONCURRENT_QUERIES))
     max_llap_concurreny = min(max_llap_concurreny_limit, math.floor(llap_mem_for_tezAm_and_daemons / (MIN_EXECUTOR_TO_AM_RATIO *
                                                                                                       mem_per_thread_for_llap + normalized_tez_am_container_size)))
+    Logger.info("DBG: Calculated 'max_llap_concurreny' : {0}, using following : max_llap_concurreny_limit : {1}, llap_mem_for_tezAm_and_daemons : "
+                  "{2}, MIN_EXECUTOR_TO_AM_RATIO : {3}, mem_per_thread_for_llap : {4}, normalized_tez_am_container_size : "
+                  "{5}".format(max_llap_concurreny, max_llap_concurreny_limit, llap_mem_for_tezAm_and_daemons, MIN_EXECUTOR_TO_AM_RATIO,
+                               mem_per_thread_for_llap, normalized_tez_am_container_size))
     if max_llap_concurreny == 0:
       max_llap_concurreny = 1
+      Logger.info("DBG: Adjusted 'max_llap_concurreny' : 1.")
 
     if (max_llap_concurreny * normalized_tez_am_container_size) > hive_tez_am_cap_available:
       max_llap_concurreny = math.floor(hive_tez_am_cap_available / normalized_tez_am_container_size)
@@ -957,9 +1017,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         Logger.warning("Calculated 'Max. LLAP Concurrent Queries' = {0}. Expected value > 1".format(max_llap_concurreny))
         self.recommendDefaultLlapConfiguration(configurations, services, hosts)
         return
+      Logger.info("DBG: Adjusted 'max_llap_concurreny' : {0}, using following: hive_tez_am_cap_available : {1}, normalized_tez_am_container_size: "
+                    "{2}".format(max_llap_concurreny, hive_tez_am_cap_available, normalized_tez_am_container_size))
 
     # Calculate value for 'num_llap_nodes', an across cluster config.
     tez_am_memory_required = llap_concurrency * normalized_tez_am_container_size
+    Logger.info("DBG: Calculated 'tez_am_memory_required' : {0}, using following : llap_concurrency : {1}, normalized_tez_am_container_size : "
+                  "{2}".format(tez_am_memory_required, llap_concurrency, normalized_tez_am_container_size))
     llap_mem_daemon_size = llap_mem_for_tezAm_and_daemons - tez_am_memory_required
 
     if llap_mem_daemon_size < yarn_min_container_size:
@@ -972,25 +1036,36 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.warning("Not enough memory available for executors.")
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
+    Logger.info("DBG: Calculated 'llap_mem_daemon_size' : {0}, using following : llap_mem_for_tezAm_and_daemons : {1}, tez_am_memory_required : "
+                  "{2}".format(llap_mem_daemon_size, llap_mem_for_tezAm_and_daemons, tez_am_memory_required))
 
     llap_daemon_mem_per_node = self._normalizeDown(llap_mem_daemon_size / num_llap_nodes_requested, yarn_min_container_size)
+    Logger.info("DBG: Calculated 'llap_daemon_mem_per_node' : {0}, using following : llap_mem_daemon_size : {1}, num_llap_nodes_requested : {2}, "
+                  "yarn_min_container_size: {3}".format(llap_daemon_mem_per_node, llap_mem_daemon_size, num_llap_nodes_requested, yarn_min_container_size))
     if llap_daemon_mem_per_node == 0:
       # Small cluster. No capacity left on a node after running AMs.
       llap_daemon_mem_per_node = mem_per_thread_for_llap
       num_llap_nodes = math.floor(llap_mem_daemon_size / mem_per_thread_for_llap)
+      Logger.info("DBG: 'llap_daemon_mem_per_node' : 0, adjusted 'llap_daemon_mem_per_node' : {0}, 'num_llap_nodes' : {1}, using following: llap_mem_daemon_size : {2}, "
+                    "mem_per_thread_for_llap : {3}".format(llap_daemon_mem_per_node, num_llap_nodes, llap_mem_daemon_size, mem_per_thread_for_llap))
     elif llap_daemon_mem_per_node < mem_per_thread_for_llap:
       # Previously computed value of memory per thread may be too high. Cut the number of nodes. (Alternately reduce memory per node)
       llap_daemon_mem_per_node = mem_per_thread_for_llap
       num_llap_nodes = math.floor(llap_mem_daemon_size / mem_per_thread_for_llap)
+      Logger.info("DBG: 'llap_daemon_mem_per_node'({0}) < mem_per_thread_for_llap({1}), adjusted 'llap_daemon_mem_per_node' "
+                    ": {2}".format(llap_daemon_mem_per_node, mem_per_thread_for_llap, llap_daemon_mem_per_node))
     else:
       # All good. We have a proper value for memoryPerNode.
       num_llap_nodes = num_llap_nodes_requested
+      Logger.info("DBG: num_llap_nodes : {0}".format(num_llap_nodes))
 
     num_executors_per_node_max = self.get_max_executors_per_node(yarn_nm_mem_in_mb_normalized, cpu_per_nm_host, mem_per_thread_for_llap)
     if num_executors_per_node_max < 1:
       Logger.warning("Calculated 'Max. Executors per Node' = {0}. Expected values >= 1.".format(num_executors_per_node_max))
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
+    Logger.info("DBG: Calculated 'num_executors_per_node_max' : {0}, using following : yarn_nm_mem_in_mb_normalized : {1}, cpu_per_nm_host : {2}, "
+                  "mem_per_thread_for_llap: {3}".format(num_executors_per_node_max, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host, mem_per_thread_for_llap))
 
     # NumExecutorsPerNode is not necessarily max - since some capacity would have been reserved for AMs, if this value were based on mem.
     num_executors_per_node = min(math.floor(llap_daemon_mem_per_node / mem_per_thread_for_llap), num_executors_per_node_max)
@@ -998,6 +1073,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.warning("Calculated 'Number of Executors Per Node' = {0}. Expected value >= 1".format(num_executors_per_node))
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
+    Logger.info("DBG: Calculated 'num_executors_per_node' : {0}, using following : llap_daemon_mem_per_node : {1}, num_executors_per_node_max : {2}, "
+                  "mem_per_thread_for_llap: {3}".format(num_executors_per_node, llap_daemon_mem_per_node, num_executors_per_node_max, mem_per_thread_for_llap))
 
     # Now figure out how much of the memory will be used by the executors, and how much will be used by the cache.
     total_mem_for_executors_per_node = num_executors_per_node * mem_per_thread_for_llap
@@ -1010,6 +1087,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Calculate value for prop 'llap_heap_size'
     llap_xmx = max(total_mem_for_executors_per_node * 0.8, total_mem_for_executors_per_node - self.get_llap_headroom_space(services, configurations))
+    Logger.info("DBG: Calculated llap_app_heap_size : {0}, using following : total_mem_for_executors : {1}".format(llap_xmx, total_mem_for_executors_per_node))
 
     # Calculate 'hive_heapsize' for Hive2/HiveServer2 (HSI)
     hive_server_interactive_heapsize = None
@@ -1020,8 +1098,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if hive_server_interactive_hosts is not None and len(hive_server_interactive_hosts) > 0:
       host_mem = long(hive_server_interactive_hosts[0]["Hosts"]["total_mem"])
       hive_server_interactive_heapsize = min(max(2048.0, 400.0*llap_concurrency), 3.0/8 * host_mem)
+      Logger.info("DBG: Calculated 'hive_server_interactive_heapsize' : {0}, using following : llap_concurrency : {1}, host_mem : "
+                    "{2}".format(hive_server_interactive_heapsize, llap_concurrency, host_mem))
 
     # Done with calculations, updating calculated configs.
+    Logger.info("DBG: Applying the calculated values....")
 
     normalized_tez_am_container_size = long(normalized_tez_am_container_size)
     putTezInteractiveSiteProperty('tez.am.resource.memory.mb', normalized_tez_am_container_size)
@@ -1037,6 +1118,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     num_llap_nodes = long(num_llap_nodes)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
+    #TODO A single value is not being set for numNodes in case of a custom queue. Also the attribute is set to non-visible, so the UI likely ends up using an old cached value
+    if (num_llap_nodes != num_llap_nodes_requested):
+      Logger.info("User requested num_llap_nodes : {0}, but used/adjusted value for calculations is : {1}".format(num_llap_nodes_requested, num_llap_nodes))
+    else:
+      Logger.info("Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
 
     llap_container_size = long(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
@@ -1075,8 +1161,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     putHiveInteractiveEnvProperty('llap_heap_size', long(llap_xmx))
     putHiveInteractiveEnvProperty('slider_am_container_mb', long(slider_am_container_size))
+    Logger.info("DBG: Done putting all configs")
 
+  #TODO: What is this doing? What error will be displayed on the UI if something like this is hit?
   def recommendDefaultLlapConfiguration(self, configurations, services, hosts):
+    Logger.info("DBG: Something likely went wrong. recommendDefaultLlapConfiguration")
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
 
@@ -1181,8 +1270,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       else:
         calculated_hive_tez_container_size = 4096
 
+      Logger.info("DBG: Calculated and returning 'hive_tez_container_size' : {0}".format(calculated_hive_tez_container_size))
       return calculated_hive_tez_container_size
     else:
+      Logger.info("DBG: Returning 'hive_tez_container_size' : {0}".format(hive_tez_container_size))
       return hive_tez_container_size
 
   def get_hive_tez_container_size(self, services):
@@ -1217,6 +1308,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     return llap_headroom_space
 
+  #TODO  Convert this to a helper. It can apply to any property. Check config, or check if in the list of changed configurations and read the latest value
   def get_yarn_min_container_size(self, services, configurations):
     """
     Gets YARN's minimum container size (yarn.scheduler.minimum-allocation-mb).
@@ -1241,10 +1333,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Check if services["changed-configurations"] is empty and 'yarn.scheduler.minimum-allocation-mb' is modified in current ST invocation.
     if not services["changed-configurations"] and yarn_site and yarn_min_allocation_property in yarn_site:
       yarn_min_container_size = yarn_site[yarn_min_allocation_property]
+      Logger.info("DBG: 'yarn.scheduler.minimum-allocation-mb' read from configurations as : {0}".format(yarn_min_container_size))
 
     # Check if 'yarn.scheduler.minimum-allocation-mb' is input in services array.
     elif yarn_site_properties and yarn_min_allocation_property in yarn_site_properties:
       yarn_min_container_size = yarn_site_properties[yarn_min_allocation_property]
+      Logger.info("DBG: 'yarn.scheduler.minimum-allocation-mb' read from services as : {0}".format(yarn_min_container_size))
 
     if not yarn_min_container_size:
       Logger.error("{0} was not found in the configuration".format(yarn_min_allocation_property))
@@ -1308,8 +1402,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       elif total_cluster_capacity > 73728:
         calculated_tez_am_resource_memory_mb = 1536
 
+      Logger.info("DBG: Calculated and returning 'tez_am_resource_memory_mb' as : {0}".format(calculated_tez_am_resource_memory_mb))
       return float(calculated_tez_am_resource_memory_mb)
     else:
+      Logger.info("DBG: Returning 'tez_am_resource_memory_mb' as : {0}".format(tez_am_resource_memory_mb))
       return float(tez_am_resource_memory_mb)
 
   def get_tez_am_resource_memory_mb(self, services):
@@ -1572,6 +1668,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     account that 'capacity-scheduler' may have changed (got updated) in current Stack Advisor invocation.
     """
     Logger.info("Determining 'hive.llap.daemon.queue.name' config Property Attributes.")
+    #TODO Determine if this is doing the right thing if some queue is setup with capacity=0, or is STOPPED. Maybe don't list it.
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
 
     capacity_scheduler_properties = dict()
@@ -1636,7 +1733,8 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     current_selected_queue_for_llap_cap = None
     for key in cap_sched_keys:
       # Expected capacity prop key is of form : 'yarn.scheduler.capacity.<one or more queues in path separated by '.'>.[llap_daemon_selected_queue_name].capacity'
-      if key.endswith(llap_daemon_selected_queue_name+".capacity"):
+      if key.endswith(llap_daemon_selected_queue_name+".capacity") and key.startswith("yarn.scheduler.capacity.root"):
+        Logger.info("DBG: Selected queue name as: " + key)
         llap_selected_queue_cap_key = key
         break;
     return llap_selected_queue_cap_key
@@ -1683,7 +1781,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     """
     Calculates the total available capacity for the passed-in YARN queue of any level based on the percentages.
     """
-    Logger.info("Entered __getSelectedQueueTotalCap fn().")
+    Logger.info("Entered __getSelectedQueueTotalCap fn() with llap_daemon_selected_queue_name= '{0}'.".format(llap_daemon_selected_queue_name))
     available_capacity = total_cluster_capacity
     queue_cap_key = self.__getQueueCapacityKeyFromCapacityScheduler(capacity_scheduler_properties, llap_daemon_selected_queue_name)
     if queue_cap_key:

@@ -286,6 +286,10 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         slider_placement = 0
         Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
                     "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+      else:
+        Logger.info("Setting slider_placement: 4, as llap_daemon_container_size : {0} <= 0.5 * "
+                    "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+
 
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
                    " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m"
