@@ -57,6 +57,30 @@
     </parameter>
 
     <parameter>
+        <name>hive.ranger.servicename</name>
+        <description>Set the service name of ranger configured for this hive cluster</description>
+        <label>Ranger Service Name</label>
+        <placeholder>c1_hive</placeholder>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.ranger.username</name>
+        <description>Admin username for ranger</description>
+        <label>Ranger Username</label>
+        <default-value>admin</default-value>
+        <required>false</required>
+    </parameter>
+    <parameter>
+        <name>hive.ranger.password</name>
+        <description>Admin password for ranger</description>
+        <label>Ranger Password</label>
+        <default-value>admin</default-value>
+        <masked>true</masked>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
         <name>hive.metastore.warehouse.dir</name>
         <description>Hive Metastore directory (example: /apps/hive/warehouse)</description>
         <label>Hive Metastore directory</label>
@@ -146,6 +170,15 @@
         <label>Failover Proxy Provider</label>
         <required>false</required>
         <cluster-config>fake</cluster-config>
+    </parameter>
+
+    <parameter>
+        <name>hive.ranger.url</name>
+        <description>Ranger URL</description>
+        <label>Ranger URL</label>
+        <placeholder>http://rangerhost:post</placeholder>
+        <cluster-config>fake</cluster-config>
+        <required>false</required>
     </parameter>
 
     <parameter>

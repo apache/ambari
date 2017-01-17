@@ -16,25 +16,20 @@
 * limitations under the License.
 }}
 
-<table class="table table-bordered table-hover">
-  <thead>
-  <tr>
-    <th width="40%">KEY</th>
-    <th width="40%">VALUE</th>
-    <th width="20%" class="text-center">ACTION</th>
-  </tr>
-  </thead>
-  <tbody>
-  {{#each properties as |property|}}
-    {{property-item property=property
-                  propertyItemDeleted="itemDeleted"
-                  propertyItemUpdated="itemUpdated"
-    }}
-  {{/each}}
-  <tr class="new-settings text-center">
-    <td colspan="3">
-      <a {{action "addNewRow"}}>{{fa-icon "plus"}} Add New Properties</a>
-    </td>
-  </tr>
-  </tbody>
-</table>
+<div class="row">
+  <div class="authorizations alert alert-info">
+    <p class="lead">{{fa-icon "shield" size=1}} Ranger policies</p>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12 alert alert-danger">
+    <p><strong>Message:</strong> {{model.errors.message}}</p>
+    <p><strong>Error Code:</strong> {{model.errors.errorCode}}</p>
+    {{#if model.errors.trace}}
+      <p><strong>Trace:</strong></p>
+      <pre class="prettyprint">
+        {{model.errors.trace}}
+      </pre>
+    {{/if}}
+  </div>
+</div>

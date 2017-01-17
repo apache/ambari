@@ -16,20 +16,12 @@
  * limitations under the License.
  */
 
-import ApplicationAdapter from './application';
+import TableMetaRouter from './table-meta-router';
 
-export default ApplicationAdapter.extend({
-  ping() {
-    const url = this.urlForCreateRecord('ping');
-    return this.ajax(url, 'POST');
-  },
-
-  pathForType() {
-    return "system/ping";
-  },
-
-  fetchAuth(databaseName, tableName) {
-    const url = this.buildURL() + '/system/ranger/auth';
-    return this.ajax(url, "GET", {data: {database: databaseName, table: tableName}});
+export default TableMetaRouter.extend({
+  model(params, transition) {
+    let databaseName = transition.params['databases.database']['databaseId'];
+    let tableName = transition.params['databases.database.tables.table']['name'];
+    return this.store.adapterFor('ping').fetchAuth(databaseName, tableName);
   }
 });
