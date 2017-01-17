@@ -658,7 +658,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var self = this;
     this.set('requestInProgress', true);
     this.abortUpgrade().done(function() {
-      self.startDowngrade(currentVersion);
+      var interval = setInterval(function() {
+        if (self.get('upgradeData.Upgrade.request_status') == 'ABORTED') {
+          clearInterval(interval);
+          self.startDowngrade(currentVersion);
+        }
+      }, 1000);
     });
   },
 
