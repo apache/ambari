@@ -578,6 +578,22 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     showVersionSettings(value){
       this.set('showVersionSettings', value);
+    },
+    save(){
+      var isDraft = false, coordinatorXml;
+      var isChildComponentsValid = this.validateChildComponents();
+      if(this.get('validations.isInvalid') || !isChildComponentsValid) {
+       isDraft = true;
+      }else{
+        var coordGenerator = CoordinatorGenerator.create({coordinator:this.get("coordinator")});
+        coordinatorXml = coordGenerator.process();
+      }
+      var coordinatorJson = JSON.stringify(this.get("coordinator"));
+      this.set("configForSave",{json:coordinatorJson, xml:coordinatorXml,isDraft: isDraft});
+      this.set("showingSaveWorkflow", true);
+    },
+    closeSave(){
+      this.set("showingSaveWorkflow", false);
     }
   }
 });

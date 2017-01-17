@@ -38,6 +38,11 @@
                   <i class="fa fa-download"> Import</i>
                 </a>
              </li>
+             <li>
+               <a class="pointer" href="#" data-toggle="modal" data-target="#ConfirmDialog" title="Reset Coordinator" {{action "confirmReset"}}>
+                 <i class="fa fa-refresh marginright5"></i>Reset
+               </a>
+             </li>
               <li>
                 <a class="pointer" href="#" data-toggle="modal" title="Preview Xml" {{action "preview"}}>
                   <i class="fa fa-eye marginright5"></i>Preview xml
@@ -45,21 +50,33 @@
               </li>
             </ul>
           </div>
+          <div class="dropdown inlineBlock">
+            <button class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown"><i class="fa fa-cog marginright5"></i>Settings
+            <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li>
+                <a  class="pointer" title="Import workflow" title="Parameters Configuration" {{action "showParameterSettings" true}}>
+                  <i class="fa fa-cog marginright5"></i>Parameters
+                </a>
+             </li>
+              <li>
+                <a class="pointer" href="#" data-toggle="modal" data-target="#control-dialog" title="Coordinator Controls" {{action "showControlConfig"}}>
+                  <i class="fa fa-wrench marginright5"></i>Controls
+                </a>
+              </li>
+              <li>
+                <a class="pointer" href="#" title="Coordinator Versions" {{action "showVersionSettings" true}}>
+                  <i class="fa fa-cog marginright5"></i>Versions
+                </a>
+              </li>
+            </ul>
+          </div>
           <div class="btn-group" role="group" aria-label="...">
-            <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#ConfirmDialog" title="New Workflow" {{action "confirmReset"}}>
-              <i class="fa fa-refresh"> Reset</i>
-            </button>
             <button  id="import-test" type="button" class="btn btn-default hide" title="Import coordinator Test" {{action "importCoordinatorTest"}}>
               <i class="fa fa-download"></i>
             </button>
-            <button type="button" class="btn btn-default" title="Parameters Configuration" {{action "showParameterSettings" true}}>
-              <i class="fa fa-cog marginright5"></i>Parameters
-            </button>
-            <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#control-dialog" title="Coordinator Controls" {{action "showControlConfig"}}>
-              <i class="fa fa-wrench marginright5"></i>Controls
-            </button>
-            <button type="button" class="btn btn-default" title="Coordinator Versions" {{action "showVersionSettings" true}}>
-              <i class="fa fa-cog marginright5"></i>Versions
+            <button id="save-coord" type="button" class="btn btn-default" title="Save coordinator in HDFS" {{action "save"}}>
+                <i class="fa fa-floppy-o"></i> Save
             </button>
             <button type="button" class="btn btn-primary" title="Submit Coordinator" {{action "submitCoordinator"}}>
               <i class="fa fa-upload marginright5"></i>Submit
@@ -359,4 +376,7 @@ okBtnText="Continue" cancelBtnText="Cancel" onOk="resetCoordinator"}}{{/confirma
     </div>
   </div>
 </div>
+{{/if}}
+{{#if showingSaveWorkflow}}
+  {{save-wf type='wf' close="closeSave" jobFilePath=coordinatorFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
 {{/if}}

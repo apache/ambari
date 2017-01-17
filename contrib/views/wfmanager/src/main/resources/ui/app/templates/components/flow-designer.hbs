@@ -37,9 +37,6 @@
               <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li>
-                  <!--a class="pointer" title="Save Draft" {{action "saveAsDraft"}}>
-                      <i class="fa fa-download marginright5"></i>Save As Draft
-                  </a-->
                   <a class="pointer" title="Import workflow from HDFS" {{action "showFileBrowser"}}>
                       <i class="fa fa-download marginright5"></i>Import from HDFS
                   </a>
@@ -48,11 +45,10 @@
                         <i class="fa fa-download marginright5"></i>Import from Local FS
                     {{/file-picker}}
                   </a>
-                  <a class="pointer" title="Save workflow" {{action "saveWorkflow" "save"}}>
-                      <i class="fa fa-floppy-o marginright5"></i>Save
-                  </a>
-                  <a class="pointer" title="Save as draft" {{action "saveWorkflow" "saveDraft"}}>
-                      <i class="fa fa-floppy-o marginright5"></i>Save As Draft
+                </li>
+                <li>
+                  <a  class="pointer" data-toggle="modal" data-target="#ConfirmDialog" title="Reset Workflow" {{action "conirmCreatingNewWorkflow"}}>
+                    <i class="fa fa-refresh marginright5"></i> Reset Workflow
                   </a>
                 </li>
                 <li>
@@ -79,26 +75,6 @@
         <button  id="import-workflow-test" type="button" class="btn btn-default hide" title="Import workflow Test" {{action "importWorkflowTest"}}>
             <i class="fa fa-download"></i>
         </button>
-        <div class="btn-group">
-          <div class="dropdown">
-            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><i class="fa fa-refresh marginright5"></i>Reset
-            <span class="caret"></span></button>
-            <ul class="dropdown-menu">
-              <li>
-                <a  class="pointer" data-toggle="modal" data-target="#ConfirmDialog" title="Reset Workflow" {{action "conirmCreatingNewWorkflow"}}>
-                  Reset Workflow
-                </a>
-              </li>
-              {{#if useCytoscape}}
-              <li>
-                <a class="pointer" title="Reset Layout" {{action "resetLayout"}}>
-                  Reset Layout
-                </a>
-              </li>
-              {{/if}}
-            </ul>
-          </div>
-        </div>
         <div class="btn-group">
           <div class="btn-group">
             <div class="dropdown">
@@ -143,24 +119,9 @@
               </ul>
             </div>
           </div>
-          <!--div class="btn-group">
-            <div class="dropdown">
-              <button class="btn btn-default dropdown-toggle borderRadiusNone" type="button" data-toggle="dropdown"><i class="marginright5"></i>More
-              <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li>
-                  <a href="#" data-toggle="modal" data-target="#previewModal"  title="Preview workflow" {{action "previewWorkflow"}}>
-                    <i class="fa fa-eye marginright5"></i>Preview xml
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:void(0)" data-toggle="modal" title="Download workflow" {{action "downloadWorkflowXml"}}>
-                    <i class="fa fa-download marginright5"></i>Download xml
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div-->
+          <button id="import-workflow-test" type="button" class="btn btn-default" title="Save Workflow in HDFS" {{action "saveWorkflow" "save"}}>
+              <i class="fa fa-floppy-o"></i> Save
+          </button>
           <button type="button" class="btn btn-default" title="Validate workflow" {{action "dryRunWorkflow"}}>
               <i class="fa fa-play marginright5"></i>Validate
           </button>
@@ -291,10 +252,10 @@
                 <i class="fa fa-upload"></i>
             </span>
             <span class="overlay-hdfs-asset-import-icon" title="Import asset from HDFS" {{action "showActionSettingsFileBrowser"}}>
-                <i class="fa fa-cloud-download"></i>
+              <i class="fa fa-cloud-download"></i>
             </span>
             <span class="overlay-hdfs-asset-export-icon" title="Publish Asset to HDFS" {{action "showExportActionNodeFileBrowser"}}>
-                <i class="fa fa-cloud-upload"></i>
+              <i class="fa fa-cloud-upload"></i>
             </span>
           </div>
           {{decision-add-branch node=node registerAddBranchAction="registerAddBranchAction" addDecisionBranch="addDecisionBranch" workflow=workflow}}
@@ -318,7 +279,7 @@
   {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" setNodeTransitions="setNodeTransitions" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes credentials=workflow.credentials}}
 {{/if}}
 {{#if showingSaveWorkflow}}
-  {{save-wf type='wf' saveFileinfo="saveFileinfo" closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs setFilePath="setFilePath" isDryrun=dryrun isDraft=isDraft jobXmlJSONStr=jobXmlJSONStr}}
+  {{save-wf type='wf' close="closeSaveWorkflow" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
 {{/if}}
 {{#if showingWorkflowConfigProps}}
   {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
