@@ -2893,7 +2893,7 @@
             {
               "yarn-site" : {
                 "yarn.timeline-service.http-authentication.signer.secret.provider.object" : "",
-                "yarn.resourcemanager.proxyusers.*.users" : "",
+                "yarn.resourcemanager.proxyuser.*.users" : "",
                 "yarn.timeline-service.http-authentication.token.validity" : "",
                 "yarn.timeline-service.http-authentication.kerberos.name.rules" : "",
                 "yarn.timeline-service.http-authentication.cookie.path" : "",
@@ -2901,14 +2901,14 @@
                 "yarn.resourcemanager.proxy-user-privileges.enabled" : "true",
                 "yarn.acl.enable" : "true",
                 "yarn.timeline-service.http-authentication.signer.secret.provider" : "",
-                "yarn.timeline-service.http-authentication.proxyusers.*.groups" : "",
-                "yarn.timeline-service.http-authentication.proxyusers.*.hosts" : "",
+                "yarn.timeline-service.http-authentication.proxyuser.*.groups" : "",
+                "yarn.timeline-service.http-authentication.proxyuser.*.hosts" : "",
                 "yarn.timeline-service.http-authentication.signature.secret" : "",
                 "yarn.timeline-service.http-authentication.signature.secret.file" : "",
-                "yarn.resourcemanager.proxyusers.*.hosts" : "",
-                "yarn.resourcemanager.proxyusers.*.groups" : "",
+                "yarn.resourcemanager.proxyuser.*.hosts" : "",
+                "yarn.resourcemanager.proxyuser.*.groups" : "",
                 "yarn.timeline-service.enabled" : "false",
-                "yarn.timeline-service.http-authentication.proxyusers.*.users" : "",
+                "yarn.timeline-service.http-authentication.proxyuser.*.users" : "",
                 "yarn.timeline-service.http-authentication.cookie.domain" : ""
               }
             }
