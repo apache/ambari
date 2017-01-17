@@ -36,6 +36,7 @@ from resource_management.libraries.functions.oozie_prepare_war import prepare_wa
 from resource_management.libraries.functions.copy_tarball import get_current_version
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from resource_management.core.resources.packaging import Package
 from resource_management.core.shell import as_user, as_sudo, call
 from resource_management.core.exceptions import Fail
@@ -49,7 +50,6 @@ from ambari_commons import OSConst
 from ambari_commons.inet_utils import download_file
 
 from resource_management.core import Logger
-
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def oozie(is_server=False):
@@ -115,6 +115,14 @@ def oozie(is_server=False):
              owner = params.oozie_user,
              group = params.user_group
   )
+
+  params.oozie_site = update_credential_provider_path(params.oozie_site,
+                                                      'oozie-site',
+                                                      os.path.join(params.conf_dir, 'oozie-site.jceks'),
+                                                      params.oozie_user,
+                                                      params.user_group
+                                                      )
+
   XmlConfig("oozie-site.xml",
     conf_dir = params.conf_dir,
     configurations = params.oozie_site,
@@ -289,9 +297,15 @@ def oozie_server_specific():
         group = params.user_group
     )
     if 'hive-site' in params.config['configurations']:
+      hive_site_config = update_credential_provider_path(params.config['configurations']['hive-site'],
+                                                         'hive-site',
+                                                         os.path.join(params.hive_conf_dir, 'hive-site.jceks'),
+                                                         params.oozie_user,
+                                                         params.user_group
+                                                         )
       XmlConfig("hive-site.xml",
         conf_dir=params.hive_conf_dir,
-        configurations=params.config['configurations']['hive-site'],
+        configurations=hive_site_config,
         configuration_attributes=params.config['configuration_attributes']['hive-site'],
         owner=params.oozie_user,
         group=params.user_group,

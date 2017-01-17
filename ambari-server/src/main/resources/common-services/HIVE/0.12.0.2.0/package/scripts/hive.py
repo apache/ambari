@@ -40,12 +40,11 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
 from resource_management.core import utils
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from ambari_commons.constants import SERVICE
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-
-
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hive(name=None):
@@ -222,6 +221,12 @@ def hive(name=None):
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
 
+  params.hive_site_config = update_credential_provider_path(params.hive_site_config,
+                                                     'hive-site',
+                                                     os.path.join(params.hive_conf_dir, 'hive-site.jceks'),
+                                                     params.hive_user,
+                                                     params.user_group
+                                                     )
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
             configurations=params.hive_site_config,
