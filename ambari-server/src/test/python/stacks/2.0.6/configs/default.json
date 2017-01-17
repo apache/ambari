@@ -431,7 +431,7 @@
         },
         "hiveserver2-site": {
             "hive.metastore.metrics.enabled": "true",
-            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+            "hive.service.metrics.reporter": "HADOOP2"
         },
 		"ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900",
