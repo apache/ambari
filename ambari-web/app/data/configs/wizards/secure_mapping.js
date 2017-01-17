@@ -854,7 +854,7 @@ var yarn22Mapping = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": 'yarn.timeline-service.http-authentication.proxyuser.*.hosts',
+    "name": 'yarn.timeline-service.http-authentication.proxyusers.*.hosts',
     "value": "",
     "templateName": [],
     "foreignKey": null,
@@ -862,7 +862,7 @@ var yarn22Mapping = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": 'yarn.timeline-service.http-authentication.proxyuser.*.users',
+    "name": 'yarn.timeline-service.http-authentication.proxyusers.*.users',
     "value": "",
     "serviceName": "YARN",
     "templateName": [],
@@ -870,7 +870,7 @@ var yarn22Mapping = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": 'yarn.timeline-service.http-authentication.proxyuser.*.groups',
+    "name": 'yarn.timeline-service.http-authentication.proxyusers.*.groups',
     "value": "",
     "templateName": [],
     "foreignKey": null,
@@ -958,7 +958,7 @@ var yarn22Mapping = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": 'yarn.resourcemanager.proxyuser.*.hosts',
+    "name": 'yarn.resourcemanager.proxyusers.*.hosts',
     "value": "",
     "templateName": [],
     "foreignKey": null,
@@ -966,7 +966,7 @@ var yarn22Mapping = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": 'yarn.resourcemanager.proxyuser.*.users',
+    "name": 'yarn.resourcemanager.proxyusers.*.users',
     "value": "",
     "templateName": [],
     "foreignKey": null,
@@ -974,7 +974,7 @@ var yarn22Mapping = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": 'yarn.resourcemanager.proxyuser.*.groups',
+    "name": 'yarn.resourcemanager.proxyusers.*.groups',
     "value": "",
     "templateName": [],
     "foreignKey": null,
