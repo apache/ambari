@@ -802,7 +802,6 @@
         "yarn.timeline-service.http-authentication.kerberos.name.rules": "",
         "yarn.timeline-service.http-authentication.cookie.path": "",
         "yarn.timeline-service.http-authentication.type": "kerberos",
-        "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "",
         "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
         "yarn.acl.enable": "true",
         "yarn.timeline-service.http-authentication.signer.secret.provider": "",

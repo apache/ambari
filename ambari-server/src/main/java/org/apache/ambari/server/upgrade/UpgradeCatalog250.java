@@ -64,6 +64,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   private static final String HBASE_ROOTDIR = "hbase.rootdir";
   private static final String HADOOP_ENV = "hadoop-env";
   private static final String KAFKA_BROKER = "kafka-broker";
+  private static final String YARN_SITE_CONFIG = "yarn-site";
+  private static final String YARN_ENV_CONFIG = "yarn-env";
+  private static final String YARN_LCE_CGROUPS_MOUNT_PATH = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
+  private static final String YARN_CGROUPS_ENABLED = "yarn_cgroups_enabled";
   private static final String KAFKA_TIMELINE_METRICS_HOST = "kafka.timeline.metrics.host";
 
   public static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
@@ -161,6 +165,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateAtlasConfigs();
     updateLogSearchConfigs();
     updateAmbariInfraConfigs();
+    updateYarnSite();
     addManageServiceAutoStartPermissions();
   }
 
@@ -177,6 +182,34 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(GROUPS_TABLE, new DBColumnInfo(GROUP_TYPE_COL, String.class, null, "LOCAL", false));
     dbAccessor.executeQuery("UPDATE groups SET group_type='LDAP' WHERE ldap_group=1");
     dbAccessor.addUniqueConstraint(GROUPS_TABLE, "UNQ_groups_0", "group_name", "group_type");
+  }
+
+  /**
+   * Updates {@code yarn-site} in the following ways:
+   *
+   * Remove {@code YARN_LCE_CGROUPS_MOUNT_PATH} if  {@code YARN_CGROUPS_ENABLED} is {@code false} and
+   * {@code YARN_LCE_CGROUPS_MOUNT_PATH} is empty string
+   *
+   * @throws AmbariException
+   */
+  protected void updateYarnSite() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      Config yarnEnvConfig = cluster.getDesiredConfigByType(YARN_ENV_CONFIG);
+      Config yarnSiteConfig = cluster.getDesiredConfigByType(YARN_SITE_CONFIG);
+      if (yarnEnvConfig != null && yarnSiteConfig != null) {
+        String cgroupEnabled = yarnEnvConfig.getProperties().get(YARN_CGROUPS_ENABLED);
+        String mountPath = yarnSiteConfig.getProperties().get(YARN_LCE_CGROUPS_MOUNT_PATH);
+        if (StringUtils.isEmpty(mountPath) && cgroupEnabled != null
+          && cgroupEnabled.trim().equalsIgnoreCase("false")){
+          removeConfigurationPropertiesFromCluster(cluster, YARN_SITE_CONFIG, new HashSet<String>(){{
+            add(YARN_LCE_CGROUPS_MOUNT_PATH);
+          }});
+        }
+      }
+    }
   }
 
   protected void updateAMSConfigs() throws AmbariException {
