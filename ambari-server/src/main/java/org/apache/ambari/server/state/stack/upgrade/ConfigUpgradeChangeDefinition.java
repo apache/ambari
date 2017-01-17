@@ -20,6 +20,9 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -28,6 +31,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,6 +135,9 @@ public class ConfigUpgradeChangeDefinition {
   @XmlElement(name="replace")
   private List<Replace> replacements;
 
+  @XmlElement(name="regex-replace")
+  private List<RegexReplace> regexReplacements;
+
   /**
    * @return the config type
    */
@@ -196,6 +204,50 @@ public class ConfigUpgradeChangeDefinition {
 
     return list;
   }
+
+  /**
+   * @return the replacement tokens, never {@code null}
+   */
+  public List<Replace> getRegexReplacements(Cluster cluster) {
+
+    if (null == regexReplacements) {
+
+      return Collections.emptyList();
+    }
+
+    List<Replace> list = new ArrayList<>();
+    for (RegexReplace regexReplaceObj : regexReplacements) {
+      if (null == regexReplaceObj.key || null == regexReplaceObj.find || null == regexReplaceObj.replaceWith) {
+        LOG.warn(String.format("Replacement %s is invalid", regexReplaceObj));
+        continue;
+      }
+
+      try{
+        Config config = cluster.getDesiredConfigByType(configType);
+
+        Map<String, String> properties = config.getProperties();
+        String content = properties.get(regexReplaceObj.key);
+
+        Pattern REGEX = Pattern.compile(regexReplaceObj.find, Pattern.MULTILINE);
+
+        Matcher patternMatchObj = REGEX.matcher(content);
+        if (patternMatchObj.find() && patternMatchObj.groupCount()==1) {
+          regexReplaceObj.find = patternMatchObj.group();
+          Replace rep = regexReplaceObj.copyToReplaceObject();
+          list.add(rep);
+        }
+
+        }catch(Exception e){
+          String message = "";
+          message = "ConfigUpgradeChangeDefinition: getRegexReplacements : Error while fetching config properties ";
+          LOG.error(message, e);
+
+        }
+
+      }
+    return list;
+  }
+
 
   /**
    * Used for configuration updates that should mask their values from being
@@ -377,6 +429,62 @@ public class ConfigUpgradeChangeDefinition {
               ", ifValue='" + ifValue + '\'' +
               ", ifKeyState='" + ifKeyState + '\'' +
               '}';
+    }
+  }
+
+  /**
+   * Used to replace strings in a key with other strings.  More complex
+   * scenarios are possible with regex.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "regex-replace")
+  public static class RegexReplace extends Masked{
+    /**
+     * The key name
+     */
+    @XmlAttribute(name="key")
+    public String key;
+
+    /**
+     * The string to find
+     */
+    @XmlAttribute(name="find")
+    public String find;
+
+    /**
+     * The string to replace
+     */
+    @XmlAttribute(name="replace-with")
+    public String replaceWith;
+
+    @Override
+    public String toString() {
+      return "RegexReplace{" +
+              "key='" + key + '\'' +
+              ", find='" + find + '\'' +
+              ", replaceWith='" + replaceWith + '\'' +
+              ", ifKey='" + ifKey + '\'' +
+              ", ifType='" + ifType + '\'' +
+              ", ifValue='" + ifValue + '\'' +
+              ", ifKeyState='" + ifKeyState + '\'' +
+              '}';
+    }
+
+    /***
+     * Copies a RegexReplace type object to Replace object.
+     * @return Replace object
+     */
+    public Replace copyToReplaceObject(){
+      Replace rep = new Replace();
+      rep.find = this.find;
+      rep.key = this.key;
+      rep.replaceWith = this.replaceWith;
+      rep.ifKey = this.ifKey;
+      rep.ifType = this.ifType;
+      rep.ifValue = this.ifValue;
+      rep.ifKeyState = this.ifKeyState;
+
+      return rep;
     }
   }
 }

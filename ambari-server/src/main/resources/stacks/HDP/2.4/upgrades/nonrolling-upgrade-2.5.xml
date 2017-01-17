@@ -275,6 +275,13 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db"/>
       </execute-stage>
 
+      <!--Yarn-->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Parameterizing Yarn Log4J Properties Resource Manager">
+        <task xsi:type="configure" id="yarn_log4j_parameterize">
+          <summary>Updating the Yarn Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="NODEMANAGER" title="Add Spark2 shuffle">
         <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
@@ -298,6 +305,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="configure" id="oozie_log4j_parameterize">
+          <summary>Updating the Oozie Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Fix Oozie admin users">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixOozieAdminUsers">
           <summary>Fix oozie admin users</summary>
@@ -307,6 +320,13 @@
     <!--FALCON-->
       <execute-stage service="FALCON" component="FALCON_SERVER" title="Apply config changes for Falcon">
         <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
+      </execute-stage>
+
+      <!--FALCON-->
+      <execute-stage service="FALCON" component="FALCON_SERVER" title="Parameterizing Falcon Log4J Properties">
+        <task xsi:type="configure" id="falcon_log4j_parameterize">
+          <summary>Updating the Falcon Log4J properties to include parameterizations</summary>
+        </task>
       </execute-stage>
 
       <!-- RANGER -->
@@ -337,6 +357,23 @@
         </task>
       </execute-stage>
 
+      <!--RANGER-->
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Parameterizing Ranger Admin Log4J Properties">
+        <task xsi:type="configure" id="admin_log4j_parameterize">
+          <summary>Updating the Ranger admin Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Parameterizing Ranger Usersync Log4J Properties">
+        <task xsi:type="configure" id="usersync_log4j_parameterize">
+          <summary>Updating the Ranger usersync Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Parameterizing Ranger Tagsync Log4J Properties">
+        <task xsi:type="configure" id="tagsync_log4j_parameterize">
+          <summary>Updating the Ranger tagsync Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Configuring Ranger Alerts">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction">
           <summary>Configuring Ranger Alerts</summary>
@@ -350,6 +387,12 @@
 
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs Namenode">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Parameterizing Hdfs Log4J Properties">
+        <task xsi:type="configure" id="hdfs_log4j_parameterize">
+          <summary>Updating the Hdfs Log4J properties to include parameterizations</summary>
+        </task>
       </execute-stage>
 
       <!-- SQOOP -->
@@ -385,9 +428,28 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hbase_audit_db"/>
       </execute-stage>
 
+      <!--HBASE-->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Parameterizing HBase Log4J Properties">
+        <task xsi:type="configure" id="hbase_log4j_parameterize">
+          <summary>Updating the Hbase Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <!-- KNOX -->
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Knox Gateway">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_knox_audit_db"/>
+      </execute-stage>
+
+      <!--KNOX-->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Parameterizing Knox Gateway Log4J Properties">
+        <task xsi:type="configure" id="knox_gateway_log4j_parameterize">
+          <summary>Updating the Knox Gateway Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Parameterizing Knox Ldap Log4J Properties">
+        <task xsi:type="configure" id="knox_ldap_log4j_parameterize">
+          <summary>Updating the Knox Ldap Log4J properties to include parameterizations</summary>
+        </task>
       </execute-stage>
 
       <!-- STORM -->
@@ -427,9 +489,23 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db"/>
       </execute-stage>
 
+      <!--KAFKA-->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
+        <task xsi:type="configure" id="kafka_log4j_parameterize">
+          <summary>Updating the Kafka Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <!-- RANGER KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
+      </execute-stage>
+
+      <!--RANGER-KMS-->
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Parameterizing Ranger Kms Log4J Properties">
+        <task xsi:type="configure" id="kms_log4j_parameterize">
+          <summary>Updating the KMS Log4J properties to include parameterizations</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Calculating Ranger Properties">
@@ -445,6 +521,20 @@
       </execute-stage>
       <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
         <task xsi:type="configure" id="hdp_2_5_0_0_spark_client"/>
+      </execute-stage>
+
+      <!--ZOOKEEPER-->
+      <execute-stage service="ZOOKEEPER" component="ZOOKEEPER_SERVER" title="Parameterizing Zookeeper Log4J Properties">
+        <task xsi:type="configure" id="zookeeper_log4j_parameterize">
+          <summary>Updating the Zookeeper Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--ATLAS-->
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Parameterizing Atlas Log4J Properties">
+        <task xsi:type="configure" id="atlas_log4j_parameterize">
+          <summary>Updating the Atlas Log4J properties to include parameterizations</summary>
+        </task>
       </execute-stage>
 
     </group>

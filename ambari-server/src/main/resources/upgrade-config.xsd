@@ -88,7 +88,19 @@
             <xs:attribute name="if-type" use="optional" type="xs:string"/>
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
             <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
-            <xs:attribute name="mask" use="optional" type="xs:boolean"/>            
+            <xs:attribute name="mask" use="optional" type="xs:boolean"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="regex-replace" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="key" use="required" type="xs:string"/>
+            <xs:attribute name="find" use="required" type="xs:string"/>
+            <xs:attribute name="replace-with" use="required" type="xs:string"/>
+            <xs:attribute name="if-key" use="optional" type="xs:string"/>
+            <xs:attribute name="if-type" use="optional" type="xs:string"/>
+            <xs:attribute name="if-value" use="optional" type="xs:string"/>
+            <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
+            <xs:attribute name="mask" use="optional" type="xs:boolean"/>
           </xs:complexType>
         </xs:element>
       </xs:choice>

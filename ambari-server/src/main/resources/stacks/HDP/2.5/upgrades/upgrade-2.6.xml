@@ -464,6 +464,10 @@
   <processing>
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="zookeeper_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -479,6 +483,7 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
+          <task xsi:type="configure" id="admin_log4j_parameterize" />
           <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
           <task xsi:type="execute" hosts="all">
             <summary>Stop Ranger Admin</summary>
@@ -515,6 +520,10 @@
       </component>
 
       <component name="RANGER_USERSYNC">
+        <pre-upgrade>
+          <task xsi:type="configure" id="usersync_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -523,6 +532,7 @@
       <component name="RANGER_TAGSYNC">
 
         <pre-upgrade>
+          <task xsi:type="configure" id="tagsync_log4j_parameterize" />
           <task xsi:type="execute" hosts="all">
             <script>scripts/ranger_tagsync.py</script>
             <function>configure_atlas_user_for_tagsync</function>
@@ -540,6 +550,7 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <pre-upgrade>
+          <task xsi:type="configure" id="kms_log4j_parameterize" />
           <task xsi:type="execute" hosts="any" sequential="true">
             <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
@@ -563,6 +574,10 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="kafka_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -571,6 +586,10 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdfs_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -645,6 +664,10 @@
       </component>
 
       <component name="RESOURCEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="yarn_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -665,6 +688,10 @@
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hbase_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -807,6 +834,7 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
+          <task xsi:type="configure" id="oozie_log4j_parameterize" />
           <task xsi:type="execute" hosts="all" sequential="true">
             <summary>Shut down all Oozie servers</summary>
             <script>scripts/oozie_server.py</script>
@@ -855,6 +883,10 @@
 
     <service name="FALCON">
       <component name="FALCON_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="falcon_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -868,6 +900,11 @@
 
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
+        <pre-upgrade>
+          <task xsi:type="configure" id="knox_gateway_log4j_parameterize" />
+          <task xsi:type="configure" id="knox_ldap_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -940,6 +977,10 @@
 
     <service name="ATLAS">
       <component name="ATLAS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="atlas_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

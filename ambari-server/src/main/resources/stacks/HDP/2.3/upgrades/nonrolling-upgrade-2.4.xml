@@ -258,10 +258,23 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Parameterizing Hdfs Log4J Properties">
+        <task xsi:type="configure" id="hdfs_log4j_parameterize">
+          <summary>Updating the Hdfs Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig">
           <summary>Calculating Yarn Properties for Spark Shuffle</summary>
+        </task>
+      </execute-stage>
+
+      <!--Yarn-->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Parameterizing Yarn Log4J Properties Resource Manager">
+        <task xsi:type="configure" id="yarn_log4j_parameterize">
+          <summary>Updating the Yarn Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
 
@@ -275,6 +288,12 @@
       <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBASE Master">
         <task xsi:type="configure" id="hdp_2_4_0_0_hbase_remove_local_indexing"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Parameterizing HBase Log4J Properties">
+        <task xsi:type="configure" id="hbase_log4j_parameterize">
+          <summary>Updating the Hbase Log4J properties to include parameterizations</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
@@ -310,6 +329,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Parameterizing Oozie Log4J Properties">
+        <task xsi:type="configure" id="oozie_log4j_parameterize">
+          <summary>Updating the Oozie Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
       </execute-stage>
@@ -342,6 +367,71 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
       </execute-stage>
+
+      <!--ZOOKEEPER-->
+      <execute-stage service="ZOOKEEPER" component="ZOOKEEPER_SERVER" title="Parameterizing Zookeeper Log4J Properties">
+        <task xsi:type="configure" id="zookeeper_log4j_parameterize">
+          <summary>Updating the Zookeeper Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--ATLAS-->
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Parameterizing Atlas Log4J Properties">
+        <task xsi:type="configure" id="atlas_log4j_parameterize">
+          <summary>Updating the Atlas Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--KAFKA-->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
+        <task xsi:type="configure" id="kafka_log4j_parameterize">
+          <summary>Updating the Kafka Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--RANGER-->
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Parameterizing Ranger Admin Log4J Properties">
+        <task xsi:type="configure" id="admin_log4j_parameterize">
+          <summary>Updating the Ranger admin Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Parameterizing Ranger Usersync Log4J Properties">
+        <task xsi:type="configure" id="usersync_log4j_parameterize">
+          <summary>Updating the Ranger usersync Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Parameterizing Ranger Tagsync Log4J Properties">
+        <task xsi:type="configure" id="tagsync_log4j_parameterize">
+          <summary>Updating the Ranger tagsync Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--RANGER-KMS-->
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Parameterizing Ranger Kms Log4J Properties">
+        <task xsi:type="configure" id="kms_log4j_parameterize">
+          <summary>Updating the KMS Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--KNOX-->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Parameterizing Knox Gateway Log4J Properties">
+        <task xsi:type="configure" id="knox_gateway_log4j_parameterize">
+          <summary>Updating the Knox Gateway Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Parameterizing Knox Ldap Log4J Properties">
+        <task xsi:type="configure" id="knox_ldap_log4j_parameterize">
+          <summary>Updating the Knox Ldap Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--FALCON-->
+      <execute-stage service="FALCON" component="FALCON_SERVER" title="Parameterizing Falcon Log4J Properties">
+        <task xsi:type="configure" id="falcon_log4j_parameterize">
+          <summary>Updating the Falcon Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
     </group>
 
     <!--

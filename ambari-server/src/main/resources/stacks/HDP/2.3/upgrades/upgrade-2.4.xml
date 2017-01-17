@@ -470,6 +470,10 @@
   <processing>
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="zookeeper_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -509,6 +513,7 @@
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_java_patches</function>
           </task>
+          <task xsi:type="configure" id="admin_log4j_parameterize" />
         </pre-upgrade>
         
         <pre-downgrade copy-upgrade="true" />
@@ -520,6 +525,20 @@
       </component>
 
       <component name="RANGER_USERSYNC">
+        <pre-upgrade>
+          <task xsi:type="configure" id="usersync_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade/>
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="RANGER_TAGSYNC">
+        <pre-upgrade>
+          <task xsi:type="configure" id="tagsync_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -529,6 +548,7 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <pre-upgrade>
+          <task xsi:type="configure" id="kms_log4j_parameterize" />
           <task xsi:type="execute" hosts="any" sequential="true">
             <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
@@ -555,6 +575,7 @@
 
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
+          <task xsi:type="configure" id="hdfs_log4j_parameterize" />
         </pre-upgrade>
         
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
@@ -630,6 +651,7 @@
 
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
+          <task xsi:type="configure" id="yarn_log4j_parameterize" />
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig">
             <summary>Calculating Yarn Properties for Spark Shuffle</summary>
           </task>
@@ -659,6 +681,7 @@
         <pre-upgrade>
           <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
           <task xsi:type="configure" id="hdp_2_4_0_0_hbase_remove_local_indexing"/>
+          <task xsi:type="configure" id="hbase_log4j_parameterize" />
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
@@ -814,7 +837,7 @@
       <component name="OOZIE_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
-
+          <task xsi:type="configure" id="oozie_log4j_parameterize" />
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
             <summary>Adjusting Oozie properties</summary>
           </task>
@@ -863,6 +886,10 @@
 
     <service name="FALCON">
       <component name="FALCON_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="falcon_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -876,6 +903,10 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="kafka_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade></pre-downgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -884,6 +915,10 @@
 
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
+        <pre-upgrade>
+          <task xsi:type="configure" id="knox_gateway_log4j_parameterize" />
+          <task xsi:type="configure" id="knox_ldap_log4j_parameterize" />
+        </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>
@@ -958,6 +993,18 @@
         </upgrade>
       </component>
       <component name="ACCUMULO_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="atlas_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
