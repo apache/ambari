@@ -36,6 +36,7 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
     controllerName: 'rAHighAvailabilityWizardController',
     cluster: null,
     loadBalancerURL: null,
+    policymgrExternalURL: null,
     hosts: null,
     services: null,
     masterComponentHosts: null
@@ -100,6 +101,7 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
           this.loadTasksStatuses();
           this.loadTasksRequestIds();
           this.loadRequestIds();
+          this.load('policymgrExternalURL');
         }
       }
     ]

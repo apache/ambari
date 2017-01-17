@@ -63,7 +63,7 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   onLoadConfigs: function (data) {
-    data.items.findProperty('type', 'admin-properties').properties['policymgr_external_url'] = this.get('content.loadBalancerURL');
+    data.items.findProperty('type', 'admin-properties').properties['policymgr_external_url'] = this.get('content.policymgrExternalURL');
     var configData = this.reconfigureSites(['admin-properties'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN', false)));
 
     App.ajax.send({
