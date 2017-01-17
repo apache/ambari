@@ -1123,6 +1123,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("User requested num_llap_nodes : {0}, but used/adjusted value for calculations is : {1}".format(num_llap_nodes_requested, num_llap_nodes))
     else:
       Logger.info("Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
+    putHiveInteractiveEnvProperty('num_llap_nodes', num_llap_nodes)
 
     llap_container_size = long(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
