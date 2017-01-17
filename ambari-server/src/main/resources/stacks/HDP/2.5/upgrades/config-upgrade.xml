@@ -56,7 +56,112 @@
         </changes>
       </component>
     </service>
-
+    <service name="ZOOKEEPER">
+          <component name="ZOOKEEPER_SERVER">
+            <changes>
+              <!-- Zookeeper Rolling properties for log4j need to be parameterized. -->
+              <definition xsi:type="configure" id="zookeeper_log4j_parameterize" summary="Parameterizing ZooKeeper Log4J Properties">
+                <type>zookeeper-log4j</type>
+                <set key="zookeeper_log_max_backup_size" value="10"/>
+                <set key="zookeeper_log_number_of_backup_files" value="10"/>
+                <regex-replace  key="content" find="^log4j.appender.ROLLINGFILE.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.ROLLINGFILE.MaxFileSize={{zookeeper_log_max_backup_size}}MB"/>
+                <regex-replace key="content" find="^#log4j.appender.ROLLINGFILE.MaxBackupIndex=([0-9]+)" replace-with="#log4j.appender.ROLLINGFILE.MaxBackupIndex={{zookeeper_log_number_of_backup_files}}"/>
+              </definition>
+            </changes>
+          </component>
+    </service>
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="atlas_log4j_parameterize" summary="Parameterizing Atlas Log4J Properties">
+            <type>atlas-log4j</type>
+            <set key="atlas_log_max_backup_size" value="256"/>
+            <set key="atlas_log_number_of_backup_files" value="20"/>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;\n&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_max_backup_size}}MB&quot; /&gt;"/>
+            <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;\n&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_number_of_backup_files}}&quot; /&gt;"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+   <service name="OOZIE">
+    <component name="OOZIE_SERVER">
+      <changes>
+        <!-- Oozie Rolling properties for log4j need to be parameterized. -->
+        <definition xsi:type="configure" id="oozie_log4j_parameterize" summary="Parameterizing Oozie Log4J Properties">
+          <type>oozie-log4j</type>
+          <set key="oozie_log_maxhistory" value="720"/>
+          <regex-replace key="content" find="^log4j.appender.oozie.RollingPolicy.MaxHistory=([0-9]+)" replace-with="log4j.appender.oozie.RollingPolicy.MaxHistory={{oozie_log_maxhistory}}"/>
+        </definition>
+      </changes>
+    </component>
+  </service>
+  <service name="YARN">
+    <component name="RESOURCEMANAGER">
+      <changes>
+        <!-- Yarn Rolling properties for log4j need to be parameterized. -->
+        <definition xsi:type="configure" id="yarn_log4j_parameterize" summary="Parameterizing Yarn Log4J Properties">
+          <type>yarn-log4j</type>
+          <set key="yarn_rm_summary_log_max_backup_size" value="256"/>
+          <set key="yarn_rm_summary_log_number_of_backup_files" value="20"/>
+          <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB"/>
+          <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}"/>
+        </definition>
+      </changes>
+    </component>
+  </service>
+  <service name="HDFS">
+    <component name="NAMENODE">
+      <changes>
+        <!-- HDFS Rolling properties for log4j need to be parameterized. -->
+        <definition xsi:type="configure" id="hdfs_log4j_parameterize" summary="Parameterizing Hdfs Log4J Properties">
+          <type>hdfs-log4j</type>
+          <set key="hadoop_log_max_backup_size" value="256"/>
+          <set key="hadoop_log_number_of_backup_files" value="10"/>
+          <set key="hadoop_security_log_max_backup_size" value="256"/>
+          <set key="hadoop_security_log_number_of_backup_files" value="20"/>
+          <regex-replace  key="content" find="log4j.appender.RFA.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RFA.MaxFileSize={{hadoop_log_max_backup_size}}MB"/>
+          <regex-replace  key="content" find="log4j.appender.RFA.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RFA.MaxBackupIndex={{hadoop_log_number_of_backup_files}}"/>
+          <regex-replace  key="content" find="hadoop.security.log.maxfilesize=([0-9]+)MB" replace-with="hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB"/>
+          <regex-replace  key="content" find="hadoop.security.log.maxbackupindex=([0-9]+)" replace-with="hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}"/>
+        </definition>
+      </changes>
+    </component>
+  </service>
+  <service name="HBASE">
+    <component name="HBASE_MASTER">
+    <changes>
+    <!-- HBase Rolling properties for log4j need to be parameterized. -->
+      <definition xsi:type="configure" id="hbase_log4j_parameterize" summary="Parameterizing HBase Log4J Properties">
+          <type>hbase-log4j</type>
+          <set key="hbase_log_maxfilesize" value="256"/>
+          <set key="hbase_log_maxbackupindex" value="20"/>
+          <set key="hbase_security_log_maxfilesize" value="256"/>
+          <set key="hbase_security_log_maxbackupindex" value="20"/>
+          <regex-replace key="content" find="hbase.log.maxfilesize=([0-9]+)MB" replace-with="hbase.log.maxfilesize={{hbase_log_maxfilesize}}MB"/>
+          <regex-replace key="content" find="hbase.log.maxbackupindex=([0-9]+)" replace-with="hbase.log.maxbackupindex={{hbase_log_maxbackupindex}}"/>
+          <regex-replace key="content" find="hbase.security.log.maxfilesize=([0-9]+)MB" replace-with="hbase.security.log.maxfilesize={{hbase_security_log_maxfilesize}}MB"/>
+          <regex-replace key="content" find="hbase.security.log.maxbackupindex=([0-9]+)" replace-with="hbase.security.log.maxbackupindex={{hbase_security_log_maxbackupindex}}"/>
+      </definition>
+    </changes>
+    </component>
+  </service>
+  <service name="FALCON">
+      <component name="FALCON_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="falcon_log4j_parameterize" summary="Parameterizing Falcon Log4J Properties">
+          <type>falcon-log4j</type>
+          <set key="falcon_log_maxfilesize" value="256"/>
+          <set key="falcon_log_maxbackupindex" value="20"/>
+          <set key="falcon_security_log_maxfilesize" value="256"/>
+          <set key="falcon_security_log_maxbackupindex" value="20"/>
+          <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{falcon_log_maxfilesize}}MB&quot; /&gt;"/>
+          <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxBackupIndex&quot; value=&quot;{{falcon_log_maxbackupindex}}&quot; /&gt;"/>
+          <replace key="content" find="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{falcon_security_log_maxfilesize}}MB&quot;/&gt;"/>
+          <replace key="content" find="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;SECURITY&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;&#xA;&lt;param name=&quot;MaxBackupIndex&quot; value=&quot;{{falcon_security_log_maxbackupindex}}&quot;/&gt;"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <changes>
@@ -64,8 +169,91 @@
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="bind_anonymous" />
           </definition>
+          <definition xsi:type="configure" id="admin_log4j_parameterize" summary="Parameterizing Ranger Log4J Properties">
+            <type>admin-log4j</type>
+            <set key="ranger_xa_log_maxfilesize" value="256"/>
+            <set key="ranger_xa_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxBackupIndex={{ranger_xa_log_maxbackupindex}}"/>
+          </definition>
         </changes>
       </component>
+      <component name="RANGER_USERSYNC">
+        <changes>
+          <definition xsi:type="configure" id="usersync_log4j_parameterize" summary="Parameterizing Ranger Usersync Log4J Properties">
+            <type>usersync-log4j</type>
+            <set key="ranger_usersync_log_maxfilesize" value="256"/>
+            <set key="ranger_usersync_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_usersync_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_usersync_log_maxbackupindex}}"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="RANGER_TAGSYNC">
+        <changes>
+          <definition xsi:type="configure" id="tagsync_log4j_parameterize" summary="Parameterizing Ranger Tagsync Log4J Properties">
+            <type>tagsync-log4j</type>
+            <set key="ranger_tagsync_log_maxfilesize" value="256"/>
+            <set key="ranger_tagsync_log_number_of_backup_files" value="20"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_tagsync_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_tagsync_log_number_of_backup_files}}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="RANGER_KMS">
+    <component name="RANGER_KMS_SERVER">
+    <changes>
+      <definition xsi:type="configure" id="kms_log4j_parameterize" summary="Parameterizing Ranger KMS Log4J Properties">
+        <type>kms-log4j</type>
+        <set key="ranger_kms_log_maxfilesize" value="256"/>
+        <set key="ranger_kms_log_maxbackupindex" value="20"/>
+        <set key="ranger_kms_audit_log_maxfilesize" value="256"/>
+        <set key="ranger_kms_audit_log_maxbackupindex" value="20"/>
+        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxFileSize = {{ranger_kms_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms.MaxBackupIndex = {{ranger_kms_log_maxbackupindex}}"/>
+        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxFileSize = {{ranger_kms_audit_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kms-audit.MaxBackupIndex = {{ranger_kms_audit_log_maxbackupindex}}"/>
+      </definition>
+    </changes>
+    </component>
+    </service>
+    <service name="KAFKA">
+    <component name="KAFKA_BROKER">
+    <changes>
+      <definition xsi:type="configure" id="kafka_log4j_parameterize" summary="Parameterizing Kafka Log4J Properties">
+        <type>kafka-log4j</type>
+        <set key="kafka_log_maxfilesize" value="256"/>
+        <set key="kafka_log_maxbackupindex" value="20"/>
+        <set key="controller_log_maxfilesize" value="256"/>
+        <set key="controller_log_maxbackupindex" value="20"/>
+        <replace key="content" find="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kafkaAppender.MaxFileSize = {{kafka_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.kafkaAppender.MaxBackupIndex = {{kafka_log_maxbackupindex}}"/>
+        <replace key="content" find="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.controllerAppender.MaxFileSize = {{controller_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.controllerAppender.MaxBackupIndex = {{controller_log_maxbackupindex}}"/>
+      </definition>
+    </changes>
+    </component>
+    </service>
+    <service name="KNOX">
+    <component name="KNOX_GATEWAY">
+    <changes>
+      <definition xsi:type="configure" id="knox_gateway_log4j_parameterize" summary="Parameterizing Knox Gateway Log4J Properties">
+        <type>gateway-log4j</type>
+        <set key="knox_gateway_log_maxfilesize" value="256"/>
+        <set key="knox_gateway_log_maxbackupindex" value="20"/>
+        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_gateway_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_gateway_log_maxbackupindex}}"/>
+        </definition>
+      <definition xsi:type="configure" id="knox_ldap_log4j_parameterize" summary="Parameterizing Knox Ldap Log4J Properties">
+        <type>ldap-log4j</type>
+        <set key="knox_ldap_log_maxfilesize" value="256"/>
+        <set key="knox_ldap_log_maxbackupindex" value="20"/>
+        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_ldap_log_maxfilesize}}MB"/>
+        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_ldap_log_maxbackupindex}}"/>
+      </definition>
+    </changes>
+    </component>
     </service>
 
   </services>
