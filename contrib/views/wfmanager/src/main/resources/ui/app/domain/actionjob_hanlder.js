@@ -343,7 +343,12 @@ var FSActionJobHandler=ActionJobHandler.extend({
   init(){
     this.mapping=[
       {xml:"name-node",domain:"nameNode"},
-      {xml:"configuration",customHandler:this.configurationMapper}
+      {xml:"configuration", customHandler:this.configurationMapper},
+      {xml:"delete"},
+      {xml:"mkdir"},
+      {xml:"move"},
+      {xml:"touchz"},
+      {xml:"chgrp"}
     ];
   },
   handle(nodeDomain,nodeObj,nodeName){

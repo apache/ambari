@@ -344,6 +344,21 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     },
     showVersionSettings(value){
       this.set('showVersionSettings', value);
+    },
+    save(){
+      var isDraft = false, bundleXml;
+      if(this.get('validations.isInvalid')) {
+       isDraft = true;
+      }else{
+        var bundleGenerator = BundleGenerator.create({bundle:this.get("bundle")});
+        bundleXml = bundleGenerator.process();
+      }
+      var bundleJson = JSON.stringify(this.get("bundle"));
+      this.set("configForSave",{json:bundleJson, xml:bundleXml, isDraft: isDraft});
+      this.set("showingSaveWorkflow", true);
+    },
+    closeSave(){
+      this.set("showingSaveWorkflow", false);
     }
   }
 });

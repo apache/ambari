@@ -610,21 +610,11 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }, 1000);
   },
   openSaveWorkflow() {
-    this.get('workflowContext').clearErrors();
-    var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
-    workflowContext:this.get('workflowContext')});
-    var workflowXml=workflowGenerator.process();
-    if(this.get('workflowContext').hasErrors()){
-      this.set('errors',this.get('workflowContext').getErrors());
-      this.set("jobXmlJSONStr", this.getWorkflowAsJson());
-      this.set("isDraft", true);
-    }else{
-      this.set("jobXmlJSONStr", this.getWorkflowAsJson());
-      var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
-      var configForSubmit={props:dynamicProperties,xml:workflowXml,params:this.get('workflow.parameters')};
-      this.set("workflowSubmitConfigs",configForSubmit);
-      this.set("isDraft", false);
-    }
+    var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
+    var workflowXml = workflowGenerator.process();
+    var workflowJson = this.getWorkflowAsJson();
+    var isDraft = this.get('workflowContext').hasErrors()? true: false;
+    this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
     this.set("showingSaveWorkflow",true);
   },
   openJobConfig (){
@@ -818,9 +808,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     openEditor(node){
       this.openWorkflowEditor(node);
     },
-    setFilePath(filePath){
-      this.set("workflowFilePath", filePath);
-    },
     showNotification(node){
       this.set("showNotificationPanel", true);
       if(node.actionType){
@@ -862,10 +849,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     saveWorkflow(action){
       this.openSaveWorkflow();
-      if(action === "saveDraft"){
-        this.set("isDraft", true);
-      }
-      this.set('dryrun', false);
     },
     previewWorkflow(){
       this.set("showingPreview",false);
@@ -896,7 +879,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     closeWorkflowSubmitConfigs(){
       this.set("showingWorkflowConfigProps",false);
-      this.set("showingSaveWorkflow",false);
     },
     closeSaveWorkflow(){
       this.set("showingSaveWorkflow",false);

@@ -39,6 +39,11 @@
               </a>
             </li>
             <li>
+              <a class="pointer" href="#" data-toggle="modal" data-target="#ConfirmDialog" title="Reset Bundle" {{action "confirmReset"}}>
+                <i class="fa fa-refresh marginright5"></i>Reset
+              </a>
+            </li>
+            <li>
               <a class="pointer" href="#" data-toggle="modal" title="Preview Xml" {{action "preview"}}>
                   <i class="fa fa-eye marginright5"></i>Preview xml
                 </a>
@@ -46,17 +51,17 @@
             </ul>
           </div>
           <div class="btn-group" role="group" aria-label="...">
-            <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#ConfirmDialog" title="New Workflow" {{action "confirmReset"}}>
-              <i class="fa fa-refresh"> Reset</i>
-            </button>
             <button type="button" class="btn btn-default" title="Bundle Versions" {{action "showVersionSettings" true}}>
               <i class="fa fa-cog marginright5"></i>Versions
             </button>
             <button  id="import-bundle-test" type="button" class="btn btn-default hide" title="Import Bundle Test" {{action "importBundleTest"}}>
               <i class="fa fa-download"></i>
             </button>
+            <button id="save-bundle" type="button" class="btn btn-default" title="Save coordinator in HDFS" {{action "save"}}>
+                <i class="fa fa-floppy-o"></i> Save
+            </button>
             <button type="button" class="btn btn-primary" title="Submit Bundle" {{action "submitBundle"}}>
-              <i class="fa fa-upload"> Submit</i>
+              <i class="fa fa-upload"></i> Submit
             </button>
           </div>
         </div>
@@ -131,4 +136,7 @@
 {{/if}}
 {{#if showVersionSettings}}
   {{bundle-version-settings bundle=bundle showVersionSettings="showVersionSettings" }}
+{{/if}}
+{{#if showingSaveWorkflow}}
+  {{save-wf type='wf' close="closeSave" jobFilePath=bundleFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
 {{/if}}
