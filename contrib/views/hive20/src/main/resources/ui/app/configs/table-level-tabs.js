@@ -60,6 +60,12 @@ let tableLevelTabs = [
     label: 'STATISTICS',
     link: 'databases.database.tables.table.stats',
     faIcon: 'line-chart'
+  }),
+  Ember.Object.create({
+    name: 'authorization',
+    label: 'AUTHORIZATION',
+    link: 'databases.database.tables.table.auth',
+    faIcon: 'users'
   })
 ];
 

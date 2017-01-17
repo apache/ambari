@@ -16,25 +16,8 @@
 * limitations under the License.
 }}
 
-<table class="table table-bordered table-hover">
-  <thead>
-  <tr>
-    <th width="40%">KEY</th>
-    <th width="40%">VALUE</th>
-    <th width="20%" class="text-center">ACTION</th>
-  </tr>
-  </thead>
-  <tbody>
-  {{#each properties as |property|}}
-    {{property-item property=property
-                  propertyItemDeleted="itemDeleted"
-                  propertyItemUpdated="itemUpdated"
-    }}
-  {{/each}}
-  <tr class="new-settings text-center">
-    <td colspan="3">
-      <a {{action "addNewRow"}}>{{fa-icon "plus"}} Add New Properties</a>
-    </td>
-  </tr>
-  </tbody>
-</table>
+<div class="col-md-12 text-center loader">
+  {{fa-icon "spinner" spin=true size=3}}
+  <br>
+  <h3>Loading authorization information from Ranger</h3>
+</div>

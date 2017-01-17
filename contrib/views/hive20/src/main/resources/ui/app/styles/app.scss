@@ -805,6 +805,18 @@ pre {
 }
 
 
+.loader {
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
+
+.authorizations {
+  &.alert {
+    margin: 0;
+  }
+}
+
+
 
 
 

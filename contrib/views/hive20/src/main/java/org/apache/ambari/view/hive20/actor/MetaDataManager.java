@@ -69,15 +69,15 @@ public class MetaDataManager extends HiveActor {
     ActorRef databaseManager = databaseManagers.get(message.getUsername());
     if (databaseManager == null) {
       databaseManager = createDatabaseManager(message.getUsername(), message.getInstanceName());
-      databaseManagers.put(context.getUsername(), databaseManager);
-      databaseManager.tell(new DatabaseManager.Refresh(context.getUsername()), getSelf());
+      databaseManagers.put(message.getUsername(), databaseManager);
+      databaseManager.tell(new DatabaseManager.Refresh(message.getUsername()), getSelf());
     } else {
       if(message.isImmediate()) {
-        databaseManager.tell(new DatabaseManager.Refresh(context.getUsername(), false), getSelf());
+        databaseManager.tell(new DatabaseManager.Refresh(message.getUsername(), false), getSelf());
       }
       cancelTerminationScheduler(message.getUsername());
     }
-    scheduleTermination(context.getUsername());
+    scheduleTermination(message.getUsername());
   }
 
   private void handleTerminate(Terminate message) {

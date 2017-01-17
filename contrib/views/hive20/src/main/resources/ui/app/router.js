@@ -42,6 +42,7 @@ Router.map(function() {
           this.route('view');
           this.route('ddl');
           this.route('stats');
+          this.route('auth');
         })
       });
     });
