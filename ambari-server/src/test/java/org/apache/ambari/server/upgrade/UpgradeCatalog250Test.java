@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -39,8 +40,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -83,6 +86,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+
+import junit.framework.AssertionFailedError;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -336,6 +341,107 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.executeDMLUpdates();
 
     verify(upgradeCatalog250);
+  }
+
+  @Test
+  public void testUpdateYarnSite() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final String propertyToRemove = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
+    final AmbariManagementController ambariManagementController = createNiceMock(AmbariManagementController.class);
+    Config mockYarnEnv = easyMockSupport.createNiceMock(Config.class);
+    Config mockYarnSite = easyMockSupport.createNiceMock(Config.class);
+
+    HashMap<String, String> yarnEnv = new HashMap<String, String>(){{
+      put("yarn_cgroups_enabled", "false");
+    }};
+
+    HashMap<String, String> yarnSite = new HashMap<String, String>() {{
+      put(propertyToRemove, "");
+    }};
+
+    reset(clusters, cluster, injector);
+
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(ambariManagementController).atLeastOnce();
+    expect(ambariManagementController.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("yarn-env")).andReturn(mockYarnEnv).atLeastOnce();
+    expect(mockYarnEnv.getProperties()).andReturn(yarnEnv).anyTimes();
+    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(mockYarnSite).atLeastOnce();
+    expect(mockYarnSite.getProperties()).andReturn(yarnSite).anyTimes();
+
+    replay(clusters, cluster, injector, ambariManagementController, mockYarnEnv, mockYarnSite);
+
+    UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
+     .addMockedMethod("removeConfigurationPropertiesFromCluster")
+     .withConstructor(injector)
+     .createNiceMock();
+
+    Capture<HashSet<String>> removeConfigName = EasyMock.newCapture();
+
+    upgradeCatalog250.removeConfigurationPropertiesFromCluster(anyObject(Cluster.class), eq("yarn-site"), capture(removeConfigName));
+    EasyMock.expectLastCall();
+
+    replay(upgradeCatalog250);
+
+    upgradeCatalog250.updateYarnSite();
+
+    easyMockSupport.verifyAll();
+
+    Set<String> updatedProperties = removeConfigName.getValue();
+    assertTrue(updatedProperties.contains(propertyToRemove));
+
+    reset(injector);
+  }
+
+  @Test
+  public void testUpdateYarnSiteWithEnabledCGroups() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final String propertyToRemove = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
+    final AmbariManagementController ambariManagementController = createNiceMock(AmbariManagementController.class);
+    Config mockYarnEnv = easyMockSupport.createNiceMock(Config.class);
+    Config mockYarnSite = easyMockSupport.createNiceMock(Config.class);
+
+    HashMap<String, String> yarnEnv = new HashMap<String, String>(){{
+      put("yarn_cgroups_enabled", "true");
+    }};
+
+    HashMap<String, String> yarnSite = new HashMap<String, String>() {{
+      put(propertyToRemove, "");
+    }};
+
+    reset(clusters, cluster, injector);
+
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(ambariManagementController).atLeastOnce();
+    expect(ambariManagementController.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("yarn-env")).andReturn(mockYarnEnv).atLeastOnce();
+    expect(mockYarnEnv.getProperties()).andReturn(yarnEnv).anyTimes();
+    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(mockYarnSite).atLeastOnce();
+    expect(mockYarnSite.getProperties()).andReturn(yarnSite).anyTimes();
+
+    replay(clusters, cluster, injector, ambariManagementController, mockYarnEnv, mockYarnSite);
+
+    UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
+      .addMockedMethod("removeConfigurationPropertiesFromCluster")
+      .withConstructor(injector)
+      .createNiceMock();
+
+    Capture<HashSet<String>> removeConfigName = EasyMock.newCapture();
+
+    upgradeCatalog250.removeConfigurationPropertiesFromCluster(anyObject(Cluster.class), eq("yarn-site"), capture(removeConfigName));
+    EasyMock.expectLastCall().andThrow(new AssertionFailedError()).anyTimes();
+
+    replay(upgradeCatalog250);
+
+    upgradeCatalog250.updateYarnSite();
+
+    reset(injector);
   }
 
   @Test
