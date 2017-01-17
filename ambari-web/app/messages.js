@@ -467,6 +467,7 @@ Em.I18n.translations = {
   'popup.dependent.configs.header': 'Dependent Configurations',
   'popup.dependent.configs.title.recommendation': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes.',
   'popup.dependent.configs.title.values': 'Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
+  'popup.dependent.configs.title.required': 'The following configuration changes are required and will be applied automatically.',
   'popup.dependent.configs.table.recommended': 'Recommended Changes',
   'popup.dependent.configs.table.required': 'Required Changes',
   'popup.dependent.configs.table.saveProperty': 'Save property',
