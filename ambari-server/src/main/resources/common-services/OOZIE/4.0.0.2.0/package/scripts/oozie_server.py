@@ -42,7 +42,7 @@ from oozie_service import oozie_service
 from oozie_server_upgrade import OozieUpgrade
 
 from check_oozie_server_status import check_oozie_server_status
-
+from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class OozieServer(Script):
 
@@ -193,7 +193,14 @@ class OozieServerDefault(OozieServer):
       stack_select.select("oozie-server", params.version)
 
     OozieUpgrade.prepare_libext_directory()
-    
+
+  def disable_security(self, env):
+    import params
+    if not params.zk_connection_string:
+      return
+    zkmigrator = ZkMigrator(params.zk_connection_string, params.java_exec, params.java64_home, params.jaas_file, params.oozie_user)
+    zkmigrator.set_acls(params.zk_namespace if params.zk_namespace.startswith('/') else '/' + params.zk_namespace, 'world:anyone:crdwa')
+
   def get_log_folder(self):
     import params
     return params.oozie_log_dir

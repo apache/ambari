@@ -353,6 +353,12 @@ def oozie_server_specific():
     group = params.user_group,
     recursive_ownership = True,  
   )
+  if params.security_enabled:
+    File(os.path.join(params.conf_dir, 'zkmigrator_jaas.conf'),
+         owner=params.oozie_user,
+         group=params.user_group,
+         content=Template("zkmigrator_jaas.conf.j2")
+         )
 
 def __parse_sharelib_from_output(output):
   """

@@ -136,6 +136,8 @@ oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
 java_share_dir = "/usr/share/java"
+java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 ext_js_file = "ext-2.2.zip"
 ext_js_path = format("/usr/share/{stack_name_uppercase}-oozie/{ext_js_file}")
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -155,9 +157,13 @@ oozie_site = config['configurations']['oozie-site']
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 yarn_resourcemanager_address = config['configurations']['yarn-site']['yarn.resourcemanager.address']
+zk_namespace = default('/configurations/oozie-site/oozie.zookeeper.namespace', 'oozie')
+zk_connection_string = default('/configurations/oozie-site/oozie.zookeeper.connection.string', None)
+jaas_file = os.path.join(conf_dir, 'zkmigrator_jaas.conf')
 
 if security_enabled:
   oozie_site = dict(config['configurations']['oozie-site'])
+  oozie_principal_with_host = oozie_principal.replace('_HOST', hostname)
 
   # If a user-supplied oozie.ha.authentication.kerberos.principal property exists in oozie-site,
   # use it to replace the existing oozie.authentication.kerberos.principal value. This is to ensure
@@ -174,10 +180,8 @@ if security_enabled:
 
   if stack_version_formatted and check_stack_feature(StackFeature.OOZIE_HOST_KERBEROS, stack_version_formatted):
     #older versions of oozie have problems when using _HOST in principal
-    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
-      oozie_principal.replace('_HOST', hostname)
-    oozie_site['oozie.authentication.kerberos.principal'] = \
-      http_principal.replace('_HOST', hostname)
+    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = oozie_principal_with_host
+    oozie_site['oozie.authentication.kerberos.principal'] = http_principal.replace('_HOST', hostname)
 
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 oozie_keytab = default("/configurations/oozie-env/oozie_keytab", oozie_service_keytab)
