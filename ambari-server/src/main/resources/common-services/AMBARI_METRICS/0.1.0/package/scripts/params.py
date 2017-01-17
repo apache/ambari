@@ -71,7 +71,7 @@ else:
 metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
 metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
 metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
-metric_truststore_alias = config['configurations']['ams-ssl-client']['ssl.client.truststore.alias']
+metric_truststore_alias = default("/configurations/ams-ssl-client/ssl.client.truststore.alias", None)
 if not metric_truststore_alias:
   metric_truststore_alias = config["hostname"]
 metric_truststore_ca_certs='ca.pem'
