@@ -22,13 +22,9 @@ import imp
 import os
 import traceback
 import inspect
-import re
-import socket
-from urlparse import urlparse
 
 # Local imports
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.data_structure_utils import get_from_dict
 from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
 
 

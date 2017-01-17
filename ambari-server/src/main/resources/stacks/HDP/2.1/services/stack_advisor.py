@@ -17,6 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python imports
+import socket
+
 # Local Imports
 from resource_management.core.logger import Logger
 
@@ -118,8 +121,8 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP21StackAdvisor, self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
 
-    oozieSiteProperties = getSiteProperties(services['configurations'], 'oozie-site')
-    oozieEnvProperties = getSiteProperties(services['configurations'], 'oozie-env')
+    oozieSiteProperties = self.getSiteProperties(services['configurations'], 'oozie-site')
+    oozieEnvProperties = self.getSiteProperties(services['configurations'], 'oozie-env')
     putOozieProperty = self.putProperty(configurations, "oozie-site", services)
     putOozieEnvProperty = self.putProperty(configurations, "oozie-env", services)
 
@@ -131,7 +134,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
         if falconUser is not None:
           putOozieSiteProperty("oozie.service.ProxyUserService.proxyuser.{0}.groups".format(falconUser) , "*")
           putOozieSiteProperty("oozie.service.ProxyUserService.proxyuser.{0}.hosts".format(falconUser) , "*")
-        falconUserOldValue = getOldValue(self, services, "falcon-env", "falcon_user")
+        falconUserOldValue = self.getOldValue(services, "falcon-env", "falcon_user")
         if falconUserOldValue is not None:
           if 'forced-configurations' not in services:
             services["forced-configurations"] = []
@@ -155,7 +158,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       oozieServerHost = self.getHostWithComponent('OOZIE', 'OOZIE_SERVER', services, hosts)
       oozieDBConnectionURL = oozieSiteProperties['oozie.service.JPAService.jdbc.url']
       protocol = self.getProtocol(oozieEnvProperties['oozie_database'])
-      oldSchemaName = getOldValue(self, services, "oozie-site", "oozie.db.schema.name")
+      oldSchemaName = self.getOldValue(services, "oozie-site", "oozie.db.schema.name")
       # under these if constructions we are checking if oozie server hostname available,
       # if schema name was changed or if protocol according to current db type differs with protocol in db connection url(db type was changed)
       if oozieServerHost is not None:
@@ -164,8 +167,8 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
           putOozieProperty('oozie.service.JPAService.jdbc.url', dbConnection)
 
   def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
-    hiveSiteProperties = getSiteProperties(services['configurations'], 'hive-site')
-    hiveEnvProperties = getSiteProperties(services['configurations'], 'hive-env')
+    hiveSiteProperties = self.getSiteProperties(services['configurations'], 'hive-site')
+    hiveEnvProperties = self.getSiteProperties(services['configurations'], 'hive-env')
     containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
     container_size_bytes = int(containerSize)*1024*1024
@@ -185,8 +188,8 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       hiveServerHost = self.getHostWithComponent('HIVE', 'HIVE_SERVER', services, hosts)
       hiveDBConnectionURL = hiveSiteProperties['javax.jdo.option.ConnectionURL']
       protocol = self.getProtocol(hiveEnvProperties['hive_database'])
-      oldSchemaName = getOldValue(self, services, "hive-site", "ambari.hive.db.schema.name")
-      oldDBType = getOldValue(self, services, "hive-env", "hive_database")
+      oldSchemaName = self.getOldValue(services, "hive-site", "ambari.hive.db.schema.name")
+      oldDBType = self.getOldValue(services, "hive-env", "hive_database")
       # under these if constructions we are checking if hive server hostname available,
       # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
       # or if protocol according to current db type differs with protocol in db connection url(other db types changes)

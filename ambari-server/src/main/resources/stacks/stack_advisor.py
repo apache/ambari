@@ -1007,7 +1007,8 @@ class DefaultStackAdvisor(StackAdvisor):
 
 
     cluster["minContainerSize"] = {
-      cluster["ram"] <= 4: 256,
+      cluster["ram"] <= 3: 128,
+      3 < cluster["ram"] <= 4: 256,
       4 < cluster["ram"] <= 8: 512,
       8 < cluster["ram"] <= 24: 1024,
       24 < cluster["ram"]: 2048
@@ -1017,23 +1018,121 @@ class DefaultStackAdvisor(StackAdvisor):
     if cluster["hBaseInstalled"]:
       totalAvailableRam -= cluster["hbaseRam"]
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
-    '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = round(max(3,
-                                      min(2 * cluster["cpu"],
-                                          min(ceil(1.8 * cluster["disk"]),
-                                              cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
+    Logger.info("Memory for YARN apps - cluster[totalAvailableRam]: " + str(cluster["totalAvailableRam"]))
 
-    '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
-    '''If greater than 1GB, value will be in multiples of 512.'''
-    if cluster["ramPerContainer"] > 1024:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
+    suggestedMinContainerRam = 1024   # new smaller value for YARN min container
+    callContext = self.getCallContext(services)
+
+    operation = self.getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
+    if operation:
+      Logger.info("user operation context : " + str(operation))
+
+    if services:  # its never None but some unit tests pass it as None
+      # If min container value is changed (user is changing it)
+      # if its a validation call - just used what ever value is set
+      # If its not a cluster create or add yarn service (TBD)
+      if (self.getOldValue(services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
+                'recommendConfigurations' != callContext) and operation != DefaultStackAdvisor.CLUSTER_CREATE_OPERATION:
+        '''yarn.scheduler.minimum-allocation-mb has changed - then pick this value up'''
+        if "yarn-site" in services["configurations"] and \
+                "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
+            str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]).isdigit():
+          Logger.info("Using user provided yarn.scheduler.minimum-allocation-mb = " +
+                      str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
+          cluster["yarnMinContainerSize"] = int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+          Logger.info("Minimum ram per container due to user input - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+          if cluster["yarnMinContainerSize"] > cluster["totalAvailableRam"]:
+            cluster["yarnMinContainerSize"] = cluster["totalAvailableRam"]
+            Logger.info("Minimum ram per container after checking against limit - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+            pass
+          cluster["minContainerSize"] = cluster["yarnMinContainerSize"]    # set to what user has suggested as YARN min container size
+          suggestedMinContainerRam = cluster["yarnMinContainerSize"]
+          pass
+        pass
+      pass
+
+
+    '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
+    cluster["containers"] = int(round(max(3,
+                                          min(2 * cluster["cpu"],
+                                              min(ceil(1.8 * cluster["disk"]),
+                                                  cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
+    Logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
+
+    if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
+      cluster["containers"] = ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"])
+      Logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
+      pass
+
+    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
+    cluster["yarnMinContainerSize"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
+    Logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
+
+    '''If greater than cluster["yarnMinContainerSize"], value will be in multiples of cluster["yarnMinContainerSize"]'''
+    if cluster["ramPerContainer"] > cluster["yarnMinContainerSize"]:
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
+
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
     cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
 
+    Logger.info("Min container size - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+    Logger.info("Available memory for map - cluster[mapMemory]: " + str(cluster["mapMemory"]))
+    Logger.info("Available memory for reduce - cluster[reduceMemory]: " + str(cluster["reduceMemory"]))
+    Logger.info("Available memory for am - cluster[amMemory]: " + str(cluster["amMemory"]))
+
+
     return cluster
+
+  def getCallContext(self, services):
+    if services:
+      if 'context' in services:
+        Logger.info("context : " + str (services['context']))
+        return services['context']['call_type']
+    return ""
+
+  def getUserOperationContext(self, services, contextName):
+    if services:
+      if 'user-context' in services.keys():
+        userContext = services["user-context"]
+        if contextName in userContext:
+          return userContext[contextName]
+    return None
+
+  def get_system_min_uid(self):
+    login_defs = '/etc/login.defs'
+    uid_min_tag = 'UID_MIN'
+    comment_tag = '#'
+    uid_min = uid_default = '1000'
+    uid = None
+
+    if os.path.exists(login_defs):
+      with open(login_defs, 'r') as f:
+        data = f.read().split('\n')
+        # look for uid_min_tag in file
+        uid = filter(lambda x: uid_min_tag in x, data)
+        # filter all lines, where uid_min_tag was found in comments
+        uid = filter(lambda x: x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1, uid)
+
+      if uid is not None and len(uid) > 0:
+        uid = uid[0]
+        comment = uid.find(comment_tag)
+        tag = uid.find(uid_min_tag)
+        if comment == -1:
+          uid_tag = tag + len(uid_min_tag)
+          uid_min = uid[uid_tag:].strip()
+        elif comment > tag:
+          uid_tag = tag + len(uid_min_tag)
+          uid_min = uid[uid_tag:comment].strip()
+
+    # check result for value
+    try:
+      int(uid_min)
+    except ValueError:
+      return uid_default
+
+    return uid_min
 
   def validateClusterConfigurations(self, configurations, services, hosts):
     validationItems = []
@@ -1346,6 +1445,10 @@ class DefaultStackAdvisor(StackAdvisor):
       return dict[componentName]
     else:
       return {"min": 1, "max": 1}
+
+  def isServiceDeployed(self, services, serviceName):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    return serviceName in servicesList
 
   def getHostForComponent(self, component, hostsList):
     if len(hostsList) == 0:
@@ -1922,6 +2025,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return [service["StackServices"]["service_name"] for service in services["services"]]
 
+  #region HDFS
   def getHadoopProxyUsersValidationItems(self, properties, services, hosts, configurations):
     validationItems = []
     users = self.getHadoopProxyUsers(services, hosts, configurations)
@@ -2107,7 +2211,9 @@ class DefaultStackAdvisor(StackAdvisor):
         ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
         ambari_user = ambari_user.split('@')[0]
     return ambari_user
+  #endregion
 
+  #region Generic
   def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, configurations=None, put_function=None):
     is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, configurations, is_groups)
     result_value = "*"
@@ -2195,6 +2301,28 @@ class DefaultStackAdvisor(StackAdvisor):
       return int(m.group(2))
     else:
       return None
+  #endregion
+
+  #region Validators
+  def validateXmxValue(self, properties, recommendedDefaults, propertyName):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    value = properties[propertyName]
+    defaultValue = recommendedDefaults[propertyName]
+    if defaultValue is None:
+      return self.getErrorItem("Config's default value can't be null or undefined")
+    if not self.checkXmxValueFormat(value) and self.checkXmxValueFormat(defaultValue):
+      # Xmx is in the default-value but not the value, should be an error
+      return self.getErrorItem('Invalid value format')
+    if not self.checkXmxValueFormat(defaultValue):
+      # if default value does not contain Xmx, then there is no point in validating existing value
+      return None
+    valueInt = self.formatXmxSizeToBytes(self.getXmxSize(value))
+    defaultValueXmx = self.getXmxSize(defaultValue)
+    defaultValueInt = self.formatXmxSizeToBytes(defaultValueXmx)
+    if valueInt < defaultValueInt:
+      return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
+    return None
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
     if propertyName not in recommendedDefaults:
@@ -2324,6 +2452,145 @@ class DefaultStackAdvisor(StackAdvisor):
     except ValueError:
       pass
     return False
+  #endregion
+
+  #region YARN and MAPREDUCE
+  def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
+    if propertyName not in properties:
+      return self.getErrorItem("Value should be set")
+
+    capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
+    leaf_queue_names = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+    queue_name = properties[propertyName]
+
+    if len(leaf_queue_names) == 0:
+      return None
+    elif queue_name not in leaf_queue_names:
+      return self.getErrorItem("Queue is not exist or not corresponds to existing YARN leaf queue")
+
+    return None
+
+  def recommendYarnQueue(self, services, catalog_name=None, queue_property=None):
+    old_queue_name = None
+
+    if services and 'configurations' in services:
+        configurations = services["configurations"]
+        if catalog_name in configurations and queue_property in configurations[catalog_name]["properties"]:
+          old_queue_name = configurations[catalog_name]["properties"][queue_property]
+
+        capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
+        leaf_queues = sorted(self.getAllYarnLeafQueues(capacity_scheduler_properties))
+
+        if leaf_queues and (old_queue_name is None or old_queue_name not in leaf_queues):
+          return leaf_queues.pop()
+        elif old_queue_name and old_queue_name in leaf_queues:
+          return None
+    return "default"
+
+  def isConfigPropertiesChanged(self, services, config_type, config_names, all_exists=True):
+    """
+    Checks for the presence of passed-in configuration properties in a given config, if they are changed.
+    Reads from services["changed-configurations"].
+
+    :argument services: Configuration information for the cluster
+    :argument config_type: Type of the configuration
+    :argument config_names: Set of configuration properties to be checked if they are changed.
+    :argument all_exists: If True: returns True only if all properties mentioned in 'config_names_set' we found
+                            in services["changed-configurations"].
+                            Otherwise, returns False.
+                          If False: return True, if any of the properties mentioned in config_names_set we found in
+                            services["changed-configurations"].
+                            Otherwise, returns False.
+
+
+    :type services: dict
+    :type config_type: str
+    :type config_names: list|set
+    :type all_exists: bool
+    """
+    changedConfigs = services["changed-configurations"]
+    changed_config_names_set = set([changedConfig['name'] for changedConfig in changedConfigs if changedConfig['type'] == config_type])
+    config_names_set = set(config_names)
+
+    configs_intersection = changed_config_names_set & config_names_set
+    if all_exists and configs_intersection == config_names_set:
+      return True
+    elif not all_exists and len(configs_intersection) > 0:
+      return True
+
+    return False
+
+  def getCapacitySchedulerProperties(self, services):
+    """
+    Returns the dictionary of configs for 'capacity-scheduler'.
+    """
+    capacity_scheduler_properties = dict()
+    received_as_key_value_pair = True
+    if "capacity-scheduler" in services['configurations']:
+      if "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
+        cap_sched_props_as_str = services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]
+        if cap_sched_props_as_str:
+          cap_sched_props_as_str = str(cap_sched_props_as_str).split('\n')
+          if len(cap_sched_props_as_str) > 0 and cap_sched_props_as_str[0] != 'null':
+            # Received confgs as one "\n" separated string
+            for property in cap_sched_props_as_str:
+              key, sep, value = property.partition("=")
+              capacity_scheduler_properties[key] = value
+            Logger.info("'capacity-scheduler' configs is passed-in as a single '\\n' separated string. "
+                        "count(services['configurations']['capacity-scheduler']['properties']['capacity-scheduler']) = "
+                        "{0}".format(len(capacity_scheduler_properties)))
+            received_as_key_value_pair = False
+          else:
+            Logger.info("Passed-in services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'] is 'null'.")
+        else:
+          Logger.info("'capacity-scheduler' configs not passed-in as single '\\n' string in "
+                      "services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'].")
+      if not capacity_scheduler_properties:
+        # Received configs as a dictionary (Generally on 1st invocation).
+        capacity_scheduler_properties = services['configurations']["capacity-scheduler"]["properties"]
+        Logger.info("'capacity-scheduler' configs is passed-in as a dictionary. "
+                    "count(services['configurations']['capacity-scheduler']['properties']) = {0}".format(len(capacity_scheduler_properties)))
+    else:
+      Logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
+
+    Logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
+                .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
+    return capacity_scheduler_properties, received_as_key_value_pair
+
+  def getAllYarnLeafQueues(self, capacitySchedulerProperties):
+    """
+    Gets all YARN leaf queues.
+    """
+    config_list = capacitySchedulerProperties.keys()
+    yarn_queues = None
+    leafQueueNames = set()
+    if 'yarn.scheduler.capacity.root.queues' in config_list:
+      yarn_queues = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.queues')
+
+    if yarn_queues:
+      toProcessQueues = yarn_queues.split(",")
+      while len(toProcessQueues) > 0:
+        queue = toProcessQueues.pop()
+        queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
+        if queueKey in capacitySchedulerProperties:
+          # If parent queue, add children
+          subQueues = capacitySchedulerProperties[queueKey].split(",")
+          for subQueue in subQueues:
+            toProcessQueues.append(queue + "." + subQueue)
+        else:
+          # Leaf queues
+          # We only take the leaf queue name instead of the complete path, as leaf queue names are unique in YARN.
+          # Eg: If YARN queues are like :
+          #     (1). 'yarn.scheduler.capacity.root.a1.b1.c1.d1',
+          #     (2). 'yarn.scheduler.capacity.root.a1.b1.c2',
+          #     (3). 'yarn.scheduler.capacity.root.default,
+          # Added leaf queues names are as : d1, c2 and default for the 3 leaf queues.
+          leafQueuePathSplits = queue.split(".")
+          if leafQueuePathSplits > 0:
+            leafQueueName = leafQueuePathSplits[-1]
+            leafQueueNames.add(leafQueueName)
+    return leafQueueNames
+  #endregion
 
   @classmethod
   def getMountPointForDir(cls, dir, mountPoints):
