@@ -284,6 +284,7 @@ public class UpgradeCatalog250Test {
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
+    Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
       .addMockedMethod(updateAmsConfigs)
@@ -299,6 +300,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(updateRangerUrlConfigs)
       .addMockedMethod(addManageServiceAutoStartPermissions)
+      .addMockedMethod(updateYarnSite)
       .createMock();
 
 
@@ -340,6 +342,9 @@ public class UpgradeCatalog250Test {
 
     upgradeCatalog250.addManageServiceAutoStartPermissions();
     expectLastCall().once();
+
+    upgradeCatalog250.updateYarnSite();
+      expectLastCall().once();
 
     replay(upgradeCatalog250);
 
