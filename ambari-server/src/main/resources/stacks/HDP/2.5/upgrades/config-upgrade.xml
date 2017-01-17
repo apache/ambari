@@ -256,5 +256,32 @@
     </component>
     </service>
 
+    <service name="HIVE">
+      <component name="HIVE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_append_heap_dump_options" summary="Appending optional Java heap dump parameters" >
+            <type>hive-env</type>
+            <insert key="content" value="export HADOOP_CLIENT_OPTS=&quot;$HADOOP_CLIENT_OPTS{{heap_dump_opts}}&quot;" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options">
+            <type>tez-site</type>
+            <insert key="tez.task.launch.cmd-opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+        </changes>
+      </component>
+      <component name="HIVE_SERVER_INTERACTIVE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_heap_dump_options" summary="Appending optional Java heap dump parameters" >
+            <type>hive-interactive-env</type>
+            <insert key="content" value="export HADOOP_CLIENT_OPTS=&quot;$HADOOP_CLIENT_OPTS{{heap_dump_opts}}&quot;" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_java_heap_dump_options">
+            <type>hive-interactive-env</type>
+            <insert key="llap_java_opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
   </services>
 </upgrade-config-changes>

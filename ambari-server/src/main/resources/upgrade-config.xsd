@@ -43,6 +43,13 @@
       <xs:enumeration value="yaml-array"/>
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:simpleType name="insertion-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="prepend"/>
+      <xs:enumeration value="append"/>
+    </xs:restriction>
+  </xs:simpleType>
   
   <xs:complexType name="configure">
     <xs:sequence>
@@ -101,6 +108,15 @@
             <xs:attribute name="if-value" use="optional" type="xs:string"/>
             <xs:attribute name="if-key-state" use="optional" type="set-if-key-state-type"/>
             <xs:attribute name="mask" use="optional" type="xs:boolean"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="insert" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="key" use="required" type="xs:string"/>
+            <xs:attribute name="value" use="required" type="xs:string"/>
+            <xs:attribute name="insert-type" use="required" type="insertion-type"/>
+            <xs:attribute name="newline-before" use="optional" type="xs:boolean"/>
+            <xs:attribute name="newline-after" use="optional" type="xs:boolean"/>            
           </xs:complexType>
         </xs:element>
       </xs:choice>
