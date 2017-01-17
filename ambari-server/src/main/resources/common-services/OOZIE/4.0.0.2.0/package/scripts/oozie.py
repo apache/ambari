@@ -27,7 +27,6 @@ from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
-from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import StackFeature
@@ -51,33 +50,6 @@ from ambari_commons.inet_utils import download_file
 
 from resource_management.core import Logger
 
-# The property name used by the hadoop credential provider
-HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME = 'hadoop.security.credential.provider.path'
-
-# Move JCEKS provider to service specific locationa and update the ACL
-def update_credential_provider_path(config_type, dest_provider_path):
-  import params
-
-  # Get the path to the provider <config_type>.jceks
-  if HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME in params.config['configurations'][config_type]:
-    provider_paths = params.config['configurations'][config_type][HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME].split(',')
-    for path_index in range(len(provider_paths)):
-      provider_path = provider_paths[path_index]
-      if config_type == os.path.splitext(os.path.basename(provider_path))[0]:
-        src_provider_path = provider_path[len('jceks://file'):]
-        Logger.info('src_provider_path={0}, dest_provider_path{1}'.format(src_provider_path, dest_provider_path))
-        File(dest_provider_path,
-          owner = params.oozie_user,
-          group = params.user_group,
-          mode = 0640,
-          content = StaticFile(src_provider_path)
-        )
-        provider_paths[path_index] = 'jceks://file{0}'.format(dest_provider_path)
-        # make a copy of the config dictionary since it cannot be modified
-        config = params.config['configurations'][config_type].copy()
-        config[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = ','.join(provider_paths)
-        return config
-    return params.config['configurations'][config_type]
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def oozie(is_server=False):
@@ -143,12 +115,9 @@ def oozie(is_server=False):
              owner = params.oozie_user,
              group = params.user_group
   )
-
-  oozie_site_config = update_credential_provider_path('oozie-site', os.path.join(params.conf_dir, 'oozie-site.jceks'))
-
   XmlConfig("oozie-site.xml",
     conf_dir = params.conf_dir,
-    configurations = oozie_site_config,
+    configurations = params.oozie_site,
     configuration_attributes=params.config['configuration_attributes']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,
@@ -320,10 +289,9 @@ def oozie_server_specific():
         group = params.user_group
     )
     if 'hive-site' in params.config['configurations']:
-      hive_site_config = update_credential_provider_path('hive-site', os.path.join(params.hive_conf_dir, 'hive-site.jceks'))
       XmlConfig("hive-site.xml",
         conf_dir=params.hive_conf_dir,
-        configurations=hive_site_config,
+        configurations=params.config['configurations']['hive-site'],
         configuration_attributes=params.config['configuration_attributes']['hive-site'],
         owner=params.oozie_user,
         group=params.user_group,
