@@ -26,6 +26,9 @@ export default Ember.Component.extend({
     },
     getActionDetails(action){
       this.sendAction('getActionDetails',action);
+    },
+    openConsoleUrl(url){
+      window.open(url, '_blank');
     }
   }
 });
