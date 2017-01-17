@@ -546,6 +546,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="zookeeper_log4j_parameterize" />
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
