@@ -20,7 +20,6 @@ limitations under the License.
 
 import os
 import glob
-
 from urlparse import urlparse
 
 from resource_management.libraries.script.script import Script
@@ -46,32 +45,7 @@ from ambari_commons.constants import SERVICE
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
-# The property name used by the hadoop credential provider
-HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME = 'hadoop.security.credential.provider.path'
 
-# Move JCEKS provider to service specific location and update the ACL
-def update_credential_provider_path(config_type, dest_provider_path):
-  import params
-
-  # Get the path to the provider <config_type>.jceks
-  if HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME in params.config['configurations'][config_type]:
-    provider_paths = params.config['configurations'][config_type][HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME].split(',')
-    for path_index in range(len(provider_paths)):
-      provider_path = provider_paths[path_index]
-      if config_type == os.path.splitext(os.path.basename(provider_path))[0]:
-        src_provider_path = provider_path[len('jceks://file'):]
-        File(dest_provider_path,
-          owner = params.hive_user,
-          group = params.user_group,
-          mode = 0640,
-          content = StaticFile(src_provider_path)
-        )
-        provider_paths[path_index] = 'jceks://file{0}'.format(dest_provider_path)
-        # make a copy of the config dictionary since it is read-only
-        config = params.config['configurations'][config_type].copy()
-        config[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = ','.join(provider_paths)
-        return config
-    return params.config['configurations'][config_type]
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hive(name=None):
@@ -248,10 +222,9 @@ def hive(name=None):
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
 
-  hive_site_config = update_credential_provider_path('hive-site', os.path.join(params.hive_conf_dir, 'hive-site.jceks'))
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
-            configurations=hive_site_config,
+            configurations=params.hive_site_config,
             configuration_attributes=params.config['configuration_attributes']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
