@@ -58,7 +58,7 @@ public class StackVersionListener {
    * Logger.
    */
   private final static Logger LOG = LoggerFactory.getLogger(StackVersionListener.class);
-  private static final String UNKNOWN_VERSION = State.UNKNOWN.toString();
+  public static final String UNKNOWN_VERSION = State.UNKNOWN.toString();
 
   /**
    * Used to prevent multiple threads from trying to create host alerts

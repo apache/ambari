@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -855,6 +857,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // TODO: for now, all service components are transitioned to upgrading state
     // TODO: When performing patch upgrade, we should only target supported services/components
     // from upgrade pack
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     Set<Service> services = new HashSet<>(cluster.getServices().values());
     Map<Service, Set<ServiceComponent>> targetComponents = new HashMap<>();
     for (Service service: services) {
@@ -862,9 +865,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         new HashSet<>(service.getServiceComponents().values());
       targetComponents.put(service, serviceComponents);
     }
-    // TODO: is there any extreme case when we need to set component upgrade state back to NONE
-    // from IN_PROGRESS (e.g. canceled downgrade)
-    s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents);
+
+    // !!! determine which stack to check for component isAdvertised
+    StackId componentStack = upgradeContext.getDirection() == Direction.UPGRADE ?
+        upgradeContext.getTargetStackId() : upgradeContext.getOriginalStackId();
+    s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents, componentStack);
 
     for (UpgradeGroupHolder group : groups) {
       boolean skippable = group.skippable;

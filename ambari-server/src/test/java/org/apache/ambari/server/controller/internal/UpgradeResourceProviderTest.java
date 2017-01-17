@@ -96,6 +96,8 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -1464,7 +1466,6 @@ public class UpgradeResourceProviderTest {
    */
   @Test()
   public void testCreateHostOrderedUpgradeThrowsExceptions() throws Exception {
-    Cluster cluster = clusters.getCluster("c1");
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
@@ -1507,6 +1508,72 @@ public class UpgradeResourceProviderTest {
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS, hostsOrder);
     upgradeResourceProvider.createResources(request);
+  }
+
+  /**
+   * Exercises that a component that goes from upgrade->downgrade that switches
+   * {@code versionAdvertised} between will go to UKNOWN.  This exercises
+   * {@link UpgradeHelper#putComponentsToUpgradingState(String, Map, StackId)}
+   * @throws Exception
+   */
+  @Test
+  public void testCreateUpgradeDowngradeCycleAdvertisingVersion() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    Service service = cluster.addService("STORM");
+    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+
+    ServiceComponent component = service.addServiceComponent("DRPC_SERVER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    Map<String, String> requestInfoProperties = new HashMap<>();
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
+
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    assertEquals(1, status.getAssociatedResources().size());
+
+    Resource r = status.getAssociatedResources().iterator().next();
+    String id = r.getPropertyValue("Upgrade/request_id").toString();
+
+    component = service.getServiceComponent("DRPC_SERVER");
+    assertNotNull(component);
+    assertEquals("2.2.0.0", component.getDesiredVersion());
+
+    ServiceComponentHost hostComponent = component.getServiceComponentHost("h1");
+    assertEquals(UpgradeState.IN_PROGRESS, hostComponent.getUpgradeState());
+
+    // !!! can't start a downgrade until cancelling the previous upgrade
+    abortUpgrade(Long.parseLong(id));
+
+    requestProps.clear();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.DOWNGRADE.name());
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
+    status = upgradeResourceProvider.createResources(request);
+
+    component = service.getServiceComponent("DRPC_SERVER");
+    assertNotNull(component);
+    assertEquals("UNKNOWN", component.getDesiredVersion());
+
+    hostComponent = component.getServiceComponentHost("h1");
+    assertEquals(UpgradeState.NONE, hostComponent.getUpgradeState());
+    assertEquals("UNKNOWN", hostComponent.getVersion());
   }
 
 
