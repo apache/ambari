@@ -24,15 +24,17 @@
             "yarn.timeline-service.http-authentication.token.validity": "",
             "yarn.timeline-service.http-authentication.cookie.domain": "",
             "yarn.timeline-service.http-authentication.cookie.path": "",
-            "yarn.timeline-service.http-authentication.proxyuser.*.hosts": "",
-            "yarn.timeline-service.http-authentication.proxyuser.*.users": "",
-            "yarn.timeline-service.http-authentication.proxyuser.*.groups": "",
+            "yarn.timeline-service.http-authentication.proxyusers.*.hosts": "",
+            "yarn.timeline-service.http-authentication.proxyusers.*.users": "",
+            "yarn.timeline-service.http-authentication.proxyusers.*.groups": "",
             "yarn.timeline-service.http-authentication.kerberos.name.rules": "",
-            "yarn.resourcemanager.proxyuser.*.groups": "",
-            "yarn.resourcemanager.proxyuser.*.hosts": "",
-            "yarn.resourcemanager.proxyuser.*.users": "",
+            "yarn.resourcemanager.proxyusers.*.groups": "",
+            "yarn.resourcemanager.proxyusers.*.hosts": "",
+            "yarn.resourcemanager.proxyusers.*.users": "",
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
-            "yarn.resourcemanager.zk-state-store.parent-path": "/rmstore-secure"
+            "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda",
+            "hadoop.registry.secure" : "true",
+            "hadoop.registry.system.accounts" : "sasl:yarn,sasl:mapred,sasl:hadoop,sasl:hdfs,sasl:rm"
           }
         },
         {
@@ -48,16 +50,6 @@
             "yarn.scheduler.capacity.root.acl_administer_jobs": "${yarn-env/yarn_user}",
             "yarn.scheduler.capacity.root.default.acl_administer_jobs": "${yarn-env/yarn_user}",
             "yarn.scheduler.capacity.root.default.acl_submit_applications": "${yarn-env/yarn_user}"
-          }
-        },
-        {
-          "ranger-yarn-audit": {
-            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
-            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
-            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
-            "xasecure.audit.jaas.Client.option.storeKey": "false",
-            "xasecure.audit.jaas.Client.option.serviceName": "solr",
-            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
           }
         }
       ],
@@ -84,41 +76,6 @@
                   "access": ""
                 },
                 "configuration": "yarn-site/yarn.nodemanager.keytab"
-              }
-            },
-            {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
-              "principal": {
-                "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
-              },
-              "keytab": {
-                "configuration": "hive-interactive-site/hive.llap.daemon.keytab.file"
-              },
-              "when" : {
-                "contains" : ["services", "HIVE"]
-              }
-            },
-            {
-              "name": "llap_zk_hive",
-              "principal": {
-                "value": "hive/_HOST@${realm}",
-                "type" : "service",
-                "configuration": "hive-interactive-site/hive.llap.zk.sm.principal"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/hive.llap.zk.sm.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": "r"
-                },
-                "configuration": "hive-interactive-site/hive.llap.zk.sm.keytab.file"
-              },
-              "when" : {
-                "contains" : ["services", "HIVE"]
               }
             },
             {
@@ -170,15 +127,6 @@
               },
               "keytab": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file"
-              }
-            },
-            {
-              "name": "/YARN/RESOURCEMANAGER/resource_manager_rm",
-              "principal": {
-                "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.principal"
-              },
-              "keytab": {
-                "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ]
