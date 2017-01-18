@@ -37,7 +37,7 @@ public class QuickLinksProfileParserTest {
     assertEquals(
         Filter.linkAttributeFilter("sso", true),
         profile.getFilters().get(0));
-    assertEquals(2, profile.getServices().size());
+    assertEquals(3, profile.getServices().size());
 
     Service hdfs = profile.getServices().get(0);
     assertEquals("HDFS", hdfs.getName());
@@ -58,6 +58,12 @@ public class QuickLinksProfileParserTest {
     assertEquals(
         Filter.acceptAllFilter(true),
         historyServer.getFilters().get(0));
+
+    Service yarn = profile.getServices().get(2);
+    assertEquals(1, yarn.getFilters().size());
+    assertEquals(
+        Filter.linkNameFilter("resourcemanager_ui", true),
+        yarn.getFilters().get(0));
   }
 
   @Test(expected = JsonParseException.class)

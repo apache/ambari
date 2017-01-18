@@ -78,7 +78,7 @@
         <name>xasecure.audit.destination.solr</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -94,7 +94,7 @@
         <name>ranger.audit.solr.urls</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -107,7 +107,7 @@
         <name>ranger.audit.solr.zookeepers</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>

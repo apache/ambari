@@ -22,6 +22,18 @@ require('models/alerts/alert_config');
 
 var model;
 
+describe('App.AlertConfigProperty', function () {
+
+  function getConfigProperty() {
+    return App.AlertConfigProperty.create();
+  }
+
+  App.TestAliases.testAsComputedNotExistsIn(getConfigProperty(), 'isPreLabeled', 'displayType', ['radioButton']);
+
+  App.TestAliases.testAsComputedAlias(getConfigProperty(), 'apiFormattedValue', 'value');
+
+});
+
 describe('App.AlertConfigProperties', function () {
 
   describe('Parameter', function () {
@@ -396,6 +408,15 @@ describe('App.AlertConfigProperties', function () {
       });
 
     });
+
+  });
+
+  describe('App.AlertConfigProperties.FormatString', function () {
+    function getFormatStringConfig() {
+      return App.AlertConfigProperties.FormatString.create();
+    }
+
+    App.TestAliases.testAsComputedIfThenElse(getFormatStringConfig(), 'apiProperty', 'isJMXMetric', 'source.jmx.value', 'source.ganglia.value');
 
   });
 

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,11 +59,17 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_SITE = "ams-site";
+  private static final String AMS_LOG4J = "ams-log4j";
+  private static final String AMS_HBASE_LOG4J = "ams-hbase-log4j";
   private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String HBASE_ROOTDIR = "hbase.rootdir";
   private static final String HADOOP_ENV = "hadoop-env";
   private static final String KAFKA_BROKER = "kafka-broker";
+  private static final String YARN_SITE_CONFIG = "yarn-site";
+  private static final String YARN_ENV_CONFIG = "yarn-env";
+  private static final String YARN_LCE_CGROUPS_MOUNT_PATH = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
+  private static final String YARN_CGROUPS_ENABLED = "yarn_cgroups_enabled";
   private static final String KAFKA_TIMELINE_METRICS_HOST = "kafka.timeline.metrics.host";
 
   public static final String COMPONENT_TABLE = "servicecomponentdesiredstate";
@@ -158,6 +165,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
     updateAtlasConfigs();
+    updateLogSearchConfigs();
+    updateAmbariInfraConfigs();
+    updateYarnSite();
+    updateRangerUrlConfigs();
     addManageServiceAutoStartPermissions();
   }
 
@@ -174,6 +185,40 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(GROUPS_TABLE, new DBColumnInfo(GROUP_TYPE_COL, String.class, null, "LOCAL", false));
     dbAccessor.executeQuery("UPDATE groups SET group_type='LDAP' WHERE ldap_group=1");
     dbAccessor.addUniqueConstraint(GROUPS_TABLE, "UNQ_groups_0", "group_name", "group_type");
+  }
+
+  /**
+   * Updates {@code yarn-site} in the following ways:
+   *
+   * Remove {@code YARN_LCE_CGROUPS_MOUNT_PATH} if  {@code YARN_CGROUPS_ENABLED} is {@code false} and
+   * {@code YARN_LCE_CGROUPS_MOUNT_PATH} is empty string
+   *
+   * @throws AmbariException
+   */
+  protected void updateYarnSite() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config yarnEnvConfig = cluster.getDesiredConfigByType(YARN_ENV_CONFIG);
+      Config yarnSiteConfig = cluster.getDesiredConfigByType(YARN_SITE_CONFIG);
+
+      if (yarnEnvConfig != null && yarnSiteConfig != null) {
+        String cgroupEnabled = yarnEnvConfig.getProperties().get(YARN_CGROUPS_ENABLED);
+        String mountPath = yarnSiteConfig.getProperties().get(YARN_LCE_CGROUPS_MOUNT_PATH);
+
+        if (StringUtils.isEmpty(mountPath) && cgroupEnabled != null
+          && cgroupEnabled.trim().equalsIgnoreCase("false")){
+
+          removeConfigurationPropertiesFromCluster(cluster, YARN_SITE_CONFIG, new HashSet<String>(){{
+            add(YARN_LCE_CGROUPS_MOUNT_PATH);
+          }});
+
+        }
+      }
+
+    }
   }
 
   protected void updateHiveLlapConfigs() throws AmbariException {
@@ -268,6 +313,31 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                 updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
               }
             }
+          }
+
+          //Update AMS log4j to make rolling properties configurable as separate fields.
+          Config amsLog4jProperties = cluster.getDesiredConfigByType(AMS_LOG4J);
+          if(amsLog4jProperties != null){
+            Map<String, String> newProperties = new HashMap<>();
+
+            String content = amsLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_log_max_backup_size","ams_log_max_backup_size","log4j.appender.file.MaxFileSize=(\\w+)MB","80",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_log_number_of_backup_files","ams_log_number_of_backup_files","log4j.appender.file.MaxBackupIndex=(\\w+)","60",newProperties);
+            newProperties.put("content",content);
+            updateConfigurationPropertiesForCluster(cluster,AMS_LOG4J,newProperties,true,true);
+          }
+
+          Config amsHbaseLog4jProperties = cluster.getDesiredConfigByType(AMS_HBASE_LOG4J);
+          if(amsHbaseLog4jProperties != null){
+            Map<String, String> newProperties = new HashMap<>();
+
+            String content = amsHbaseLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_log_maxfilesize","ams_hbase_log_maxfilesize","hbase.log.maxfilesize=(\\w+)MB","256",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_log_maxbackupindex","ams_hbase_log_maxbackupindex","hbase.log.maxbackupindex=(\\w+)","20",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_security_log_maxfilesize","ams_hbase_security_log_maxfilesize","hbase.security.log.maxfilesize=(\\w+)MB","256",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_security_log_maxbackupindex","ams_hbase_security_log_maxbackupindex","hbase.security.log.maxbackupindex=(\\w+)","20",newProperties);
+            newProperties.put("content",content);
+            updateConfigurationPropertiesForCluster(cluster,AMS_HBASE_LOG4J,newProperties,true,true);
           }
 
         }
@@ -557,6 +627,9 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
             updateConfigurationProperties("hive-interactive-site", Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
                 "1000000000"), true, true);
+            updateConfigurationProperties("hive-interactive-site",
+                Collections.singletonMap("hive.llap.execution.mode", "only"),
+                true, true);
           }
         }
       }
@@ -590,6 +663,227 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * Updates Log Search configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateLogSearchConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
+          if (logSearchProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("logsearch.auth.external_auth.enabled", logSearchProperties.getProperties().get("logsearch.external.auth.enabled"));
+            newProperties.put("logsearch.auth.external_auth.host_url", logSearchProperties.getProperties().get("logsearch.external.auth.host_url"));
+            newProperties.put("logsearch.auth.external_auth.login_url", logSearchProperties.getProperties().get("logsearch.external.auth.login_url"));
+            
+            Set<String> removeProperties = new HashSet<>();
+            removeProperties.add("logsearch.external.auth.enabled");
+            removeProperties.add("logsearch.external.auth.host_url");
+            removeProperties.add("logsearch.external.auth.login_url");
+            
+            updateConfigurationPropertiesForCluster(cluster, "logsearch-properties", newProperties, removeProperties, true, true);
+          }
+          
+          Config logfeederEnvProperties = cluster.getDesiredConfigByType("logfeeder-env");
+          if (logfeederEnvProperties != null) {
+            String content = logfeederEnvProperties.getProperties().get("content");
+            if (content.contains("infra_solr_ssl_enabled")) {
+              content = content.replace("infra_solr_ssl_enabled", "logsearch_solr_ssl_enabled");
+              updateConfigurationPropertiesForCluster(cluster, "logfeeder-env", Collections.singletonMap("content", content), true, true);
+            }
+          }
+          
+          Config logsearchEnvProperties = cluster.getDesiredConfigByType("logsearch-env");
+          if (logsearchEnvProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            String content = logsearchEnvProperties.getProperties().get("content");
+            if (content.contains("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'")) {
+              content = content.replace("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'",
+                  "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl");
+            }
+            if (content.contains("infra_solr_ssl_enabled")) {
+              content = content.replace("infra_solr_ssl_enabled", "logsearch_solr_ssl_enabled");
+            }
+            if (!content.equals(logsearchEnvProperties.getProperties().get("content"))) {
+              newProperties.put("content", content);
+            }
+            
+            Set<String> removeProperties = new HashSet<>();
+            removeProperties.add("logsearch_solr_audit_logs_use_ranger");
+            removeProperties.add("logsearch_solr_audit_logs_zk_node");
+            removeProperties.add("logsearch_solr_audit_logs_zk_quorum");
+            
+            updateConfigurationPropertiesForCluster(cluster, "logsearch-env", newProperties, removeProperties, true, true);
+          }
+          
+          Config logfeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");
+          if (logfeederLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
+            String content = logfeederLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_log_maxfilesize", "logfeeder_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_log_maxbackupindex", "logfeeder_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logfeeder_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_json_log_maxfilesize", "logfeeder_json_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\" />", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logfeeder_json_log_maxbackupindex", "logfeeder_json_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logfeeder_json_log_maxfilesize}}MB\" />\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\" />", "10", newProperties);
+            
+            newProperties.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-log4j", newProperties, true, true);
+          }
+          
+          Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
+          if (logsearchLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+
+            String content = logsearchLog4jProperties.getProperties().get("content");
+            if (content.contains("{{logsearch_log_dir}}/logsearch.err")) {
+              content = content.replace("{{logsearch_log_dir}}/logsearch.err", "{{logsearch_log_dir}}/logsearch.log");
+            }
+            if (content.contains("<priority value=\"warn\"/>")) {
+              content = content.replace("<priority value=\"warn\"/>", "<priority value=\"info\"/>");
+            }
+            
+            
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_log_maxfilesize", "logsearch_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.log\" />\n" +
+                "    <param name=\"Threshold\" value=\"info\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\" />\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_log_maxbackupindex", "logsearch_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.log\" />\n" +
+                "    <param name=\"Threshold\" value=\"info\" />\n" +
+                "    <param name=\"append\" value=\"true\" />\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_log_maxfilesize}}MB\" />\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\" />\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_json_log_maxfilesize", "logsearch_json_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_json_log_maxbackupindex", "logsearch_json_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_json_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_audit_log_maxfilesize", "logsearch_audit_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_audit_log_maxbackupindex", "logsearch_audit_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_audit_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_perf_log_maxfilesize", "logsearch_perf_log_maxfilesize",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+                "    <param name=\"Threshold\" value=\"info\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"(\\w+)MB\"/>\n", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "logsearch_perf_log_maxbackupindex", "logsearch_perf_log_maxbackupindex",
+                "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+                "    <param name=\"Threshold\" value=\"info\"/>\n" +
+                "    <param name=\"append\" value=\"true\"/>\n" +
+                "    <param name=\"maxFileSize\" value=\"\\{\\{logsearch_perf_log_maxfilesize}}MB\"/>\n" +
+                "    <param name=\"maxBackupIndex\" value=\"(\\w+)\"/>\n", "10", newProperties);
+            
+            newProperties.put("content", content);
+            if (!content.equals(logsearchLog4jProperties.getProperties().get("content"))) {
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", newProperties, true, true);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Updates Ambari Infra configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateAmbariInfraConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config infraSolrEnvProperties = cluster.getDesiredConfigByType("infra-solr-env");
+          if (infraSolrEnvProperties != null) {
+            String content = infraSolrEnvProperties.getProperties().get("content");
+            if (content.contains("SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}")) {
+              content = content.replace("SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}", "SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}");
+            }
+            if (content.contains("SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}")) {
+              content = content.replace("SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}", "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}");
+            }
+            if (content.contains("SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}")) {
+              content = content.replace("SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}", "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"");
+            }
+            if (content.contains(" -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}")) {
+              content = content.replace(" -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}", "");
+            }
+            if (!content.equals(infraSolrEnvProperties.getProperties().get("content"))) {
+              updateConfigurationPropertiesForCluster(cluster, "infra-solr-env", Collections.singletonMap("content", content), true, true);
+            }
+          }
+          
+          Config infraSolrLog4jProperties = cluster.getDesiredConfigByType("infra-solr-log4j");
+          if (infraSolrLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
+            String content = infraSolrLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_log_maxfilesize", "infra_log_maxfilesize",
+                "log4j.appender.file.MaxFileSize=(\\w+)MB", "10", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_log_maxbackupindex", "infra_log_maxbackupindex",
+                "log4j.appender.file.MaxBackupIndex=(\\w+)\n", "9", newProperties);
+            
+            newProperties.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "infra-solr-log4j", newProperties, true, true);
+          }
+          
+          Config infraSolrClientLog4jProperties = cluster.getDesiredConfigByType("infra-solr-client-log4j");
+          if (infraSolrClientLog4jProperties != null) {
+            Map<String, String> newProperties = new HashMap<>();
+            
+            String content = infraSolrClientLog4jProperties.getProperties().get("content");
+            if (content.contains("infra_client_log")) {
+              content = content.replace("infra_client_log", "solr_client_log");
+            }
+            
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_client_log_maxfilesize", "solr_client_log_maxfilesize",
+                "log4j.appender.file.MaxFileSize=(\\w+)MB", "80", newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content, "infra_client_log_maxbackupindex", "solr_client_log_maxbackupindex",
+                "log4j.appender.file.MaxBackupIndex=(\\w+)\n", "60", newProperties);
+            
+            newProperties.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "infra-solr-client-log4j", newProperties, true, true);
+          }
+        }
+      }
+    }
+  }
+  
+  /**
    * Add permissions for managing service auto-start.
    * <p>
    * <ul>
@@ -614,5 +908,41 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         "CLUSTER.ADMINISTRATOR:CLUSTER",
         "CLUSTER.OPERATOR:CLUSTER");
     addRoleAuthorization("CLUSTER.MANAGE_AUTO_START", "Manage service auto-start configuration", roles);
+  }
+
+  /**
+   * Updates Ranger admin url for Ranger plugin supported configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateRangerUrlConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+
+      Config ranger_admin_properties = cluster.getDesiredConfigByType("admin-properties");
+      if(null != ranger_admin_properties) {
+        String policyUrl = ranger_admin_properties.getProperties().get("policymgr_external_url");
+        if (null != policyUrl) {
+          updateRangerUrl(cluster, "ranger-hdfs-security", "ranger.plugin.hdfs.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-hive-security", "ranger.plugin.hive.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-hbase-security", "ranger.plugin.hbase.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-knox-security", "ranger.plugin.knox.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-storm-security", "ranger.plugin.storm.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-yarn-security", "ranger.plugin.yarn.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-kafka-security", "ranger.plugin.kafka.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-atlas-security", "ranger.plugin.atlas.policy.rest.url", policyUrl);
+          updateRangerUrl(cluster, "ranger-kms-security", "ranger.plugin.kms.policy.rest.url", policyUrl);
+        }
+      }
+    }
+  }
+
+  protected void updateRangerUrl(Cluster cluster, String configType, String configProperty, String policyUrl) throws AmbariException {
+    Config componentSecurity = cluster.getDesiredConfigByType(configType);
+    if(componentSecurity != null && componentSecurity.getProperties().containsKey(configProperty)) {
+      Map<String, String> updateProperty = new HashMap<>();
+      updateProperty.put(configProperty, policyUrl);
+      updateConfigurationPropertiesForCluster(cluster, configType, updateProperty, true, false);
+    }
   }
 }

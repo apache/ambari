@@ -270,8 +270,24 @@ class TestStackAdvisorInitialization(TestCase):
     }
     hosts= {
       "items": [
-        {"Hosts": {"host_name": "host1"}},
-        {"Hosts": {"host_name": "host2"}}
+        {"Hosts": {"host_name": "host1",
+                   "cpu_count": 1,
+                   "total_mem": 2097152,
+                   "disk_info": [{
+                     "size": '80000000',
+                     "mountpoint": "/"
+                   }]
+                   }
+         },
+        {"Hosts": {"host_name": "host2",
+                   "cpu_count": 1,
+                   "total_mem": 2097152,
+                   "disk_info": [{
+                     "size": '80000000',
+                     "mountpoint": "/"
+                   }]
+                   }
+         }
       ]
     }
     actualValidateConfigResponse = default_stack_advisor.validateConfigurations(services, hosts)
@@ -343,8 +359,14 @@ class TestStackAdvisorInitialization(TestCase):
     # Test with maintenance_state. One host is in maintenance mode.
     hosts= {
       "items": [
-        {"Hosts": {"host_name": "host1", "maintenance_state":"OFF"}},
-        {"Hosts": {"host_name": "host2", "maintenance_state":"ON"}}
+        {"Hosts": {"host_name": "host1",
+                   "maintenance_state":"OFF",
+                   "cpu_count": 1}
+         },
+        {"Hosts": {"host_name": "host2",
+                   "maintenance_state":"ON",
+                   "cpu_count": 1}
+         }
       ]
     }
 
@@ -397,8 +419,26 @@ class TestStackAdvisorInitialization(TestCase):
     # Test with maintenance_state. Both hosts are in maintenance mode.
     hosts= {
       "items": [
-        {"Hosts": {"host_name": "host1", "maintenance_state":"ON"}},
-        {"Hosts": {"host_name": "host2", "maintenance_state":"ON"}}
+        {"Hosts": {"host_name": "host1",
+                   "maintenance_state":"ON",
+                   "cpu_count": 1,
+                   "total_mem": 2097152,
+                   "disk_info": [{
+                     "size": '80000000',
+                     "mountpoint": "/"
+                   }]
+                   }
+         },
+        {"Hosts": {"host_name": "host2",
+                   "maintenance_state":"ON",
+                   "cpu_count": 1,
+                   "total_mem": 2097152,
+                   "disk_info": [{
+                     "size": '80000000',
+                     "mountpoint": "/"
+                   }]
+                   }
+         }
       ]
     }
 

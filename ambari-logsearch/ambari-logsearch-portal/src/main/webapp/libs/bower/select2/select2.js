@@ -3019,6 +3019,8 @@ the specific language governing permissions and limitations under the Apache Lic
 
             if (!options || !options.noFocus)
                 this.focusSearch();
+
+            $(".services").children().removeClass("active")
         },
 
         // multi
@@ -3116,6 +3118,8 @@ the specific language governing permissions and limitations under the Apache Lic
 
             this.opts.element.trigger({ type: "select2-removed", val: this.id(data), choice: data });
             this.triggerChange({ removed: data });
+
+            $(".services").children().removeClass("active")
 
             return true;
         },

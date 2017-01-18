@@ -19,7 +19,6 @@
 package org.apache.ambari.logsearch.solr;
 
 import org.apache.ambari.logsearch.solr.commands.CheckConfigZkCommand;
-import org.apache.ambari.logsearch.solr.commands.CopyZnodeZkCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateCollectionCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateSaslUsersZkCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateShardCommand;
@@ -28,14 +27,12 @@ import org.apache.ambari.logsearch.solr.commands.DownloadConfigZkCommand;
 import org.apache.ambari.logsearch.solr.commands.EnableKerberosPluginSolrZkCommand;
 import org.apache.ambari.logsearch.solr.commands.GetShardsCommand;
 import org.apache.ambari.logsearch.solr.commands.GetSolrHostsCommand;
-import org.apache.ambari.logsearch.solr.commands.GetStateFileZkCommand;
 import org.apache.ambari.logsearch.solr.commands.ListCollectionCommand;
+import org.apache.ambari.logsearch.solr.commands.SecureSolrZNodeZkCommand;
 import org.apache.ambari.logsearch.solr.commands.SecureZNodeZkCommand;
 import org.apache.ambari.logsearch.solr.commands.SetClusterPropertyZkCommand;
-import org.apache.ambari.logsearch.solr.commands.UpdateStateFileZkCommand;
 import org.apache.ambari.logsearch.solr.commands.UploadConfigZkCommand;
 import org.apache.ambari.logsearch.solr.commands.CheckZnodeZkCommand;
-import org.apache.ambari.logsearch.solr.domain.AmbariSolrState;
 import org.apache.ambari.logsearch.solr.util.ShardUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -74,7 +71,6 @@ public class AmbariSolrCloudClient {
   private final String propName;
   private final String propValue;
   private final boolean secure;
-  private final String copyFromZnode;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zkConnectString = builder.zkConnectString;
@@ -97,7 +93,6 @@ public class AmbariSolrCloudClient {
     this.propName = builder.propName;
     this.propValue = builder.propValue;
     this.secure = builder.secure;
-    this.copyFromZnode = builder.copyFromZnode;
   }
 
   /**
@@ -180,35 +175,18 @@ public class AmbariSolrCloudClient {
     LOG.info("KerberosPlugin is set in security.json");
   }
 
-  public void enableKerberos() throws Exception {
-    LOG.info("Trying to enable kerberos from solr-client");
-    AmbariSolrState actualState = new GetStateFileZkCommand(getRetryTimes(), getInterval(), this.copyFromZnode).run(this);
-    if (AmbariSolrState.UNSECURE.equals(actualState)) {
-      LOG.info("Enable kerberos. Copy unsecure znode ('{}') content to secure ('{}')", this.znode, this.copyFromZnode);
-      new CopyZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
-      LOG.info("Copying contents from unsecure znode to secure znode has done.");
-      setupKerberosPlugin();
-      new SecureZNodeZkCommand(getRetryTimes(), getInterval()).run(this);
-      LOG.info("Set world:anyone permission to READ only.");
-      AmbariSolrState state = new UpdateStateFileZkCommand(getRetryTimes(), getInterval(), this.copyFromZnode).run(this);
-      LOG.info("Enabling kerberos successful, state: {}", state);
-    } else {
-      LOG.info("It is not needed to enable kerberos.");
-    }
+  /**
+   * Secure solr znode
+   */
+  public void secureSolrZnode() throws Exception {
+    new SecureSolrZNodeZkCommand(getRetryTimes(), getInterval()).run(this);
   }
 
-  public void disableKerberos() throws Exception {
-    LOG.info("Trying to disable kerberos from solr-client");
-    AmbariSolrState actualState = new GetStateFileZkCommand(getRetryTimes(), getInterval(), this.znode).run(this);
-    if (AmbariSolrState.SECURE.equals(actualState)) {
-      LOG.info("Disable kerberos. Copy secure znode ('{}') content to unsecure ('{}')");
-      new CopyZnodeZkCommand(getRetryTimes(), getInterval()).run(this);
-      LOG.info("Copying contents from secure znode to unsecure znode has done.");
-      AmbariSolrState state = new UpdateStateFileZkCommand(getRetryTimes(), getInterval(), this.znode).run(this);
-      LOG.info("Set new state: {}", state);
-    } else {
-      LOG.info("It is not needed to disable kerberos.");
-    }
+  /**
+   * Secure znode
+   */
+  public void secureZnode() throws Exception {
+    new SecureZNodeZkCommand(getRetryTimes(), getInterval()).run(this);
   }
 
   /**
@@ -360,9 +338,5 @@ public class AmbariSolrCloudClient {
 
   public boolean isSecure() {
     return secure;
-  }
-
-  public String getCopyFromZnode() {
-    return copyFromZnode;
   }
 }

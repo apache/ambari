@@ -17,11 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import math
 import os
 import re
 import sys
 from urlparse import urlparse
+
+# Local Imports
+from resource_management.core.logger import Logger
 
 def getSiteProperties(configurations, siteName):
   siteConfig = configurations.get(siteName)
@@ -29,28 +33,57 @@ def getSiteProperties(configurations, siteName):
     return None
   return siteConfig.get("properties")
 
-def getPort(address):
-  """
-  Extracts port from the address like 0.0.0.0:1019
-  """
-  if address is None:
-    return None
-  m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
-  if m is not None:
-    return int(m.group(2))
-  else:
-    return None
-
-def isSecurePort(port):
-  """
-  Returns True if port is root-owned at *nix systems
-  """
-  if port is not None:
-    return port < 1024
-  else:
-    return False
-
 class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
+
+  def __init__(self):
+    super(HDPWIN22StackAdvisor, self).__init__()
+    Logger.initialize_logger()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    self.mastersWithMultipleInstances |= set(['METRICS_COLLECTOR'])
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    self.cardinalitiesDict.update(
+      {
+        'METRICS_COLLECTOR': {"min": 1}
+      }
+    )
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['METRICS_MONITOR'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    self.notPreferableOnServerComponents |= set(['METRICS_COLLECTOR'])
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDPWIN22StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -768,15 +801,15 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       data_transfer_protection = 'dfs.data.transfer.protection'
 
       try: # Params may be absent
-        privileged_dfs_dn_port = isSecurePort(getPort(hdfs_site[dfs_datanode_address]))
+        privileged_dfs_dn_port = self.isSecurePort(self.getPort(hdfs_site[dfs_datanode_address]))
       except KeyError:
         privileged_dfs_dn_port = False
       try:
-        privileged_dfs_http_port = isSecurePort(getPort(hdfs_site[datanode_http_address]))
+        privileged_dfs_http_port = self.isSecurePort(self.getPort(hdfs_site[datanode_http_address]))
       except KeyError:
         privileged_dfs_http_port = False
       try:
-        privileged_dfs_https_port = isSecurePort(getPort(hdfs_site[datanode_https_address]))
+        privileged_dfs_https_port = self.isSecurePort(self.getPort(hdfs_site[datanode_https_address]))
       except KeyError:
         privileged_dfs_https_port = False
       try:
@@ -1076,26 +1109,6 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       'EXISTING MSSQL SERVER DATABASE WITH INTEGRATED AUTHENTICATION': 'mssql2',
     }
     return driverDict.get(databaseType.upper())
-
-  def getMastersWithMultipleInstances(self):
-    result = super(HDPWIN22StackAdvisor, self).getMastersWithMultipleInstances()
-    result.extend(['METRICS_COLLECTOR'])
-    return result
-
-  def getNotValuableComponents(self):
-    result = super(HDPWIN22StackAdvisor, self).getNotValuableComponents()
-    result.extend(['METRICS_MONITOR'])
-    return result
-
-  def getNotPreferableOnServerComponents(self):
-    result = super(HDPWIN22StackAdvisor, self).getNotPreferableOnServerComponents()
-    result.extend(['METRICS_COLLECTOR'])
-    return result
-
-  def getCardinalitiesDict(self):
-    result = super(HDPWIN22StackAdvisor, self).getCardinalitiesDict()
-    result['METRICS_COLLECTOR'] = {"min": 1}
-    return result
 
   def getAffectedConfigs(self, services):
     affectedConfigs = super(HDPWIN22StackAdvisor, self).getAffectedConfigs(services)

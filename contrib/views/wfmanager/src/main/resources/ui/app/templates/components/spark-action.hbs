@@ -19,7 +19,7 @@
   <div class="panel-heading">General</div>
   <div class="panel-body">
     <div class="form-group">
-      <label for="inputPassword" class="control-label col-xs-2">Name<span class="requiredField">&nbsp;*</span></label>
+      <label for="inputPassword" class="control-label col-xs-2">Application Name<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
         {{input type="text" class="form-control" name="spark-name" value=actionModel.sparkName placeholder="Spark Name"}}
         {{field-error model=this field='actionModel.sparkName' showErrorMessage=showErrorMessage}}
@@ -91,7 +91,7 @@
     <div class=" panel panel-default">
       <div class="panel-body handlerPanel">
         <div class="form-group">
-          <label for="inputEmail" class="control-label col-xs-2">Job tracker</label>
+          <label for="inputEmail" class="control-label col-xs-2">Resource Manager</label>
           <div class="col-xs-7">
             {{input type="text" class="form-control" name="job-tracker" value=actionModel.jobTracker placeholder="Job tracker"}}
           </div>

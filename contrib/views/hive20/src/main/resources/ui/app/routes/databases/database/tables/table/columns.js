@@ -20,4 +20,14 @@ import TableMetaRouter from './table-meta-router';
 
 export default TableMetaRouter.extend({
 
+  setupController: function (controller, model) {
+    this._super(controller, model);
+    let table = controller.get('table');
+    let clusteredColumns = table.get('storageInfo.bucketCols');
+    let columns = table.get('columns');
+    columns.forEach((column) => {
+      column.isClustered = !!clusteredColumns.contains(column.name);
+    });
+  },
+
 });

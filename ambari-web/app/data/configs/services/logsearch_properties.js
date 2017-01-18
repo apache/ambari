@@ -166,9 +166,37 @@ module.exports = [
   },
   {
     "category": "Advanced logfeeder-log4j",
+    "name": "logfeeder_log_maxfilesize",
     "filename": "logfeeder-log4j.xml",
     "index": 1,
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logfeeder-log4j",
+    "name": "logfeeder_log_maxbackupindex",
+    "filename": "logfeeder-log4j.xml",
+    "index": 2,
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logfeeder-log4j",
+    "name": "logfeeder_json_log_maxfilesize",
+    "filename": "logfeeder-log4j.xml",
+    "index": 3,
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logfeeder-log4j",
+    "name": "logfeeder_json_log_maxbackupindex",
+    "filename": "logfeeder-log4j.xml",
+    "index": 4,
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logfeeder-log4j",
     "name": "content",
+    "filename": "logfeeder-log4j.xml",
+    "index": 5,
     "serviceName": "LOGSEARCH"
   },
   {
@@ -329,6 +357,62 @@ module.exports = [
     "category": "Advanced logsearch-log4j",
     "filename": "logsearch-log4j.xml",
     "index": 1,
+    "name": "logsearch_log_maxfilesize",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 2,
+    "name": "logsearch_log_maxbackupindex",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 3,
+    "name": "logsearch_json_log_maxfilesize",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 4,
+    "name": "logsearch_json_log_maxbackupindex",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 5,
+    "name": "logsearch_audit_log_maxfilesize",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 6,
+    "name": "logsearch_audit_log_maxbackupindex",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 7,
+    "name": "logsearch_perf_log_maxfilesize",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 8,
+    "name": "logsearch_perf_log_maxbackupindex",
+    "serviceName": "LOGSEARCH"
+  },
+  {
+    "category": "Advanced logsearch-log4j",
+    "filename": "logsearch-log4j.xml",
+    "index": 9,
     "name": "content",
     "serviceName": "LOGSEARCH"
   },

@@ -527,8 +527,7 @@ h2.table-title {
   line-height: 1;
   color: #333;
   font-weight: bold;
-  font-size: 16px;
-  padding-left: 10px;
+  font-size: 18px;
   color: #666;
 }
 .wizard .wizard-body .wizard-content .step-description {
@@ -537,17 +536,20 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  font-size: 12px;
-  padding-left: 10px;
-  line-height: 1.3;
+  line-height: 1.4;
+  font-size: 14px;
   color: #999;
 }
 .wizard .wizard-body .wizard-content .panel.panel-default {
   border: none;
   box-shadow: none;
+  margin-top: 20px;
+}
+.wizard .wizard-body .wizard-content .panel.panel-default .panel-body {
+  padding: 30px 20px;
 }
 .wizard .wizard-body .wizard-nav {
-  min-height: 650px;
+  min-height: 550px;
   padding-top: 25px;
   background-color: #323544;
   float: left;
@@ -555,7 +557,7 @@ h2.table-title {
   padding-bottom: 99999px;
 }
 .wizard .wizard-body .wizard-nav .nav li {
-  padding: 10px 0;
+  padding: 0px 15px;
 }
 .wizard .wizard-body .wizard-nav .nav li a {
   height: 48px;
@@ -582,13 +584,12 @@ h2.table-title {
   font-weight: normal;
   font-style: normal;
   line-height: 1;
-  color: #333;
-  font-size: 16px;
-  color: #bbbbbb;
   margin-left: 30px;
+  font-size: 14px;
+  color: #999;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-index {
-  line-height: 18px;
+  line-height: 16px;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-description {
   font-family: 'Roboto', sans-serif;
@@ -622,8 +623,8 @@ h2.table-title {
   position: absolute;
   background-color: #1EB475;
   content: "";
-  top: 39px;
-  left: 14px;
+  top: 25px;
+  left: 29px;
 }
 .wizard .wizard-body .wizard-nav .nav li.completed:last-child:after {
   content: none;
@@ -632,8 +633,12 @@ h2.table-title {
   font-weight: bold;
 }
 .wizard .wizard-body .wizard-nav .nav li.disabled .step-marker {
-  color: #bbbbbb;
-  border-color: #bbbbbb;
+  color: #666;
+  border-color: #666;
+}
+.wizard .wizard-body .wizard-nav .nav li.disabled .step-name,
+.wizard .wizard-body .wizard-nav .nav li.disabled .step-description {
+  color: #666;
 }
 .wizard .wizard-body .wizard-nav .nav li.disabled.completed .step-marker {
   background-color: #1EB475;
@@ -694,6 +699,9 @@ input[type="radio"].disabled + label:hover:before {
   background-color: #b2b8c1;
   border-color: #b2b8c1;
 }
+input[type="checkbox"] + label {
+  margin-top: -2px;
+}
 input[type="checkbox"] + label:before {
   content: '';
   position: absolute;
@@ -714,13 +722,14 @@ input[type="checkbox"]:checked + label:after {
   top: 2px;
   left: 2px;
   font-size: 9px;
+  line-height: 1.42;
 }
 input[type="radio"] + label:before,
 input.radio + label:before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0;
+  top: 2px;
   width: 12px;
   height: 12px;
   box-sizing: border-box;
@@ -734,7 +743,7 @@ input.radio:checked + label:after {
   content: '';
   background-color: #FFF;
   position: absolute;
-  top: 3px;
+  top: 5px;
   left: 3px;
   width: 6px;
   height: 6px;

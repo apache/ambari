@@ -258,7 +258,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
         extractValuesFromJSON(jsonMap, urls.get(url), resource, propertyInfos);
       } catch (AmbariException ambariException) {
         AmbariException detailedException = new AmbariException(String.format(
-            "Unable to get REST metrics from the for %s at $s", resourceComponentName, spec),
+            "Unable to get REST metrics from the for %s at %s", resourceComponentName, spec),
             ambariException);
 
         logException(detailedException);

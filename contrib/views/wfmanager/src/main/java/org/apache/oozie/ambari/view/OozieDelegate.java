@@ -65,9 +65,11 @@ public class OozieDelegate {
   public String submitWorkflowJobToOozie(HttpHeaders headers,
                                          String filePath, MultivaluedMap<String, String> queryParams,
                                          JobType jobType) {
-    String nameNode = "hdfs://"
-      + viewContext.getCluster().getConfigurationValue("hdfs-site",
-      "dfs.namenode.rpc-address");
+	String nameNode = viewContext.getProperties().get("webhdfs.url");
+	if (nameNode == null) {
+		LOGGER.error("Name Node couldn't be determined automatically.");
+		throw new RuntimeException("Name Node couldn't be determined automatically.");
+	}
 
     if (!queryParams.containsKey("config.nameNode")) {
       ArrayList<String> nameNodes = new ArrayList<String>();
@@ -148,9 +150,8 @@ public class OozieDelegate {
     HashMap<String, String> workflowConigs = new HashMap<String, String>();
     if (queryParams.containsKey("resourceManager")
       && "useDefault".equals(queryParams.getFirst("resourceManager"))) {
-      String jobTrackerNode = viewContext.getCluster()
-        .getConfigurationValue("yarn-site",
-          "yarn.resourcemanager.address");
+	  String jobTrackerNode = viewContext.getProperties()
+	      .get("yarn.resourcemanager.address");
       LOGGER.info("jobTrackerNode===" + jobTrackerNode);
       workflowConigs.put("resourceManager", jobTrackerNode);
       workflowConigs.put("jobTracker", jobTrackerNode);

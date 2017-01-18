@@ -61,6 +61,9 @@ var WorkflowJsonImporter= Ember.Object.extend({
         node.set("domain",nodeJson.domain);
         node.set("errorMsgs",nodeJson.errorMsgs);
         node.set("errors",nodeJson.errors);
+        if(nodeJson.customMapping){
+          node.set('customMapping', nodeJson.customMapping);
+        }
         nodeMap.set(node.id,node);
         if (nodeJson.transitions){
           nodeJson.transitions.forEach(function(nodeTran){

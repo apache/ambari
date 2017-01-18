@@ -22,7 +22,7 @@ var hostsManagement = require('utils/hosts');
 var stringUtils = require('utils/string_utils');
 require('utils/configs/add_component_config_initializer');
 
-App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.InstallNewVersion, App.CheckHostMixin, {
+App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.InstallNewVersion, App.CheckHostMixin, App.TrackRequestMixin, {
 
   name: 'mainHostDetailsController',
 
@@ -194,6 +194,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
   clearConfigsChanges: function () {
     var arrayNames = ['allPropertiesToChange', 'recommendedPropertiesToChange', 'requiredPropertiesToChange', 'groupedPropertiesToChange'];
+    this.abortRequests();
     arrayNames.forEach(function (arrayName) {
       this.get(arrayName).clear();
     }, this);
@@ -462,6 +463,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       if (componentsMapItem.deletePropertyName) {
         this.set(componentsMapItem.deletePropertyName, true);
       }
+      this.clearConfigsChanges();
       this.set('isReconfigureRequired', true);
       returnFunc = this.showDeleteComponentPopup(component, componentsMapItem.configsCallbackName);
     } else if (componentName === 'JOURNALNODE') {
@@ -738,6 +740,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           this.set(componentsMapItem.addPropertyName, false);
         };
       }
+      this.clearConfigsChanges();
       this.set('isReconfigureRequired', true);
       returnFunc = self.showAddComponentPopup(component, hostName, null, componentsMapItem.configsCallbackName, primary);
     } else if (componentName === 'JOURNALNODE') {
@@ -870,7 +873,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadStormConfigs
    */
   loadStormConfigs: function (data) {
-    App.ajax.send({
+    var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
@@ -878,6 +881,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       },
       success: 'onLoadStormConfigs'
     });
+    this.trackRequest(request);
   },
 
   /**
@@ -1014,7 +1018,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadWebHCatConfigs
    */
   loadWebHCatConfigs: function (data) {
-    return App.ajax.send({
+    var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
@@ -1028,6 +1032,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       },
       success: 'onLoadHiveConfigs'
     });
+    this.trackRequest(request);
+    return request;
   },
 
   /**
@@ -1038,7 +1044,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadHiveConfigs
    */
   loadHiveConfigs: function (data) {
-    return App.ajax.send({
+    var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
@@ -1051,6 +1057,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       },
       success: 'onLoadHiveConfigs'
     });
+    this.trackRequest(request);
+    return request;
   },
 
   /**
@@ -1270,7 +1278,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadRangerConfigs
    */
   loadRangerConfigs: function (data) {
-    App.ajax.send({
+    var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
@@ -1278,6 +1286,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       },
       success: 'onLoadRangerConfigs'
     });
+    this.trackRequest(request);
   },
 
   /**
@@ -1445,12 +1454,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method loadConfigs
    */
   loadConfigs: function (callback) {
-    App.ajax.send({
+    var request = App.ajax.send({
       name: 'config.tags',
       sender: this,
       success: callback ? callback : 'loadConfigsSuccessCallback',
       error: 'onLoadConfigsErrorCallback'
     });
+    this.trackRequest(request);
   },
 
   /**
@@ -1469,7 +1479,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   loadConfigsSuccessCallback: function (data) {
     var urlParams = this.constructConfigUrlParams(data);
     if (urlParams.length > 0) {
-      App.ajax.send({
+      var request = App.ajax.send({
         name: 'reassign.load_configs',
         sender: this,
         data: {
@@ -1477,6 +1487,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         },
         success: 'saveZkConfigs'
       });
+      this.trackRequest(request);
       return true;
     }
     return false;
@@ -1496,7 +1507,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.get('zooKeeperRelatedServices').forEach(function (service) {
       if (services.someProperty('serviceName', service.serviceName)) {
         service.typesToLoad.forEach(function (type) {
-          urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+          if (data.Clusters.desired_configs[type]) {
+            urlParams.push('(type=' + type + '&tag=' + data.Clusters.desired_configs[type].tag + ')');
+          }
         });
       }
     });

@@ -122,7 +122,7 @@
       "name": "ranger_audit_db_support",
       "description": "Ranger Audit to DB support",
       "min_version": "2.2.0.0",
-      "max_version": "2.5.0.0"
+      "max_version": "2.4.99.99"
     },
     {
       "name": "accumulo_kerberos_user_auth",
@@ -162,8 +162,7 @@
     {
       "name": "oozie_host_kerberos",
       "description": "Oozie in secured clusters uses _HOST in Kerberos principal (AMBARI-9775)",
-      "min_version": "2.0.0.0",
-      "max_version": "2.2.0.0"
+      "min_version": "2.0.0.0"
     },
     {
       "name": "falcon_extensions",
@@ -253,6 +252,11 @@
       "min_version": "2.5.0.0"
     },
     {
+      "name": "spark_livy2",
+      "description": "Livy as slave component of spark",
+      "min_version": "2.6.0.0"
+    },
+    {
       "name": "atlas_ranger_plugin_support",
       "description": "Atlas Ranger plugin support",
       "min_version": "2.5.0.0"
@@ -330,8 +334,43 @@
       "min_version": "2.6.0.0"
     },
     {
+      "name": "ranger_xml_configuration",
+      "description": "Ranger code base support xml configurations",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "kafka_ranger_plugin_support",
+      "description": "Ambari stack changes for Ranger Kafka Plugin (AMBARI-11299)",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "yarn_ranger_plugin_support",
+      "description": "Implement Stack changes for Ranger Yarn Plugin integration (AMBARI-10866)",
+      "min_version": "2.3.0.0"
+    },
+    {
       "name": "ranger_solr_config_support",
       "description": "Showing Ranger solrconfig.xml on UI",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "hive_interactive_atlas_hook_required",
+      "description": "Registering Atlas Hook for Hive Interactive.",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "core_site_for_ranger_plugins",
+      "description": "Adding core-site.xml in when Ranger plugin is enabled for Storm, Kafka, and Knox.",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "atlas_install_hook_package_support",
+      "description": "Stop installing packages from 2.6",
+      "max_version": "2.5.9.9"
+    },
+    {
+      "name": "atlas_hdfs_site_on_namenode_ha",
+      "description": "Need to create hdfs-site under atlas-conf dir when Namenode-HA is enabled.",
       "min_version": "2.6.0.0"
     }
   ]

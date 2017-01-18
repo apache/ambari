@@ -20,10 +20,13 @@ package org.apache.ambari.server.view;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.view.cluster.Cluster;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * View associated cluster implementation.
@@ -61,6 +64,12 @@ public class ClusterImpl implements Cluster {
     Config config = cluster.getDesiredConfigByType(type);
 
     return config == null ? null : config.getProperties().get(key);
+  }
+
+  @Override
+  public Map<String, String> getConfigByType(String type) {
+    Config configs = cluster.getDesiredConfigByType(type);
+    return ImmutableMap.copyOf(configs.getProperties());
   }
 
   @Override

@@ -18,7 +18,9 @@
 
 package org.apache.ambari.view.pig.utils;
 
+import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
 import org.apache.ambari.view.pig.templeton.client.TempletonApiFactory;
 import org.apache.ambari.view.utils.UserLocal;
@@ -28,7 +30,11 @@ import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public class UserLocalObjects {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
+
   private final static Logger LOG =
       LoggerFactory.getLogger(UserLocalObjects.class);
 
@@ -55,7 +61,15 @@ public class UserLocalObjects {
       @Override
       protected synchronized HdfsApi initialValue(ViewContext context) {
         try {
-          return HdfsUtil.connectToHDFSApi(context);
+          Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+          HdfsApi api;
+          if(props.isPresent()){
+            api = HdfsUtil.connectToHDFSApi(context, props.get());
+          }else{
+            api = HdfsUtil.connectToHDFSApi(context);
+          }
+
+          return api;
         } catch (HdfsApiException e) {
           throw new ServiceFormattedException(e);
         }

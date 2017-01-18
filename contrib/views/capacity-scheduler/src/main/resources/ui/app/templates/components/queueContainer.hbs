@@ -68,7 +68,7 @@
               {{#if label.store.isRmOffline}}
                 <small>Unable to obtain information  about node label from the resource manager</small>
               {{else}}
-                <small>Label is not exist on cluster</small>
+                <small>Label does not exist on cluster</small>
               {{/if}}
             {{else}}
               <span {{bind-attr class=":label label.overCapacity:label-danger:label-success"}}>{{label.name}}</span>

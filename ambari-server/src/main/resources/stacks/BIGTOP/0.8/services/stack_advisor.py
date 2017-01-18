@@ -17,12 +17,90 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import re
 from math import ceil
 
+# Local Imports
+from resource_management.core.logger import Logger
 from stack_advisor import DefaultStackAdvisor
 
 class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
+
+
+  def __init__(self):
+    super(BaseBIGTOP08StackAdvisor, self).__init__()
+    Logger.initialize_logger()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    self.mastersWithMultipleInstances |= set(['ZOOKEEPER_SERVER', 'HBASE_MASTER'])
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    self.cardinalitiesDict.update(
+      {
+        'ZOOKEEPER_SERVER': {"min": 3},
+        'HBASE_MASTER': {"min": 1}
+      }
+    )
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    self.notPreferableOnServerComponents |= set(['GANGLIA_SERVER'])
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes = {
+      'NAMENODE': {"else": 0},
+      'SECONDARY_NAMENODE': {"else": 1},
+      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
+
+      'HISTORYSERVER': {31: 1, "else": 2},
+      'RESOURCEMANAGER': {31: 1, "else": 2},
+
+      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
+
+      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
+      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
+      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+    }
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
@@ -275,38 +353,67 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
-  def getMastersWithMultipleInstances(self):
-    return ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
-
-  def getNotValuableComponents(self):
-    return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR']
-
-  def getNotPreferableOnServerComponents(self):
-    return ['GANGLIA_SERVER']
-
-  def getCardinalitiesDict(self):
-    return {
-      'ZOOKEEPER_SERVER': {"min": 3},
-      'HBASE_MASTER': {"min": 1},
-      }
-
-  def getComponentLayoutSchemes(self):
-    return {
-      'NAMENODE': {"else": 0},
-      'SECONDARY_NAMENODE': {"else": 1},
-      'HBASE_MASTER': {6: 0, 31: 2, "else": 3},
-
-      'HISTORYSERVER': {31: 1, "else": 2},
-      'RESOURCEMANAGER': {31: 1, "else": 2},
-
-      'OOZIE_SERVER': {6: 1, 31: 2, "else": 3},
-
-      'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
-      'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
-      'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
-      }
-
 class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
+
+  def __init__(self):
+    super(BIGTOP08StackAdvisor, self).__init__()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['APP_TIMELINE_SERVER'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    self.notPreferableOnServerComponents |= set(['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS'])
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes.update({
+      'APP_TIMELINE_SERVER': {31: 1, "else": 2},
+      'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
+    })
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(BIGTOP08StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -341,21 +448,6 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     putTezProperty("tez.am.java.opts",
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
-
-  def getNotPreferableOnServerComponents(self):
-    return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER']
-
-  def getNotValuableComponents(self):
-    return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']
-
-  def getComponentLayoutSchemes(self):
-    parentSchemes = super(BIGTOP08StackAdvisor, self).getComponentLayoutSchemes()
-    childSchemes = {
-        'APP_TIMELINE_SERVER': {31: 1, "else": 2},
-        'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
-    }
-    parentSchemes.update(childSchemes)
-    return parentSchemes
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(BIGTOP08StackAdvisor, self).getServiceConfigurationValidators()

@@ -16,7 +16,6 @@
 */
 
 import Ember from 'ember';
-import Constants from '../utils/constants';
 import { validator, buildValidations } from 'ember-cp-validations';
 
 const Validations = buildValidations({
@@ -25,10 +24,8 @@ const Validations = buildValidations({
   })
 });
 
-
 export default Ember.Component.extend(Validations, {
   showingFileBrowser : false,
-  jobXml : "",
   overwritePath : false,
   savingInProgress : false,
   isStackTraceVisible: false,
@@ -36,7 +33,6 @@ export default Ember.Component.extend(Validations, {
   alertType : "",
   alertMessage : "",
   alertDetails : "",
-  filePath : "",
   showErrorMessage: false,
   saveJobService : Ember.inject.service('save-job'),
   displayName : Ember.computed('type', function(){
@@ -48,15 +44,23 @@ export default Ember.Component.extend(Validations, {
       return "Bundle";
     }
   }),
-  initialize :function(){
-    this.set("jobXml", this.get("jobConfigs").xml);
-    this.set('filePath', Ember.copy(this.get('jobFilePath')));
+  jobXml : Ember.computed('jobConfigs', function(){
+    return this.get('jobConfigs.xml');
+  }),
+  jobJson : Ember.computed('jobConfigs', function(){
+    return this.get('jobConfigs.json');
+  }),
+  filePath : Ember.computed.oneWay('jobFilePath',function(){
+    return Ember.copy(this.get('jobFilePath'));
+  }),
+  initialize : function(){
+    this.set('overwritePath', true);
   }.on('init'),
   rendered : function(){
     this.$("#configureJob").on('hidden.bs.modal', function () {
-      this.sendAction('closeJobConfigs');
+      this.sendAction('close');
     }.bind(this));
-    this.$("#configureJob").modal("show");    
+    this.$("#configureJob").modal("show");
   }.on('didInsertElement'),
   showNotification(data){
     if (!data){
@@ -79,12 +83,10 @@ export default Ember.Component.extend(Validations, {
   },
   saveJob(){
     var url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
-    var workflowData = this.get("jobXmlJSONStr");
-    this.saveWfJob(url, workflowData);
+    this.saveWfJob(url, this.get("jobJson"));
     if(!this.get('isDraft')){
        url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
-       workflowData = this.get("jobXml");
-       this.saveWfJob(url, workflowData);
+       this.saveWfJob(url, this.get("jobXml"));
     }
   },
   saveWfJob(url, workflowData) {
@@ -95,7 +97,7 @@ export default Ember.Component.extend(Validations, {
           "message": "Workflow have been saved"
         });
         self.set("savingInProgress",false);
-        self.sendAction("saveFileinfo", this.get("filePath"), this.get("overwritePath"));
+        this.set('jobFilePath', this.get('filePath'));
     }.bind(this)).catch(function(response){
         console.log(response);
         self.set("savingInProgress",false);
@@ -106,7 +108,6 @@ export default Ember.Component.extend(Validations, {
           "details": self.getParsedErrorResponse(response),
           "stackTrace": self.getStackTrace(response.responseText)
         });
-        self.sendAction("saveFileinfo", self.get("filePath"), self.get("overwritePath"));
     });
   },
   getStackTrace(data){
@@ -157,11 +158,11 @@ export default Ember.Component.extend(Validations, {
       this.set("showingFileBrowser",false);
     },
     saveWorkflow(){
-		if(!this.get("validations.isInvalid")){
-	      this.sendAction("setFilePath", this.get("filePath"));
-	      this.set('showErrorMessage', true);
-	      this.saveJob();
-		}
+  		if(this.get('validations.isInvalid')){
+  	    this.set('showErrorMessage', true);
+  	    return;
+  		}
+      this.saveJob();
     },
     closePreview(){
       this.set("showingPreview",false);

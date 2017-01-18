@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import multiprocessing
 import logging
 import ambari_simplejson as json
 import sys
@@ -85,6 +86,10 @@ class Controller(threading.Thread):
     self.max_reconnect_retry_delay = int(config.get('server','max_reconnect_retry_delay', default=30))
     self.hasMappedComponents = True
     self.statusCommandsExecutor = None
+
+    # this lock is used control which thread spawns/kills the StatusCommandExecutor child process
+    self.spawnKillStatusCommandExecutorLock = threading.RLock()
+
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
     self.heartbeat_stop_callback = heartbeat_stop_callback
@@ -197,6 +202,10 @@ class Controller(threading.Thread):
         self.recovery_manager.update_configuration_from_registration(ret)
         self.config.update_configuration_from_registration(ret)
         logger.debug("Updated config:" + str(self.config))
+
+        # Start StatusCommandExecutor child process or restart it if already running
+        # in order to receive up to date agent config.
+        self.spawnStatusCommandsExecutorProcess()
 
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
@@ -451,8 +460,43 @@ class Controller(threading.Thread):
         self.DEBUG_STOP_HEARTBEATING=True
 
   def spawnStatusCommandsExecutorProcess(self):
-    self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
-    self.statusCommandsExecutor.start()
+    '''
+    Starts a new StatusCommandExecutor child process. In case there is a running instance
+     already restarts it by simply killing it and starting new one.
+     This function is thread-safe.
+    '''
+    with self.getSpawnKillStatusCommandExecutorLock():
+      # if there is already an instance of StatusCommandExecutor kill it first
+      self.killStatusCommandsExecutorProcess()
+
+      # Re-create the status command queue as in case the consumer
+      # process is killed the queue may deadlock (see http://bugs.python.org/issue20527).
+      # The queue must be re-created by the producer process.
+      statusCommandQueue = self.actionQueue.statusCommandQueue
+      self.actionQueue.statusCommandQueue = multiprocessing.Queue()
+
+      if statusCommandQueue is not None:
+        statusCommandQueue.close()
+
+      logger.info("Spawning statusCommandsExecutor")
+      self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
+      self.statusCommandsExecutor.start()
+
+  def killStatusCommandsExecutorProcess(self):
+    '''
+    Kills the StatusExecutorChild process if exists. This function is thread-safe.
+    '''
+    with self.getSpawnKillStatusCommandExecutorLock():
+      if self.statusCommandsExecutor is not None and self.statusCommandsExecutor.is_alive():
+        logger.info("Terminating statusCommandsExecutor.")
+        self.statusCommandsExecutor.kill()
+
+  def getSpawnKillStatusCommandExecutorLock(self):
+    '''
+    Re-entrant lock to be used to synchronize the spawning or killing of
+    StatusCommandExecutor child process in multi-thread environment.
+    '''
+    return self.spawnKillStatusCommandExecutorLock;
 
   def getStatusCommandsExecutor(self):
     return self.statusCommandsExecutor
@@ -461,7 +505,6 @@ class Controller(threading.Thread):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
       self.actionQueue.start()
-      self.spawnStatusCommandsExecutorProcess()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
 
@@ -565,6 +608,8 @@ class Controller(threading.Thread):
           logger.info("Return code: %d" % return_code)
     except Exception, e:
       logger.info("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))
+
+
 
 def main(argv=None):
   # Allow Ctrl-C

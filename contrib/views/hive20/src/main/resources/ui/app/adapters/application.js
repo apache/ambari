@@ -56,6 +56,7 @@ export default DS.RESTAdapter.extend({
       // by setting the proxyurl parameter in ember serve and for ambari to authenticate the requests, it needs this
       // basic authorization. This is for default admin/admin username/password combination.
       headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
+      //headers['Authorization'] = 'Basic aGl2ZTpoaXZl';
     }
      return headers;
   }),

@@ -461,7 +461,6 @@ public class PigScriptMigrationImplementation {
 
   public void createDirPigScript(final String dir, final String namenodeuri,final String username)
     throws IOException, URISyntaxException {
-
     try {
       final Configuration conf = new Configuration();
 
@@ -473,24 +472,24 @@ public class PigScriptMigrationImplementation {
       );
       conf.set("fs.defaultFS", namenodeuri);
       conf.set("hadoop.job.ugi", "hdfs");
-      conf.set("hadoop.security.authentication", "Kerberos");
-
       UserGroupInformation.setConfiguration(conf);
+
       UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
 
-      ugi.doAs(new PrivilegedExceptionAction<Void>() {
+      ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
-        public Void run() throws Exception {
+        public Boolean run() throws Exception {
 
           URI uri = new URI(dir);
           FileSystem fs = FileSystem.get(uri, conf, username);
+
           Path src = new Path(dir);
-          fs.mkdirs(src);
-          return null;
+          Boolean b = fs.mkdirs(src);
+          return b;
         }
       });
     } catch (Exception e) {
-      logger.error("Webhdfs: ", e);
+      logger.error("Exception in Webhdfs", e);
     }
   }
 

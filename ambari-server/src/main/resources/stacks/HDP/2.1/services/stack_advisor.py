@@ -17,7 +17,77 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Local Imports
+from resource_management.core.logger import Logger
+
+
 class HDP21StackAdvisor(HDP206StackAdvisor):
+
+  def __init__(self):
+    super(HDP21StackAdvisor, self).__init__()
+    Logger.initialize_logger()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+    self.modifyComponentLayoutSchemes()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    self.mastersWithMultipleInstances |= set(['ZOOKEEPER_SERVER', 'HBASE_MASTER'])
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    self.cardinalitiesDict.update(
+      {
+        'ZOOKEEPER_SERVER': {"min": 3},
+        'HBASE_MASTER': {"min": 1},
+      }
+    )
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    self.notPreferableOnServerComponents |= set(['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'METRICS_COLLECTOR'])
+
+  def modifyComponentLayoutSchemes(self):
+    """
+    Modify layout scheme dictionaries for components.
+
+    The scheme dictionary basically maps the number of hosts to
+    host index where component should exist.
+
+    Must be overriden in child class.
+    """
+    self.componentLayoutSchemes.update({
+      'APP_TIMELINE_SERVER': {31: 1, "else": 2},
+      'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
+    })
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDP21StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -143,7 +213,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
 
       meta = self.get_service_component_meta("HIVE", "WEBHCAT_SERVER", services)
       if "hostnames" in meta:
-        self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, put_function=putCoreSiteProperty)
+        self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
@@ -154,22 +224,6 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     recommended_tez_queue = self.recommendYarnQueue(services, "tez-site", "tez.queue.name")
     if recommended_tez_queue is not None:
       putTezProperty("tez.queue.name", recommended_tez_queue)
-
-
-  def getNotPreferableOnServerComponents(self):
-    return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS', 'GANGLIA_SERVER', 'METRICS_COLLECTOR']
-
-  def getNotValuableComponents(self):
-    return ['JOURNALNODE', 'ZKFC', 'GANGLIA_MONITOR', 'APP_TIMELINE_SERVER']
-
-  def getComponentLayoutSchemes(self):
-    parentSchemes = super(HDP21StackAdvisor, self).getComponentLayoutSchemes()
-    childSchemes = {
-        'APP_TIMELINE_SERVER': {31: 1, "else": 2},
-        'FALCON_SERVER': {6: 1, 31: 2, "else": 3}
-    }
-    parentSchemes.update(childSchemes)
-    return parentSchemes
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP21StackAdvisor, self).getServiceConfigurationValidators()
@@ -184,10 +238,10 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
                         {"config-name": 'hive.tez.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
-    yarnSiteProperties = getSiteProperties(configurations, "yarn-site")
+    yarnSiteProperties = self.getSiteProperties(configurations, "yarn-site")
     if yarnSiteProperties:
-      yarnSchedulerMaximumAllocationMb = to_number(yarnSiteProperties["yarn.scheduler.maximum-allocation-mb"])
-      hiveTezContainerSize = to_number(properties['hive.tez.container.size'])
+      yarnSchedulerMaximumAllocationMb = self.to_number(yarnSiteProperties["yarn.scheduler.maximum-allocation-mb"])
+      hiveTezContainerSize = self.to_number(properties['hive.tez.container.size'])
       if hiveTezContainerSize is not None and yarnSchedulerMaximumAllocationMb is not None and hiveTezContainerSize > yarnSchedulerMaximumAllocationMb:
         validationItems.append({"config-name": 'hive.tez.container.size', "item": self.getWarnItem("hive.tez.container.size is greater than the maximum container size specified in yarn.scheduler.maximum-allocation-mb")})
     return self.toConfigurationValidationProblems(validationItems, "hive-site")

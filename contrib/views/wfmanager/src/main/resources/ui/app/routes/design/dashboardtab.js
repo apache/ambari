@@ -86,7 +86,7 @@ export default Ember.Route.extend({
     ].join(""),
     page = (start - 1) / len + 1;
     return this.fetchJobs(url).catch(function(){
-      this.controllerFor('dashboard').set('model',{error : "Remote API Failed"});
+      this.controllerFor('design.dashboardtab').set('model',{error : "Remote API Failed"});
       Ember.$("#loading").css("display", "none");
     }.bind(this)).then(function (res) {
       if(!res){

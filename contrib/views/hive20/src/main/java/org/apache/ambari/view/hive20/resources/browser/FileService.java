@@ -18,18 +18,28 @@
 
 package org.apache.ambari.view.hive20.resources.browser;
 
+import com.google.common.base.Optional;
 import org.apache.ambari.view.commons.hdfs.FileOperationService;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.hive20.BaseService;
 
 import javax.ws.rs.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  */
 public class FileService extends BaseService {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
 
   @Path("/ops")
   public FileOperationService fileOps() {
-    return new FileOperationService(context);
+    return new FileOperationService(context, getViewConfigs());
+  }
+
+  private Map<String,String> getViewConfigs() {
+    Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+    return props.isPresent()? props.get() : new HashMap<String, String>();
   }
 }

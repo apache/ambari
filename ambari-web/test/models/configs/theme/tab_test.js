@@ -28,4 +28,6 @@ describe('App.Tab', function () {
 
   App.TestAliases.testAsComputedIfThenElse(getModel(), 'tooltipMsg', 'isHiddenByFilter', Em.I18n.t('services.service.config.nothing.to.display') , '');
 
+  App.TestAliases.testAsComputedIfThenElseByKeys(getModel(), 'isHiddenByFilter', 'isAdvanced', 'isAdvancedHidden', 'allSectionsAreHiddenByFilter');
+
 });

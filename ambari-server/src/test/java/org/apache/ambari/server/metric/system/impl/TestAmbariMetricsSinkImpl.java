@@ -30,6 +30,7 @@ public class TestAmbariMetricsSinkImpl extends AbstractTimelineMetricsSink imple
 
   @Override
   public void publish(List<SingleMetric> metrics) {
+    LOG.info("Published " + metrics.size() + " metrics.");
   }
 
   @Override

@@ -28,7 +28,6 @@ import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
 import org.apache.zookeeper.data.Stat;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -49,12 +48,12 @@ public class CreateSaslUsersZkCommand extends AbstractZookeeperRetryCommand<Stri
       String[] saslUserNames = saslUsers.split(",");
       for (String saslUser : saslUserNames) {
         if (!existingUsers.contains(saslUser)) {
-          //solrZooKeeper.addAuthInfo("sasl", saslUser.getBytes(StandardCharsets.UTF_8));
           acls.add(new ACL(ZooDefs.Perms.ALL, new Id("sasl", saslUser)));
           newUsers.add(saslUser);
         }
       }
     }
+    acls = AclUtils.updatePermissionForScheme(acls, "world", ZooDefs.Perms.READ);
     solrZooKeeper.setACL(client.getZnode(), acls, -1);
     return StringUtils.join(newUsers, ",");
   }

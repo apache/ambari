@@ -46,32 +46,66 @@
     }
     padding: 25px;
     background-color: #fff;
-
-    #get-started label{
-      font-weight: normal;
-    }
   }
 
   .mbm {
     margin-top: 0;
   }
 
+  #get-started {
+    .cluster-name-input {
+      padding: 4px 0px;
+    }
+  }
+
   #installOptions {
+    #targetHosts {
+      .step-title {
+        margin-bottom: 10px;
+      }
+    }
+    .radio-button-options {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .wizard-plain-text {
+      color: #666;
+    }
     .ssh-user, .ssh-port {
-      padding-top: 5px;
+      padding-top: 8px;
     }
 
     #sshKey {
-      color: #000;
+      color: #555;
       font-family: "Courier New","courier";
       font-size: 0.9em;
+      min-height: 110px;
     }
     input[type="radio"]:focus {
       outline: none;
     }
+    .ssh-key-input-indentation {
+      //hide the original ugly input
+      .inputfileUgly {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+      }
+      #selectedFileName {
+        padding: 5px 20px;
+        color: #666;
+      }
+    }
+
   }
   #confirm-hosts {
 
+    .compact-panel-heading {
+      padding: 10px;
+    }
     .page-bar {
       border: none;
     }
@@ -143,6 +177,9 @@
         float:left;
         white-space: nowrap;
       }
+    }
+    #warningsSection {
+      margin: 0px 10px;
     }
   }
   #step4, #step5, #step6 {
@@ -340,7 +377,7 @@
     margin-top: 8px;
   }
 
-  #ha-step3-review-table, #manage-journal-node-step2-review-table {
+  #ha-step3-review-table, #manage-journal-node-step2-review-table, #reassign-review-table {
     td {
       text-align: left;
       vertical-align: top;
@@ -368,6 +405,10 @@
     white-space: nowrap;
     .help-block {
       white-space: normal;
+    }
+    select > option {
+      height: 100px;
+      color: #ccc;
     }
   }
 
@@ -538,34 +579,37 @@
 }
 
 #select-stack {
-  .panel-heading {
-    font-weight: bold;
-    p {
-      margin-bottom: 0;
-      display: block;
+  .stacks-options {
+    margin-bottom: 30px;
+  }
+  .stacks-options .details-panel {
+    .patch-icon {
+      color: #ff4500;
     }
-  }
-  .details-panel .patch-icon {
-    color: #ff4500;
-  }
-  .details-panel .version-contents-section {
-    border: 1px solid #ddd;
-    max-height: 200px;
-    overflow: auto;
-    margin: 8px 0;
-    .table {
-      margin-bottom: 0;
-      tr:first-child td {
-        border-top: none;
+    .version-contents-section {
+      border: 1px solid #ddd;
+      max-height: 200px;
+      overflow: auto;
+      margin: 8px 0;
+      .table {
+        margin-bottom: 0;
+        tr:first-child td {
+          border-top: none;
+        }
       }
     }
   }
-  .inner-table {
-    td {
-      vertical-align: middle;
-    }
-  }
   .repos-panel {
+    .version-contents-body {
+      padding: 0px 10px;
+      .radio-group {
+        padding-bottom: 10px;
+        color: #666;
+      }
+    }
+    table > tbody > tr > td {
+        vertical-align: middle;
+    }
     .remove-icon {
       color: red;
       margin: 30px 0;
@@ -579,8 +623,13 @@
       width: 90%;
     }
     #skip-validation, #use-redhat {
-      span.disabled {
-        opacity: 0.7;
+      label {
+        color: #666;
+        font-weight: normal;
+        margin-top: -2px;
+        &.disabled {
+          opacity: 0.7;
+        }
       }
     }
   }

@@ -53,6 +53,9 @@ public class Link{
   @JsonProperty("attributes")
   private List<String> attributes;
 
+  @JsonProperty("visible")
+  private boolean visible = true;
+
   public String getName() {
     return name;
   }
@@ -107,6 +110,14 @@ public class Link{
 
   public void setProtocol(Protocol protocol) {
     this.protocol = protocol;
+  }
+
+  public boolean isVisible() {
+    return visible;
+  }
+
+  public void setVisible(boolean visible) {
+    this.visible = visible;
   }
 
   @Nullable

@@ -83,6 +83,12 @@ class TestFalconClient(RMFTestCase):
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
                               owner = 'falcon'
                               )
+    self.assertResourceCalled('File', '/etc/falcon/conf/log4j.properties',
+                          content=InlineTemplate(self.getConfig()['configurations']['falcon-log4j']['content']),
+                          owner='falcon',
+                          group='hadoop',
+                          mode= 0644
+                          )
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")

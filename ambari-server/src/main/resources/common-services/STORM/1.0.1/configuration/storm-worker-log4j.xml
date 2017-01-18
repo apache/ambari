@@ -21,6 +21,69 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
+    <name>storm_wrkr_a1_maxfilesize</name>
+    <value>100</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Storm Worker Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>storm_wrkr_a1_maxbackupindex</name>
+    <value>9</value>
+    <description>The number of backup files</description>
+    <display-name>Storm Worker Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>storm_wrkr_out_maxfilesize</name>
+    <value>100</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Storm Worker Standard out Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>storm_wrkr_out_maxbackupindex</name>
+    <value>4</value>
+    <description>The number of backup files</description>
+    <display-name>Storm Worker Standard out Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>storm_wrkr_err_maxfilesize</name>
+    <value>100</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Storm Worker Standard Error Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>storm_wrkr_err_maxbackupindex</name>
+    <value>4</value>
+    <description>The number of backup files</description>
+    <display-name>Storm Worker Standard Error Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>storm-worker-log4j template</display-name>
     <description>Custom worker.xml</description>
@@ -56,9 +119,9 @@
             <pattern>${pattern}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="{{storm_wrkr_a1_maxfilesize}} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="9"/>
+        <DefaultRolloverStrategy max="{{storm_wrkr_a1_maxbackupindex}}"/>
     </RollingFile>
     <RollingFile name="STDOUT"
 		fileName="${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.out"
@@ -67,9 +130,9 @@
             <pattern>${patternNoTime}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="{{storm_wrkr_out_maxfilesize}} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="4"/>
+        <DefaultRolloverStrategy max="{{storm_wrkr_out_maxbackupindex}}"/>
     </RollingFile>
     <RollingFile name="STDERR"
 		fileName="${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.err"
@@ -78,9 +141,9 @@
             <pattern>${patternNoTime}</pattern>
         </PatternLayout>
         <Policies>
-            <SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+            <SizeBasedTriggeringPolicy size="{{storm_wrkr_err_maxfilesize}} MB"/> <!-- Or every 100 MB -->
         </Policies>
-        <DefaultRolloverStrategy max="4"/>
+        <DefaultRolloverStrategy max="{{storm_wrkr_err_maxbackupindex}}"/>
     </RollingFile>
     <RollingFile name="METRICS"
 		fileName="${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.metrics"

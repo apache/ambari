@@ -162,14 +162,24 @@ def set_cluster_prop(zookeeper_quorum, solr_znode, prop_name, prop_value, java64
     set_cluster_prop_cmd+=format(' --jaas-file {jaas_file}')
   Execute(set_cluster_prop_cmd)
 
-def create_sasl_users(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[]):
+def secure_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[]):
   """
-  Add list of sasl users to a znode
+  Secure znode, set a list of sasl users acl to 'cdrwa', and set acl to 'r' only for the world. 
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
   sasl_users_str = ",".join(str(x) for x in sasl_users)
-  create_sasl_users_cmd = format('{solr_cli_prefix} --create-sasl-users --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
-  Execute(create_sasl_users_cmd)
+  secure_znode_cmd = format('{solr_cli_prefix} --secure-znode --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
+  Execute(secure_znode_cmd)
+
+
+def secure_solr_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[]):
+  """
+  Secure solr znode - setup acls to 'cdrwa' for solr user, set 'r' only for the world, skipping /znode/configs and znode/collections (set those to 'cr' for the world)
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
+  sasl_users_str = ",".join(str(x) for x in sasl_users)
+  secure_solr_znode_cmd = format('{solr_cli_prefix} --secure-solr-znode --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
+  Execute(secure_solr_znode_cmd)
 
 def default_config(config, name, default_value):
   subdicts = filter(None, name.split('/'))

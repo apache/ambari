@@ -60,6 +60,7 @@ class StackFeature:
   SPARK_16PLUS = "spark_16plus"
   SPARK_THRIFTSERVER = "spark_thriftserver"
   SPARK_LIVY = "spark_livy"
+  SPARK_LIVY2 = "spark_livy2"
   STORM_KERBEROS = "storm_kerberos"
   STORM_AMS = "storm_ams"
   CREATE_KAFKA_BROKER_ID = "create_kafka_broker_id"
@@ -105,4 +106,11 @@ class StackFeature:
   ZKFC_VERSION_ADVERTISED = "zkfc_version_advertised"
   PHOENIX_CORE_HDFS_SITE_REQUIRED = "phoenix_core_hdfs_site_required"
   RANGER_TAGSYNC_SSL_XML_SUPPORT="ranger_tagsync_ssl_xml_support"
+  RANGER_XML_CONFIGURATION = "ranger_xml_configuration"
+  KAFKA_RANGER_PLUGIN_SUPPORT = "kafka_ranger_plugin_support"
+  YARN_RANGER_PLUGIN_SUPPORT = "yarn_ranger_plugin_support"
   RANGER_SOLR_CONFIG_SUPPORT='ranger_solr_config_support'
+  HIVE_INTERACTIVE_ATLAS_HOOK_REQUIRED="hive_interactive_atlas_hook_required"
+  CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT='core_site_for_ranger_plugins'
+  ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT="atlas_install_hook_package_support"
+  ATLAS_HDFS_SITE_ON_NAMENODE_HA='atlas_hdfs_site_on_namenode_ha'

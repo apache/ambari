@@ -22,6 +22,7 @@ import os
 # Local Imports
 from resource_management.core.source import InlineTemplate, DownloadSource
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.get_config import get_config
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.system import File, Link, Directory
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -53,15 +54,17 @@ def sqoop(type=None):
   )
 
   configs = {}
-  configs.update(params.config['configurations']['sqoop-site'])
+  sqoop_site_config = get_config('sqoop-site')
+  if sqoop_site_config:
+    configs.update(sqoop_site_config)
 
-  XmlConfig("sqoop-site.xml",
-            conf_dir = params.sqoop_conf_dir,
-            configurations = configs,
-            configuration_attributes=params.config['configuration_attributes']['sqoop-site'],
-            owner = params.sqoop_user,
-            group = params.user_group
-            )
+    XmlConfig("sqoop-site.xml",
+              conf_dir = params.sqoop_conf_dir,
+              configurations = configs,
+              configuration_attributes=params.config['configuration_attributes']['sqoop-site'],
+              owner = params.sqoop_user,
+              group = params.user_group
+              )
 
   # Generate atlas-application.properties.xml file and symlink the hook jars
   if params.enable_atlas_hook:

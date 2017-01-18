@@ -204,7 +204,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   workflowXmlDownload(workflowXml){
       var link = document.createElement("a");
       link.download = "workflow.xml";
-      link.href = "data:text/xml,"+workflowXml;
+      link.href = "data:text/xml,"+encodeURIComponent(vkbeautify.xml(workflowXml));
       link.click();
   },
   nodeRendered: function(){
@@ -300,13 +300,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   importWorkflow(filePath){
     var self = this;
     this.set("isWorkflowImporting", true);
-    this.set("workflowFilePath", filePath);
     this.resetDesigner();
     //this.set("isWorkflowImporting", true);
     var workflowXmlDefered=this.getWorkflowFromHdfs(filePath);
     workflowXmlDefered.promise.then(function(data){
       this.importWorkflowFromString(data);
       this.set("isWorkflowImporting", false);
+      this.set("workflowFilePath", filePath);
     }.bind(this)).catch(function(data){
       console.error(data);
       var stackTraceMsg = self.getStackTrace(data.responseText);
@@ -352,13 +352,14 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   importActionSettingsFromString(actionSettings) {
     var x2js = new X2JS();
     var actionSettingsObj = x2js.xml_str2json(actionSettings);
+    var actionSettingsObjType = Object.keys(actionSettingsObj)[0];
     var currentActionNode = this.flowRenderer.currentCyNode.data().node;
-    if (actionSettingsObj[currentActionNode.actionType]) {
+    if (actionSettingsObjType === currentActionNode.actionType) {
       var actionJobHandler = this.actionTypeResolver.getActionJobHandler(currentActionNode.actionType);
       actionJobHandler.handleImport(currentActionNode, actionSettingsObj[currentActionNode.actionType]);
       this.flowRenderer.hideOverlayNodeActions();
     } else {
-      this.set("errorMsg", "Invalid asset settings");
+      this.set("errorMsg", actionSettingsObjType + " action settings can't be imported to " + currentActionNode.actionType + " action");
     }
   },
   importActionNodeFromString(actionNodeXmlString) {
@@ -399,6 +400,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   exportActionNodeXml() {
     var self = this;
     self.set("isAssetPublishing", true);
+    self.set("errorMsg", "");
     var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
     var actionNodeXml = workflowGenerator.getActionNodeXml(this.flowRenderer.currentCyNode.data().name, this.flowRenderer.currentCyNode.data().node.actionType);
     var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(actionNodeXml);
@@ -610,21 +612,11 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }, 1000);
   },
   openSaveWorkflow() {
-    this.get('workflowContext').clearErrors();
-    var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
-    workflowContext:this.get('workflowContext')});
-    var workflowXml=workflowGenerator.process();
-    if(this.get('workflowContext').hasErrors()){
-      this.set('errors',this.get('workflowContext').getErrors());
-      this.set("jobXmlJSONStr", this.getWorkflowAsJson());
-      this.set("isDraft", true);
-    }else{
-      this.set("jobXmlJSONStr", this.getWorkflowAsJson());
-      var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
-      var configForSubmit={props:dynamicProperties,xml:workflowXml,params:this.get('workflow.parameters')};
-      this.set("workflowSubmitConfigs",configForSubmit);
-      this.set("isDraft", false);
-    }
+    var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
+    var workflowXml = workflowGenerator.process();
+    var workflowJson = this.getWorkflowAsJson();
+    var isDraft = this.get('workflowContext').hasErrors()? true: false;
+    this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
     this.set("showingSaveWorkflow",true);
   },
   openJobConfig (){
@@ -636,7 +628,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set('errors',this.get('workflowContext').getErrors());
     }else{
       var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
-      var configForSubmit={props:dynamicProperties,xml:workflowXml,params:this.get('workflow.parameters')};
+      var configForSubmit={props:Array.from(dynamicProperties.values(), key => key),xml:workflowXml,params:this.get('workflow.parameters')};
       this.set("workflowSubmitConfigs",configForSubmit);
       this.set("showingWorkflowConfigProps",true);
     }
@@ -818,9 +810,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     openEditor(node){
       this.openWorkflowEditor(node);
     },
-    setFilePath(filePath){
-      this.set("workflowFilePath", filePath);
-    },
     showNotification(node){
       this.set("showNotificationPanel", true);
       if(node.actionType){
@@ -848,7 +837,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.set('currentNode.errorNode', transition.errorNode);
       }
       currentNode.transitions.forEach((trans)=>{
-        if(transition.okToNode){
+        if(transition.okToNode && trans.condition !== 'error'){
           if(trans.targetNode.id !== transition.okToNode.id){
             trans.targetNode = transition.okToNode;
             this.showUndo('transition');
@@ -862,10 +851,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     saveWorkflow(action){
       this.openSaveWorkflow();
-      if(action === "saveDraft"){
-        this.set("isDraft", true);
-      }
-      this.set('dryrun', false);
     },
     previewWorkflow(){
       this.set("showingPreview",false);
@@ -896,7 +881,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     closeWorkflowSubmitConfigs(){
       this.set("showingWorkflowConfigProps",false);
-      this.set("showingSaveWorkflow",false);
     },
     closeSaveWorkflow(){
       this.set("showingSaveWorkflow",false);
@@ -949,6 +933,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       var self = this;
       this.set("showingActionSettingsFileBrowser", false);
       if(this.get('actionSettingsFilePath')){
+        self.set("errorMsg", "");
         var actionSettingsXmlDefered=this.getWorkflowFromHdfs(this.get('actionSettingsFilePath'));
         actionSettingsXmlDefered.promise.then(function(data){
           this.importActionSettingsFromString(data);
@@ -967,6 +952,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       var self = this;
       this.set("showingImportActionNodeFileBrowser", false);
       if(this.get('actionNodeFilePath')){
+        self.set("errorMsg", "");
         var actionSettingsXmlDefered=this.getWorkflowFromHdfs(this.get('actionNodeFilePath'));
         actionSettingsXmlDefered.promise.then(function(data){
           this.importActionNodeFromString(data);
@@ -1095,6 +1081,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     saveAssetConfig() {
       var self=this;
       self.set("isAssetPublishing", true);
+      self.set("errorMsg", "");
       var workflowGenerator = WorkflowGenerator.create({workflow:self.get("workflow"), workflowContext:self.get('workflowContext')});
       var actionNodeXml = workflowGenerator.getActionNodeXml(self.flowRenderer.currentCyNode.data().name, self.flowRenderer.currentCyNode.data().node.actionType);
       var dynamicProperties = self.get('propertyExtractor').getDynamicProperties(actionNodeXml);
@@ -1112,9 +1099,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     showAssetList(value) {
       var self=this;
       if (value) {
+        self.set("errorMsg", "");
         var fetchAssetsDefered=self.get("assetManager").fetchAssets();
         fetchAssetsDefered.promise.then(function(response){
-          self.set('assetList', JSON.parse(response).data);
+          var assetData = JSON.parse(response).data;
+          assetData = assetData.filterBy('type', self.flowRenderer.currentCyNode.data().node.actionType);
+          self.set('assetList', assetData);
+          self.set('assetListType', self.flowRenderer.currentCyNode.data().node.actionType);
           self.set('showingAssetList', value);
         }.bind(this)).catch(function(data){
           self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
@@ -1127,6 +1118,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     importAsset(asset) {
       var self=this;
       self.set("isAssetImporting", true);
+      self.set("errorMsg", "");
       var importAssetDefered=self.get("assetManager").importAssetDefinition(asset.id);
       importAssetDefered.promise.then(function(response){
         var importedAsset = JSON.parse(response).data;
@@ -1141,6 +1133,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     showAssetNodeList(value) {
       var self=this;
       if (value) {
+        self.set("errorMsg", "");
         var fetchAssetsDefered=self.get("assetManager").fetchAssets();
         fetchAssetsDefered.promise.then(function(response){
           self.set('assetList', JSON.parse(response).data);
@@ -1156,6 +1149,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     importAssetNode(asset) {
       var self=this;
       self.set("isAssetImporting", true);
+      self.set("errorMsg", "");
       var importAssetDefered=self.get("assetManager").importAssetDefinition(asset.id);
       importAssetDefered.promise.then(function(response){
         var importedAsset = JSON.parse(response).data;

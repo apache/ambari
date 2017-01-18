@@ -26,13 +26,12 @@
     {{#power-select-multiple
     placeholder="Search databases"
     options=allDbs
-    selected=selectedDbs
+    selected=selectedMultiDb
     onchange=(pipe-action (action (mut selectedDbs)) (action "updateTables"))
     onkeydown=(action "createOnEnter")
     as |number|}}
       {{fa-icon "database"}} {{number}}
     {{/power-select-multiple}}
-
 
     <span class="input-group-btn" style="top: 0;right: 130px;position: absolute;">
       <button type="button" class="btn btn-default">{{fa-icon "folder"}} Browse <span class="caret"></span></button>

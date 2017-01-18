@@ -19,6 +19,47 @@
 var App = require('app');
 
 App.RAHighAvailabilityWizardStep3Controller = Em.Controller.extend({
-  name: "rAHighAvailabilityWizardStep3Controller"
+  name: 'rAHighAvailabilityWizardStep3Controller',
+
+  isLoaded: false,
+
+  versionLoaded: true,
+
+  hideDependenciesInfoBar: true,
+
+  stepConfigs: [
+    App.ServiceConfig.create({
+      serviceName: 'MISC',
+      configCategories: [
+        App.ServiceConfigCategory.create({
+          name: 'RANGER',
+          displayName: App.format.role('RANGER', true)
+        })
+      ],
+      showConfig: true
+    })
+  ],
+
+  loadStep: function () {
+    var self = this;
+    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
+      var property = App.configsCollection.getConfigByName('policymgr_external_url', 'admin-properties'),
+        stepConfig = self.get('stepConfigs.firstObject');
+      stepConfig.set('configs', [
+        App.ServiceConfigProperty.create(property, {
+          category: 'RANGER',
+          value: self.get('content.loadBalancerURL')
+        })
+      ]);
+      self.setProperties({
+        isLoaded: true,
+        selectedService: stepConfig
+      });
+    });
+  },
+
+  updateConfigProperty: function () {
+    this.set('content.policymgrExternalURL', this.get('selectedService.configs.firstObject.value'));
+  }
 });
 

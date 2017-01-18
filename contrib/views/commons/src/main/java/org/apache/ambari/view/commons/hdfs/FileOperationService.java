@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * File operations service
@@ -50,6 +51,14 @@ public class FileOperationService extends HdfsService {
   }
 
   /**
+   * Constructor
+   * @param context View Context instance
+   */
+  public FileOperationService(ViewContext context, Map<String, String> customProperties) {
+    super(context, customProperties);
+  }
+
+  /**
    * List dir
    * @param path path
    * @return response with dir content
@@ -60,8 +69,8 @@ public class FileOperationService extends HdfsService {
   public Response listdir(@QueryParam("path") String path) {
     try {
       JSONObject response = new JSONObject();
-      response.put("files", getApi(context).fileStatusToJSON(getApi(context).listdir(path)));
-      response.put("meta", getApi(context).fileStatusToJSON(getApi(context).getFileStatus(path)));
+      response.put("files", getApi().fileStatusToJSON(getApi().listdir(path)));
+      response.put("meta", getApi().fileStatusToJSON(getApi().getFileStatus(path)));
       return Response.ok(response).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -83,10 +92,10 @@ public class FileOperationService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response rename(final SrcDstFileRequest request) {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       ResponseBuilder result;
       if (api.rename(request.src, request.dst)) {
-        result = Response.ok(getApi(context).fileStatusToJSON(api
+        result = Response.ok(getApi().fileStatusToJSON(api
             .getFileStatus(request.dst)));
       } else {
         result = Response.ok(new FileOperationResult(false, "Can't move '" + request.src + "' to '" + request.dst + "'")).status(422);
@@ -110,10 +119,10 @@ public class FileOperationService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response chmod(final ChmodRequest request) {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       ResponseBuilder result;
       if (api.chmod(request.path, request.mode)) {
-        result = Response.ok(getApi(context).fileStatusToJSON(api
+        result = Response.ok(getApi().fileStatusToJSON(api
             .getFileStatus(request.path)));
       } else {
         result = Response.ok(new FileOperationResult(false, "Can't chmod '" + request.path + "'")).status(422);
@@ -138,7 +147,7 @@ public class FileOperationService extends HdfsService {
   public Response move(final MultiSrcDstFileRequest request,
                        @Context HttpHeaders headers, @Context UriInfo ui) {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       ResponseBuilder result;
       String message = "";
 
@@ -192,7 +201,7 @@ public class FileOperationService extends HdfsService {
   public Response copy(final MultiSrcDstFileRequest request,
                        @Context HttpHeaders headers, @Context UriInfo ui) {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       ResponseBuilder result;
       String message = "";
 
@@ -240,10 +249,10 @@ public class FileOperationService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response mkdir(final MkdirRequest request) {
     try{
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       ResponseBuilder result;
       if (api.mkdir(request.path)) {
-        result = Response.ok(getApi(context).fileStatusToJSON(api.getFileStatus(request.path)));
+        result = Response.ok(getApi().fileStatusToJSON(api.getFileStatus(request.path)));
       } else {
         result = Response.ok(new FileOperationResult(false, "Can't create dir '" + request.path + "'")).status(422);
       }
@@ -264,7 +273,7 @@ public class FileOperationService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response emptyTrash() {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       api.emptyTrash();
       return Response.ok(new FileOperationResult(true)).build();
     } catch (WebApplicationException ex) {
@@ -286,7 +295,7 @@ public class FileOperationService extends HdfsService {
   public Response moveToTrash(MultiRemoveRequest request) {
     try {
       ResponseBuilder result;
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       String trash = api.getTrashDirPath();
       String message = "";
 
@@ -343,7 +352,7 @@ public class FileOperationService extends HdfsService {
   public Response remove(MultiRemoveRequest request, @Context HttpHeaders headers,
                          @Context UriInfo ui) {
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       ResponseBuilder result;
       String message = "";
       if(request.paths.size() == 0) {
@@ -416,7 +425,6 @@ public class FileOperationService extends HdfsService {
   private String getFileName(String srcPath) {
     return srcPath.substring(srcPath.lastIndexOf('/') + 1);
   }
-
 
   /**
    * Wrapper for json mapping of mkdir request

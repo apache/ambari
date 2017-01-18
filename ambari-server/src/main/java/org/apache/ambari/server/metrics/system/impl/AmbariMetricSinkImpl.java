@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.metrics.system.impl;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -55,6 +54,9 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * Ambari Server Metrics Sink implementation to push collected metrics to AMS.
+ */
 public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements MetricsSink {
   private static final String AMBARI_SERVER_APP_ID = "ambari_server";
   private Collection<String> collectorHosts;
@@ -82,6 +84,12 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
     authenticationToken.setAuthenticated(true);
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters == null || clusters.getClusters().isEmpty()) {
+      LOG.info("No clusters configured.");
+      return;
+    }
+
     String ambariMetricsServiceName = "AMBARI_METRICS";
     collectorHosts = new HashSet<>();
 
@@ -146,8 +154,9 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
       }
     }
 
-    collectorUri = getCollectorUri(findPreferredCollectHost());
     hostName = configuration.getProperty("ambariserver.hostname.override", getDefaultLocalHostName());
+    LOG.info("Hostname used for ambari server metrics : " + hostName);
+    collectorUri = getCollectorUri(findPreferredCollectHost());
 
     int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
       String.valueOf(TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT)));
@@ -170,9 +179,12 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
     return null;
   }
 
+  /**
+   * Publish metrics to AMS.
+   * @param metrics Set of metrics
+   */
   @Override
   public void publish(List<SingleMetric> metrics) {
-
 
     //If Sink not yet initialized, drop the metrics on the floor.
     if (isInitialized) {

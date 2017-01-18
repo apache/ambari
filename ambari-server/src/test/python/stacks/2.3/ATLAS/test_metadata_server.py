@@ -326,6 +326,8 @@ class TestMetadataServer(RMFTestCase):
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
+    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+
     self.assertNoMoreResources()
 
   def test_configure_secure(self):
@@ -344,6 +346,9 @@ class TestMetadataServer(RMFTestCase):
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
+    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+
+
     self.assertNoMoreResources()
 
   def test_start_default(self):
@@ -360,6 +365,9 @@ class TestMetadataServer(RMFTestCase):
                               owner = "hbase",
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
+
+    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+
 
     self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py',
                               not_if = 'ls /var/run/atlas/atlas.pid >/dev/null 2>&1 && ps -p `cat /var/run/atlas/atlas.pid` >/dev/null 2>&1',

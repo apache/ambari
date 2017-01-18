@@ -26,5 +26,10 @@ export default ApplicationAdapter.extend({
 
   pathForType() {
     return "system/ping";
+  },
+
+  fetchAuth(databaseName, tableName) {
+    const url = this.buildURL() + '/system/ranger/auth';
+    return this.ajax(url, "GET", {data: {database: databaseName, table: tableName}});
   }
 });

@@ -354,6 +354,13 @@
       <xs:element name="task" type="abstract-task-type" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
+
+  <xs:complexType name="downgrade-directive-type">
+    <xs:sequence>
+      <xs:element name="task" type="abstract-task-type" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="copy-upgrade" use="optional" type="xs:boolean" />
+  </xs:complexType>
   
   <xs:complexType name="processing-type">
     <xs:sequence>
@@ -364,14 +371,15 @@
               <xs:complexType>
                 <xs:sequence>
                   <xs:element name="pre-upgrade" type="upgrade-directive-type" minOccurs="0"/>
-                  <xs:element name="pre-downgrade" type="upgrade-directive-type" minOccurs="0" />
+                  <xs:element name="pre-downgrade" type="downgrade-directive-type" minOccurs="0" />
                   <xs:element name="upgrade" type="upgrade-directive-type" minOccurs="1" />
                   <xs:element name="post-upgrade" type="upgrade-directive-type" minOccurs="0" />
-                  <xs:element name="post-downgrade" type="upgrade-directive-type" minOccurs="0" />
+                  <xs:element name="post-downgrade" type="downgrade-directive-type" minOccurs="0" />
                 </xs:sequence>
                 <!-- 
-                Want to use <xs:assert> to make sure that a pre-downgrade is available i
+                Want to use <xs:assert> to make sure that a pre-downgrade is available if
                 pre-upgrade is set.  It appears as though that is not yet available to jaxb.
+                See java implementation for the workaround for this.
                  -->
                 <xs:attribute name="name" type="xs:NMTOKEN" />
               </xs:complexType>

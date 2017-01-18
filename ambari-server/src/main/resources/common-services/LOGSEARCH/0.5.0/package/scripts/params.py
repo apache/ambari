@@ -44,6 +44,7 @@ security_enabled = status_params.security_enabled
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
 logsearch_server_keys_folder = logsearch_server_conf + "/keys"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_keys_folder = logsearch_logfeeder_conf + "/keys"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
 

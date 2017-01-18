@@ -525,6 +525,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, "checkComponentDependencies", Em.K);
       sinon.stub(controller, "showAddComponentPopup", Em.K);
+      sinon.stub(controller, "clearConfigsChanges", Em.K);
       sinon.stub(App, "showConfirmationPopup", Em.K);
       controller.set('content', {
         hostComponents: [Em.Object.create({
@@ -536,6 +537,7 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       controller.checkComponentDependencies.restore();
       controller.showAddComponentPopup.restore();
+      controller.clearConfigsChanges.restore();
       App.showConfirmationPopup.restore();
     });
 
@@ -618,7 +620,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
       controller.set('nimbusHost', 'host2');
-      controller.onLoadStormConfigs(data, null, {});
+      controller.onLoadStormConfigs(data);
     });
     afterEach(function () {
       controller.getStormNimbusHosts.restore();
@@ -877,6 +879,9 @@ describe('App.MainHostDetailsController', function () {
           },
           'accumulo-site': {
             tag: 1
+          },
+          'application-properties': {
+            tag: 1
           }
         }
       }
@@ -927,6 +932,11 @@ describe('App.MainHostDetailsController', function () {
     it('ACCUMULO is installed', function () {
       loadService('ACCUMULO');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=accumulo-site&tag=1)']);
+    });
+
+    it('ATLAS is installed, AMBARI_INFRA isn\'t installed', function () {
+      loadService('ATLAS');
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=application-properties&tag=1)']);
     });
   });
 
@@ -1017,7 +1027,7 @@ describe('App.MainHostDetailsController', function () {
         ];
       });
 
-      controller.saveZkConfigs(data, null, {});
+      controller.saveZkConfigs(data);
       this.groups = controller.saveConfigsBatch.args[0][0];
     });
     afterEach(function () {
@@ -3937,6 +3947,42 @@ describe('App.MainHostDetailsController', function () {
 
     it('isConfigsLoadingInProgress', function () {
       expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
+    });
+
+  });
+
+  describe('#clearConfigsChanges', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'abortRequests', Em.K);
+      controller.setProperties({
+        allPropertiesToChange: [{}],
+        recommendedPropertiesToChange: [{}],
+        requiredPropertiesToChange: [{}],
+        groupedPropertiesToChange: [{}],
+        isReconfigureRequired: true
+      });
+      controller.clearConfigsChanges();
+    });
+
+    afterEach(function () {
+      controller.abortRequests.restore();
+    });
+
+    it('allPropertiesToChange', function () {
+      expect(controller.get('allPropertiesToChange')).to.have.length(0);
+    });
+
+    it('recommendedPropertiesToChange', function () {
+      expect(controller.get('recommendedPropertiesToChange')).to.have.length(0);
+    });
+
+    it('groupedPropertiesToChange', function () {
+      expect(controller.get('groupedPropertiesToChange')).to.have.length(0);
+    });
+
+    it('isReconfigureRequired', function () {
+      expect(controller.get('isReconfigureRequired')).to.be.false;
     });
 
   });

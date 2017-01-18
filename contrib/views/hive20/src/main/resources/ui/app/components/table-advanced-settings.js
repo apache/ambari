@@ -58,7 +58,6 @@ export default Ember.Component.extend({
     } else {
       let defaultFileFormat = this.get('fileFormats').findBy('default', true);
       this.set('settings.fileFormat', {});
-      debugger;
       this.set('settings.fileFormat.type', defaultFileFormat.name);
     }
     if (!Ember.isEmpty(this.get('settings.rowFormat'))) {

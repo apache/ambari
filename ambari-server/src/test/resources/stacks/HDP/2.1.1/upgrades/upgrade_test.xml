@@ -144,12 +144,14 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="configure" id="hdp_2_1_1_zookeeper_new_config_type" />
         </post-upgrade>
+        <post-downgrade copy-upgrade="true" />
       </component>
     </service>
     
@@ -165,6 +167,7 @@
             <message>{{direction.verb.proper}} your database</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -174,6 +177,7 @@
             <function>list</function>
           </task>
         </post-upgrade>
+        <post-downgrade copy-upgrade="true" />
       </component>
       <component name="DATANODE">
         <pre-downgrade />
@@ -196,6 +200,7 @@
             <function>list</function>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade />
       </component>
       <component name="NODEMANAGER">
@@ -206,6 +211,7 @@
           </task>
           <task xsi:type="configure" id="hdp_2_1_1_nm_pre_upgrade"/>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade />
       </component>
     </service>
@@ -222,6 +228,7 @@
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions_skip"/>
           <task xsi:type="configure" id="hdp_2_1_1_no_conditions_met"/>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade />
        </component>
      </service>
@@ -244,6 +251,7 @@
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

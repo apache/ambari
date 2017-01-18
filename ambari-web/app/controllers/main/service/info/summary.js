@@ -408,13 +408,14 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         }.property('controller.content'),
         onToggleBlock: function (alert) {
           this.$('#' + alert.context.clientId).toggle('blind', 500);
-          alert.context.set("isCollapsed", !alert.context.get("isCollapsed"));
+          alert.context.toggleProperty('isCollapsed');
         },
-        gotoAlertDetails: function (event) {
-          if (event && event.context) {
+        gotoAlertDetails: function (e) {
+          if (e && e.context) {
             this.get('parentView').hide();
-            App.router.transitionTo('main.alerts.alertDetails', event.context);
+            App.router.transitionTo('main.alerts.alertDetails', e.context);
           }
+          return false;
         },
         closePopup: function () {
           this.get('parentView').hide();

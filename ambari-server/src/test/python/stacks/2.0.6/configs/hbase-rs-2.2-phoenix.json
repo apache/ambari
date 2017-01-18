@@ -539,7 +539,7 @@
             "hbase_java_io_tmpdir" : "/tmp"
         }, 
         "ranger-hbase-plugin-properties": {
-            "ranger-hbase-plugin-enabled":"yes"
+            "ranger-hbase-plugin-enabled":"No"
         },
         "ganglia-env": {
             "gmond_user": "nobody", 
@@ -584,7 +584,7 @@
             "XAAUDIT.HDFS.IS_ENABLED": "false", 
             "SQL_CONNECTOR_JAR": "{{sql_connector_jar}}", 
             "XAAUDIT.HDFS.LOCAL_BUFFER_FILE": "%time:yyyyMMdd-HHmm.ss%.log", 
-            "ranger-hbase-plugin-enabled": "Yes", 
+            "ranger-hbase-plugin-enabled": "No", 
             "REPOSITORY_NAME": "{{repo_name}}", 
             "SSL_KEYSTORE_PASSWORD": "myKeyFilePassword", 
             "XAAUDIT.DB.IS_ENABLED": "true", 

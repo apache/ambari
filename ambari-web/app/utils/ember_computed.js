@@ -291,6 +291,36 @@ computed.ifThenElse = function (dependentKey, trueValue, falseValue) {
 };
 
 /**
+ * A computed property that returns value for trueKey property if dependent value is true and falseKey-value otherwise
+ * App.*-keys are supported
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: true,
+ *  p2: 1,
+ *  p3: 2,
+ *  p4: Em.computed.ifThenElseByKeys('p1', 'p2', 'p3')
+ * });
+ * console.log(o.get('p4')); // 1
+ * o.set('p1', false);
+ * console.log(o.get('p4')); // 2
+ *
+ * o.set('p3', 3);
+ * console.log(o.get('p4')); // 3
+ * </pre>
+ *
+ * @method ifThenElseByKeys
+ * @param {string} dependentKey
+ * @param {string} trueKey
+ * @param {string} falseKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.ifThenElseByKeys = function (dependentKey, trueKey, falseKey) {
+  return computed(dependentKey, trueKey, falseKey, function () {
+    return smartGet(this, dependentKey) ? smartGet(this, trueKey) : smartGet(this, falseKey);
+  });
+};
+
+/**
  * A computed property that is equal to the logical 'and'
  * Takes any number of arguments
  * Returns true if all of them are truly, false - otherwise
@@ -936,6 +966,32 @@ computed.existsIn = function (dependentKey, neededValues) {
 };
 
 /**
+ * A computed property that returns true if dependent property exists in the property with needed values
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: 2,
+ *  p2: Em.computed.existsInByKey('p1', 'p3'),
+ *  p3: [1, 2, 3]
+ * });
+ * console.log(o.get('p2')); // true
+ * o.set('p1', 4);
+ * console.log(o.get('p2')); // false
+ * </pre>
+ *
+ * @method existsIn
+ * @param {string} dependentKey
+ * @param {string} neededValuesKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.existsInByKey = function (dependentKey, neededValuesKey) {
+  return computed(dependentKey, `${neededValuesKey}.[]`, function () {
+    var value = smartGet(this, dependentKey);
+    var neededValues = smartGet(this, neededValuesKey);
+    return makeArray(neededValues).contains(value);
+  });
+};
+
+/**
  * A computed property that returns true if dependent property doesn't exist in the needed values
  * <pre>
  * var o = Em.Object.create({
@@ -955,6 +1011,32 @@ computed.existsIn = function (dependentKey, neededValues) {
 computed.notExistsIn = function (dependentKey, neededValues) {
   return computed(dependentKey, function () {
     var value = smartGet(this, dependentKey);
+    return !makeArray(neededValues).contains(value);
+  });
+};
+
+/**
+ * A computed property that returns true if dependent property doesn't exist in the property with needed values
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: 2,
+ *  p2: Em.computed.notExistsInByKey('p1', 'p3'),
+ *  p3: [1, 2, 3]
+ * });
+ * console.log(o.get('p2')); // false
+ * o.set('p1', 4);
+ * console.log(o.get('p2')); // true
+ * </pre>
+ *
+ * @method notExistsInByKey
+ * @param {string} dependentKey
+ * @param {string} neededValuesKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.notExistsInByKey = function (dependentKey, neededValuesKey) {
+  return computed(dependentKey, `${neededValuesKey}.[]`, function () {
+    var value = smartGet(this, dependentKey);
+    var neededValues = smartGet(this, neededValuesKey);
     return !makeArray(neededValues).contains(value);
   });
 };

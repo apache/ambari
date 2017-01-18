@@ -20,20 +20,26 @@ package org.apache.ambari.view.hive20.resources.jobs;
 
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive20.ConnectionSystem;
+import org.apache.ambari.view.hive20.client.AsyncJobRunner;
+import org.apache.ambari.view.hive20.client.AsyncJobRunnerImpl;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.Cursor;
+import org.apache.ambari.view.hive20.client.EmptyCursor;
 import org.apache.ambari.view.hive20.client.HiveClientException;
+import org.apache.ambari.view.hive20.client.NonPersistentCursor;
 import org.apache.ambari.view.hive20.client.Row;
 import org.apache.ambari.view.hive20.utils.BadRequestFormattedException;
 import org.apache.ambari.view.hive20.utils.ResultFetchFormattedException;
 import org.apache.ambari.view.hive20.utils.ResultNotReadyFormattedException;
 import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
-import org.apache.hadoop.hbase.util.Strings;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -64,6 +70,49 @@ public class ResultsPaginationController {
   private static final long EXPIRING_TIME = 10*60*1000;  // 10 minutes
   private static final int DEFAULT_FETCH_COUNT = 50;
   private Map<String, Cursor<Row, ColumnDescription>> resultsCache;
+
+  public static Response getResultAsResponse(final String jobId, final String fromBeginning, Integer count, String searchId, String format, String requestedColumns, ViewContext context) throws HiveClientException {
+    final String username = context.getUsername();
+
+    ConnectionSystem system = ConnectionSystem.getInstance();
+    final AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
+
+    return getInstance(context)
+            .request(jobId, searchId, true, fromBeginning, count, format,requestedColumns,
+              createCallableMakeResultSets(jobId, fromBeginning, username, asyncJobRunner)).build();
+  }
+
+  public static ResultsResponse getResult(final String jobId, final String fromBeginning, Integer count, String
+    searchId, String requestedColumns, ViewContext context) throws HiveClientException {
+    final String username = context.getUsername();
+
+    ConnectionSystem system = ConnectionSystem.getInstance();
+    final AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
+
+    return getInstance(context)
+            .fetchResult(jobId, searchId, true, fromBeginning, count, requestedColumns,
+              createCallableMakeResultSets(jobId, fromBeginning, username, asyncJobRunner));
+  }
+
+  private static Callable<Cursor<Row, ColumnDescription>> createCallableMakeResultSets(final String jobId, final String
+    fromBeginning, final String username, final AsyncJobRunner asyncJobRunner) {
+    return new Callable<Cursor< Row, ColumnDescription >>() {
+      @Override
+      public Cursor call() throws Exception {
+        Optional<NonPersistentCursor> cursor;
+        if(fromBeginning != null && fromBeginning.equals("true")){
+          cursor = asyncJobRunner.resetAndGetCursor(jobId, username);
+        }
+        else {
+          cursor = asyncJobRunner.getCursor(jobId, username);
+        }
+        if(cursor.isPresent())
+        return cursor.get();
+        else
+          return new EmptyCursor();
+      }
+    };
+  }
 
   public static class CustomTimeToLiveExpirationPolicy extends PassiveExpiringMap.ConstantTimeToLiveExpirationPolicy<String, Cursor<Row, ColumnDescription>> {
     public CustomTimeToLiveExpirationPolicy(long timeToLiveMillis) {
@@ -125,70 +174,83 @@ public class ResultsPaginationController {
     return getResultsCache().get(key);
   }
 
+  /**
+   * returns the results in standard format
+   * @param key
+   * @param searchId
+   * @param canExpire
+   * @param fromBeginning
+   * @param count
+   * @param requestedColumns
+   * @param makeResultsSet
+   * @return
+   * @throws HiveClientException
+   */
+  public ResultsResponse fetchResult(String key, String searchId, boolean canExpire, String fromBeginning, Integer
+    count, String requestedColumns, Callable<Cursor<Row, ColumnDescription>> makeResultsSet) throws HiveClientException {
+
+    ResultProcessor resultProcessor = new ResultProcessor(key, searchId, canExpire, fromBeginning, count, requestedColumns, makeResultsSet).invoke();
+    List<Object[]> rows = resultProcessor.getRows();
+    List<ColumnDescription> schema = resultProcessor.getSchema();
+    Cursor<Row, ColumnDescription> resultSet = resultProcessor.getResultSet();
+
+    int read = rows.size();
+    return getResultsResponse(rows, schema, resultSet, read);
+  }
+
+  /**
+   * returns the results in either D3 format or starndard format wrapped inside ResponseBuilder object.
+   * @param key
+   * @param searchId
+   * @param canExpire
+   * @param fromBeginning
+   * @param count : number of rows to fetch
+   * @param format : 'd3' or empty
+   * @param requestedColumns
+   * @param makeResultsSet
+   * @return
+   * @throws HiveClientException
+   */
   public Response.ResponseBuilder request(String key, String searchId, boolean canExpire, String fromBeginning, Integer count, String format, String requestedColumns, Callable<Cursor<Row, ColumnDescription>> makeResultsSet) throws HiveClientException {
-    if (searchId == null)
-      searchId = DEFAULT_SEARCH_ID;
-    key = key + "?" + searchId;
-    if (!canExpire)
-      key = "$" + key;
-    if (fromBeginning != null && fromBeginning.equals("true") && getResultsCache().containsKey(key)) {
-
-      getResultsCache().remove(key);
-    }
-
-    Cursor<Row, ColumnDescription> resultSet = getResultsSet(key, makeResultsSet);
-
-    if (count == null)
-      count = DEFAULT_FETCH_COUNT;
-
-    List<ColumnDescription> allschema = resultSet.getDescriptions();
-    List<Row> allRowEntries = FluentIterable.from(resultSet)
-      .limit(count).toList();
-
-    List<ColumnDescription> schema = allschema;
-
-    final Set<Integer> selectedColumns = getRequestedColumns(requestedColumns);
-    if (!selectedColumns.isEmpty()) {
-      schema = filter(allschema, selectedColumns);
-    }
-
-    List<Object[]> rows = FluentIterable.from(allRowEntries)
-      .transform(new Function<Row, Object[]>() {
-        @Override
-        public Object[] apply(Row input) {
-          if(!selectedColumns.isEmpty()) {
-            return filter(Lists.newArrayList(input.getRow()), selectedColumns).toArray();
-          } else {
-            return input.getRow();
-          }
-        }
-      }).toList();
+    ResultProcessor resultProcessor = new ResultProcessor(key, searchId, canExpire, fromBeginning, count, requestedColumns, makeResultsSet).invoke();
+    List<Object[]> rows = resultProcessor.getRows();
+    List<ColumnDescription> schema = resultProcessor.getSchema();
+    Cursor<Row, ColumnDescription> resultSet = resultProcessor.getResultSet();
 
     int read = rows.size();
     if(format != null && format.equalsIgnoreCase("d3")) {
-      List<Map<String,Object>> results = new ArrayList<>();
-      for(int i=0; i<rows.size(); i++) {
-        Object[] row = rows.get(i);
-        Map<String, Object> keyValue = new HashMap<>(row.length);
-        for(int j=0; j<row.length; j++) {
-          //Replace dots in schema with underscore
-          String schemaName = schema.get(j).getName();
-          keyValue.put(schemaName.replace('.','_'), row[j]);
-        }
-        results.add(keyValue);
-      }
+      List<Map<String, Object>> results = getD3FormattedResult(rows, schema);
       return Response.ok(results);
     } else {
-      ResultsResponse resultsResponse = new ResultsResponse();
-      resultsResponse.setSchema(schema);
-      resultsResponse.setRows(rows);
-      resultsResponse.setReadCount(read);
-      resultsResponse.setHasNext(resultSet.hasNext());
-      //      resultsResponse.setSize(resultSet.size());
-      resultsResponse.setOffset(resultSet.getOffset());
-      resultsResponse.setHasResults(true);
+      ResultsResponse resultsResponse = getResultsResponse(rows, schema, resultSet, read);
       return Response.ok(resultsResponse);
     }
+  }
+
+  public List<Map<String, Object>> getD3FormattedResult(List<Object[]> rows, List<ColumnDescription> schema) {
+    List<Map<String,Object>> results = new ArrayList<>();
+    for(int i=0; i<rows.size(); i++) {
+      Object[] row = rows.get(i);
+      Map<String, Object> keyValue = new HashMap<>(row.length);
+      for(int j=0; j<row.length; j++) {
+        //Replace dots in schema with underscore
+        String schemaName = schema.get(j).getName();
+        keyValue.put(schemaName.replace('.','_'), row[j]);
+      }
+      results.add(keyValue);
+    } return results;
+  }
+
+  public ResultsResponse getResultsResponse(List<Object[]> rows, List<ColumnDescription> schema, Cursor<Row, ColumnDescription> resultSet, int read) {
+    ResultsResponse resultsResponse = new ResultsResponse();
+    resultsResponse.setSchema(schema);
+    resultsResponse.setRows(rows);
+    resultsResponse.setReadCount(read);
+    resultsResponse.setHasNext(resultSet.hasNext());
+    //      resultsResponse.setSize(resultSet.size());
+    resultsResponse.setOffset(resultSet.getOffset());
+    resultsResponse.setHasResults(true);
+    return resultsResponse;
   }
 
   private <T> List<T> filter(List<T> list, Set<Integer> selectedColumns) {
@@ -202,7 +264,7 @@ public class ResultsPaginationController {
   }
 
   private Set<Integer> getRequestedColumns(String requestedColumns) {
-    if(Strings.isEmpty(requestedColumns)) {
+    if(Strings.isNullOrEmpty(requestedColumns)) {
       return new HashSet<>();
     }
     Set<Integer> selectedColumns = Sets.newHashSet();
@@ -216,7 +278,7 @@ public class ResultsPaginationController {
     return selectedColumns;
   }
 
-  private static class ResultsResponse {
+  public static class ResultsResponse {
     private List<ColumnDescription> schema;
     private List<String[]> rows;
     private int readCount;
@@ -281,6 +343,81 @@ public class ResultsPaginationController {
 
     public void setHasResults(boolean hasResults) {
       this.hasResults = hasResults;
+    }
+  }
+
+  private class ResultProcessor {
+    private String key;
+    private String searchId;
+    private boolean canExpire;
+    private String fromBeginning;
+    private Integer count;
+    private String requestedColumns;
+    private Callable<Cursor<Row, ColumnDescription>> makeResultsSet;
+    private Cursor<Row, ColumnDescription> resultSet;
+    private List<ColumnDescription> schema;
+    private List<Object[]> rows;
+
+    public ResultProcessor(String key, String searchId, boolean canExpire, String fromBeginning, Integer count, String requestedColumns, Callable<Cursor<Row, ColumnDescription>> makeResultsSet) {
+      this.key = key;
+      this.searchId = searchId;
+      this.canExpire = canExpire;
+      this.fromBeginning = fromBeginning;
+      this.count = count;
+      this.requestedColumns = requestedColumns;
+      this.makeResultsSet = makeResultsSet;
+    }
+
+    public Cursor<Row, ColumnDescription> getResultSet() {
+      return resultSet;
+    }
+
+    public List<ColumnDescription> getSchema() {
+      return schema;
+    }
+
+    public List<Object[]> getRows() {
+      return rows;
+    }
+
+    public ResultProcessor invoke() {
+      if (searchId == null)
+        searchId = DEFAULT_SEARCH_ID;
+      key = key + "?" + searchId;
+      if (!canExpire)
+        key = "$" + key;
+      if (fromBeginning != null && fromBeginning.equals("true") && getResultsCache().containsKey(key)) {
+        getResultsCache().remove(key);
+      }
+
+      resultSet = getResultsSet(key, makeResultsSet);
+
+      if (count == null)
+        count = DEFAULT_FETCH_COUNT;
+
+      List<ColumnDescription> allschema = resultSet.getDescriptions();
+      List<Row> allRowEntries = FluentIterable.from(resultSet)
+        .limit(count).toList();
+
+      schema = allschema;
+
+      final Set<Integer> selectedColumns = getRequestedColumns(requestedColumns);
+      if (!selectedColumns.isEmpty()) {
+        schema = filter(allschema, selectedColumns);
+      }
+
+      rows = FluentIterable.from(allRowEntries)
+        .transform(new Function<Row, Object[]>() {
+          @Override
+          public Object[] apply(Row input) {
+            if (!selectedColumns.isEmpty()) {
+              return filter(Lists.newArrayList(input.getRow()), selectedColumns).toArray();
+            } else {
+              return input.getRow();
+            }
+          }
+        }).toList();
+      return this;
     }
   }
 }

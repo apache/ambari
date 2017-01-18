@@ -79,6 +79,7 @@
           <th>Transition</th>
           <th>Start Time</th>
           <th>End Time</th>
+          <th>Job Url</th>
         </tr>
       </thead>
       <tbody>
@@ -90,6 +91,11 @@
           <td>{{actionInfo.transition}}</td>
           <td>{{actionInfo.startTime}}</td>
           <td>{{actionInfo.endTime}}</td>
+          {{#unless (eq "-" actionInfo.consoleUrl)}}
+            <td><a target="_blank" href="#" {{action 'openConsoleUrl'  actionInfo.consoleUrl preventDefault=true}}><i class="fa fa-external-link" aria-hidden="true"></i></a></td>
+          {{else}}
+            <td>{{actionInfo.consoleUrl}}</td>
+          {{/unless}}
         </tr>
         {{/each}}
       </tbody>
@@ -218,6 +224,14 @@
                 <div class="row">
                   <div class="col-md-4 text-bold">End Time</div>
                   <div class="col-md-8">{{model.actionInfo.endTime}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 text-bold">External ID</div>
+                  <div class="col-md-8">{{model.actionInfo.externalId}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 text-bold">Job URL</div>
+                  <div class="col-md-8"><a target="_blank" href="{{model.actionInfo.consoleUrl}}"><i class="fa fa-external-link" aria-hidden="true"></i></a></div>
                 </div>
                 <div class="row pull-right" {{action 'getActionDetails' model.actionInfo}}>
                   <div class="col-md-12">

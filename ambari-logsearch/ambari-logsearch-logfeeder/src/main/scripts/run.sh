@@ -70,7 +70,7 @@ LOGFEEDER_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$LOGFEEDER
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=2098"
 
 if [ "$LOGFEEDER_SSL" = "true" ]; then
-  LOGFEEDER_JAVA_OPTS="$LOGFEEDER_JAVA_OPTS -Djavax.net.ssl.keyStore=$LOGFEEDER_KEYSTORE_LOCATION -Djavax.net.ssl.keyStoreType=$LOGFEEDER_KEYSTORE_TYPE -Djavax.net.ssl.keyStorePassword=$LOGFEEDER_KEYSTORE_PASSWORD -Djavax.net.ssl.trustStore=$LOGFEEDER_TRUSTSTORE_LOCATION -Djavax.net.ssl.trustStoreType=$LOGFEEDER_TRUSTSTORE_TYPE -Djavax.net.ssl.trustStorePassword=$LOGFEEDER_TRUSTSTORE_PASSWORD"
+  LOGFEEDER_JAVA_OPTS="$LOGFEEDER_JAVA_OPTS -Djavax.net.ssl.keyStore=$LOGFEEDER_KEYSTORE_LOCATION -Djavax.net.ssl.keyStoreType=$LOGFEEDER_KEYSTORE_TYPE -Djavax.net.ssl.trustStore=$LOGFEEDER_TRUSTSTORE_LOCATION -Djavax.net.ssl.trustStoreType=$LOGFEEDER_TRUSTSTORE_TYPE"
 fi
 
 if [ $foreground -eq 0 ]; then

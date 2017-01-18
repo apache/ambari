@@ -277,6 +277,9 @@
             <package>
               <name>hadoop-libhdfs</name>
             </package>
+            <package>
+              <name>libtirpc-devel</name>
+            </package>
           </packages>
         </osSpecific>
         

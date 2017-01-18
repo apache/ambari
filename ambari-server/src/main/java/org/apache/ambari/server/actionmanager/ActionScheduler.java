@@ -40,6 +40,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.CommandReport;
@@ -78,6 +79,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -403,8 +405,10 @@ class ActionScheduler implements Runnable {
 
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
+        Multimap<String, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
 
-        Map<String, RoleStats> roleStats = processInProgressStage(stage, commandsToSchedule);
+        Map<String, RoleStats> roleStats =
+          processInProgressStage(stage, commandsToSchedule, commandsToEnqueue);
 
         // Check if stage is failed
         boolean failed = false;
@@ -503,9 +507,10 @@ class ActionScheduler implements Runnable {
           if (Role.AMBARI_SERVER_ACTION.name().equals(cmd.getRole())) {
             serverActionExecutor.awake();
           } else {
-            actionQueue.enqueue(cmd.getHostname(), cmd);
+            commandsToEnqueue.put(cmd.getHostname(), cmd);
           }
         }
+        actionQueue.enqueueAll(commandsToEnqueue.asMap());
         LOG.debug("==> Finished.");
 
         if (!configuration.getParallelStageExecution()) { // If disabled
@@ -698,7 +703,8 @@ class ActionScheduler implements Runnable {
    * @return the stats for the roles in the stage which are used to determine
    * whether stage has succeeded or failed
    */
-  protected Map<String, RoleStats> processInProgressStage(Stage s, List<ExecutionCommand> commandsToSchedule) throws AmbariException {
+  protected Map<String, RoleStats> processInProgressStage(Stage s, List<ExecutionCommand> commandsToSchedule,
+                                                          Multimap<String, AgentCommand> commandsToEnqueue) throws AmbariException {
     LOG.debug("==> Collecting commands to schedule...");
     // Map to track role status
     Map<String, RoleStats> roleStats = initRoleStats(s);
@@ -830,7 +836,7 @@ class ActionScheduler implements Runnable {
             LOG.info("Removing command from queue, host={}, commandId={} ", host, c.getCommandId());
             actionQueue.dequeue(host, c.getCommandId());
           } else {
-            cancelCommandOnTimeout(Collections.singletonList(s.getHostRoleCommand(host, roleStr)));
+            cancelCommandOnTimeout(Collections.singletonList(s.getHostRoleCommand(host, roleStr)), commandsToEnqueue);
 
             LOG.info("Host: {}, role: {}, actionId: {} timed out and will be rescheduled", host,
               roleStr, s.getActionId());
@@ -1238,7 +1244,7 @@ class ActionScheduler implements Runnable {
     }
   }
 
-  void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands) {
+  void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands, Multimap<String, AgentCommand> commandsToEnqueue) {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       // There are no server actions in actionQueue
       if (!Role.AMBARI_SERVER_ACTION.equals(hostRoleCommand.getRole())) {
@@ -1247,7 +1253,7 @@ class ActionScheduler implements Runnable {
           CancelCommand cancelCommand = new CancelCommand();
           cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
           cancelCommand.setReason("Stage timeout");
-          actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+          commandsToEnqueue.put(hostRoleCommand.getHostName(), cancelCommand);
         }
       }
     }

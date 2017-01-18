@@ -24,10 +24,16 @@ package org.apache.ambari.view.hive20.actor.message;
 public class Ping {
   private final String username;
   private final String instanceName;
+  private final boolean immediate;
 
   public Ping(String username, String instanceName) {
+    this(username, instanceName, false);
+  }
+
+  public Ping(String username, String instanceName, boolean immediate) {
     this.username = username;
     this.instanceName = instanceName;
+    this.immediate = immediate;
   }
 
   public String getUsername() {
@@ -36,5 +42,9 @@ public class Ping {
 
   public String getInstanceName() {
     return instanceName;
+  }
+
+  public boolean isImmediate() {
+    return immediate;
   }
 }

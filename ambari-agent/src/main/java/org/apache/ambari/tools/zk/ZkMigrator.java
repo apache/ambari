@@ -73,7 +73,7 @@ public class ZkMigrator {
   private static void setAcls(String connectionString, String znode, ZkAcl acl) throws IOException, InterruptedException, KeeperException {
     ZooKeeper client = ZkConnection.open(connectionString, SESSION_TIMEOUT_MILLIS, CONNECTION_TIMEOUT_MILLIS);
     try {
-      acl.setRecursivelyOn(client, znode);
+      acl.setRecursivelyOn(client, ZkPathPattern.fromString(znode));
     } catch (KeeperException.NoNodeException e) {
       System.out.println("Could not set ACL on " + znode + ". Reason: " + e.getMessage());
     } finally {

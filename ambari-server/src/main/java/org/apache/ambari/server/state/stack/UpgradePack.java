@@ -509,10 +509,10 @@ public class UpgradePack {
     @XmlElement(name="task")
     public List<Task> preTasks;
 
-    @XmlElementWrapper(name="pre-downgrade")
-    @XmlElement(name="task")
+    @XmlElement(name="pre-downgrade")
+    private DowngradeTasks preDowngradeXml;
+    @XmlTransient
     public List<Task> preDowngradeTasks;
-
 
     @XmlElementWrapper(name="upgrade")
     @XmlElement(name="task")
@@ -522,9 +522,53 @@ public class UpgradePack {
     @XmlElement(name="task")
     public List<Task> postTasks;
 
-    @XmlElementWrapper(name="post-downgrade")
-    @XmlElement(name="task")
+
+    @XmlElement(name="post-downgrade")
+    private DowngradeTasks postDowngradeXml;
+    @XmlTransient
     public List<Task> postDowngradeTasks;
+
+    /**
+     * This method verifies that if {@code pre-upgrade} is defined, that there is also
+     * a sibling {@code pre-downgrade} defined.  Similarly, {@code post-upgrade} must have a
+     * sibling {@code post-downgrade}.  This is because the JDK (include 1.8) JAXB doesn't
+     * support XSD xpath assertions for siblings.
+     *
+     * @param unmarshaller  the unmarshaller
+     * @param parent        the parent
+     */
+    void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+      if (null != preDowngradeXml) {
+        preDowngradeTasks = preDowngradeXml.copyUpgrade ? preTasks :
+          preDowngradeXml.tasks;
+      }
+
+      if (null != postDowngradeXml) {
+        postDowngradeTasks = postDowngradeXml.copyUpgrade ? postTasks :
+          postDowngradeXml.tasks;
+      }
+
+      ProcessingService service = (ProcessingService) parent;
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Processing component {}/{} preUpgrade={} postUpgrade={} preDowngrade={} postDowngrade={}",
+            preTasks, preDowngradeTasks, postTasks, postDowngradeTasks);
+      }
+
+      if (null != preTasks && null == preDowngradeTasks) {
+        String error = String.format("Upgrade pack must contain pre-downgrade elements if "
+            + "pre-upgrade exists for processing component %s/%s", service.name, name);
+
+        throw new RuntimeException(error);
+      }
+
+      if (null != postTasks && null == postDowngradeTasks) {
+        String error = String.format("Upgrade pack must contain post-downgrade elements if "
+            + "post-upgrade exists for processing component %s/%s", service.name, name);
+
+        throw new RuntimeException(error);
+      }
+    }
   }
 
   /**
@@ -647,4 +691,17 @@ public class UpgradePack {
     @XmlValue
     public String value;
   }
+
+  /**
+   * A {@code (pre|post)-downgrade} can have an attribute as well as contain {@code task} elements.
+   */
+  private static class DowngradeTasks {
+
+    @XmlAttribute(name="copy-upgrade")
+    private boolean copyUpgrade = false;
+
+    @XmlElement(name="task")
+    private List<Task> tasks = new ArrayList<>();
+  }
+
 }

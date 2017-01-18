@@ -168,11 +168,8 @@ class TestHDP21StackAdvisor(TestCase):
       if len(components) > 0:
         groups.append(components)
 
-    def sort_nested_lists(list):
-      result_list = []
-      for sublist in list:
-        result_list.append(sorted(sublist))
-      return sorted(result_list)
+    def sort_nested_lists(l):
+      return sorted(reduce(lambda x,y: x+y, l))
 
     self.assertEquals(sort_nested_lists(expected_layout), sort_nested_lists(groups))
 

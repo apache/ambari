@@ -50,7 +50,6 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
-import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -100,6 +99,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -300,6 +300,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static Gson s_gson;
 
+  /**
+   * Used to create instances of {@link UpgradeContext} with injected
+   * dependencies.
+   */
+  @Inject
+  private static UpgradeContextFactory s_upgradeContextFactory;
+
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
@@ -374,15 +381,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           "manage upgrade and downgrade");
     }
 
-    final Map<String, String> requestInfoProps = request.getRequestInfoProperties();
-    final String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
-
-    final Direction direction = Boolean.parseBoolean(forceDowngrade) ? Direction.DOWNGRADE
-        : Direction.UPGRADE;
-
     UpgradeEntity entity = createResources(new Command<UpgradeEntity>() {
       @Override
       public UpgradeEntity invoke() throws AmbariException, AuthorizationException {
+
+        final String directionProperty = (String) requestMap.get(UPGRADE_DIRECTION);
+        if (StringUtils.isEmpty(directionProperty)) {
+          throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
+        }
+
+        final Direction direction = Direction.valueOf(directionProperty);
 
         // Default to ROLLING upgrade, but attempt to read from properties.
         UpgradeType upgradeType = UpgradeType.ROLLING;
@@ -395,8 +403,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
 
-        final UpgradeContext upgradeContext = new UpgradeContext(cluster, upgradeType, direction,
-            requestMap);
+        final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, upgradeType,
+            direction, requestMap);
 
         UpgradePack upgradePack = validateRequest(upgradeContext);
         upgradeContext.setUpgradePack(upgradePack);
@@ -872,6 +880,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
     ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack, sourceStackId);
 
+    // TODO: for now, all service components are transitioned to upgrading state
+    // TODO: When performing patch upgrade, we should only target supported services/components
+    // from upgrade pack
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     Set<Service> services = new HashSet<>(cluster.getServices().values());
 
     @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
@@ -883,9 +895,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
-    // TODO: is there any extreme case when we need to set component upgrade state back to NONE
-    // from IN_PROGRESS (e.g. canceled downgrade)
-    s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents);
+    // !!! determine which stack to check for component isAdvertised
+    StackId componentStack = upgradeContext.getDirection() == Direction.UPGRADE ?
+        upgradeContext.getTargetStackId() : upgradeContext.getOriginalStackId();
+    s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents, componentStack);
 
     for (UpgradeGroupHolder group : groups) {
       boolean skippable = group.skippable;
@@ -1500,7 +1513,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
-
     request.addStages(Collections.singletonList(stage));
   }
 
@@ -1779,9 +1791,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         // Remove relevant upgrade entity
         try {
           Cluster cluster = clusters.get().getClusterById(clusterId);
-          UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
-          lastUpgradeItemForCluster.setSuspended(true);
-          s_upgradeDAO.merge(lastUpgradeItemForCluster);
+          UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
+          upgradeEntity.setSuspended(true);
+          s_upgradeDAO.merge(upgradeEntity);
 
           cluster.setUpgradeEntity(null);
         } catch (AmbariException e) {
@@ -2021,13 +2033,18 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
       String version = (String) requestMap.get(UPGRADE_VERSION);
+      String direction = (String) requestMap.get(UPGRADE_DIRECTION);
 
-      if (null == clusterName) {
+      if (StringUtils.isBlank(clusterName)) {
         throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
       }
 
-      if (null == version) {
+      if (StringUtils.isBlank(version)) {
         throw new AmbariException(String.format("%s is required", UPGRADE_VERSION));
+      }
+
+      if (StringUtils.isBlank(direction)) {
+        throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
       }
     }
   }
@@ -2052,22 +2069,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
       String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
 
-      // Validate there isn't an direction == upgrade/downgrade already in progress.
-      List<UpgradeEntity> upgrades = s_upgradeDAO.findUpgrades(cluster.getClusterId());
-      for (UpgradeEntity entity : upgrades) {
-        if (entity.getDirection() == direction) {
-          Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(
-              entity.getRequestId());
-          CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
-          HostRoleStatus status = calc.getStatus();
-          if (!HostRoleStatus.getCompletedStates().contains(status)) {
-            throw new AmbariException(
-                String.format("Unable to perform %s as another %s is in progress. %s request %d is in %s",
-                    direction.getText(false), direction.getText(false), direction.getText(true),
-                    entity.getRequestId().longValue(), status)
-            );
-          }
-        }
+      // verify that there is not an upgrade or downgrade that is in progress or suspended
+      UpgradeEntity existingUpgrade = cluster.getUpgradeInProgress();
+      if( null != existingUpgrade ){
+        throw new AmbariException(
+            String.format("Unable to perform %s as another %s (request ID %s) is in progress.",
+                direction.getText(false), direction.getText(false),
+                existingUpgrade.getRequestId().longValue()));
       }
 
       // skip this check if it's a downgrade or we are instructed to skip it

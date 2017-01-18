@@ -219,7 +219,7 @@
             "XAAUDIT.DB.IS_ENABLED": "true", 
             "XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS": "600", 
             "hadoop.rpc.protection": "-", 
-            "ranger-hdfs-plugin-enabled": "No", 
+            "ranger-hdfs-plugin-enabled": "Yes",
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
             "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60", 
             "policy_user": "ambari-qa", 

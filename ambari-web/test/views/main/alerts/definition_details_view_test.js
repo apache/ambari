@@ -376,38 +376,8 @@ function getInstanceView() {
 
 describe('App.AlertInstanceServiceHostView', function () {
 
-  var instanceView;
-
-  beforeEach(function() {
-    instanceView = getInstanceView();
-  });
-
   App.TestAliases.testAsComputedAnd(getInstanceView(), 'showSeparator', ['instance.serviceDisplayName', 'instance.hostName']);
 
-  describe("#serviceIsLink", function() {
+  App.TestAliases.testAsComputedExistsInByKey(getInstanceView(), 'serviceIsLink', 'instance.service.serviceName', 'App.services.all', ['HDFS', 'ZOOKEEPER']);
 
-    beforeEach(function() {
-      sinon.stub(App, 'get').returns(['S1']);
-    });
-    afterEach(function() {
-      App.get.restore();
-    });
-
-    it("service belongs to all", function() {
-      instanceView.set('instance', Em.Object.create({
-        service: Em.Object.create({
-          serviceName: 'S1'
-        })
-      }));
-      expect(instanceView.get('serviceIsLink')).to.be.true;
-    });
-    it("service does not belong to all", function() {
-      instanceView.set('instance', Em.Object.create({
-        service: Em.Object.create({
-          serviceName: 'S2'
-        })
-      }));
-      expect(instanceView.get('serviceIsLink')).to.be.false;
-    });
-  });
 });

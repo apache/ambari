@@ -18,8 +18,7 @@
 
 package org.apache.ambari.server.metric.system.impl;
 
-import org.apache.ambari.server.metrics.system.MetricsService;
-import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
+import org.apache.ambari.server.metrics.system.MetricsSource;
 import org.apache.ambari.server.metrics.system.impl.JvmMetricsSource;
 import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.junit.Test;
@@ -30,11 +29,16 @@ public class MetricsServiceTest {
 
   @Test
   public void testMetricsServiceStart() {
-    MetricsService metricsService = new MetricsServiceImpl();
+    MetricsServiceImpl metricsService = new MetricsServiceImpl();
     metricsService.start();
-    Assert.assertTrue(metricsService.getSources().size() == 2);
-    for (AbstractMetricsSource source : metricsService.getSources()) {
-      Assert.assertTrue ( source instanceof JvmMetricsSource || source instanceof TestMetricsSource);
-    }
+
+    MetricsSource source = MetricsServiceImpl.getSource("jvm");
+    Assert.assertNotNull(source);
+    Assert.assertTrue(source instanceof JvmMetricsSource);
+
+    source = MetricsServiceImpl.getSource("testsource");
+    Assert.assertNotNull(source);
+    Assert.assertTrue(source instanceof TestMetricsSource);
   }
+
 }

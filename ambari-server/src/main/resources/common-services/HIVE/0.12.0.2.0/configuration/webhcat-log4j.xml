@@ -21,6 +21,27 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
+     <name>webhcat_log_maxfilesize</name>
+     <value>256</value>
+     <description>The maximum size of backup file before the log is rotated</description>
+     <display-name>Webhcat Log: backup file size</display-name>
+     <value-attributes>
+          <unit>MB</unit>
+     </value-attributes>
+     <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+     <name>webhcat_log_maxbackupindex</name>
+     <value>20</value>
+     <description>The number of backup files</description>
+     <display-name>Webhcat Log: # of backup files</display-name>
+     <value-attributes>
+          <type>int</type>
+          <minimum>0</minimum>
+     </value-attributes>
+     <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>webhcat-log4j template</display-name>
     <description>Custom webhcat-log4j.properties</description>
@@ -54,6 +75,8 @@ log4j.threshhold = DEBUG
 
 log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender
 log4j.appender.standard.File = ${webhcat.log.dir}/${webhcat.log.file}
+log4j.appender.standard.MaxFileSize = {{webhcat_log_maxfilesize}}MB
+log4j.appender.standard.MaxBackupIndex = {{webhcat_log_maxbackupindex}}
 
 # Rollver at midnight
 log4j.appender.DRFA.DatePattern = .yyyy-MM-dd

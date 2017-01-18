@@ -2002,17 +2002,23 @@ describe('App.WizardStep8Controller', function () {
       describe(item.title, function () {
 
         beforeEach(function () {
-          sinon.stub(installerStep8Controller, 'get')
-            .withArgs('ajaxRequestsQueue').returns({
-              start: Em.K
-            })
-            .withArgs('ajaxRequestsQueue.queue.length').returns(1)
-            .withArgs('wizardController').returns({
-              getDBProperty: function () {
-                return item.fileNamesToUpdate;
-              }
-            })
-            .withArgs('content.controllerName').returns(item.controllerName);
+          sinon.stub(installerStep8Controller, 'get', function (key) {
+            if (key === 'ajaxRequestsQueue') {
+              return {start: Em.K};
+            }
+            if (key === 'ajaxRequestsQueue.queue.length') {
+              return 1;
+            }
+            if (key === 'wizardController') {
+              return {
+                getDBProperty: function () {
+                  return item.fileNamesToUpdate;
+                }
+              };
+            }
+            return Em.get(this, key);
+          });
+          installerStep8Controller.set('content.controllerName', item.controllerName);
           installerStep8Controller._startDeploy();
         });
 

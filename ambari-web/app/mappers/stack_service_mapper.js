@@ -117,9 +117,6 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         stackService.is_installable = false;
         stackService.is_selected = false;
       }
-      if (stackService.selection === "TECH_PREVIEW") {
-        stackService.is_selected = false;
-      }
       if(stackService.selection === "MANDATORY") {
         stackService.is_mandatory = true;
       }

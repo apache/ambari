@@ -1110,10 +1110,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.abortUpgrade.calledOnce).to.be.true;
     });
 
-    it('should run startDowngrade on done', function() {
-      expect(controller.startDowngrade.calledWith('versionInfo')).to.be.true;
-    });
-
   });
 
   describe("#startDowngrade()", function() {

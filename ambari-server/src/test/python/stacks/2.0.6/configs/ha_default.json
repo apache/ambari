@@ -234,7 +234,7 @@
             "hadoop.security.auth_to_local": "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT"
         }, 
         "ranger-hdfs-plugin-properties" : {
-            "ranger-hdfs-plugin-enabled":"yes"
+            "ranger-hdfs-plugin-enabled":"No"
         },
         "hdfs-log4j": {
             "log4j.appender.DRFA.layout": "org.apache.log4j.PatternLayout", 
@@ -508,7 +508,7 @@
             "XAAUDIT.SOLR.SOLR_URL": "http://localhost:6083/solr/ranger_audits", 
             "XAAUDIT.SOLR.IS_ENABLED": "false", 
             "hadoop.rpc.protection": "-", 
-            "ranger-hdfs-plugin-enabled": "Yes", 
+            "ranger-hdfs-plugin-enabled": "No", 
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
             "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60", 
             "policy_user": "ambari-qa", 

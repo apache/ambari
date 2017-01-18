@@ -28,62 +28,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>xasecure.audit.destination.db</name>
-    <value>false</value>
-    <display-name>Audit to DB</display-name>
-    <description>Is Audit to DB enabled?</description>
-    <value-attributes>
-      <type>boolean</type>
-    </value-attributes>
-    <depends-on>
-      <property>
-        <type>ranger-env</type>
-        <name>xasecure.audit.destination.db</name>
-      </property>
-    </depends-on>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.jdbc.url</name>
-    <value>{{audit_jdbc_url}}</value>
-    <description>Audit DB JDBC URL</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.user</name>
-    <value>{{xa_audit_db_user}}</value>
-    <description>Audit DB JDBC User</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.password</name>
-    <value>crypted</value>
-    <property-type>PASSWORD</property-type>
-    <description>Audit DB JDBC Password</description>
-    <value-attributes>
-      <type>password</type>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.jdbc.driver</name>
-    <value>{{jdbc_driver}}</value>
-    <description>Audit DB JDBC Driver</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.credential.provider.file</name>
-    <value>jceks://file{{credential_file}}</value>
-    <description>Credential file store</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.batch.filespool.dir</name>
-    <value>/var/log/hadoop/hdfs/audit/db/spool</value>
-    <description>/var/log/hadoop/hdfs/audit/db/spool</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
     <display-name>Audit to HDFS</display-name>
@@ -176,42 +120,4 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-
-  <!-- These configs are deleted in HDP 2.5. -->
-  <property>
-    <name>xasecure.audit.destination.db</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.jdbc.url</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.password</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.jdbc.driver</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.credential.provider.file</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>xasecure.audit.destination.db.batch.filespool.dir</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-
 </configuration>

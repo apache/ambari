@@ -117,13 +117,24 @@ App.MaxCapacityInputComponent = App.CapacityInputComponent.extend({
   }.observes('queue.maximum_capacity','queue.capacity')
 });
 
+App.DecimalInputRangeComponent = Em.TextField.extend({
+  type: 'range',
+  step: '0.01',
+  action: 'mouseUp',
+
+  mouseUp: function () {
+    this.sendAction('action', this.get('value'));
+  }
+});
+
 App.DecimalCapacityInputComponent = Ember.TextField.extend({
   classNames: ['form-control'],
   maxVal: null,
+  totalCapacity: null,
   queue: null,
 
   initVal: function() {
-    this.set('value', parseFloat(this.get('value')));
+    this.set('value', (!Em.isBlank(this.get('value')) && !isNaN(parseFloat(this.get('value')))) ? parseFloat(this.get('value')): null);
   }.on('init'),
 
   keyDown: function(evt) {
@@ -137,7 +148,8 @@ App.DecimalCapacityInputComponent = Ember.TextField.extend({
       return false;
     }
 
-    if (evt.keyCode === 190) {
+    //Allow decimal point and tab keys
+    if (evt.keyCode === 190 || evt.keyCode === 9) {
       return true;
     }
 
@@ -151,7 +163,7 @@ App.DecimalCapacityInputComponent = Ember.TextField.extend({
       val = val.substring(0, evt.target.selectionStart) + newChar + val.substring(evt.target.selectionEnd);
     }
 
-    //Restricting three decimal places, allow decimal precision=2
+    //Restricting decimal places to less than or equal to 2
     if (/^\d+\.\d{3}$/.test(val)) {
       return false;
     }
@@ -160,20 +172,22 @@ App.DecimalCapacityInputComponent = Ember.TextField.extend({
   },
 
   debounceId: null,
+
   cancelDebounceCallback: function() {
     Ember.run.cancel(this.get('debounceId'));
     this.set('debounceId', null);
   },
+
   initDebounceCallback: function(val, maxVal) {
     var debounce = Ember.run.debounce(this, function() {
       this.set('value', (parseFloat(val) > maxVal)? parseFloat(maxVal) : parseFloat(val));
-    }, 3000);
+    }, 8000);
     this.set('debounceId', debounce);
   },
 
   valueDidChange: function() {
     var val = this.get('value'),
-    maxVal = this.get('maxVal');
+        maxVal = this.get('maxVal');
     this.cancelDebounceCallback();
     if (/^\d+(\.(\d{1,2})?)?$/.test(val)) {
       if (/^\d+\.[0]$/.test(val) || /^\d+\.$/.test(val)) {
@@ -183,7 +197,6 @@ App.DecimalCapacityInputComponent = Ember.TextField.extend({
       }
     }
   }.observes('value').on('change')
-
 });
 
 App.DecimalMaxcapacityInputComponent = App.DecimalCapacityInputComponent.extend({

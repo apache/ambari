@@ -119,7 +119,7 @@ if stack_supports_ru:
 
 if stack_supports_timeline_state_store:
   # Timeline Service property that was added timeline_state_store stack feature
-  ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
+  ats_leveldb_state_store_dir = default('/configurations/yarn-site/yarn.timeline-service.leveldb-state-store.path', '/hadoop/yarn/timeline')
 
 # ats 1.5 properties
 entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
@@ -255,8 +255,6 @@ nodemanager_kinit_cmd = ""
 rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-address']
 rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
 rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
-rm_zk_failover_znode = default('/configurations/yarn-site/yarn.resourcemanager.ha.automatic-failover.zk-base-path', '/yarn-leader-election')
-hadoop_registry_zk_root = default('/configurations/yarn-site/hadoop.registry.zk.root', '/registry')
 
 if security_enabled:
   rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']

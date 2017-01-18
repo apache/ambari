@@ -523,7 +523,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') === 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
-    App.configTheme.resolveConfigThemeConditions(configs);
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
     // if HA is enabled -> Make some reconfigurations
@@ -536,10 +535,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
     this.selectProperService();
-    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    /* var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
-    }
+    } */
     console.timeEnd('applyServicesConfigs execution time: ');
     console.time('loadConfigRecommendations execution time: ');
     this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
@@ -578,6 +577,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   completeConfigLoading: function() {
+    this.get('stepConfigs').forEach(function(service) {
+      App.configTheme.resolveConfigThemeConditions(service.get('configs'));
+    });
     this.clearRecommendationsByServiceName(App.StackService.find().filter(function (s) {
       return s.get('isSelected') && !s.get('isInstalled');
     }).mapProperty('serviceName'));

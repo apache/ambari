@@ -17,10 +17,9 @@
  */
 package org.apache.oozie.ambari.view;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
+import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -29,7 +28,13 @@ import org.apache.hadoop.fs.FileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+
 public class HDFSFileUtils {
+	public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
+
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(HDFSFileUtils.class);
 	private ViewContext viewContext;
@@ -84,7 +89,15 @@ public class HDFSFileUtils {
 
 	private HdfsApi getHdfsgetApi() {
 		try {
-			return HdfsUtil.connectToHDFSApi(viewContext);
+			Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(viewContext, VIEW_CONF_KEYVALUES);
+			HdfsApi api;
+			if(props.isPresent()){
+				api = HdfsUtil.connectToHDFSApi(viewContext, props.get());
+			}else{
+				api = HdfsUtil.connectToHDFSApi(viewContext);
+			}
+
+			return api;
 		} catch (Exception ex) {
 			LOGGER.error("Error in getting HDFS Api", ex);
 			throw new RuntimeException(

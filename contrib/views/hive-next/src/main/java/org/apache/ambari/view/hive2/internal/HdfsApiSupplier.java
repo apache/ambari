@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive2.internal;
 
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HdfsApiSupplier implements ContextSupplier<Optional<HdfsApi>> {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
 
   protected final Logger LOG =
     LoggerFactory.getLogger(getClass());
@@ -44,7 +46,13 @@ public class HdfsApiSupplier implements ContextSupplier<Optional<HdfsApi>> {
         synchronized (lock) {
           if(!hdfsApiMap.containsKey(getKey(context))) {
             LOG.debug("Creating HDFSApi instance for Viewname: {}, Instance Name: {}", context.getViewName(), context.getInstanceName());
-            HdfsApi api = HdfsUtil.connectToHDFSApi(context);
+            Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+            HdfsApi api;
+            if(props.isPresent()){
+              api = HdfsUtil.connectToHDFSApi(context, props.get());
+            }else{
+              api = HdfsUtil.connectToHDFSApi(context);
+            }
             hdfsApiMap.put(getKey(context), api);
             return Optional.of(api);
           }

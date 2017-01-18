@@ -19,7 +19,7 @@
 <configuration supports_final="true">
   <property>
     <name>oozie.service.SparkConfigurationService.spark.configurations</name>
-    <value>*=spark-conf</value>
+    <value>*={{spark_conf_dir}}</value>
     <description>
       Comma separated AUTHORITY=SPARK_CONF_DIR, where AUTHORITY is the
       HOST:PORT of the ResourceManager of a YARN cluster. The wildcard '*'

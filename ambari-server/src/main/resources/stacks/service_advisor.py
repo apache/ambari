@@ -53,43 +53,50 @@ class ServiceAdvisor(DefaultStackAdvisor):
   Abstract class implemented by all service advisors.
   """
 
-  """
-  If any components of the service should be colocated with other services,
-  this is where you should set up that layout.  Example:
 
-    # colocate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
-    hawqSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
-    if not self.isComponentHostsPopulated(hawqSegment):
-      for hostName in hostsComponentsMap.keys():
-        hostComponents = hostsComponentsMap[hostName]
-        if {"name": "DATANODE"} in hostComponents and {"name": "HAWQSEGMENT"} not in hostComponents:
-          hostsComponentsMap[hostName].append( { "name": "HAWQSEGMENT" } )
-        if {"name": "DATANODE"} not in hostComponents and {"name": "HAWQSEGMENT"} in hostComponents:
-          hostComponents.remove({"name": "HAWQSEGMENT"})
-  """
   def colocateService(self, hostsComponentsMap, serviceComponents):
+    """
+    Populate hostsComponentsMap with key = hostname and value = [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
+    of services that must be co-hosted and on which host they should be present.
+    :param hostsComponentsMap: Map from hostname to list of [{"name": "COMP_NAME_1"}, {"name": "COMP_NAME_2"}, ...]
+    present on on that host.
+    :param serviceComponents: Mapping of components
+
+    If any components of the service should be colocated with other services,
+    this is where you should set up that layout.  Example:
+
+      # colocate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
+      hawqSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
+      if not self.isComponentHostsPopulated(hawqSegment):
+        for hostName in hostsComponentsMap.keys():
+          hostComponents = hostsComponentsMap[hostName]
+          if {"name": "DATANODE"} in hostComponents and {"name": "HAWQSEGMENT"} not in hostComponents:
+            hostsComponentsMap[hostName].append( { "name": "HAWQSEGMENT" } )
+          if {"name": "DATANODE"} not in hostComponents and {"name": "HAWQSEGMENT"} in hostComponents:
+            hostComponents.remove({"name": "HAWQSEGMENT"})
+    """
     pass
 
-  """
-  Any configuration recommendations for the service should be defined in this function.
-  This should be similar to any of the recommendXXXXConfigurations functions in the stack_advisor.py
-  such as recommendYARNConfigurations().
-  """
   def getServiceConfigurationRecommendations(self, configurations, clusterSummary, services, hosts):
+    """
+    Any configuration recommendations for the service should be defined in this function.
+    This should be similar to any of the recommendXXXXConfigurations functions in the stack_advisor.py
+    such as recommendYARNConfigurations().
+    """
     pass
 
-  """
-  Returns an array of Validation objects about issues with the hostnames to which components are assigned.
-  This should detect validation issues which are different than those the stack_advisor.py detects.
-  The default validations are in stack_advisor.py getComponentLayoutValidations function.
-  """
   def getServiceComponentLayoutValidations(self, services, hosts):
+    """
+    Returns an array of Validation objects about issues with the hostnames to which components are assigned.
+    This should detect validation issues which are different than those the stack_advisor.py detects.
+    The default validations are in stack_advisor.py getComponentLayoutValidations function.
+    """
     return []
 
-  """
-  Any configuration validations for the service should be defined in this function.
-  This should be similar to any of the validateXXXXConfigurations functions in the stack_advisor.py
-  such as validateHDFSConfigurations.
-  """
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+    """
+    Any configuration validations for the service should be defined in this function.
+    This should be similar to any of the validateXXXXConfigurations functions in the stack_advisor.py
+    such as validateHDFSConfigurations.
+    """
     return []

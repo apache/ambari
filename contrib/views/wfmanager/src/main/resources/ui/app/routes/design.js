@@ -50,7 +50,12 @@ export default Ember.Route.extend(Ember.Evented, {
           request.setRequestHeader("X-Requested-By", "workflow-designer");
         },
         success : function(response){
-          resolve(JSON.parse(response));
+          try {
+            resolve(JSON.parse(response));
+          } catch (e) {
+            console.error(e);
+            reject(response);
+          }
         },
         error : function(response){
           reject(response);
@@ -73,8 +78,16 @@ export default Ember.Route.extend(Ember.Evented, {
       this.controller.set('dashboardShown', true);
       this.transitionTo('design.dashboardtab');
     },
+    showProjManager(){
+      //this.controller.set('ProjManagerShown', true);
+      this.transitionTo('design.projManagerTab');
+    },
     hideDashboard(){
       this.controller.set('dashboardShown', false);
+      this.transitionTo('design');
+    },
+    hideProjManager(){
+      //this.controller.set('ProjManagerShown', false);
       this.transitionTo('design');
     }
   }

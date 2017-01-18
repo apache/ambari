@@ -178,6 +178,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     this.set('recommendationsConfigs', null);
   },
 
+  clearRecommendations: function () {
+    this.clearRecommendationsInfo();
+    this.clearAllRecommendations();
+  },
+
   /**
    * sends request to get values for dependent configs
    * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations
@@ -316,9 +321,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         var changedConfigIds = this.get('changedProperties').map(function(changed) {
           return App.config.configId(changed.propertyName, changed.propertyFileName);
         });
-        if (this.get('currentlyChangedConfig')) {
-          return changedConfigIds.contains(App.config.configId(this.get('currentlyChangedConfig.name'), this.get('currentlyChangedConfig.fileName')));
-        }
         return !changedConfigIds.contains(App.config.configId(c.get('name'), c.get('filename')));
       }, this).length;
     }, this).length);

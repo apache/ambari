@@ -46,7 +46,7 @@ public class WorkflowsManagerResource {
 	
 	
 	@DELETE
-	@Path("/projectId")
+	@Path("/{projectId}")
 	public void deleteWorkflow( @PathParam("projectId") String id,
             @DefaultValue("false") @QueryParam("deleteDefinition") Boolean deleteDefinition){
 	    workflowManagerService.deleteWorkflow(id,deleteDefinition);

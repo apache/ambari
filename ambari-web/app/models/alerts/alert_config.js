@@ -179,7 +179,7 @@ App.AlertConfigProperties = {
     displayType: 'select',
     apiProperty: 'service_name',
     apiFormattedValue: function () {
-      return this.get('value') == 'CUSTOM' ? this.get('value') : App.StackService.find().findProperty('displayName', this.get('value')).get('serviceName');
+      return this.get('value') === 'CUSTOM' ? this.get('value') : App.StackService.find().findProperty('displayName', this.get('value')).get('serviceName');
     }.property('value'),
     change: function () {
       this.set('property.value', true);
@@ -193,7 +193,7 @@ App.AlertConfigProperties = {
     displayType: 'select',
     apiProperty: 'component_name',
     apiFormattedValue: function () {
-      return this.get('value') == 'No component' ? this.get('value') : App.StackServiceComponent.find().findProperty('displayName', this.get('value')).get('componentName');
+      return this.get('value') === 'No component' ? this.get('value') : App.StackServiceComponent.find().findProperty('displayName', this.get('value')).get('componentName');
     }.property('value')
   }),
 

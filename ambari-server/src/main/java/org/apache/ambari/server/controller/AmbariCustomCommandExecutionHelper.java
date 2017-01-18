@@ -324,6 +324,9 @@ public class AmbariCustomCommandExecutionHelper {
     StackInfo stackInfo = ambariMetaInfo.getStack
        (stackId.getStackName(), stackId.getStackVersion());
 
+    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+    boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
+
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
     if(ci != null){
@@ -390,7 +393,7 @@ public class AmbariCustomCommandExecutionHelper {
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
       Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-      
+
       Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
       String userList = gson.toJson(userSet);
       hostLevelParams.put(USER_LIST, userList);
@@ -442,7 +445,6 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
-      ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
       if (effectiveClusterVersion != null) {
        commandParams.put(KeyNames.VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
       }
@@ -456,7 +458,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       // if there is a stack upgrade which is currently suspended then pass that
       // information down with the command as some components may need to know
-      if (cluster.isUpgradeSuspended()) {
+      if (isUpgradeSuspended) {
         roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
       }
 

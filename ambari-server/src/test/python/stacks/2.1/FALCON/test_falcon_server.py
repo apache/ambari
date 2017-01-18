@@ -118,6 +118,7 @@ class TestFalconServer(RMFTestCase):
                               mode = 0755,
                               create_parents = True
     )
+
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
                               create_parents = True
@@ -127,6 +128,7 @@ class TestFalconServer(RMFTestCase):
                               owner = 'falcon',
                               group = 'hadoop'
                               )
+
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/client.properties',
                               mode = 0644,
                               owner = 'falcon',
@@ -142,6 +144,14 @@ class TestFalconServer(RMFTestCase):
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
                               owner = 'falcon'
                               )
+
+    self.assertResourceCalled('File', '/etc/falcon/conf/log4j.properties',
+                          content=InlineTemplate(self.getConfig()['configurations']['falcon-log4j']['content']),
+                          owner='falcon',
+                          group='hadoop',
+                          mode= 0644
+                          )
+
     self.assertResourceCalled('Directory', '/hadoop/falcon/store',
                               owner = 'falcon',
                               create_parents = True
@@ -297,6 +307,14 @@ class TestFalconServer(RMFTestCase):
         mode = 0644,
         properties = self.getConfig()['configurations']['falcon-startup.properties'],
     )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/conf/log4j.properties',
+                          content=InlineTemplate(self.getConfig()['configurations']['falcon-log4j']['content']),
+                          owner='falcon',
+                          group='hadoop',
+                          mode= 0644
+                          )
+
     self.assertResourceCalled('Directory', '/hadoop/falcon/data/lineage/graphdb',
         owner = 'falcon',
         create_parents = True,

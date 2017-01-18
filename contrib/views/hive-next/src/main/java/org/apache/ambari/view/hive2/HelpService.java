@@ -100,7 +100,7 @@ public class HelpService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response atsStatus() {
     try {
-      ATSRequestsDelegateImpl atsimpl = new ATSRequestsDelegateImpl(context, ATSParserFactory.getATSUrl(context));
+      ATSRequestsDelegateImpl atsimpl = new ATSRequestsDelegateImpl(context, new ATSParserFactory(context).getATSUrl());
       atsimpl.checkATSStatus();
       return getOKResponse();
     }catch (IOException e){

@@ -28,6 +28,10 @@ import java.util.Map;
  * Bean to represent saved query
  */
 public class JobImpl implements Job {
+  public enum REFERRER {
+    INTERNAL,
+    USER
+  }
   private String title = null;
   private String queryFile = null;
   private String statusDir = null;

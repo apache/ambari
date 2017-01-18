@@ -24,6 +24,8 @@ export default Ember.Component.extend({
 
   classNames: ['query-result-table', 'clearfix'],
 
+  jobId: null,
+
   queryResult: {'schema' :[], 'rows' :[]},
 
   columns: Ember.computed('queryResult', function() {
@@ -63,14 +65,22 @@ export default Ember.Component.extend({
     return new Table(this.get('columns'), this.get('rows'));
   }),
 
+  showSaveHdfsModal:false,
+
+  showDownloadCsvModal: false,
+
+  isExportResultSuccessMessege:false,
+
+  isSaveHdfsErrorMessege:false,
+
+
   actions: {
     onScrolledToBottom() {
-      //this.send('goNextPage');
-      console.log('hook for INFINITE scroll');
+      //console.log('hook for INFINITE scroll');
     },
 
     onColumnClick(column) {
-      console.log('I am in onColumnClick');
+      //console.log('I am in onColumnClick');
     },
     goNextPage(){
       this.sendAction('goNextPage');
@@ -80,6 +90,42 @@ export default Ember.Component.extend({
     },
     expandQueryResultPanel(){
       this.sendAction('expandQueryResultPanel');
+    },
+
+    openSaveHdfsModal(){
+      this.set('showSaveHdfsModal',true);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
+    },
+
+    closeSaveHdfsModal(){
+      this.set('showSaveHdfsModal',false);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
+    },
+
+    openDownloadCsvModal(){
+      this.set('showDownloadCsvModal',true);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
+    },
+
+    closeDownloadCsvModal(){
+      this.set('showDownloadCsvModal',false);
+      this.set('isExportResultSuccessMessege',false);
+      this.set('isExportResultFailureMessege',false);
+    },
+
+    saveToHDFS(jobId, pathName){
+      console.log('saveToHDFS with jobId == ', jobId );
+      console.log('saveToHDFS with pathName == ', pathName );
+      this.sendAction('saveToHDFS', jobId,  pathName);
+    },
+
+    downloadAsCsv(jobId, pathName){
+      console.log('downloadAsCsv with jobId == ', jobId );
+      console.log('downloadAsCsv with pathName == ', pathName );
+      this.sendAction('downloadAsCsv', jobId,  pathName);
     }
 
   }

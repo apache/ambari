@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -242,6 +243,7 @@ public class UpgradeResourceProviderHDP22Test {
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.4.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 

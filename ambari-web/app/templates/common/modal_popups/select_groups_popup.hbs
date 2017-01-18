@@ -21,7 +21,7 @@
     <label class="col-sm-2 control-label"><strong>{{view.serviceName}}&nbsp;</strong>&nbsp;</label>
     <div class="col-sm-8">
       {{#if view.hasGroups}}
-        {{view Ember.Select contentBinding="view.groups" valueBinding="view.selectedGroup" disabledBinding="view.disabled"}}
+        {{view Ember.Select classNames="form-control" contentBinding="view.groups" valueBinding="view.selectedGroup" disabledBinding="view.disabled"}}
       {{else}}
         <p>{{t popup.dependent.configs.select.config.group.no.groups}}</p>
       {{/if}}

@@ -18,20 +18,11 @@
 
 package org.apache.ambari.server.metric.system.impl;
 
-import java.util.List;
-
-import org.apache.ambari.server.metrics.system.SingleMetric;
 import org.apache.ambari.server.metrics.system.impl.AbstractMetricsSource;
 
 public class TestMetricsSource extends AbstractMetricsSource {
 
   @Override
-  public List<SingleMetric> getMetrics() {
-    return null;
+  public void start() {
   }
-
-  @Override
-  public void run() {
-  }
-
 }

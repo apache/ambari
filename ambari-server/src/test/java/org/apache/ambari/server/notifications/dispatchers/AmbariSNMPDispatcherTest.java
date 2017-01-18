@@ -20,6 +20,7 @@ package org.apache.ambari.server.notifications.dispatchers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -53,6 +54,9 @@ import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.Target;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.smi.Integer32;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 
 public class AmbariSNMPDispatcherTest {
@@ -254,14 +258,23 @@ public class AmbariSNMPDispatcherTest {
         }
         assertEquals(10, variableBindings.size());
         assertEquals(AmbariSNMPDispatcher.AMBARI_ALERT_TRAP_OID, variableBindings.get(SnmpConstants.snmpTrapOID.toString()).toValueString());
+        assertTrue(variableBindings.get(SnmpConstants.snmpTrapOID.toString()).getVariable() instanceof OID);
         assertEquals(String.valueOf(DEFINITION_ID), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_ID_OID).getVariable() instanceof Integer32);
         assertEquals(DEFINITION_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_DEFINITION_NAME_OID).getVariable() instanceof OctetString);
         assertEquals(ALERT_LABEL, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_NAME_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_NAME_OID).getVariable() instanceof OctetString);
         assertEquals(ALERT_TEXT, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_TEXT_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_TEXT_OID).getVariable() instanceof OctetString);
         assertEquals(String.valueOf(ALERT_STATE.getIntValue()), variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_STATE_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_STATE_OID).getVariable() instanceof Integer32);
         assertEquals(ALERT_HOSTNAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_HOST_NAME_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_HOST_NAME_OID).getVariable() instanceof OctetString);
         assertEquals(ALERT_SERVICE_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_SERVICE_NAME_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_SERVICE_NAME_OID).getVariable() instanceof OctetString);
         assertEquals(ALERT_COMPONENT_NAME, variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_COMPONENT_NAME_OID).toValueString());
+        assertTrue(variableBindings.get(AmbariSNMPDispatcher.AMBARI_ALERT_COMPONENT_NAME_OID).getVariable() instanceof OctetString);
     }
 
     @Test

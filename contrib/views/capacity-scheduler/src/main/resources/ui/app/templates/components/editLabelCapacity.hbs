@@ -35,7 +35,7 @@
         <span class="input-group-addon">%</span>
       </div>
       <div class="form-group label-capacity-slider">
-        {{input-range min="0" max="100" step="1" value=label.capacity class="input-sm" disabled=isAccessDisabled}}
+        {{decimal-input-range min="0" max="100" step="0.01" value=label.capacity class="input-sm" disabled=isAccessDisabled}}
       </div>
       {{#unless isAccessDisabled}}
         {{#if isLabelCapacityDirty}}
@@ -51,7 +51,7 @@
         <span class="input-group-addon">%</span>
       </div>
       <div class="form-group label-capacity-slider">
-        {{input-range min="0" max="100" step="1" value=label.maximum_capacity class="input-sm" disabled=isAccessDisabled}}
+        {{decimal-input-range min="0" max="100" step="0.01" value=label.maximum_capacity class="input-sm" disabled=isAccessDisabled}}
       </div>
       {{#unless isAccessDisabled}}
         {{#if isLabelMaxCapacityDirty}}

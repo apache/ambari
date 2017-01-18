@@ -494,6 +494,28 @@ describe('App.EnhancedConfigsMixin', function () {
     });
   });
 
+  describe('#clearRecommendations()', function () {
+
+    beforeEach(function () {
+      sinon.stub(mixin, 'clearRecommendationsInfo');
+      sinon.stub(mixin, 'clearAllRecommendations');
+      mixin.clearRecommendations();
+    });
+
+    afterEach(function () {
+      mixin.clearRecommendationsInfo.restore();
+      mixin.clearAllRecommendations.restore();
+    });
+
+    it('clearRecommendationsInfo should be called', function() {
+      expect(mixin.get('clearRecommendationsInfo').calledOnce).to.be.true;
+    });
+
+    it('clearAllRecommendations should be called', function() {
+      expect(mixin.get('clearAllRecommendations').calledOnce).to.be.true;
+    });
+  });
+
   describe("#loadConfigRecommendations()", function () {
     var mock = {
       onComplete: Em.K

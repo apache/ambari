@@ -87,7 +87,7 @@ export default Ember.Route.extend({
 
   actions: {
 
-    xyz(selectedDBs){
+    changeDbHandler(selectedDBs){
 
       let self = this;
       let selectedTablesModels =[];

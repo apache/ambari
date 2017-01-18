@@ -28,6 +28,20 @@ module.exports = [
     "category": "Advanced infra-solr-client-log4j",
     "filename": "infra-solr-client-log4j.xml",
     "index": 2,
+    "name": "infra_client_log_maxfilesize",
+    "serviceName": "AMBARI_INFRA"
+  },
+  {
+    "category": "Advanced infra-solr-client-log4j",
+    "filename": "infra-solr-client-log4j.xml",
+    "index": 3,
+    "name": "infra_client_log_maxbackupindex",
+    "serviceName": "AMBARI_INFRA"
+  },
+  {
+    "category": "Advanced infra-solr-client-log4j",
+    "filename": "infra-solr-client-log4j.xml",
+    "index": 4,
     "name": "content",
     "serviceName": "AMBARI_INFRA"
   },
@@ -154,6 +168,20 @@ module.exports = [
     "category": "Advanced infra-solr-log4j",
     "filename": "infra-solr-log4j.xml",
     "index": 1,
+    "name": "infra_log_maxfilesize",
+    "serviceName": "AMBARI_INFRA"
+  },
+  {
+    "category": "Advanced infra-solr-log4j",
+    "filename": "infra-solr-log4j.xml",
+    "index": 2,
+    "name": "infra_log_maxbackupindex",
+    "serviceName": "AMBARI_INFRA"
+  },
+  {
+    "category": "Advanced infra-solr-log4j",
+    "filename": "infra-solr-log4j.xml",
+    "index": 3,
     "name": "content",
     "serviceName": "AMBARI_INFRA"
   },

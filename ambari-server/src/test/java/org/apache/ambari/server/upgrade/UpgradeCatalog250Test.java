@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -39,8 +40,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -75,6 +78,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.Binder;
@@ -82,6 +86,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+
+import junit.framework.AssertionFailedError;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -276,6 +282,10 @@ public class UpgradeCatalog250Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
+    Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
+    Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
+    Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -288,6 +298,10 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateTEZInteractiveConfigs)
         .addMockedMethod(updateTablesForZeppelinViewRemoval)
         .addMockedMethod(updateAtlasConfigs)
+        .addMockedMethod(updateLogSearchConfigs)
+        .addMockedMethod(updateAmbariInfraConfigs)
+        .addMockedMethod(updateRangerUrlConfigs)
+        .addMockedMethod(updateYarnSite)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -317,7 +331,19 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.updateAtlasConfigs();
     expectLastCall().once();
 
+    upgradeCatalog250.updateLogSearchConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateAmbariInfraConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateRangerUrlConfigs();
+    expectLastCall().once();
+
     upgradeCatalog250.addManageServiceAutoStartPermissions();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateYarnSite();
     expectLastCall().once();
 
     replay(upgradeCatalog250);
@@ -325,6 +351,107 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.executeDMLUpdates();
 
     verify(upgradeCatalog250);
+  }
+
+  @Test
+  public void testUpdateYarnSite() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final String propertyToRemove = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
+    final AmbariManagementController ambariManagementController = createNiceMock(AmbariManagementController.class);
+    Config mockYarnEnv = easyMockSupport.createNiceMock(Config.class);
+    Config mockYarnSite = easyMockSupport.createNiceMock(Config.class);
+
+    HashMap<String, String> yarnEnv = new HashMap<String, String>(){{
+      put("yarn_cgroups_enabled", "false");
+    }};
+
+    HashMap<String, String> yarnSite = new HashMap<String, String>() {{
+      put(propertyToRemove, "");
+    }};
+
+    reset(clusters, cluster, injector);
+
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(ambariManagementController).atLeastOnce();
+    expect(ambariManagementController.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("yarn-env")).andReturn(mockYarnEnv).atLeastOnce();
+    expect(mockYarnEnv.getProperties()).andReturn(yarnEnv).anyTimes();
+    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(mockYarnSite).atLeastOnce();
+    expect(mockYarnSite.getProperties()).andReturn(yarnSite).anyTimes();
+
+    replay(clusters, cluster, injector, ambariManagementController, mockYarnEnv, mockYarnSite);
+
+    UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
+     .addMockedMethod("removeConfigurationPropertiesFromCluster")
+     .withConstructor(injector)
+     .createNiceMock();
+
+    Capture<HashSet<String>> removeConfigName = EasyMock.newCapture();
+
+    upgradeCatalog250.removeConfigurationPropertiesFromCluster(anyObject(Cluster.class), eq("yarn-site"), capture(removeConfigName));
+    EasyMock.expectLastCall();
+
+    replay(upgradeCatalog250);
+
+    upgradeCatalog250.updateYarnSite();
+
+    easyMockSupport.verifyAll();
+
+    Set<String> updatedProperties = removeConfigName.getValue();
+    assertTrue(updatedProperties.contains(propertyToRemove));
+
+    reset(injector);
+  }
+
+  @Test
+  public void testUpdateYarnSiteWithEnabledCGroups() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final String propertyToRemove = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
+    final AmbariManagementController ambariManagementController = createNiceMock(AmbariManagementController.class);
+    Config mockYarnEnv = easyMockSupport.createNiceMock(Config.class);
+    Config mockYarnSite = easyMockSupport.createNiceMock(Config.class);
+
+    HashMap<String, String> yarnEnv = new HashMap<String, String>(){{
+      put("yarn_cgroups_enabled", "true");
+    }};
+
+    HashMap<String, String> yarnSite = new HashMap<String, String>() {{
+      put(propertyToRemove, "");
+    }};
+
+    reset(clusters, cluster, injector);
+
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(ambariManagementController).atLeastOnce();
+    expect(ambariManagementController.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("yarn-env")).andReturn(mockYarnEnv).atLeastOnce();
+    expect(mockYarnEnv.getProperties()).andReturn(yarnEnv).anyTimes();
+    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(mockYarnSite).atLeastOnce();
+    expect(mockYarnSite.getProperties()).andReturn(yarnSite).anyTimes();
+
+    replay(clusters, cluster, injector, ambariManagementController, mockYarnEnv, mockYarnSite);
+
+    UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
+      .addMockedMethod("removeConfigurationPropertiesFromCluster")
+      .withConstructor(injector)
+      .createNiceMock();
+
+    Capture<HashSet<String>> removeConfigName = EasyMock.newCapture();
+
+    upgradeCatalog250.removeConfigurationPropertiesFromCluster(anyObject(Cluster.class), eq("yarn-site"), capture(removeConfigName));
+    EasyMock.expectLastCall().andThrow(new AssertionFailedError()).anyTimes();
+
+    replay(upgradeCatalog250);
+
+    upgradeCatalog250.updateYarnSite();
+
+    reset(injector);
   }
 
   @Test
@@ -369,7 +496,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockAmsEnv, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -442,7 +569,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockAmsHbaseSite, mockAmsSite, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -450,12 +577,12 @@ public class UpgradeCatalog250Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateAMSConfigs();
@@ -491,7 +618,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockKafkaBroker, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -512,6 +639,698 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testAmsLog4jUpdateConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+            .addMockedMethod("createConfiguration")
+            .addMockedMethod("getClusters", new Class[] {})
+            .addMockedMethod("createConfig")
+            .withConstructor(actionManager, clusters, injector)
+            .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<String, String> oldAmsLog4j = ImmutableMap.of(
+            "content",
+            "#\n" +
+                    "# Licensed to the Apache Software Foundation (ASF) under one\n" +
+                    "# or more contributor license agreements.  See the NOTICE file\n" +
+                    "# distributed with this work for additional information\n" +
+                    "# regarding copyright ownership.  The ASF licenses this file\n" +
+                    "# to you under the Apache License, Version 2.0 (the\n" +
+                    "# \"License\"); you may not use this file except in compliance\n" +
+                    "# with the License.  You may obtain a copy of the License at\n" +
+                    "#\n" +
+                    "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "#\n" +
+                    "# Unless required by applicable law or agreed to in writing, software\n" +
+                    "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                    "# See the License for the specific language governing permissions and\n" +
+                    "# limitations under the License.\n" +
+                    "#\n" +
+                    "\n" +
+                    "# Define some default values that can be overridden by system properties\n" +
+                    "ams.log.dir=.\n" +
+                    "ams.log.file=ambari-metrics-collector.log\n" +
+                    "\n" +
+                    "# Root logger option\n" +
+                    "log4j.rootLogger=INFO,file\n" +
+                    "\n" +
+                    "# Direct log messages to a log file\n" +
+                    "log4j.appender.file=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.file.File=${ams.log.dir}/${ams.log.file}\n" +
+                    "log4j.appender.file.MaxFileSize=10MB\n" +
+                    "log4j.appender.file.MaxBackupIndex=12\n" +
+                    "log4j.appender.file.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.file.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n");
+
+    Map<String, String> expectedAmsLog4j = new HashMap<>();
+    expectedAmsLog4j.put("content","#\n" +
+                    "# Licensed to the Apache Software Foundation (ASF) under one\n" +
+                    "# or more contributor license agreements.  See the NOTICE file\n" +
+                    "# distributed with this work for additional information\n" +
+                    "# regarding copyright ownership.  The ASF licenses this file\n" +
+                    "# to you under the Apache License, Version 2.0 (the\n" +
+                    "# \"License\"); you may not use this file except in compliance\n" +
+                    "# with the License.  You may obtain a copy of the License at\n" +
+                    "#\n" +
+                    "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "#\n" +
+                    "# Unless required by applicable law or agreed to in writing, software\n" +
+                    "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                    "# See the License for the specific language governing permissions and\n" +
+                    "# limitations under the License.\n" +
+                    "#\n" +
+                    "\n" +
+                    "# Define some default values that can be overridden by system properties\n" +
+                    "ams.log.dir=.\n" +
+                    "ams.log.file=ambari-metrics-collector.log\n" +
+                    "\n" +
+                    "# Root logger option\n" +
+                    "log4j.rootLogger=INFO,file\n" +
+                    "\n" +
+                    "# Direct log messages to a log file\n" +
+                    "log4j.appender.file=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.file.File=${ams.log.dir}/${ams.log.file}\n" +
+                    "log4j.appender.file.MaxFileSize={{ams_log_max_backup_size}}MB\n" +
+                    "log4j.appender.file.MaxBackupIndex={{ams_log_number_of_backup_files}}\n" +
+                    "log4j.appender.file.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.file.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n");
+    expectedAmsLog4j.put("ams_log_max_backup_size","10");
+    expectedAmsLog4j.put("ams_log_number_of_backup_files","12");
+
+
+    Config mockAmsLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-log4j")).andReturn(mockAmsLog4j).atLeastOnce();
+    expect(mockAmsLog4j.getProperties()).andReturn(oldAmsLog4j).anyTimes();
+    Capture<Map<String, String>> AmsLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsLog4jCapture), anyString(),
+            anyObject(Map.class))).andReturn(config).once();
+
+    Map<String, String> oldAmsHbaseLog4j = ImmutableMap.of(
+            "content","# Licensed to the Apache Software Foundation (ASF) under one\n" +
+                    "# or more contributor license agreements.  See the NOTICE file\n" +
+                    "# distributed with this work for additional information\n" +
+                    "# regarding copyright ownership.  The ASF licenses this file\n" +
+                    "# to you under the Apache License, Version 2.0 (the\n" +
+                    "# \"License\"); you may not use this file except in compliance\n" +
+                    "# with the License.  You may obtain a copy of the License at\n" +
+                    "#\n" +
+                    "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "#\n" +
+                    "# Unless required by applicable law or agreed to in writing, software\n" +
+                    "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                    "# See the License for the specific language governing permissions and\n" +
+                    "# limitations under the License.\n" +
+                    "\n" +
+                    "\n" +
+                    "# Define some default values that can be overridden by system properties\n" +
+                    "hbase.root.logger=INFO,console\n" +
+                    "hbase.security.logger=INFO,console\n" +
+                    "hbase.log.dir=.\n" +
+                    "hbase.log.file=hbase.log\n" +
+                    "\n" +
+                    "# Define the root logger to the system property \"hbase.root.logger\".\n" +
+                    "log4j.rootLogger=${hbase.root.logger}\n" +
+                    "\n" +
+                    "# Logging Threshold\n" +
+                    "log4j.threshold=ALL\n" +
+                    "\n" +
+                    "#\n" +
+                    "# Daily Rolling File Appender\n" +
+                    "#\n" +
+                    "log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender\n" +
+                    "log4j.appender.DRFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+                    "\n" +
+                    "# Rollver at midnight\n" +
+                    "log4j.appender.DRFA.DatePattern=.yyyy-MM-dd\n" +
+                    "\n" +
+                    "# 30-day backup\n" +
+                    "#log4j.appender.DRFA.MaxBackupIndex=30\n" +
+                    "log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout\n" +
+                    "\n" +
+                    "# Pattern format: Date LogLevel LoggerName LogMessage\n" +
+                    "log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+                    "\n" +
+                    "# Rolling File Appender properties\n" +
+                    "hbase.log.maxfilesize=256MB\n" +
+                    "hbase.log.maxbackupindex=20\n" +
+                    "\n" +
+                    "# Rolling File Appender\n" +
+                    "log4j.appender.RFA=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.RFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+                    "\n" +
+                    "log4j.appender.RFA.MaxFileSize=${hbase.log.maxfilesize}\n" +
+                    "log4j.appender.RFA.MaxBackupIndex=${hbase.log.maxbackupindex}\n" +
+                    "\n" +
+                    "log4j.appender.RFA.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+                    "\n" +
+                    "#\n" +
+                    "# Security audit appender\n" +
+                    "#\n" +
+                    "hbase.security.log.file=SecurityAuth.audit\n" +
+                    "hbase.security.log.maxfilesize=256MB\n" +
+                    "hbase.security.log.maxbackupindex=20\n" +
+                    "log4j.appender.RFAS=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.RFAS.File=${hbase.log.dir}/${hbase.security.log.file}\n" +
+                    "log4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}\n" +
+                    "log4j.appender.RFAS.MaxBackupIndex=${hbase.security.log.maxbackupindex}\n" +
+                    "log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n" +
+                    "log4j.category.SecurityLogger=${hbase.security.logger}\n" +
+                    "log4j.additivity.SecurityLogger=false\n" +
+                    "#log4j.logger.SecurityLogger.org.apache.hadoop.hbase.security.access.AccessController=TRACE\n" +
+                    "\n" +
+                    "#\n" +
+                    "# Null Appender\n" +
+                    "#\n" +
+                    "log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender\n" +
+                    "\n" +
+                    "#\n" +
+                    "# console\n" +
+                    "# Add \"console\" to rootlogger above if you want to use this\n" +
+                    "#\n" +
+                    "log4j.appender.console=org.apache.log4j.ConsoleAppender\n" +
+                    "log4j.appender.console.target=System.err\n" +
+                    "log4j.appender.console.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.console.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+                    "\n" +
+                    "# Custom Logging levels\n" +
+                    "\n" +
+                    "log4j.logger.org.apache.zookeeper=INFO\n" +
+                    "#log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG\n" +
+                    "log4j.logger.org.apache.hadoop.hbase=INFO\n" +
+                    "# Make these two classes INFO-level. Make them DEBUG to see more zk debug.\n" +
+                    "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil=INFO\n" +
+                    "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO\n" +
+                    "#log4j.logger.org.apache.hadoop.dfs=DEBUG\n" +
+                    "# Set this class to log INFO only otherwise its OTT\n" +
+                    "# Enable this to get detailed connection error/retry logging.\n" +
+                    "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=TRACE\n" +
+                    "\n" +
+                    "\n" +
+                    "# Uncomment this line to enable tracing on _every_ RPC call (this can be a lot of output)\n" +
+                    "#log4j.logger.org.apache.hadoop.ipc.HBaseServer.trace=DEBUG\n" +
+                    "\n" +
+                    "# Uncomment the below if you want to remove logging of client region caching'\n" +
+                    "# and scan of .META. messages\n" +
+                    "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=INFO\n" +
+                    "# log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO\n");
+
+    Map<String, String> expectedAmsHbaseLog4j = new HashMap<String,String>();
+    expectedAmsHbaseLog4j.put("content","# Licensed to the Apache Software Foundation (ASF) under one\n" +
+            "# or more contributor license agreements.  See the NOTICE file\n" +
+            "# distributed with this work for additional information\n" +
+            "# regarding copyright ownership.  The ASF licenses this file\n" +
+            "# to you under the Apache License, Version 2.0 (the\n" +
+            "# \"License\"); you may not use this file except in compliance\n" +
+            "# with the License.  You may obtain a copy of the License at\n" +
+            "#\n" +
+            "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+            "#\n" +
+            "# Unless required by applicable law or agreed to in writing, software\n" +
+            "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+            "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+            "# See the License for the specific language governing permissions and\n" +
+            "# limitations under the License.\n" +
+            "\n" +
+            "\n" +
+            "# Define some default values that can be overridden by system properties\n" +
+            "hbase.root.logger=INFO,console\n" +
+            "hbase.security.logger=INFO,console\n" +
+            "hbase.log.dir=.\n" +
+            "hbase.log.file=hbase.log\n" +
+            "\n" +
+            "# Define the root logger to the system property \"hbase.root.logger\".\n" +
+            "log4j.rootLogger=${hbase.root.logger}\n" +
+            "\n" +
+            "# Logging Threshold\n" +
+            "log4j.threshold=ALL\n" +
+            "\n" +
+            "#\n" +
+            "# Daily Rolling File Appender\n" +
+            "#\n" +
+            "log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender\n" +
+            "log4j.appender.DRFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+            "\n" +
+            "# Rollver at midnight\n" +
+            "log4j.appender.DRFA.DatePattern=.yyyy-MM-dd\n" +
+            "\n" +
+            "# 30-day backup\n" +
+            "#log4j.appender.DRFA.MaxBackupIndex=30\n" +
+            "log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout\n" +
+            "\n" +
+            "# Pattern format: Date LogLevel LoggerName LogMessage\n" +
+            "log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+            "\n" +
+            "# Rolling File Appender properties\n" +
+            "hbase.log.maxfilesize={{ams_hbase_log_maxfilesize}}MB\n" +
+            "hbase.log.maxbackupindex={{ams_hbase_log_maxbackupindex}}\n" +
+            "\n" +
+            "# Rolling File Appender\n" +
+            "log4j.appender.RFA=org.apache.log4j.RollingFileAppender\n" +
+            "log4j.appender.RFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+            "\n" +
+            "log4j.appender.RFA.MaxFileSize=${hbase.log.maxfilesize}\n" +
+            "log4j.appender.RFA.MaxBackupIndex=${hbase.log.maxbackupindex}\n" +
+            "\n" +
+            "log4j.appender.RFA.layout=org.apache.log4j.PatternLayout\n" +
+            "log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+            "\n" +
+            "#\n" +
+            "# Security audit appender\n" +
+            "#\n" +
+            "hbase.security.log.file=SecurityAuth.audit\n" +
+            "hbase.security.log.maxfilesize={{ams_hbase_security_log_maxfilesize}}MB\n" +
+            "hbase.security.log.maxbackupindex={{ams_hbase_security_log_maxbackupindex}}\n" +
+            "log4j.appender.RFAS=org.apache.log4j.RollingFileAppender\n" +
+            "log4j.appender.RFAS.File=${hbase.log.dir}/${hbase.security.log.file}\n" +
+            "log4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}\n" +
+            "log4j.appender.RFAS.MaxBackupIndex=${hbase.security.log.maxbackupindex}\n" +
+            "log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout\n" +
+            "log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n" +
+            "log4j.category.SecurityLogger=${hbase.security.logger}\n" +
+            "log4j.additivity.SecurityLogger=false\n" +
+            "#log4j.logger.SecurityLogger.org.apache.hadoop.hbase.security.access.AccessController=TRACE\n" +
+            "\n" +
+            "#\n" +
+            "# Null Appender\n" +
+            "#\n" +
+            "log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender\n" +
+            "\n" +
+            "#\n" +
+            "# console\n" +
+            "# Add \"console\" to rootlogger above if you want to use this\n" +
+            "#\n" +
+            "log4j.appender.console=org.apache.log4j.ConsoleAppender\n" +
+            "log4j.appender.console.target=System.err\n" +
+            "log4j.appender.console.layout=org.apache.log4j.PatternLayout\n" +
+            "log4j.appender.console.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+            "\n" +
+            "# Custom Logging levels\n" +
+            "\n" +
+            "log4j.logger.org.apache.zookeeper=INFO\n" +
+            "#log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG\n" +
+            "log4j.logger.org.apache.hadoop.hbase=INFO\n" +
+            "# Make these two classes INFO-level. Make them DEBUG to see more zk debug.\n" +
+            "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil=INFO\n" +
+            "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO\n" +
+            "#log4j.logger.org.apache.hadoop.dfs=DEBUG\n" +
+            "# Set this class to log INFO only otherwise its OTT\n" +
+            "# Enable this to get detailed connection error/retry logging.\n" +
+            "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=TRACE\n" +
+            "\n" +
+            "\n" +
+            "# Uncomment this line to enable tracing on _every_ RPC call (this can be a lot of output)\n" +
+            "#log4j.logger.org.apache.hadoop.ipc.HBaseServer.trace=DEBUG\n" +
+            "\n" +
+            "# Uncomment the below if you want to remove logging of client region caching'\n" +
+            "# and scan of .META. messages\n" +
+            "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=INFO\n" +
+            "# log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO\n");
+    expectedAmsHbaseLog4j.put("ams_hbase_log_maxfilesize","256");
+    expectedAmsHbaseLog4j.put("ams_hbase_log_maxbackupindex","20");
+    expectedAmsHbaseLog4j.put("ams_hbase_security_log_maxfilesize","256");
+    expectedAmsHbaseLog4j.put("ams_hbase_security_log_maxbackupindex","20");
+
+    Config mockAmsHbaseLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-hbase-log4j")).andReturn(mockAmsHbaseLog4j).atLeastOnce();
+    expect(mockAmsHbaseLog4j.getProperties()).andReturn(oldAmsHbaseLog4j).anyTimes();
+    Capture<Map<String, String>> AmsHbaseLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsHbaseLog4jCapture), anyString(),
+            anyObject(Map.class))).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockAmsLog4j,mockAmsHbaseLog4j);
+    new UpgradeCatalog250(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedAmsLog4jProperties = AmsLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedAmsLog4j, updatedAmsLog4jProperties).areEqual());
+
+    Map<String, String> updatedAmsHbaseLog4jProperties = AmsHbaseLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedAmsHbaseLog4j, updatedAmsHbaseLog4jProperties).areEqual());
+
+  }
+
+  @Test
+  public void testLogSearchUpdateConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
+    
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] {})
+        .addMockedMethod("createConfig")
+        .withConstructor(actionManager, clusters, injector)
+        .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    
+    Map<String, String> oldLogSearchProperties = ImmutableMap.of(
+        "logsearch.external.auth.enabled", "true",
+        "logsearch.external.auth.host_url", "host_url",
+        "logsearch.external.auth.login_url", "login_url");
+    
+    Map<String, String> expectedLogSearchProperties = ImmutableMap.of(
+        "logsearch.auth.external_auth.enabled", "true",
+        "logsearch.auth.external_auth.host_url", "host_url",
+        "logsearch.auth.external_auth.login_url", "login_url");
+    
+    Config mockLogSearchProperties = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(mockLogSearchProperties).atLeastOnce();
+    expect(mockLogSearchProperties.getProperties()).andReturn(oldLogSearchProperties).anyTimes();
+    Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchPropertiesCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogFeederEnv = ImmutableMap.of(
+        "content", "infra_solr_ssl_enabled");
+    
+    Map<String, String> expectedLogFeederEnv = ImmutableMap.of(
+        "content", "logsearch_solr_ssl_enabled");
+    
+    Config mockLogFeederEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
+    expect(mockLogFeederEnv.getProperties()).andReturn(oldLogFeederEnv).anyTimes();
+    Capture<Map<String, String>> logFeederEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederEnvCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogSearchEnv = ImmutableMap.of(
+        "logsearch_solr_audit_logs_use_ranger", "false",
+        "logsearch_solr_audit_logs_zk_node", "zk_node",
+        "logsearch_solr_audit_logs_zk_quorum", "zk_quorum",
+        "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
+    
+    Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
+        "content", "logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl");
+    
+    Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
+    expect(mockLogSearchEnv.getProperties()).andReturn(oldLogSearchEnv).anyTimes();
+    Capture<Map<String, String>> logSearchEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchEnvCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogFeederLog4j = ImmutableMap.of(
+        "content",
+        "    <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"11MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"12\"/>\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\"/>\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\"\n" +
+        "    class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"13MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"14\" />\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\" />\n" +
+        "  </appender>");
+    
+    Map<String, String> expectedLogFeederLog4j = ImmutableMap.of(
+        "content",
+        "    <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logfeeder.log\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logfeeder_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logfeeder_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\"/>\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\"\n" +
+        "    class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logfeeder_log_dir}}/logsearch-logfeeder.json\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logfeeder_json_log_maxfilesize}}MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logfeeder_json_log_maxbackupindex}}\" />\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\" />\n" +
+        "  </appender>",
+        "logfeeder_log_maxfilesize", "11",
+        "logfeeder_log_maxbackupindex", "12",
+        "logfeeder_json_log_maxfilesize", "13",
+        "logfeeder_json_log_maxbackupindex", "14");
+    
+    Config mockLogFeederLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
+    expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
+    Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederLog4jCapture), anyString(),
+      anyObject(Map.class))).andReturn(config).once();
+
+    Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
+        "content",
+        "  <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.err\" />\n" +
+        "    <param name=\"Threshold\" value=\"info\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"11MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"12\" />\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\" />\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"13MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"14\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"audit_rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"15MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"16\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"performance_analyzer_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+        "    <param name=\"Threshold\" value=\"info\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"17MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"18\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.audit\" additivity=\"true\">\n" +
+        "     <appender-ref ref=\"audit_rolling_file_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.performance\" additivity=\"false\">\n" +
+        "    <appender-ref ref=\"performance_analyzer_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <category name=\"org.apache.ambari.logsearch\" additivity=\"false\">\n" +
+        "    <priority value=\"warn\"/>\n" +
+        "    <appender-ref ref=\"rolling_file_json\"/>\n" +
+        "  </category>");
+    
+    Map<String, String> expectedLogSearchLog4j = new HashMap<>();
+      expectedLogSearchLog4j.put("content",
+        "  <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.log\" />\n" +
+        "    <param name=\"Threshold\" value=\"info\" />\n" +
+        "    <param name=\"append\" value=\"true\" />\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_log_maxfilesize}}MB\" />\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_log_maxbackupindex}}\" />\n" +
+        "    <layout class=\"org.apache.log4j.PatternLayout\">\n" +
+        "      <param name=\"ConversionPattern\" value=\"%d [%t] %-5p %C{6} (%F:%L) - %m%n\" />\n" +
+        "    </layout>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_json_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_json_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"audit_rolling_file_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-audit.json\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_audit_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_audit_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <appender name=\"performance_analyzer_json\" class=\"org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender\">\n" +
+        "    <param name=\"file\" value=\"{{logsearch_log_dir}}/logsearch-performance.json\"/>\n" +
+        "    <param name=\"Threshold\" value=\"info\"/>\n" +
+        "    <param name=\"append\" value=\"true\"/>\n" +
+        "    <param name=\"maxFileSize\" value=\"{{logsearch_perf_log_maxfilesize}}MB\"/>\n" +
+        "    <param name=\"maxBackupIndex\" value=\"{{logsearch_perf_log_maxbackupindex}}\"/>\n" +
+        "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\"/>\n" +
+        "  </appender>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.audit\" additivity=\"true\">\n" +
+        "     <appender-ref ref=\"audit_rolling_file_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <logger name=\"org.apache.ambari.logsearch.performance\" additivity=\"false\">\n" +
+        "    <appender-ref ref=\"performance_analyzer_json\"/>\n" +
+        "  </logger>\n" +
+        "\n" +
+        "  <category name=\"org.apache.ambari.logsearch\" additivity=\"false\">\n" +
+        "    <priority value=\"info\"/>\n" +
+        "    <appender-ref ref=\"rolling_file_json\"/>\n" +
+        "  </category>");
+
+      expectedLogSearchLog4j.put("logsearch_log_maxfilesize", "11");
+      expectedLogSearchLog4j.put("logsearch_log_maxbackupindex", "12");
+      expectedLogSearchLog4j.put("logsearch_json_log_maxfilesize", "13");
+      expectedLogSearchLog4j.put("logsearch_json_log_maxbackupindex", "14");
+      expectedLogSearchLog4j.put("logsearch_audit_log_maxfilesize", "15");
+      expectedLogSearchLog4j.put("logsearch_audit_log_maxbackupindex", "16");
+      expectedLogSearchLog4j.put("logsearch_perf_log_maxfilesize", "17");
+      expectedLogSearchLog4j.put("logsearch_perf_log_maxbackupindex", "18");
+      
+    Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
+    expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
+    Capture<Map<String, String>> logSearchLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockLogSearchProperties, mockLogFeederEnv, mockLogSearchEnv, mockLogFeederLog4j, mockLogSearchLog4j);
+    new UpgradeCatalog250(injector2).updateLogSearchConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedLogSearchProperties = logSearchPropertiesCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchProperties, updatedLogSearchProperties).areEqual());
+    
+    Map<String, String> updatedLogFeederEnv = logFeederEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederEnv, updatedLogFeederEnv).areEqual());
+    
+    Map<String, String> updatedLogSearchEnv = logSearchEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchEnv, updatedLogSearchEnv).areEqual());
+    
+    Map<String, String> updatedLogFeederLog4j = logFeederLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederLog4j, updatedLogFeederLog4j).areEqual());
+    
+    Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());
+  }
+
+  @Test
+  public void testAmbariInfraUpdateConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
+    
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] {})
+        .addMockedMethod("createConfig")
+        .withConstructor(actionManager, clusters, injector)
+        .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<String, String> oldInfraSolrEnv = ImmutableMap.of(
+        "content", "SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}\n" +
+                   "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}\n" +
+                   "SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}\n" +
+                   "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST} -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}\"");
+    
+    Map<String, String> expectedInfraSolrEnv = ImmutableMap.of(
+        "content", "SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}\n" +
+                   "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}\n" +
+                   "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"\n" +
+                   "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST}\"");
+    
+    Config mockInfraSolrEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("infra-solr-env")).andReturn(mockInfraSolrEnv).atLeastOnce();
+    expect(mockInfraSolrEnv.getProperties()).andReturn(oldInfraSolrEnv).anyTimes();
+    Capture<Map<String, String>> infraSolrEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrEnvCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldInfraSolrLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.MaxFileSize=15MB\n" +
+                   "log4j.appender.file.MaxBackupIndex=5\n");
+    
+    Map<String, String> expectedInfraSolrLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.MaxFileSize={{infra_log_maxfilesize}}MB\n" +
+                   "log4j.appender.file.MaxBackupIndex={{infra_log_maxbackupindex}}\n",
+        "infra_log_maxfilesize", "15",
+        "infra_log_maxbackupindex", "5");
+    
+    Config mockInfraSolrLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("infra-solr-log4j")).andReturn(mockInfraSolrLog4j).atLeastOnce();
+    expect(mockInfraSolrLog4j.getProperties()).andReturn(oldInfraSolrLog4j).anyTimes();
+    Capture<Map<String, String>> infraSolrLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldInfraSolrClientLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.File\u003d{{infra_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
+                   "log4j.appender.file.MaxFileSize=55MB\n" +
+                   "log4j.appender.file.MaxBackupIndex=10\n");
+    
+    Map<String, String> expectedInfraSolrClientLog4j = ImmutableMap.of(
+        "content", "log4j.appender.file.File\u003d{{solr_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
+                   "log4j.appender.file.MaxFileSize={{solr_client_log_maxfilesize}}MB\n" +
+                   "log4j.appender.file.MaxBackupIndex={{solr_client_log_maxbackupindex}}\n",
+        "infra_client_log_maxfilesize", "55",
+        "infra_client_log_maxbackupindex", "10");
+    
+    Config mockInfraSolrClientLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("infra-solr-client-log4j")).andReturn(mockInfraSolrClientLog4j).atLeastOnce();
+    expect(mockInfraSolrClientLog4j.getProperties()).andReturn(oldInfraSolrClientLog4j).anyTimes();
+    Capture<Map<String, String>> infraSolrClientLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrClientLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockInfraSolrEnv, mockInfraSolrLog4j, mockInfraSolrClientLog4j);
+    new UpgradeCatalog250(injector2).updateAmbariInfraConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedInfraSolrEnv = infraSolrEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedInfraSolrEnv, updatedInfraSolrEnv).areEqual());
+
+    Map<String, String> updatedInfraSolrLog4j = infraSolrLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedInfraSolrLog4j, updatedInfraSolrLog4j).areEqual());
+
+    Map<String, String> updatedInfraSolrClientLog4j = infraSolrClientLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedInfraSolrClientLog4j, updatedInfraSolrClientLog4j).areEqual());
   }
 
   @Test
@@ -570,7 +1389,7 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, mockAtlasConfig, cluster);
 
-    AmbariManagementControllerImpl controller = (AmbariManagementControllerImpl)createMockBuilder(AmbariManagementControllerImpl.class)
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
       .addMockedMethod("createConfig")
@@ -665,4 +1484,109 @@ public class UpgradeCatalog250Test {
     Assert.assertTrue(clusterAdministratorAuthorizations.contains(clusterRunCustomCommandEntity));
   }
 
+  @Test
+  public void testUpdateRangerUrlConfigs() throws Exception {
+    Map<String, String> oldHdfsProperties = new HashMap<String, String>();
+    Map<String, String> newHdfsProperties = new HashMap<String, String>();
+    oldHdfsProperties.put("ranger.plugin.hdfs.policy.rest.url", "{{policymgr_mgr_url}}");
+    newHdfsProperties.put("ranger.plugin.hdfs.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldHdfsProperties, newHdfsProperties, "ranger-hdfs-security");
+
+    Map<String, String> oldHiveProperties = new HashMap<String, String>();
+    Map<String, String> newHiveProperties = new HashMap<String, String>();
+    oldHiveProperties.put("ranger.plugin.hive.policy.rest.url", "{{policymgr_mgr_url}}");
+    newHiveProperties.put("ranger.plugin.hive.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldHiveProperties, newHiveProperties, "ranger-hive-security");
+
+    Map<String, String> oldHbaseProperties = new HashMap<String, String>();
+    Map<String, String> newHbaseProperties = new HashMap<String, String>();
+    oldHbaseProperties.put("ranger.plugin.hbase.policy.rest.url", "{{policymgr_mgr_url}}");
+    newHbaseProperties.put("ranger.plugin.hbase.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldHbaseProperties, newHbaseProperties, "ranger-hbase-security");
+
+    Map<String, String> oldKnoxProperties = new HashMap<String, String>();
+    Map<String, String> newKnoxProperties = new HashMap<String, String>();
+    oldKnoxProperties.put("ranger.plugin.knox.policy.rest.url", "{{policymgr_mgr_url}}");
+    newKnoxProperties.put("ranger.plugin.knox.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldKnoxProperties, newKnoxProperties, "ranger-knox-security");
+
+    Map<String, String> oldStormProperties = new HashMap<String, String>();
+    Map<String, String> newStormProperties = new HashMap<String, String>();
+    oldStormProperties.put("ranger.plugin.storm.policy.rest.url", "{{policymgr_mgr_url}}");
+    newStormProperties.put("ranger.plugin.storm.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldStormProperties, newStormProperties, "ranger-storm-security");
+
+    Map<String, String> oldYarnProperties = new HashMap<String, String>();
+    Map<String, String> newYarnProperties = new HashMap<String, String>();
+    oldYarnProperties.put("ranger.plugin.yarn.policy.rest.url", "{{policymgr_mgr_url}}");
+    newYarnProperties.put("ranger.plugin.yarn.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldYarnProperties, newYarnProperties, "ranger-yarn-security");
+
+    Map<String, String> oldKafkaProperties = new HashMap<String, String>();
+    Map<String, String> newKafkaProperties = new HashMap<String, String>();
+    oldKafkaProperties.put("ranger.plugin.kafka.policy.rest.url", "{{policymgr_mgr_url}}");
+    newKafkaProperties.put("ranger.plugin.kafka.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldKafkaProperties, newKafkaProperties, "ranger-kafka-security");
+
+    Map<String, String> oldAtlasProperties = new HashMap<String, String>();
+    Map<String, String> newAtlasProperties = new HashMap<String, String>();
+    oldAtlasProperties.put("ranger.plugin.atlas.policy.rest.url", "{{policymgr_mgr_url}}");
+    newAtlasProperties.put("ranger.plugin.atlas.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldAtlasProperties, newAtlasProperties, "ranger-atlas-security");
+
+    Map<String, String> oldKmsProperties = new HashMap<String, String>();
+    Map<String, String> newKmsProperties = new HashMap<String, String>();
+    oldKmsProperties.put("ranger.plugin.kms.policy.rest.url", "{{policymgr_mgr_url}}");
+    newKmsProperties.put("ranger.plugin.kms.policy.rest.url", "http://localhost:6080");
+    testUpdateRangerUrl(oldKmsProperties, newKmsProperties, "ranger-kms-security");
+  }
+
+  public void testUpdateRangerUrl(Map<String, String> oldProperties, Map<String, String> newProperties, String configType) throws Exception {
+    Map<String, String> adminProperties = new HashMap<String, String>() {
+      {
+        put("policymgr_external_url", "http://localhost:6080");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    reset(clusters, cluster);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+
+    Config mockRangerPluginConfig = easyMockSupport.createNiceMock(Config.class);
+    Config mockRangerAdminProperties = easyMockSupport.createNiceMock(Config.class);
+
+    expect(cluster.getDesiredConfigByType("admin-properties")).andReturn(mockRangerAdminProperties).anyTimes();
+    expect(mockRangerAdminProperties.getProperties()).andReturn(adminProperties).anyTimes();
+
+    expect(cluster.getDesiredConfigByType(configType)).andReturn(mockRangerPluginConfig).anyTimes();
+    expect(mockRangerPluginConfig.getProperties()).andReturn(oldProperties).anyTimes();
+
+    replay(clusters, mockRangerPluginConfig, mockRangerAdminProperties, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+    .addMockedMethod("createConfiguration")
+    .addMockedMethod("getClusters", new Class[] { })
+    .addMockedMethod("createConfig")
+    .withConstructor(actionManager, clusters, injector)
+    .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog250(injector2).updateRangerUrlConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
 }

@@ -97,7 +97,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('App.services.noConfigTypes','content.serviceName'),
 
   clientComponents: function () {
-    var clientNames = [];
+    var clientNames = [{
+      action:  'downloadAllClientConfigs',
+      context: {
+        label: Em.I18n.t('common.all.clients')
+      }
+    }];
     var clients = App.StackServiceComponent.find().filterProperty('serviceName', this.get('content.serviceName')).filterProperty('isClient');
     clients.forEach(function (item) {
       clientNames.push({
@@ -1098,6 +1103,17 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * This method is called when user event to download configs for "All Clients"
+   * is made from service action menu
+   */
+  downloadAllClientConfigs: function() {
+    this.downloadClientConfigsCall({
+      serviceName: this.get('content.serviceName'),
+      resourceType: this.resourceTypeEnum.SERVICE
+    });
+  },
+
+  /**
    * On click handler for custom hawq command from items menu
    * @param context
    */
@@ -1323,7 +1339,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       popupPrimary = Em.I18n.t('common.delete'),
       warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
         (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : '');
-    this.clearRecommendationsInfo();
+    this.clearRecommendations();
     this.setProperties({
       isRecommendationInProgress: true,
       selectedConfigGroup: Em.Object.create({
@@ -1348,6 +1364,14 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       }),
       onPrimary: function () {
         self.confirmDeleteService(serviceName, interDependentServices, dependentServicesToDeleteFmt);
+        this._super();
+      },
+      onSecondary: function () {
+        self.clearRecommendations();
+        this._super();
+      },
+      onClose: function () {
+        self.clearRecommendations();
         this._super();
       }
     });

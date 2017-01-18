@@ -75,7 +75,10 @@ class ActionQueue(threading.Thread):
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = multiprocessing.Queue()
+    self.statusCommandQueue = None # the queue this field points to is re-created whenever
+                                   # a new StatusCommandExecutor child process is spawned
+                                   # by Controller
+    # multiprocessing.Queue()
     self.statusCommandResultQueue = multiprocessing.Queue() # this queue is filled by StatuCommandsExecutor.
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
@@ -101,9 +104,13 @@ class ActionQueue(threading.Thread):
     if not self.statusCommandQueue.empty():
       #Clear all status commands. Was supposed that we got all set of statuses, we don't need to keep old ones
       statusCommandQueueSize = 0
-      while not self.statusCommandQueue.empty():
-        self.statusCommandQueue.get()
-        statusCommandQueueSize = statusCommandQueueSize + 1
+      try:
+        while not self.statusCommandQueue.empty():
+          self.statusCommandQueue.get(False)
+          statusCommandQueueSize = statusCommandQueueSize + 1
+      except Queue.Empty:
+        pass
+
       logger.info("Number of status commands removed from queue : " + str(statusCommandQueueSize))
 
     for command in commands:

@@ -321,7 +321,6 @@ class TestDruid(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/log/druid',
                               mode=0755,
-                              cd_access='a',
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
@@ -330,88 +329,115 @@ class TestDruid(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/run/druid',
                               mode=0755,
-                              cd_access='a',
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
                               recursive_ownership=True
+                              )
+
+    self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf'),
+                              mode=0700,
+                              owner='druid',
+                              group='hadoop',
+                              create_parents=True,
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/_common'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/coordinator'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/broker'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/middleManager'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/historical'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/overlord'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', format('/usr/hdp/current/{role}/conf/router'),
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
+                              )
+
+    self.assertResourceCalled('Directory', '/apps/druid/segmentCache/info_dir',
+                              mode=0700,
+                              owner='druid',
+                              group='hadoop',
+                              create_parents=True,
+                              recursive_ownership=True,
+                              cd_access ='a'
+                              )
+
+    self.assertResourceCalled('Directory', '/apps/druid/tasks',
+                              mode=0700,
+                              owner='druid',
+                              group='hadoop',
+                              create_parents=True,
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('Directory', '/apps/druid/segmentCache',
-                              mode=0755,
-                              cd_access='a',
+                              mode=0700,
                               owner='druid',
                               group='hadoop',
                               create_parents=True,
-                              recursive_ownership=True
+                              recursive_ownership=True,
+                              cd_access ='a'
                               )
 
     self.assertResourceCalled('File', format('/usr/hdp/current/{role}/conf/druid-env.sh'),
                               owner = 'druid',
-                              content = InlineTemplate(self.getConfig()['configurations']['druid-env']['content'])
+                              content = InlineTemplate(self.getConfig()['configurations']['druid-env']['content']),
+                              mode = 0700
                               )
     druid_common_config = mutable_config_dict(self.getConfig()['configurations']['druid-common'])
     druid_common_config['druid.host'] = 'c6401.ambari.apache.org'
@@ -424,7 +450,8 @@ class TestDruid(RMFTestCase):
                               dir=format("/usr/hdp/current/{role}/conf/_common"),
                               properties=druid_common_config,
                               owner='druid',
-                              group='hadoop'
+                              group='hadoop',
+                              mode = 0600
                               )
 
     self.assertResourceCalled('File', format('/usr/hdp/current/{role}/conf/_common/druid-log4j.xml'),
@@ -445,7 +472,8 @@ class TestDruid(RMFTestCase):
                               dir=format('/usr/hdp/current/{role}/conf/coordinator'),
                               properties=self.getConfig()['configurations']['druid-coordinator'],
                               owner='druid',
-                              group='hadoop'
+                              group='hadoop',
+                              mode = 0600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/coordinator/jvm.config"),
@@ -463,7 +491,8 @@ class TestDruid(RMFTestCase):
                               dir=format('/usr/hdp/current/{role}/conf/overlord'),
                               properties=self.getConfig()['configurations']['druid-overlord'],
                               owner='druid',
-                              group='hadoop'
+                              group='hadoop',
+                              mode = 0600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/overlord/jvm.config"),
@@ -481,7 +510,8 @@ class TestDruid(RMFTestCase):
                               dir=format('/usr/hdp/current/{role}/conf/historical'),
                               properties=self.getConfig()['configurations']['druid-historical'],
                               owner='druid',
-                              group='hadoop'
+                              group='hadoop',
+                              mode = 0600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/historical/jvm.config"),
@@ -500,7 +530,8 @@ class TestDruid(RMFTestCase):
                           dir=format('/usr/hdp/current/{role}/conf/broker'),
                           properties=self.getConfig()['configurations']['druid-broker'],
                           owner='druid',
-                          group='hadoop'
+                          group='hadoop',
+                          mode = 0600
                           )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/broker/jvm.config"),
@@ -519,7 +550,8 @@ class TestDruid(RMFTestCase):
                           dir=format('/usr/hdp/current/{role}/conf/middleManager'),
                           properties=self.getConfig()['configurations']['druid-middlemanager'],
                           owner='druid',
-                          group='hadoop'
+                          group='hadoop',
+                          mode = 0600
                           )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/middleManager/jvm.config"),
@@ -537,7 +569,8 @@ class TestDruid(RMFTestCase):
                               dir=format('/usr/hdp/current/{role}/conf/router'),
                               properties=self.getConfig()['configurations']['druid-router'],
                               owner='druid',
-                              group='hadoop'
+                              group='hadoop',
+                              mode = 0600
                               )
 
     self.assertResourceCalled('File', format("/usr/hdp/current/{role}/conf/router/jvm.config"),

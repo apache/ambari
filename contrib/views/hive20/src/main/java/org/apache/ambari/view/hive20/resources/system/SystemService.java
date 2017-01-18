@@ -22,15 +22,28 @@ import akka.actor.ActorRef;
 import org.apache.ambari.view.hive20.BaseService;
 import org.apache.ambari.view.hive20.ConnectionSystem;
 import org.apache.ambari.view.hive20.actor.message.Ping;
+import org.apache.ambari.view.hive20.resources.system.ranger.RangerService;
+import org.json.simple.JSONObject;
 
+import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * System services which are required for the working of the application
  */
 public class SystemService extends BaseService {
+
+  private final RangerService rangerService;
+
+  @Inject
+  public SystemService(RangerService rangerService) {
+    this.rangerService = rangerService;
+  }
 
   /**
    * Clients should sent pings to the server at regular interval so that the system could keep alive stuffs or do
@@ -45,4 +58,20 @@ public class SystemService extends BaseService {
     metaDataManager.tell(new Ping(context.getUsername(), context.getInstanceName()), ActorRef.noSender());
     return Response.ok().status(Response.Status.NO_CONTENT).build();
   }
+
+
+  /**
+   * Returns if the current user is a cluster operator or ambari administrator
+   */
+  @GET
+  @Path("/ranger/auth")
+  public Response rangerAuth(@QueryParam("database") String database,
+                             @QueryParam("table") String table) {
+
+    List<RangerService.Policy> policies = rangerService.getPolicies(database, table);
+    JSONObject response = new JSONObject();
+    response.put("policies", policies);
+    return Response.ok(response).build();
+  }
+
 }

@@ -68,6 +68,11 @@
               <button {{action "showAssetManager" true}} class="btn btn-default" title="Manage Assets">
                   Manage Assets
               </button>
+              {{#if (eq isProjectManagerEnabled "true")}}
+              <button {{action "showProjectManager" true}} class="btn btn-default" title="Project Manager">
+                  <i class="fa fa-folder marginright5" aria-hidden="true"></i>Projects
+              </button>
+              {{/if}}
               {{help-icon}}
             </div>
           </div>
@@ -84,11 +89,13 @@
           <i class="fa fa-history marginright5"></i>
           {{else if (eq tab.type 'bundle')}}
           <i class="fa fa-cubes marginright5"></i>
+          {{else if (eq tab.type 'Projects')}}
+          <i class="fa fa-folder marginright5"></i>
           {{else}}
           <i class="fa fa-th marginright5"></i>
           {{/if}}
           {{tab.name}}
-          <span class="closeTab" {{action "closeTab" index bubbles=false }}>x</span>
+          <span class="closeTab" {{action "showWarning" index bubbles=false }}>x</span>
         </a>
       </li>
       {{/each}}
@@ -107,6 +114,10 @@
           changeFilePath="changeFilePath" tabInfo=tab}}
         {{else if (eq tab.type 'dashboard')}}
           {{outlet}}
+        {{else if (eq tab.type 'Projects')}}
+          {{#if (eq isProjectManagerEnabled "true")}}
+          {{outlet}}
+          {{/if}}
         {{else}}
           {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
         {{/if}}
@@ -116,6 +127,11 @@
   </div>
   {{#if showingAssetManager}}
     {{#asset-manager showAssetManager="showAssetManager" deleteAsset="deleteAsset" assetList=assetList}}{{/asset-manager}}
+  {{/if}}
+  {{#if showingWarning}}
+  {{#confirmation-dialog title="Confirm workflow reset"
+    confirmationMessage="Any unsaved changes may be lost. Do you want to close this tab ?"
+    okBtnText="Continue" cancelBtnText="Cancel" onOk="closeTab"}}{{/confirmation-dialog}}
   {{/if}}
   <!--
   {{#if (eq type 'wf')}}

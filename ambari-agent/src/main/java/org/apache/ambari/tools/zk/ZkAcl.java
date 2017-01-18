@@ -54,16 +54,27 @@ public class ZkAcl {
   }
 
   /**
-   * Sets the ACL on the given znode according to my state
+   * Sets the ACL on the znode indicated by the given pattern
    */
-  public void setRecursivelyOn(ZooKeeper zkClient, String node) throws KeeperException, InterruptedException {
-    zkClient.setACL(node, singletonList(new ACL(permission.code, new Id(scheme.value, id))), ANY_NODE_VER);
-    for (String child : zkClient.getChildren(node, null)) {
-      setRecursivelyOn(zkClient, path(node, child));
+  public void setRecursivelyOn(ZooKeeper zkClient, ZkPathPattern pattern) throws KeeperException, InterruptedException {
+    for (String each : pattern.findMatchingPaths(zkClient, "/")) {
+      System.out.println("Set ACL " + asZkAcl() + " recursively on " + each);
+      setRecursivelyOnSingle(zkClient, each);
     }
   }
 
-  private String path(String node, String child) {
+  public void setRecursivelyOnSingle(ZooKeeper zkClient, String baseNode) throws KeeperException, InterruptedException {
+    zkClient.setACL(baseNode, singletonList(asZkAcl()), ANY_NODE_VER);
+    for (String child : zkClient.getChildren(baseNode, null)) {
+      setRecursivelyOnSingle(zkClient, append(baseNode, child));
+    }
+  }
+
+  private ACL asZkAcl() {
+    return new ACL(permission.code, new Id(scheme.value, id));
+  }
+
+  public static String append(String node, String child) {
     return node.endsWith("/") ? node + child : node + "/" + child;
   }
 

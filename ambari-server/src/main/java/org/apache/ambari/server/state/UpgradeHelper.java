@@ -45,6 +45,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.HostsType;
@@ -773,19 +774,50 @@ public class UpgradeHelper {
    *          desired version (like 2.2.1.0-1234) for upgrade
    * @param targetServices
    *          targets for upgrade
+   * @param targetStack
+   *          the target stack for the components.  Express and Rolling upgrades determine
+   *          the "correct" stack differently, so the component's desired stack id is not
+   *          a reliable indicator.
    */
   @Transactional
   public void putComponentsToUpgradingState(String version,
-                                            Map<Service, Set<ServiceComponent>> targetServices) throws AmbariException {
-    // TODO: generalize method?
+      Map<Service, Set<ServiceComponent>> targetServices, StackId targetStack) throws AmbariException {
+
     for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
       for (ServiceComponent serviceComponent: entry.getValue()) {
-        if (serviceComponent.isVersionAdvertised()) {
-          for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
-            serviceComponentHost.setUpgradeState(UpgradeState.IN_PROGRESS);
-          }
-          serviceComponent.setDesiredVersion(version);
+
+        boolean versionAdvertised = false;
+        try {
+          ComponentInfo ci = m_ambariMetaInfo.get().getComponent(targetStack.getStackName(),
+              targetStack.getStackVersion(), serviceComponent.getServiceName(),
+              serviceComponent.getName());
+
+          versionAdvertised = ci.isVersionAdvertised();
+        } catch (AmbariException e) {
+          LOG.warn("Component {}/{} doesn't exist for stack {}.  Setting version to {}",
+              serviceComponent.getServiceName(), serviceComponent.getName(), targetStack,
+              StackVersionListener.UNKNOWN_VERSION);
         }
+
+        UpgradeState upgradeState = UpgradeState.IN_PROGRESS;
+        String desiredVersion = version;
+
+        if (!versionAdvertised) {
+          upgradeState = UpgradeState.NONE;
+          desiredVersion = StackVersionListener.UNKNOWN_VERSION;
+        }
+
+        for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
+          serviceComponentHost.setUpgradeState(upgradeState);
+
+          // !!! if we aren't version advertised, but there IS a version, set it.
+          if (!versionAdvertised &&
+              !serviceComponentHost.getVersion().equals(StackVersionListener.UNKNOWN_VERSION)) {
+            serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
+          }
+        }
+        serviceComponent.setDesiredVersion(desiredVersion);
+
       }
     }
   }

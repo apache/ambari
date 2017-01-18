@@ -27,6 +27,7 @@ Router.map(function () {
   this.route('design', function() {
     this.route('dashboardtab');
     this.route('jobtab');
+    this.route('projManagerTab');
   });
   this.route('designtest');
   this.route('job');

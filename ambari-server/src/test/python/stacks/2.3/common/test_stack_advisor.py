@@ -21,13 +21,14 @@ import os
 import socket
 from unittest import TestCase
 from mock.mock import patch
-
+import unittest
 
 class TestHDP23StackAdvisor(TestCase):
 
   def setUp(self):
     import imp
     self.maxDiff = None
+    unittest.util._MAX_LENGTH=2000
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
     stackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
     hdp206StackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
@@ -211,6 +212,9 @@ class TestHDP23StackAdvisor(TestCase):
       ]
     }
     services = {
+      "context" : {
+        "call_type" : "recommendConfigurations"
+      },
       "services" : [ {
         "StackServices":{
           "service_name": "YARN",
@@ -1165,7 +1169,7 @@ class TestHDP23StackAdvisor(TestCase):
           "tez.runtime.io.sort.mb": "202",
           "tez.session.am.dag.submit.timeout.secs": "600",
           "tez.runtime.unordered.output.buffer.size-mb": "57",
-          "tez.am.resource.memory.mb": "2000",
+          "tez.am.resource.memory.mb": "4000",
           "tez.queue.name": "queue2",
         }
       },
@@ -1553,7 +1557,8 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {
           'ranger-storm-plugin-enabled': 'No',
         }
-      }
+      },
+      'ranger-knox-security': {'properties': {}}
     }
 
     recommendedConfigurations = {}
@@ -1966,12 +1971,27 @@ class TestHDP23StackAdvisor(TestCase):
       "ramPerContainer": 256
     }
     expected = {
-      'logfeeder-env': {'property_attributes': {'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'},
-                                                'logfeeder_external_solr_kerberos_principal': {'visible': 'false'}}},
-      'logsearch-common-env': {'properties': {'logsearch_external_solr_kerberos_enabled': 'false'},
-                               'property_attributes': {'logsearch_external_solr_kerberos_enabled': {'visible': 'false'}}},
-      'logsearch-env': {'property_attributes': {'logsearch_external_solr_kerberos_keytab': {'visible': 'false'},
-                                                'logsearch_external_solr_kerberos_principal': {'visible': 'false'}}},
+      'logfeeder-env': {
+        'property_attributes': {
+          'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'
+          },
+          'logfeeder_external_solr_kerberos_principal': {'visible': 'false'}
+        }
+      },
+      'logsearch-common-env': {
+        'properties': {
+          'logsearch_external_solr_kerberos_enabled': 'false'
+        },
+        'property_attributes': {
+          'logsearch_external_solr_kerberos_enabled': {'visible': 'false'}
+        }
+      },
+      'logsearch-env': {
+        'property_attributes': {
+          'logsearch_external_solr_kerberos_keytab': {'visible': 'false'},
+          'logsearch_external_solr_kerberos_principal': {'visible': 'false'}
+        }
+      },
       'logsearch-properties': {
         'properties': {
           "logsearch.collection.service.logs.numshards" : "2",

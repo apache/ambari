@@ -95,6 +95,9 @@ var CoordinatorXmlImporter= Ember.Object.extend({
       coordinator.supportsConditionalDataInput = true;
       this.extractLogicalInputEvents(coordinatorApp, coordinator);
     }
+    if(coordinatorApp['input-logic']){
+      this.extractInputLogic(coordinatorApp, coordinator);
+    }
     this.extractOutputEvents(coordinatorApp, coordinator);
     this.extractAction(coordinatorApp, coordinator);
     this.extractParameters(coordinatorApp, coordinator);
@@ -182,6 +185,15 @@ var CoordinatorXmlImporter= Ember.Object.extend({
     var conditionJson = coordinatorApp['input-events'];
     var condition = {};
     coordinator.conditionalDataInput = condition;
+    Object.keys(conditionJson).forEach((key)=>{
+      condition.operator = key;
+      this.parseConditionTree(conditionJson[key], condition);
+    }, this);
+  },
+  extractInputLogic(coordinatorApp, coordinator){
+    var conditionJson = coordinatorApp['input-logic'];
+    var condition = {};
+    coordinator.inputLogic = condition;
     Object.keys(conditionJson).forEach((key)=>{
       condition.operator = key;
       this.parseConditionTree(conditionJson[key], condition);

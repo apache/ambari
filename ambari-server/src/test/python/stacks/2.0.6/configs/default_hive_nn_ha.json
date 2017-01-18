@@ -254,7 +254,7 @@
         },
         "hiveserver2-site": {
             "hive.metastore.metrics.enabled": "true",
-            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+            "hive.service.metrics.reporter": "HADOOP2"
         },
         "ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900", 
@@ -317,7 +317,8 @@
             "hive_log_dir": "/var/log/hive", 
             "hive_user": "hive", 
             "hcat_log_dir": "/var/log/webhcat", 
-            "hive_database": "New MySQL Database"
+            "hive_database": "New MySQL Database",
+            "hive_security_authorization": "None"
         },
       "cluster-env": {
         "managed_hdfs_resource_property_names": "",

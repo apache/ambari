@@ -47,6 +47,7 @@ import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -68,6 +69,8 @@ import org.apache.ambari.server.events.jpa.JPAEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -305,6 +308,12 @@ public class ClusterImpl implements Cluster {
    */
   @Inject
   private JPAEventPublisher jpaEventPublisher;
+
+  /**
+   * Used for getting instances of {@link RoleCommand} for this cluster.
+   */
+  @Inject
+  private RoleCommandOrderProvider roleCommandOrderProvider;
 
   /**
    * A simple cache for looking up {@code cluster-env} properties for a cluster.
@@ -1014,12 +1023,10 @@ public class ClusterImpl implements Cluster {
         return mostRecentUpgrade;
       }
 
-      List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList<>();
-      UNFINISHED_STATUSES.add(HostRoleStatus.PENDING);
-      UNFINISHED_STATUSES.add(HostRoleStatus.ABORTED);
-
+      // look for any item from the prior upgrade which is still in progress
+      // (not failed, completed, or aborted)
       List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(
-          mostRecentUpgrade.getRequestId(), UNFINISHED_STATUSES);
+          mostRecentUpgrade.getRequestId(), HostRoleStatus.IN_PROGRESS_STATUSES);
 
       if (!commands.isEmpty()) {
         return mostRecentUpgrade;
@@ -3473,5 +3480,13 @@ public class ClusterImpl implements Cluster {
     }
 
     m_clusterPropertyCache.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoleCommandOrder getRoleCommandOrder() {
+    return roleCommandOrderProvider.getRoleCommandOrder(this);
   }
 }

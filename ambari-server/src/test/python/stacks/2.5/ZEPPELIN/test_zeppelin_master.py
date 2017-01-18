@@ -53,6 +53,7 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',
@@ -66,20 +67,20 @@ class TestZeppelinMaster(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/shiro.ini',
         owner = 'zeppelin',
-        content = InlineTemplate(self.getConfig()['configurations']['zeppelin-env']['shiro_ini_content']),
+        content = InlineTemplate(self.getConfig()['configurations']['zeppelin-shiro-ini']['shiro_ini_content']),
         group = 'zeppelin',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/log4j.properties',
-        owner = 'zeppelin',
-        content = '\nlog4j.rootLogger = INFO, dailyfile\nlog4j.appender.stdout = org.apache.log4j.ConsoleAppender\nlog4j.appender.stdout.layout = org.apache.log4j.PatternLayout\nlog4j.appender.stdout.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n\nlog4j.appender.dailyfile.DatePattern=.yyyy-MM-dd\nlog4j.appender.dailyfile.Threshold = INFO\nlog4j.appender.dailyfile = org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.dailyfile.File = ${zeppelin.log.file}\nlog4j.appender.dailyfile.layout = org.apache.log4j.PatternLayout\nlog4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n',
-        group = 'zeppelin',
+        owner = u'zeppelin',
+        content = u'log4j.rootLogger = INFO, dailyfile',
+        group = u'zeppelin',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/hive-site.xml',
         owner = 'zeppelin',
         content = StaticFile('/etc/spark/conf/hive-site.xml'),
         group = 'zeppelin',
     )
- 
+
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/log/zeppelin',
         owner = 'zeppelin',
@@ -102,6 +103,7 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'), sudo = True)
     self.assertResourceCalled('XmlConfig', 'zeppelin-site.xml',
         owner = 'zeppelin',
         group = 'zeppelin',
@@ -115,13 +117,13 @@ class TestZeppelinMaster(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/shiro.ini',
         owner = 'zeppelin',
-        content = InlineTemplate(self.getConfig()['configurations']['zeppelin-env']['shiro_ini_content']),
+        content = InlineTemplate(self.getConfig()['configurations']['zeppelin-shiro-ini']['shiro_ini_content']),
         group = 'zeppelin',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/log4j.properties',
-        owner = 'zeppelin',
-        content = '\nlog4j.rootLogger = INFO, dailyfile\nlog4j.appender.stdout = org.apache.log4j.ConsoleAppender\nlog4j.appender.stdout.layout = org.apache.log4j.PatternLayout\nlog4j.appender.stdout.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n\nlog4j.appender.dailyfile.DatePattern=.yyyy-MM-dd\nlog4j.appender.dailyfile.Threshold = INFO\nlog4j.appender.dailyfile = org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.dailyfile.File = ${zeppelin.log.file}\nlog4j.appender.dailyfile.layout = org.apache.log4j.PatternLayout\nlog4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n',
-        group = 'zeppelin',
+        owner = u'zeppelin',
+        content = u'log4j.rootLogger = INFO, dailyfile',
+        group = u'zeppelin',
     )
     self.assertResourceCalled('File', '/etc/zeppelin/conf/hive-site.xml',
         owner = 'zeppelin',
@@ -166,6 +168,9 @@ class TestZeppelinMaster(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+        sudo = True,
+    )
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh stop >> /var/log/zeppelin/zeppelin-setup.log',
         user = 'zeppelin',
     )
@@ -185,6 +190,9 @@ class TestZeppelinMaster(RMFTestCase):
         create_parents = True,
         mode = 0755,
         cd_access = 'a',
+    )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/var/run/zeppelin'),
+        sudo = True,
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh stop >> /var/log/zeppelin/zeppelin-setup.log',
         user = 'zeppelin',

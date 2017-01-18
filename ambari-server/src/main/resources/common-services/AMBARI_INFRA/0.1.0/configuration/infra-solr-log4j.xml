@@ -21,16 +21,16 @@
 -->
 <configuration supports_adding_forbidden="true">
   <property>
-   <name>infra_log_maxfilesize</name>
-   <value>10</value>
-   <description>The maximum size of backup file before the log is rotated</description>
-   <display-name>Ambari Infra Log: backup file size</display-name>
-   <value-attributes>
+    <name>infra_log_maxfilesize</name>
+    <value>10</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Ambari Infra Log: backup file size</display-name>
+    <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
-   </property>
-   <property>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>infra_log_maxbackupindex</name>
     <value>9</value>
     <description>The number of backup files</description>
@@ -39,7 +39,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>content</name>

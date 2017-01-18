@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import math
 from math import floor
 from urlparse import urlparse
@@ -26,8 +27,62 @@ import socket
 import re
 import xml.etree.ElementTree as ET
 
+# Local Imports
+from resource_management.core.logger import Logger
+
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
+
+  def __init__(self):
+    super(HDP22StackAdvisor, self).__init__()
+    Logger.initialize_logger()
+
+    self.modifyMastersWithMultipleInstances()
+    self.modifyCardinalitiesDict()
+    self.modifyHeapSizeProperties()
+    self.modifyNotValuableComponents()
+    self.modifyComponentsNotPreferableOnServer()
+
+  def modifyMastersWithMultipleInstances(self):
+    """
+    Modify the set of masters with multiple instances.
+    Must be overriden in child class.
+    """
+    self.mastersWithMultipleInstances |= set(['METRICS_COLLECTOR'])
+
+  def modifyCardinalitiesDict(self):
+    """
+    Modify the dictionary of cardinalities.
+    Must be overriden in child class.
+    """
+    self.cardinalitiesDict.update(
+      {
+        'METRICS_COLLECTOR': {"min": 1}
+      }
+    )
+
+  def modifyHeapSizeProperties(self):
+    """
+    Modify the dictionary of heap size properties.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
+
+  def modifyNotValuableComponents(self):
+    """
+    Modify the set of components whose host assignment is based on other services.
+    Must be overriden in child class.
+    """
+    self.notValuableComponents |= set(['METRICS_MONITOR'])
+
+  def modifyComponentsNotPreferableOnServer(self):
+    """
+    Modify the set of components that are not preferable on the server.
+    Must be overriden in child class.
+    """
+    # Nothing to do
+    pass
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDP22StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -99,17 +154,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-
-      # Above is the default calculated 'maximum' values derived purely from hosts.
-      # However, there are 'maximum' and other attributes that actually change based on the values
-      #  of other configs. We need to update those values.
-      if ("yarn-site" in services["configurations"]):
-        if ("yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]):
-          putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-          putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-        if ("yarn.nodemanager.resource.cpu-vcores" in services["configurations"]["yarn-site"]["properties"]):
-          putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
-          putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
 
       kerberos_authentication_enabled = self.isSecurityEnabled(services)
       if kerberos_authentication_enabled:
@@ -462,14 +506,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     webhcat_queue = self.recommendYarnQueue(services, "webhcat-site", "templeton.hadoop.queue.name")
     if webhcat_queue is not None:
       putWebhcatSiteProperty("templeton.hadoop.queue.name", webhcat_queue)
-
-
-    # Recommend Ranger Hive authorization as per Ranger Hive plugin property
-    if "ranger-env" in services["configurations"] and "hive-env" in services["configurations"] and \
-        "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
-      rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
-      if (rangerEnvHivePluginProperty.lower() == "yes"):
-        putHiveEnvProperty("hive_security_authorization", "RANGER")
 
     # Security
     if ("configurations" not in services) or ("hive-env" not in services["configurations"]) or \
@@ -829,7 +865,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
 
     putTezProperty = self.putProperty(configurations, "tez-site", services)
-    putTezProperty("tez.am.resource.memory.mb", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), int(clusterData['amMemory'])))
+    putTezProperty("tez.am.resource.memory.mb", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory'])))
 
     taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory, yarnMaxAllocationSize)
@@ -1104,7 +1140,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     nodemanagerMinRam = 1048576 # 1TB in mb
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
-    putMapredProperty('yarn.app.mapreduce.am.resource.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+    putMapredProperty('yarn.app.mapreduce.am.resource.mb', max(int(clusterData['ramPerContainer']),int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     min_mapreduce_map_memory_mb = 0
@@ -1114,8 +1150,19 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       min_mapreduce_map_memory_mb = 1536
       min_mapreduce_reduce_memory_mb = 1536
       min_mapreduce_map_java_opts = 1024
-    putMapredProperty('mapreduce.map.memory.mb', min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), max(min_mapreduce_map_memory_mb, int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))))
-    putMapredProperty('mapreduce.reduce.memory.mb', min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), max(min_mapreduce_reduce_memory_mb, min(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(nodemanagerMinRam)))))
+
+    putMapredProperty('mapreduce.map.memory.mb',
+                      min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]),
+                          max(min_mapreduce_map_memory_mb,
+                              max(int(clusterData['ramPerContainer']),
+                                  int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))))
+    putMapredProperty('mapreduce.reduce.memory.mb',
+                      min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]),
+                          max(max(min_mapreduce_reduce_memory_mb,
+                                  int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])),
+                              min(2*int(clusterData['ramPerContainer']),
+                                  int(nodemanagerMinRam)))))
+
     mapredMapXmx = int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]));
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(max(min_mapreduce_map_java_opts, mapredMapXmx)) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.reduce.memory.mb"]))) + "m")
@@ -1148,23 +1195,23 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'mapreduce.job.queuename', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'mapreduce.job.queuename', services)} ]
 
     if 'mapreduce.map.java.opts' in properties and \
-      checkXmxValueFormat(properties['mapreduce.map.java.opts']):
-      mapreduceMapJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.map.java.opts'])) / (1024.0 * 1024)
-      mapreduceMapMemoryMb = to_number(properties['mapreduce.map.memory.mb'])
+      self.checkXmxValueFormat(properties['mapreduce.map.java.opts']):
+      mapreduceMapJavaOpts = self.formatXmxSizeToBytes(self.getXmxSize(properties['mapreduce.map.java.opts'])) / (1024.0 * 1024)
+      mapreduceMapMemoryMb = self.to_number(properties['mapreduce.map.memory.mb'])
       if mapreduceMapJavaOpts > mapreduceMapMemoryMb:
         validationItems.append({"config-name": 'mapreduce.map.java.opts', "item": self.getWarnItem("mapreduce.map.java.opts Xmx should be less than mapreduce.map.memory.mb ({0})".format(mapreduceMapMemoryMb))})
 
     if 'mapreduce.reduce.java.opts' in properties and \
-      checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
-      mapreduceReduceJavaOpts = formatXmxSizeToBytes(getXmxSize(properties['mapreduce.reduce.java.opts'])) / (1024.0 * 1024)
-      mapreduceReduceMemoryMb = to_number(properties['mapreduce.reduce.memory.mb'])
+      self.checkXmxValueFormat(properties['mapreduce.reduce.java.opts']):
+      mapreduceReduceJavaOpts = self.formatXmxSizeToBytes(self.getXmxSize(properties['mapreduce.reduce.java.opts'])) / (1024.0 * 1024)
+      mapreduceReduceMemoryMb = self.to_number(properties['mapreduce.reduce.memory.mb'])
       if mapreduceReduceJavaOpts > mapreduceReduceMemoryMb:
         validationItems.append({"config-name": 'mapreduce.reduce.java.opts', "item": self.getWarnItem("mapreduce.reduce.java.opts Xmx should be less than mapreduce.reduce.memory.mb ({0})".format(mapreduceReduceMemoryMb))})
 
     if 'yarn.app.mapreduce.am.command-opts' in properties and \
-      checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
-      yarnAppMapreduceAmCommandOpts = formatXmxSizeToBytes(getXmxSize(properties['yarn.app.mapreduce.am.command-opts'])) / (1024.0 * 1024)
-      yarnAppMapreduceAmResourceMb = to_number(properties['yarn.app.mapreduce.am.resource.mb'])
+      self.checkXmxValueFormat(properties['yarn.app.mapreduce.am.command-opts']):
+      yarnAppMapreduceAmCommandOpts = self.formatXmxSizeToBytes(self.getXmxSize(properties['yarn.app.mapreduce.am.command-opts'])) / (1024.0 * 1024)
+      yarnAppMapreduceAmResourceMb = self.to_number(properties['yarn.app.mapreduce.am.resource.mb'])
       if yarnAppMapreduceAmCommandOpts > yarnAppMapreduceAmResourceMb:
         validationItems.append({"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.getWarnItem("yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb ({0})".format(yarnAppMapreduceAmResourceMb))})
 
@@ -1178,9 +1225,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateHDFSRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if (ranger_plugin_enabled.lower() == 'yes'):
+    if 'RANGER' in servicesList and (ranger_plugin_enabled.lower() == 'yes'):
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-hdfs-plugin-enabled' in ranger_env or \
@@ -1229,7 +1277,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     for address_property in address_properties:
       if address_property in hdfs_site:
         value = hdfs_site[address_property]
-        if not is_valid_host_port_authority(value):
+        if not self.is_valid_host_port_authority(value):
           validationItems.append({"config-name" : address_property, "item" :
             self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
 
@@ -1258,15 +1306,15 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       data_transfer_protection = 'dfs.data.transfer.protection'
 
       try: # Params may be absent
-        privileged_dfs_dn_port = isSecurePort(getPort(hdfs_site[dfs_datanode_address]))
+        privileged_dfs_dn_port = self.isSecurePort(self.getPort(hdfs_site[dfs_datanode_address]))
       except KeyError:
         privileged_dfs_dn_port = False
       try:
-        privileged_dfs_http_port = isSecurePort(getPort(hdfs_site[datanode_http_address]))
+        privileged_dfs_http_port = self.isSecurePort(self.getPort(hdfs_site[datanode_http_address]))
       except KeyError:
         privileged_dfs_http_port = False
       try:
-        privileged_dfs_https_port = isSecurePort(getPort(hdfs_site[datanode_https_address]))
+        privileged_dfs_https_port = self.isSecurePort(self.getPort(hdfs_site[datanode_https_address]))
       except KeyError:
         privileged_dfs_https_port = False
       try:
@@ -1410,6 +1458,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     hive_env = properties
     hive_site = getSiteProperties(configurations, "hive-site")
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if "hive_security_authorization" in hive_env and \
         str(hive_env["hive_security_authorization"]).lower() == "none" \
       and str(hive_site["hive.security.authorization.enabled"]).lower() == "true":
@@ -1419,12 +1468,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if "hive_security_authorization" in hive_env and \
         str(hive_env["hive_security_authorization"]).lower() == "ranger":
       # ranger-hive-plugin must be enabled in ranger-env
-      ranger_env = getServicesSiteProperties(services, 'ranger-env')
-      if not ranger_env or not 'ranger-hive-plugin-enabled' in ranger_env or \
-          ranger_env['ranger-hive-plugin-enabled'].lower() != 'yes':
-        validationItems.append({"config-name": 'hive_security_authorization',
-                                "item": self.getWarnItem(
-                                  "ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger")})
+      if 'RANGER' in servicesList:
+        ranger_env = getServicesSiteProperties(services, 'ranger-env')
+        if not ranger_env or not 'ranger-hive-plugin-enabled' in ranger_env or \
+            ranger_env['ranger-hive-plugin-enabled'].lower() != 'yes':
+          validationItems.append({"config-name": 'hive_security_authorization',
+                                  "item": self.getWarnItem(
+                                    "ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger")})
     return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1578,9 +1628,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateHBASERangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-hbase-plugin-enabled' in ranger_env or \
@@ -1592,9 +1643,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateKnoxRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-knox-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-knox-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-knox-plugin-enabled' in ranger_env or \
@@ -1610,7 +1662,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     security_enabled = self.isSecurityEnabled(services)
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-kafka-plugin-enabled' in ranger_env or \
@@ -1631,7 +1683,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-storm-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     security_enabled = self.isSecurityEnabled(services)
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-storm-plugin-enabled' in ranger_env or \
@@ -1664,9 +1716,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateYARNRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-yarn-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-yarn-plugin-enabled'] if ranger_plugin_properties else 'No'
-    if ranger_plugin_enabled.lower() == 'yes':
+    if 'RANGER' in servicesList and ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
       if not ranger_env or not 'ranger-yarn-plugin-enabled' in ranger_env or \
@@ -1684,21 +1737,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       validationItems.append({"config-name": "ranger-storm-plugin-enabled",
                               "item": self.getWarnItem("Ranger Storm plugin should not be enabled in non-kerberos environment.")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-env")
-
-  def getMastersWithMultipleInstances(self):
-    result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()
-    result.extend(['METRICS_COLLECTOR'])
-    return result
-
-  def getNotValuableComponents(self):
-    result = super(HDP22StackAdvisor, self).getNotValuableComponents()
-    result.extend(['METRICS_MONITOR'])
-    return result
-
-  def getCardinalitiesDict(self):
-    result = super(HDP22StackAdvisor, self).getCardinalitiesDict()
-    result['METRICS_COLLECTOR'] = {"min": 1}
-    return result
 
   def getAffectedConfigs(self, services):
     affectedConfigs = super(HDP22StackAdvisor, self).getAffectedConfigs(services)
@@ -1730,16 +1768,4 @@ def is_number(s):
   except ValueError:
     pass
 
-  return False
-
-def is_valid_host_port_authority(target):
-  has_scheme = "://" in target
-  if not has_scheme:
-    target = "dummyscheme://"+target
-  try:
-    result = urlparse(target)
-    if result.hostname is not None and result.port is not None:
-      return True
-  except ValueError:
-    pass
   return False

@@ -27,6 +27,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -738,4 +739,11 @@ public interface Cluster {
    * @return number of hosts that form the cluster
    */
   int  getClusterSize();
+
+  /**
+   * Gets a new instance of a {@link RoleCommandOrder} for this cluster.
+   *
+   * @return the role command order instance (not {@code null}).
+   */
+  RoleCommandOrder getRoleCommandOrder();
 }

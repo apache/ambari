@@ -68,6 +68,9 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
+#spark_conf
+spark_conf_dir = format("{stack_root}/current/spark-client/conf")
+
 #hadoop params
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,stack_version_formatted):
   stack_version = None
@@ -135,6 +138,8 @@ oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
 java_share_dir = "/usr/share/java"
+java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 ext_js_file = "ext-2.2.zip"
 ext_js_path = format("/usr/share/{stack_name_uppercase}-oozie/{ext_js_file}")
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -143,8 +148,8 @@ oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
 
 limits_conf_dir = "/etc/security/limits.d"
 
-oozie_user_nofile_limit = config['configurations']['oozie-env']['oozie_user_nofile_limit']
-oozie_user_nproc_limit = config['configurations']['oozie-env']['oozie_user_nproc_limit']
+oozie_user_nofile_limit = default('/configurations/oozie-env/oozie_user_nofile_limit', 32000)
+oozie_user_nproc_limit = default('/configurations/oozie-env/oozie_user_nproc_limit', 16000)
 
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
@@ -154,9 +159,13 @@ oozie_site = config['configurations']['oozie-site']
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 yarn_resourcemanager_address = config['configurations']['yarn-site']['yarn.resourcemanager.address']
+zk_namespace = default('/configurations/oozie-site/oozie.zookeeper.namespace', 'oozie')
+zk_connection_string = default('/configurations/oozie-site/oozie.zookeeper.connection.string', None)
+jaas_file = os.path.join(conf_dir, 'zkmigrator_jaas.conf')
 
 if security_enabled:
   oozie_site = dict(config['configurations']['oozie-site'])
+  oozie_principal_with_host = oozie_principal.replace('_HOST', hostname)
 
   # If a user-supplied oozie.ha.authentication.kerberos.principal property exists in oozie-site,
   # use it to replace the existing oozie.authentication.kerberos.principal value. This is to ensure
@@ -173,10 +182,8 @@ if security_enabled:
 
   if stack_version_formatted and check_stack_feature(StackFeature.OOZIE_HOST_KERBEROS, stack_version_formatted):
     #older versions of oozie have problems when using _HOST in principal
-    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
-      oozie_principal.replace('_HOST', hostname)
-    oozie_site['oozie.authentication.kerberos.principal'] = \
-      http_principal.replace('_HOST', hostname)
+    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = oozie_principal_with_host
+    oozie_site['oozie.authentication.kerberos.principal'] = http_principal.replace('_HOST', hostname)
 
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 oozie_keytab = default("/configurations/oozie-env/oozie_keytab", oozie_service_keytab)

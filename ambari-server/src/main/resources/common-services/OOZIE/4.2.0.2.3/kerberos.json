@@ -20,7 +20,8 @@
             "oozie.service.AuthorizationService.authorization.enabled": "true",
             "oozie.service.HadoopAccessorService.kerberos.enabled": "true",
             "local.realm": "${realm}",
-            "oozie.credentials.credentialclasses": "hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials"
+            "oozie.credentials.credentialclasses": "hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials",
+            "oozie.zookeeper.secure" : "true"
           }
         }
       ],

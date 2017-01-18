@@ -197,10 +197,9 @@ var CytoscapeRenderer= Ember.Object.extend({
         this.get("context").$(".overlay-settings-icon").show();
       }
       if (node.data().type === 'action') {
-        this.get("context").$(".overlay-copy-icon").show();
-        this.get("context").$(".overlay-cut-icon").show();
-        this.get("context").$(".overlay-hdfs-import-icon").show();
-        this.get("context").$(".overlay-hdfs-export-icon").show();
+        this.get("context").$(".overlay-copy-icon, .overlay-cut-icon").show();
+        this.get("context").$(".overlay-hdfs-asset-import-icon, .overlay-hdfs-asset-export-icon").show();
+        this.get("context").$(".overlay-asset-import-icon, .overlay-asset-export-icon").show();
         if(this.get('context').get('clipboard')){
           this.get("context").$(".overlay-paste-icon").show();
         }

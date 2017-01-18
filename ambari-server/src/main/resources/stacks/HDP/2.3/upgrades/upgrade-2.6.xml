@@ -592,6 +592,7 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction">
             <summary>Configuring Ranger Alerts</summary>
           </task>
+          <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
 
           <task xsi:type="execute" hosts="all">
             <script>scripts/ranger_admin.py</script>
@@ -714,6 +715,8 @@
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -871,6 +874,8 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths"/>
         </pre-upgrade>
+        
+        <pre-downgrade />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -996,6 +1001,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
         </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -1112,6 +1118,8 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -1126,6 +1134,8 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -1136,6 +1146,9 @@
             <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
           </task>
         </post-upgrade>
+        
+        <post-downgrade copy-upgrade="true" />
+        
       </component>
     </service>
 

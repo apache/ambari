@@ -239,8 +239,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
     this.clearSaveInfo();
-    this.clearRecommendationsInfo();
-    this.clearAllRecommendations();
+    this.clearRecommendations();
     this.setProperties({
       saveInProgress: false,
       isInit: true,
@@ -515,12 +514,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+    /* if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       App.router.get('mainServiceInfoSummaryController').updateRangerPluginsStatus();
       this.setVisibilityForRangerProperties(selectedService);
     } else {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
-    }
+    } */
     this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
     App.loadTimer.finish('Service Configs Page');
   },
@@ -627,8 +626,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
-    this.clearAllRecommendations();
-    this.clearRecommendationsInfo();
+    this.clearRecommendations();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 

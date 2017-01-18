@@ -18,7 +18,6 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
-var validator = require('utils/validator');
 
 App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
 
@@ -226,7 +225,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   formatProperties: function () {
     this.get('content.serviceConfigProperties').forEach(function (_configProperty) {
-      _configProperty.value = (typeof _configProperty.value === "boolean")
+      _configProperty.value = typeof _configProperty.value === "boolean"
         ? _configProperty.value.toString() : App.config.trimProperty(_configProperty, false);
     });
   },
@@ -251,7 +250,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var hosts = [];
     for (var hostName in allHosts) {
       if (allHosts.hasOwnProperty(hostName)) {
-        if (allHosts[hostName].bootStatus == 'REGISTERED') {
+        if (allHosts[hostName].bootStatus === 'REGISTERED') {
           allHosts[hostName].hostName = allHosts[hostName].name;
           hosts.pushObject(allHosts[hostName]);
         }
@@ -283,7 +282,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var totalHostsCount = 0;
     var hosts = this.get('content.hosts');
     for (var hostName in hosts) {
-      newHostsCount += ~~(!hosts[hostName].isInstalled);
+      newHostsCount += ~~!hosts[hostName].isInstalled;
       totalHostsCount++;
     }
 
@@ -292,7 +291,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.get('clusterInfo').pushObject(Em.Object.create(totalHostsObj));
 
     //repo
-    if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
+    if (this.get('isAddService') || this.get('isAddHost')) {
       // For some stacks there is no info regarding stack versions to upgrade, e.g. HDP-2.1
       if (App.StackVersion.find().get('content.length')) {
         this.loadRepoInfo();
@@ -415,10 +414,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * @param {object} request
    * @method loadRepoInfoErrorCallback
    */
-  loadRepoInfoErrorCallback: function (request) {
+  loadRepoInfoErrorCallback: function () {
     var allRepos = [];
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
@@ -441,7 +439,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         // no HA component
         if (component.get('isHAComponentOnly')) return;
         // skip if component is not allowed on single node cluster
-        if (Object.keys(this.get('content.hosts')).length == 1 && component.get('isNotAllowedOnSingleNodeCluster')) return;
+        if (Object.keys(this.get('content.hosts')).length === 1 && component.get('isNotAllowedOnSingleNodeCluster')) return;
         var displayName;
         if (component.get('isClient')) {
           displayName = Em.I18n.t('common.clients')
@@ -496,7 +494,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         var componentName = component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName');
         var hostsLength = this.get('content.slaveComponentHosts')
           .findProperty('componentName', componentName).hosts.length;
-        componentValue = hostsLength + Em.I18n.t('installer.step8.host' + ((hostsLength > 1) ? 's' : ''));
+        componentValue = hostsLength + Em.I18n.t('installer.step8.host' + (hostsLength > 1 ? 's' : ''));
       }
     }
     return componentValue;
@@ -538,7 +536,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   loadHbaseMasterValue: function (hbaseMaster) {
     var hbaseHostName = this.get('content.masterComponentHosts').filterProperty('component', hbaseMaster.component_name);
-    if (hbaseHostName.length == 1) {
+    if (hbaseHostName.length === 1) {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName);
     } else {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName + " " + Em.I18n.t('installer.step8.other').format(hbaseHostName.length - 1));
@@ -590,7 +588,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var selectedServiceNames = this.get('selectedServices').mapProperty('serviceName');
     var installedServiceNames = this.get('installedServices').mapProperty('serviceName');
 
-    if (this.get('content.controllerName') === 'addServiceController' && selectedServiceNames.contains('OOZIE')) {
+    if (this.get('isAddService') && selectedServiceNames.contains('OOZIE')) {
       var affectedServices = ['HDFS', 'YARN'].filter(function(serviceName) {
         return installedServiceNames.contains(serviceName);
       });
@@ -630,12 +628,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   checkKDCSession: function() {
     var self = this;
     var wizardController = App.router.get(this.get('content.controllerName'));
-    if (this.get('content.controllerName') != 'installerController') {
+    if (!this.get('isInstaller')) {
       App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this), function () {
         self.set('isSubmitDisabled', false);
         self.set('isBackBtnDisabled', false);
         wizardController.setStepsEnable();
-        if (self.get('content.controllerName') === 'addServiceController') {
+        if (self.get('isAddService')) {
           wizardController.setSkipSlavesStep(wizardController.getDBProperty('selectedServiceNames'), 3);
         }
       });
@@ -652,7 +650,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var self = this;
     this.set('clusterDeleteRequestsCompleted', 0);
     this.get('clusterDeleteErrorViews').clear();
-    if (this.get('content.controllerName') == 'addHostController') {
+    if (this.get('isAddHost')) {
       App.router.get('addHostController').setLowerStepsDisable(4);
     }
 
@@ -690,7 +688,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     // TODO: modify for multi-cluster support
     this.getExistingClusterNames().complete(function () {
       var clusterNames = self.get('clusterNames');
-      if (self.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
+      if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
         self.deleteClusters(clusterNames);
       } else {
         self.getExistingVersions();
@@ -746,7 +744,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         sender: this,
         data: {
           name: clusterName,
-          isLast: index == clusterNames.length - 1
+          isLast: index === clusterNames.length - 1
         },
         success: 'deleteClusterSuccessCallback',
         error: 'deleteClusterErrorCallback'
@@ -835,7 +833,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method getExistingVersionsSuccessCallback
    */
   getExistingVersionsSuccessCallback: function (data) {
-    if (this.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && data.items.length) {
+    if (this.get('isInstaller') && !App.get('testMode') && data.items.length) {
       this.set('existingRepositoryVersions', data.items.length);
       this.deleteExistingVersions(data.items);
     } else {
@@ -904,7 +902,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method startDeploy
    */
   startDeploy: function () {
-    if (this.get('content.controllerName') !== 'installerController') {
+    if (!this.get('isInstaller')) {
       this._startDeploy();
     } else {
       var installerController = App.router.get('installerController');
@@ -932,8 +930,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   _startDeploy: function () {
     this.createCluster();
     this.createSelectedServices();
-    if (this.get('content.controllerName') !== 'addHostController') {
-      if (this.get('content.controllerName') === 'addServiceController') {
+    if (!this.get('isAddHost')) {
+      if (this.get('isAddService')) {
         // for manually enabled Kerberos descriptor was updated on transition to this step
         if (App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
           this.updateKerberosDescriptor();
@@ -951,7 +949,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.createConfigurationGroups();
     this.createMasterHostComponents();
     this.createSlaveAndClientsHostComponents();
-    if (this.get('content.controllerName') === 'addServiceController') {
+    if (this.get('isAddService')) {
       this.createAdditionalClientComponents();
     }
     this.createAdditionalHostComponents();
@@ -973,8 +971,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createCluster
    */
   createCluster: function () {
-    if (this.get('content.controllerName') !== 'installerController') return;
-    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
+    if (!this.get('isInstaller')) return;
+    var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
     var selectedStack = App.Stack.find().findProperty('isSelected', true);
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
@@ -1036,7 +1034,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       this.addRequestToCreateComponent(componentsData, serviceName);
     }, this);
 
-    if (this.get('content.controllerName') === 'addHostController') {
+    if (this.get('isAddHost')) {
       var allServiceComponents = [];
       var services = App.Service.find().mapProperty('serviceName');
       services.forEach(function(_service){
@@ -1153,20 +1151,21 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       return this.get('selectedServices').mapProperty('serviceName').contains(_component.serviceId)
     }, this);
     selectedMasterComponents.mapProperty('component').uniq().forEach(function (component) {
+      var hostNames = [];
       if (masterOnAllHosts.length > 0) {
         var compOnAllHosts = false;
         for (var i=0; i < masterOnAllHosts.length; i++) {
-          if (component == masterOnAllHosts[i]) {
+          if (component === masterOnAllHosts[i]) {
             compOnAllHosts = true;
             break;
           }
         }
         if (!compOnAllHosts) {
-          var hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
+          hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
           this.registerHostsToComponent(hostNames, component);
         }
       } else {
-        var hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
+        hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
         this.registerHostsToComponent(hostNames, component);
       }
     }, this);
@@ -1224,11 +1223,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         clientsToSlaveMap = this.getClientsMap('isSlave');
 
     slaveHosts.forEach(function (_slave) {
+      var hostNames = [];
+      var compOnAllHosts;
       if (_slave.componentName !== 'CLIENT') {
         if (slaveOnAllHosts.length > 0) {
-          var compOnAllHosts = false;
+          compOnAllHosts = false;
           for (var i=0; i < slaveOnAllHosts.length; i++) {
-            if (_slave.componentName == slaveOnAllHosts[i]) {
+            if (_slave.componentName === slaveOnAllHosts[i]) {
               // component with ALL cardinality should not
               // registerHostsToComponent in createSlaveAndClientsHostComponents
               compOnAllHosts = true;
@@ -1236,20 +1237,20 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
             }
           }
           if (!compOnAllHosts) {
-            var hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
+            hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
             this.registerHostsToComponent(hostNames, _slave.componentName);
           }
         } else {
-          var hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
+          hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
           this.registerHostsToComponent(hostNames, _slave.componentName);
         }
       }
       else {
         clients.forEach(function (_client) {
-          var hostNames = _slave.hosts.mapProperty('hostName');
+          hostNames = _slave.hosts.mapProperty('hostName');
           // The below logic to install clients to existing/New master hosts should not be applied to Add Host wizard.
           // This is with the presumption that Add Host controller does not add any new Master component to the cluster
-          if (this.get('content.controllerName') !== 'addHostController') {
+          if (!this.get('isAddHost')) {
             if (clientsToMasterMap[_client.component_name]) {
               clientsToMasterMap[_client.component_name].forEach(function (componentName) {
                 masterHosts.filterProperty('component', componentName).forEach(function (_masterHost) {
@@ -1266,9 +1267,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
             });
           }
           if (clientOnAllHosts.length > 0) {
-            var compOnAllHosts = false;
+            compOnAllHosts = false;
             for (var i=0; i < clientOnAllHosts.length; i++) {
-              if (_client.component_name == clientOnAllHosts[i]) {
+              if (_client.component_name === clientOnAllHosts[i]) {
                 // component with ALL cardinality should not
                 // registerHostsToComponent in createSlaveAndClientsHostComponents
                 compOnAllHosts = true;
@@ -1298,7 +1299,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('content.slaveComponentHosts').someProperty('componentName', 'CLIENT')) {
       clientHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts;
     }
-    var clients = this.get('content.clients').filterProperty('isInstalled', false);
     var clientsToMasterMap = this.getClientsMap('isMaster');
     var clientsToClientMap = this.getClientsMap('isClient');
     var installedClients = [];
@@ -1397,7 +1397,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
-      if (hiveDb.value == "New MySQL Database") {
+      if (hiveDb.value === "New MySQL Database") {
         this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
       } else if (hiveDb.value === "New PostgreSQL Database") {
         this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER');
@@ -1486,7 +1486,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @returns {*}
    */
   getServiceConfigNote: function(type, serviceDisplayName) {
-    return (this.get('isAddService') && (type === 'core-site')) ?
+    return this.get('isAddService') && type === 'core-site' ?
       Em.I18n.t('dashboard.configHistory.table.notes.addService') : Em.I18n.t('dashboard.configHistory.table.notes.default').format(serviceDisplayName);
   },
 
@@ -1651,7 +1651,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createNotification
    */
   createNotification: function () {
-    if (this.get('content.controllerName') !== 'installerController') return;
+    if (!this.get('isInstaller')) return;
     var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
       createNotification = miscConfigs.findProperty('name', 'create_notification').value;
     if (createNotification !== 'yes') return;
@@ -1733,14 +1733,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         message: '',
 
         /**
-         * Set progress bar width and popup message when ajax-queue requests are proccessed
+         * Set progress bar width and popup message when ajax-queue requests are processed
          * @method ajaxQueueChangeObs
          */
         ajaxQueueChangeObs: function () {
           var length = this.get('controller.ajaxQueueLength');
           var left = this.get('controller.ajaxRequestsQueue.queue.length');
-          this.set('barWidth', 'width: ' + ((length - left) / length * 100) + '%;');
-          this.set('message', Em.I18n.t('installer.step8.deployPopup.message').format((length - left), length));
+          this.set('barWidth', 'width: ' + (length - left) / length * 100 + '%;');
+          this.set('message', Em.I18n.t('installer.step8.deployPopup.message').format(length - left, length));
         }.observes('controller.ajaxQueueLength', 'controller.ajaxRequestsQueue.queue.length'),
 
         /**
@@ -1751,7 +1751,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           if (this.get('controller.servicesInstalled')) {
             this.get('parentView').hide();
           }
-        }.observes('controller.servicesInstalled')
+        }.observes('controller.servicesInstalled'),
+
+        ajaxQueueErrorAppears: function () {
+          if (this.get('controller.hasErrorOccurred')) {
+            this.get('parentView').onClose();
+          }
+        }.observes('controller.hasErrorOccurred')
+
       })
 
     });

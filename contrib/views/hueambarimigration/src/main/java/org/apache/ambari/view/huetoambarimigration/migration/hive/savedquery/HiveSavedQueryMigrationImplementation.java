@@ -598,24 +598,24 @@ public class HiveSavedQueryMigrationImplementation {
       );
       conf.set("fs.defaultFS", namenodeuri);
       conf.set("hadoop.job.ugi", "hdfs");
-      conf.set("hadoop.security.authentication", "Kerberos");
-
       UserGroupInformation.setConfiguration(conf);
+
       UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
 
-      ugi.doAs(new PrivilegedExceptionAction<Void>() {
+      ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
-        public Void run() throws Exception {
+        public Boolean run() throws Exception {
 
           URI uri = new URI(dir);
           FileSystem fs = FileSystem.get(uri, conf, username);
+
           Path src = new Path(dir);
-          fs.mkdirs(src);
-          return null;
+          Boolean b = fs.mkdirs(src);
+          return b;
         }
       });
     } catch (Exception e) {
-      logger.error("Webhdfs: ", e);
+      logger.error("Exception in Webhdfs ", e);
     }
   }
 
@@ -653,27 +653,24 @@ public class HiveSavedQueryMigrationImplementation {
 
   public void putFileinHdfs(final String source, final String dest,
                             final String namenodeuri,final String username) throws IOException {
-
     try {
-      final Configuration conf = new Configuration();
-
-      conf.set("fs.hdfs.impl",
-        org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
-      );
-      conf.set("fs.file.impl",
-        org.apache.hadoop.fs.LocalFileSystem.class.getName()
-      );
-      conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
-      conf.set("hadoop.security.authentication", "Kerberos");
-
-      UserGroupInformation.setConfiguration(conf);
       UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
+
       ugi.doAs(new PrivilegedExceptionAction<Void>() {
 
         public Void run() throws Exception {
 
+          Configuration conf = new Configuration();
+          conf.set("fs.defaultFS", namenodeuri);
+          conf.set("hadoop.job.ugi", "hdfs");
+          conf.set("fs.hdfs.impl",
+            org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+          );
+          conf.set("fs.file.impl",
+            org.apache.hadoop.fs.LocalFileSystem.class.getName()
+          );
           FileSystem fileSystem = FileSystem.get(conf);
+
           String filename = source.substring(
             source.lastIndexOf('/') + 1, source.length());
           String dest1;
@@ -685,6 +682,7 @@ public class HiveSavedQueryMigrationImplementation {
 
           Path path = new Path(dest1);
 
+          //	Path pathsource = new Path(source);
           FSDataOutputStream out = fileSystem.create(path);
 
           InputStream in = new BufferedInputStream(

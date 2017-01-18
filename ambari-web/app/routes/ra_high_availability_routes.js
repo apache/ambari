@@ -135,6 +135,10 @@ module.exports = App.WizardRoute.extend({
       });
     },
     next: function (router) {
+      var controller = router.get('rAHighAvailabilityWizardController'),
+        stepController = router.get('rAHighAvailabilityWizardStep3Controller');
+      stepController.updateConfigProperty();
+      controller.save('policymgrExternalURL');
       router.transitionTo('step4');
     },
     back: function (router) {

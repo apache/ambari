@@ -38,6 +38,8 @@ App.WizardStep0Controller = Em.Controller.extend({
     if (clusterName == '' && this.get('hasSubmitted')) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.required'));
       return true;
+    } else if (clusterName == '' ) {
+      return true;
     } else if (clusterName.length > MAX_CLUSTER_NAME_LENGTH) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.tooLong'));
       return true;
@@ -63,6 +65,7 @@ App.WizardStep0Controller = Em.Controller.extend({
     this.set('hasSubmitted', false);
     this.set('clusterNameError', '');
   },
+
 
   /**
    * @type {boolean}

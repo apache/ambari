@@ -490,22 +490,25 @@ public class ConfigHelper {
   }
 
   /**
-   * Gets a map of config types to password property names to password property value names.
+   * Gets a map of config types to password property names to password property value names,
+   * that are credential store enabled.
    *
    * @param stackId
    * @param service
-   * @param propertyType
    * @return
    * @throws AmbariException
      */
-  public Map<String, Map<String, String>> getPropertiesWithPropertyType(StackId stackId, Service service, PropertyType propertyType)
+  public Map<String, Map<String, String>> getCredentialStoreEnabledProperties(StackId stackId, Service service)
           throws AmbariException {
+    PropertyType propertyType = PropertyType.PASSWORD;
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
     Map<String, Map<String, String>> result = new HashMap<>();
     Map<String, String> passwordProperties;
     Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
     for (PropertyInfo serviceProperty : serviceProperties) {
       if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+        if (!serviceProperty.getPropertyValueAttributes().isKeyStore())
+          continue;
         String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
         passwordProperties = result.get(stackPropertyConfigType);
         if (passwordProperties == null) {

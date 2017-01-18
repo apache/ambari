@@ -18,6 +18,8 @@
 import Ember from 'ember';
 import {WorkflowXmlMapper} from '../domain/workflow_xml_mapper';
 import {NodeVisitor} from '../domain/node-visitor';
+import CustomMappingHandler from "../domain/custom-mapping-handler";
+
 var WorkflowGenerator= Ember.Object.extend({
   workflowMapper:null,
   x2js : new X2JS({useDoubleQuotes:true}),
@@ -120,6 +122,9 @@ var WorkflowGenerator= Ember.Object.extend({
         if (!self.ignoreErrors && !node.get("domain")){
             this.workflowContext.addError({node : node, message : "Action Properties are empty"});
         }else{
+          if(node.customMapping){
+            CustomMappingHandler.setMapping(node.name, node.customMapping);
+          }
           jobHandler.handle(node.get("domain"),nodeObj,node.get("name"));
           if (!self.ignoreErrors){
             var errors=jobHandler.validate(node.get("domain"));

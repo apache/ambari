@@ -24,6 +24,7 @@ import tempfile
 from mock.mock import patch, MagicMock, call
 import StringIO
 import sys
+import multiprocessing
 from ambari_agent.RecoveryManager import RecoveryManager
 
 
@@ -212,6 +213,7 @@ class TestHeartbeat(TestCase):
 
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.statusCommandQueue = multiprocessing.Queue()
     statusCommand = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",

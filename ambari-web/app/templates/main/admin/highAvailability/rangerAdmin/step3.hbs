@@ -46,6 +46,13 @@
         <div class="alert alert-info">
           {{{t admin.rm_highAvailability.wizard.step3.configs_changes}}}
         </div>
+        {{#if isLoaded}}
+          <div id="serviceConfig">
+            {{view App.ServiceConfigView}}
+          </div>
+        {{else}}
+          {{view App.SpinnerView}}
+        {{/if}}
     </div>
   </div>
 </div>
@@ -55,4 +62,3 @@
     <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
   </div>
 </div>
-

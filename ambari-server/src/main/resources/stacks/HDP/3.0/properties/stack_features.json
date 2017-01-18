@@ -162,8 +162,7 @@
     {
       "name": "oozie_host_kerberos",
       "description": "Oozie in secured clusters uses _HOST in Kerberos principal (AMBARI-9775)",
-      "min_version": "2.0.0.0",
-      "max_version": "2.2.0.0"
+      "min_version": "2.0.0.0"
     },
     {
       "name": "falcon_extensions",

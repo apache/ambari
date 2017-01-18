@@ -25,6 +25,7 @@ from urlparse import urlparse
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions.get_config import get_config
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.resources.service import ServiceConfig
@@ -40,6 +41,7 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
 from resource_management.core import utils
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from ambari_commons.constants import SERVICE
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -63,6 +65,12 @@ def hive(name=None):
   for conf_dir in params.hive_conf_dirs_list:
     fill_conf_dir(conf_dir)
 
+  params.hive_site_config = update_credential_provider_path(params.hive_site_config,
+                                                     'hive-site',
+                                                     os.path.join(params.hive_conf_dir, 'hive-site.jceks'),
+                                                     params.hive_user,
+                                                     params.user_group
+                                                     )
   XmlConfig("hive-site.xml",
             conf_dir=params.hive_config_dir,
             configurations=params.hive_site_config,
@@ -96,6 +104,12 @@ def hive(name=None):
        mode=0644,
        content=Template("hive.conf.j2")
        )
+  if params.security_enabled:
+    File(os.path.join(params.hive_config_dir, 'zkmigrator_jaas.conf'),
+         owner=params.hive_user,
+         group=params.user_group,
+         content=Template("zkmigrator_jaas.conf.j2")
+         )
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -264,13 +278,15 @@ def setup_metastore():
   import params
   
   if params.hive_metastore_site_supported:
-    XmlConfig("hivemetastore-site.xml",
-              conf_dir=params.hive_server_conf_dir,
-              configurations=params.config['configurations']['hivemetastore-site'],
-              configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
-              owner=params.hive_user,
-              group=params.user_group,
-              mode=0600)
+    hivemetastore_site_config = get_config("hivemetastore-site")
+    if hivemetastore_site_config:
+      XmlConfig("hivemetastore-site.xml",
+                conf_dir=params.hive_server_conf_dir,
+                configurations=params.config['configurations']['hivemetastore-site'],
+                configuration_attributes=params.config['configuration_attributes']['hivemetastore-site'],
+                owner=params.hive_user,
+                group=params.user_group,
+                mode=0600)
   
   File(os.path.join(params.hive_server_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
        owner=params.hive_user,
@@ -372,7 +388,7 @@ def fill_conf_dir(component_conf_dir):
            mode=mode_identified_for_file,
            group=params.user_group,
            owner=params.hive_user,
-           content=params.log4j_props
+           content=InlineTemplate(params.log4j_props)
       )
     elif (os.path.exists("{component_conf_dir}/{log4j_filename}.template")):
       File(format("{component_conf_dir}/{log4j_filename}"),

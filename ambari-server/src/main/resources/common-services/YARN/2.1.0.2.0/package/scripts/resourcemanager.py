@@ -115,7 +115,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    if params.has_ranger_admin and params.is_supported_yarn_ranger:
+    if params.enable_ranger_yarn and params.is_supported_yarn_ranger:
       setup_ranger_yarn() #Ranger Yarn Plugin related calls
 
     # wait for active-dir and done-dir to be created by ATS if needed
@@ -238,8 +238,6 @@ class ResourcemanagerDefault(Resourcemanager):
       params.yarn_jaas_file, \
       params.yarn_user)
     zkmigrator.set_acls(params.rm_zk_znode, 'world:anyone:crdwa')
-    zkmigrator.set_acls(params.rm_zk_failover_znode, 'world:anyone:crdwa')
-    zkmigrator.set_acls(params.hadoop_registry_zk_root, 'world:anyone:crdwa')
 
   def wait_for_dfs_directories_created(self, *dirs):
     import params

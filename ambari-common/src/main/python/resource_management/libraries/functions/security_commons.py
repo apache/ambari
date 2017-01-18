@@ -22,10 +22,47 @@ from resource_management import Execute, File
 from tempfile import mkstemp
 import os
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+from resource_management.core.source import StaticFile
 
 FILE_TYPE_XML = 'XML'
 FILE_TYPE_PROPERTIES = 'PROPERTIES'
 FILE_TYPE_JAAS_CONF = 'JAAS_CONF'
+
+# The property name used by the hadoop credential provider
+HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME = 'hadoop.security.credential.provider.path'
+
+# Copy JCEKS provider to service specific location and update the ACL
+def update_credential_provider_path(config, config_type, dest_provider_path, file_owner, file_group):
+  """
+  Copies the JCEKS file for the specified config from the default location to the given location,
+  and sets the ACLs for the specified owner and group. Also updates the config type's configuration
+  hadoop credential store provider with the copied file name.
+  :param config: configurations['configurations'][config_type]
+  :param config_type: Like hive-site, oozie-site, etc.
+  :param dest_provider_path: The full path to the file where the JCEKS provider file is to be copied to.
+  :param file_owner: File owner
+  :param file_group: Group
+  :return: A copy of the config that was modified or the input config itself if nothing was modified.
+  """
+  # Get the path to the provider <config_type>.jceks
+  if HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME in config:
+    provider_paths = config[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME].split(',')
+    for path_index in range(len(provider_paths)):
+      provider_path = provider_paths[path_index]
+      if config_type == os.path.splitext(os.path.basename(provider_path))[0]:
+        src_provider_path = provider_path[len('jceks://file'):]
+        File(dest_provider_path,
+             owner = file_owner,
+             group = file_group,
+             mode = 0640,
+             content = StaticFile(src_provider_path)
+             )
+        provider_paths[path_index] = 'jceks://file{0}'.format(dest_provider_path)
+        # make a copy of the config dictionary since it is read-only
+        config_copy = config.copy()
+        config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = ','.join(provider_paths)
+        return config_copy
+  return config
 
 def validate_security_config_properties(params, configuration_rules):
   """

@@ -95,7 +95,7 @@ class TestHiveMetastore(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assert_configure_default()
+    self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
@@ -184,7 +184,7 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0644,
@@ -305,7 +305,7 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0644,
@@ -336,6 +336,11 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'root',
                               group = 'root',
                               mode = 0644,
+                              )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/zkmigrator_jaas.conf',
+                              content = Template('zkmigrator_jaas.conf.j2'),
+                              owner = 'hive',
+                              group = 'hadoop',
                               )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
@@ -449,7 +454,7 @@ class TestHiveMetastore(RMFTestCase):
       owner = 'hive')
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-      content = 'log4jproperties\nline2',
+      content = InlineTemplate('log4jproperties\nline2'),
       mode = 420,
       group = 'hadoop',
       owner = 'hive')

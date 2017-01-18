@@ -21,6 +21,10 @@ var App = require('app');
 
 App.RAHighAvailabilityWizardStep3View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/rangerAdmin/step3')
+  templateName: require('templates/main/admin/highAvailability/rangerAdmin/step3'),
+
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  }
 
 });

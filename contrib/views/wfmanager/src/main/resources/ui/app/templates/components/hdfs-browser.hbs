@@ -29,11 +29,11 @@
           <div class="row">
              <div class="col-xs-12">
                 <div class="pull-right">
-                  <span class="">
+                  <!-- <span class="">
                       <button type="button" class="btn btn-default" {{action "createFolder"}} disabled={{isFilePathInvalid}}>Create Folder</button>
-                  </span>
+                  </span> -->
                   {{#unless uploadSelected}}
-                    <span class="hide">
+                    <span>
                       <button type="button" class="btn btn-default" {{action "uploadSelect"}} disabled={{isFilePathInvalid}}>Upload File</button>
                     </span>
                   {{/unless}}
@@ -61,11 +61,12 @@
 
             {{/if}}
           <div class="directory-viewer-wrap hdfs-browse">
-            {{directory-viewer
+            {{#directory-viewer
               config=config
               errorAction="viewerError"
               pathSelectAction="viewerSelectedPath"
-            }}
+              uploaderService=uploaderService
+            }}{{/directory-viewer}}
           </div>
         </div>
       </div>
@@ -79,8 +80,8 @@
                 {{input name="selectedPath" class="form-control" type="text" value=selectedPath}}
               </div>
               <div class="col-xs-4">
-                <button type="button" class="btn btn-primary" {{action "selectFile"}}>Select</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" {{action "selectFile"}}>Select</button>
               </div>
         </div>
     </div>

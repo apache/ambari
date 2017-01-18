@@ -25,8 +25,8 @@ log4j.appender.CONSOLE.layout.ConversionPattern=%-4r [%t] %-5p %c %x [%X{collect
 
 #- size rotation with log cleanup.
 log4j.appender.file=org.apache.log4j.RollingFileAppender
-log4j.appender.file.MaxFileSize=10MB
-log4j.appender.file.MaxBackupIndex=9
+log4j.appender.file.MaxFileSize={{infra_log_maxfilesize}}MB
+log4j.appender.file.MaxBackupIndex={{infra_log_maxbackupindex}}
 
 #- File to log to and log format
 log4j.appender.file.File=${infra.solr.log.dir}/solr.log

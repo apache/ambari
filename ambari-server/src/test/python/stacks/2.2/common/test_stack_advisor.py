@@ -90,7 +90,7 @@ class TestHDP22StackAdvisor(TestCase):
       "reduceMemory": 2056,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "tez-site": {
@@ -184,7 +184,7 @@ class TestHDP22StackAdvisor(TestCase):
       "amMemory": 3100,
       "reduceMemory": 2056,
       "containers": 3,
-      "minContainerRam": 256,
+      "yarnMinContainerSize": 256,
       "ramPerContainer": 256
     }
     expected = {
@@ -271,7 +271,7 @@ class TestHDP22StackAdvisor(TestCase):
       "reduceMemory": 760,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "tez-site": {
@@ -888,7 +888,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -928,7 +928,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers": 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "spark-defaults": {
@@ -961,7 +961,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -1168,14 +1168,33 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # Test - with no 'changed-configurations', we should get updated 'maximum's.
     services.pop("changed-configurations", None)
+    services["changed-configurations"] = [{
+        "type": "yarn-site",
+        "name": "yarn.nodemanager.resource.memory-mb",
+        "old_value": "1280"
+    }]
     services.pop("configurations", None)
-    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321', "yarn.nodemanager.resource.cpu-vcores": '9'}}}
-    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
-    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321'}}}
+
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] = '4321'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-mb"]["maximum"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-mb"]["maximum"] = '4321'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services["changed-configurations"].append({
+        "type": "yarn-site",
+        "name": "yarn.nodemanager.resource.cpu-vcores",
+        "old_value": "7"
+    })
+    services.pop("configurations", None)
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.cpu-vcores": '9', "yarn.nodemanager.resource.memory-mb": '4321'}}}
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '9'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '9'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
@@ -1204,7 +1223,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
 
     services = {
@@ -1252,7 +1271,7 @@ class TestHDP22StackAdvisor(TestCase):
       "reduceMemory": 2056,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
 
     expected = {
@@ -1743,7 +1762,7 @@ class TestHDP22StackAdvisor(TestCase):
       "containers" : 7,
       "ramPerContainer": 256,
       "totalAvailableRam": 4096,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "cluster-env": {
@@ -1762,9 +1781,9 @@ class TestHDP22StackAdvisor(TestCase):
           'mapreduce.job.queuename': 'default',
           "mapreduce.map.memory.mb": "1536",
           "mapreduce.reduce.memory.mb": "1536",
-          "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
+          "yarn.app.mapreduce.am.command-opts": "-Xmx204m -Dhdp.version=${hdp.version}",
           "mapreduce.reduce.java.opts": "-Xmx1228m",
-          "yarn.app.mapreduce.am.resource.mb": "100",
+          "yarn.app.mapreduce.am.resource.mb": "256",
           "mapreduce.map.java.opts": "-Xmx1228m",
           "mapreduce.task.io.sort.mb": "859"
         },
@@ -1993,7 +2012,7 @@ class TestHDP22StackAdvisor(TestCase):
           "mapreduce.map.memory.mb": "1024",
           "mapreduce.reduce.memory.mb": "682",
           "yarn.app.mapreduce.am.command-opts": "-Xmx546m -Dhdp.version=${hdp.version}",
-          "mapreduce.reduce.java.opts": "-Xmx546m",
+          "mapreduce.reduce.java.opts": "-Xmx560m",
           "yarn.app.mapreduce.am.resource.mb": "682",
           "mapreduce.map.java.opts": "-Xmx546m",
           "mapreduce.task.io.sort.mb": "273"
@@ -2012,7 +2031,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -2024,13 +2043,13 @@ class TestHDP22StackAdvisor(TestCase):
       "mapred-site": {
         "properties": {
           'mapreduce.job.queuename': 'default',
-          "mapreduce.map.memory.mb": "100",
-          "mapreduce.reduce.memory.mb": "200",
-          "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
-          "mapreduce.reduce.java.opts": "-Xmx160m",
-          "yarn.app.mapreduce.am.resource.mb": "100",
-          "mapreduce.map.java.opts": "-Xmx80m",
-          "mapreduce.task.io.sort.mb": "56"
+          "mapreduce.map.memory.mb": "256",
+          "mapreduce.reduce.memory.mb": "512",
+          "yarn.app.mapreduce.am.command-opts": "-Xmx204m -Dhdp.version=${hdp.version}",
+          "mapreduce.reduce.java.opts": "-Xmx409m",
+          "yarn.app.mapreduce.am.resource.mb": "256",
+          "mapreduce.map.java.opts": "-Xmx204m",
+          "mapreduce.task.io.sort.mb": "142"
         },
         "property_attributes": {
           'mapreduce.task.io.sort.mb': {'maximum': '2047'},
@@ -2240,9 +2259,9 @@ class TestHDP22StackAdvisor(TestCase):
             "properties": {
                 'mapreduce.job.queuename': 'default',
                 "mapreduce.map.memory.mb": "700",
-                "mapreduce.reduce.memory.mb": "1280",
+                "mapreduce.reduce.memory.mb": "700",
                 "yarn.app.mapreduce.am.command-opts": "-Xmx560m -Dhdp.version=${hdp.version}",
-                "mapreduce.reduce.java.opts": "-Xmx1024m",
+                "mapreduce.reduce.java.opts": "-Xmx560m",
                 "yarn.app.mapreduce.am.resource.mb": "700",
                 "mapreduce.map.java.opts": "-Xmx560m",
                 "mapreduce.task.io.sort.mb": "392"
@@ -3637,7 +3656,18 @@ class TestHDP22StackAdvisor(TestCase):
       }
     ]
 
-    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, {}, {})
+    services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ]
+    }
+
+    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
     self.assertEquals(res, res_expected)
 
     # 2) fail: hive_security_authorization=Ranger but ranger plugin is disabled in ranger-env
@@ -3655,6 +3685,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3799,13 +3837,13 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
-          "yarn.nodemanager.resource.memory-mb": "39424",
+          "yarn.nodemanager.resource.memory-mb": "33792",
           "yarn.scheduler.minimum-allocation-mb": "1024",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "/yarn",
-          "yarn.scheduler.maximum-allocation-mb": "39424",
+          "yarn.scheduler.maximum-allocation-mb": "33792",
           "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
           "hadoop.registry.rm.enabled": "false",
           "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
@@ -3824,13 +3862,13 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "49152"
           },
           "yarn.scheduler.minimum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "33792"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
             "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "33792"
           }
         }
       }
@@ -3858,13 +3896,13 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
           "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
-          "yarn.nodemanager.resource.memory-mb": "39424",
+          "yarn.nodemanager.resource.memory-mb": "33792",
           "yarn.scheduler.minimum-allocation-mb": "1024",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "/yarn",
-          "yarn.scheduler.maximum-allocation-mb": "39424",
+          "yarn.scheduler.maximum-allocation-mb": "33792",
           "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
           "hadoop.registry.rm.enabled": "false",
           "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
@@ -3892,13 +3930,13 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "49152"
           },
           "yarn.scheduler.minimum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "33792"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
             "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "33792"
           },
           "yarn.nodemanager.linux-container-executor.resources-handler.class": {
             "delete": "true"
@@ -3927,6 +3965,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3963,6 +4009,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3999,6 +4053,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -4035,6 +4097,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []

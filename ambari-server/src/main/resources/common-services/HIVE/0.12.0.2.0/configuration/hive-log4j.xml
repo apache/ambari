@@ -21,6 +21,27 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
+        <name>hive_log_maxfilesize</name>
+        <value>256</value>
+        <description>The maximum size of backup file before the log is rotated</description>
+        <display-name>Hive Log: backup file size</display-name>
+        <value-attributes>
+            <unit>MB</unit>
+        </value-attributes>
+        <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+        <name>hive_log_maxbackupindex</name>
+        <value>30</value>
+        <description>The number of backup files</description>
+        <display-name>Hive Log: # of backup files</display-name>
+        <value-attributes>
+            <type>int</type>
+            <minimum>0</minimum>
+        </value-attributes>
+        <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>hive-log4j template</display-name>
     <description>Custom log4j.properties</description>
@@ -69,8 +90,10 @@ log4j.appender.DRFA.File=${hive.log.dir}/${hive.log.file}
 log4j.appender.DRFA.DatePattern=.yyyy-MM-dd
 
 # 30-day backup
-#log4j.appender.DRFA.MaxBackupIndex=30
+#log4j.appender.DRFA.MaxBackupIndex= {{hive_log_maxbackupindex}}
+log4j.appender.DRFA.MaxFileSize = {{hive_log_maxfilesize}}MB
 log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout
+
 
 # Pattern format: Date LogLevel LoggerName LogMessage
 #log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n

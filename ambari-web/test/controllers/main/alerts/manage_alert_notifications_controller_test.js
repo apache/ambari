@@ -1022,6 +1022,10 @@ describe('App.ManageAlertNotificationsController', function () {
 
       });
 
+      App.TestAliases.testAsComputedEqualProperties(getBodyClass(), 'allGroupsSelected', 'groupSelect.selection.length', 'groupSelect.content.length');
+
+      App.TestAliases.testAsComputedEqualProperties(getBodyClass(), 'allSeveritySelected', 'severitySelect.selection.length', 'severitySelect.content.length');
+
     });
 
   });
@@ -1329,5 +1333,11 @@ describe('App.ManageAlertNotificationsController', function () {
     });
 
   });
+
+  App.TestAliases.testAsComputedMapBy(getController(), 'customPropertyNames', 'inputFields.customProperties', 'name');
+
+  App.TestAliases.testAsComputedExistsInByKey(getController(), 'isNewCustomPropertyExists', 'newCustomProperty.name', 'customPropertyNames', ['customA', 'customB']);
+
+  App.TestAliases.testAsComputedExistsInByKey(getController(), 'isNewCustomPropertyIgnored', 'newCustomProperty.name', 'ignoredCustomProperties', ['customA', 'customB']);
 
 });

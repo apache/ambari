@@ -83,7 +83,7 @@
   </property>
   <property>
     <name>tez.am.resource.memory.mb</name>
-    <value>0</value>
+    <value>SET_ON_FIRST_INVOCATION</value>
     <description>The amount of memory to be used by the AppMaster</description>
     <depends-on>
       <property>

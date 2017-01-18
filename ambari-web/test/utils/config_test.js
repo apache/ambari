@@ -1493,7 +1493,7 @@ describe('App.config', function() {
     var predefined = Em.Object.create({
       serviceName: 'serviceName1',
       displayName: 'displayName1',
-      configCategories: 'configCategories1'
+      configCategories: [{name: 'configCategories1'}]
     });
 
     var configs = [Em.Object.create({name: 'c1'})];
@@ -1516,7 +1516,6 @@ describe('App.config', function() {
       var res = {
         serviceName: 'serviceName1',
         displayName: 'displayName1',
-        configCategories: 'configCategories1',
         configs: configs,
         configGroups: configGroups,
         initConfigsLength: 1,
@@ -1527,13 +1526,15 @@ describe('App.config', function() {
           expect(App.config.createServiceConfig('serviceName1', configGroups, configs, 1).get(k)).to.eql(res[k]);
         });
       });
+      it('configCategories', function () {
+        expect(App.config.createServiceConfig('serviceName1', configGroups, configs, 1).get('configCategories').mapProperty('name')).to.eql(['configCategories1']);
+      });
     });
 
     describe('create default service config object', function () {
       var res = {
         serviceName: 'serviceName1',
         displayName: 'displayName1',
-        configCategories: 'configCategories1',
         configGroups: [],
         initConfigsLength: 0,
         dependentServiceNames: []
@@ -1542,6 +1543,9 @@ describe('App.config', function() {
         it(k, function() {
           expect(App.config.createServiceConfig('serviceName1').get(k)).to.eql(res[k]);
         });
+      });
+      it('configCategories', function () {
+        expect(App.config.createServiceConfig('serviceName1', configGroups, configs, 1).get('configCategories').mapProperty('name')).to.eql(['configCategories1']);
       });
     });
   });

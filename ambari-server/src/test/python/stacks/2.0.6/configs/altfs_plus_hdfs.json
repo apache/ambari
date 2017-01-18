@@ -380,10 +380,10 @@
             "hive.optimize.mapjoin.mapreduce": "true"
         }, 
         "ranger-hive-plugin-properties": {
-            "ranger-hive-plugin-enabled":"yes"
+            "ranger-hive-plugin-enabled":"No"
         },
         "ranger-knox-plugin-properties": {
-            "ranger-knox-plugin-enabled":"yes"
+            "ranger-knox-plugin-enabled":"No"
         },
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
@@ -626,7 +626,7 @@
             "XAAUDIT.SOLR.SOLR_URL": "http://localhost:6083/solr/ranger_audits", 
             "XAAUDIT.SOLR.IS_ENABLED": "false", 
             "hadoop.rpc.protection": "-", 
-            "ranger-hdfs-plugin-enabled": "Yes", 
+            "ranger-hdfs-plugin-enabled": "No", 
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
             "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60", 
             "policy_user": "ambari-qa", 

@@ -23,4 +23,5 @@ export default Ember.Route.extend({
    let selectedDatabase = this.modelFor('databases').filterBy('selected', true).get('firstObject');
    this.transitionTo('databases.database', selectedDatabase.get('id'));
  }
+
 });

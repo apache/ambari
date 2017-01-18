@@ -326,9 +326,7 @@ App.AlertInstanceServiceHostView = Em.View.extend({
   /**
    * Define whether show link for transition to service page
    */
-  serviceIsLink: function () {
-    return App.get('services.all').contains(this.get('instance.service.serviceName'));
-  }.property('instance.service.serviceName'),
+  serviceIsLink: Em.computed.existsInByKey('instance.service.serviceName', 'App.services.all'),
 
   /**
    * Define whether show separator between service and hosts labels

@@ -45,7 +45,7 @@ describe('App.ManageJournalNodeWizardStep4Controller', function () {
         host_name: 'host1'
       });
       controller.stopStandbyNameNode();
-      expect(controller.updateComponent.calledWith('NAMENODE', 'host1', 'HDFS',  'INSTALLED')).to.be.true;
+      expect(controller.updateComponent.calledWith('NAMENODE', 'host1', 'HDFS', 'INSTALLED')).to.be.true;
     });
   });
 
