@@ -174,7 +174,9 @@
           {{#if isDryrun}}
             <button type="button" class="btn btn-primary" {{action "dryrun"}}>Validate</button>
           {{else}}
-            <button type="button" class="btn btn-default" {{action "dryrun"}}>Validate</button>
+            {{#if (not (eq type 'bundle'))}}
+              <button type="button" class="btn btn-default" {{action "dryrun"}}>Validate</button>
+            {{/if}}
             <button type="button" class="btn btn-primary" {{action "save"}}>Submit</button>
           {{/if}}
         {{/if}}

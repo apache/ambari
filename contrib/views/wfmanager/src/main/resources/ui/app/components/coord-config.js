@@ -298,6 +298,10 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     if(coordinator.get('dataInputType') === 'logical'){
       this.set('conditionalDataInExists', true);
     }
+    if(coordinator.get('inputLogic')){
+      this.set('inputLogicExists', true);
+      this.set('inputLogicEnabled', true);
+    }
   },
   validateChildComponents(){
     var isChildComponentsValid = true;
@@ -403,7 +407,15 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.set('dataOutputEditMode', false);
       this.set('dataOutputCreateMode', false);
     },
+    dryrunCoordinator(){
+      this.set('dryrun', true);
+      this.send('submit');
+    },
     submitCoordinator(){
+      this.set('dryrun', false);
+      this.send('submit');
+    },
+    submit(){
       var isChildComponentsValid = this.validateChildComponents();
       if(this.get('validations.isInvalid') || !isChildComponentsValid) {
         this.set('showErrorMessage', true);
