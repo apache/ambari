@@ -30,11 +30,8 @@ import org.apache.ambari.view.hive20.backgroundjobs.BackgroundJobController;
 import org.apache.ambari.view.hive20.client.AsyncJobRunner;
 import org.apache.ambari.view.hive20.client.AsyncJobRunnerImpl;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
-import org.apache.ambari.view.hive20.client.Cursor;
-import org.apache.ambari.view.hive20.client.EmptyCursor;
 import org.apache.ambari.view.hive20.client.HiveClientException;
 import org.apache.ambari.view.hive20.client.NonPersistentCursor;
-import org.apache.ambari.view.hive20.client.Row;
 import org.apache.ambari.view.hive20.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive20.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
@@ -79,7 +76,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * Servlet for queries
@@ -362,29 +358,7 @@ public class JobService extends BaseService {
                              @QueryParam("columns") final String requestedColumns) {
     try {
 
-      final String username = context.getUsername();
-
-      ConnectionSystem system = ConnectionSystem.getInstance();
-      final AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
-
-      return ResultsPaginationController.getInstance(context)
-              .request(jobId, searchId, true, fromBeginning, count, format,requestedColumns,
-                      new Callable<Cursor< Row, ColumnDescription >>() {
-                        @Override
-                        public Cursor call() throws Exception {
-                          Optional<NonPersistentCursor> cursor;
-                          if(fromBeginning != null && fromBeginning.equals("true")){
-                            cursor = asyncJobRunner.resetAndGetCursor(jobId, username);
-                          }
-                          else {
-                            cursor = asyncJobRunner.getCursor(jobId, username);
-                          }
-                          if(cursor.isPresent())
-                          return cursor.get();
-                          else
-                            return new EmptyCursor();
-                        }
-                      }).build();
+      return ResultsPaginationController.getResultAsResponse(jobId, fromBeginning, count, searchId, format, requestedColumns, context);
 
     } catch (WebApplicationException ex) {
       throw ex;

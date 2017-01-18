@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive20.resources.browser;
 import org.apache.ambari.view.hive20.BaseService;
 import org.apache.ambari.view.hive20.client.ConnectionConfig;
 import org.apache.ambari.view.hive20.exceptions.ServiceException;
+import org.apache.ambari.view.hive20.internal.dto.ColumnStats;
 import org.apache.ambari.view.hive20.internal.dto.DatabaseResponse;
 import org.apache.ambari.view.hive20.internal.dto.TableMeta;
 import org.apache.ambari.view.hive20.internal.dto.TableResponse;
@@ -28,6 +29,7 @@ import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobResourceManager;
 import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive20.utils.SharedObjectsFactory;
+import org.apache.parquet.Strings;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +157,28 @@ public class DDLService extends BaseService {
     }
   }
 
+  @PUT
+  @Path("databases/{database_id}/tables/{table_id}/analyze")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response analyzeTable(@PathParam("database_id") String databaseName, @PathParam("table_id") String tableName,
+                              @QueryParam("analyze_columns") String analyzeColumns) {
+    Boolean shouldAnalyzeColumns = Boolean.FALSE;
+    if(!Strings.isNullOrEmpty(analyzeColumns)){
+      shouldAnalyzeColumns = Boolean.valueOf(analyzeColumns.trim());
+    }
+    try {
+      Job job = proxy.analyzeTable(databaseName, tableName, shouldAnalyzeColumns, getResourceManager());
+      JSONObject response = new JSONObject();
+      response.put("job", job);
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while analyzing table for database {}, table: {}, analyzeColumns: {}" ,
+        databaseName, tableName, analyzeColumns, e);
+      throw new ServiceFormattedException(e);
+    }
+  }
+
   @POST
   @Path("databases/{database_id}/tables/ddl")
   @Produces(MediaType.APPLICATION_JSON)
@@ -239,6 +263,42 @@ public class DDLService extends BaseService {
     JSONObject response = new JSONObject();
     response.put("tableInfo", meta);
     return Response.ok(response).build();
+  }
+
+  @GET
+  @Path("databases/{database_id}/tables/{table_id}/column/{column_id}/stats")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response getColumnStats(@PathParam("database_id") String databaseName, @PathParam("table_id") String tableName,
+                            @PathParam("column_id") String columnName) {
+    try {
+      Job job = proxy.getColumnStatsJob(databaseName, tableName, columnName, getResourceManager());
+      JSONObject response = new JSONObject();
+      response.put("job", job);
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while fetching column stats", databaseName, tableName, e);
+      throw new ServiceFormattedException(e);
+    }
+  }
+
+  @GET
+  @Path("databases/{database_id}/tables/{table_id}/column/{column_id}/fetch_stats")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response fetchColumnStats(@PathParam("database_id") String databaseName, @PathParam("table_id") String
+    tablename, @PathParam("column_id") String columnName, @QueryParam("job_id") String jobId) {
+    try {
+      ColumnStats columnStats = proxy.fetchColumnStats(columnName, jobId, context);
+      columnStats.setTableName(tablename);
+      columnStats.setDatabaseName(databaseName);
+      JSONObject response = new JSONObject();
+      response.put("columnStats", columnStats);
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while fetching column stats for column: {} and jobId: {}", columnName, jobId,  e);
+      throw new ServiceFormattedException(e);
+    }
   }
 
   public static class DDL {

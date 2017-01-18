@@ -24,7 +24,9 @@ import org.apache.ambari.view.hive20.internal.dto.DetailedTableInfo;
 import org.apache.ambari.view.hive20.internal.dto.PartitionInfo;
 import org.apache.ambari.view.hive20.internal.dto.StorageInfo;
 import org.apache.ambari.view.hive20.internal.dto.TableMeta;
+import org.apache.ambari.view.hive20.internal.dto.TableStats;
 import org.apache.ambari.view.hive20.internal.dto.ViewInfo;
+import org.apache.parquet.Strings;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -52,12 +54,11 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
   @Inject
   private ViewInfoParser viewInfoParser;
 
-
-
   @Override
   public TableMeta parse(String database, String table, List<Row> createTableStatementRows, List<Row> describeFormattedRows) {
     String createTableStatement = createTableStatementParser.parse(createTableStatementRows);
     DetailedTableInfo tableInfo = detailedTableInfoParser.parse(describeFormattedRows);
+    TableStats tableStats = getTableStats(tableInfo);
     StorageInfo storageInfo = storageInfoParser.parse(describeFormattedRows);
     List<ColumnInfo> columns = columnInfoParser.parse(describeFormattedRows);
     PartitionInfo partitionInfo = partitionInfoParser.parse(describeFormattedRows);
@@ -74,6 +75,42 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
     meta.setDetailedInfo(tableInfo);
     meta.setStorageInfo(storageInfo);
     meta.setViewInfo(viewInfo);
+    meta.setTableStats(tableStats);
     return meta;
+  }
+
+  private TableStats getTableStats(DetailedTableInfo tableInfo) {
+    TableStats tableStats = new TableStats();
+    tableStats.setTableStatsEnabled(false);
+
+    String numFiles = tableInfo.getParameters().get(TableStats.NUM_FILES);
+    tableInfo.getParameters().remove(TableStats.NUM_FILES);
+
+    String columnStatsAccurate = tableInfo.getParameters().get(TableStats.COLUMN_STATS_ACCURATE);
+    tableInfo.getParameters().remove(TableStats.COLUMN_STATS_ACCURATE);
+
+    String rawDataSize = tableInfo.getParameters().get(TableStats.RAW_DATA_SIZE);
+    tableInfo.getParameters().remove(TableStats.RAW_DATA_SIZE);
+
+    String totalSize = tableInfo.getParameters().get(TableStats.TOTAL_SIZE);
+    tableInfo.getParameters().remove(TableStats.TOTAL_SIZE);
+
+    if(!Strings.isNullOrEmpty(numFiles) && !Strings.isNullOrEmpty(numFiles.trim())){
+      tableStats.setTableStatsEnabled(true);
+      tableStats.setNumFiles(Integer.valueOf(numFiles.trim()));
+    }
+
+    if(!Strings.isNullOrEmpty(rawDataSize) && !Strings.isNullOrEmpty(rawDataSize.trim())){
+      tableStats.setTableStatsEnabled(true);
+      tableStats.setRawDataSize(Integer.valueOf(rawDataSize.trim()));
+    }
+
+    if(!Strings.isNullOrEmpty(totalSize) && !Strings.isNullOrEmpty(totalSize.trim())){
+      tableStats.setTableStatsEnabled(true);
+      tableStats.setTotalSize(Integer.valueOf(totalSize.trim()));
+    }
+
+    tableStats.setColumnStatsAccurate(columnStatsAccurate);
+    return tableStats;
   }
 }

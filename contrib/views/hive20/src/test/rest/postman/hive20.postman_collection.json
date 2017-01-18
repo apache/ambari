@@ -19,7 +19,7 @@
 						"showPassword": false
 					}
 				},
-				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables/t1/info?_=1481634018195",
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/tt1/info?_=1481634018195",
 				"method": "GET",
 				"header": [
 					{
@@ -367,7 +367,7 @@
 						"showPassword": false
 					}
 				},
-				"url": "{{APP_BASE_URL}}/resources/jobs/202",
+				"url": "{{APP_BASE_URL}}/resources/jobs/257",
 				"method": "GET",
 				"header": [
 					{
@@ -435,6 +435,130 @@
 				],
 				"body": {},
 				"description": "drop database "
+			},
+			"response": []
+		},
+		{
+			"name": "fetch column stats",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/tt1/column/i/stats",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch column stats"
+			},
+			"response": []
+		},
+		{
+			"name": "fetch job results",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/jobs/101/results?first=true&_=1484636273461",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch job results"
+			},
+			"response": []
+		},
+		{
+			"name": "fetch column Stats result",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/tt1/column/i/fetch_stats?job_id=255",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch column Stats result"
+			},
+			"response": []
+		},
+		{
+			"name": "analyze table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/t1/analyze?analyze_columns=true",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "analyze table"
 			},
 			"response": []
 		}
