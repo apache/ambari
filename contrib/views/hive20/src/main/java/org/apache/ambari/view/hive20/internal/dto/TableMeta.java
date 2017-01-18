@@ -32,6 +32,7 @@ public class TableMeta implements Serializable{
   private String ddl;
   private PartitionInfo partitionInfo;
   private DetailedTableInfo detailedInfo;
+  private TableStats tableStats;
   private StorageInfo storageInfo;
   private ViewInfo viewInfo;
 
@@ -105,6 +106,14 @@ public class TableMeta implements Serializable{
 
   public void setViewInfo(ViewInfo viewInfo) {
     this.viewInfo = viewInfo;
+  }
+
+  public TableStats getTableStats() {
+    return tableStats;
+  }
+
+  public void setTableStats(TableStats tableStats) {
+    this.tableStats = tableStats;
   }
 
   @Override

@@ -32,8 +32,10 @@ import org.apache.ambari.view.hive20.actor.DatabaseManager;
 import org.apache.ambari.view.hive20.client.ConnectionConfig;
 import org.apache.ambari.view.hive20.client.DDLDelegator;
 import org.apache.ambari.view.hive20.client.DDLDelegatorImpl;
+import org.apache.ambari.view.hive20.client.HiveClientException;
 import org.apache.ambari.view.hive20.client.Row;
 import org.apache.ambari.view.hive20.exceptions.ServiceException;
+import org.apache.ambari.view.hive20.internal.dto.ColumnStats;
 import org.apache.ambari.view.hive20.internal.dto.DatabaseInfo;
 import org.apache.ambari.view.hive20.internal.dto.DatabaseResponse;
 import org.apache.ambari.view.hive20.internal.dto.TableInfo;
@@ -41,11 +43,14 @@ import org.apache.ambari.view.hive20.internal.dto.TableMeta;
 import org.apache.ambari.view.hive20.internal.dto.TableResponse;
 import org.apache.ambari.view.hive20.internal.parsers.TableMetaParserImpl;
 import org.apache.ambari.view.hive20.internal.query.generators.AlterTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.AnalyzeTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.CreateTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.DeleteDatabaseQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.DeleteTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.FetchColumnStatsQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.RenameTableQueryGenerator;
 import org.apache.ambari.view.hive20.resources.jobs.JobServiceInternal;
+import org.apache.ambari.view.hive20.resources.jobs.ResultsPaginationController;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobController;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl;
@@ -114,6 +119,20 @@ public class DDLProxy {
       // Throw exception
     }
     return transformToTableResponse(tableOptional.get(), databaseName);
+  }
+
+  public Job getColumnStatsJob(final String databaseName, final String tableName, final String columnName,
+                         JobResourceManager resourceManager) throws ServiceException {
+    FetchColumnStatsQueryGenerator queryGenerator = new FetchColumnStatsQueryGenerator(databaseName, tableName,
+      columnName);
+    Optional<String> q = queryGenerator.getQuery();
+    String jobTitle = "Fetch column stats for " + databaseName + "." + tableName + "." + columnName;
+    if(q.isPresent()) {
+      String query = q.get();
+      return createJob(databaseName, query, jobTitle, resourceManager);
+    }else{
+      throw new ServiceException("Failed to generate job for {}" + jobTitle);
+    }
   }
 
   public TableMeta getTableProperties(ViewContext context, ConnectionConfig connectionConfig, String databaseName, String tableName) {
@@ -222,40 +241,14 @@ public class DDLProxy {
 
   public Job createTable(String databaseName, TableMeta tableMeta, JobResourceManager resourceManager) throws ServiceException {
     String createTableQuery = this.generateCreateTableDDL(databaseName, tableMeta);
-    Map jobInfo = new HashMap<>();
-    jobInfo.put("title", "Create table " + tableMeta.getDatabase() + "." + tableMeta.getTable());
-    jobInfo.put("forcedContent", createTableQuery);
-    jobInfo.put("dataBase", databaseName);
-
-    try {
-      Job job = new JobImpl(jobInfo);
-      JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
-      Job returnableJob = createdJobController.getJobPOJO();
-      LOG.info("returning job with id {} for create table {}", returnableJob.getId(), tableMeta.getTable());
-      return returnableJob;
-    } catch (Throwable e) {
-      LOG.error("Exception occurred while creating the table for create Query : {}", createTableQuery, e);
-      throw new ServiceException(e);
-    }
+    String jobTitle = "Create table " + tableMeta.getDatabase() + "." + tableMeta.getTable();
+    return createJob(databaseName, createTableQuery, jobTitle, resourceManager);
   }
 
   public Job deleteTable(String databaseName, String tableName, JobResourceManager resourceManager) throws ServiceException {
     String deleteTableQuery = generateDeleteTableDDL(databaseName, tableName);
-    Map jobInfo = new HashMap<>();
-    jobInfo.put("title", "Delete table " + databaseName + "." + tableName);
-    jobInfo.put("forcedContent", deleteTableQuery);
-    jobInfo.put("dataBase", databaseName);
-
-    try {
-      Job job = new JobImpl(jobInfo);
-      JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
-      Job returnableJob = createdJobController.getJobPOJO();
-      LOG.info("returning job with id {} for the deletion of table : {}", returnableJob.getId(), tableName);
-      return returnableJob;
-    } catch (Throwable e) {
-      LOG.error("Exception occurred while deleting the table for delete Query : {}", deleteTableQuery, e);
-      throw new ServiceException(e);
-    }
+    String jobTitle = "Delete table " + databaseName + "." + tableName;
+    return createJob(databaseName, deleteTableQuery, jobTitle, resourceManager);
   }
 
   public String generateDeleteTableDDL(String databaseName, String tableName) throws ServiceException {
@@ -270,21 +263,8 @@ public class DDLProxy {
 
   public Job alterTable(ViewContext context, ConnectionConfig hiveConnectionConfig, String databaseName, String oldTableName, TableMeta newTableMeta, JobResourceManager resourceManager) throws ServiceException {
     String alterQuery = generateAlterTableQuery(context, hiveConnectionConfig, databaseName, oldTableName, newTableMeta);
-    Map jobInfo = new HashMap<>();
-    jobInfo.put("title", "Alter table " + databaseName + "." + oldTableName);
-    jobInfo.put("forcedContent", alterQuery);
-    jobInfo.put("dataBase", databaseName);
-
-    try {
-      Job job = new JobImpl(jobInfo);
-      JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
-      Job returnableJob = createdJobController.getJobPOJO();
-      LOG.info("returning job with id {} for alter table {}", returnableJob.getId(), oldTableName);
-      return returnableJob;
-    } catch (Throwable e) {
-      LOG.error("Exception occurred while creating the table for create Query : {}", alterQuery, e);
-      throw new ServiceException(e);
-    }
+    String jobTitle = "Alter table " + databaseName + "." + oldTableName;
+    return createJob(databaseName, alterQuery, jobTitle, resourceManager);
   }
 
   public String generateAlterTableQuery(ViewContext context, ConnectionConfig hiveConnectionConfig, String databaseName, String oldTableName, TableMeta newTableMeta) throws ServiceException {
@@ -310,22 +290,9 @@ public class DDLProxy {
     Optional<String> renameTable = queryGenerator.getQuery();
     if(renameTable.isPresent()) {
       String renameQuery = renameTable.get();
-      LOG.info("Creating job for : {}", renameQuery);
-      Map jobInfo = new HashMap<>();
-      jobInfo.put("title", "Rename table " + oldDatabaseName + "." + oldTableName + " to " + newDatabaseName + "." + newTableName);
-      jobInfo.put("forcedContent", renameQuery);
-      jobInfo.put("dataBase", oldDatabaseName);
-
-      try {
-        Job job = new JobImpl(jobInfo);
-        JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
-        Job returnableJob = createdJobController.getJobPOJO();
-        LOG.info("returning job with id {} for rename table {}", returnableJob.getId(), oldTableName);
-        return returnableJob;
-      } catch (Throwable e) {
-        LOG.error("Exception occurred while renaming the table for rename Query : {}", renameQuery, e);
-        throw new ServiceException(e);
-      }
+      String jobTitle = "Rename table " + oldDatabaseName + "." + oldTableName + " to " + newDatabaseName + "." +
+        newTableName;
+      return createJob(oldDatabaseName, renameQuery, jobTitle, resourceManager);
     }else{
       throw new ServiceException("Failed to generate rename table query for table " + oldDatabaseName + "." +
         oldTableName);
@@ -337,24 +304,129 @@ public class DDLProxy {
     Optional<String> deleteDatabase = queryGenerator.getQuery();
     if(deleteDatabase.isPresent()) {
       String deleteQuery = deleteDatabase.get();
-      LOG.info("Creating job for : {}", deleteQuery );
-      Map jobInfo = new HashMap<>();
-      jobInfo.put("title", "Delete database " + databaseName);
-      jobInfo.put("forcedContent", deleteQuery);
-      jobInfo.put("dataBase", databaseName);
-
-      try {
-        Job job = new JobImpl(jobInfo);
-        JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
-        Job returnableJob = createdJobController.getJobPOJO();
-        LOG.info("returning job with id {} for deleting database {}", returnableJob.getId(), databaseName);
-        return returnableJob;
-      } catch (Throwable e) {
-        LOG.error("Exception occurred while renaming the table for rename Query : {}", deleteQuery, e);
-        throw new ServiceException(e);
-      }
+      return createJob(databaseName, deleteQuery, "Delete database " + databaseName , resourceManager);
     }else{
       throw new ServiceException("Failed to generate delete database query for database " + databaseName);
     }
+  }
+
+  public Job createJob(String databaseName, String deleteQuery, String jobTitle, JobResourceManager resourceManager)
+    throws ServiceException {
+    LOG.info("Creating job for : {}", deleteQuery );
+    Map jobInfo = new HashMap<>();
+    jobInfo.put("title", jobTitle);
+    jobInfo.put("forcedContent", deleteQuery);
+    jobInfo.put("dataBase", databaseName);
+    jobInfo.put("referrer", JobImpl.REFERRER.INTERNAL.name());
+
+    try {
+      Job job = new JobImpl(jobInfo);
+      JobController createdJobController = new JobServiceInternal().createJob(job, resourceManager);
+      Job returnableJob = createdJobController.getJobPOJO();
+      LOG.info("returning job with id {} for {}", returnableJob.getId(), jobTitle);
+      return returnableJob;
+    } catch (Throwable e) {
+      LOG.error("Exception occurred while {} : {}", jobTitle, deleteQuery, e);
+      throw new ServiceException(e);
+    }
+  }
+
+  public Job analyzeTable(String databaseName, String tableName, Boolean shouldAnalyzeColumns, JobResourceManager resourceManager) throws ServiceException {
+    AnalyzeTableQueryGenerator queryGenerator = new AnalyzeTableQueryGenerator(databaseName, tableName, shouldAnalyzeColumns);
+    Optional<String> analyzeTable = queryGenerator.getQuery();
+    String jobTitle = "Analyze table " + databaseName + "." + tableName;
+    if(analyzeTable.isPresent()) {
+      String query = analyzeTable.get();
+      return createJob(databaseName, query, jobTitle, resourceManager);
+    }else{
+      throw new ServiceException("Failed to generate job for {}" + jobTitle);
+    }
+  }
+
+  public ColumnStats fetchColumnStats(String columnName, String jobId, ViewContext context) throws ServiceException {
+    try {
+      ResultsPaginationController.ResultsResponse results = ResultsPaginationController.getResult(jobId, null, null, null, null, context);
+      if(results.getHasResults()){
+       List<String[]> rows = results.getRows();
+       Map<Integer, String> headerMap = new HashMap<>();
+       boolean header = true;
+        for(String[] row : rows){
+          if(header){
+            for(int i = 0 ; i < row.length; i++){
+              if(!Strings.isNullOrEmpty(row[i])){
+                headerMap.put(i, row[i].trim());
+              }
+            }
+            header = false;
+          }
+          else if(row.length > 0 ){
+            if(columnName.equals(row[0])){ // the first column of the row contains column name
+              return createColumnStats(row, headerMap);
+            }
+          }
+        }
+      }else{
+        throw new ServiceException("Cannot find any result for this jobId: " + jobId);
+      }
+    } catch (HiveClientException e) {
+      LOG.error("Exception occurred while fetching results for column statistics with jobId: {}", jobId, e);
+      throw new ServiceException(e);
+    }
+
+    LOG.error("Column stats not found in the fetched results.");
+    throw new ServiceException("Could not find the column stats in the result.");
+  }
+
+  /**
+   * order of values in array
+   *  row [# col_name, data_type, min, max, num_nulls, distinct_count, avg_col_len, max_col_len,num_trues,num_falses,comment]
+   * indexes : 0           1        2    3     4             5               6             7           8         9    10
+   * @param row
+   * @param headerMap
+   * @return
+   */
+  private ColumnStats createColumnStats(String[] row, Map<Integer, String> headerMap) throws ServiceException {
+    if(null == row){
+      throw new ServiceException("row cannot be null.");
+    }
+    ColumnStats columnStats = new ColumnStats();
+    for(int i = 0 ; i < row.length; i++){
+      switch(headerMap.get(i)){
+        case ColumnStats.COLUMN_NAME:
+          columnStats.setColumnName(row[i]);
+          break;
+        case ColumnStats.DATA_TYPE:
+          columnStats.setDataType(row[i]);
+          break;
+        case ColumnStats.MIN:
+          columnStats.setMin(row[i]);
+          break;
+        case ColumnStats.MAX:
+          columnStats.setMax(row[i]);
+          break;
+        case ColumnStats.NUM_NULLS:
+          columnStats.setNumNulls(row[i]);
+          break;
+        case ColumnStats.DISTINCT_COUNT:
+          columnStats.setDistinctCount(row[i]);
+          break;
+        case ColumnStats.AVG_COL_LEN:
+          columnStats.setAvgColLen(row[i]);
+          break;
+        case ColumnStats.MAX_COL_LEN:
+          columnStats.setMaxColLen(row[i]);
+          break;
+        case ColumnStats.NUM_TRUES:
+          columnStats.setNumTrues(row[i]);
+          break;
+        case ColumnStats.NUM_FALSES:
+          columnStats.setNumFalse(row[i]);
+          break;
+        case ColumnStats.COMMENT:
+          columnStats.setComment(row[i]);
+      }
+    }
+
+    return columnStats;
   }
 }
