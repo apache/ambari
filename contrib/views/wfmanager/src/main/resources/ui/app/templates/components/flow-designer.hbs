@@ -248,11 +248,11 @@
             <span class="overlay-asset-import-icon" title="Import Asset" {{action "showAssetList" true}}>
                 <i class="fa fa-download"></i>
             </span>
-            <span class="overlay-asset-export-icon" title="Publish Asset" {{action "showAssetConfig" true}}>
-                <i class="fa fa-upload"></i>
-            </span>
             <span class="overlay-hdfs-asset-import-icon" title="Import asset from HDFS" {{action "showActionSettingsFileBrowser"}}>
               <i class="fa fa-cloud-download"></i>
+            </span>
+            <span class="overlay-asset-export-icon" title="Publish Asset" {{action "showAssetConfig" true}}>
+                <i class="fa fa-upload"></i>
             </span>
             <span class="overlay-hdfs-asset-export-icon" title="Publish Asset to HDFS" {{action "showExportActionNodeFileBrowser"}}>
               <i class="fa fa-cloud-upload"></i>
@@ -303,7 +303,7 @@
   {{#asset-config showAssetConfig="showAssetConfig" saveAssetConfig="saveAssetConfig" assetModel=assetConfig}}{{/asset-config}}
 {{/if}}
 {{#if showingAssetList}}
-  {{#asset-list showAssetList="showAssetList" importAsset="importAsset" assetList=assetList}}{{/asset-list}}
+  {{#asset-list showAssetList="showAssetList" importAsset="importAsset" assetList=assetList assetListType=assetListType}}{{/asset-list}}
 {{/if}}
 {{#if showingAssetNodeList}}
   {{#asset-list showAssetList="showAssetNodeList" importAsset="importAssetNode" deleteAsset="deleteAsset" assetList=assetList}}{{/asset-list}}
