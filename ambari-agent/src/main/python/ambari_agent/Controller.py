@@ -246,6 +246,8 @@ class Controller(threading.Thread):
     else:
       """Only add to the queue if not empty list """
       logger.info("Adding %s commands. Heartbeat id = %s", len(commands), self.responseId)
+      if 'clusterName' in commands[0].keys():
+        self.updateComponents(commands[0]['clusterName'])
       self.actionQueue.put(commands)
 
   def addToStatusQueue(self, commands):
@@ -253,7 +255,7 @@ class Controller(threading.Thread):
       logger.debug("No status commands received from %s", self.serverHostname)
     else:
       logger.info("Adding %s status commands. Heartbeat id = %s", len(commands), self.responseId)
-      if not LiveStatus.SERVICES:
+      if 'clusterName' in commands[0].keys():
         self.updateComponents(commands[0]['clusterName'])
       self.recovery_manager.process_status_commands(commands)
       self.actionQueue.put_status(commands)
@@ -568,19 +570,29 @@ class Controller(threading.Thread):
 
 
   def updateComponents(self, cluster_name):
+    if LiveStatus.SERVICES:
+      return
+
     logger.debug("Updating components map of cluster " + cluster_name)
 
     # May throw IOError on server connection error
     response = self.sendRequest(self.componentsUrl + cluster_name, None)
     logger.debug("Response from %s was %s", self.serverHostname, str(response))
 
+    services, client_components, server_components = [], [], []
     for service, components in response['components'].items():
-      LiveStatus.SERVICES.append(service)
+      services.append(service)
       for component, category in components.items():
+        service_component = {"serviceName": service, "componentName": component}
         if category == 'CLIENT':
-          LiveStatus.CLIENT_COMPONENTS.append({"serviceName": service, "componentName": component})
+          client_components.append(service_component)
         else:
-          LiveStatus.COMPONENTS.append({"serviceName": service, "componentName": component})
+          server_components.append(service_component)
+
+    LiveStatus.SERVICES = services
+    LiveStatus.CLIENT_COMPONENTS = client_components
+    LiveStatus.COMPONENTS = server_components
+
     logger.debug("Components map updated")
     logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
     logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
