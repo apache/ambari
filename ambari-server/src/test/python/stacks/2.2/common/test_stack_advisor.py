@@ -90,7 +90,7 @@ class TestHDP22StackAdvisor(TestCase):
       "reduceMemory": 2056,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "tez-site": {
@@ -184,7 +184,7 @@ class TestHDP22StackAdvisor(TestCase):
       "amMemory": 3100,
       "reduceMemory": 2056,
       "containers": 3,
-      "minContainerRam": 256,
+      "yarnMinContainerSize": 256,
       "ramPerContainer": 256
     }
     expected = {
@@ -271,7 +271,7 @@ class TestHDP22StackAdvisor(TestCase):
       "reduceMemory": 760,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "tez-site": {
@@ -888,7 +888,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -928,7 +928,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers": 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "spark-defaults": {
@@ -961,7 +961,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -1223,7 +1223,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
 
     services = {
@@ -1271,7 +1271,7 @@ class TestHDP22StackAdvisor(TestCase):
       "reduceMemory": 2056,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
 
     expected = {
@@ -1762,7 +1762,7 @@ class TestHDP22StackAdvisor(TestCase):
       "containers" : 7,
       "ramPerContainer": 256,
       "totalAvailableRam": 4096,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "cluster-env": {
@@ -2031,7 +2031,7 @@ class TestHDP22StackAdvisor(TestCase):
       "cpu": 4,
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {

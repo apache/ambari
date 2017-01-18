@@ -258,7 +258,6 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateConfigurations(services, hosts)
 
     expectedItems = [
-      {"message": "Value is less than the recommended default of 510", "level": "WARN"},
       {'message': 'Value should be set for yarn.nodemanager.linux-container-executor.group', 'level': 'ERROR'},
       {"message": "Value should be integer", "level": "ERROR"},
       {"message": "Value should be set", "level": "ERROR"}
@@ -472,7 +471,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 4,
       "hbaseRam": 4,
       "minContainerSize": 1024,
-      "minContainerRam" : 1024,
+      "yarnMinContainerSize" : 1024,
       "totalAvailableRam": 15360,
       "containers": 4,
       "ramPerContainer": 3072,
@@ -584,7 +583,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 4,
       "hbaseRam": 4,
       "minContainerSize": 2048,
-      "minContainerRam" : 2048,
+      "yarnMinContainerSize" : 2048,
       "totalAvailableRam": 15360,
       "containers": 4,
       "ramPerContainer": 2048,
@@ -649,7 +648,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 4,
       "hbaseRam": 4,
       "minContainerSize": 2048,
-      "minContainerRam" : 2048,
+      "yarnMinContainerSize" : 2048,
       "totalAvailableRam": 15360,
       "containers": 4,
       "ramPerContainer": 2048,
@@ -714,7 +713,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 4,
       "hbaseRam": 4,
       "minContainerSize": 4096,
-      "minContainerRam" : 4096,
+      "yarnMinContainerSize" : 4096,
       "totalAvailableRam": 15360,
       "containers": 3,
       "ramPerContainer": 4096,
@@ -761,7 +760,7 @@ class TestHDP206StackAdvisor(TestCase):
       "reservedRam": 2,
       "hbaseRam": 1,
       "minContainerSize": 512,
-      "minContainerRam" : 512,
+      "yarnMinContainerSize" : 512,
       "totalAvailableRam": 3072,
       "containers": 6,
       "ramPerContainer": 512,
@@ -837,7 +836,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected["mapMemory"] = 128
     expected["minContainerSize"] = 128
     expected["reduceMemory"] = 128
-    expected["minContainerRam"] = 128
+    expected["yarnMinContainerSize"] = 128
     expected["ram"] = 0
     expected["ramPerContainer"] = 128
     expected["reservedRam"] = 1
@@ -881,7 +880,7 @@ class TestHDP206StackAdvisor(TestCase):
       "mapMemory": 3072,
       "reduceMemory": 3072,
       "amMemory": 3072,
-      "minContainerRam": 1024,
+      "yarnMinContainerSize": 1024,
       "referenceHost": hosts["items"][0]["Hosts"]
     }
 
@@ -938,7 +937,7 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {
       "containers" : 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -966,7 +965,7 @@ class TestHDP206StackAdvisor(TestCase):
       "mapMemory": 567,
       "reduceMemory": 345.6666666666666,
       "amMemory": 123.54,
-      "minContainerRam": 123.54
+      "yarnMinContainerSize": 123.54
     }
     expected = {
       "mapred-site": {
@@ -1009,7 +1008,7 @@ class TestHDP206StackAdvisor(TestCase):
       "mapMemory": 170,
       "reduceMemory": 170,
       "amMemory": 170,
-      "minContainerRam" : 170
+      "yarnMinContainerSize" : 170
     }
 
     self.assertEquals(result, expected)
