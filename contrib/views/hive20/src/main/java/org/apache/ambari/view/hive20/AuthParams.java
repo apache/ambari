@@ -68,6 +68,8 @@ public class AuthParams {
   public UserGroupInformation getProxyUser() throws IOException {
     UserGroupInformation ugi;
     String proxyuser = null;
+
+    UserGroupInformation.isSecurityEnabled();
     if(context.getCluster() != null) {
       proxyuser = context.getCluster().getConfigurationValue("cluster-env","ambari_principal_name");
     }
