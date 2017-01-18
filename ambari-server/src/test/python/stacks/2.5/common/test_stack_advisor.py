@@ -375,7 +375,7 @@ class TestHDP25StackAdvisor(TestCase):
       "cpu": 4,
       "containers": 5,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       "spark2-defaults": {
@@ -803,7 +803,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
 
@@ -972,7 +972,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
     configurations = {
@@ -1153,7 +1153,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
 
@@ -1353,7 +1353,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 2048
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
 
@@ -1546,7 +1546,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 51200 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
     configurations = {
@@ -1747,7 +1747,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 40960 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
     configurations = {
@@ -1942,7 +1942,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 12288 * 1024
       },
-      "minContainerRam": 341
+      "yarnMinContainerSize": 341
     }
 
 
@@ -2140,7 +2140,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 204800 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
     configurations = {
@@ -2341,7 +2341,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 40960 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
 
@@ -2538,7 +2538,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 204800 * 1024
       },
-      "minContainerRam": 341
+      "yarnMinContainerSize": 341
     }
 
 
@@ -2734,7 +2734,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 204800 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
     configurations = {
@@ -2925,7 +2925,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
 
@@ -3145,7 +3145,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
     configurations = {
@@ -3159,12 +3159,12 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '1.0', 'minimum': '1'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '9728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204288')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '3584')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '198144')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '4915')
@@ -3370,7 +3370,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
     configurations = {
@@ -3563,7 +3563,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
     configurations = {
@@ -3746,7 +3746,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
       },
-      "minContainerRam": 1024
+      "yarnMinContainerSize": 1024
     }
 
     configurations = {
@@ -3877,7 +3877,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 10240 * 1024
       },
-      "minContainerRam": 512
+      "yarnMinContainerSize": 512
     }
 
     configurations = {
@@ -3923,7 +3923,7 @@ class TestHDP25StackAdvisor(TestCase):
       "reduceMemory": 2056,
       "containers": 3,
       "ramPerContainer": 256,
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     expected = {
       'application-properties': {
@@ -4659,7 +4659,7 @@ class TestHDP25StackAdvisor(TestCase):
       "referenceNodeManagerHost" : {
         "total_mem" : 328960 * 1024
       },
-      "minContainerRam": 256
+      "yarnMinContainerSize": 256
     }
     hosts = {
       "items" : [

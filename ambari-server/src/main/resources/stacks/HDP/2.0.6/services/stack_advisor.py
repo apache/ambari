@@ -124,8 +124,26 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     nodemanagerMinRam = 1048576 # 1TB in mb
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
+
+    callContext = getCallContext(services)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['minContainerRam']))
+    # read from the supplied config
+    #if 'recommendConfigurations' != callContext and \
+    #        "yarn-site" in services["configurations"] and \
+    #        "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
+    #    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+    if 'recommendConfigurations' == callContext:
+      putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
+    else:
+      # read from the supplied config
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+      else:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
+      pass
+    pass
+
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['yarnMinContainerSize']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
@@ -1023,7 +1041,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
     Logger.info("Memory for YARN apps - cluster[totalAvailableRam]: " + str(cluster["totalAvailableRam"]))
 
-    suggestedMinContainerRam = 1024
+    suggestedMinContainerRam = 1024   # new smaller value for YARN min container
     callContext = getCallContext(services)
 
     if services:  # its never None but some unit tests pass it as None
@@ -1035,14 +1053,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]).isdigit():
           Logger.info("Using user provided yarn.scheduler.minimum-allocation-mb = " +
                       str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
-          cluster["minContainerRam"] = int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
-          Logger.info("Minimum ram per container due to user input - cluster[minContainerRam]: " + str(cluster["minContainerRam"]))
-          if cluster["minContainerRam"] > cluster["totalAvailableRam"]:
-            cluster["minContainerRam"] = cluster["totalAvailableRam"]
-            Logger.info("Minimum ram per container after checking against limit - cluster[minContainerRam]: " + str(cluster["minContainerRam"]))
+          cluster["yarnMinContainerSize"] = int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+          Logger.info("Minimum ram per container due to user input - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+          if cluster["yarnMinContainerSize"] > cluster["totalAvailableRam"]:
+            cluster["yarnMinContainerSize"] = cluster["totalAvailableRam"]
+            Logger.info("Minimum ram per container after checking against limit - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
             pass
-          cluster["minContainerSize"] = cluster["minContainerRam"]
-          suggestedMinContainerRam = cluster["minContainerRam"]
+          cluster["minContainerSize"] = cluster["yarnMinContainerSize"]    # set to what user has suggested as YARN min container size
+          suggestedMinContainerRam = cluster["yarnMinContainerSize"]
           pass
         pass
       pass
@@ -1061,19 +1079,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       pass
 
     cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
-    cluster["minContainerRam"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
+    cluster["yarnMinContainerSize"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
     Logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
 
-    '''If greater than cluster["minContainerRam"], value will be in multiples of cluster["minContainerRam"]'''
-    if cluster["ramPerContainer"] > cluster["minContainerRam"]:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["minContainerRam"]) * cluster["minContainerRam"]
+    '''If greater than cluster["yarnMinContainerSize"], value will be in multiples of cluster["yarnMinContainerSize"]'''
+    if cluster["ramPerContainer"] > cluster["yarnMinContainerSize"]:
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
 
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
     cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
 
-    Logger.info("Min container size - cluster[minContainerRam]: " + str(cluster["minContainerRam"]))
+    Logger.info("Min container size - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
     Logger.info("Available memory for map - cluster[mapMemory]: " + str(cluster["mapMemory"]))
     Logger.info("Available memory for reduce - cluster[reduceMemory]: " + str(cluster["reduceMemory"]))
     Logger.info("Available memory for am - cluster[amMemory]: " + str(cluster["amMemory"]))
