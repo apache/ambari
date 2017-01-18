@@ -390,6 +390,7 @@ var files = [
   'test/models/alerts/alert_definition_test',
   'test/models/alerts/alert_group_test',
   'test/models/alerts/alert_instance_test',
+  'test/models/alerts/alert_notification_test',
   'test/models/authentication_test',
   'test/models/client_component_test',
   'test/models/cluster_states_test',

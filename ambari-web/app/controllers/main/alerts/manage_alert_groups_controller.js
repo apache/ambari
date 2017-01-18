@@ -20,6 +20,35 @@ var App = require('app');
 
 var validator = require('utils/validator');
 
+function stringify(obj, property) {
+  return JSON.stringify(obj.get(property).slice().sort());
+}
+
+function groupsAreNotEqual(group1, group2) {
+  return stringify(group1, 'definitions') !== stringify(group2, 'definitions') ||
+  stringify(group1, 'notifications') !== stringify(group2, 'notifications');
+}
+
+function mapToEmObjects(collection, fields, renamedFields) {
+  var _renamedFields = arguments.length === 3 ? renamedFields : [];
+  return collection.map(function (item) {
+    var ret = Em.Object.create(Em.getProperties(item, fields));
+    _renamedFields.forEach(function (renamedField) {
+      var [realName, newName] = renamedField.split(':');
+      Em.set(ret, newName, Em.get(item, realName));
+    });
+    return ret;
+  });
+}
+
+var AlertGroupClone = Em.Object.extend({
+  displayName: function () {
+    var name = App.config.truncateGroupName(this.get('name'));
+    return this.get('default') ? name + ' Default' : name;
+  }.property('name', 'default'),
+  label: Em.computed.format('{0} ({1})', 'displayName', 'definitions.length')
+});
+
 App.ManageAlertGroupsController = Em.Controller.extend({
 
   name: 'manageAlertGroupsController',
@@ -60,15 +89,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @type {App.AlertNotification[]}
    */
   alertNotifications: function () {
-    return this.get('isLoaded') ? App.AlertNotification.find().map(function (target) {
-      return Em.Object.create({
-        name: target.get('name'),
-        id: target.get('id'),
-        description: target.get('description'),
-        type: target.get('type'),
-        global: target.get('global')
-      });
-    }) : [];
+    return this.get('isLoaded') ? mapToEmObjects(App.AlertNotification.find(), ['id', 'name', 'description', 'type', 'global']) : [];
   }.property('isLoaded'),
 
   /**
@@ -97,8 +118,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    */
   isDeleteDefinitionsDisabled: function () {
     var selectedGroup = this.get('selectedAlertGroup');
-    return selectedGroup ? (selectedGroup.default || this.get('selectedDefinitions').length === 0) : true;
-  }.property('selectedAlertGroup', 'selectedAlertGroup.definitions.length', 'selectedDefinitions.length'),
+    return selectedGroup ? selectedGroup.default || this.get('selectedDefinitions').length === 0 : true;
+  }.property('selectedAlertGroup.definitions.length', 'selectedDefinitions.length'),
 
   /**
    * observes if any group changed including: group name, newly created group, deleted group, group with definitions/notifications changed
@@ -120,7 +141,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    */
   defsModifiedAlertGroupsObs: function() {
     Em.run.once(this, this.defsModifiedAlertGroupsObsOnce);
-  }.observes('selectedAlertGroup.definitions.@each', 'selectedAlertGroup.definitions.length', 'selectedAlertGroup.notifications.@each', 'selectedAlertGroup.notifications.length', 'alertGroups', 'isLoaded'),
+  }.observes('selectedAlertGroup.definitions.[]', 'selectedAlertGroup.notifications.[]', 'alertGroups', 'isLoaded'),
 
   /**
    * Update <code>defsModifiedAlertGroups</code>-value
@@ -130,7 +151,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    */
   defsModifiedAlertGroupsObsOnce: function() {
     if (!this.get('isLoaded')) {
-      return false;
+      return;
     }
     var groupsToDelete = [];
     var groupsToSet = [];
@@ -147,12 +168,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       var originalGroup = mappedOriginalGroups[group.get('id')];
       if (originalGroup) {
         // should update definitions or notifications
-        if (JSON.stringify(group.get('definitions').slice().sort()) !== JSON.stringify(originalGroup.get('definitions').slice().sort())
-          || JSON.stringify(group.get('notifications').slice().sort()) !== JSON.stringify(originalGroup.get('notifications').slice().sort())) {
-          groupsToSet.push(group.set('id', originalGroup.get('id')));
-        }
-        else
-        if (group.get('name') !== originalGroup.get('name')) {
+        if (groupsAreNotEqual(group, originalGroup) || group.get('name') !== originalGroup.get('name')) {
           // should update name
           groupsToSet.push(group.set('id', originalGroup.get('id')));
         }
@@ -222,47 +238,24 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    */
   loadAlertGroups: function () {
     var alertGroups = App.AlertGroup.find().map(function (group) {
-      var definitions = group.get('definitions').map(function (def) {
-        return Em.Object.create({
-          name: def.get('name'),
-          serviceName: def.get('serviceName'),
-          componentName: def.get('componentName'),
-          serviceNameDisplay: def.get('service.displayName'),
-          componentNameDisplay: def.get('componentNameFormatted'),
-          label: def.get('label'),
-          id: def.get('id')
-        });
-      });
+      var definitions = mapToEmObjects(
+        group.get('definitions'),
+        ['name', 'serviceName', 'componentName', 'label', 'id'],
+        ['service.displayName:serviceNameDisplay', 'componentNameFormatted:componentNameDisplay']
+      );
 
-      var targets = group.get('targets').map(function (target) {
-        return Em.Object.create({
-          name: target.get('name'),
-          id: target.get('id'),
-          description: target.get('description'),
-          type: target.get('type'),
-          global: target.get('global')
-        });
-      });
+      var targets = mapToEmObjects(group.get('targets'), ['name', 'id', 'description', 'type', 'global']);
 
-      return Em.Object.create({
-        id: group.get('id'),
-        name: group.get('name'),
-        default: group.get('default'),
-        displayName: function () {
-          var name = App.config.truncateGroupName(this.get('name'));
-          return this.get('default') ? name + ' Default' : name;
-        }.property('name', 'default'),
-        label: Em.computed.format('{0} ({1})', 'displayName', 'definitions.length'),
-        definitions: definitions,
-        isAddDefinitionsDisabled: group.get('isAddDefinitionsDisabled'),
-        notifications: targets
-      });
+      var hash = Em.getProperties(group, ['id', 'name', 'default', 'isAddDefinitionsDisabled']);
+      hash.definitions = definitions;
+      hash.notifications = targets;
+      return AlertGroupClone.create(hash);
     });
     this.setProperties({
       alertGroups: alertGroups,
       isLoaded: true,
       originalAlertGroups: this.copyAlertGroups(alertGroups),
-      selectedAlertGroup: this.get('alertGroups')[0]
+      selectedAlertGroup: alertGroups[0]
     });
   },
 
@@ -332,22 +325,16 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     selectedAlertGroup.get('definitions').forEach(function (def) {
       usedDefinitionsMap[def.name] = true;
     });
-    sharedDefinitions.forEach(function (shared_def) {
-      if (!usedDefinitionsMap[shared_def.get('name')]) {
-        availableDefinitions.pushObject(shared_def);
+    sharedDefinitions.forEach(function (sharedDef) {
+      if (!usedDefinitionsMap[sharedDef.get('name')]) {
+        availableDefinitions.pushObject(sharedDef);
       }
     });
-    return availableDefinitions.map(function (def) {
-      return Em.Object.create({
-        name: def.get('name'),
-        serviceName: def.get('serviceName'),
-        componentName: def.get('componentName'),
-        serviceNameDisplay: def.get('service.displayName'),
-        componentNameDisplay: def.get('componentNameFormatted'),
-        label: def.get('label'),
-        id: def.get('id')
-      });
-    });
+    return mapToEmObjects(
+      availableDefinitions,
+      ['name', 'serviceName', 'componentName', 'label', 'id'],
+      ['service.displayName:serviceNameDisplay', 'componentNameFormatted:componentNameDisplay']
+    );
   },
 
   /**
@@ -359,10 +346,6 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       return false;
     }
     var availableDefinitions = this.getAvailableDefinitions(this.get('selectedAlertGroup'));
-    var popupDescription = {
-      header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.title'),
-      dialogMessage: Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.message').format(this.get('selectedAlertGroup.displayName'))
-    };
     var validComponents = App.StackServiceComponent.find().map(function (component) {
       return Em.Object.create({
         componentName: component.get('componentName'),
@@ -377,7 +360,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         selected: false
       });
     });
-    this.launchDefsSelectionDialog(availableDefinitions, [], validServices, validComponents, this.addDefinitionsCallback.bind(this), popupDescription);
+    return this.launchDefsSelectionDialog(availableDefinitions, [], validServices, validComponents);
   },
 
   /**
@@ -385,20 +368,20 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @method launchDefsSelectionDialog
    * @return {App.ModalPopup}
    */
-  launchDefsSelectionDialog: function (initialDefs, selectedDefs, validServices, validComponents, callback, popupDescription) {
-
+  launchDefsSelectionDialog: function (initialDefs, selectedDefs, validServices, validComponents) {
+    var self = this;
     return App.ModalPopup.show({
 
       classNames: [ 'common-modal-wrapper' ],
 
       modalDialogClasses: ['modal-lg'],
 
-      header: popupDescription.header,
+      header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.title'),
 
       /**
        * @type {string}
        */
-      dialogMessage: popupDescription.dialogMessage,
+      dialogMessage: Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.message').format(this.get('selectedAlertGroup.displayName')),
 
       /**
        * @type {string|null}
@@ -417,7 +400,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
           this.set('warningMessage', Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.message.warning'));
           return;
         }
-        callback(arrayOfSelectedDefs);
+        self.addDefinitionsCallback(arrayOfSelectedDefs);
         this.hide();
       },
 
@@ -428,7 +411,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       disablePrimary: Em.computed.not('isLoaded'),
 
       onSecondary: function () {
-        callback(null);
+        self.addDefinitionsCallback(null);
         this.hide();
       },
 
@@ -481,7 +464,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   postNewAlertGroup: function (newAlertGroupData, callback) {
     // create a new group with name , definition and notifications
     var data = {
-      'name': newAlertGroupData.get('name')
+      name: newAlertGroupData.get('name')
     };
     if (newAlertGroupData.get('definitions').length > 0) {
       data.definitions = newAlertGroupData.get('definitions').mapProperty('id');
@@ -523,10 +506,10 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var sendData = {
       name: 'alert_groups.update',
       data: {
-        "group_id": alertGroup.id,
-        'name': alertGroup.get('name'),
-        'definitions': alertGroup.get('definitions').mapProperty('id'),
-        'targets': alertGroup.get('notifications').mapProperty('id')
+        group_id: alertGroup.id,
+        name: alertGroup.get('name'),
+        definitions: alertGroup.get('definitions').mapProperty('id'),
+        targets: alertGroup.get('notifications').mapProperty('id')
       },
       success: 'successFunction',
       error: 'errorFunction',
@@ -556,7 +539,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var sendData = {
       name: 'alert_groups.delete',
       data: {
-        "group_id": alertGroup.id
+        group_id: alertGroup.id
       },
       success: 'successFunction',
       error: 'errorFunction',
@@ -631,24 +614,19 @@ App.ManageAlertGroupsController = Em.Controller.extend({
        * @type {string|null}
        */
       warningMessage: function () {
-        var warningMessage = '';
         var originalGroup = self.get('selectedAlertGroup');
         var groupName = this.get('alertGroupName').trim();
 
         if (originalGroup.get('name').trim() === groupName) {
-          warningMessage = Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
+          return Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
         }
-        else {
-          if (self.get('alertGroups').mapProperty('displayName').contains(groupName)) {
-            warningMessage = Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
-          }
-          else {
-            if (groupName && !validator.isValidAlertGroupName(groupName)) {
-              warningMessage = Em.I18n.t("form.validator.alertGroupName");
-            }
-          }
+        if (self.get('alertGroups').mapProperty('displayName').contains(groupName)) {
+          return Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
         }
-        return warningMessage;
+        if (groupName && !validator.isValidAlertGroupName(groupName)) {
+          return Em.I18n.t("form.validator.alertGroupName");
+        }
+        return '';
       }.property('alertGroupName'),
 
       /**
@@ -672,7 +650,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @method addAlertGroup
    */
   addAlertGroup: function (duplicated) {
-    duplicated = (duplicated === true);
+    duplicated = duplicated === true;
     var self = this;
     var popup = App.ModalPopup.show({
 
@@ -696,17 +674,14 @@ App.ManageAlertGroupsController = Em.Controller.extend({
        * @type {string}
        */
       warningMessage: function () {
-        var warningMessage = '';
         var groupName = this.get('alertGroupName').trim();
         if (self.get('alertGroups').mapProperty('displayName').contains(groupName)) {
-          warningMessage = Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
+          return Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
         }
-        else {
-          if (groupName && !validator.isValidAlertGroupName(groupName)) {
-            warningMessage = Em.I18n.t("form.validator.alertGroupName");
-          }
+        if (groupName && !validator.isValidAlertGroupName(groupName)) {
+          return Em.I18n.t("form.validator.alertGroupName");
         }
-        return warningMessage;
+        return '';
       }.property('alertGroupName'),
 
       /**
@@ -716,14 +691,9 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       disablePrimary: Em.computed.or('alertGroupNameIsEmpty', 'warningMessage'),
 
       onPrimary: function () {
-        var newAlertGroup = Em.Object.create({
+        var newAlertGroup = AlertGroupClone.create({
           name: this.get('alertGroupName').trim(),
           default: false,
-          displayName: function () {
-            var name = App.config.truncateGroupName(this.get('name'));
-            return this.get('default') ? name + ' Default' : name;
-          }.property('name', 'default'),
-          label: Em.computed.format('{0} ({1})', 'displayName', 'definitions.length'),
           definitions: duplicated ? self.get('selectedAlertGroup.definitions').slice(0) : [],
           notifications: self.get('alertGlobalNotifications'),
           isAddDefinitionsDisabled: false

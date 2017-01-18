@@ -26,8 +26,8 @@ App.AlertNotification = DS.Model.extend({
   groups: DS.hasMany('App.AlertGroup'),
   global: DS.attr('boolean'),
   enabled: DS.attr('boolean'),
-  displayName: Ember.computed('enabled', function() {
-    return (this.get('enabled') === true)?this.get('name'): this.get('name') + ' (Disabled)';
+  displayName: Ember.computed('enabled', 'name', function() {
+    return this.get('name') + (this.get('enabled') === true ? '' : ' (Disabled)');
   }),
 
   properties: {},

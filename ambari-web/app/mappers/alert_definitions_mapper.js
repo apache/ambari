@@ -125,19 +125,11 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
         var convertedParameters = [];
         var sourceParameters = item.AlertDefinition.source.parameters;
-        if (Array.isArray(sourceParameters)) {
+        if (Ember.isArray(sourceParameters)) {
           sourceParameters.forEach(function (parameter) {
-            convertedParameters.push({
-              id: item.AlertDefinition.id + parameter.name,
-              name: parameter.name,
-              display_name: parameter.display_name,
-              units: parameter.units,
-              value: parameter.value,
-              description: parameter.description,
-              type: parameter.type,
-              threshold: parameter.threshold,
-              visibility: parameter.visibility
-            });
+            let hash = Em.getProperties(parameter, ['name', 'display_name', 'units', 'value', 'description', 'type', 'threshold', 'visibility']);
+            hash.id = item.AlertDefinition.id + parameter.name;
+            convertedParameters.push(hash);
           });
         }
 

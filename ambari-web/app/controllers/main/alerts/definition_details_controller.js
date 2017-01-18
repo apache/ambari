@@ -105,10 +105,9 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
     var lastDayAlertsCount = {};
     data.items.forEach(function (alert) {
       if (!lastDayAlertsCount[alert.AlertHistory.host_name]) {
-        lastDayAlertsCount[alert.AlertHistory.host_name] = 1;
-      } else {
-        lastDayAlertsCount[alert.AlertHistory.host_name] += 1;
+        lastDayAlertsCount[alert.AlertHistory.host_name] = 0;
       }
+      lastDayAlertsCount[alert.AlertHistory.host_name]++;
     });
     this.set('lastDayAlertsCount', lastDayAlertsCount);
   },
@@ -149,14 +148,14 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
     element.set('isEditing', false);
 
     var data = Em.Object.create({});
-    var property_name = "AlertDefinition/" + element.get('name');
-    data.set(property_name, element.get('value'));
-    var alertDefinition_id = this.get('content.id');
+    var propertyName = "AlertDefinition/" + element.get('name');
+    data.set(propertyName, element.get('value'));
+    var alertDefinitionId = this.get('content.id');
     return App.ajax.send({
       name: 'alerts.update_alert_definition',
       sender: this,
       data: {
-        id: alertDefinition_id,
+        id: alertDefinitionId,
         data: data
       }
     });
@@ -180,10 +179,9 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   /**
    * "Delete" button handler
-   * @param {object} event
    * @method deleteAlertDefinition
    */
-  deleteAlertDefinition: function (event) {
+  deleteAlertDefinition: function () {
     var alertDefinition = this.get('content');
     var self = this;
     App.showConfirmationPopup(function () {
@@ -229,7 +227,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       confirmButton: alertDefinition.get('enabled') ? Em.I18n.t('alerts.table.state.enabled.confirm.btn') : Em.I18n.t('alerts.table.state.disabled.confirm.btn')
     });
 
-    return App.showConfirmationFeedBackPopup(function (query) {
+    return App.showConfirmationFeedBackPopup(function () {
       self.toggleDefinitionState(alertDefinition);
     }, bodyMessage);
   },
@@ -286,14 +284,14 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       header: Em.I18n.t('alerts.actions.editRepeatTolerance.header'),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
-      inputValue: self.get('content.repeat_tolerance_enabled') ? (self.get('content.repeat_tolerance') || 1) : alertsRepeatTolerance,
+      inputValue: self.get('content.repeat_tolerance_enabled') ? self.get('content.repeat_tolerance') || 1 : alertsRepeatTolerance,
       errorMessage: Em.I18n.t('alerts.actions.editRepeatTolerance.error'),
       isInvalid: function () {
         var intValue = Number(this.get('inputValue'));
         return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1 || intValue > 99);
       }.property('inputValue'),
       isChanged: function () {
-        return Number(this.get('inputValue')) != alertsRepeatTolerance;
+        return Number(this.get('inputValue')) !== alertsRepeatTolerance;
       }.property('inputValue'),
       doRestoreDefaultValue: function () {
         this.set('inputValue', alertsRepeatTolerance);
@@ -306,7 +304,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
         }
         var input = this.get('inputValue');
         self.set('content.repeat_tolerance', input);
-        self.enableRepeatTolerance(input != alertsRepeatTolerance);
+        self.enableRepeatTolerance(input !== alertsRepeatTolerance);
         App.ajax.send({
           name: 'alerts.update_alert_definition',
           sender: self,

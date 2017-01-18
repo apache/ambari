@@ -18,32 +18,28 @@
 
 var App = require('app');
 
-function getModel() {
-  return App.AlertGroup.createRecord();
-}
-
 var model;
 
-describe('App.AlertGroup', function() {
+function getModel() {
+  return App.AlertNotification.createRecord();
+}
+
+describe('App.AlertNotification', function () {
 
   beforeEach(function () {
     model = getModel();
   });
 
-  App.TestAliases.testAsComputedAlias(getModel(), 'isAddDefinitionsDisabled', 'default', 'boolean');
-
   describe('#displayName', function () {
 
     [
-      {name: 'abc', default: true, e: 'abc Default'},
-      {name: 'abc', default: false, e: 'abc'},
-      {name: '12345678901234567890', default: true, e: '123456789...234567890 Default'},
-      {name: '12345678901234567890', default: false, e: '123456789...234567890'},
+      {name: 'abc', enabled: true, e: 'abc'},
+      {name: 'abc', enabled: false, e: 'abc (Disabled)'},
     ].forEach(function (test) {
-      it(test.name + ' ' + test.default, function () {
+      it(test.name + ' ' + test.enabled, function () {
         model.setProperties({
           name: test.name,
-          default: test.default
+          enabled: test.enabled
         });
         expect(model.get('displayName')).to.be.equal(test.e);
       });
