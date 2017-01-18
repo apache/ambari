@@ -27,6 +27,8 @@ import java.io.File;
 public class SSLUtil {
   private static final String KEYSTORE_LOCATION_ARG = "javax.net.ssl.keyStore";
   private static final String TRUSTSTORE_LOCATION_ARG = "javax.net.ssl.trustStore";
+  private static final String KEYSTORE_TYPE_ARG = "javax.net.ssl.keyStoreType";
+  private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
   private static final String KEYSTORE_PASSWORD_ARG = "javax.net.ssl.keyStorePassword";
   private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
@@ -37,6 +39,30 @@ public class SSLUtil {
   
   private SSLUtil() {
     throw new UnsupportedOperationException();
+  }
+  
+  public static String getKeyStoreLocation() {
+    return System.getProperty(KEYSTORE_LOCATION_ARG);
+  }
+  
+  public static String getKeyStoreType() {
+    return System.getProperty(KEYSTORE_TYPE_ARG);
+  }
+  
+  public static String getKeyStorePassword() {
+    return System.getProperty(KEYSTORE_PASSWORD_ARG);
+  }
+  
+  public static String getTrustStoreLocation() {
+    return System.getProperty(TRUSTSTORE_LOCATION_ARG);
+  }
+  
+  public static String getTrustStoreType() {
+    return System.getProperty(TRUSTSTORE_TYPE_ARG);
+  }
+  
+  public static String getTrustStorePassword() {
+    return System.getProperty(TRUSTSTORE_PASSWORD_ARG);
   }
   
   public static void ensureStorePasswords() {

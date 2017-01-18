@@ -1026,7 +1026,7 @@ public class UpgradeCatalog250Test {
         "content", "infra_solr_ssl_enabled");
     
     Map<String, String> expectedLogFeederEnv = ImmutableMap.of(
-        "content", "logsearch_solr_ssl_enabled");
+        "content", "logfeeder_use_ssl");
     
     Config mockLogFeederEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
@@ -1042,7 +1042,7 @@ public class UpgradeCatalog250Test {
         "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
     
     Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
-        "content", "logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl");
+        "content", "logsearch_use_ssl");
     
     Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
@@ -1102,7 +1102,7 @@ public class UpgradeCatalog250Test {
     expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
     Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederLog4jCapture), anyString(),
-      anyObject(Map.class))).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
         "content",

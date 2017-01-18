@@ -689,7 +689,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
           if (logfeederEnvProperties != null) {
             String content = logfeederEnvProperties.getProperties().get("content");
             if (content.contains("infra_solr_ssl_enabled")) {
-              content = content.replace("infra_solr_ssl_enabled", "logsearch_solr_ssl_enabled");
+              content = content.replace("infra_solr_ssl_enabled", "logfeeder_use_ssl");
               updateConfigurationPropertiesForCluster(cluster, "logfeeder-env", Collections.singletonMap("content", content), true, true);
             }
           }
@@ -699,11 +699,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             Map<String, String> newProperties = new HashMap<>();
             String content = logsearchEnvProperties.getProperties().get("content");
             if (content.contains("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'")) {
-              content = content.replace("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'",
-                  "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl");
-            }
-            if (content.contains("infra_solr_ssl_enabled")) {
-              content = content.replace("infra_solr_ssl_enabled", "logsearch_solr_ssl_enabled");
+              content = content.replace("infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'", "logsearch_use_ssl");
             }
             if (!content.equals(logsearchEnvProperties.getProperties().get("content"))) {
               newProperties.put("content", content);
