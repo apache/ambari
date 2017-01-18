@@ -59,6 +59,8 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_SITE = "ams-site";
+  private static final String AMS_LOG4J = "ams-log4j";
+  private static final String AMS_HBASE_LOG4J = "ams-hbase-log4j";
   private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String HBASE_ROOTDIR = "hbase.rootdir";
@@ -255,6 +257,31 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                 updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
               }
             }
+          }
+
+          //Update AMS log4j to make rolling properties configurable as separate fields.
+          Config amsLog4jProperties = cluster.getDesiredConfigByType(AMS_LOG4J);
+          if(amsLog4jProperties != null){
+            Map<String, String> newProperties = new HashMap<>();
+
+            String content = amsLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_log_max_backup_size","ams_log_max_backup_size","log4j.appender.file.MaxFileSize=(\\w+)MB","80",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_log_number_of_backup_files","ams_log_number_of_backup_files","log4j.appender.file.MaxBackupIndex=(\\w+)","60",newProperties);
+            newProperties.put("content",content);
+            updateConfigurationPropertiesForCluster(cluster,AMS_LOG4J,newProperties,true,true);
+          }
+
+          Config amsHbaseLog4jProperties = cluster.getDesiredConfigByType(AMS_HBASE_LOG4J);
+          if(amsHbaseLog4jProperties != null){
+            Map<String, String> newProperties = new HashMap<>();
+
+            String content = amsHbaseLog4jProperties.getProperties().get("content");
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_log_maxfilesize","ams_hbase_log_maxfilesize","hbase.log.maxfilesize=(\\w+)MB","256",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_log_maxbackupindex","ams_hbase_log_maxbackupindex","hbase.log.maxbackupindex=(\\w+)","20",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_security_log_maxfilesize","ams_hbase_security_log_maxfilesize","hbase.security.log.maxfilesize=(\\w+)MB","256",newProperties);
+            content = SchemaUpgradeUtil.extractProperty(content,"ams_hbase_security_log_maxbackupindex","ams_hbase_security_log_maxbackupindex","hbase.security.log.maxbackupindex=(\\w+)","20",newProperties);
+            newProperties.put("content",content);
+            updateConfigurationPropertiesForCluster(cluster,AMS_HBASE_LOG4J,newProperties,true,true);
           }
 
         }

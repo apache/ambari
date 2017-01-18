@@ -28,7 +28,7 @@
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ams_hbase_log_maxbackupindex</name>
@@ -39,7 +39,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ams_hbase_security_log_maxfilesize</name>
@@ -49,7 +49,7 @@
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ams_hbase_security_log_maxbackupindex</name>
@@ -60,7 +60,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>content</name>
