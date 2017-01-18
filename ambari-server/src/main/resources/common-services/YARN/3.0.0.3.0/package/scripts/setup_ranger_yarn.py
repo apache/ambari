@@ -19,7 +19,7 @@ from resource_management.core.logger import Logger
 def setup_ranger_yarn():
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_yarn:
 
     from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
 
@@ -68,4 +68,4 @@ def setup_ranger_yarn():
                         component_user_keytab=params.rm_keytab if params.security_enabled else None
       )
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Yarn plugin is not enabled')
