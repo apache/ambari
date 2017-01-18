@@ -642,6 +642,352 @@ public class UpgradeCatalog250Test {
   }
 
   @Test
+  public void testAmsLog4jUpdateConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+            .addMockedMethod("createConfiguration")
+            .addMockedMethod("getClusters", new Class[] {})
+            .addMockedMethod("createConfig")
+            .withConstructor(actionManager, clusters, injector)
+            .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<String, String> oldAmsLog4j = ImmutableMap.of(
+            "content",
+            "#\n" +
+                    "# Licensed to the Apache Software Foundation (ASF) under one\n" +
+                    "# or more contributor license agreements.  See the NOTICE file\n" +
+                    "# distributed with this work for additional information\n" +
+                    "# regarding copyright ownership.  The ASF licenses this file\n" +
+                    "# to you under the Apache License, Version 2.0 (the\n" +
+                    "# \"License\"); you may not use this file except in compliance\n" +
+                    "# with the License.  You may obtain a copy of the License at\n" +
+                    "#\n" +
+                    "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "#\n" +
+                    "# Unless required by applicable law or agreed to in writing, software\n" +
+                    "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                    "# See the License for the specific language governing permissions and\n" +
+                    "# limitations under the License.\n" +
+                    "#\n" +
+                    "\n" +
+                    "# Define some default values that can be overridden by system properties\n" +
+                    "ams.log.dir=.\n" +
+                    "ams.log.file=ambari-metrics-collector.log\n" +
+                    "\n" +
+                    "# Root logger option\n" +
+                    "log4j.rootLogger=INFO,file\n" +
+                    "\n" +
+                    "# Direct log messages to a log file\n" +
+                    "log4j.appender.file=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.file.File=${ams.log.dir}/${ams.log.file}\n" +
+                    "log4j.appender.file.MaxFileSize=10MB\n" +
+                    "log4j.appender.file.MaxBackupIndex=12\n" +
+                    "log4j.appender.file.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.file.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n");
+
+    Map<String, String> expectedAmsLog4j = new HashMap<>();
+    expectedAmsLog4j.put("content","#\n" +
+                    "# Licensed to the Apache Software Foundation (ASF) under one\n" +
+                    "# or more contributor license agreements.  See the NOTICE file\n" +
+                    "# distributed with this work for additional information\n" +
+                    "# regarding copyright ownership.  The ASF licenses this file\n" +
+                    "# to you under the Apache License, Version 2.0 (the\n" +
+                    "# \"License\"); you may not use this file except in compliance\n" +
+                    "# with the License.  You may obtain a copy of the License at\n" +
+                    "#\n" +
+                    "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "#\n" +
+                    "# Unless required by applicable law or agreed to in writing, software\n" +
+                    "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                    "# See the License for the specific language governing permissions and\n" +
+                    "# limitations under the License.\n" +
+                    "#\n" +
+                    "\n" +
+                    "# Define some default values that can be overridden by system properties\n" +
+                    "ams.log.dir=.\n" +
+                    "ams.log.file=ambari-metrics-collector.log\n" +
+                    "\n" +
+                    "# Root logger option\n" +
+                    "log4j.rootLogger=INFO,file\n" +
+                    "\n" +
+                    "# Direct log messages to a log file\n" +
+                    "log4j.appender.file=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.file.File=${ams.log.dir}/${ams.log.file}\n" +
+                    "log4j.appender.file.MaxFileSize={{ams_log_max_backup_size}}MB\n" +
+                    "log4j.appender.file.MaxBackupIndex={{ams_log_number_of_backup_files}}\n" +
+                    "log4j.appender.file.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.file.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n");
+    expectedAmsLog4j.put("ams_log_max_backup_size","10");
+    expectedAmsLog4j.put("ams_log_number_of_backup_files","12");
+
+
+    Config mockAmsLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-log4j")).andReturn(mockAmsLog4j).atLeastOnce();
+    expect(mockAmsLog4j.getProperties()).andReturn(oldAmsLog4j).anyTimes();
+    Capture<Map<String, String>> AmsLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsLog4jCapture), anyString(),
+            anyObject(Map.class))).andReturn(config).once();
+
+    Map<String, String> oldAmsHbaseLog4j = ImmutableMap.of(
+            "content","# Licensed to the Apache Software Foundation (ASF) under one\n" +
+                    "# or more contributor license agreements.  See the NOTICE file\n" +
+                    "# distributed with this work for additional information\n" +
+                    "# regarding copyright ownership.  The ASF licenses this file\n" +
+                    "# to you under the Apache License, Version 2.0 (the\n" +
+                    "# \"License\"); you may not use this file except in compliance\n" +
+                    "# with the License.  You may obtain a copy of the License at\n" +
+                    "#\n" +
+                    "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+                    "#\n" +
+                    "# Unless required by applicable law or agreed to in writing, software\n" +
+                    "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                    "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                    "# See the License for the specific language governing permissions and\n" +
+                    "# limitations under the License.\n" +
+                    "\n" +
+                    "\n" +
+                    "# Define some default values that can be overridden by system properties\n" +
+                    "hbase.root.logger=INFO,console\n" +
+                    "hbase.security.logger=INFO,console\n" +
+                    "hbase.log.dir=.\n" +
+                    "hbase.log.file=hbase.log\n" +
+                    "\n" +
+                    "# Define the root logger to the system property \"hbase.root.logger\".\n" +
+                    "log4j.rootLogger=${hbase.root.logger}\n" +
+                    "\n" +
+                    "# Logging Threshold\n" +
+                    "log4j.threshold=ALL\n" +
+                    "\n" +
+                    "#\n" +
+                    "# Daily Rolling File Appender\n" +
+                    "#\n" +
+                    "log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender\n" +
+                    "log4j.appender.DRFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+                    "\n" +
+                    "# Rollver at midnight\n" +
+                    "log4j.appender.DRFA.DatePattern=.yyyy-MM-dd\n" +
+                    "\n" +
+                    "# 30-day backup\n" +
+                    "#log4j.appender.DRFA.MaxBackupIndex=30\n" +
+                    "log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout\n" +
+                    "\n" +
+                    "# Pattern format: Date LogLevel LoggerName LogMessage\n" +
+                    "log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+                    "\n" +
+                    "# Rolling File Appender properties\n" +
+                    "hbase.log.maxfilesize=256MB\n" +
+                    "hbase.log.maxbackupindex=20\n" +
+                    "\n" +
+                    "# Rolling File Appender\n" +
+                    "log4j.appender.RFA=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.RFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+                    "\n" +
+                    "log4j.appender.RFA.MaxFileSize=${hbase.log.maxfilesize}\n" +
+                    "log4j.appender.RFA.MaxBackupIndex=${hbase.log.maxbackupindex}\n" +
+                    "\n" +
+                    "log4j.appender.RFA.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+                    "\n" +
+                    "#\n" +
+                    "# Security audit appender\n" +
+                    "#\n" +
+                    "hbase.security.log.file=SecurityAuth.audit\n" +
+                    "hbase.security.log.maxfilesize=256MB\n" +
+                    "hbase.security.log.maxbackupindex=20\n" +
+                    "log4j.appender.RFAS=org.apache.log4j.RollingFileAppender\n" +
+                    "log4j.appender.RFAS.File=${hbase.log.dir}/${hbase.security.log.file}\n" +
+                    "log4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}\n" +
+                    "log4j.appender.RFAS.MaxBackupIndex=${hbase.security.log.maxbackupindex}\n" +
+                    "log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n" +
+                    "log4j.category.SecurityLogger=${hbase.security.logger}\n" +
+                    "log4j.additivity.SecurityLogger=false\n" +
+                    "#log4j.logger.SecurityLogger.org.apache.hadoop.hbase.security.access.AccessController=TRACE\n" +
+                    "\n" +
+                    "#\n" +
+                    "# Null Appender\n" +
+                    "#\n" +
+                    "log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender\n" +
+                    "\n" +
+                    "#\n" +
+                    "# console\n" +
+                    "# Add \"console\" to rootlogger above if you want to use this\n" +
+                    "#\n" +
+                    "log4j.appender.console=org.apache.log4j.ConsoleAppender\n" +
+                    "log4j.appender.console.target=System.err\n" +
+                    "log4j.appender.console.layout=org.apache.log4j.PatternLayout\n" +
+                    "log4j.appender.console.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+                    "\n" +
+                    "# Custom Logging levels\n" +
+                    "\n" +
+                    "log4j.logger.org.apache.zookeeper=INFO\n" +
+                    "#log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG\n" +
+                    "log4j.logger.org.apache.hadoop.hbase=INFO\n" +
+                    "# Make these two classes INFO-level. Make them DEBUG to see more zk debug.\n" +
+                    "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil=INFO\n" +
+                    "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO\n" +
+                    "#log4j.logger.org.apache.hadoop.dfs=DEBUG\n" +
+                    "# Set this class to log INFO only otherwise its OTT\n" +
+                    "# Enable this to get detailed connection error/retry logging.\n" +
+                    "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=TRACE\n" +
+                    "\n" +
+                    "\n" +
+                    "# Uncomment this line to enable tracing on _every_ RPC call (this can be a lot of output)\n" +
+                    "#log4j.logger.org.apache.hadoop.ipc.HBaseServer.trace=DEBUG\n" +
+                    "\n" +
+                    "# Uncomment the below if you want to remove logging of client region caching'\n" +
+                    "# and scan of .META. messages\n" +
+                    "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=INFO\n" +
+                    "# log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO\n");
+
+    Map<String, String> expectedAmsHbaseLog4j = new HashMap<String,String>();
+    expectedAmsHbaseLog4j.put("content","# Licensed to the Apache Software Foundation (ASF) under one\n" +
+            "# or more contributor license agreements.  See the NOTICE file\n" +
+            "# distributed with this work for additional information\n" +
+            "# regarding copyright ownership.  The ASF licenses this file\n" +
+            "# to you under the Apache License, Version 2.0 (the\n" +
+            "# \"License\"); you may not use this file except in compliance\n" +
+            "# with the License.  You may obtain a copy of the License at\n" +
+            "#\n" +
+            "#     http://www.apache.org/licenses/LICENSE-2.0\n" +
+            "#\n" +
+            "# Unless required by applicable law or agreed to in writing, software\n" +
+            "# distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+            "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+            "# See the License for the specific language governing permissions and\n" +
+            "# limitations under the License.\n" +
+            "\n" +
+            "\n" +
+            "# Define some default values that can be overridden by system properties\n" +
+            "hbase.root.logger=INFO,console\n" +
+            "hbase.security.logger=INFO,console\n" +
+            "hbase.log.dir=.\n" +
+            "hbase.log.file=hbase.log\n" +
+            "\n" +
+            "# Define the root logger to the system property \"hbase.root.logger\".\n" +
+            "log4j.rootLogger=${hbase.root.logger}\n" +
+            "\n" +
+            "# Logging Threshold\n" +
+            "log4j.threshold=ALL\n" +
+            "\n" +
+            "#\n" +
+            "# Daily Rolling File Appender\n" +
+            "#\n" +
+            "log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender\n" +
+            "log4j.appender.DRFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+            "\n" +
+            "# Rollver at midnight\n" +
+            "log4j.appender.DRFA.DatePattern=.yyyy-MM-dd\n" +
+            "\n" +
+            "# 30-day backup\n" +
+            "#log4j.appender.DRFA.MaxBackupIndex=30\n" +
+            "log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout\n" +
+            "\n" +
+            "# Pattern format: Date LogLevel LoggerName LogMessage\n" +
+            "log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+            "\n" +
+            "# Rolling File Appender properties\n" +
+            "hbase.log.maxfilesize={{ams_hbase_log_maxfilesize}}MB\n" +
+            "hbase.log.maxbackupindex={{ams_hbase_log_maxbackupindex}}\n" +
+            "\n" +
+            "# Rolling File Appender\n" +
+            "log4j.appender.RFA=org.apache.log4j.RollingFileAppender\n" +
+            "log4j.appender.RFA.File=${hbase.log.dir}/${hbase.log.file}\n" +
+            "\n" +
+            "log4j.appender.RFA.MaxFileSize=${hbase.log.maxfilesize}\n" +
+            "log4j.appender.RFA.MaxBackupIndex=${hbase.log.maxbackupindex}\n" +
+            "\n" +
+            "log4j.appender.RFA.layout=org.apache.log4j.PatternLayout\n" +
+            "log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+            "\n" +
+            "#\n" +
+            "# Security audit appender\n" +
+            "#\n" +
+            "hbase.security.log.file=SecurityAuth.audit\n" +
+            "hbase.security.log.maxfilesize={{ams_hbase_security_log_maxfilesize}}MB\n" +
+            "hbase.security.log.maxbackupindex={{ams_hbase_security_log_maxbackupindex}}\n" +
+            "log4j.appender.RFAS=org.apache.log4j.RollingFileAppender\n" +
+            "log4j.appender.RFAS.File=${hbase.log.dir}/${hbase.security.log.file}\n" +
+            "log4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}\n" +
+            "log4j.appender.RFAS.MaxBackupIndex=${hbase.security.log.maxbackupindex}\n" +
+            "log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout\n" +
+            "log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n" +
+            "log4j.category.SecurityLogger=${hbase.security.logger}\n" +
+            "log4j.additivity.SecurityLogger=false\n" +
+            "#log4j.logger.SecurityLogger.org.apache.hadoop.hbase.security.access.AccessController=TRACE\n" +
+            "\n" +
+            "#\n" +
+            "# Null Appender\n" +
+            "#\n" +
+            "log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender\n" +
+            "\n" +
+            "#\n" +
+            "# console\n" +
+            "# Add \"console\" to rootlogger above if you want to use this\n" +
+            "#\n" +
+            "log4j.appender.console=org.apache.log4j.ConsoleAppender\n" +
+            "log4j.appender.console.target=System.err\n" +
+            "log4j.appender.console.layout=org.apache.log4j.PatternLayout\n" +
+            "log4j.appender.console.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n" +
+            "\n" +
+            "# Custom Logging levels\n" +
+            "\n" +
+            "log4j.logger.org.apache.zookeeper=INFO\n" +
+            "#log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG\n" +
+            "log4j.logger.org.apache.hadoop.hbase=INFO\n" +
+            "# Make these two classes INFO-level. Make them DEBUG to see more zk debug.\n" +
+            "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil=INFO\n" +
+            "log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO\n" +
+            "#log4j.logger.org.apache.hadoop.dfs=DEBUG\n" +
+            "# Set this class to log INFO only otherwise its OTT\n" +
+            "# Enable this to get detailed connection error/retry logging.\n" +
+            "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=TRACE\n" +
+            "\n" +
+            "\n" +
+            "# Uncomment this line to enable tracing on _every_ RPC call (this can be a lot of output)\n" +
+            "#log4j.logger.org.apache.hadoop.ipc.HBaseServer.trace=DEBUG\n" +
+            "\n" +
+            "# Uncomment the below if you want to remove logging of client region caching'\n" +
+            "# and scan of .META. messages\n" +
+            "# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=INFO\n" +
+            "# log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO\n");
+    expectedAmsHbaseLog4j.put("ams_hbase_log_maxfilesize","256");
+    expectedAmsHbaseLog4j.put("ams_hbase_log_maxbackupindex","20");
+    expectedAmsHbaseLog4j.put("ams_hbase_security_log_maxfilesize","256");
+    expectedAmsHbaseLog4j.put("ams_hbase_security_log_maxbackupindex","20");
+
+    Config mockAmsHbaseLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-hbase-log4j")).andReturn(mockAmsHbaseLog4j).atLeastOnce();
+    expect(mockAmsHbaseLog4j.getProperties()).andReturn(oldAmsHbaseLog4j).anyTimes();
+    Capture<Map<String, String>> AmsHbaseLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsHbaseLog4jCapture), anyString(),
+            anyObject(Map.class))).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockAmsLog4j,mockAmsHbaseLog4j);
+    new UpgradeCatalog250(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedAmsLog4jProperties = AmsLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedAmsLog4j, updatedAmsLog4jProperties).areEqual());
+
+    Map<String, String> updatedAmsHbaseLog4jProperties = AmsHbaseLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedAmsHbaseLog4j, updatedAmsHbaseLog4jProperties).areEqual());
+
+  }
+
+  @Test
   public void testLogSearchUpdateConfigs() throws Exception {
     reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
