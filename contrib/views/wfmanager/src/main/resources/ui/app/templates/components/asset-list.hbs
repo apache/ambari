@@ -22,7 +22,7 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" {{action 'close'}}>
           <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title">Select Asset</h4>
+        <h4 class="modal-title">Import Asset</h4>
       </div>
       <div class="modal-body">
         {{input type="text" class="form-control marginBottom10" name="assetSearchCriteria" value=assetSearchCriteria placeholder="Asset Search"}}
@@ -38,11 +38,14 @@
             </thead>
           </table>
         </div>
-        <div class="panel panel-default asset-list-panel-body">
+        <div class="panel panel-default asset-list-panel-body {{if (eq filteredAssetList.length 0) 'no-asset-records'}}">
+          {{#if (eq filteredAssetList.length 0)}}
+            No {{#if (not-eq assetListType "")}} {{assetListType}}{{/if}} assets
+          {{/if}}
           <table id="asset-list" class="table asset-list listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
             <tbody>
               {{#each filteredAssetList as |asset idx|}}
-                <tr data-asset-id="{{asset.id}}">
+                <tr {{action 'selectAsset' asset.id}} class="{{if (eq currentAssetId asset.id) "active-asset-row"}}">
                   <td class="col-xs-3">{{asset.name}}</td>
                   <td class="col-xs-3">{{asset.type}}</td>
                   <td class="col-xs-3">{{asset.description}}</td>

@@ -46,20 +46,9 @@ export default Ember.Component.extend({
     this.$('#asset_list_dialog').modal().on('hidden.bs.modal', function() {
       this.sendAction('showAssetList', false);
     }.bind(this));
-
-    this.$('#asset-list').on('click', 'tr', function(event) {
-      if(!$(this).hasClass('active-asset-row')) {
-        $(this).addClass('active-asset-row').siblings().removeClass('active-asset-row');
-      }
-      self.set('currentAssetId', $(this).data("assetId"));
-      self.set('assetNotSelected', false);
-    });
     this.initializeFuseSearch();
   }.on('didInsertElement'),
   initializeFuseSearch() {
-     // var fuse = new Fuse(this.get("assetList"), this.get('fuseSearchOptions'));
-     // this.set('fuse', fuse);
-     // this.set('filteredAssetList', fuse.search(this.get("assetSearchCriteria")));
      this.set('fuse', new Fuse(this.get("assetList"), this.get('fuseSearchOptions')));
      this.set('filteredAssetList', this.get("assetList"));
    },
@@ -77,6 +66,10 @@ export default Ember.Component.extend({
     importAsset() {
       this.$('#asset_list_dialog').modal('hide');
       this.sendAction('importAsset', this.get('assetList').filterBy('id', this.currentAssetId.toString())[0]);
+    },
+    selectAsset(assetId) {
+      this.set('currentAssetId', assetId);
+      this.set('assetNotSelected', false);
     }
   }
 });

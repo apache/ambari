@@ -38,7 +38,10 @@
             </thead>
           </table>
         </div>
-        <div class="panel panel-default asset-list-panel-body">
+        <div class="panel panel-default asset-list-panel-body {{if (eq filteredAssetList.length 0) 'no-asset-records'}}">
+          {{#if (eq filteredAssetList.length 0)}}
+            <span>No assets</span>
+          {{/if}}
           <table id="asset-list" class="table asset-list listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
             <tbody>
               {{#each filteredAssetList as |asset idx|}}
