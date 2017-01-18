@@ -69,12 +69,19 @@ logfeeder_metadata = get_logfeeder_metadata(logserch_meta_configs)
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:
-  metrics_collector_hosts_list = ",".join(config['clusterHostInfo']['metrics_collector_hosts'])
-  metrics_collector_port = str(
-    get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
-  metrics_collector_hosts = format('http://{metrics_collector_hosts_list}:{metrics_collector_port}/ws/v1/timeline/metrics')
+  metrics_http_policy = config['configurations']['ams-site']['timeline.metrics.service.http.policy']
+  metrics_collector_protocol = 'http'
+  if metrics_http_policy == 'HTTPS_ONLY':
+    metrics_collector_protocol = 'https'
+    
+  metrics_collector_hosts = ",".join(config['clusterHostInfo']['metrics_collector_hosts'])
+  metrics_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
+  metrics_collector_path = '/ws/v1/timeline/metrics'
 else:
+  metrics_collector_protocol = ''
   metrics_collector_hosts = ''
+  metrics_collector_port = ''
+  metrics_collector_path = ''
 
 #####################################
 # Infra Solr configs
@@ -250,6 +257,10 @@ logsearch_solr_collection_audit_logs = logsearch_properties['logsearch.solr.coll
 logsearch_audit_logs_split_interval_mins = logsearch_properties['logsearch.audit.logs.split.interval.mins']
 logsearch_collection_audit_logs_numshards = logsearch_properties['logsearch.collection.audit.logs.numshards']
 
+# check if logsearch uses ssl in any way
+
+logsearch_use_ssl = logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl
+
 #####################################
 # Logfeeder configs
 #####################################
@@ -328,6 +339,10 @@ logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_pro
 logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['logfeeder.config.files'])
 logfeeder_properties['logfeeder.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
 
+logfeeder_properties['logfeeder.metrics.collector.protocol'] = metrics_collector_protocol
+logfeeder_properties['logfeeder.metrics.collector.port'] = metrics_collector_port
+logfeeder_properties['logfeeder.metrics.collector.path'] = '/ws/v1/timeline/metrics'
+
 if logsearch_solr_kerberos_enabled:
   if 'logfeeder.solr.kerberos.enable' not in logfeeder_properties:
     logfeeder_properties['logfeeder.solr.kerberos.enable'] = 'true'
@@ -335,6 +350,10 @@ if logsearch_solr_kerberos_enabled:
     logfeeder_properties['logfeeder.solr.jaas.file'] = logfeeder_jaas_file
 
 logfeeder_checkpoint_folder = logfeeder_properties['logfeeder.checkpoint.folder']
+
+# check if logfeeder uses ssl in any way
+
+logfeeder_use_ssl = logsearch_solr_ssl_enabled or metrics_collector_protocol == 'https'
 
 #####################################
 # Smoke command
