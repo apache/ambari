@@ -31,7 +31,7 @@
     <name>component_mappings</name>
     <display-name>Component mapping</display-name>
     <description>Logsearch component logid mapping list (e.g.: COMPONENT1:logid1,logid2;COMPONENT2:logid3)</description>
-    <value>SPARK2_JOBHISTORYSERVER:spark2_jobhistory_server;SPARK2_THRIFTSERVER:spark2_thriftserver</value>
+    <value>SPARK2_JOBHISTORYSERVER:spark2_jobhistory_server;SPARK2_THRIFTSERVER:spark2_thriftserver;LIVY2_SERVER:livy2_server</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -50,6 +50,11 @@
        "type":"spark2_thriftserver",
        "rowtype":"service",
        "path":"{{default('/configurations/spark2-env/spark_log_dir', '/var/log/spark2')}}/spark-*-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2*.out"
+     },
+     {
+       "type":"livy2_server",
+       "rowtype":"service",
+       "path":"{{default('/configurations/livy2-env/livy2_log_dir', '/var/log/livy2')}}/livy-livy-server.out"
      }
    ],
    "filter":[
@@ -59,7 +64,8 @@
             "fields":{
               "type":[
                 "spark2_jobhistory_server",
-                "spark2_thriftserver"
+                "spark2_thriftserver",
+                "livy2_server"
               ]
              }
           },
