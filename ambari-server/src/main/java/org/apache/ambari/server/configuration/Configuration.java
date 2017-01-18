@@ -2570,8 +2570,8 @@ public class Configuration {
   }
 
 
-  public void wrtiteToAmbariUpgradeConfigUpdatesFile(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
-                                                     String configType, String serviceName, String wrtiteToAmbariUpgradeConfigUpdatesFile) {
+  public void writeToAmbariUpgradeConfigUpdatesFile(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
+                                                     String configType, String serviceName, String writeToAmbariUpgradeConfigUpdatesFile) {
     try {
       if (ambariUpgradeConfigUpdatesFilePath == null) {
         Properties log4jProperties = getLog4jProperties();
@@ -2581,7 +2581,7 @@ public class Configuration {
           logPath = StringUtils.replace(logPath, "${ambari.root.dir}", rootPath);
           logPath = StringUtils.replace(logPath, "//", "/");
           if (StringUtils.isNotEmpty(logPath)) {
-            ambariUpgradeConfigUpdatesFilePath = logPath + File.separator + wrtiteToAmbariUpgradeConfigUpdatesFile;
+            ambariUpgradeConfigUpdatesFilePath = logPath + File.separator + writeToAmbariUpgradeConfigUpdatesFile;
           }
         } else {
           LOG.warn("Log4j properties are not available");
