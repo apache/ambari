@@ -930,6 +930,49 @@ class TestActionQueue(TestCase):
     self.assertTrue(write_actual_component_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(ActualConfigHandler, "write_actual_component")
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  def test_store_config_tags_on_install_client_command(self, status_update_callback_mock,
+      command_status_dict_mock,
+      cso_runCommand_mock, write_actual_component_mock):
+
+    custom_service_orchestrator_execution_result_dict = {
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut' : '',
+      'exitcode' : 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    tez_client_install_command = {
+      'commandType': 'EXECUTION_COMMAND',
+      'role': u'TEZ_CLIENT',
+      'roleCommand': u'INSTALL',
+      'commandId': '1-1',
+      'taskId': 9,
+      'clusterName': u'cc',
+      'serviceName': u'TEZ',
+      'configurations': {'global' : {}},
+      'configurationTags': {'global' : { 'tag': 'v123' }},
+      'hostLevelParams': {}
+    }
+    LiveStatus.CLIENT_COMPONENTS = ({'serviceName': 'TEZ', 'componentName': 'TEZ_CLIENT'}, )
+
+    config = AmbariConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.execute_command(tez_client_install_command)
+
+    # Configuration tags should be updated on install client command
+    self.assertTrue(write_actual_component_mock.called)
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
