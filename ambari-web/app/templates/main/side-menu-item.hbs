@@ -17,16 +17,23 @@
 }}
 
 
-<a href="#" {{action goToSection view.content.routing target="view"}} {{bindAttr class="view.content.isView:views-button-container"}}>
-  {{{unbound view.content.label}}}
+<a {{action goToSection view.content.routing target="view"}} {{bindAttr class="view.content.isView:views-button-container"}}>
+  <span {{bindAttr  class=":navigation-icon view.content.iconClass"}}></span>
+  <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
+  {{#if view.isServicesItem}}
+    <span class="toggle-icon glyphicon glyphicon-menu-down" data-toggle="collapseSubMenu"></span>
+  {{/if}}
+  {{#if view.isAdminItem}}
+    <span class="toggle-icon glyphicon glyphicon-menu-down" data-toggle="collapseSubMenu"></span>
+  {{/if}}
 </a>
 
 <!--dropdown menu for the items had dropdowns-->
 {{#if view.isServicesItem}}
-  {{view App.TopNavServiceMenuView}}
+  {{view App.SideNavServiceMenuView}}
 {{/if}}
 {{#if view.isAdminItem}}
-  <ul class="top-nav-dropdown-menu dropdown-menu">
+  <ul class="sub-menu nav nav-pills nav-stacked">
     {{#each category in view.dropdownCategories}}
       {{#view view.AdminDropdownItemView itemBinding="category.name"}}
         <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
@@ -34,17 +41,7 @@
     {{/each}}
   </ul>
 {{/if}}
-{{#if view.isViewsItem}}
-  <ul class="top-nav-dropdown-menu dropdown-menu">
-    {{#if view.content.views.length}}
-      {{#each category in view.content.views}}
-        <li><a href="#" {{action "setView" category target="App.router.mainViewsController"}}>{{category.label}}</a></li>
-      {{/each}}
-    {{else}}
-      <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
-    {{/if}}
-  </ul>
-{{/if}}
+
 
 
 

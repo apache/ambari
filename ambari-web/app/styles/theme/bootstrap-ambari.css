@@ -536,8 +536,8 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  line-height: 1.4;
   font-size: 14px;
+  line-height: 1.4;
   color: #999;
 }
 .wizard .wizard-body .wizard-content .panel.panel-default {
@@ -584,12 +584,13 @@ h2.table-title {
   font-weight: normal;
   font-style: normal;
   line-height: 1;
-  margin-left: 30px;
+  color: #333;
   font-size: 14px;
   color: #999;
+  margin-left: 30px;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-index {
-  line-height: 16px;
+  line-height: 18px;
 }
 .wizard .wizard-body .wizard-nav .nav li .step-description {
   font-family: 'Roboto', sans-serif;
@@ -699,9 +700,6 @@ input[type="radio"].disabled + label:hover:before {
   background-color: #b2b8c1;
   border-color: #b2b8c1;
 }
-input[type="checkbox"] + label {
-  margin-top: -2px;
-}
 input[type="checkbox"] + label:before {
   content: '';
   position: absolute;
@@ -722,14 +720,13 @@ input[type="checkbox"]:checked + label:after {
   top: 2px;
   left: 2px;
   font-size: 9px;
-  line-height: 1.42;
 }
 input[type="radio"] + label:before,
 input.radio + label:before {
   content: '';
   position: absolute;
   left: 0;
-  top: 2px;
+  top: 0;
   width: 12px;
   height: 12px;
   box-sizing: border-box;
@@ -743,11 +740,281 @@ input.radio:checked + label:after {
   content: '';
   background-color: #FFF;
   position: absolute;
-  top: 5px;
+  top: 3px;
   left: 3px;
   width: 6px;
   height: 6px;
   border-radius: 6px;
+}
+.navigation-bar-container {
+  height: auto;
+  width: 190px;
+  background-color: #323544;
+  padding: 0px 0px;
+  overflow: hidden;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header {
+  background: #313d54;
+  padding: 15px 5px 15px 25px;
+  min-height: 50px;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-logo {
+  padding: 0px;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-logo > img {
+  height: 25px;
+  float: left;
+  margin-top: -2px;
+  margin-left: -3px;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-header {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 20px;
+  width: 55px;
+  display: inline;
+  color: #fff;
+  padding: 0px 8px;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header span.toggle-icon {
+  margin-bottom: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  color: #b8bec4;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header ul.dropdown-menu {
+  min-width: 190px;
+  max-width: 190px;
+  width: 190px;
+  right: -43px;
+  left: auto;
+  top: 30px;
+  background: #323543;
+  border: none;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header ul.dropdown-menu li {
+  border: none;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header ul.dropdown-menu li > a {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 13px;
+  color: #999;
+  padding: 15px 10px;
+  height: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header ul.dropdown-menu li > a:hover {
+  background: #404351;
+  color: #fff;
+}
+.navigation-bar-container ul.nav.side-nav-menu li,
+.navigation-bar-container ul.nav.side-nav-footer li {
+  padding: 0px;
+  margin: 0px;
+}
+.navigation-bar-container ul.nav.side-nav-menu li a,
+.navigation-bar-container ul.nav.side-nav-footer li a {
+  padding: 15px 5px 15px 25px;
+  display: table-cell;
+  vertical-align: middle;
+  width: 190px;
+  border-radius: 0;
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+}
+.navigation-bar-container ul.nav.side-nav-menu li a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li a .navigation-menu-item {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 16px;
+  color: #b8bec4;
+  padding-left: 8px;
+}
+.navigation-bar-container ul.nav.side-nav-menu li a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li a .navigation-icon {
+  line-height: 18px;
+  font-size: 18px;
+  color: #b8bec4;
+}
+.navigation-bar-container ul.nav.side-nav-menu li a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li a .toggle-icon {
+  line-height: 14px;
+  font-size: 14px;
+  color: #b8bec4;
+  padding: 3px 5px 3px 10px;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer {
+  background: #313d54;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer a .navigation-icon {
+  color: #3fae2a;
+  font-size: 20px;
+  position: relative;
+  padding: 0px 15px;
+  left: calc(30%);
+}
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer a .navigation-icon:hover,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer a .navigation-icon:hover {
+  color: #fff;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li {
+  background-color: #323544;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li a,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li a {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 13px;
+  color: #999;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li a .submenu-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li a .submenu-icon {
+  line-height: 14px;
+  font-size: 14px;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover {
+  background: #404351;
+  cursor: pointer;
+  color: #fff;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .submenu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .submenu-item {
+  color: #fff;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect),
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) {
+  background: #404351;
+  cursor: pointer;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a {
+  border-left: 6px solid #3fae2a;
+  padding-left: 19px;
+  color: #fff;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .submenu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .toggle-icon {
+  color: #fff;
+}
+.navigation-bar-container .nav-pills > li.active > a,
+.navigation-bar-container .nav-pills > li.active > a:focus,
+.navigation-bar-container .nav-pills > li.active > a:hover,
+.navigation-bar-container .nav > li > a:focus,
+.navigation-bar-container .nav > li > a:hover {
+  background-color: inherit;
+}
+.navigation-bar-container.collapsed {
+  width: 50px;
+  overflow: visible;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header {
+  padding: 15px 0px 15px 17px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header a.ambari-header,
+.navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.toggle-icon,
+.navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header .dropdown-menu {
+  display: none;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li a,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li a {
+  padding: 15px 0px 15px 17px;
+  width: 50px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li a .navigation-menu-item,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li a .navigation-menu-item,
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li a .toggle-icon,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li a .toggle-icon {
+  display: none;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.navigation-footer a .navigation-icon,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.navigation-footer a .navigation-icon {
+  padding: 0px 5px;
+  left: 0px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.sub-menu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
+  display: none;
+  width: 190px;
+  position: absolute;
+  left: 50px;
+  top: 0px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li:hover ul.sub-menu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li:hover ul.sub-menu {
+  display: block;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li > a,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li > a {
+  padding: 15px 5px 15px 25px;
+  width: 190px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.active,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.active {
+  background: #404351;
+  cursor: pointer;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.active > a,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.active > a {
+  border-left: 6px solid #3fae2a;
+  padding-left: 12px;
+  color: #fff;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.active > a .navigation-menu-item,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.active > a .navigation-menu-item,
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.active > a .submenu-item,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.active > a .submenu-item,
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.active > a .navigation-icon,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.active > a .navigation-icon,
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.active > a .toggle-icon,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.active > a .toggle-icon {
+  color: #fff;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li.active > a,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li.active > a {
+  padding-left: 19px;
 }
 h1,
 h2,

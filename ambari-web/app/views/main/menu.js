@@ -18,13 +18,9 @@
 
 var App = require('app');
 
-/**
- * this menu extended by other with modifying content and itemViewClass.template
- * @type {*}
- */
-App.MainMenuView = Em.CollectionView.extend({
+App.MainSideMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ['nav', 'top-nav-menu', 'navbar-nav', 'navbar-right'],
+  classNames: ['nav', 'side-nav-menu', 'nav-pills', 'nav-stacked'],
 
   views: function () {
     return App.router.get('mainViewsController.ambariViews');
@@ -37,33 +33,40 @@ App.MainMenuView = Em.CollectionView.extend({
       if (App.router.get('clusterController.isLoaded') && App.get('router.clusterInstallCompleted')) {
         if (!App.get('isOnlyViewUser')) {
           result.push(
-              {label: Em.I18n.t('menu.item.dashboard'), routing: 'dashboard', active: 'active'},
-              {label: Em.I18n.t('menu.item.services'), routing: 'services'},
-              {label: Em.I18n.t('menu.item.hosts'), routing: 'hosts'},
-              {label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
+              {label: Em.I18n.t('menu.item.dashboard'), iconClass: 'glyphicon glyphicon-home', routing: 'dashboard', active: 'active'},
+              {label: Em.I18n.t('menu.item.services'), iconClass: 'glyphicon glyphicon-briefcase', routing: 'services'},
+              {label: Em.I18n.t('menu.item.hosts'), iconClass: 'icon-tasks', routing: 'hosts'},
+              {label: Em.I18n.t('menu.item.alerts'), iconClass: 'glyphicon glyphicon-bell', routing: 'alerts'}
           );
         }
         if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, SERVICE.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
-          || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
-          result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
+            || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+          result.push({ label: Em.I18n.t('menu.item.admin'), iconClass: 'glyphicon glyphicon-wrench', routing: 'admin'});
         }
       }
-      result.push({ label: Em.I18n.t('menu.item.views'), routing: 'views.index', isView: true, views: this.get('views').filterProperty('visible')});
     }
     return result;
   }.property(
-    'App.router.loggedIn',
-    'views.length',
-    'App.router.clusterController.isLoaded',
-    'App.router.clusterInstallCompleted',
-    'App.router.wizardWatcherController.isWizardRunning'
+      'App.router.loggedIn',
+      'views.length',
+      'App.router.clusterController.isLoaded',
+      'App.router.clusterInstallCompleted',
+      'App.router.wizardWatcherController.isWizardRunning'
   ),
 
   itemViewClass: Em.View.extend({
 
-    classNameBindings: ['active', 'dropdownMenu:dropdown'],
+    classNameBindings: ['active', 'dropdownMenu:dropdown', 'dropdownMenu:no-active-effect'],
 
-    classNames: ['top-nav-dropdown'],
+    classNames: ['mainmenu-li'],
+
+    didInsertElement: function () {
+      $('[data-toggle=collapseSubMenu]').off('click').on('click', function(event){
+        $(this).parent().siblings('.sub-menu').slideToggle(600);
+        $(this).toggleClass('glyphicon-menu-right glyphicon-menu-down');
+        event.stopPropagation();
+      });
+    },
 
     active: function () {
       if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
@@ -79,9 +82,9 @@ App.MainMenuView = Em.CollectionView.extend({
       return '';
     }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
-    templateName: require('templates/main/menu_item'),
+    templateName: require('templates/main/side-menu-item'),
 
-    dropdownMenu: Em.computed.existsIn('content.routing', ['services', 'admin', 'views']),
+    dropdownMenu: Em.computed.existsIn('content.routing', ['services', 'admin']),
     isAdminItem: Em.computed.equal('content.routing', 'admin'),
     isServicesItem: Em.computed.equal('content.routing', 'services'),
     isViewsItem: function () {
@@ -146,6 +149,7 @@ App.MainMenuView = Em.CollectionView.extend({
     AdminDropdownItemView: Ember.View.extend({
       tagName: 'li',
       classNameBindings: ['isActive:active', 'isDisabled:disabled'],
+      classNames: ['submenu-li'],
       isActive: Em.computed.equalProperties('item', 'parentView.selectedAdminItem'),
       isDisabled: function () {
         return !!this.get('parentView.dropdownCategories').findProperty('name', this.get('item')).disabled;
@@ -160,4 +164,106 @@ App.MainMenuView = Em.CollectionView.extend({
       }
     })
   })
+});
+
+App.SideNavServiceMenuView = Em.CollectionView.extend({
+  disabledServices: [],
+
+  content: function () {
+    return App.router.get('mainServiceController.content').filter(function (item) {
+      return !this.get('disabledServices').contains(item.get('id'));
+    }, this);
+  }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
+
+  didInsertElement:function () {
+    App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
+    this.renderOnRoute();
+    App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
+  },
+
+  willDestroyElement: function() {
+    App.router.location.removeObserver('lastSetURL', this, 'renderOnRoute');
+    this.$(".restart-required-service").tooltip('destroy');
+  },
+
+  activeServiceId:null,
+  /**
+   *    Syncs navigation menu with requested URL
+   */
+  renderOnRoute:function () {
+    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+    if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
+      return;
+    }
+    var reg = /^\/main\/services\/(\S+)\//g;
+    var sub_url = reg.exec(last_url);
+    var service_id = (null != sub_url) ? sub_url[1] : 1;
+    this.set('activeServiceId', service_id);
+  },
+
+  tagName:'ul',
+  classNames:[ 'sub-menu', 'nav', 'nav-pills', 'nav-stacked'],
+
+  itemViewClass:Em.View.extend({
+
+    classNameBindings:["active", "clients"],
+    classNames: ["submenu-li"],
+    templateName:require('templates/main/service/menu_item'),
+    restartRequiredMessage: null,
+
+    shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
+
+    active:function () {
+      return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
+    }.property('parentView.activeServiceId'),
+
+    alertsCount: function () {
+      return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount') ;
+    }.property('content.alertsCount'),
+
+    hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
+
+    isConfigurable: function () {
+      return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
+    }.property('App.services.noConfigTypes','content.serviceName'),
+
+    link: function() {
+      var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
+          ? this.get('isConfigurable') ?  App.router.get('currentState.name') : 'summary'
+          : 'summary';
+      return "#/main/services/" + this.get('content.id') + "/" + stateName;
+    }.property('App.router.currentState.name', 'parentView.activeServiceId','isConfigurable'),
+
+    goToConfigs: function () {
+      App.router.set('mainServiceItemController.routeToConfigs', true);
+      App.router.transitionTo('services.service.configs', this.get('content'));
+      App.router.set('mainServiceItemController.routeToConfigs', false);
+    },
+
+    refreshRestartRequiredMessage: function() {
+      var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
+      restarted = this.get('content.restartRequiredHostsAndComponents');
+      componentsCount = 0;
+      hostsCount = 0;
+      message = "";
+      for (var host in restarted) {
+        hostsCount++;
+        componentsCount += restarted[host].length;
+      }
+      if (hostsCount > 1) {
+        tHosts = Em.I18n.t('common.hosts');
+      } else {
+        tHosts = Em.I18n.t('common.host');
+      }
+      if (componentsCount > 1) {
+        tComponents = Em.I18n.t('common.components');
+      } else {
+        tComponents = Em.I18n.t('common.component');
+      }
+      message += componentsCount + ' ' + tComponents + ' ' + Em.I18n.t('on') + ' ' +
+          hostsCount + ' ' + tHosts + ' ' + Em.I18n.t('services.service.config.restartService.needToRestartEnd');
+      this.set('restartRequiredMessage', message);
+    }.observes('content.restartRequiredHostsAndComponents')
+  })
+
 });

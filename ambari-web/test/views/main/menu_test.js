@@ -24,7 +24,7 @@ describe('App.MainMenuView', function () {
   var view;
 
   beforeEach(function () {
-    view = App.MainMenuView.create()
+    view = App.MainSideMenuView.create()
   });
 
   describe("#views", function () {
