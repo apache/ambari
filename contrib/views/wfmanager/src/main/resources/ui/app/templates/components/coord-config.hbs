@@ -35,7 +35,7 @@
             <ul class="dropdown-menu">
               <li>
                 <a  class="pointer" title="Import workflow" {{action "openFileBrowser" "coordinatorFilePath"}}>
-                  <i class="fa fa-download"> Import</i>
+                  <i class="fa fa-download marginright5"></i>Import
                 </a>
              </li>
              <li>
@@ -77,6 +77,9 @@
             </button>
             <button id="save-coord" type="button" class="btn btn-default" title="Save coordinator in HDFS" {{action "save"}}>
                 <i class="fa fa-floppy-o"></i> Save
+            </button>
+            <button type="button" class="btn btn-default" title="Validate Coordinator" {{action "dryrunCoordinator"}}>
+                <i class="fa fa-play marginright5"></i>Validate
             </button>
             <button type="button" class="btn btn-primary" title="Submit Coordinator" {{action "submitCoordinator"}}>
               <i class="fa fa-upload marginright5"></i>Submit
@@ -245,7 +248,7 @@
                   <ul class="list-groups">
                     {{#if conditionalDataInExists}}
                     <li class="list-group-item">
-                      {{#conditional-data-input condition=coordinator.conditionalDataInput datasets=datasetsForInputs isToplevel=true register="registerChild" deregister="deregisterChild"}}
+                      {{#conditional-data-input condition=coordinator.conditionalDataInput datasets=coordinator.dataInputs isToplevel=true register="registerChild" deregister="deregisterChild"}}
                       <span class="pull-right">
                         <i class="fa fa-trash-o" title="Delete" {{action "deleteCondition" index bubbles=false}}></i>
                       </span>
@@ -271,7 +274,7 @@
                       <ul class="list-group">
                         {{#if inputLogicExists}}
                         <li class="list-group-item">
-                          {{#conditional-data-input condition=coordinator.inputLogic datasets=datasetsForInputs isToplevel=true register="registerChild" deregister="deregisterChild"}}
+                          {{#conditional-data-input condition=coordinator.inputLogic datasets=coordinator.dataInputs isToplevel=true register="registerChild" deregister="deregisterChild"}}
                           <span class="pull-right">
                             <i class="fa fa-trash-o" title="Delete" {{action "deleteInputLogic" index bubbles=false}}></i>
                           </span>
@@ -336,7 +339,7 @@
     parameterizedWorkflowPath=parameterizedWorkflowPath
     extractProperties="extractProperties" containsParameteriedPaths=containsParameteriedPaths
     jobFilePath=coordinatorFilePath openFileBrowser="openFileBrowser"
-    closeFileBrowser="closeFileBrowser" jobConfigs=coordinatorConfigs}}
+    closeFileBrowser="closeFileBrowser" jobConfigs=coordinatorConfigs isDryrun=dryrun}}
 {{/if}}
 {{#if showingResetConfirmation}}
 {{#confirmation-dialog title="Confirm Coordinator Reset"

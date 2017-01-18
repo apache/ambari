@@ -207,11 +207,18 @@ export default Ember.Component.extend(Validations, {
       data: this.get("jobXml"),
       success: function(response) {
         var result=JSON.parse(response);
-        this.showNotification({
-          "type": "success",
-          "message": this.get('displayName') +" saved.",
-          "details": "Job id :"+result.id
-        });
+        if(this.get('isDryrun')){
+          this.showNotification({
+            "type": "success",
+            "message": `${this.get('displayName')} is valid.`
+          });
+        }else{
+          this.showNotification({
+            "type": "success",
+            "message": this.get('displayName') +" saved.",
+            "details": "Job id :"+result.id
+          });
+        }
         this.set("savingInProgress",false);
       }.bind(this),
       error: function(response) {
