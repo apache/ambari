@@ -308,8 +308,11 @@ App.QuickLinksView = Em.View.extend({
   getQuickLinksConfiguration: function () {
     var serviceName = this.get('content.serviceName');
     var self = this;
+    var quicklinks, links = {};
     if (self.hasQuickLinksConfig(serviceName)) {
-      return App.QuickLinksConfig.find().findProperty('id', serviceName);
+      quicklinks = App.QuickLinksConfig.find().findProperty('id', serviceName);
+      Em.set(quicklinks, 'links', Em.get(quicklinks, 'links').filterProperty('visible', true));
+      return quicklinks;
     }
     return null;
   },
