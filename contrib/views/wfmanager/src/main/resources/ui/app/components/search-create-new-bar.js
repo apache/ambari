@@ -189,6 +189,9 @@ export default Ember.Component.extend(Ember.Evented,{
             elem.addClass("btn-primary");
             this.sendAction('onSearch', { type: type, filter: filter });
         },
+        onSearchClicked(){
+          this.$('#search-field').tagsinput('add', 'Name:'+this.$('.tt-input').val());
+        },
         refresh(){
           this.sendAction('onSearch', this.get('history').getSearchParams());
         },
