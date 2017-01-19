@@ -26,6 +26,8 @@ App.ConfigCategoryContainerView = Em.ContainerView.extend({
 
   categories: [],
 
+  classNames: ['accordion'],
+
   didInsertElement: function () {
     this.pushViews();
     this._super();
