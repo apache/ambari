@@ -184,6 +184,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.RepositoryXml;
@@ -237,12 +238,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private static final String PASSWORD = "password";
   public static final String SKIP_INSTALL_FOR_COMPONENTS = "skipInstallForComponents";
   public static final String DONT_SKIP_INSTALL_FOR_COMPONENTS = "dontSkipInstallForComponents";
-
-  /**
-   * The name of the ambari setting that stores the quicklinks profile.
-   * See {@link org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile}
-   */
-  public static final String SETTING_QUICKLINKS_PROFILE = "QuickLinksProfile";
 
   private final Clusters clusters;
 
@@ -504,7 +499,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         c.createClusterVersion(stackId, versionEntity.getVersion(), getAuthName(), RepositoryVersionState.INIT);
       }
     }
-
   }
 
   @Override
@@ -5517,7 +5511,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public QuickLinkVisibilityController getQuicklinkVisibilityController() {
-    SettingEntity entity = settingDAO.findByName(SETTING_QUICKLINKS_PROFILE);
+    SettingEntity entity = settingDAO.findByName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE);
     String quickLinkProfileJson = null != entity ? entity.getContent() : null;
     return QuickLinkVisibilityControllerFactory.get(quickLinkProfileJson);
   }

@@ -41,6 +41,15 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class QuickLinksProfile {
 
+  /**
+   * The name of the Ambari setting that stores the quick links profile
+   */
+  public static final String SETTING_NAME_QUICKLINKS_PROFILE = "QuickLinksProfile";
+  /**
+   * The type of the Ambari setting that stores the quick links profile
+   */
+  public static final String SETTING_TYPE_AMBARI_SERVER = "ambari-server";
+
   @JsonProperty("filters")
   private List<Filter> filters;
 

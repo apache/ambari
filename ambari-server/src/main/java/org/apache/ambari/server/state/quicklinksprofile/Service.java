@@ -24,6 +24,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Class to represent component-level filter definitions
  */
@@ -40,6 +42,7 @@ public class Service {
   private List<Filter> filters;
 
   static Service create(String name, List<Filter> filters, List<Component> components) {
+    Preconditions.checkNotNull(name, "Service name must not be null");
     Service service = new Service();
     service.setName(name);
     service.setFilters(filters);

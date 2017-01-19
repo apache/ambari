@@ -55,13 +55,17 @@ public class QuickLinksProfileParser {
   public QuickLinksProfile parse(URL url) throws IOException {
     return parse(Resources.toByteArray(url));
   }
+
+  public String encode(QuickLinksProfile profile) throws IOException {
+    return mapper.writeValueAsString(profile);
+  }
 }
 
 /**
  * Custom deserializer is needed to handle filter polymorphism.
  */
 class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
-  private static final String PARSE_ERROR_MESSAGE =
+  static final String PARSE_ERROR_MESSAGE =
       "A filter is not allowed to declare both link_name and link_attribute at the same time.";
 
   QuickLinksFilterDeserializer() {
