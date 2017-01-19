@@ -300,6 +300,17 @@ class StackAdvisor(object):
 
 
 class DefaultStackAdvisor(StackAdvisor):
+
+  CLUSTER_CREATE_OPERATION = "ClusterCreate"
+  ADD_SERVICE_OPERATION = "AddService"
+  EDIT_CONFIG_OPERATION = "EditConfig"
+  RECOMMEND_ATTRIBUTE_OPERATION = "RecommendAttribute"
+  OPERATION = "operation"
+  OPERATION_DETAILS = "operation_details"
+
+  ADVISOR_CONTEXT = "advisor_context"
+  CALL_TYPE = "call_type"
+
   """
   Default stack advisor implementation.
   

@@ -526,7 +526,7 @@ class TestHDP206StackAdvisor(TestCase):
                   }
                 },
                 "changed-configurations": [],
-                "context": {'call_type': 'validateConfigurations'}
+                "advisor_context": {'call_type': 'validateConfigurations'}
     }
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
     self.assertEquals(result, expected)
@@ -571,7 +571,7 @@ class TestHDP206StackAdvisor(TestCase):
                   }
                 },
                 "changed-configurations": [],
-                "context": {'call_type': 'validateConfigurations'}
+                "advisor_context": {'call_type': 'validateConfigurations'}
     }
 
     expected_2048 = {
@@ -636,7 +636,7 @@ class TestHDP206StackAdvisor(TestCase):
                   }
                 },
                 "changed-configurations": [],
-                "context": {'call_type': 'recommendConfigurationDependencies'}
+                "advisor_context": {'call_type': 'recommendConfigurationDependencies'}
     }
 
     expected_2048 = {
@@ -701,7 +701,7 @@ class TestHDP206StackAdvisor(TestCase):
                   }
                 },
                 "changed-configurations": [],
-                "context": {'call_type': 'recommendConfigurationDependencies'}
+                "advisor_context": {'call_type': 'recommendConfigurationDependencies'}
     }
 
     expected_4096 = {

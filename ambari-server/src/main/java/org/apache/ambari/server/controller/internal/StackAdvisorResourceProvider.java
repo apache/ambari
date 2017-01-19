@@ -58,6 +58,9 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private static final String SERVICES_PROPERTY = "services";
 
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed_configurations";
+  private static final String OPERATION_PROPERTY = "operation";
+  private static final String OPERATION_DETAILS_PROPERTY = "operation_details";
+
 
   private static final String BLUEPRINT_HOST_GROUPS_PROPERTY = "recommendations/blueprint/host_groups";
   private static final String BINDING_HOST_GROUPS_PROPERTY = "recommendations/blueprint_cluster_binding/host_groups";
@@ -75,6 +78,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private static final String CONFIG_GROUPS_HOSTS_PROPERTY = "hosts";
 
   protected static StackAdvisorHelper saHelper;
+  protected static final String USER_CONTEXT_OPERATION_PROPERTY = "user_context/operation";
+  protected static final String USER_CONTEXT_OPERATION_DETAILS_PROPERTY = "user_context/operation_details";
 
   @Inject
   public static void init(StackAdvisorHelper instance) {
@@ -109,6 +114,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
       Map<String, Set<String>> componentHostsMap = calculateComponentHostsMap(hgComponentsMap,
           hgHostsMap);
       Map<String, Map<String, Map<String, String>>> configurations = calculateConfigurations(request);
+      Map<String, String> userContext = readUserContext(request);
 
       List<ChangedConfigInfo> changedConfigurations =
         requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES ?
@@ -122,9 +128,10 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         withComponentHostsMap(componentHostsMap).
         withConfigurations(configurations).
         withConfigGroups(configGroups).
-        withChangedConfigurations(changedConfigurations).build();
+        withChangedConfigurations(changedConfigurations).
+        withUserContext(userContext).build();
     } catch (Exception e) {
-      LOG.warn("Error occured during preparation of stack advisor request", e);
+      LOG.warn("Error occurred during preparation of stack advisor request", e);
       Response response = Response.status(Status.BAD_REQUEST)
           .entity(String.format("Request body is not correct, error: %s", e.getMessage())).build();
       // TODO: Hosts and services must not be empty
@@ -238,6 +245,26 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     }
 
     return configGroups;
+  }
+
+  /**
+   * Parse the user contex for the call. Typical structure
+   * { "operation" : "createCluster" }
+   * { "operation" : "addService", "services" : "Atlas,Slider" }
+   * @param request
+   * @return
+   */
+  protected Map<String, String> readUserContext(Request request) {
+    HashMap<String, String> userContext = new HashMap<>();
+    if (null != getRequestProperty(request, USER_CONTEXT_OPERATION_PROPERTY)) {
+      userContext.put(OPERATION_PROPERTY,
+                      (String) getRequestProperty(request, USER_CONTEXT_OPERATION_PROPERTY));
+    }
+    if (null != getRequestProperty(request, USER_CONTEXT_OPERATION_DETAILS_PROPERTY)) {
+      userContext.put(OPERATION_DETAILS_PROPERTY,
+                      (String) getRequestProperty(request, USER_CONTEXT_OPERATION_DETAILS_PROPERTY));
+    }
+    return userContext;
   }
 
   protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";

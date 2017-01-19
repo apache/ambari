@@ -1044,9 +1044,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     suggestedMinContainerRam = 1024   # new smaller value for YARN min container
     callContext = getCallContext(services)
 
+    operation = getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
+    if operation:
+      Logger.info("user operation context : " + str(operation))
+
     if services:  # its never None but some unit tests pass it as None
-      if None != getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
-              'recommendConfigurations' != callContext:
+      # If min container value is changed (user is changing it)
+      # if its a validation call - just used what ever value is set
+      # If its not a cluster create or add yarn service (TBD)
+      if (getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
+              'recommendConfigurations' != callContext) and operation != DefaultStackAdvisor.CLUSTER_CREATE_OPERATION:
         '''yarn.scheduler.minimum-allocation-mb has changed - then pick this value up'''
         if "yarn-site" in services["configurations"] and \
                 "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
@@ -1964,9 +1971,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 def getCallContext(services):
   if services:
-    if 'context' in services:
-      Logger.info("context : " + str (services['context']))
-      return services['context']['call_type']
+    if DefaultStackAdvisor.ADVISOR_CONTEXT in services:
+      Logger.info("call type context : " + str(services[DefaultStackAdvisor.ADVISOR_CONTEXT]))
+      return services[DefaultStackAdvisor.ADVISOR_CONTEXT][DefaultStackAdvisor.CALL_TYPE]
   return ""
 
 
@@ -1977,6 +1984,14 @@ def getOldValue(self, services, configType, propertyName):
       for changedConfig in changedConfigs:
         if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
           return changedConfig["old_value"]
+  return None
+
+def getUserOperationContext(services, contextName):
+  if services:
+    if 'user-context' in services.keys():
+      userContext = services["user-context"]
+      if contextName in userContext:
+        return userContext[contextName]
   return None
 
 # Validation helper methods
