@@ -743,6 +743,12 @@ public class AmbariCustomCommandExecutionHelper {
       // We don't need package/repo information to perform service check
     }
 
+    // Try to apply overridden service check timeout value if available
+    Long overriddenTimeout = configs.getAgentServiceCheckTaskTimeout();
+    if (!overriddenTimeout.equals(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue())) {
+      commandTimeout = String.valueOf(overriddenTimeout);
+    }
+
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
     commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());

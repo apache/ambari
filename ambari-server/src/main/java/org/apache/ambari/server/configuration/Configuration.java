@@ -1892,6 +1892,13 @@ public class Configuration {
       "agent.task.timeout", 900L);
 
   /**
+   * The time, in {@link TimeUnit#SECONDS}, before agent service check commands are killed.
+   */
+  @Markdown(description = "The time, in seconds, before agent service check commands are killed.")
+  public static final ConfigurationProperty<Long> AGENT_SERVICE_CHECK_TASK_TIMEOUT = new ConfigurationProperty<>(
+      "agent.service.check.task.timeout", 0L);
+
+  /**
    * The time, in {@link TimeUnit#SECONDS}, before package installation commands are killed.
    */
   @Markdown(description = "The time, in seconds, before package installation commands are killed.")
@@ -4284,6 +4291,21 @@ public class Configuration {
         key, value, defaultValue));
 
       return String.valueOf(defaultValue);
+    }
+  }
+
+  /**
+   * @return overridden service check task timeout in seconds. This value
+   *         is used at python (agent) code.
+   */
+  public Long getAgentServiceCheckTaskTimeout() {
+    String value = getProperty(AGENT_SERVICE_CHECK_TASK_TIMEOUT);
+    if (StringUtils.isNumeric(value)) {
+      return Long.parseLong(value);
+    } else {
+      LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
+        AGENT_SERVICE_CHECK_TASK_TIMEOUT.getKey(), value, AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue());
+      return AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue();
     }
   }
 

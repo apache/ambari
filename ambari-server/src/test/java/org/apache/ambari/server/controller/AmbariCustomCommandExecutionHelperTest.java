@@ -94,6 +94,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   private Clusters clusters;
   private AmbariManagementController ambariManagementController;
   private Capture<Request> requestCapture = EasyMock.newCapture();
+  private static final String OVERRIDDEN_SERVICE_CHECK_TIMEOUT_VALUE = "550";
 
 
   @Before
@@ -103,6 +104,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
       @Override
       protected void configure() {
+        getProperties().setProperty(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getKey(),
+          OVERRIDDEN_SERVICE_CHECK_TIMEOUT_VALUE);
         super.configure();
         bind(ActionManager.class).toInstance(actionManager);
       }
@@ -390,6 +393,49 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
 
     Assert.fail("Expected an exception since there are no hosts which can run the Flume service check");
+  }
+
+  @Test
+  public void testServiceCheckWithOverriddenTimeout() throws Exception {
+    AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+
+    Cluster c1 = clusters.getCluster("c1");
+    Service s = c1.getService("ZOOKEEPER");
+    ServiceComponent sc = s.getServiceComponent("ZOOKEEPER_CLIENT");
+    Assert.assertTrue(sc.getServiceComponentHosts().keySet().size() > 1);
+
+    // There are multiple hosts with ZK Client.
+    List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
+      add(new RequestResourceFilter("ZOOKEEPER", "ZOOKEEPER_CLIENT", Arrays.asList(new String[]{"c1-c6401"})));
+    }};
+    ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
+    Stage stage = EasyMock.niceMock(Stage.class);
+    ExecutionCommandWrapper execCmdWrapper = EasyMock.niceMock(ExecutionCommandWrapper.class);
+    ExecutionCommand execCmd = EasyMock.niceMock(ExecutionCommand.class);
+    Capture<Map<String,String>> timeOutCapture = EasyMock.newCapture();
+
+    EasyMock.expect(stage.getClusterName()).andReturn("c1");
+
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6401"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
+    execCmd.setCommandParams(EasyMock.capture(timeOutCapture));
+    EasyMock.expectLastCall();
+
+    HashSet<String> localComponents = new HashSet<>();
+    EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
+    EasyMock.replay(stage, execCmdWrapper, execCmd);
+
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
+    Map<String, String> configMap = timeOutCapture.getValues().get(0);
+    for (Map.Entry<String, String> config : configMap.entrySet()) {
+      if (config.getKey().equals(ExecutionCommand.KeyNames.COMMAND_TIMEOUT)) {
+        Assert.assertEquals("Service check timeout should be equal to populated in configs",
+          OVERRIDDEN_SERVICE_CHECK_TIMEOUT_VALUE,
+          config.getValue());
+        return;
+      }
+    }
+    Assert.fail("Expected \"command_timeout\" config not found in execution command configs");
   }
 
   /**
