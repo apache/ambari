@@ -51,7 +51,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>extjs</name>

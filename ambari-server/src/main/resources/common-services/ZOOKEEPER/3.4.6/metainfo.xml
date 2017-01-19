@@ -35,7 +35,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>zookeeper-${stack_version}</name>
