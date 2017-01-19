@@ -19,7 +19,6 @@
 
 var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_history_view');
-var testHelpers = require('test/helpers');
 
 describe('App.MainAdminStackUpgradeHistoryView', function () {
   var view;
@@ -64,31 +63,31 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
     it('All should return all records', function(){
       this.mock.returns(records);
       var filteredResults = view.filterBy('ALL')
-      expect(filteredResults.length == 4).to.be.true
+      expect(filteredResults.length).to.be.equal(4);
     });
 
     it('Filter aborted upgrades', function(){
       this.mock.returns(records);
       var filteredResults = view.filterBy('UPGRADE_ABORTED')
-      expect(filteredResults.length == 1).to.be.true
+      expect(filteredResults.length).to.be.equal(1);
     });
 
     it('Filter completed upgrades', function(){
       this.mock.returns(records);
       var filteredResults = view.filterBy('UPGRADE_COMPLETED')
-      expect(filteredResults.length == 1).to.be.true
+      expect(filteredResults.length).to.be.equal(1);
     });
 
     it('Filter aborted downgrades', function(){
       this.mock.returns(records);
       var filteredResults = view.filterBy('DOWNGRADE_ABORTED')
-      expect(filteredResults.length == 1).to.be.true
+      expect(filteredResults.length).to.be.equal(1);
     });
 
     it('Filter completed downgrades', function(){
       this.mock.returns(records);
       var filteredResults = view.filterBy('DOWNGRADE_COMPLETED')
-      expect(filteredResults.length == 1).to.be.true
+      expect(filteredResults.length).to.be.equal(1);
     });
   });
 
@@ -170,4 +169,69 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       expect(view.get('controller').loadStackUpgradeHistoryToModel.calledOnce).to.be.true;
     });
   });
+
+  describe('#processForDisplay', function () {
+
+    var timestamp = 1484698121448;
+
+    var content = [
+      Em.Object.create({
+        direction: 'UPGRADE',
+        upgradeType: 'ROLLING',
+        startTime: timestamp,
+        endTime: timestamp + 3600 * 1000
+      }),
+      Em.Object.create({
+        direction: 'DOWNGRADE',
+        upgradeType: 'HOST_ORDERED',
+        startTime: timestamp,
+        endTime: timestamp + 3600 * 1000 * 2
+      })
+    ];
+
+    var expected = [
+      Em.Object.create({
+        directionLabel: Em.I18n.t('common.upgrade'),
+        upgradeTypeLabel: Em.I18n.t('common.rolling'),
+        duration: '1.00 hours'
+      }),
+      Em.Object.create({
+        directionLabel: Em.I18n.t('common.downgrade'),
+        upgradeTypeLabel: Em.I18n.t('common.hostOrdered'),
+        duration: '2.00 hours'
+      })
+    ];
+
+    var fields = ['directionLabel', 'upgradeTypeLabel', 'duration'];
+
+    var processedContent;
+
+    beforeEach(function () {
+      sinon.stub(App, 'dateTimeWithTimeZone', function (ts) {
+        return ts - 3600 * 1000 * 2
+      });
+      processedContent = view.processForDisplay(content);
+    });
+
+    afterEach(function () {
+      App.dateTimeWithTimeZone.restore();
+    });
+
+    expected.forEach(function (item, index) {
+
+      describe('test #' + (index + 1), function () {
+
+        fields.forEach(function (field) {
+          it('#' + field, function () {
+            expect(processedContent[index].get(field)).to.be.equal(item.get(field));
+          });
+        });
+
+      });
+
+    });
+
+
+  });
+
 });
