@@ -60,7 +60,10 @@
     </tbody>
 
   </table>
-  <div class="alert alert-info col-sm-12" ng-show="!remoteClusters.length">
+  <div ng-if="isLoading" class="spinner-container">
+    <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
+  </div>
+  <div class="alert alert-info col-sm-12" ng-show="!remoteClusters.length && !isLoading">
     {{'common.alerts.noRemoteClusterDisplay' | translate}}
   </div>
   <div class="col-sm-12 table-bar">

@@ -22,6 +22,7 @@ angular.module('ambariAdminConsole')
   var $t = $translate.instant;
 
   $scope.clusterName = $routeParams.clusterName;
+  $scope.isLoading = false;
 
   $scope.constants = {
     groups: $t('common.clusters').toLowerCase()
@@ -64,12 +65,14 @@ angular.module('ambariAdminConsole')
   };
 
   function loadRemoteClusters(){
+      $scope.isLoading = true;
       RemoteCluster.all({
         currentPage: $scope.currentPage,
         groupsPerPage: $scope.groupsPerPage,
         searchString: $scope.currentNameFilter,
         service: $scope.currentTypeFilter
       }).then(function(remoteclusters) {
+        $scope.isLoading = false;
 
         $scope.totalGroups = remoteclusters.itemTotal;
         $scope.tableInfo.total = remoteclusters.itemTotal;

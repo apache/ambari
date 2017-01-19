@@ -21,6 +21,8 @@ angular.module('ambariAdminConsole')
 .controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $location, $translate) {
   var deferredList = [],
     $t = $translate.instant;
+  $scope.isLoadingViews = false;
+  $scope.isLoadingUrls = false;
   $scope.constants = {
     unable: $t('views.alerts.unableToCreate'),
     views: $t('common.views').toLowerCase()
@@ -55,7 +57,9 @@ angular.module('ambariAdminConsole')
   }
 
   function loadViews(){
+    $scope.isLoadingViews = true;
     View.all().then(function(views) {
+      $scope.isLoadingViews = false;
       $scope.views = views;
       $scope.getFilteredViews();
       angular.forEach(views, function(view) {
@@ -211,6 +215,7 @@ angular.module('ambariAdminConsole')
 
 
   $scope.listViewUrls = function(){
+    $scope.isLoadingUrls = true;
     View.allUrls({
       currentPage: $scope.currentPage,
       urlsPerPage: $scope.urlsPerPage,
@@ -218,6 +223,7 @@ angular.module('ambariAdminConsole')
       suffixSearch: $scope.urlSuffixfilter,
       instanceType: $scope.instanceTypeFilter?$scope.instanceTypeFilter.value:'*'
     }).then(function(urls) {
+      $scope.isLoadingUrls = false;
       $scope.urls = urls;
       $scope.ViewNameFilterOptions = urls.items.map(function(url){
         return url.ViewUrlInfo.view_instance_common_name;

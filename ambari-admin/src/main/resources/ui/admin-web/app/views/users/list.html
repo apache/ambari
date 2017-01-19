@@ -75,7 +75,10 @@
       </tr>
     </tbody>
   </table>
-  <div class="alert alert-info col-sm-12" ng-show="!users.length">
+  <div ng-if="isLoading" class="spinner-container">
+    <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
+  </div>
+  <div class="alert alert-info col-sm-12" ng-show="!users.length && !isLoading">
     {{'common.alerts.nothingToDisplay' | translate: '{term: constants.users}'}}
   </div>
   <div class="col-sm-12 table-bar">

@@ -1888,3 +1888,8 @@ legend {
 .glyphicon-question-sign {
   color: #0572ff;
 }
+
+.spinner-container {
+  text-align: center;
+  padding-bottom: 10px;
+}

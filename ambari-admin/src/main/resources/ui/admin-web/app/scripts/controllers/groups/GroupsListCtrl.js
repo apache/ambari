@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
   $scope.constants = {
     groups: $t('common.groups').toLowerCase()
   };
+  $scope.isLoading = false;
   $scope.groups = [];
 
   $scope.groupsPerPage = 10;
@@ -49,12 +50,14 @@ angular.module('ambariAdminConsole')
   };
 
   function loadGroups(){
+    $scope.isLoading = true;
     Group.all({
       currentPage: $scope.currentPage, 
       groupsPerPage: $scope.groupsPerPage, 
       searchString: $scope.currentNameFilter,
       group_type: $scope.currentTypeFilter.value
     }).then(function(groups) {
+      $scope.isLoading = false;
       $scope.totalGroups = groups.itemTotal;
       $scope.groups = groups.map(Group.makeGroup);
       $scope.tableInfo.total = groups.itemTotal;

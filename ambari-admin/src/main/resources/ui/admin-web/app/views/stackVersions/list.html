@@ -105,7 +105,10 @@
     </tr>
     </tbody>
   </table>
-  <div class="alert alert-info col-sm-12" ng-show="!repos.length">
+  <div ng-if="isLoading" class="spinner-container">
+    <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
+  </div>
+  <div class="alert alert-info col-sm-12" ng-show="!repos.length && !isLoading">
     {{'common.alerts.nothingToDisplay' | translate: '{term: getConstant("version")}'}}
   </div>
   <div class="col-sm-12 table-bar">
