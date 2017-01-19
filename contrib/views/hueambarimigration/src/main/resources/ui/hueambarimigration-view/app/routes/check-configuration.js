@@ -64,7 +64,7 @@ export default Ember.Route.extend({
         control.set('progresBar', progresBar);
         control.set('huehttpurlTestresult', "Hue Http URl test Failed");
         if (error.status !== 200) {
-          checkFailedMessage = "Service Hue Database check failed";
+          checkFailedMessage = "Hue Http URL test Failed";
           var errors;
           errors = checkFailedMessage;
           errors += (error.message) ? (': <i>' + error.message + '</i><br>') : '<br>';
@@ -97,7 +97,7 @@ export default Ember.Route.extend({
         var checkFailedMessage;
         control.set('progresBar', progresBar);
         if (error.status !== 200) {
-          checkFailedMessage = "Service Hue Database check failed";
+          checkFailedMessage = "Hue Web HDFS URL test Failed";
           var errors;
           errors = checkFailedMessage;
           errors += (error.message) ? (': <i>' + error.message + '</i><br>') : '<br>';
@@ -130,7 +130,7 @@ export default Ember.Route.extend({
         var checkFailedMessage;
         control.set('progresBar', progresBar);
         if (error.status !== 200) {
-          checkFailedMessage = "Service Hue Database check failed";
+          checkFailedMessage = "Ambari Web HDFS URL test Failed";
           var errors;
           errors = checkFailedMessage;
           errors += (error.message) ? (': <i>' + error.message + '</i><br>') : '<br>';
@@ -159,8 +159,6 @@ export default Ember.Route.extend({
         }
       },
       function(error) {
-        control.set('huedatabasesTest', "Success");
-        control.set('huedatabasesTest', null);
         progresBar = progresBar + 20;
         var checkFailedMessage;
         control.set('progresBar', progresBar);
@@ -198,7 +196,7 @@ export default Ember.Route.extend({
         var checkFailedMessage;
         control.set('progresBar', progresBar);
         if (error.status !== 200) {
-          checkFailedMessage = "Service Hue Database check failed";
+          checkFailedMessage = "Ambari Database Connection Failed";
           var errors;
           errors = checkFailedMessage;
           errors += (error.message) ? (': <i>' + error.message + '</i><br>') : '<br>';
