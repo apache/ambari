@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -249,6 +250,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     */
     @Override
     public void configure(Binder binder) {
+      binder.bind(UpgradeContextFactory.class).toInstance(EasyMock.createNiceMock(UpgradeContextFactory.class));
       binder.bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
       binder.bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
       binder.bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));

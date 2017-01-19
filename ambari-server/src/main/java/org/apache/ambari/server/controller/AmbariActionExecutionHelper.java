@@ -270,7 +270,7 @@ public class AmbariActionExecutionHelper {
     }
 
     // List of host to select from
-    Set<String> candidateHosts = new HashSet<String>();
+    Set<String> candidateHosts = new HashSet<>();
 
     final String serviceName = actionContext.getExpectedServiceName();
     final String componentName = actionContext.getExpectedComponentName();
@@ -394,7 +394,7 @@ public class AmbariActionExecutionHelper {
           clusterName, serviceName, actionContext.isRetryAllowed(),
           actionContext.isFailureAutoSkipped());
 
-      Map<String, String> commandParams = new TreeMap<String, String>();
+      Map<String, String> commandParams = new TreeMap<>();
 
       int taskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));
 
@@ -435,14 +435,12 @@ public class AmbariActionExecutionHelper {
       // when building complex orchestration ahead of time (such as when
       // performing ugprades), fetching configuration tags can take a very long
       // time - if it's not needed, then don't do it
-      Map<String, Map<String, String>> configTags = new TreeMap<String, Map<String, String>>();
+      Map<String, Map<String, String>> configTags = new TreeMap<>();
       if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
         configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
       execCmd.setConfigurationTags(configTags);
-
-      execCmd.setCommandParams(commandParams);
 
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);
@@ -463,7 +461,7 @@ public class AmbariActionExecutionHelper {
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
-        roleParams = new TreeMap<String, String>();
+        roleParams = new TreeMap<>();
       }
 
       roleParams.putAll(actionParameters);
@@ -477,9 +475,10 @@ public class AmbariActionExecutionHelper {
       // if there is a stack upgrade which is currently suspended then pass that
       // information down with the command as some components may need to know
       if (null != cluster && cluster.isUpgradeSuspended()) {
-        roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
+        cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
 
+      execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
 
       if (null != cluster) {
