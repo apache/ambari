@@ -746,4 +746,18 @@ public interface Cluster {
    * @return the role command order instance (not {@code null}).
    */
   RoleCommandOrder getRoleCommandOrder();
+
+  /**
+   * Adds upgrade specific command and role parameters to the command maps if
+   * there is a suspended upgrade. If there is not a suspended upgrade, then the
+   * maps are not modified.
+   * <p/>
+   *
+   * @param commandParams
+   *          the command parameter map to supplement (not {@code null}).
+   * @param roleParams
+   *          the role parameter map to supplement (not {@code null}).
+   */
+  void addSuspendedUpgradeParameters(Map<String, String> commandParams,
+      Map<String, String> roleParams);
 }

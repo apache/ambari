@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +30,11 @@ import java.util.Set;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -36,13 +43,41 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Used to hold various helper objects required to process an upgrade pack.
  */
 public class UpgradeContext {
+
+  public static final String COMMAND_PARAM_VERSION = VERSION;
+  public static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
+  public static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
+  public static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
+  public static final String COMMAND_PARAM_REQUEST_ID = "request_id";
+
+  public static final String COMMAND_PARAM_UPGRADE_TYPE = "upgrade_type";
+  public static final String COMMAND_PARAM_TASKS = "tasks";
+  public static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
+  public static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
+
+  /**
+   * The original "current" stack of the cluster before the upgrade started.
+   * This is the same regardless of whether the current direction is
+   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
+   */
+  public static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
+
+  /**
+   * The target upgrade stack before the upgrade started. This is the same
+   * regardless of whether the current direction is {@link Direction#UPGRADE} or
+   * {@link Direction#DOWNGRADE}.
+   */
+  public static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
 
   /**
    * The cluster that the upgrade is for.
@@ -72,7 +107,7 @@ public class UpgradeContext {
   /**
    * The version being upgrade to or downgraded to.
    */
-  private String m_version;
+  private final String m_version;
 
   /**
    * The original "current" stack of the cluster before the upgrade started.
@@ -98,9 +133,9 @@ public class UpgradeContext {
 
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
-  private List<ServiceComponentHost> m_unhealthy = new ArrayList<ServiceComponentHost>();
-  private Map<String, String> m_serviceNames = new HashMap<String, String>();
-  private Map<String, String> m_componentNames = new HashMap<String, String>();
+  private List<ServiceComponentHost> m_unhealthy = new ArrayList<>();
+  private Map<String, String> m_serviceNames = new HashMap<>();
+  private Map<String, String> m_componentNames = new HashMap<>();
   private String m_downgradeFromVersion = null;
 
   /**
@@ -141,6 +176,17 @@ public class UpgradeContext {
   private RoleGraphFactory m_roleGraphFactory;
 
   /**
+   * Used to lookup the reposotory version given a stack name and version.
+   */
+  final private RepositoryVersionDAO m_repoVersionDAO;
+
+  /**
+   * Used for serializing the upgrade type.
+   */
+  @Inject
+  private Gson m_gson;
+
+  /**
    * Constructor.
    *
    * @param cluster
@@ -151,14 +197,57 @@ public class UpgradeContext {
    *          the direction for the upgrade
    * @param upgradeRequestMap
    *          the original map of paramters used to create the upgrade
+   *
+   * @param repoVersionDAO
+   *          the repository version DAO.
    */
-  @Inject
+  @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeType type,
-      @Assisted Direction direction, @Assisted Map<String, Object> upgradeRequestMap) {
+      @Assisted Direction direction, @Assisted String version,
+      @Assisted Map<String, Object> upgradeRequestMap,
+      RepositoryVersionDAO repoVersionDAO) {
+    m_repoVersionDAO = repoVersionDAO;
     m_cluster = cluster;
     m_type = type;
     m_direction = direction;
+    m_version = version;
     m_upgradeRequestMap = upgradeRequestMap;
+
+    // sets the original/target stacks - requires direction and cluster
+    setSourceAndTargetStacks();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param cluster
+   *          the cluster that the upgrade is for
+   * @param upgradeEntity
+   *          the upgrade entity
+   * @param repoVersionDAO
+   *          the repository version DAO.
+   */
+  @AssistedInject
+  public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeEntity upgradeEntity,
+      RepositoryVersionDAO repoVersionDAO) {
+    m_repoVersionDAO = repoVersionDAO;
+
+    m_cluster = cluster;
+    m_type = upgradeEntity.getUpgradeType();
+    m_direction = upgradeEntity.getDirection();
+
+    m_version = upgradeEntity.getToVersion();
+
+    // sets the original/target stacks - requires direction and cluster
+    setSourceAndTargetStacks();
+
+    if (m_direction == Direction.DOWNGRADE) {
+      m_downgradeFromVersion = upgradeEntity.getFromVersion();
+    }
+
+    // since this constructor is initialized from an entity, then this map is
+    // not present
+    m_upgradeRequestMap = Collections.emptyMap();
   }
 
   /**
@@ -166,24 +255,38 @@ public class UpgradeContext {
    * stack ID based on the already-set {@link UpgradeType} and
    * {@link Direction}.
    *
-   * @param sourceStackId
-   *          the original "current" stack of the cluster before the upgrade
-   *          started. This is the same regardless of whether the current
-   *          direction is {@link Direction#UPGRADE} or
-   *          {@link Direction#DOWNGRADE} (not {@code null}).
-   * @param targetStackId
-   *          The target upgrade stack before the upgrade started. This is the
-   *          same regardless of whether the current direction is
-   *          {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE} (not
-   *          {@code null}).
-   *
    * @see #getEffectiveStackId()
    */
-  public void setSourceAndTargetStacks(StackId sourceStackId, StackId targetStackId) {
+  private void setSourceAndTargetStacks() {
+    StackId sourceStackId = null;
+
+    // taret stack will not always be what it is today - tagging as experimental
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+    StackId targetStackId = null;
+
+    switch (m_direction) {
+      case UPGRADE:
+        sourceStackId = m_cluster.getCurrentStackVersion();
+
+        RepositoryVersionEntity targetRepositoryVersion = m_repoVersionDAO.findByStackNameAndVersion(
+            sourceStackId.getStackName(), m_version);
+
+        // !!! TODO check the repo_version for patch-ness and restrict the
+        // context to those services that require it. Consult the version
+        // definition and add the service names to supportedServices
+        targetStackId = targetRepositoryVersion.getStackId();
+        break;
+      case DOWNGRADE:
+        sourceStackId = m_cluster.getCurrentStackVersion();
+        targetStackId = m_cluster.getDesiredStackVersion();
+        break;
+    }
+
     m_originalStackId = sourceStackId;
 
     switch (m_type) {
       case ROLLING:
+      case HOST_ORDERED:
         m_effectiveStackId = targetStackId;
         break;
       case NON_ROLLING:
@@ -241,14 +344,6 @@ public class UpgradeContext {
    */
   public String getVersion() {
     return m_version;
-  }
-
-  /**
-   * @param version
-   *          the target version to upgrade to
-   */
-  public void setVersion(String version) {
-    m_version = version;
   }
 
   /**
@@ -520,5 +615,49 @@ public class UpgradeContext {
    */
   public HostRoleCommandFactory getHostRoleCommandFactory() {
     return m_hrcFactory;
+  }
+
+  /**
+   * Gets a map initialized with parameters required for upgrades to work. The
+   * following properties are already set:
+   * <ul>
+   * <li>{@link #COMMAND_PARAM_CLUSTER_NAME}
+   * <li>{@link #COMMAND_PARAM_VERSION}
+   * <li>{@link #COMMAND_PARAM_DIRECTION}
+   * <li>{@link #COMMAND_PARAM_ORIGINAL_STACK}
+   * <li>{@link #COMMAND_PARAM_TARGET_STACK}
+   * <li>{@link #COMMAND_DOWNGRADE_FROM_VERSION}
+   * <li>{@link #COMMAND_PARAM_UPGRADE_TYPE}
+   * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
+   * order to have the commands contain the correct configurations. Otherwise,
+   * they will contain the configurations that were available at the time the
+   * command was created. For upgrades, this is problematic since the commands
+   * are all created ahead of time, but the upgrade may change configs as part
+   * of the upgrade pack.</li>
+   * <ul>
+   *
+   * @return the initialized parameter map.
+   */
+  public Map<String, String> getInitializedCommandParameters() {
+    Map<String, String> parameters = new HashMap<>();
+
+    parameters.put(COMMAND_PARAM_CLUSTER_NAME, m_cluster.getClusterName());
+    parameters.put(COMMAND_PARAM_VERSION, getVersion());
+    parameters.put(COMMAND_PARAM_DIRECTION, getDirection().name().toLowerCase());
+    parameters.put(COMMAND_PARAM_ORIGINAL_STACK, getOriginalStackId().getStackId());
+    parameters.put(COMMAND_PARAM_TARGET_STACK, getTargetStackId().getStackId());
+    parameters.put(COMMAND_DOWNGRADE_FROM_VERSION, getDowngradeFromVersion());
+
+    if (null != getType()) {
+      // use the serialized attributes of the enum to convert it to a string,
+      // but first we must convert it into an element so that we don't get a
+      // quoted string - using toString() actually returns a quoted stirng which
+      // is bad
+      JsonElement json = m_gson.toJsonTree(getType());
+      parameters.put(COMMAND_PARAM_UPGRADE_TYPE, json.getAsString());
+    }
+
+    parameters.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "true");
+    return parameters;
   }
 }

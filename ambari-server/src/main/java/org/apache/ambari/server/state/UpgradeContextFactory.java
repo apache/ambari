@@ -19,6 +19,7 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
@@ -32,16 +33,32 @@ public interface UpgradeContextFactory {
    * Creates an {@link UpgradeContext} which is injected with dependencies.
    *
    * @param cluster
-   *          the cluster that the upgrade is for
+   *          the cluster that the upgrade is for (not {@code null}).
    * @param type
-   *          the type of upgrade, either rolling or non_rolling
+   *          the type of upgrade, either rolling or non_rolling (not
+   *          {@code null}).
    * @param direction
    *          the direction for the upgrade
+   * @param version
+   *          the version being upgrade-to or downgraded-from (not
+   *          {@code null}).
    * @param upgradeRequestMap
-   *          the original map of paramters used to create the upgrade
+   *          the original map of parameters used to create the upgrade (not
+   *          {@code null}).
    *
    * @return an initialized {@link UpgradeContext}.
    */
   UpgradeContext create(Cluster cluster, UpgradeType type, Direction direction,
-      Map<String, Object> upgradeRequestMap);
+      String version, Map<String, Object> upgradeRequestMap);
+
+  /**
+   * Creates an {@link UpgradeContext} which is injected with dependencies.
+   *
+   * @param cluster
+   *          the cluster that the upgrade is for (not {@code null}).
+   * @param upgradeEntity
+   *          the upgrade entity (not {@code null}).
+   * @return an initialized {@link UpgradeContext}.
+   */
+  UpgradeContext create(Cluster cluster, UpgradeEntity upgradeEntity);
 }

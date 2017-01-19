@@ -52,6 +52,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -136,6 +137,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -314,6 +317,15 @@ public class ClusterImpl implements Cluster {
    */
   @Inject
   private RoleCommandOrderProvider roleCommandOrderProvider;
+
+  /**
+   * Used to create instances of {@link UpgradeContext} with injected
+   * dependencies. The {@link UpgradeContext} is used to populate the command
+   * with upgrade information on the command/role maps if the upgrade is
+   * suspended.
+   */
+  @Inject
+  private UpgradeContextFactory upgradeContextFactory;
 
   /**
    * A simple cache for looking up {@code cluster-env} properties for a cluster.
@@ -511,7 +523,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
     throws AmbariException {
-    Map<Long, ConfigGroup> configGroups = new HashMap<Long, ConfigGroup>();
+    Map<Long, ConfigGroup> configGroups = new HashMap<>();
 
     for (Entry<Long, ConfigGroup> groupEntry : clusterConfigGroups.entrySet()) {
       Long id = groupEntry.getKey();
@@ -788,15 +800,15 @@ public class ClusterImpl implements Cluster {
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname) {
     List<ServiceComponentHost> serviceComponentHosts = serviceComponentHostsByHost.get(hostname);
     if (null != serviceComponentHosts) {
-      return new CopyOnWriteArrayList<ServiceComponentHost>(serviceComponentHosts);
+      return new CopyOnWriteArrayList<>(serviceComponentHosts);
     }
 
-    return new ArrayList<ServiceComponentHost>();
+    return new ArrayList<>();
   }
 
   @Override
   public Map<String, Set<String>> getServiceComponentHostMap(Set<String> hostNames, Set<String> serviceNames) {
-    Map<String, Set<String>> componentHostMap = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> componentHostMap = new HashMap<>();
 
     Collection<Host> hosts = getHosts();
 
@@ -816,7 +828,7 @@ public class ClusterImpl implements Cluster {
                 Set<String> componentHosts = componentHostMap.get(component);
 
                 if (componentHosts == null) {
-                  componentHosts = new HashSet<String>();
+                  componentHosts = new HashSet<>();
                   componentHostMap.put(component, componentHosts);
                 }
 
@@ -833,7 +845,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public List<ServiceComponentHost> getServiceComponentHosts(String serviceName, String componentName) {
-    ArrayList<ServiceComponentHost> foundItems = new ArrayList<ServiceComponentHost>();
+    ArrayList<ServiceComponentHost> foundItems = new ArrayList<>();
 
     ConcurrentMap<String, ConcurrentMap<String, ServiceComponentHost>> foundByService = serviceComponentHosts.get(
         serviceName);
@@ -884,7 +896,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<String, Service> getServices() {
-    return new HashMap<String, Service>(services);
+    return new HashMap<>(services);
   }
 
   @Override
@@ -1138,7 +1150,7 @@ public class ClusterImpl implements Cluster {
       StackEntity repoVersionStackEntity = currentClusterVersion.getRepositoryVersion().getStack();
       StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
-      Map<String, HostVersionEntity> existingHostToHostVersionEntity = new HashMap<String, HostVersionEntity>();
+      Map<String, HostVersionEntity> existingHostToHostVersionEntity = new HashMap<>();
       List<HostVersionEntity> existingHostVersionEntities = hostVersionDAO.findByClusterStackAndVersion(
         getClusterName(), repoVersionStackId,
         currentClusterVersion.getRepositoryVersion().getVersion());
@@ -1206,8 +1218,8 @@ public class ClusterImpl implements Cluster {
     }
 
     Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
-    Set<String> existingHostsWithClusterStackAndVersion = new HashSet<String>();
-    HashMap<String, HostVersionEntity> existingHostStackVersions = new HashMap<String, HostVersionEntity>();
+    Set<String> existingHostsWithClusterStackAndVersion = new HashSet<>();
+    HashMap<String, HostVersionEntity> existingHostStackVersions = new HashMap<>();
 
     clusterGlobalLock.writeLock().lock();
     try {
@@ -1417,15 +1429,15 @@ public class ClusterImpl implements Cluster {
       }
 
       // Part 2, check for transitions.
-      Set<String> hostsWithoutHostVersion = new HashSet<String>();
-      Map<RepositoryVersionState, Set<String>> stateToHosts = new HashMap<RepositoryVersionState, Set<String>>();
+      Set<String> hostsWithoutHostVersion = new HashSet<>();
+      Map<RepositoryVersionState, Set<String>> stateToHosts = new HashMap<>();
 
       //hack until better hostversion integration into in-memory cluster structure
 
       List<HostVersionEntity> hostVersionEntities =
               hostVersionDAO.findByClusterStackAndVersion(getClusterName(), stackId, version);
 
-      Set<String> hostsWithState = new HashSet<String>();
+      Set<String> hostsWithState = new HashSet<>();
       Set<String> hostsInMaintenanceState = new HashSet<>();
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
         String hostname = hostVersionEntity.getHostEntity().getHostName();
@@ -1440,7 +1452,7 @@ public class ClusterImpl implements Cluster {
         if (stateToHosts.containsKey(hostState)) {
           stateToHosts.get(hostState).add(hostname);
         } else {
-          Set<String> hostsInState = new HashSet<String>();
+          Set<String> hostsInState = new HashSet<>();
           hostsInState.add(hostname);
           stateToHosts.put(hostState, hostsInState);
         }
@@ -1655,7 +1667,7 @@ public class ClusterImpl implements Cluster {
   @Transactional
   public void transitionClusterVersion(StackId stackId, String version,
       RepositoryVersionState state) throws AmbariException {
-    Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
+    Set<RepositoryVersionState> allowedStates = new HashSet<>();
     clusterGlobalLock.writeLock().lock();
     try {
       ClusterEntity clusterEntity = getClusterEntity();
@@ -1924,7 +1936,7 @@ public class ClusterImpl implements Cluster {
   public Collection<Config> getAllConfigs() {
     clusterGlobalLock.readLock().lock();
     try {
-      List<Config> list = new ArrayList<Config>();
+      List<Config> list = new ArrayList<>();
       for (Entry<String, ConcurrentMap<String, Config>> entry : allConfigs.entrySet()) {
         for (Config config : entry.getValue().values()) {
           list.add(config);
@@ -2211,14 +2223,14 @@ public class ClusterImpl implements Cluster {
       }
 
       // TODO AMBARI-10679, need efficient caching from hostId to hostName...
-      Map<Long, String> hostIdToName = new HashMap<Long, String>();
+      Map<Long, String> hostIdToName = new HashMap<>();
 
       if (!map.isEmpty()) {
         Map<String, List<HostConfigMapping>> hostMappingsByType =
           hostConfigMappingDAO.findSelectedHostsByTypes(clusterId, types);
 
         for (Entry<String, Set<DesiredConfig>> entry : map.entrySet()) {
-          List<DesiredConfig.HostOverride> hostOverrides = new ArrayList<DesiredConfig.HostOverride>();
+          List<DesiredConfig.HostOverride> hostOverrides = new ArrayList<>();
           for (HostConfigMapping mappingEntity : hostMappingsByType.get(entry.getKey())) {
 
             if (!hostIdToName.containsKey(mappingEntity.getHostId())) {
@@ -2258,7 +2270,7 @@ public class ClusterImpl implements Cluster {
       if (configGroup != null) {
         serviceConfigEntity.setGroupId(configGroup.getId());
         Collection<Config> configs = configGroup.getConfigurations().values();
-        List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>(
+        List<ClusterConfigEntity> configEntities = new ArrayList<>(
             configs.size());
         for (Config config : configs) {
           configEntities.add(
@@ -2284,7 +2296,7 @@ public class ClusterImpl implements Cluster {
 
       serviceConfigDAO.create(serviceConfigEntity);
       if (configGroup != null) {
-        serviceConfigEntity.setHostIds(new ArrayList<Long>(configGroup.getHosts().keySet()));
+        serviceConfigEntity.setHostIds(new ArrayList<>(configGroup.getHosts().keySet()));
         serviceConfigEntity = serviceConfigDAO.merge(serviceConfigEntity);
       }
     } finally {
@@ -2360,7 +2372,7 @@ public class ClusterImpl implements Cluster {
   public Map<String, Collection<ServiceConfigVersionResponse>> getActiveServiceConfigVersions() {
     clusterGlobalLock.readLock().lock();
     try {
-      Map<String, Collection<ServiceConfigVersionResponse>> map = new HashMap<String, Collection<ServiceConfigVersionResponse>>();
+      Map<String, Collection<ServiceConfigVersionResponse>> map = new HashMap<>();
 
       Set<ServiceConfigVersionResponse> responses = getActiveServiceConfigVersionSet();
       for (ServiceConfigVersionResponse response : responses) {
@@ -2380,7 +2392,7 @@ public class ClusterImpl implements Cluster {
   public List<ServiceConfigVersionResponse> getServiceConfigVersions() {
     clusterGlobalLock.readLock().lock();
     try {
-      List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
+      List<ServiceConfigVersionResponse> serviceConfigVersionResponses = new ArrayList<>();
 
       List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigs(getClusterId());
 
@@ -2436,7 +2448,7 @@ public class ClusterImpl implements Cluster {
   }
 
   private Set<ServiceConfigVersionResponse> getActiveServiceConfigVersionSet() {
-    Set<ServiceConfigVersionResponse> responses = new HashSet<ServiceConfigVersionResponse>();
+    Set<ServiceConfigVersionResponse> responses = new HashSet<>();
     List<ServiceConfigEntity> activeServiceConfigVersions = getActiveServiceConfigVersionEntities();
 
     for (ServiceConfigEntity lastServiceConfig : activeServiceConfigVersions) {
@@ -2449,7 +2461,7 @@ public class ClusterImpl implements Cluster {
 
   private List<ServiceConfigEntity> getActiveServiceConfigVersionEntities() {
 
-    List<ServiceConfigEntity> activeServiceConfigVersions = new ArrayList<ServiceConfigEntity>();
+    List<ServiceConfigEntity> activeServiceConfigVersions = new ArrayList<>();
     //for services
     activeServiceConfigVersions.addAll(serviceConfigDAO.getLastServiceConfigs(getClusterId()));
     //for config groups
@@ -2465,8 +2477,8 @@ public class ClusterImpl implements Cluster {
   public List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName) {
     clusterGlobalLock.readLock().lock();
     try {
-      List<ServiceConfigEntity> activeServiceConfigVersionEntities = new ArrayList<ServiceConfigEntity>();
-      List<ServiceConfigVersionResponse> activeServiceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
+      List<ServiceConfigEntity> activeServiceConfigVersionEntities = new ArrayList<>();
+      List<ServiceConfigVersionResponse> activeServiceConfigVersionResponses = new ArrayList<>();
       activeServiceConfigVersionEntities.addAll(serviceConfigDAO.getLastServiceConfigsForService(getClusterId(), serviceName));
       for (ServiceConfigEntity serviceConfigEntity : activeServiceConfigVersionEntities) {
         ServiceConfigVersionResponse serviceConfigVersionResponse = getServiceConfigVersionResponseWithConfig(convertToServiceConfigVersionResponse(serviceConfigEntity), serviceConfigEntity);
@@ -2560,14 +2572,14 @@ public class ClusterImpl implements Cluster {
       Long configGroupId = serviceConfigEntity.getGroupId();
       ConfigGroup configGroup = clusterConfigGroups.get(configGroupId);
       if (configGroup != null) {
-        Map<String, Config> groupDesiredConfigs = new HashMap<String, Config>();
+        Map<String, Config> groupDesiredConfigs = new HashMap<>();
         for (ClusterConfigEntity entity : serviceConfigEntity.getClusterConfigEntities()) {
           Config config = allConfigs.get(entity.getType()).get(entity.getTag());
           groupDesiredConfigs.put(config.getType(), config);
         }
         configGroup.setConfigurations(groupDesiredConfigs);
 
-        Map<Long, Host> groupDesiredHosts = new HashMap<Long, Host>();
+        Map<Long, Host> groupDesiredHosts = new HashMap<>();
         if (serviceConfigEntity.getHostIds() != null) {
           for (Long hostId : serviceConfigEntity.getHostIds()) {
             Host host = clusters.getHostById(hostId);
@@ -2716,7 +2728,7 @@ public class ClusterImpl implements Cluster {
     Set<HostConfigMapping> mappingEntities =
         hostConfigMappingDAO.findSelectedByHosts(hostIds);
 
-    Map<Long, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<Long, Map<String, DesiredConfig>>();
+    Map<Long, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<>();
 
     for (Long hostId : hostIds) {
       desiredConfigsByHost.put(hostId, new HashMap<String, DesiredConfig>());
@@ -2782,7 +2794,7 @@ public class ClusterImpl implements Cluster {
   @Transactional
   protected Map<ServiceComponentHostEvent, String> processServiceComponentHostEventsInSingleTransaction(
       ListMultimap<String, ServiceComponentHostEvent> eventMap) {
-    Map<ServiceComponentHostEvent, String> failedEvents = new HashMap<ServiceComponentHostEvent, String>();
+    Map<ServiceComponentHostEvent, String> failedEvents = new HashMap<>();
 
     for (Entry<String, ServiceComponentHostEvent> entry : eventMap.entries()) {
       String serviceName = entry.getKey();
@@ -3016,7 +3028,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public void addSessionAttributes(Map<String, Object> attributes) {
     if (attributes != null && !attributes.isEmpty()) {
-      Map<String, Object>  sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
+      Map<String, Object>  sessionAttributes = new HashMap<>(getSessionAttributes());
       sessionAttributes.putAll(attributes);
       setSessionAttributes(attributes);
     }
@@ -3025,7 +3037,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public void setSessionAttribute(String key, Object value){
     if (key != null && !key.isEmpty()) {
-      Map<String, Object> sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
+      Map<String, Object> sessionAttributes = new HashMap<>(getSessionAttributes());
       sessionAttributes.put(key, value);
       setSessionAttributes(sessionAttributes);
     }
@@ -3034,7 +3046,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public void removeSessionAttribute(String key) {
     if (key != null && !key.isEmpty()) {
-      Map<String, Object> sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
+      Map<String, Object> sessionAttributes = new HashMap<>(getSessionAttributes());
       sessionAttributes.remove(key);
       setSessionAttributes(sessionAttributes);
     }
@@ -3174,7 +3186,7 @@ public class ClusterImpl implements Cluster {
     List<ClusterConfigMappingEntity> clusterConfigMappingsForStack = clusterDAO.getClusterConfigMappingsByStack(
         clusterId, stackId);
 
-    Map<String, ClusterConfigMappingEntity> latestMappingsByType = new HashMap<String, ClusterConfigMappingEntity>();
+    Map<String, ClusterConfigMappingEntity> latestMappingsByType = new HashMap<>();
     for (ClusterConfigMappingEntity mapping : clusterConfigMappingsForStack) {
       String type = mapping.getType();
 
@@ -3228,7 +3240,7 @@ public class ClusterImpl implements Cluster {
     // this will keep track of cluster config mappings that need removal
     // since there is no relationship between configs and their mappings, we
     // have to do it manually
-    List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<ClusterConfigEntity>(50);
+    List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<>(50);
     Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
 
     List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
@@ -3489,5 +3501,29 @@ public class ClusterImpl implements Cluster {
   @Override
   public RoleCommandOrder getRoleCommandOrder() {
     return roleCommandOrderProvider.getRoleCommandOrder(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addSuspendedUpgradeParameters(Map<String, String> commandParams,
+      Map<String, String> roleParams) {
+
+    // build some command params from the upgrade, including direction,
+    // type, version, etc
+    UpgradeEntity suspendedUpgrade = getUpgradeInProgress();
+    if( null == suspendedUpgrade ){
+      LOG.warn(
+          "An upgrade is not currently suspended. The command and role parameters will not be modified.");
+
+      return;
+    }
+
+    UpgradeContext upgradeContext = upgradeContextFactory.create(this, suspendedUpgrade);
+    commandParams.putAll(upgradeContext.getInitializedCommandParameters());
+
+    // suspended goes in role params
+    roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
   }
 }

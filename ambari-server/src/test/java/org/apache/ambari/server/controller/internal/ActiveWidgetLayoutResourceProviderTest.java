@@ -67,6 +67,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -232,9 +233,9 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     ResourceProvider provider = getResourceProvider(injector, managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, requestedUsername);
@@ -275,18 +276,18 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
 
-    Set<Map<String, String>> widgetLayouts = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> widgetLayouts = new HashSet<>();
     HashMap<String, String> layout;
 
-    layout = new HashMap<String, String>();
+    layout = new HashMap<>();
     layout.put("id", "1");
     widgetLayouts.add(layout);
 
-    layout = new HashMap<String, String>();
+    layout = new HashMap<>();
     layout.put("id", "2");
     widgetLayouts.add(layout);
 
-    HashMap<String, Object> requestProps = new HashMap<String, Object>();
+    HashMap<String, Object> requestProps = new HashMap<>();
     requestProps.put(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT, widgetLayouts);
     requestProps.put(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, requestedUsername);
 
@@ -376,6 +377,9 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+        install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));
@@ -386,7 +390,6 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
         bind(org.apache.ambari.server.actionmanager.RequestFactory.class).toInstance(createNiceMock(org.apache.ambari.server.actionmanager.RequestFactory.class));
         bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
         bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-        install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));

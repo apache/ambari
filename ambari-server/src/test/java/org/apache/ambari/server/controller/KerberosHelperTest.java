@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
@@ -220,6 +221,9 @@ public class KerberosHelperTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
+        install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+        install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ClusterFactory.class).toInstance(createNiceMock(ClusterFactory.class));
@@ -233,7 +237,6 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
         bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
-        install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
         bind(ClusterController.class).toInstance(clusterController);
@@ -1582,7 +1585,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       hostInvalid = null;
     }
 
-    Map<String, ServiceComponentHost> map = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> map = new HashMap<>();
     final ServiceComponent serviceComponentKerberosClient = createNiceMock(ServiceComponent.class);
     map.put("host1", schKerberosClient);
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
@@ -1921,7 +1924,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         identityDescriptor2
     )).times(1);
     expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).times(1);
-    expect(serviceDescriptor1.getAuthToLocalProperties()).andReturn(new HashSet<String>(Arrays.asList(
+    expect(serviceDescriptor1.getAuthToLocalProperties()).andReturn(new HashSet<>(Arrays.asList(
         "default",
         "explicit_multiple_lines|new_lines",
         "explicit_multiple_lines_escaped|new_lines_escaped",
@@ -1940,7 +1943,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     Map<String, Set<String>> installedServices = Collections.singletonMap("SERVICE1", Collections.singleton("COMPONENT1"));
 
-    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
 
     replayAll();
 
@@ -2190,7 +2193,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         Collections.<KerberosIdentityDescriptor>emptyList());
     expect(serviceDescriptor3.getComponent("COMPONENT3A")).andReturn(componentDescriptor3a).times(4);
 
-    final Map<String, String> kerberosDescriptorProperties = new HashMap<String, String>();
+    final Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("realm", "${kerberos-env/realm}");
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
@@ -2217,7 +2220,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     RecommendationResponse.BlueprintConfigurations service1SiteRecommendation = createNiceMock(RecommendationResponse.BlueprintConfigurations.class);
     expect(service1SiteRecommendation.getProperties()).andReturn(Collections.singletonMap("component1b.property", "replaced value"));
 
-    Map<String, RecommendationResponse.BlueprintConfigurations> configurations = new HashMap<String, RecommendationResponse.BlueprintConfigurations>();
+    Map<String, RecommendationResponse.BlueprintConfigurations> configurations = new HashMap<>();
     configurations.put("core-site", coreSiteRecommendation);
     configurations.put("new-type", newTypeRecommendation);
     configurations.put("type1", type1Recommendation);
@@ -2284,16 +2287,16 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
         });
 
-    Map<String, Service> services = new HashMap<String, Service>();
+    Map<String, Service> services = new HashMap<>();
     services.put("SERVICE1", service1);
     services.put("SERVICE2", service2);
     services.put("SERVICE3", service3);
 
-    Map<String, Set<String>> serviceComponentHostMap = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> serviceComponentHostMap = new HashMap<>();
     serviceComponentHostMap.put("COMPONENT1A", Collections.singleton("hostA"));
-    serviceComponentHostMap.put("COMPONENT1B", new HashSet<String>(Arrays.asList("hostB", "hostC")));
+    serviceComponentHostMap.put("COMPONENT1B", new HashSet<>(Arrays.asList("hostB", "hostC")));
     serviceComponentHostMap.put("COMPONENT2A", Collections.singleton("hostA"));
-    serviceComponentHostMap.put("COMPONENT2B", new HashSet<String>(Arrays.asList("hostB", "hostC")));
+    serviceComponentHostMap.put("COMPONENT2B", new HashSet<>(Arrays.asList("hostB", "hostC")));
     serviceComponentHostMap.put("COMPONEN3A", Collections.singleton("hostA"));
 
     final Cluster cluster = createMockCluster("c1", hosts, SecurityType.KERBEROS, krb5ConfConfig, kerberosEnvConfig);
@@ -2334,20 +2337,20 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    HashMap<String, Set<String>> installedServices1 = new HashMap<String, Set<String>>();
-    installedServices1.put("SERVICE1", new HashSet<String>(Arrays.asList("COMPONENT1A", "COMPONENT1B")));
-    installedServices1.put("SERVICE2", new HashSet<String>(Arrays.asList("COMPONENT2A", "COMPONENT2B")));
+    HashMap<String, Set<String>> installedServices1 = new HashMap<>();
+    installedServices1.put("SERVICE1", new HashSet<>(Arrays.asList("COMPONENT1A", "COMPONENT1B")));
+    installedServices1.put("SERVICE2", new HashSet<>(Arrays.asList("COMPONENT2A", "COMPONENT2B")));
     installedServices1.put("SERVICE3", Collections.singleton("COMPONENT3A"));
 
     Map<String, Map<String, String>> updates1 = kerberosHelper.getServiceConfigurationUpdates(
         cluster, existingConfigurations, installedServices1, null, null, true, true);
 
-    HashMap<String, Set<String>> installedServices2 = new HashMap<String, Set<String>>();
-    installedServices2.put("SERVICE1", new HashSet<String>(Arrays.asList("COMPONENT1A", "COMPONENT1B")));
+    HashMap<String, Set<String>> installedServices2 = new HashMap<>();
+    installedServices2.put("SERVICE1", new HashSet<>(Arrays.asList("COMPONENT1A", "COMPONENT1B")));
     installedServices2.put("SERVICE3", Collections.singleton("COMPONENT3A"));
 
-    Map<String, Collection<String>> serviceFilter2 = new HashMap<String, Collection<String>>();
-    serviceFilter2.put("SERVICE1", new HashSet<String>(Arrays.asList("COMPONENT1A", "COMPONENT1B")));
+    Map<String, Collection<String>> serviceFilter2 = new HashMap<>();
+    serviceFilter2.put("SERVICE1", new HashSet<>(Arrays.asList("COMPONENT1A", "COMPONENT1B")));
     serviceFilter2.put("SERVICE3", Collections.singleton("COMPONENT3A"));
 
     Map<String, Map<String, String>> updates2 = kerberosHelper.getServiceConfigurationUpdates(
@@ -2494,9 +2497,9 @@ public class KerberosHelperTest extends EasyMockSupport {
       ambariServerPrincipalNameExpected = String.format("ambari-server-%s@%s", clusterName, realm);
     }
 
-    Map<String, String> propertiesKrb5Conf = new HashMap<String, String>();
+    Map<String, String> propertiesKrb5Conf = new HashMap<>();
 
-    Map<String, String> propertiesKerberosEnv = new HashMap<String, String>();
+    Map<String, String> propertiesKerberosEnv = new HashMap<>();
     propertiesKerberosEnv.put("realm", realm);
     propertiesKerberosEnv.put("kdc_type", "mit-kdc");
     propertiesKerberosEnv.put("password_length", "20");
@@ -2517,35 +2520,35 @@ public class KerberosHelperTest extends EasyMockSupport {
     Host host2 = createMockHost("host3");
     Host host3 = createMockHost("host2");
 
-    Map<String, ServiceComponentHost> service1Component1HostMap = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> service1Component1HostMap = new HashMap<>();
     service1Component1HostMap.put("host1", createMockServiceComponentHost(State.INSTALLED));
 
-    Map<String, ServiceComponentHost> service2Component1HostMap = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> service2Component1HostMap = new HashMap<>();
     service2Component1HostMap.put("host2", createMockServiceComponentHost(State.INSTALLED));
 
-    Map<String, ServiceComponent> service1ComponentMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> service1ComponentMap = new HashMap<>();
     service1ComponentMap.put("COMPONENT11", createMockComponent("COMPONENT11", true, service1Component1HostMap));
 
-    Map<String, ServiceComponent> service2ComponentMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> service2ComponentMap = new HashMap<>();
     service2ComponentMap.put("COMPONENT21", createMockComponent("COMPONENT21", true, service2Component1HostMap));
 
     Service service1 = createMockService("SERVICE1", service1ComponentMap);
     Service service2 = createMockService("SERVICE2", service2ComponentMap);
 
-    Map<String, Service> servicesMap = new HashMap<String, Service>();
+    Map<String, Service> servicesMap = new HashMap<>();
     servicesMap.put("SERVICE1", service1);
     servicesMap.put("SERVICE2", service2);
 
     Cluster cluster = createMockCluster(clusterName, Arrays.asList(host1, host2, host3), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
     expect(cluster.getServices()).andReturn(servicesMap).times(1);
 
-    Map<String, String> kerberosDescriptorProperties = new HashMap<String, String>();
+    Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
     kerberosDescriptorProperties.put("keytab_dir", "/etc/security/keytabs");
     kerberosDescriptorProperties.put("realm", "${kerberos-env/realm}");
     kerberosDescriptorProperties.put("principal_suffix", "-${cluster_name|toLower()}");
 
-    ArrayList<KerberosIdentityDescriptor> service1Component1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    ArrayList<KerberosIdentityDescriptor> service1Component1Identities = new ArrayList<>();
     service1Component1Identities.add(createMockIdentityDescriptor(
         "s1c1_1.user",
         createMockPrincipalDescriptor("s1c1_1@${realm}", KerberosPrincipalType.USER, "s1c1", null),
@@ -2557,10 +2560,10 @@ public class KerberosHelperTest extends EasyMockSupport {
         createMockKeytabDescriptor("s1c1_1.service.keytab", null)
     ));
 
-    HashMap<String, KerberosComponentDescriptor> service1ComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+    HashMap<String, KerberosComponentDescriptor> service1ComponentDescriptorMap = new HashMap<>();
     service1ComponentDescriptorMap.put("COMPONENT11", createMockComponentDescriptor("COMPONENT11", service1Component1Identities, null));
 
-    List<KerberosIdentityDescriptor> service1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    List<KerberosIdentityDescriptor> service1Identities = new ArrayList<>();
     service1Identities.add(createMockIdentityDescriptor(
         "s1_1.user",
         createMockPrincipalDescriptor("s1_1@${realm}", KerberosPrincipalType.USER, "s1", null),
@@ -2574,7 +2577,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosServiceDescriptor service1KerberosDescriptor = createMockServiceDescriptor("SERVICE1", service1ComponentDescriptorMap, service1Identities);
 
-    ArrayList<KerberosIdentityDescriptor> service2Component1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    ArrayList<KerberosIdentityDescriptor> service2Component1Identities = new ArrayList<>();
     service2Component1Identities.add(createMockIdentityDescriptor(
         "s2_1.user",
         createMockPrincipalDescriptor("s2_1@${realm}", KerberosPrincipalType.USER, "s2", null),
@@ -2586,7 +2589,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         createMockKeytabDescriptor("s2c1_1.service.keytab", null)
     ));
 
-    HashMap<String, KerberosComponentDescriptor> service2ComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+    HashMap<String, KerberosComponentDescriptor> service2ComponentDescriptorMap = new HashMap<>();
     service2ComponentDescriptorMap.put("COMPONENT21", createMockComponentDescriptor("COMPONENT21", service2Component1Identities, null));
 
     KerberosServiceDescriptor service2KerberosDescriptor = createMockServiceDescriptor("SERVICE2", service2ComponentDescriptorMap, null);
@@ -2599,7 +2602,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     if (createAmbariIdentities) {
       String spnegoPrincipalNameExpected = String.format("HTTP/%s@%s", ambariServerHostname, realm);
 
-      ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<KerberosIdentityDescriptor>();
+      ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<>();
       ambarServerComponent1Identities.add(createMockIdentityDescriptor(
           KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME,
           createMockPrincipalDescriptor(ambariServerPrincipalName, ambariServerPrincipalType, "ambari", null),
@@ -2612,7 +2615,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
       KerberosComponentDescriptor ambariServerComponentKerberosDescriptor = createMockComponentDescriptor("AMBARI_SERVER", ambarServerComponent1Identities, null);
 
-      HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+      HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<>();
       ambariServerComponentDescriptorMap.put("AMBARI_SERVER", ambariServerComponentKerberosDescriptor);
 
       KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor("AMBARI", ambariServerComponentDescriptorMap, null);
@@ -2636,7 +2639,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     setupKerberosDescriptor(kerberosDescriptor, 1);
 
-    Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> existingConfigurations = new HashMap<>();
     existingConfigurations.put("kerberos-env", propertiesKerberosEnv);
 
     Set<String> services = new HashSet<String>() {
@@ -2716,9 +2719,9 @@ public class KerberosHelperTest extends EasyMockSupport {
    */
   @Test
   public void testServiceWithoutComponents() throws Exception {
-    Map<String, String> propertiesKrb5Conf = new HashMap<String, String>();
+    Map<String, String> propertiesKrb5Conf = new HashMap<>();
 
-    Map<String, String> propertiesKerberosEnv = new HashMap<String, String>();
+    Map<String, String> propertiesKerberosEnv = new HashMap<>();
     propertiesKerberosEnv.put("realm", "EXAMPLE.COM");
     propertiesKerberosEnv.put("kdc_type", "mit-kdc");
     propertiesKerberosEnv.put("create_ambari_principal", "false");
@@ -2732,29 +2735,29 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Create a Service (SERVICE1) with one Component (COMPONENT11)
     Host host1 = createMockHost("host1");
 
-    Map<String, ServiceComponentHost> service1Component1HostMap = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> service1Component1HostMap = new HashMap<>();
     service1Component1HostMap.put("host1", createMockServiceComponentHost(State.INSTALLED));
 
-    Map<String, ServiceComponent> service1ComponentMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> service1ComponentMap = new HashMap<>();
     service1ComponentMap.put("COMPONENT11", createMockComponent("COMPONENT11", true, service1Component1HostMap));
 
     Service service1 = createMockService("SERVICE1", service1ComponentMap);
 
-    Map<String, Service> servicesMap = new HashMap<String, Service>();
+    Map<String, Service> servicesMap = new HashMap<>();
     servicesMap.put("SERVICE1", service1);
 
     Cluster cluster = createMockCluster("c1", Arrays.asList(host1), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
     expect(cluster.getServices()).andReturn(servicesMap).times(1);
 
-    Map<String, String> kerberosDescriptorProperties = new HashMap<String, String>();
+    Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
     kerberosDescriptorProperties.put("keytab_dir", "/etc/security/keytabs");
     kerberosDescriptorProperties.put("realm", "${kerberos-env/realm}");
 
     // Notice that this map is empty, hence it has 0 Components in the kerberosDescriptor.
-    HashMap<String, KerberosComponentDescriptor> service1ComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+    HashMap<String, KerberosComponentDescriptor> service1ComponentDescriptorMap = new HashMap<>();
 
-    List<KerberosIdentityDescriptor> service1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    List<KerberosIdentityDescriptor> service1Identities = new ArrayList<>();
     KerberosServiceDescriptor service1KerberosDescriptor = createMockServiceDescriptor("SERVICE1", service1ComponentDescriptorMap, service1Identities);
 
     KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
@@ -2763,7 +2766,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     setupKerberosDescriptor(kerberosDescriptor, 1);
 
-    Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> existingConfigurations = new HashMap<>();
     existingConfigurations.put("kerberos-env", propertiesKerberosEnv);
 
     Set<String> services = new HashSet<String>() {
@@ -3085,7 +3088,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    Map<String, Collection<String>> serviceComponentFilter = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> serviceComponentFilter = new HashMap<>();
     Collection<String> identityFilter = Arrays.asList("identity1a", "identity3");
 
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
@@ -3272,7 +3275,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    Map<String, Collection<String>> serviceComponentFilter = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> serviceComponentFilter = new HashMap<>();
     Collection<String> identityFilter = Arrays.asList("identity1a", "identity3");
 
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
@@ -3291,7 +3294,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
     boolean managingIdentities = !Boolean.FALSE.equals(manageIdentities);
 
-    final Map<String, String> kerberosEnvProperties = new HashMap<String, String>();
+    final Map<String, String> kerberosEnvProperties = new HashMap<>();
     kerberosEnvProperties.put("kdc_type", "mit-kdc");
     kerberosEnvProperties.put("realm", "FOOBAR.COM");
     kerberosEnvProperties.put("manage_identities", "FOOBAR.COM");
@@ -3303,12 +3306,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Config kerberosEnvConfig = createMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).anyTimes();
 
-    final Map<String, String> krb5ConfProperties = new HashMap<String, String>();
+    final Map<String, String> krb5ConfProperties = new HashMap<>();
 
     final Config krb5ConfConfig = createMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
-    final Map<String, Object> attributeMap = new HashMap<String, Object>();
+    final Map<String, Object> attributeMap = new HashMap<>();
 
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
@@ -3445,7 +3448,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    Map<String, String> commandParamsStage = new HashMap<String, String>();
+    Map<String, String> commandParamsStage = new HashMap<>();
     CredentialStoreService credentialStoreService = injector.getInstance(CredentialStoreService.class);
     credentialStoreService.setCredential(cluster.getClusterName(), KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
         PrincipalKeyCredential, CredentialStoreType.TEMPORARY);
@@ -3601,7 +3604,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    Map<String, String> commandParamsStage = new HashMap<String, String>();
+    Map<String, String> commandParamsStage = new HashMap<>();
     commandParamsStage.put("principal_name", "${cluster-env/smokeuser}@${realm}");
     commandParamsStage.put("keytab_file", "${keytab_dir}/kerberos.service_check.keytab");
 
@@ -3906,7 +3909,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           createMockPrincipalDescriptor(ambariServerPrincipalName, ambariServerPrincipalType, "ambari", null),
           createMockKeytabDescriptor(ambariServerKeytabFilePath, null));
 
-      ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<KerberosIdentityDescriptor>();
+      ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<>();
       ambarServerComponent1Identities.add(ambariKerberosIdentity);
 
       ambarServerComponent1Identities.add(createMockIdentityDescriptor(
@@ -3914,7 +3917,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           createMockPrincipalDescriptor("HTTP/_HOST@${realm}", KerberosPrincipalType.SERVICE, null, null),
           createMockKeytabDescriptor("spnego.service.keytab", null)));
 
-      HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+      HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<>();
       KerberosComponentDescriptor componentDescrptor = createMockComponentDescriptor("AMBARI_SERVER", ambarServerComponent1Identities, null);
       ambariServerComponentDescriptorMap.put("AMBARI_SERVER", componentDescrptor);
 
