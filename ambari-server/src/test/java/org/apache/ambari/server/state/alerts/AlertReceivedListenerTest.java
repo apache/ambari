@@ -899,7 +899,7 @@ public class AlertReceivedListenerTest {
     List<Thread> threads = new ArrayList<>();
     final AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
 
-    // spawn a bunch of concurrent threasd which will try to create teh same
+    // spawn a bunch of concurrent threads which will try to create teh same
     // alert over and over
     for (int i = 0; i < 10; i++) {
       Thread thread = new Thread() {

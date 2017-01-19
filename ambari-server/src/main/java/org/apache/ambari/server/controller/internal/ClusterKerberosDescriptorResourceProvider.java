@@ -234,8 +234,8 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
   }
 
   /**
-   * Get the optional list of services indicated as <code>additional_servides</code> which are to be
-   * used in addtion to currently installed services when evaluating <code>when</code> clauses.
+   * Get the optional list of services indicated as <code>additional_services</code> which are to be
+   * used in addition to currently installed services when evaluating <code>when</code> clauses.
    *
    * @param requestInfoProperties a map a request info properties
    * @return a collection of service names, or <code>null</code> if not specified

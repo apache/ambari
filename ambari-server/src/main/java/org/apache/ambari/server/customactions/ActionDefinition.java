@@ -50,7 +50,7 @@ public class ActionDefinition {
    * @param description     Short description of the action
    * @param targetType      Selection criteria for target hosts
    * @param defaultTimeout  The timeout value for this action when executed
-   * @param permissions     A set of permissions to use when verifiying authorization to execute this action
+   * @param permissions     A set of permissions to use when verifying authorization to execute this action
    */
   public ActionDefinition(String actionName, ActionType actionType, String inputs,
                           String targetService, String targetComponent, String description,

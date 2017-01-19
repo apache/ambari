@@ -10905,7 +10905,7 @@ public class AmbariManagementControllerTest {
     assertEquals(v3.getProperties().get("test.password"), "brandNewPassword");
     assertFalse(v4.getProperties().containsKey("test.password"));
 
-    // check if we have masked secret in responce
+    // check if we have masked secret in response
     final ConfigurationRequest configRequest = new ConfigurationRequest(cluster1, "hdfs-site", null, null, null);
     configRequest.setIncludeProperties(true);
     Set<ConfigurationResponse> requestedConfigs = controller.getConfigurations(new HashSet<ConfigurationRequest>() {{

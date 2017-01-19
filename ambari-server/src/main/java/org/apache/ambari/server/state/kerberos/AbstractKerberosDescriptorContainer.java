@@ -728,7 +728,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     Map<String, Object> map = super.toMap();
 
     if (identities != null) {
-      // Use a TreeMap to force the identities definitions to be ordered by name, alphebetically.
+      // Use a TreeMap to force the identities definitions to be ordered by name, alphabetically.
       // This helps with readability and comparisons.
       Map<String, Map<String, Object>> list = new TreeMap<String, Map<String, Object>>();
       for (KerberosIdentityDescriptor identity : identities) {
@@ -738,7 +738,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     }
 
     if (configurations != null) {
-      // Use a TreeMap to force the configurations to be ordered by configuration type, alphebetically.
+      // Use a TreeMap to force the configurations to be ordered by configuration type, alphabetically.
       // This helps with readability and comparisons.
       Map<String, Map<String, Object>> list = new TreeMap<String, Map<String, Object>>();
       for (KerberosConfigurationDescriptor configuration : configurations.values()) {

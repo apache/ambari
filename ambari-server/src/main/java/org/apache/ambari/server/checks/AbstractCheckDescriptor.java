@@ -287,7 +287,7 @@ public abstract class AbstractCheckDescriptor {
   /**
    * Gets whether this upgrade check is required for the specified
    * {@link UpgradeType}. Checks which are marked as required do not need to be
-   * explicitely declared in the {@link UpgradePack} to be run.
+   * explicitly declared in the {@link UpgradePack} to be run.
    *
    * @return {@code true} if it is required, {@code false} otherwise.
    */

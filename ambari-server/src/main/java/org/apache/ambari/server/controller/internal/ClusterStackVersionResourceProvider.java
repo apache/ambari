@@ -132,7 +132,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    * The default success factor that will be used when determining if a stage's
    * failure should cause other stages to abort. Consider a scenario with 1000
    * hosts, broken up into 10 stages. Each stage would have 100 hosts. If the
-   * success factor was 100%, then any failure in stage 1 woudl cause all 9
+   * success factor was 100%, then any failure in stage 1 would cause all 9
    * other stages to abort. If set to 90%, then 10 hosts would need to fail for
    * the other stages to abort. This is necessary to prevent the abortion of
    * stages based on 1 or 2 errant hosts failing in a large cluster's stack
@@ -904,13 +904,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   /**
    * Gets all of the hosts in a cluster which are not in "maintenance mode" and
    * are considered to be healthy. In the case of stack distribution, a host
-   * must be explicitely marked as being in maintenance mode for it to be
+   * must be explicitly marked as being in maintenance mode for it to be
    * considered as unhealthy.
    *
    * @param cluster
    *          the cluster (not {@code null}).
    * @return the list of hosts that are not in maintenance mode and are
-   *         elidgable to have a stack distributed to them.
+   *         eligible to have a stack distributed to them.
    */
   private List<Host> getHostsForStackDistribution(Cluster cluster) {
     Collection<Host> hosts = cluster.getHosts();

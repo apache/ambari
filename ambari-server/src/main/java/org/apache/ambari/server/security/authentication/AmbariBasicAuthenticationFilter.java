@@ -66,7 +66,7 @@ public class AmbariBasicAuthenticationFilter extends BasicAuthenticationFilter i
   /**
    * Constructor.
    *
-   * @param authenticationManager the Spring authencation manager
+   * @param authenticationManager the Spring authentication manager
    * @param ambariEntryPoint      the Spring entry point
    * @param auditLogger           an Audit Logger
    * @param permissionHelper      a permission helper

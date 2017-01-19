@@ -97,7 +97,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   private static Provider<Clusters> clusters;
 
   /**
-   * The property ids for an alert defintion resource.
+   * The property ids for an alert definition resource.
    */
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
 

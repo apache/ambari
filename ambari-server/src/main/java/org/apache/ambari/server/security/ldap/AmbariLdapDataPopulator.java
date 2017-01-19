@@ -549,7 +549,7 @@ public class AmbariLdapDataPopulator {
       try {
         Pattern p = Pattern.compile(pattern);
         Matcher m = p.matcher(memberAttributeValue);
-        LOG.debug("Apply replace pattern '{}' on '{}' membership attribbute value.", memberAttributeValue, pattern);
+        LOG.debug("Apply replace pattern '{}' on '{}' membership attribute value.", memberAttributeValue, pattern);
         if (m.matches()) {
           memberAttributeValue = m.replaceAll(MEMBER_ATTRIBUTE_REPLACE_STRING);
           LOG.debug("Membership attribute value after replace pattern applied: '{}'", memberAttributeValue);

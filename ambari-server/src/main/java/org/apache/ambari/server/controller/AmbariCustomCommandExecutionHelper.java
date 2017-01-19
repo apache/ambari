@@ -1227,7 +1227,7 @@ public class AmbariCustomCommandExecutionHelper {
    * @param cluster            the cluster for the command
    * @param stackId            the effective stack id to use.
    *
-   * @return a wrapper of the imporant JSON structures to add to a stage
+   * @return a wrapper of the important JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
       Cluster cluster, StackId stackId) throws AmbariException {
@@ -1262,7 +1262,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
-      //Propogate HCFS service type info to command params
+      //Propagate HCFS service type info to command params
       Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
       for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
         if (serviceInfoInstance.getServiceType() != null) {

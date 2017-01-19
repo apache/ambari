@@ -363,7 +363,7 @@ public class AlertDefinitionDAO {
   }
 
   /**
-   * Merge the speicified alert definition with the existing definition in the
+   * Merge the specified alert definition with the existing definition in the
    * database. Fires an {@link AlertDefinitionChangedEvent}.
    *
    * @param alertDefinition

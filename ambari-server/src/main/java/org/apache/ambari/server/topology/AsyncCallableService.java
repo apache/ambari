@@ -79,7 +79,7 @@ public class AsyncCallableService<T> implements Callable<T> {
         LOG.debug("Retrying task execution in [ {} ] milliseconds.", delay);
         future = executorService.schedule(task, delay, TimeUnit.MILLISECONDS);
       } else {
-        LOG.debug("Timout exceeded, cancelling task ... ");
+        LOG.debug("Timeout exceeded, cancelling task ... ");
         // making sure the task gets cancelled!
         if (!future.isDone()) {
           boolean cancelled = future.cancel(true);

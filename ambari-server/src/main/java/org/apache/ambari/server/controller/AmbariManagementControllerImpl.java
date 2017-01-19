@@ -1891,7 +1891,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    *
    * @param cluster the relevant cluster
    * @param request the request data
-   * @return a map lf property names to String arrays indicating the requsted changes ({current value, requested valiue})
+   * @return a map lf property names to String arrays indicating the requested changes ({current value, requested value})
    */
   private Map<String, String[]> getPropertyChanges(Cluster cluster, ConfigurationRequest request) {
     Map<String, String[]>  changedProperties = new HashMap<String, String[]>();
@@ -1910,7 +1910,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       existingProperties = Collections.emptyMap();
     }
 
-    // Ensure all propery names are captured, including missing ones from either set.
+    // Ensure all property names are captured, including missing ones from either set.
     Set<String> propertyNames = new HashSet<String>();
     propertyNames.addAll(requestedProperties.keySet());
     propertyNames.addAll(existingProperties.keySet());
@@ -3010,7 +3010,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
     // Skip INSTALL for service components if START_ONLY is set for component, or if START_ONLY is set on cluster
-    // level and no other provsion action is specified for component
+    // level and no other provision action is specified for component
     if (requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS) != null &&
       (requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS).contains(sch.getServiceComponentName()) ||
         (requestProperties.get(SKIP_INSTALL_FOR_COMPONENTS).equals("ALL") && !requestProperties.get
@@ -3302,7 +3302,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (UserRequest request : requests) {
       String requestedUsername = request.getUsername();
 
-      // An administrator can modify any user, else a user can only modify themself.
+      // An administrator can modify any user, else a user can only modify themselves.
       if (!isUserAdministrator && (!authenticatedUsername.equalsIgnoreCase(requestedUsername))) {
         throw new AuthorizationException();
       }
@@ -3483,7 +3483,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           master_component_name = entrySet.getKey();
         }
       }
-      //Clear exclud file or draining list except HBASE
+      //Clear exclude file or draining list except HBASE
       if (!serviceName.equals(Service.Type.HBASE.toString())) {
         HashMap<String, String> requestProperties = new HashMap<String, String>();
         requestProperties.put("context", "Remove host " +
@@ -3753,7 +3753,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         User u = users.getAnyUser(requestedUsername);
         if (null == u) {
           if (requests.size() == 1) {
-            // only throw exceptin if there is a single request
+            // only throw exception if there is a single request
             // if there are multiple requests, this indicates an OR predicate
             throw new ObjectNotFoundException("Cannot find user '"
                 + requestedUsername + "'");
@@ -5196,7 +5196,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   /**
    * Queries the CredentialStoreService to gather properties about it.
    * <p/>
-   * In particular, the details about which storage facilities are avaialble are returned via Boolean
+   * In particular, the details about which storage facilities are available are returned via Boolean
    * properties.
    *
    * @return a map of properties
@@ -5303,16 +5303,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * Validates that the authenticated user can modify configurations for either a service or the
    * cluster.
    * <p>
-   * Since some properties have special meaning, they may be ignored when perfoming this authorization
+   * Since some properties have special meaning, they may be ignored when performing this authorization
    * check. For example, to change the cluster's overall auto-start setting (cluster-env/recovery_enabled)
    * requires a specific permission that is not the same as the ability to set cluster-wide properties
-   * (in general).  Because of this, the <code>cluster-env/recovery_enabled</code> propery should be
+   * (in general).  Because of this, the <code>cluster-env/recovery_enabled</code> property should be
    * ignored in this check since permission to change it is expected to be validated elsewhere.
    *
    * @param cluster                the relevant cluster
    * @param configType             the changed configuration type
    * @param propertyChanges        a map of the property changes for the relevant configuration type
-   * @param changesToIgnore        a map of configuration type names to sets of propery names to be ignored
+   * @param changesToIgnore        a map of configuration type names to sets of property names to be ignored
    * @param isServiceConfiguration <code>true</code>, if the configuration type is a service-level configuration;
    *                               <code>false</code>, if the configuration type is a cluster-level configuration
    * @throws AuthorizationException if the authenticated user is not authorized to change the requested configuration

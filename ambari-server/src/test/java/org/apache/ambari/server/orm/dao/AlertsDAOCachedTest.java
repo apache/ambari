@@ -186,7 +186,7 @@ public class AlertsDAOCachedTest {
     alertsDAO.merge(memoryCurrent, true);
     List<AlertCurrentEntity> testCurrentAlerts = alertsDAO.findCurrent();
 
-    // verify that the stale JPA data is augemented with the cached data
+    // verify that the stale JPA data is augmented with the cached data
     Assert.assertEquals(1, testCurrentAlerts.size());
     Assert.assertEquals(Long.valueOf(3), testCurrentAlerts.get(0).getLatestTimestamp());
 
@@ -236,7 +236,7 @@ public class AlertsDAOCachedTest {
     alertsDAO.merge(memoryCurrent);
     List<AlertCurrentEntity> testCurrentAlerts = testArea.execute(alertsDAO);
 
-    // verify that the stale JPA data is augemented with the cached data
+    // verify that the stale JPA data is augmented with the cached data
     Assert.assertEquals(1, testCurrentAlerts.size());
     Assert.assertEquals(Long.valueOf(3), testCurrentAlerts.get(0).getLatestTimestamp());
 
