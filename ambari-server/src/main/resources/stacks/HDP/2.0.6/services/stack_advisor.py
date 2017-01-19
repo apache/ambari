@@ -1262,7 +1262,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                   if collectorHostName in component["StackServiceComponents"]["hostnames"]:
                     hostComponents.append(component["StackServiceComponents"]["component_name"])
 
-            requiredMemory = getMemorySizeRequired(hostComponents, configurations)
+            requiredMemory = self.getMemorySizeRequired(services, hostComponents, configurations)
             unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
 
             heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
