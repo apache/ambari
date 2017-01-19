@@ -24,6 +24,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Class to represent component-level filter definitions
  */
@@ -37,6 +39,7 @@ public class Component {
   private List<Filter> filters;
 
   static Component create(String name, List<Filter> filters) {
+    Preconditions.checkNotNull(name, "Component name must not be null");
     Component component = new Component();
     component.setName(name);
     component.setFilters(filters);

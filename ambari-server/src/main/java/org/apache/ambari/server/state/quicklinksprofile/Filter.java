@@ -23,6 +23,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.google.common.base.Preconditions;
+
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -33,8 +35,9 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  * </ul>
  */
 public abstract class Filter {
+  static final String VISIBLE = "visible";
 
-  @JsonProperty("visible")
+  @JsonProperty(VISIBLE)
   private boolean visible;
 
   /**
@@ -63,6 +66,7 @@ public abstract class Filter {
   }
 
   static LinkNameFilter linkNameFilter(String linkName, boolean visible) {
+    Preconditions.checkNotNull(linkName, "Link name must not be null");
     LinkNameFilter linkNameFilter = new LinkNameFilter();
     linkNameFilter.setLinkName(linkName);
     linkNameFilter.setVisible(visible);
@@ -70,6 +74,7 @@ public abstract class Filter {
   }
 
   static LinkAttributeFilter linkAttributeFilter(String linkAttribute, boolean visible) {
+    Preconditions.checkNotNull(linkAttribute, "Attribute name must not be null");
     LinkAttributeFilter linkAttributeFilter = new LinkAttributeFilter();
     linkAttributeFilter.setLinkAttribute(linkAttribute);
     linkAttributeFilter.setVisible(visible);

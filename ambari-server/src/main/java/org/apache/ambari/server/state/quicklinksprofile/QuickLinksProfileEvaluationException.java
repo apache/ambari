@@ -28,4 +28,8 @@ public class QuickLinksProfileEvaluationException extends Exception {
     super(message);
   }
 
+  public QuickLinksProfileEvaluationException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }
