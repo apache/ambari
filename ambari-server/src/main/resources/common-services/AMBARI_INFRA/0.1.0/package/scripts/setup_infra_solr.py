@@ -99,6 +99,15 @@ def setup_infra_solr(name = None):
       secure=params.security_enabled
     )
 
+    if params.security_enabled:
+      solr_cloud_util.secure_solr_znode(
+        zookeeper_quorum=params.zookeeper_quorum,
+        solr_znode=params.infra_solr_znode,
+        jaas_file=jaas_file,
+        java64_home=params.java64_home,
+        sasl_users_str=params.infra_solr_sasl_user
+      )
+
 
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)

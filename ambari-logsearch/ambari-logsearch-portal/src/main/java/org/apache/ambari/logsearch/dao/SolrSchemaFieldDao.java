@@ -43,7 +43,6 @@ import org.apache.solr.common.util.NamedList;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
@@ -54,54 +53,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 public class SolrSchemaFieldDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrSchemaFieldDao.class);
 
   private static final int RETRY_SECOND = 30;
-  
-  @Inject
-  @Named("serviceSolrTemplate")
-  private SolrTemplate serviceSolrTemplate;
 
   @Inject
-  @Named("auditSolrTemplate")
-  private SolrTemplate auditSolrTemplate;
+  private ServiceLogsSolrDao serviceLogsSolrDao;
+
+  @Inject
+  private AuditSolrDao auditSolrDao;
   
   @Inject
   private SolrUserPropsConfig solrUserConfigPropsConfig;
   
-  private CloudSolrClient serviceSolrClient;
-  private CloudSolrClient auditSolrClient;
-  
   private int retryCount;
   private int skipCount;
-
-  private boolean serviceCollectionSetUp = false;
-  private boolean auditCollectionSetUp = false;
   
   private Map<String, String> serviceSchemaFieldNameMap = new HashMap<>();
   private Map<String, String> serviceSchemaFieldTypeMap = new HashMap<>();
   private Map<String, String> auditSchemaFieldNameMap = new HashMap<>();
   private Map<String, String> auditSchemaFieldTypeMap = new HashMap<>();
-
-  @PostConstruct
-  public void init() {
-    this.serviceSolrClient = (CloudSolrClient) serviceSolrTemplate.getSolrClient();
-    this.auditSolrClient = (CloudSolrClient) auditSolrTemplate.getSolrClient();
-  }
-  
-  void serviceCollectionSetUp() {
-    this.serviceCollectionSetUp = true;
-  }
-  
-  void auditCollectionSetUp() {
-    this.auditCollectionSetUp = true;
-  }
   
   @Scheduled(fixedDelay = RETRY_SECOND * 1000)
   public void populateAllSchemaFields() {
@@ -109,11 +84,12 @@ public class SolrSchemaFieldDao {
       skipCount--;
       return;
     }
-    
-    if (serviceCollectionSetUp) {
+    if (serviceLogsSolrDao.getSolrCollectionState().isSolrCollectionReady()) {
+      CloudSolrClient serviceSolrClient = (CloudSolrClient) serviceLogsSolrDao.getSolrTemplate().getSolrClient();
       populateSchemaFields(serviceSolrClient, serviceSchemaFieldNameMap, serviceSchemaFieldTypeMap);
     }
-    if (auditCollectionSetUp) {
+    if (auditSolrDao.getSolrCollectionState().isSolrCollectionReady()) {
+      CloudSolrClient auditSolrClient = (CloudSolrClient) auditSolrDao.getSolrTemplate().getSolrClient();
       populateSchemaFields(auditSolrClient, auditSchemaFieldNameMap, auditSchemaFieldTypeMap);
     }
   }

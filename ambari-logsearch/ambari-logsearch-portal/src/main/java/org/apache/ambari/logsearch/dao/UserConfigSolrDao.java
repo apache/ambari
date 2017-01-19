@@ -32,7 +32,11 @@ import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
+import org.apache.ambari.logsearch.conf.SolrPropsConfig;
 import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
+import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.configurer.LogfeederFilterConfigurer;
+import org.apache.ambari.logsearch.configurer.SolrCollectionConfigurer;
 import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
 import org.apache.ambari.logsearch.model.common.LogfeederFilterData;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -66,11 +70,12 @@ public class UserConfigSolrDao extends SolrDaoBase {
   private SolrUserPropsConfig solrUserConfig;
 
   @Inject
-  private SolrCollectionDao solrCollectionDao;
-
-  @Inject
   @Named("userConfigSolrTemplate")
   private SolrTemplate userConfigSolrTemplate;
+
+  @Inject
+  @Named("solrUserConfigState")
+  private SolrCollectionState solrUserConfigState;
 
   public UserConfigSolrDao() {
     super(LogType.SERVICE);
@@ -81,6 +86,11 @@ public class UserConfigSolrDao extends SolrDaoBase {
     return userConfigSolrTemplate;
   }
 
+  @Override
+  public void setSolrTemplate(SolrTemplate solrTemplate) {
+    this.userConfigSolrTemplate = solrTemplate;
+  }
+
   @PostConstruct
   public void postConstructor() {
     String solrUrl = solrUserConfig.getSolrUrl();
@@ -88,21 +98,11 @@ public class UserConfigSolrDao extends SolrDaoBase {
     String collection = solrUserConfig.getCollection();
 
     try {
-      solrCollectionDao.checkSolrStatus(getSolrClient());
-      solrCollectionDao.setupCollections(getSolrClient(), solrUserConfig);
-      intializeLogFeederFilter();
-
+      new SolrCollectionConfigurer(this).start();
+      new LogfeederFilterConfigurer(this).start();
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for history logs : solrUrl=" + solrUrl + ", zkConnectString=" + zkConnectString +
           ", collection=" + collection, e);
-    }
-  }
-
-  private void intializeLogFeederFilter() {
-    try {
-      getUserFilter();
-    } catch (SolrServerException | IOException e) {
-      LOG.error("not able to save logfeeder filter while initialization", e);
     }
   }
 
@@ -179,7 +179,12 @@ public class UserConfigSolrDao extends SolrDaoBase {
   }
 
   @Override
-  public SolrSchemaFieldDao getSolrSchemaFieldDao() {
-    throw new UnsupportedOperationException();
+  public SolrCollectionState getSolrCollectionState() {
+    return solrUserConfigState;
+  }
+
+  @Override
+  public SolrPropsConfig getSolrPropsConfig() {
+    return solrUserConfig;
   }
 }

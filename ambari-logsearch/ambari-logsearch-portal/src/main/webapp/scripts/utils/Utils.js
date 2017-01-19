@@ -411,8 +411,15 @@ define(['require',
             try {
                 if (!errorShown) {
                     errorShown = true;
+                    var errorMessage = "Some issues on server, Please try again later."
+                    if (error != null && error.responseText != null) {
+                      var errorObj = JSON.parse(error.responseText);
+                      if (errorObj.hasOwnProperty('msgDesc')) {
+                        errorMessage = errorObj.msgDesc;
+                      }
+                    }
                     Utils.notifyError({
-                        content: "Some issue on server, Please try again later."
+                      content: errorMessage
                     });
                     setTimeout(function() {
                         errorShown = false;

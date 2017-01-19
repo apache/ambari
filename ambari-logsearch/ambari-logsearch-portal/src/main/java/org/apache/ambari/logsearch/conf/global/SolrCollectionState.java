@@ -16,46 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.conf;
+package org.apache.ambari.logsearch.conf.global;
 
-import org.apache.zookeeper.data.ACL;
+public interface SolrCollectionState {
+  boolean isZnodeReady();
 
-import java.util.List;
+  void setZnodeReady(boolean znodeAvailable);
 
-public interface SolrPropsConfig {
-  String getSolrUrl();
+  boolean isSolrCollectionReady();
 
-  void setSolrUrl(String solrUrl);
+  void setSolrCollectionReady(boolean solrCollectionCreated);
 
-  String getZkConnectString();
+  boolean isConfigurationUploaded();
 
-  void setZkConnectString(String zkConnectString);
-
-  String getCollection();
-
-  void setCollection(String collection);
-
-  String getConfigName();
-
-  void setConfigName(String configName);
-
-  Integer getNumberOfShards();
-
-  void setNumberOfShards(Integer numberOfShards);
-
-  Integer getReplicationFactor();
-
-  void setReplicationFactor(Integer replicationFactor);
-
-  String getSplitInterval();
-
-  void setSplitInterval(String splitInterval);
-
-  List<ACL> getZkAcls();
-
-  void setZkAcls(List<ACL> zkAcls);
-
-  String getConfigSetFolder();
-
-  void setConfigSetFolder(String configSetFolder);
+  void setConfigurationUploaded(boolean configurationUploaded);
 }

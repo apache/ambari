@@ -34,36 +34,6 @@ import java.util.Set;
 
 public class AclUtils {
 
-  public static Set<String> getUsersFromAclData(List<ACL> acls) {
-    Set<String> result = new HashSet<>();
-    if (!acls.isEmpty()) {
-      for (ACL acl : acls) {
-        String username = "";
-        String id = acl.getId().getId();
-        String[] splitted = id.split(":");
-        if (splitted.length > 1) {
-          username = splitted[0];
-        } else {
-          username = id;
-        }
-        result.add(username);
-      }
-    }
-    return result;
-  }
-
-  public static List<ACL> updatePermissionForScheme(List<ACL> acls, String scheme, int permission) {
-    List<ACL> aclResult = new ArrayList<>();
-    if (!acls.isEmpty()) {
-      for (ACL acl : acls) {
-        int permissionToAdd = scheme.equals(acl.getId().getScheme()) ? permission : acl.getPerms();
-        acl.setPerms(permissionToAdd);
-        aclResult.add(acl);
-      }
-    }
-    return aclResult;
-  }
-
   public static List<ACL> mergeAcls(List<ACL> originalAcls, List<ACL> updateAcls) {
     Map<String, ACL> aclMap = new HashMap<>();
     List<ACL> acls = new ArrayList<>();

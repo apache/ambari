@@ -18,13 +18,14 @@ limitations under the License.
 """
 import random
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_jinja2 import Environment as JinjaEnvironment
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, Execute, File
-from resource_management.core.source import StaticFile, InlineTemplate
+from resource_management.core.source import StaticFile
 
 __all__ = ["upload_configuration_to_zk", "create_collection", "setup_kerberos", "set_cluster_prop",
-           "setup_kerberos_plugin", "create_znode", "check_znode", "create_sasl_users"]
+           "setup_kerberos_plugin", "create_znode", "check_znode", "secure_solr_znode", "secure_znode"]
 
 def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, separated_znode=False):
   sudo = AMBARI_SUDO_BINARY
@@ -172,12 +173,12 @@ def secure_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_user
   Execute(secure_znode_cmd)
 
 
-def secure_solr_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[]):
+def secure_solr_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users_str=''):
   """
   Secure solr znode - setup acls to 'cdrwa' for solr user, set 'r' only for the world, skipping /znode/configs and znode/collections (set those to 'cr' for the world)
+  sasl_users_str: comma separated sasl users
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
-  sasl_users_str = ",".join(str(x) for x in sasl_users)
   secure_solr_znode_cmd = format('{solr_cli_prefix} --secure-solr-znode --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
   Execute(secure_solr_znode_cmd)
 
@@ -218,8 +219,19 @@ def setup_solr_client(config, custom_log4j = True, custom_log_location = None, l
     if custom_log4j:
       # use custom log4j content only, when infra is not installed on the cluster
       solr_client_log4j_content = config['configurations']['infra-solr-client-log4j']['content'] if log4jcontent is None else log4jcontent
+      context = {
+        'solr_client_log': solr_client_log,
+        'solr_client_log_maxfilesize': solr_client_log_maxfilesize,
+        'solr_client_log_maxbackupindex': solr_client_log_maxbackupindex
+      }
+      template = JinjaEnvironment(
+        line_statement_prefix='%',
+        variable_start_string="{{",
+        variable_end_string="}}")\
+        .from_string(solr_client_log4j_content)
+
       File(format("{solr_client_dir}/log4j.properties"),
-             content=InlineTemplate(solr_client_log4j_content),
+             content=template.render(context),
              mode=0644
              )
     else:

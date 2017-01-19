@@ -20,7 +20,6 @@ package org.apache.ambari.logsearch.solr;
 
 import org.apache.ambari.logsearch.solr.commands.CheckConfigZkCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateCollectionCommand;
-import org.apache.ambari.logsearch.solr.commands.CreateSaslUsersZkCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateShardCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateSolrZnodeZkCommand;
 import org.apache.ambari.logsearch.solr.commands.DownloadConfigZkCommand;
@@ -34,7 +33,6 @@ import org.apache.ambari.logsearch.solr.commands.SetClusterPropertyZkCommand;
 import org.apache.ambari.logsearch.solr.commands.UploadConfigZkCommand;
 import org.apache.ambari.logsearch.solr.commands.CheckZnodeZkCommand;
 import org.apache.ambari.logsearch.solr.util.ShardUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.SolrZkClient;
@@ -126,18 +124,6 @@ public class AmbariSolrCloudClient {
     LOG.info("Set cluster prop: '{}'", this.getPropName());
     String newPropValue = new SetClusterPropertyZkCommand(getRetryTimes(), getInterval()).run(this);
     LOG.info("Set cluster prop '{}' successfully to '{}'", this.getPropName(), newPropValue);
-  }
-
-  /**
-   * Add sasl user (only if not exist on the znode).
-   */
-  public String addSaslUsers() throws Exception {
-    LOG.info("Add sasl user to znode: {}", this.saslUsers);
-    String newUsers = new CreateSaslUsersZkCommand(getRetryTimes(), getInterval()).run(this);
-    if (StringUtils.isNotEmpty(newUsers)) {
-      LOG.info("New sasl users added to znode: {}", newUsers);
-    }
-    return newUsers;
   }
 
   /**

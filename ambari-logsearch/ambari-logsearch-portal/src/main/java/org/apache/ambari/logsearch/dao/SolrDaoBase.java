@@ -22,6 +22,9 @@ package org.apache.ambari.logsearch.dao;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
+import org.apache.ambari.logsearch.conf.SolrPropsConfig;
+import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.log4j.Logger;
@@ -36,6 +39,7 @@ import org.springframework.data.solr.core.SolrCallback;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.core.query.SolrDataQuery;
 
+import javax.inject.Inject;
 import java.io.IOException;
 
 public abstract class SolrDaoBase {
@@ -44,6 +48,9 @@ public abstract class SolrDaoBase {
   private static final Logger LOG_PERFORMANCE = Logger.getLogger("org.apache.ambari.logsearch.performance");
 
   private LogType logType;
+
+  @Inject
+  private SolrKerberosConfig solrKerberosConfig;
   
   protected SolrDaoBase(LogType logType) {
     this.logType = logType;
@@ -108,5 +115,14 @@ public abstract class SolrDaoBase {
 
   public abstract SolrTemplate getSolrTemplate();
 
-  public abstract SolrSchemaFieldDao getSolrSchemaFieldDao();
+  public abstract void setSolrTemplate(SolrTemplate solrTemplate);
+
+  public abstract SolrCollectionState getSolrCollectionState();
+
+  public abstract SolrPropsConfig getSolrPropsConfig();
+
+  public SolrKerberosConfig getSolrKerberosConfig() {
+    return this.solrKerberosConfig;
+  }
+
 }
