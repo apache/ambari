@@ -52,6 +52,7 @@ export default Ember.Component.extend(Validations, {
   typeObserver : function(){
     if(this.get('dateField.type') === 'date'){
       this.$('input[name="'+this.get('inputName')+'"]').datetimepicker({
+        format: 'MM/DD/YYYY hh:mm A',
         useCurrent: false,
         showClose : true
       });
