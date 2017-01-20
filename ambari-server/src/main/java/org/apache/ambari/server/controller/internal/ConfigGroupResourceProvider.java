@@ -405,8 +405,8 @@ public class ConfigGroupResourceProvider extends
     for (String key : configs.keySet()) {
       if(!clusters.getCluster(clusterName).isConfigTypeExists(key)){
         throw new AmbariException("Trying to add not existent config type to config group:"+
-        " configType="+key+
-        " cluster="+clusterName);
+        " configType = "+ key +
+        " cluster = " + clusterName);
       }
     }
   }
@@ -453,10 +453,9 @@ public class ConfigGroupResourceProvider extends
           "exist", e);
     }
 
-    configLogger.info("Deleting Config group, "
-      + ", clusterName = " + cluster.getClusterName()
-      + ", id = " + request.getId()
-      + ", user = " + getManagementController().getAuthName());
+    configLogger.info("User {} is deleting configuration group {} for tag {} in cluster {}",
+      getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
+      cluster.getClusterName());
 
     ConfigGroup configGroup = cluster.getConfigGroups().get(request.getId());
 
@@ -491,8 +490,7 @@ public class ConfigGroupResourceProvider extends
         request.getClusterName() + ", group name = " + request.getGroupName()
         + ", tag = " + request.getTag());
 
-      throw new IllegalArgumentException("Cluster name, " +
-        "group name and tag need to be provided.");
+      throw new IllegalArgumentException("Cluster name, group name and tag need to be provided.");
 
     }
   }

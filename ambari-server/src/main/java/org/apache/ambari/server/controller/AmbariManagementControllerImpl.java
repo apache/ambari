@@ -3339,8 +3339,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
-    LOG.info("Received a delete cluster request"
-        + ", clusterName=" + request.getClusterName());
+    LOG.info("Received a delete cluster request, clusterName = " + request.getClusterName());
     if (request.getHostNames() != null) {
       // FIXME treat this as removing a host from a cluster?
     } else {
@@ -3364,7 +3363,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         Cluster cluster = clusters.getCluster(request.getClusterName());
 
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
             EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS))) {
           throw new AuthorizationException("The authenticated user is not authorized to delete service components from hosts");
         }
@@ -3393,14 +3392,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         request.setServiceName(findServiceName(cluster, request.getComponentName()));
       }
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a hostComponent DELETE request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
-      }
+      LOG.info("Received a hostComponent DELETE request"
+        + ", clusterName=" + request.getClusterName()
+        + ", serviceName=" + request.getServiceName()
+        + ", componentName=" + request.getComponentName()
+        + ", hostname=" + request.getHostname()
+        + ", request=" + request);
 
       Service service = cluster.getService(request.getServiceName());
       ServiceComponent component = service.getServiceComponent(request.getComponentName());
