@@ -58,6 +58,7 @@ import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.filter.Filter;
+import org.springframework.ldap.support.LdapUtils;
 
 import javax.naming.directory.SearchControls;
 
@@ -1644,12 +1645,12 @@ public class AmbariLdapDataPopulatorTest {
     expect(ldapServerProperties.isPaginationEnabled()).andReturn(true).anyTimes();
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
-    expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+    expect(ldapServerProperties.getBaseDN()).andReturn("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com").anyTimes();
     expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     expect(processor.getCookie()).andReturn(cookie).anyTimes();
     expect(cookie.getCookie()).andReturn(null).anyTimes();
 
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
+    expect(ldapTemplate.search(eq(LdapUtils.newLdapName("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com")), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 
@@ -1684,9 +1685,9 @@ public class AmbariLdapDataPopulatorTest {
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
-    expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+    expect(ldapServerProperties.getBaseDN()).andReturn("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com").anyTimes();
 
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
+    expect(ldapTemplate.search(eq(LdapUtils.newLdapName("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com") ), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,7 +32,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 
-import com.google.common.collect.Lists;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
@@ -45,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+
 import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
@@ -57,6 +57,7 @@ import org.springframework.ldap.filter.Filter;
 import org.springframework.ldap.filter.HardcodedFilter;
 import org.springframework.ldap.filter.LikeFilter;
 import org.springframework.ldap.filter.OrFilter;
+import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.google.inject.Inject;
@@ -90,13 +91,8 @@ public class AmbariLdapDataPopulator {
    */
   private LdapTemplate ldapTemplate;
 
-  /**
-   * List for organizationUnits from the base DN
-   */
-  private List<String> baseOrganizationUnits = Lists.newArrayList();
-
   // Constants
-  private static final String UID_ATTRIBUTE          = "uid";
+  private static final String UID_ATTRIBUTE = "uid";
   private static final String OBJECT_CLASS_ATTRIBUTE = "objectClass";
   private static final int USERS_PAGE_SIZE = 500;
 
@@ -109,8 +105,8 @@ public class AmbariLdapDataPopulator {
   /**
    * Construct an AmbariLdapDataPopulator.
    *
-   * @param configuration  the Ambari configuration
-   * @param users          utility that provides access to Users
+   * @param configuration the Ambari configuration
+   * @param users         utility that provides access to Users
    */
   @Inject
   public AmbariLdapDataPopulator(Configuration configuration, Users users) {
@@ -221,7 +217,7 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()){
+          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(userName);
           } else {
@@ -298,7 +294,7 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()){
+          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
             LOG.info("User '{}' skipped because it is local user", userName);
             batchInfo.getUsersSkipped().add(userName);
           } else {
@@ -365,11 +361,11 @@ public class AmbariLdapDataPopulator {
   /**
    * Check group members of the synced group: add missing ones and remove the ones absent in external LDAP.
    *
-   * @param batchInfo batch update object
-   * @param group ldap group
-   * @param internalUsers map of internal users
-   * @param groupMemberAttributes  set of group member attributes that have already been refreshed
-   * @param recursive if disabled, it won't refresh members recursively (its not needed in case of all groups are processed)
+   * @param batchInfo             batch update object
+   * @param group                 ldap group
+   * @param internalUsers         map of internal users
+   * @param groupMemberAttributes set of group member attributes that have already been refreshed
+   * @param recursive             if disabled, it won't refresh members recursively (its not needed in case of all groups are processed)
    * @throws AmbariException if group refresh failed
    */
   protected void refreshGroupMembers(LdapBatchDto batchInfo, LdapGroupDto group, Map<String, User> internalUsers,
@@ -381,7 +377,7 @@ public class AmbariLdapDataPopulator {
       groupMemberAttributes = new HashSet<String>();
     }
 
-    for (String memberAttributeValue: group.getMemberAttributes()) {
+    for (String memberAttributeValue : group.getMemberAttributes()) {
       LdapUserDto groupMember = getLdapUserByMemberAttr(memberAttributeValue);
       if (groupMember != null) {
         externalMembers.add(groupMember.getUserName());
@@ -400,7 +396,7 @@ public class AmbariLdapDataPopulator {
     }
     String groupName = group.getGroupName();
     final Map<String, User> internalMembers = getInternalMembers(groupName);
-    for (String externalMember: externalMembers) {
+    for (String externalMember : externalMembers) {
       if (internalUsers.containsKey(externalMember)) {
         final User user = internalUsers.get(externalMember);
         if (user == null) {
@@ -429,7 +425,7 @@ public class AmbariLdapDataPopulator {
         batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember));
       }
     }
-    for (Entry<String, User> userToBeUnsynced: internalMembers.entrySet()) {
+    for (Entry<String, User> userToBeUnsynced : internalMembers.entrySet()) {
       final User user = userToBeUnsynced.getValue();
       batchInfo.getMembershipToRemove().add(new LdapUserGroupMemberDto(groupName, user.getUserName()));
     }
@@ -438,8 +434,7 @@ public class AmbariLdapDataPopulator {
   /**
    * Get the set of LDAP groups for the given group name.
    *
-   * @param groupName  the group name
-   *
+   * @param groupName the group name
    * @return the set of LDAP groups for the given name
    */
   protected Set<LdapGroupDto> getLdapGroups(String groupName) {
@@ -452,8 +447,7 @@ public class AmbariLdapDataPopulator {
   /**
    * Get the set of LDAP users for the given user name.
    *
-   * @param username  the user name
-   *
+   * @param username the user name
    * @return the set of LDAP users for the given name
    */
   protected Set<LdapUserDto> getLdapUsers(String username) {
@@ -465,31 +459,30 @@ public class AmbariLdapDataPopulator {
   /**
    * Get the LDAP user member for the given member attribute.
    *
-   * @param memberAttributeValue  the member attribute value
-   *
+   * @param memberAttributeValue the member attribute value
    * @return the user for the given member attribute; null if not found
    */
   protected LdapUserDto getLdapUserByMemberAttr(String memberAttributeValue) {
-    Set<LdapUserDto> filteredLdapUsers = new HashSet<LdapUserDto>();
+    Set<LdapUserDto> filteredLdapUsers;
 
     memberAttributeValue = getUniqueIdByMemberPattern(memberAttributeValue,
-      ldapServerProperties.getSyncUserMemberReplacePattern());
+        ldapServerProperties.getSyncUserMemberReplacePattern());
     Filter syncMemberFilter = createCustomMemberFilter(memberAttributeValue,
-      ldapServerProperties.getSyncUserMemberFilter());
+        ldapServerProperties.getSyncUserMemberFilter());
 
     if (memberAttributeValue != null && syncMemberFilter != null) {
       LOG.trace("Use custom filter '{}' for getting member user with default baseDN ('{}')",
-        syncMemberFilter.encode(), ldapServerProperties.getBaseDN());
+          syncMemberFilter.encode(), ldapServerProperties.getBaseDN());
       filteredLdapUsers = getFilteredLdapUsers(ldapServerProperties.getBaseDN(), syncMemberFilter);
-    } else if (memberAttributeValue!= null && isMemberAttributeBaseDn(memberAttributeValue)) {
+    } else if (memberAttributeValue != null && isMemberAttributeBaseDn(memberAttributeValue)) {
       LOG.trace("Member can be used as baseDn: {}", memberAttributeValue);
       Filter filter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass());
       filteredLdapUsers = getFilteredLdapUsers(memberAttributeValue, filter);
     } else {
       LOG.trace("Member cannot be used as baseDn: {}", memberAttributeValue);
       Filter filter = new AndFilter()
-        .and(new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass()))
-        .and(new EqualsFilter(ldapServerProperties.getUsernameAttribute(), memberAttributeValue));
+          .and(new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass()))
+          .and(new EqualsFilter(ldapServerProperties.getUsernameAttribute(), memberAttributeValue));
       filteredLdapUsers = getFilteredLdapUsers(ldapServerProperties.getBaseDN(), filter);
     }
     return (filteredLdapUsers.isEmpty()) ? null : filteredLdapUsers.iterator().next();
@@ -498,21 +491,20 @@ public class AmbariLdapDataPopulator {
   /**
    * Get the LDAP group member for the given member attribute.
    *
-   * @param memberAttributeValue  the member attribute value
-   *
+   * @param memberAttributeValue the member attribute value
    * @return the group for the given member attribute; null if not found
    */
   protected LdapGroupDto getLdapGroupByMemberAttr(String memberAttributeValue) {
-    Set<LdapGroupDto> filteredLdapGroups = new HashSet<LdapGroupDto>();
+    Set<LdapGroupDto> filteredLdapGroups;
 
     memberAttributeValue = getUniqueIdByMemberPattern(memberAttributeValue,
-      ldapServerProperties.getSyncGroupMemberReplacePattern());
+        ldapServerProperties.getSyncGroupMemberReplacePattern());
     Filter syncMemberFilter = createCustomMemberFilter(memberAttributeValue,
-      ldapServerProperties.getSyncGroupMemberFilter());
+        ldapServerProperties.getSyncGroupMemberFilter());
 
     if (memberAttributeValue != null && syncMemberFilter != null) {
       LOG.trace("Use custom filter '{}' for getting member group with default baseDN ('{}')",
-        syncMemberFilter.encode(), ldapServerProperties.getBaseDN());
+          syncMemberFilter.encode(), ldapServerProperties.getBaseDN());
       filteredLdapGroups = getFilteredLdapGroups(ldapServerProperties.getBaseDN(), syncMemberFilter);
     } else if (memberAttributeValue != null && isMemberAttributeBaseDn(memberAttributeValue)) {
       LOG.trace("Member can be used as baseDn: {}", memberAttributeValue);
@@ -521,8 +513,8 @@ public class AmbariLdapDataPopulator {
     } else {
       LOG.trace("Member cannot be used as baseDn: {}", memberAttributeValue);
       filteredLdapGroups = getFilteredLdapGroups(ldapServerProperties.getBaseDN(),
-        new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getGroupObjectClass()),
-        getMemberFilter(memberAttributeValue));
+          new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getGroupObjectClass()),
+          getMemberFilter(memberAttributeValue));
     }
 
     return (filteredLdapGroups.isEmpty()) ? null : filteredLdapGroups.iterator().next();
@@ -571,7 +563,7 @@ public class AmbariLdapDataPopulator {
    */
   protected void cleanUpLdapUsersWithoutGroup() throws AmbariException {
     final List<User> allUsers = users.getAllUsers();
-    for (User user: allUsers) {
+    for (User user : allUsers) {
       if (user.isLdapUser() && user.getGroups().isEmpty()) {
         users.removeUser(user);
       }
@@ -601,7 +593,7 @@ public class AmbariLdapDataPopulator {
    */
   protected boolean isMemberAttributeBaseDn(String memberAttributeValue) {
     Pattern pattern = Pattern.compile(String.format(IS_MEMBER_DN_REGEXP,
-      ldapServerProperties.getUsernameAttribute(), ldapServerProperties.getGroupNamingAttr()));
+        ldapServerProperties.getUsernameAttribute(), ldapServerProperties.getGroupNamingAttr()));
     return pattern.matcher(memberAttributeValue).find();
   }
 
@@ -621,10 +613,10 @@ public class AmbariLdapDataPopulator {
     String dnAttribute = ldapServerProperties.getDnAttribute();
 
     return new OrFilter().or(new EqualsFilter(dnAttribute, memberAttributeValue)).
-            or(new EqualsFilter(UID_ATTRIBUTE, memberAttributeValue));
+        or(new EqualsFilter(UID_ATTRIBUTE, memberAttributeValue));
   }
 
-  private Set<LdapGroupDto> getFilteredLdapGroups(String baseDn, Filter...filters) {
+  private Set<LdapGroupDto> getFilteredLdapGroups(String baseDn, Filter... filters) {
     AndFilter andFilter = new AndFilter();
     for (Filter filter : filters) {
       andFilter.and(filter);
@@ -637,7 +629,7 @@ public class AmbariLdapDataPopulator {
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     LOG.trace("LDAP Group Query - Base DN: '{}' ; Filter: '{}'", baseDn, filter.encode());
     ldapTemplate.search(baseDn, filter.encode(),
-      new LdapGroupContextMapper(groups, ldapServerProperties));
+        new LdapGroupContextMapper(groups, ldapServerProperties));
     return groups;
   }
 
@@ -652,7 +644,7 @@ public class AmbariLdapDataPopulator {
     return getFilteredLdapUsers(ldapServerProperties.getBaseDN(), userObjectFilter);
   }
 
-  private Set<LdapUserDto> getFilteredLdapUsers(String baseDn, Filter...filters) {
+  private Set<LdapUserDto> getFilteredLdapUsers(String baseDn, Filter... filters) {
     AndFilter andFilter = new AndFilter();
     for (Filter filter : filters) {
       andFilter.and(filter);
@@ -673,15 +665,15 @@ public class AmbariLdapDataPopulator {
     do {
       LOG.trace("LDAP User Query - Base DN: '{}' ; Filter: '{}'", baseDn, encodedFilter);
       List dtos = configuration.getLdapServerProperties().isPaginationEnabled() ?
-        ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper, processor) :
-        ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper);
+          ldapTemplate.search(LdapUtils.newLdapName(baseDn), encodedFilter, searchControls, ldapUserContextMapper, processor) :
+          ldapTemplate.search(LdapUtils.newLdapName(baseDn), encodedFilter, searchControls, ldapUserContextMapper);
       for (Object dto : dtos) {
         if (dto != null) {
-          users.add((LdapUserDto)dto);
+          users.add((LdapUserDto) dto);
         }
       }
     } while (configuration.getLdapServerProperties().isPaginationEnabled()
-      && processor.getCookie().getCookie() != null);
+        && processor.getCookie().getCookie() != null);
     return users;
   }
 
@@ -745,7 +737,7 @@ public class AmbariLdapDataPopulator {
       ldapServerProperties = properties;
 
       final LdapContextSource ldapContextSource = createLdapContextSource();
-	  
+
       // The LdapTemplate by design will close the connection after each call to the LDAP Server
       // In order to have the interaction work with large/paged results, said connection must be pooled and reused
       ldapContextSource.setPooled(true);
@@ -785,6 +777,7 @@ public class AmbariLdapDataPopulator {
 
   /**
    * PagedResultsDirContextProcessor factory method.
+   *
    * @return new processor;
    */
   protected PagedResultsDirContextProcessor createPagingProcessor() {
@@ -794,8 +787,7 @@ public class AmbariLdapDataPopulator {
   /**
    * LdapTemplate factory method.
    *
-   * @param ldapContextSource  the LDAP context source
-   *
+   * @param ldapContextSource the LDAP context source
    * @return new LDAP template
    */
   protected LdapTemplate createLdapTemplate(LdapContextSource ldapContextSource) {
@@ -830,7 +822,7 @@ public class AmbariLdapDataPopulator {
         group.setGroupName(groupNameAttribute.toLowerCase());
         final String[] uniqueMembers = adapter.getStringAttributes(ldapServerProperties.getGroupMembershipAttr());
         if (uniqueMembers != null) {
-          for (String uniqueMember: uniqueMembers) {
+          for (String uniqueMember : uniqueMembers) {
             group.getMemberAttributes().add(uniqueMember.toLowerCase());
           }
         }
@@ -850,7 +842,7 @@ public class AmbariLdapDataPopulator {
 
     @Override
     public Object mapFromContext(Object ctx) {
-      final DirContextAdapter adapter  = (DirContextAdapter) ctx;
+      final DirContextAdapter adapter = (DirContextAdapter) ctx;
       final String usernameAttribute = adapter.getStringAttribute(ldapServerProperties.getUsernameAttribute());
       final String uidAttribute = adapter.getStringAttribute(UID_ATTRIBUTE);
 
@@ -868,7 +860,7 @@ public class AmbariLdapDataPopulator {
         return user;
       } else {
         LOG.warn("Ignoring LDAP user " + adapter.getNameInNamespace() + " as it doesn't have required" +
-                " attributes uid and " + ldapServerProperties.getUsernameAttribute());
+            " attributes uid and " + ldapServerProperties.getUsernameAttribute());
       }
       return null;
     }
