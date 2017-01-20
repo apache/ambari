@@ -187,8 +187,6 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 # Log dirs
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
-hst_log_dir = '/var/log/hst'
-hst_activity_log_dir = '/var/log/smartsense-activity'
 nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 
 # System logs
