@@ -175,6 +175,8 @@ oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
+zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
+
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -184,9 +186,11 @@ has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 has_zeppelin_master = not len(zeppelin_master_hosts) == 0
+has_zkfc_hosts = not len(zkfc_hosts)== 0
 
 if has_namenode or dfs_type == 'HCFS':
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
@@ -229,3 +233,7 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
+
+# if NN HA on secure clutser, access Zookeper securely
+if has_zkfc_hosts and security_enabled:
+    hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")

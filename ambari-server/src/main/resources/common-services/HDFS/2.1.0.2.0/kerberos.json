@@ -24,7 +24,8 @@
           "core-site": {
             "hadoop.security.authentication": "kerberos",
             "hadoop.security.authorization": "true",
-            "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}"
+            "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}",
+            "ha.zookeeper.acl":"sasl:nn:rwcda"
           }
         }
       ],
