@@ -68,6 +68,23 @@ describe('date', function () {
     });
   });
 
+  describe('#endTime()', function() {
+    var today = new Date();
+    var testDate = new Date(1349752195000);
+    var tests = [
+      { t: 1349752195000, e: testDate.toDateString() + ' {0}:{1}'.format(date.dateFormatZeroFirst(testDate.getHours()), date.dateFormatZeroFirst(testDate.getMinutes())) },
+      { t: -10000000, e: 'Not finished' },
+      { t: today.getTime(), e: 'Today {0}:{1}'.format(date.dateFormatZeroFirst(today.getHours()), date.dateFormatZeroFirst(today.getMinutes())) },
+      { t: today, e: ''}
+    ];
+    tests.forEach(function(test) {
+      var testMessage = 'should convert {0} to {1}'.format(test.t, test.e);
+      it(testMessage, function() {
+        expect(date.endTime(test.t)).to.be.eql(test.e);
+      });
+    });
+  });
+
   describe('#timingFormat', function() {
     var tests = Em.A([
       {i: '30', e:'30 ms'},

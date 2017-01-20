@@ -232,6 +232,10 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
     });
 
 
+    it('End Time for upgrade in progress is `Not finished`', function () {
+      processedContent = view.processForDisplay([Em.Object.create({endTime: -1})]);
+      expect(processedContent[0].get('endTimeLabel')).to.be.equal('Not finished');
+    });
   });
 
 });
