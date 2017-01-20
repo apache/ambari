@@ -609,6 +609,7 @@ if has_hive_interactive:
   hive_interactive_enabled = default('/configurations/hive-interactive-env/enable_hive_interactive', False)
   llap_app_java_opts = default('/configurations/hive-interactive-env/llap_java_opts', '-XX:+AlwaysPreTouch {% if java_version > 7 %}-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200{% else %}-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{% endif %}')
   hive_interactive_heapsize = hive_heapsize
+  llap_app_name = config['configurations']['hive-interactive-env']['llap_app_name']
   # Ambari upgrade may not add this config as it will force restart of HSI (stack upgrade should)
   if 'hive_heapsize' in config['configurations']['hive-interactive-env']:
     hive_interactive_heapsize = config['configurations']['hive-interactive-env']['hive_heapsize']

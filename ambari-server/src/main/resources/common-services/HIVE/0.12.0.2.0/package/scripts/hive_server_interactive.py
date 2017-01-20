@@ -228,20 +228,19 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     def _llap_stop(self, env):
       import params
       Logger.info("Stopping LLAP")
-      SLIDER_APP_NAME = "llap0"
 
-      stop_cmd = ["slider", "stop", SLIDER_APP_NAME]
+      stop_cmd = ["slider", "stop", params.llap_app_name]
 
       code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
       if code == 0:
-        Logger.info(format("Stopped {SLIDER_APP_NAME} application on Slider successfully"))
+        Logger.info(format("Stopped {params.llap_app_name} application on Slider successfully"))
       elif code == 69 and output is not None and "Unknown application instance" in output:
-        Logger.info(format("Application {SLIDER_APP_NAME} was already stopped on Slider"))
+        Logger.info(format("Application {params.llap_app_name} was already stopped on Slider"))
       else:
-        raise Fail(format("Could not stop application {SLIDER_APP_NAME} on Slider. {error}\n{output}"))
+        raise Fail(format("Could not stop application {params.llap_app_name} on Slider. {error}\n{output}"))
 
       # Will exit with code 4 if need to run with "--force" to delete directories and registries.
-      Execute(('slider', 'destroy', SLIDER_APP_NAME, "--force"),
+      Execute(('slider', 'destroy', params.llap_app_name, "--force"),
               user=params.hive_user,
               timeout=30,
               ignore_failures=True,
@@ -254,19 +253,17 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       import params
       env.set_params(params)
 
-      LLAP_APP_NAME = 'llap0'
-
       if params.hive_server_interactive_ha:
         """
         Check llap app state
         """
         Logger.info("HSI HA is enabled. Checking if LLAP is already running ...")
-        status = self.check_llap_app_status(LLAP_APP_NAME, 2, params.hive_server_interactive_ha)
+        status = self.check_llap_app_status(params.llap_app_name, 2, params.hive_server_interactive_ha)
         if status:
-          Logger.info("LLAP app '{0}' is already running.".format(LLAP_APP_NAME))
+          Logger.info("LLAP app '{0}' is already running.".format(params.llap_app_name))
           return True
         else:
-          Logger.info("LLAP app '{0}' is not running. llap will be started.".format(LLAP_APP_NAME))
+          Logger.info("LLAP app '{0}' is not running. llap will be started.".format(params.llap_app_name))
         pass
 
       # Call for cleaning up the earlier run(s) LLAP package folders.
@@ -335,16 +332,16 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         Logger.info(format("Run file path: {run_file_path}"))
         Execute(run_file_path, user=params.hive_user, logoutput=True)
-        Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
+        Logger.info("Submitted LLAP app name : {0}".format(params.llap_app_name))
 
         # We need to check the status of LLAP app to figure out it got
         # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
-        status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
+        status = self.check_llap_app_status(params.llap_app_name, params.num_retries_for_checking_llap_status)
         if status:
-          Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
+          Logger.info("LLAP app '{0}' deployed successfully.".format(params.llap_app_name))
           return True
         else:
-          Logger.error("LLAP app '{0}' deployment unsuccessful.".format(LLAP_APP_NAME))
+          Logger.error("LLAP app '{0}' deployment unsuccessful.".format(params.llap_app_name))
           return False
       except:
         # Attempt to clean up the packaged application, or potentially rename it with a .bak
