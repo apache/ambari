@@ -134,7 +134,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
         directionLabel: direction,
         upgradeTypeLabel: method ? method.get('displayName') : method,
         startTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('startTime'))),
-        endTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('endTime'))),
+        endTimeLabel: date.endTime(App.dateTimeWithTimeZone(item.get('endTime'))),
         duration: date.durationSummary(item.get('startTime'), item.get('endTime'))
       });
       processedContent.push(item);
