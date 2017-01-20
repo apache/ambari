@@ -53,10 +53,22 @@ export default Ember.Service.extend({
     });
   },
 
-
   downloadAsCsv(jobId, path){
     let self = this;
     return this.get('store').adapterFor('job').downloadAsCsv(jobId, path);
+  },
+
+  retrieveQueryLog(logFile){
+
+    let self = this;
+    return new Promise( (resolve, reject) => {
+      this.get('store').adapterFor('query').retrieveQueryLog(logFile).then(function(data) {
+        resolve(data);
+      }, function(err) {
+        reject(err);
+      });
+    });
+
 
   }
 

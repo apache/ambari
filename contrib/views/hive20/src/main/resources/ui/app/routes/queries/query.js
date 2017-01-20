@@ -81,9 +81,16 @@ export default Ember.Route.extend({
     controller.set('queryResult', model.get('queryResult'));
     controller.set('currentJobId', null);
 
+    controller.set('isJobSuccess', false);
+
     controller.set('isExportResultSuccessMessege', false);
     controller.set('isExportResultFailureMessege', false);
     controller.set('showSaveHdfsModal', false);
+
+    controller.set('logResults', model.get('logResults') || '');
+    controller.set('showQueryEditorLog', true);
+    controller.set('showQueryEditorResult', !controller.get('showQueryEditorLog'));
+
 
   },
 
@@ -160,17 +167,63 @@ export default Ember.Route.extend({
         "globalSettings":""};
 
       this.get('query').createJob(payload).then(function(data) {
-        // applying a timeout otherwise it goes for status code 409, although that condition is also handled in the code.
-        setTimeout(function(){
-          self.get('controller.model').set('currentJobData', data);
-          self.get('controller.model').set('queryFile', data.job.queryFile);
 
-          self.get('controller').set('currentJobId', data.job.id);
+        self.get('controller.model').set('currentJobData', data);
+        self.get('controller.model').set('queryFile', data.job.queryFile);
+        self.get('controller.model').set('logFile', data.job.logFile);
+        self.get('controller').set('currentJobId', data.job.id);
 
-          self.send('getJob', data);
-         }, 2000);
+        self.get('jobs').waitForJobToComplete(data.job.id, 5 * 1000)
+          .then((status) => {
+            Ember.run.later(() => {
+              self.get('controller').set('isJobSuccess', true);
+              self.send('getJob', data);
+
+              //Last log
+              self.send('fetchLogs');
+
+              //Open result tab and hide log tab
+              self.send('showQueryEditorResult');
+            }, 2 * 1000);
+          }, (error) => {
+            Ember.run.later(() => {
+              // TODO: handle error
+            }, 2 * 1000);
+          });
+
+        self.send('getLogsTillJobSuccess', data.job.id);
+
       }, function(reason) {
         console.log(reason);
+      });
+    },
+
+    getLogsTillJobSuccess(jobId){
+      let self = this;
+      this.get('jobs').waitForJobStatus(jobId)
+        .then((status) => {
+          console.log('status', status);
+          if(status !== "succeeded"){
+            self.send('fetchLogs');
+            Ember.run.later(() => {
+              self.send('getLogsTillJobSuccess',jobId )
+            }, 5 * 1000);
+          } else {
+            self.send('fetchLogs');
+          }
+        }, (error) => {
+          console.log('error',error);
+        });
+    },
+
+    fetchLogs(){
+      let self = this;
+
+      let logFile = this.get('controller.model').get('logFile');
+      this.get('query').retrieveQueryLog(logFile).then(function(data) {
+        self.get('controller.model').set('logResults', data.file.fileContent);
+      }, function(error){
+        console.log('error', error);
       });
     },
 
@@ -206,6 +259,16 @@ export default Ember.Route.extend({
         console.log('reason' , reason);
         if( reason.errors[0].status == 409 ){
           setTimeout(function(){
+
+            //Put the code here for changing the log content.
+            let logFile = self.get('controller.model').get('logFile');
+            self.get('query').retrieveQueryLog(logFile).then(function(data) {
+              self.get('controller.model').set('logResults', data.file.fileContent);
+            }, function(error){
+              console.log('error', error);
+            });
+
+
             self.send('getJob',data);
           }, 2000);
         }
@@ -255,12 +318,12 @@ export default Ember.Route.extend({
           }
         });
       } else { //Pages from cache object
-          this.get('controller.model').set('currentPage', currentPage+1);
-          this.get('controller.model').set('previousPage', previousPage + 1 );
-          this.get('controller.model').set('nextPage', nextPage + 1);
-          this.get('controller.model').set('hidePreviousButton', false);
-          this.get('controller').set('queryResult', this.get('controller.model').get("jobData")[this.get('controller.model').get('currentPage')-1] );
-          this.get('controller.model').set('queryResult', this.get('controller.model').get("jobData")[this.get('controller.model').get('currentPage')-1] );
+        this.get('controller.model').set('currentPage', currentPage+1);
+        this.get('controller.model').set('previousPage', previousPage + 1 );
+        this.get('controller.model').set('nextPage', nextPage + 1);
+        this.get('controller.model').set('hidePreviousButton', false);
+        this.get('controller').set('queryResult', this.get('controller.model').get("jobData")[this.get('controller.model').get('currentPage')-1] );
+        this.get('controller.model').set('queryResult', this.get('controller.model').get("jobData")[this.get('controller.model').get('currentPage')-1] );
       }
     },
 
@@ -303,7 +366,6 @@ export default Ember.Route.extend({
       }
     },
 
-
     openWorksheetModal(){
       this.get('controller').set('showWorksheetModal', true);
     },
@@ -316,12 +378,14 @@ export default Ember.Route.extend({
       let selectedDb = this.get('controller.model').get('selectedDb');
       let owner = this.get('controller.model').get('owner');
       let queryFile = this.get('controller.model').get('queryFile');
+      let logFile = this.get('controller.model').get('logFile');
 
       let payload = {"title" : newTitle,
-                     "dataBase": selectedDb,
-                     "owner" : owner,
-                     "shortQuery" : (currentQuery.length > 0) ? currentQuery : ";",
-                     "queryFile" : queryFile };
+        "dataBase": selectedDb,
+        "owner" : owner,
+        "shortQuery" : (currentQuery.length > 0) ? currentQuery : ";",
+        "queryFile" : queryFile,
+        "logFile" : logFile};
 
       this.get('savedQueries').saveQuery(payload)
         .then((data) => {
@@ -351,25 +415,25 @@ export default Ember.Route.extend({
       console.log('saveToHDFS query route with path == ', path);
 
       this.get('query').saveToHDFS(jobId, path)
-         .then((data) => {
-           console.log('successfully saveToHDFS', data);
-           this.get('controller').set('isExportResultSuccessMessege', true);
-           this.get('controller').set('isExportResultFailureMessege', false);
+        .then((data) => {
+          console.log('successfully saveToHDFS', data);
+          this.get('controller').set('isExportResultSuccessMessege', true);
+          this.get('controller').set('isExportResultFailureMessege', false);
 
-           Ember.run.later(() => {
-             this.get('controller').set('showSaveHdfsModal', false);
-           }, 2 * 1000);
+          Ember.run.later(() => {
+            this.get('controller').set('showSaveHdfsModal', false);
+          }, 2 * 1000);
 
-          }, (error) => {
-            console.log("Error encountered", error);
-            this.get('controller').set('isExportResultFailureMessege', true);
-            this.get('controller').set('isExportResultSuccessMessege', false);
+        }, (error) => {
+          console.log("Error encountered", error);
+          this.get('controller').set('isExportResultFailureMessege', true);
+          this.get('controller').set('isExportResultSuccessMessege', false);
 
-            Ember.run.later(() => {
-               this.get('controller').set('showSaveHdfsModal', false);
-             }, 2 * 1000);
+          Ember.run.later(() => {
+            this.get('controller').set('showSaveHdfsModal', false);
+          }, 2 * 1000);
 
-          });
+        });
     },
 
     downloadAsCsv(jobId, path){
@@ -382,6 +446,26 @@ export default Ember.Route.extend({
       this.get('controller').set('showDownloadCsvModal', false);
       window.open(downloadAsCsvUrl);
 
+    },
+
+    showQueryEditorLog(){
+      this.get('controller').set('showQueryEditorLog', true);
+      this.get('controller').set('showQueryEditorResult', false);
+
+      $('.log-list-anchor').addClass('active');
+      $('.log-list').addClass('active');
+      $('.editor-result-list-anchor').removeClass('active');
+      $('.editor-result-list').removeClass('active');
+    },
+
+    showQueryEditorResult(){
+      this.get('controller').set('showQueryEditorLog', false);
+      this.get('controller').set('showQueryEditorResult', true);
+
+      $('.log-list-anchor').removeClass('active');
+      $('.log-list').removeClass('active');
+      $('.editor-result-list-anchor').addClass('active');
+      $('.editor-result-list').addClass('active');
     }
   }
 });

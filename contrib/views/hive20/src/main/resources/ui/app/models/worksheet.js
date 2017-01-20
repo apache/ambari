@@ -33,5 +33,8 @@ export default DS.Model.extend({
   hidePreviousButton: DS.attr('boolean', { defaultValue: true}),
   selectedTablesModels: DS.attr(),
   selectedMultiDb: DS.attr(),
-  queryFile: DS.attr('string', {defaultValue: ""})
+  queryFile: DS.attr('string', {defaultValue: ""}),
+  logFile: DS.attr('string', {defaultValue: ""}),
+  logResults: DS.attr('string', {defaultValue: ""})
+
 });

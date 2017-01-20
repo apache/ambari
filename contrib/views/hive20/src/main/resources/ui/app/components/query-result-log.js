@@ -17,34 +17,12 @@
  */
 
 import Ember from 'ember';
-import ApplicationAdapter from './application';
 
-export default ApplicationAdapter.extend({
+export default Ember.Component.extend({
+  logResults:'',
 
-  buildURL(){
-    return this._super(...arguments) + '/jobs/';
-  },
-
-  createJob(payload) {
-    let postURL = this.buildURL();
-    return this.ajax(postURL , 'POST', { data: {job: payload} });
-  },
-  getJob(jobId, dateSubmitted, firstCall){
-
-    let url = '';
-    if(firstCall){
-      url = this.buildURL() + jobId + '/results?first=true&_='+ dateSubmitted;
-    }else {
-      url = this.buildURL() + jobId + '/results?_='+ dateSubmitted;
-    }
-
-    return this.ajax(url, 'GET')
-  },
-
-  retrieveQueryLog(logFile){
-    let url = '';
-    url = this.buildURL().replace('/jobs','') + '/files' + logFile;
-    return this.ajax(url, 'GET')
-  }
+  selectedDatabase: Ember.computed('logResults', function() {
+    return this.get('logResults');
+  }),
 
 });
