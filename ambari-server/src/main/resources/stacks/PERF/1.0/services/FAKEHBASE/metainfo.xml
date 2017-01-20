@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>FAKEHBASE</name>
+      <displayName>FAKEHBASE</displayName>
+      <version>1.1.1.2.3</version>
+      <comment>A Non-relational distributed database, plus Phoenix, a high performance SQL layer for low latency applications.</comment>
+
+      <components>
+        <component>
+          <name>FAKEHBASE_MASTER</name>
+          <displayName>FAKEHBase Master</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <timelineAppid>FAKEHBASE</timelineAppid>
+          <dependencies>
+            <dependency>
+              <name>FAKEHDFS/FAKEHDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>FAKEZOOKEEPER/FAKEZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>FAKEHBASE/FAKEHBASE_MASTER</co-locate>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/hbase_master.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_master</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
+          <name>FAKEPHOENIX_QUERY_SERVER</name>
+          <displayName>FAKEPhoenix Query Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/phoenix_queryserver.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_phoenix_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>FAKEHBASE_REGIONSERVER</name>
+          <displayName>FAKERegionServer</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
+          <timelineAppid>FAKEHBASE</timelineAppid>
+          <commandScript>
+            <script>scripts/hbase_regionserver.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <bulkCommands>
+            <displayName>FAKEFAKERegionServers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>FAKEHBASE_MASTER</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>hbase_regionserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>FAKEHBASE_CLIENT</name>
+          <displayName>FAKEHBase Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/hbase_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hbase-site.xml</fileName>
+              <dictionaryName>hbase-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hbase-env.sh</fileName>
+              <dictionaryName>hbase-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>hbase-policy.xml</fileName>
+              <dictionaryName>hbase-policy</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>hbase-log4j</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <!-- No packages to install. -->
+      <osSpecifics></osSpecifics>
+
+      <configuration-dependencies>
+        <config-type>hbase-alert-config</config-type>
+        <config-type>core-site</config-type> <!-- hbase puts core-site in it's folder -->
+        <config-type>hbase-policy</config-type>
+        <config-type>hbase-site</config-type>
+        <config-type>hbase-env</config-type>
+        <config-type>hbase-log4j</config-type>
+        <config-type>ranger-hbase-plugin-properties</config-type>
+        <config-type>ranger-hbase-audit</config-type>
+        <config-type>ranger-hbase-policymgr-ssl</config-type>
+        <config-type>ranger-hbase-security</config-type>
+        <config-type>ams-ssl-client</config-type>
+      </configuration-dependencies>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>FAKEZOOKEEPER</service>
+        <service>FAKEHDFS</service>
+      </requiredServices>
+
+    </service>
+  </services>
+</metainfo>

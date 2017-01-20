@@ -38,7 +38,7 @@
           "name": "HAPPY",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "happy_happy",

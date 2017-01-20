@@ -30,6 +30,7 @@
           <displayName>Sleepy</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/dwarf.py</script>
             <scriptType>PYTHON</scriptType>

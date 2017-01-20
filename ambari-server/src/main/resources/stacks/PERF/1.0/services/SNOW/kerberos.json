@@ -38,7 +38,7 @@
           "name": "SNOW_WHITE",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "snow_white_snow",

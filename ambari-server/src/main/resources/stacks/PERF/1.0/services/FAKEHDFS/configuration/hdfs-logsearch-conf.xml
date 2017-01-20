@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <property>
+    <name>service_name</name>
+    <display-name>Service name</display-name>
+    <description>Service name for Logsearch Portal (label)</description>
+    <value>FAKEHDFS</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>component_mappings</name>
+    <display-name>Component mapping</display-name>
+    <description>Logsearch component logid mapping list (e.g.: COMPONENT1:logid1,logid2;COMPONENT2:logid3)</description>
+    <value>FAKENAMENODE:hdfs_namenode;FAKEDATANODE:hdfs_datanode;SECONDARY_FAKENAMENODE:hdfs_secondarynamenode;FAKEJOURNALNODE:hdfs_journalnode;FAKEZKFC:hdfs_zkfc;FAKENFS_GATEWAY:hdfs_nfs3</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>Logfeeder Config</display-name>
+    <description>Metadata jinja template for Logfeeder which contains grok patterns for reading service specific logs.</description>
+    <value>
+{
+  "input":[
+    {
+      "type":"hdfs_datanode",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hadoop-{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}-datanode-*.log"
+    },
+    {
+      "type":"hdfs_namenode",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hadoop-{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}-namenode-*.log"
+    },
+    {
+      "type":"hdfs_journalnode",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hadoop-{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}-journalnode-*.log"
+    },
+    {
+      "type":"hdfs_secondarynamenode",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hadoop-{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}-secondarynamenode-*.log"
+    },
+    {
+      "type":"hdfs_zkfc",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hadoop-{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}-zkfc-*.log"
+    },
+    {
+      "type":"hdfs_nfs3",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hadoop-{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}-nfs3-*.log"
+    },
+    {
+      "type":"hdfs_audit",
+      "rowtype":"audit",
+      "is_enabled":"true",
+      "add_fields":{
+        "logType":"FAKEHDFSAudit",
+        "enforcer":"hadoop-acl",
+        "repoType":"1",
+        "repo":"hdfs"
+      },
+      "path":"{{default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/hadoop-env/hdfs_user', 'hdfs')}}/hdfs-audit.log"
+    }
+   ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_datanode",
+            "hdfs_journalnode",
+            "hdfs_secondarynamenode",
+            "hdfs_namenode",
+            "hdfs_zkfc",
+            "hdfs_nfs3"
+          ]
+         }
+       },
+      "log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}%{SPACE}\\(%{JAVAFILE:file}:%{JAVAMETHOD:method}\\(%{INT:line_number}\\)\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+       }
+     },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_audit"
+          ]
+         }
+       },
+      "log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:evtTime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:evtTime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "evtTime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+         }
+       }
+     },
+    {
+      "filter":"keyvalue",
+      "sort_order":1,
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_audit"
+          ]
+         }
+       },
+      "source_field":"log_message",
+      "value_split":"=",
+      "field_split":"\t",
+      "post_map_values":{
+        "src":{
+          "map_fieldname":{
+            "new_fieldname":"resource"
+          }
+         },
+        "ip":{
+          "map_fieldname":{
+            "new_fieldname":"cliIP"
+          }
+         },
+        "allowed":[
+          {
+            "map_fieldvalue":{
+              "pre_value":"true",
+              "post_value":"1"
+            }
+           },
+          {
+            "map_fieldvalue":{
+              "pre_value":"false",
+              "post_value":"0"
+            }
+           },
+          {
+            "map_fieldname":{
+              "new_fieldname":"result"
+            }
+           }
+         ],
+        "cmd":{
+          "map_fieldname":{
+            "new_fieldname":"action"
+          }
+         },
+        "proto":{
+          "map_fieldname":{
+            "new_fieldname":"cliType"
+          }
+         },
+        "callerContext":{
+          "map_fieldname":{
+            "new_fieldname":"req_caller_id"
+          }
+         }
+       }
+     },
+    {
+      "filter":"grok",
+      "sort_order":2,
+      "source_field":"ugi",
+      "remove_source_field":"false",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hdfs_audit"
+          ]
+         }
+       },
+      "message_pattern":"%{USERNAME:p_user}.+auth:%{USERNAME:p_authType}.+via %{USERNAME:k_user}.+auth:%{USERNAME:k_authType}|%{USERNAME:user}.+auth:%{USERNAME:authType}|%{USERNAME:x_user}",
+      "post_map_values":{
+        "user":{
+          "map_fieldname":{
+            "new_fieldname":"reqUser"
+          }
+         },
+        "x_user":{
+          "map_fieldname":{
+            "new_fieldname":"reqUser"
+          }
+         },
+        "p_user":{
+          "map_fieldname":{
+            "new_fieldname":"reqUser"
+          }
+         },
+        "k_user":{
+          "map_fieldname":{
+            "new_fieldname":"proxyUsers"
+          }
+         },
+        "p_authType":{
+          "map_fieldname":{
+            "new_fieldname":"authType"
+          }
+         },
+        "k_authType":{
+          "map_fieldname":{
+            "new_fieldname":"proxyAuthType"
+          }
+         }
+       }
+     }
+   ]
+ }
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

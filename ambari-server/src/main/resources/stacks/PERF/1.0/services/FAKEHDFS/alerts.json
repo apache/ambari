@@ -1,0 +1,120 @@
+{
+  "FAKEHDFS":{
+    "FAKENAMENODE": [
+
+      {
+        "name": "upgrade_finalized_state",
+        "label": "FAKEHDFS Upgrade Finalized State",
+        "description": "This service-level alert is triggered if FAKEHDFS is not in the finalized state",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHDFS/package/alerts/alert_upgrade_finalized.py",
+          "parameters": []
+        }
+      },
+
+      {
+        "name": "namenode_last_checkpoint",
+        "label": "FAKEHNameNode Last Checkpoint",
+        "description": "This service-level alert will trigger if the last time that the FAKEHNameNode performed a checkpoint was too long ago. It will also trigger if the number of uncommitted transactions is beyond a certain threshold.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHDFS/package/alerts/alert_checkpoint_time.py",
+          "parameters": [
+            {
+              "name": "connection.timeout",
+              "display_name": "Connection Timeout",
+              "value": 5.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before this alert is considered to be CRITICAL",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "checkpoint.time.warning.threshold",
+              "display_name": "Checkpoint Warning",
+              "value": 200,
+              "type": "PERCENT",
+              "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a warning alert.",
+              "units": "%",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "checkpoint.time.critical.threshold",
+              "display_name": "Checkpoint Critical",
+              "value": 200,
+              "type": "PERCENT",
+              "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a critical alert.",
+              "units": "%",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "checkpoint.txns.multiplier.warning.threshold",
+              "display_name": "Uncommitted transactions Warning",
+              "value": 2.0,
+              "type": "NUMERIC",
+              "description": "The multiplier to use against dfs.namenode.checkpoint.period compared to the difference between last transaction id and most recent transaction id beyond which to trigger a warning alert.",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "checkpoint.txns.multiplier.critical.threshold",
+              "display_name": "Uncommitted transactions Critical",
+              "value": 4.0,
+              "type": "NUMERIC",
+              "description": "The multiplier to use against dfs.namenode.checkpoint.period compared to the difference between last transaction id and most recent transaction id beyond which to trigger a critical alert.",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      }
+    ],
+    "SECONDARY_FAKENAMENODE": [
+      {
+        "name": "secondary_namenode_process",
+        "label": "Secondary FAKEHNameNode Process",
+        "description": "This host-level alert is triggered if the Secondary FAKEHNameNode process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHDFS/package/alerts/alert_snamenode_process.py"
+        }
+      }
+    ],
+    "FAKENFS_GATEWAY": [
+      {
+        "name": "nfsgateway_process",
+        "label": "NFS Gateway Process",
+        "description": "This host-level alert is triggered if the NFS Gateway process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHDFS/package/alerts/alert_nfs_gateway_process.py"
+        }
+      }
+    ],
+    "FAKEDATANODE": [
+      {
+        "name": "datanode_unmounted_data_dir",
+        "label": "FAKEDataNode Unmounted Data Dir",
+        "description": "This host-level alert is triggered if one of the data directories on a host was previously on a mount point and became unmounted. If the mount history file does not exist, then report an error if a host has one or more mounted data directories as well as one or more unmounted data directories on the root partition. This may indicate that a data directory is writing to the root partition, which is undesirable.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHDFS/package/alerts/alert_datanode_unmounted_data_dir.py"
+        }
+      }
+    ]
+  }
+}
