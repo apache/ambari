@@ -91,10 +91,9 @@ class PythonExecutor(object):
     recreated or appended.
     The structured out file, however, is preserved during multiple invocations that use the same file.
     """
-
     pythonCommand = self.python_command(script, script_params)
     logger.debug("Running command " + pprint.pformat(pythonCommand))
-    
+
     if handle is None:
       tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
 
@@ -111,10 +110,10 @@ class PythonExecutor(object):
       self.event.set()
       thread.join()
       result = self.prepare_process_result(process.returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
-      
+
       if log_info_on_failure and result['exitcode']:
         self.on_failure(pythonCommand, result)
-      
+
       return result
     else:
       holder = Holder(pythonCommand, tmpoutfile, tmperrfile, tmpstructedoutfile, handle)
@@ -122,7 +121,7 @@ class PythonExecutor(object):
       background = BackgroundThread(holder, self)
       background.start()
       return {"exitcode": 777}
-    
+
   def on_failure(self, pythonCommand, result):
     """
     Log some useful information after task failure.
@@ -134,11 +133,11 @@ class PythonExecutor(object):
       cmd_list = ["ps faux", "netstat -tulpn"]
 
     shell_runner = shellRunner()
-    
+
     for cmd in cmd_list:
       ret = shell_runner.run(cmd)
       logger.info("Command '{0}' returned {1}. {2}{3}".format(cmd, ret["exitCode"], ret["error"], ret["output"]))
-    
+
   def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
 
@@ -166,7 +165,7 @@ class PythonExecutor(object):
       else:
         structured_out = {}
     return out, error, structured_out
-  
+
   def preexec_fn(self):
     os.setpgid(0, 0)
 
@@ -197,14 +196,14 @@ class PythonExecutor(object):
 
   def condenseOutput(self, stdout, stderr, retcode, structured_out):
     log_lines_count = self.config.get('heartbeat', 'log_lines_count')
-    
+
     result = {
       "exitcode": retcode,
       "stdout": self.grep.tail(stdout, log_lines_count) if log_lines_count else stdout,
       "stderr": self.grep.tail(stderr, log_lines_count) if log_lines_count else stderr,
       "structuredOut" : structured_out
     }
-    
+
     return result
 
   def python_watchdog_func(self, python, timeout):

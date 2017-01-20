@@ -30,6 +30,7 @@
           <displayName>Snow White</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/snow_white.py</script>
             <scriptType>PYTHON</scriptType>

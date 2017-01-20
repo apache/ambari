@@ -16,13 +16,44 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+import os
+from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.script import Hook
+
+AMBARI_AGENT_CACHE_DIR = 'AMBARI_AGENT_CACHE_DIR'
+
+BEFORE_INSTALL_SCRIPTS = "hooks/before-INSTALL/scripts"
+STACK = "PERF/1.0"
+STACKS = "stacks"
+DISTRO_SELECT_PY = os.path.join(STACKS, STACK, BEFORE_INSTALL_SCRIPTS, "distro-select.py")
+CONF_SELECT_PY = os.path.join(STACKS, STACK, BEFORE_INSTALL_SCRIPTS, "conf-select.py")
+DISTRO_SELECT_DEST = "/usr/bin/distro-select"
+CONF_SELECT_DEST = "/usr/bin/conf-select"
 
 class BeforeInstallHook(Hook):
 
   def hook(self, env):
     print "Before Install Hook"
+    cache_dir = self.extrakt_var_from_pythonpath(AMBARI_AGENT_CACHE_DIR)
+    conf_select = os.path.join(cache_dir, CONF_SELECT_PY)
+    dist_select = os.path.join(cache_dir, DISTRO_SELECT_PY)
+    if not os.path.exists(CONF_SELECT_DEST):
+      Execute("cp %s %s" % (conf_select, CONF_SELECT_DEST), user="root")
+      Execute("chmod a+x %s" % (CONF_SELECT_DEST), user="root")
+    if not os.path.exists(DISTRO_SELECT_DEST):
+      Execute("cp %s %s" % (dist_select, DISTRO_SELECT_DEST), user="root")
+      Execute("chmod a+x %s" % (DISTRO_SELECT_DEST), user="root")
+
+  def extrakt_var_from_pythonpath(self, name):
+
+    PATH = os.environ['PATH']
+    paths = PATH.split(':')
+    var = ''
+    for item in paths:
+      if item.startswith(name):
+        var = item.replace(name, '')
+        break
+    return var
 
 if __name__ == "__main__":
   BeforeInstallHook().execute()

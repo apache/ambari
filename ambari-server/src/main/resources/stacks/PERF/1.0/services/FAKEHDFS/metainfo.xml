@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>FAKEHDFS</name>
+      <displayName>FAKEHDFS</displayName>
+      <comment>Apache Hadoop Distributed File System</comment>
+      <version>2.7.1.2.3</version>
+
+      <components>
+        <component>
+          <name>FAKENAMENODE</name>
+          <displayName>FAKEHNameNode</displayName>
+          <category>MASTER</category>
+          <cardinality>1-2</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <commandScript>
+            <script>scripts/namenode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_namenode</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>hdfs_audit</logId>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>REBALANCEFAKEHDFS</name>
+              <background>true</background>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
+          <name>FAKEDATANODE</name>
+          <displayName>FAKEDataNode</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
+          <commandScript>
+            <script>scripts/datanode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <bulkCommands>
+            <displayName>FAKEDataNodes</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>FAKENAMENODE</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>hdfs_datanode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>SECONDARY_FAKENAMENODE</name>
+          <displayName>SFAKEHNameNode</displayName>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/snamenode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_secondarynamenode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>FAKEHDFS_CLIENT</name>
+          <displayName>FAKEHDFS Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/hdfs_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hdfs-site.xml</fileName>
+              <dictionaryName>hdfs-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>hdfs-log4j,yarn-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hadoop-env.sh</fileName>
+              <dictionaryName>hadoop-env</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+
+        <component>
+          <name>FAKEJOURNALNODE</name>
+          <displayName>FAKEJournalNode</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/journalnode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_journalnode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+          <dependencies>
+            <dependency>
+              <name>FAKEHDFS/FAKEHDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+        <component>
+          <name>FAKEZKFC</name>
+          <displayName>FAKEZKFailoverController</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/zkfc_slave.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_zkfc</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>FAKENFS_GATEWAY</name>
+          <displayName>FAKENFSGateway</displayName>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/nfsgateway.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>FAKEHDFS/FAKEHDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>FAKEZOOKEEPER</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>hdfs-alert-config</config-type>
+        <config-type>core-site</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>hadoop-policy</config-type>
+        <config-type>hdfs-log4j</config-type>
+        <config-type>ranger-hdfs-plugin-properties</config-type>
+        <config-type>ssl-client</config-type>
+        <config-type>ssl-server</config-type>
+        <config-type>ranger-hdfs-audit</config-type>
+        <config-type>ranger-hdfs-policymgr-ssl</config-type>
+        <config-type>ranger-hdfs-security</config-type>
+        <config-type>ams-ssl-client</config-type>
+        <config-type>hadoop-metrics2.properties</config-type>
+      </configuration-dependencies>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
+
+      <!-- No packages to install. -->
+      <osSpecifics></osSpecifics>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+    </service>
+  </services>
+</metainfo>

@@ -38,7 +38,7 @@
           "name": "SLEEPY",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
             },
             {
               "name": "sleepy_sleepy",
