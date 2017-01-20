@@ -372,6 +372,11 @@
       "name": "atlas_hdfs_site_on_namenode_ha",
       "description": "Need to create hdfs-site under atlas-conf dir when Namenode-HA is enabled.",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "hive_interactive_ga",
+      "description": "Hive Interactive GA support",
+      "min_version": "2.6.0.0"
     }
   ]
 }

@@ -274,25 +274,27 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
-      # Figure out the Slider Anti-affinity to be used.
-      # YARN does not support anti-affinity, and therefore Slider implements AA by the means of exclusion lists, i.e, it
-      # starts containers one by one and excludes the nodes it gets (adding a delay of ~2sec./machine). When the LLAP
-      # container memory size configuration is more than half of YARN node memory, AA is implicit and should be avoided.
-      slider_placement = 4
-      if long(params.llap_daemon_container_size) > (0.5 * long(params.yarn_nm_mem)):
-        slider_placement = 0
-        Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
-                    "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
-      else:
-        Logger.info("Setting slider_placement: 4, as llap_daemon_container_size : {0} <= 0.5 * "
-                    "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
-
-
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
                    " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m"
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
-                   " --slider-placement {slider_placement} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}"
                    " {params.llap_extra_slider_opts} --skiphadoopversion --skiphbasecp --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
+
+      # '--slider-placement' param is supported from HDP Hive GA version.
+      if params.stack_supports_hive_interactive_ga:
+        # Figure out the Slider Anti-affinity to be used.
+        # YARN does not support anti-affinity, and therefore Slider implements AA by the means of exclusion lists, i.e, it
+        # starts containers one by one and excludes the nodes it gets (adding a delay of ~2sec./machine). When the LLAP
+        # container memory size configuration is more than half of YARN node memory, AA is implicit and should be avoided.
+        slider_placement = 4
+        if long(params.llap_daemon_container_size) > (0.5 * long(params.yarn_nm_mem)):
+          slider_placement = 0
+          Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
+                      "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+        else:
+          Logger.info("Setting slider_placement: 4, as llap_daemon_container_size : {0} <= 0.5 * "
+                     "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+        cmd += format(" --slider-placement {slider_placement}")
+
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
@@ -306,6 +308,13 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Append args.
       llap_java_args = InlineTemplate(params.llap_app_java_opts).get_content()
       cmd += format(" --args \" {llap_java_args}\"")
+      # Append metaspace size to args.
+      if params.java_version > 7 and params.llap_daemon_container_size > 4096:
+        if params.llap_daemon_container_size <= 32768:
+          metaspaceSize = "256m"
+        else:
+          metaspaceSize = "1024m"
+        cmd = cmd[:-1] + " -XX:MetaspaceSize="+metaspaceSize+ "\""
 
       run_file_path = None
       try:
