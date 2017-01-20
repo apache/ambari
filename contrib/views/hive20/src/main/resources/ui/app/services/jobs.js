@@ -33,10 +33,9 @@ export default Ember.Service.extend({
           .then((job) => {
             let status = job.get('status').toLowerCase();
             if (status === 'succeeded') {
-              this._fetchDummyResult(jobId);
-              resolve();
+              resolve(status);
             } else if (status === 'error') {
-              reject()
+              reject(status)
             } else {
               resolve(this.waitForJobToComplete(jobId, after));
             }
@@ -47,8 +46,16 @@ export default Ember.Service.extend({
     });
   },
 
-  _fetchDummyResult(jobId) {
-    this.get('store').adapterFor('job').fetchResult(jobId);
+  waitForJobStatus: function (jobId) {
+    return new Ember.RSVP.Promise((resolve, reject) => {
+      this.get('store').findRecord('job', jobId, {reload: true})
+        .then((job) => {
+          let status = job.get('status').toLowerCase();
+          resolve(status);
+        }, (error) => {
+          reject(error);
+        });
+    });
   }
 
 });
