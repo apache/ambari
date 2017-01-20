@@ -255,6 +255,7 @@
     <description>
       The principal name to use when executing the Kerberos service check
     </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value>${cluster_name|toLower()}-${short_date}</value>
     <value-attributes>
       <overridable>false</overridable>

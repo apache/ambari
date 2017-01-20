@@ -132,6 +132,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
   <property>
     <name>hbase_principal_name</name>
     <description>HBase principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

@@ -136,6 +136,7 @@
       <xs:enumeration value="ADDITIONAL_USER_PROPERTY"/>
       <xs:enumeration value="NOT_MANAGED_HDFS_PATH"/>
       <xs:enumeration value="VALUE_FROM_PROPERTY_FILE"/>
+      <xs:enumeration value="KERBEROS_PRINCIPAL"/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

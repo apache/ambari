@@ -166,6 +166,7 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
     <description>
       Kerberos principal name for the Zeppelin.
     </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

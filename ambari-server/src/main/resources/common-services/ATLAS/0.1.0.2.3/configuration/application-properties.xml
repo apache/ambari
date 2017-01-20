@@ -108,6 +108,7 @@
     <name>atlas.authentication.principal</name>
     <value>atlas</value>
     <description/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

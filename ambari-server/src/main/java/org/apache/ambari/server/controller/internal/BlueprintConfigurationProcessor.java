@@ -171,7 +171,7 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("domains", "krb5-conf"),
       new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
       new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
-      new StackPasswordPropertyFilter()
+      new StackPropertyTypeFilter()
     };
 
   /**
@@ -2988,16 +2988,16 @@ public class BlueprintConfigurationProcessor {
     }
   }
   /**
-   * A Filter that excludes properties if in stack a property is marked as password property
+   * A Filter that excludes properties if in stack a property is marked as password property or kerberos principal
    *
    */
-  private static class StackPasswordPropertyFilter implements PropertyFilter {
+  private static class StackPropertyTypeFilter implements PropertyFilter {
 
     /**
      * Query to determine if a given property should be included in a collection of
      * properties.
      *
-     * This implementation filters property if in stack configuration is the property type is password.
+     * This implementation filters property if in stack configuration is the property type is password or kerberos principal.
      *
      * @param propertyName property name
      * @param propertyValue property value
@@ -3011,7 +3011,8 @@ public class BlueprintConfigurationProcessor {
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
         Stack stack = topology.getBlueprint().getStack();
         final String serviceName = stack.getServiceForConfigType(configType);
-        return !stack.isPasswordProperty(serviceName, configType, propertyName);
+        return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
+                stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
     }
   }
 

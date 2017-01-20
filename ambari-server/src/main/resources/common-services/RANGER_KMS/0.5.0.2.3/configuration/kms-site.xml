@@ -74,6 +74,7 @@
     <name>hadoop.kms.authentication.kerberos.principal</name>
     <value>HTTP/localhost</value>
     <description>The Kerberos principal to use for the HTTP endpoint. The principal must start with 'HTTP/' as per the Kerberos HTTP SPNEGO specification.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -120,6 +121,7 @@
     <name>hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal</name>
     <value>kms/#HOSTNAME#</value>
     <description>The Kerberos service principal used to connect to Zookeeper.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

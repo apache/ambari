@@ -31,6 +31,7 @@
   <property>
     <name>ams.zookeeper.principal</name>
     <value/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -63,6 +64,7 @@
   <property>
     <name>hbase.master.kerberos.principal</name>
     <value/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -87,6 +89,7 @@
   <property>
     <name>hbase.myclient.principal</name>
     <value/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -95,6 +98,7 @@
   <property>
     <name>hbase.regionserver.kerberos.principal</name>
     <value/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>

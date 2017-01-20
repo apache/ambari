@@ -190,6 +190,7 @@
     <value>infra-solr</value>
     <display-name>Infra Solr principal</display-name>
     <description>The service principal for Infra Solr.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="false"/>
   </property>
 
@@ -206,6 +207,7 @@
     <value>HTTP/_HOST@EXAMPLE.COM</value>
     <display-name>Infra Solr Http principal</display-name>
     <description>The service principal for the Infra Solr.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="false"/>
   </property>
 
