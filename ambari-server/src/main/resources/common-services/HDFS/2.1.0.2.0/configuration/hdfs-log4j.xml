@@ -53,7 +53,7 @@
   </property>
   <property>
     <name>hadoop_log_number_of_backup_files</name>
-    <value>20</value>
+    <value>10</value>
     <description>The number of backup files</description>
     <display-name>Hadoop Log: # of backup files</display-name>
     <value-attributes>
