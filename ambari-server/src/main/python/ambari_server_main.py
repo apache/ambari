@@ -116,6 +116,7 @@ CHECK_DATABASE_SKIPPED_PROPERTY = "check_database_skipped"
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
 AMBARI_SERVER_NOT_STARTED_MSG = "Ambari Server java process hasn't been started or can't be determined."
+AMBARI_SERVER_STARTED_SUCCESS_MSG = "Ambari Server has started successfully"
 
 # linux open-file limit
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
@@ -218,22 +219,26 @@ def wait_for_server_start(pidFile, scmStatus):
                         locate_all_file_paths('bash', '/bin') +
                         locate_all_file_paths('dash', '/bin'), IS_FOREGROUND):
       server_started = True
+      sys.stdout.write("Server PID determined "+AMBARI_SERVER_STARTED_SUCCESS_MSG+"\n")
       break
     else:
       sys.stdout.write("Unable to determine server PID. Retrying...\n")
       sys.stdout.flush()
 
-  if 'Database consistency check: failed' in open(configDefaults.SERVER_OUT_FILE).read():
-    print "DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
-    "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
-    "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
-    "or perform a cluster upgrade until you correct the database consistency issues. See " + \
-          configDefaults.DB_CHECK_LOG + "for more details on the consistency issues."
-  elif 'Database consistency check: warning' in open(configDefaults.SERVER_OUT_FILE).read():
-    print "DB configs consistency check found warnings. See " + \
-          configDefaults.DB_CHECK_LOG + " for more details."
+  if os.path.isfile(configDefaults.SERVER_OUT_FILE):
+    if 'Database consistency check: failed' in open(configDefaults.SERVER_OUT_FILE).read():
+        print "DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+        "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
+        "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
+        "or perform a cluster upgrade until you correct the database consistency issues. See " + \
+              configDefaults.DB_CHECK_LOG + "for more details on the consistency issues."
+    elif 'Database consistency check: warning' in open(configDefaults.SERVER_OUT_FILE).read():
+        print "DB configs consistency check found warnings. See " + \
+              configDefaults.DB_CHECK_LOG + " for more details."
+    else:
+        print "DB configs consistency check: no errors and warnings were found."
   else:
-    print "DB configs consistency check: no errors and warnings were found."
+        sys.stdout.write(configDefaults.SERVER_OUT_FILE + " does not exist")
 
   if server_started:
     return
