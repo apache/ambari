@@ -158,7 +158,7 @@
   </property>
   <property>
     <name>atlas.audit.zookeeper.session.timeout.ms</name>
-    <value>1000</value>
+    <value>60000</value>
     <description/>
     <on-ambari-upgrade add="false"/>
   </property>

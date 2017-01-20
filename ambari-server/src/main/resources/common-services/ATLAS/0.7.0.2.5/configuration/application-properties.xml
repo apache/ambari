@@ -163,13 +163,13 @@
   </property>
   <property>
     <name>atlas.kafka.zookeeper.session.timeout.ms</name>
-    <value>400</value>
+    <value>60000</value>
     <description></description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.kafka.zookeeper.connection.timeout.ms</name>
-    <value>200</value>
+    <value>30000</value>
     <description></description>
     <on-ambari-upgrade add="false"/>
   </property>

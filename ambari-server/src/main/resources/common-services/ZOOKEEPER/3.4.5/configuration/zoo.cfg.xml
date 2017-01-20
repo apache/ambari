@@ -22,7 +22,7 @@
 <configuration>
   <property>
     <name>tickTime</name>
-    <value>2000</value>
+    <value>3000</value>
     <display-name>Length of single Tick</display-name>
     <description>The length of a single tick in milliseconds, which is the basic time unit used by ZooKeeper</description>
     <value-attributes>
