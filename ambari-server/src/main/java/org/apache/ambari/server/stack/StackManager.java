@@ -53,8 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 
 /**
@@ -134,7 +134,7 @@ public class StackManager {
    * @throws AmbariException
    *           if an exception occurs while processing the stacks
    */
-  @Inject
+  @AssistedInject
   public StackManager(@Assisted("stackRoot") File stackRoot,
       @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
