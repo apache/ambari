@@ -210,7 +210,7 @@ dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
 # Hdfs log4j settings
 hadoop_log_max_backup_size = default('configurations/hdfs-log4j/hadoop_log_max_backup_size', 256)
-hadoop_log_number_of_backup_files = default('configurations/hdfs-log4j/hadoop_log_number_of_backup_files', 20)
+hadoop_log_number_of_backup_files = default('configurations/hdfs-log4j/hadoop_log_number_of_backup_files', 10)
 hadoop_security_log_max_backup_size = default('configurations/hdfs-log4j/hadoop_security_log_max_backup_size', 256)
 hadoop_security_log_number_of_backup_files = default('configurations/hdfs-log4j/hadoop_security_log_number_of_backup_files', 20)
 

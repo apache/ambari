@@ -22,7 +22,7 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>zookeeper_log_max_backup_size</name>
-    <value>256</value>
+    <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
     <display-name>Zookeeper Log: backup file size</display-name>
     <value-attributes>
@@ -32,7 +32,7 @@
   </property>
 <property>
     <name>zookeeper_log_number_of_backup_files</name>
-    <value>20</value>
+    <value>10</value>
     <description>The number of backup files</description>
     <display-name>Zookeeper Log: # of backup files</display-name>
     <value-attributes>
