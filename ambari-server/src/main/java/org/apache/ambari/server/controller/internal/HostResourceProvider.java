@@ -351,7 +351,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     });
 
-    if(!request.isDryRunRequest()) {
+    if (!request.isDryRunRequest()) {
       notifyDelete(Resource.Type.Host, predicate);
     }
 
@@ -882,9 +882,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       if (hostRequest.getClusterName() != null) {
         hostsClusters.add(hostRequest.getClusterName());
       }
+
+      LOG.info("Received Delete request for host {} from cluster {}.", hostname, hostRequest.getClusterName());
+
       // delete all host components
       Set<ServiceComponentHostRequest> schrs = new HashSet<>();
-      for(Cluster cluster : clusters.getClustersForHost(hostname)) {
+      for (Cluster cluster : clusters.getClustersForHost(hostname)) {
         List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostname);
         for (ServiceComponentHost sch : list) {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(cluster.getClusterName(),
@@ -896,7 +899,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
       DeleteStatusMetaData componentDeleteStatus = null;
-      if(schrs.size() > 0) {
+      if (schrs.size() > 0) {
         try {
           componentDeleteStatus = getManagementController().deleteHostComponents(schrs);
         } catch (Exception ex) {
