@@ -130,6 +130,7 @@
     <value></value>
     <display-name>Log Feeder External Solr principal</display-name>
     <description>The service principal for Log Feeder which will be used to access SolrClient e.g. logfeeder/_HOST@REALM</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -144,6 +145,7 @@
     <value>logfeeder</value>
     <display-name>Log Feeder Solr principal</display-name>
     <description>The service principal for Log Feeder which will be used to access Log Search Solr.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

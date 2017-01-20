@@ -194,6 +194,7 @@
     <name>druid.hadoop.security.kerberos.principal</name>
     <display-name>kerberos principal</display-name>
     <description>Kerberos principal e.g druid@EXAMPLE.COM</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>

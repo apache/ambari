@@ -258,6 +258,7 @@
     <value/>
     <display-name>Http Spnego principal</display-name>
     <description>Principal for SPNEGO authentication for Http requests</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>

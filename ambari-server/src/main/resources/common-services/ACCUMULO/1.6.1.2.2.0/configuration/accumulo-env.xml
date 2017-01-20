@@ -185,6 +185,7 @@
   <property>
     <name>accumulo_principal_name</name>
     <description>Accumulo principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
