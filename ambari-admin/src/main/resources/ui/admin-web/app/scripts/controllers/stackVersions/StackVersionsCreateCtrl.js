@@ -284,21 +284,6 @@ angular.module('ambariAdminConsole')
     $scope.editVersionDisabled = true;
     delete $scope.updateObj.href;
     $scope.updateObj.operating_systems = [];
-    var updateRepoUrl = false;
-    angular.forEach($scope.osList, function (os) {
-      var savedUrls = $scope.defaulfOSRepos[os.OperatingSystems.os_type];
-      os.OperatingSystems.ambari_managed_repositories = !$scope.useRedhatSatellite;
-      if (os.selected) {
-        var currentRepos = os.repositories;
-        if (!savedUrls || currentRepos[0].Repositories.base_url != savedUrls.defaultBaseUrl
-          || currentRepos[1].Repositories.base_url != savedUrls.defaultUtilsUrl) {
-          updateRepoUrl = true;
-        }
-        $scope.updateObj.operating_systems.push(os);
-      } else if (savedUrls) {
-        updateRepoUrl = true;
-      }
-    });
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
     return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
@@ -477,14 +462,6 @@ angular.module('ambariAdminConsole')
           var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
           return skipServices.indexOf(service.name) === -1;
         }) || [];
-    //save default values of repos to check if they were changed
-    $scope.defaulfOSRepos = {};
-    response.updateObj.operating_systems.forEach(function(os) {
-      $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {
-        defaultBaseUrl: os.repositories[0].Repositories.base_url,
-        defaultUtilsUrl: os.repositories[1].Repositories.base_url
-      };
-    });
     $scope.repoVersionFullName = response.repoVersionFullName;
     $scope.osList = response.osList;
 
