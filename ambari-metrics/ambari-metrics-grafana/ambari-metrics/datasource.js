@@ -185,6 +185,10 @@ define([
                   }
                   aliasSuffix = '';
                 }
+                if (data.appid.indexOf('ambari_server') === 0) {
+                  alias = data.metricname;
+                  aliasSuffix = '';
+                }
                 timeSeries = {
                   target: alias + aliasSuffix,
                   datapoints: []
