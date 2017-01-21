@@ -43,6 +43,12 @@ eth0   1500   0     9986      0      0      0     5490      0      0      0 BMRU
 eth1   1500   0        0      0      0      0        6      0      0      0 BMRU
 eth2   1500   0        0      0      0      0        6      0      0      0 BMRU
 lo    16436   0        2      0      0      0        2      0      0      0 LRU'''))
+@patch.object(FacterLinux, "setDataIpLinkOutput", new=MagicMock(return_value='''1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:d3:e8:0f brd ff:ff:ff:ff:ff:ff
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:09:92:3a brd ff:ff:ff:ff:ff:ff'''))
 class TestHardware(TestCase):
  
   @patch.object(Hardware, "osdisks", new=MagicMock(return_value=[]))
@@ -442,6 +448,47 @@ SwapFree:        1598676 kB
     mounts_left = [item["mountpoint"] for item in result]
 
     self.assertEquals(expected_mounts_left, mounts_left)
+
+@not_for_platform(PLATFORM_WINDOWS)
+@patch.object(platform, "linux_distribution", new=MagicMock(return_value=('Suse', '11', 'Final')))
+@patch.object(socket, "getfqdn", new=MagicMock(return_value="ambari.apache.org"))
+@patch.object(socket, "gethostbyname", new=MagicMock(return_value="192.168.1.1"))
+@patch.object(FacterLinux, "setDataIfConfigShortOutput", new=MagicMock(return_value=''))
+@patch.object(FacterLinux, "setDataIpLinkOutput", new=MagicMock(return_value='''1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:d3:e8:0f brd ff:ff:ff:ff:ff:ff
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT qlen 1000
+    link/ether 08:00:27:09:92:3a brd ff:ff:ff:ff:ff:ff'''))
+class TestHardwareWithoutIfConfig(TestCase):
+  @patch("fcntl.ioctl")
+  @patch("socket.socket")
+  @patch("struct.pack")
+  @patch("socket.inet_ntoa")
+  @patch.object(FacterLinux, "get_ip_address_by_ifname")
+  @patch.object(Facter, "getIpAddress")
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_facterDataIpLinkOutput(self, get_os_version_mock,
+                                  get_os_type_mock, getIpAddress_mock, get_ip_address_by_ifname_mock,
+                                  inet_ntoa_mock, struct_pack_mock,
+                                  socket_socket_mock, fcntl_ioctl_mock):
+
+    getIpAddress_mock.return_value = "10.0.2.15"
+    get_ip_address_by_ifname_mock.return_value = "10.0.2.15"
+    inet_ntoa_mock.return_value = "255.255.255.0"
+
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
+    config = None
+    result = Facter(config).facterInfo()
+
+    self.assertTrue(inet_ntoa_mock.called)
+    self.assertTrue(get_ip_address_by_ifname_mock.called)
+    self.assertTrue(getIpAddress_mock.called)
+    self.assertEquals(result['ipaddress'], '10.0.2.15')
+    self.assertEquals(result['netmask'], '255.255.255.0')
+    self.assertEquals(result['interfaces'], 'lo,enp0s3,enp0s8')
 
 
 if __name__ == "__main__":
