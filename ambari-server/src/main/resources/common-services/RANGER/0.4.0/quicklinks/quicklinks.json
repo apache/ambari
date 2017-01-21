@@ -21,6 +21,7 @@
         "requires_user_name": "false",
         "component_name": "RANGER_ADMIN",
         "url": "%@://%@:%@",
+        "attributes": ["authenticated", "sso"],
         "port":{
           "http_property": "http.service.port",
           "http_default_port": "6080",
