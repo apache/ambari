@@ -375,15 +375,18 @@ class FacterLinux(Facter):
   # selinux command
   GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
   GET_IFCONFIG_SHORT_CMD = "ifconfig -s"
+  GET_IP_LINK_CMD = "ip link"
   GET_UPTIME_CMD = "cat /proc/uptime"
   GET_MEMINFO_CMD = "cat /proc/meminfo"
 
   def __init__(self, config):
     super(FacterLinux,self).__init__(config)
     self.DATA_IFCONFIG_SHORT_OUTPUT = FacterLinux.setDataIfConfigShortOutput()
+    self.DATA_IP_LINK_OUTPUT = FacterLinux.setDataIpLinkOutput()
     self.DATA_UPTIME_OUTPUT = FacterLinux.setDataUpTimeOutput()
     self.DATA_MEMINFO_OUTPUT = FacterLinux.setMemInfoOutput()
 
+  # Returns the output of `ifconfig -s` command
   @staticmethod
   def setDataIfConfigShortOutput():
 
@@ -392,6 +395,17 @@ class FacterLinux(Facter):
       return result
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_IFCONFIG_SHORT_CMD))
+    return ""
+
+  # Returns the output of `ip link` command
+  @staticmethod
+  def setDataIpLinkOutput():
+
+    try:
+      result = os.popen(FacterLinux.GET_IP_LINK_CMD).read()
+      return result
+    except OSError:
+      log.warn("Can't execute {0}".format(FacterLinux.GET_IP_LINK_CMD))
     return ""
 
   @staticmethod
@@ -438,6 +452,14 @@ class FacterLinux(Facter):
     result = re.sub(r',$', "", result)
     return result
 
+  def return_ifnames_from_ip_link(self, ip_link_output):
+    list = []
+    prog = re.compile("^\d")
+    for line in ip_link_output.splitlines():
+      if prog.match(line):
+        list.append(line.split()[1].rstrip(":"))
+    return ",".join(list)
+
   def data_return_first(self, patern, data):
     full_list = re.findall(patern, data)
     result = ""
@@ -452,13 +474,12 @@ class FacterLinux(Facter):
     import struct
     primary_ip = self.getIpAddress().strip()
 
-    for line in self.DATA_IFCONFIG_SHORT_OUTPUT.splitlines()[1:]:
-      if line.strip():
-        i = line.split()[0]
-        ip_address_by_ifname = self.get_ip_address_by_ifname(i.strip())
+    for ifname in self.getInterfaces().split(","):
+      if ifname.strip():
+        ip_address_by_ifname = self.get_ip_address_by_ifname(ifname)
         if ip_address_by_ifname is not None:
           if primary_ip == ip_address_by_ifname.strip():
-            return socket.inet_ntoa(fcntl.ioctl(socket.socket(socket.AF_INET, socket.SOCK_DGRAM), 35099, struct.pack('256s', i))[20:24])
+            return socket.inet_ntoa(fcntl.ioctl(socket.socket(socket.AF_INET, socket.SOCK_DGRAM), 35099, struct.pack('256s', ifname))[20:24])
 
     return None
       
@@ -483,11 +504,16 @@ class FacterLinux(Facter):
   # Return interfaces
   def getInterfaces(self):
     result = self.return_first_words_from_list(self.DATA_IFCONFIG_SHORT_OUTPUT.splitlines()[1:])
-    if result == '':
-      log.warn("Can't get a network interfaces list from {0}".format(self.DATA_IFCONFIG_SHORT_OUTPUT))
-      return 'OS NOT SUPPORTED'
-    else:
+    # If the host has `ifconfig` command, then return that result.
+    if result != '':
       return result
+    # If the host has `ip` command, then return that result.
+    result = self.return_ifnames_from_ip_link(self.DATA_IP_LINK_OUTPUT)
+    if result != '':
+      return result
+    # If the host has neither `ifocnfig` command nor `ip` command, then return "OS NOT SUPPORTED"
+    log.warn("Can't get a network interfaces list from {0}".format(self.DATA_IFCONFIG_SHORT_OUTPUT))
+    return 'OS NOT SUPPORTED'
 
   # Return uptime seconds
   def getUptimeSeconds(self):
