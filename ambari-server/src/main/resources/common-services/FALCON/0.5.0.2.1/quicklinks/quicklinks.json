@@ -21,6 +21,7 @@
         "requires_user_name": "true",
         "component_name": "FALCON_SERVER",
         "url": "%@://%@:%@/",
+        "attributes": ["authenticated"],
         "port":{
           "http_property": "falcon_port",
           "http_default_port": "15000",

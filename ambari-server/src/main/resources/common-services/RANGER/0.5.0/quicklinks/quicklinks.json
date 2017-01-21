@@ -25,6 +25,7 @@
         "label": "Ranger Admin UI",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
+        "attributes": ["authenticated", "sso"],
         "port":{
           "http_property": "ranger.service.http.port",
           "http_default_port": "6080",
