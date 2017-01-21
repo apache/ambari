@@ -65,7 +65,6 @@
             <config-type>logsearch-admin-json</config-type>
             <config-type>logsearch-service_logs-solrconfig.xml</config-type>
             <config-type>logsearch-audit_logs-solrconfig.xml</config-type>
-            <config-type>logfeeder-custom-logsearch-config</config-type>
           </configuration-dependencies>
         </component>
 
@@ -95,31 +94,7 @@
             <config-type>logfeeder-grok</config-type>
             <config-type>logfeeder-log4j</config-type>
             <config-type>logfeeder-system_log-env</config-type>
-            <config-type>logfeeder-ambari-config</config-type>
             <config-type>logfeeder-output-config</config-type>
-            <config-type>logfeeder-custom-logsearch-config</config-type>
-            <config-type>accumulo-logsearch-conf</config-type>
-            <config-type>ams-logsearch-conf</config-type>
-            <config-type>atlas-logsearch-conf</config-type>
-            <config-type>falcon-logsearch-conf</config-type>
-            <config-type>flume-logsearch-conf</config-type>
-            <config-type>hbase-logsearch-conf</config-type>
-            <config-type>hdfs-logsearch-conf</config-type>
-            <config-type>hive-logsearch-conf</config-type>
-            <config-type>infra-logsearch-conf</config-type>
-            <config-type>kafka-logsearch-conf</config-type>
-            <config-type>knox-logsearch-conf</config-type>
-            <config-type>mapred-logsearch-conf</config-type>
-            <config-type>nifi-logsearch-conf</config-type>
-            <config-type>oozie-logsearch-conf</config-type>
-            <config-type>ranger-kms-logsearch-conf</config-type>
-            <config-type>ranger-logsearch-conf</config-type>
-            <config-type>spark-logsearch-conf</config-type>
-            <config-type>spark2-logsearch-conf</config-type>
-            <config-type>storm-logsearch-conf</config-type>
-            <config-type>yarn-logsearch-conf</config-type>
-            <config-type>zeppelin-logsearch-conf</config-type>
-            <config-type>zookeeper-logsearch-conf</config-type>
           </configuration-dependencies>
         </component>
 
@@ -169,6 +144,33 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+
+      <configuration-dependencies>
+        <config-type>logfeeder-ambari-config</config-type>
+        <config-type>logfeeder-custom-logsearch-config</config-type>
+        <config-type>accumulo-logsearch-conf</config-type>
+        <config-type>ams-logsearch-conf</config-type>
+        <config-type>atlas-logsearch-conf</config-type>
+        <config-type>falcon-logsearch-conf</config-type>
+        <config-type>flume-logsearch-conf</config-type>
+        <config-type>hbase-logsearch-conf</config-type>
+        <config-type>hdfs-logsearch-conf</config-type>
+        <config-type>hive-logsearch-conf</config-type>
+        <config-type>infra-logsearch-conf</config-type>
+        <config-type>kafka-logsearch-conf</config-type>
+        <config-type>knox-logsearch-conf</config-type>
+        <config-type>mapred-logsearch-conf</config-type>
+        <config-type>nifi-logsearch-conf</config-type>
+        <config-type>oozie-logsearch-conf</config-type>
+        <config-type>ranger-kms-logsearch-conf</config-type>
+        <config-type>ranger-logsearch-conf</config-type>
+        <config-type>spark-logsearch-conf</config-type>
+        <config-type>spark2-logsearch-conf</config-type>
+        <config-type>storm-logsearch-conf</config-type>
+        <config-type>yarn-logsearch-conf</config-type>
+        <config-type>zeppelin-logsearch-conf</config-type>
+        <config-type>zookeeper-logsearch-conf</config-type>
+      </configuration-dependencies>
 
       <quickLinksConfigurations>
         <quickLinksConfiguration>

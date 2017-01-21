@@ -152,30 +152,36 @@ public class UserConfigSolrDao extends SolrDaoBase {
       logfeederDataMap = (LogFeederDataMap) JSONUtil.jsonToObj(json, LogFeederDataMap.class);
       logfeederDataMap.setId("" + configDoc.get(ID));
     } else {
-      logfeederDataMap = initUserFilter();
+      logfeederDataMap = new LogFeederDataMap();
+      logfeederDataMap.setFilter(new TreeMap<String, LogfeederFilterData>());
+      logfeederDataMap.setId(Long.toString(System.currentTimeMillis()));
     }
+    
+    addMissingFilters(logfeederDataMap);
+    
     return logfeederDataMap;
   }
 
-  private LogFeederDataMap initUserFilter() throws SolrServerException, IOException {
-    LogFeederDataMap logfeederDataMap = new LogFeederDataMap();
-    
+  private void addMissingFilters(LogFeederDataMap logfeederDataMap) throws SolrServerException, IOException {
     Set<String> logIds = HadoopServiceConfigHelper.getAllLogIds();
     if (logIds != null) {
-      logfeederDataMap.setFilter(new TreeMap<String, LogfeederFilterData>());
-      logfeederDataMap.setId(Long.toString(System.currentTimeMillis()));
       List<String> logfeederDefaultLevels = solrUserConfig.getLogLevels();
       
+      boolean modified = false;
       for (String logId : logIds) {
-        LogfeederFilterData logfeederFilterData = new LogfeederFilterData();
-        logfeederFilterData.setLabel(logId);
-        logfeederFilterData.setDefaultLevels(logfeederDefaultLevels);
-        logfeederDataMap.getFilter().put(logId, logfeederFilterData);
+        if (!logfeederDataMap.getFilter().containsKey(logId)) {
+          LogfeederFilterData logfeederFilterData = new LogfeederFilterData();
+          logfeederFilterData.setLabel(logId);
+          logfeederFilterData.setDefaultLevels(logfeederDefaultLevels);
+          logfeederDataMap.getFilter().put(logId, logfeederFilterData);
+          modified = true;
+        }
       }
-      saveUserFilter(logfeederDataMap);
+      
+      if (modified) {
+        saveUserFilter(logfeederDataMap);
+      }
     }
-    
-    return logfeederDataMap;
   }
 
   @Override
