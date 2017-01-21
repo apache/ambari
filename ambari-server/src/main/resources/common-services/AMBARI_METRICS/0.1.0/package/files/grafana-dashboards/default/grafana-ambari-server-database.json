@@ -1,7 +1,7 @@
 {
   "id": null,
-  "title": "Ambari Server - JVM",
-  "originalTitle": "Ambari Server - JVM",
+  "title": "Ambari Server - Database",
+  "originalTitle": "Ambari Server - Database",
   "tags": [
     "ambari"
   ],
@@ -14,23 +14,155 @@
     {
       "collapse": false,
       "editable": true,
-      "height": "25px",
+      "height": "250px",
       "panels": [
         {
-          "content": "<h4 align=\"center\">Metrics to see the overall status for Ambari Server. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
           "editable": true,
           "error": false,
-          "id": 10,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 1,
           "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
           "links": [],
-          "mode": "html",
-          "span": 12,
-          "style": {},
-          "title": "",
-          "type": "text"
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Counter.ReadAllQuery",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Total ReadAllQuery Counter (Rate)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 2,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Timer.ReadAllQuery",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Total ReadAllQuery Timer (Rate)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ns",
+            "short"
+          ]
         }
       ],
-      "title": "New row"
+      "showTitle": true,
+      "title": "Total ReadAllQuery"
     },
     {
       "collapse": false,
@@ -81,45 +213,22 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
-              "alias": "MemHeapMax",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.memory.heap.max",
+              "hosts": "",
+              "metric": "Counter.CacheHits",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "max",
-              "alias": "MemHeapUsed",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.memory.heap.used",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "max",
-              "alias": "MemHeapCommitted",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.memory.heap.committed",
-              "precision": "default",
-              "refId": "C",
-              "seriesAggregator": "none",
-              "transform": "none"
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Heap Usage",
+          "title": "Total Cache Hits (Rate)",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -128,7 +237,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "bytes",
+            "short",
             "short"
           ]
         },
@@ -176,124 +285,22 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
-              "alias": "MemNonHeapMax",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.memory.non-heap.max",
+              "hosts": "",
+              "metric": "Counter.CacheMisses",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "none",
-              "alias": "MemNonHeapUsed",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.memory.non-heap.used",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "none",
-              "alias": "MemNonHeapCommitted",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.memory.non-heap.committed",
-              "precision": "default",
-              "refId": "C",
-              "seriesAggregator": "none",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Off-Heap Usage",
-          "tooltip": {
-            "shared": true,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "bytes",
-            "short"
-          ]
-        }
-      ],
-      "showTitle": true,
-      "title": "JVM - Memory Pressure"
-    },
-    {
-      "collapse": true,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": null,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 6,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "avg",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.gc.ParNew.count",
-              "precision": "default",
-              "refId": "A",
-              "seriesAggregator": "none",
+              "templatedHost": "",
               "transform": "rate"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count Par New /s",
+          "title": "Total Cache Misses (Rate)",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -302,10 +309,19 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
-        },
+        }
+      ],
+      "showTitle": true,
+      "title": "Total Cache Hits & Misses"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
         {
           "aliasColors": {},
           "bars": false,
@@ -350,20 +366,87 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ParNew.time",
+              "hosts": "",
+              "metric": "Timer.ObjectBuilding",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
-              "transform": "rate"
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Timer.QueryPreparation",
+              "precision": "default",
+              "refId": "B",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Timer.SqlGeneration",
+              "precision": "default",
+              "refId": "C",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Timer.SqlPrepare",
+              "precision": "default",
+              "refId": "D",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Timer.StatementExecute",
+              "precision": "default",
+              "refId": "E",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "Timer.RowFetch",
+              "precision": "default",
+              "refId": "F",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Time Par New /s",
+          "title": "Query Stages Timings",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -372,10 +455,156 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 6,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "ReadAllQuery",
+              "precision": "default",
+              "refId": "A",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "ReadObjectQuery",
+              "precision": "default",
+              "refId": "B",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "InsertObjectQuery",
+              "precision": "default",
+              "refId": "C",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "DataModifyQuery",
+              "precision": "default",
+              "refId": "D",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "DoesExistQuery",
+              "precision": "default",
+              "refId": "E",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            },
+            {
+              "aggregator": "none",
+              "app": "ambari_server",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "DirectReadQuery",
+              "precision": "default",
+              "refId": "F",
+              "seriesAggregator": "none",
+              "templatedHost": "",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Query Types Avg Timings",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ns",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Query"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
         {
           "aliasColors": {},
           "bars": false,
@@ -420,20 +649,21 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ConcurrentMarkSweep.count",
+              "metric": "Counter.ReadAllQuery.HostRoleCommandEntity",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
+              "templatedHost": "",
               "transform": "rate"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Count CMS /s",
+          "title": "Counter.ReadAllQuery.HostRoleCommandEntity (Rate)",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -490,20 +720,21 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.gc.ConcurrentMarkSweep.time",
+              "metric": "Timer.ReadAllQuery.HostRoleCommandEntity",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
+              "templatedHost": "",
               "transform": "rate"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "GC Time CMS /s",
+          "title": "Timer.ReadAllQuery.HostRoleCommandEntity (Rate)",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -512,19 +743,10 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
-        }
-      ],
-      "showTitle": true,
-      "title": "JVM - GC Count"
-    },
-    {
-      "collapse": true,
-      "editable": true,
-      "height": "250px",
-      "panels": [
+        },
         {
           "aliasColors": {},
           "bars": false,
@@ -569,69 +791,21 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
-              "alias": "Total",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "jvm.threads.count",
+              "metric": "ReadAllQuery.HostRoleCommandEntity",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "max",
-              "alias": "Daemon",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.threads.daemon.count",
-              "precision": "default",
-              "refId": "B",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "max",
-              "alias": "Deadlock",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.threads.deadlock.count",
-              "precision": "default",
-              "refId": "C",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "max",
-              "alias": "Blocked",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.threads.blocked.count",
-              "precision": "default",
-              "refId": "D",
-              "seriesAggregator": "none",
-              "transform": "none"
-            },
-            {
-              "aggregator": "max",
-              "alias": "Runnable",
-              "app": "ambari_server",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.threads.runnable.count",
-              "precision": "default",
-              "refId": "E",
-              "seriesAggregator": "none",
+              "templatedHost": "",
               "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Thread Count",
+          "title": "ReadAllQuery.HostRoleCommandEntity",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -640,13 +814,13 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "short",
+            "ns",
             "short"
           ]
         }
       ],
       "showTitle": true,
-      "title": "JVM - Thread Count"
+      "title": "HostRoleCommand Entity"
     }
   ],
   "time": {
@@ -654,6 +828,7 @@
     "to": "now"
   },
   "timepicker": {
+    "now": true,
     "refresh_intervals": [
       "5s",
       "10s",
@@ -721,8 +896,7 @@
   "annotations": {
     "list": []
   },
-  "refresh": false,
   "schemaVersion": 8,
-  "version": 1,
+  "version": 14,
   "links": []
 }
