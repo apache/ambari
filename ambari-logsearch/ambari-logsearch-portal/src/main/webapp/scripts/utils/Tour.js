@@ -56,6 +56,10 @@ define(['require', 'tour'], function (require, TourJs) {
         content: "This filter allows you to filter the log data depending upon the component selection. Include Component is again \"or\" condition and Exclude Component is \"and\" condition between multiple selection.",
         placement: "bottom"
       }, {
+        element: $('[data-id="startStop"]').get(0),
+        content: "Snapshot helps you quickly see all logs generated while you reproduce an issue. Click start, reproduce your issue, click stop and we'll load all logs that were produced during that time frame.",
+        placement: "bottom"
+      }, {
         element: $('#r_Histogram').get(0),
         content: "Histogram displays comparative ratios of log severity during the currently defined time filter.",
         placement: "top"
@@ -63,10 +67,6 @@ define(['require', 'tour'], function (require, TourJs) {
         element: document.querySelectorAll('#r_BubbleTable')[1],
         content: "The Log Data default view displays consolidated for all hosts.",
         placement: "top",
-      }, {
-        element: 'a[data-id="timerBtn"]',
-        content: "Snapshot helps you quickly see all logs generated while you reproduce an issue. Click start, reproduce your issue, click stop and we'll load all logs that were produced during that time frame.",
-        placement: "top"
       }, {
         element: document.querySelectorAll('#r_BubbleTable')[1],
         content: "Expand the Log Data tree view and choose components to further refine your diagnostics.",
@@ -145,8 +145,6 @@ define(['require', 'tour'], function (require, TourJs) {
         } else if (tour._state.current_step == 5) {
         } else if (tour._state.current_step == 6) {
         } else if (tour._state.current_step == 7) {
-          appendFingerAndOverlayDiv(tour._options.showFinger[tour._state.current_step]);
-        } else if (tour._state.current_step == 8) {
           appendFingerAndOverlayDiv(tour._options.showFinger[tour._state.current_step]);
         } else if (tour._state.current_step == 9) {
           appendFingerAndOverlayDiv(tour._options.showFinger[tour._state.current_step]);
@@ -257,26 +255,26 @@ define(['require', 'tour'], function (require, TourJs) {
       },
       8: {
         css: {
+          'top': '30px',
+          'left': '309px'
+        },
+        handDirection: 'down',
+        handClass: "up-down"
+      },
+      9: {
+        css: {
           'top': '45px',
           'left': '122px'
         },
         handDirection: 'up',
         handClass: "up-down"
       },
-      9: {
+      10: {
         css: {
           'top': '45px',
           'left': '100px'
         },
         appendIndex: 0,
-        handDirection: 'down',
-        handClass: "up-down"
-      },
-      10: {
-        css: {
-          'top': '30px',
-          'left': '309px'
-        },
         handDirection: 'down',
         handClass: "up-down"
       },
@@ -396,13 +394,13 @@ define(['require', 'tour'], function (require, TourJs) {
         $('#r_BubbleTable input[value="H"]').click();
         removeFingerAndOverlayDiv();
       } else if (tour._state.current_step == 8) {
+        removeFingerAndOverlayDiv();
+      } else if (tour._state.current_step == 9) {
         $('#r_BubbleTable li[data-parent="true"]').first().find('span[data-state="collapse"]').first().click();
         $('#r_BubbleTable li[data-parent="true"]').first().find('a[data-type="C"]').first().removeClass('hidden');
         removeFingerAndOverlayDiv();
-      } else if (tour._state.current_step == 9) {
-        $('#r_BubbleTable li[data-parent="true"]').first().find('a[data-type="C"]').first().removeClass('hidden');
-        removeFingerAndOverlayDiv();
       } else if (tour._state.current_step == 10) {
+        $('#r_BubbleTable li[data-parent="true"]').first().find('a[data-type="C"]').first().removeClass('hidden');
         removeFingerAndOverlayDiv();
       } else if (tour._state.current_step == 11) {
         $('#r_BubbleTable input[value="T"]').click();
