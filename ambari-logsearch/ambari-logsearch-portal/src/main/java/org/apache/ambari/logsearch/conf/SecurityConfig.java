@@ -25,6 +25,7 @@ import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuditLogsStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuthenticationEntryPoint;
+import org.apache.ambari.logsearch.web.filters.LogsearchCorsFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
@@ -46,6 +47,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.Filter;
 import java.util.List;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
@@ -56,6 +58,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Inject
   private AuthPropsConfig authPropsConfig;
+
+  @Inject
+  private LogSearchHttpHeaderConfig logSearchHttpHeaderConfig;
 
   @Inject
   private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
@@ -104,11 +109,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilterAfter(logsearchUserConfigFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchAuditLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchServiceLogFilter(), LogsearchSecurityContextFormationFilter.class)
+      .addFilterBefore(corsFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
         .logoutUrl("/logout.html")
         .deleteCookies(LOGSEARCH_SESSION_ID)
         .logoutSuccessHandler(new LogsearchLogoutSuccessHandler());
+  }
+
+  @Bean
+  public LogsearchCorsFilter corsFilter() {
+    return new LogsearchCorsFilter(logSearchHttpHeaderConfig);
   }
 
   @Bean
