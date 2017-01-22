@@ -28,8 +28,8 @@ import static org.junit.Assert.fail;
 import java.util.Properties;
 
 import javax.naming.NamingEnumeration;
+import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
@@ -39,8 +39,8 @@ import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.web.context.request.RequestAttributes;
@@ -75,10 +75,10 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
     String ldapUserRelativeDNString = String.format("uid=%s,ou=people,ou=dev", "ldapUsername");
     LdapName ldapUserRelativeDN = new LdapName(ldapUserRelativeDNString);
     String ldapUserDNString = String.format("%s,%s", ldapUserRelativeDNString, basePathString);
-    LdapName basePath = LdapUtils.newLdapName(basePathString);
+    DistinguishedName basePath = new DistinguishedName(basePathString);
 
     LdapContextSource ldapCtxSource = createMock(LdapContextSource.class);
-    expect(ldapCtxSource.getBaseLdapName())
+    expect(ldapCtxSource.getBaseLdapPath())
         .andReturn(basePath)
         .atLeastOnce();
     expect(ldapCtxSource.getContext(ldapUserDNString, "password"))
@@ -117,7 +117,7 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
     String ldapUserRelativeDNString = String.format("uid=%s,ou=people,ou=dev", ldapUsername);
     LdapName ldapUserRelativeDN = new LdapName(ldapUserRelativeDNString);
     String ldapUserDNString = String.format("%s,%s", ldapUserRelativeDNString, basePathString);
-    LdapName basePath = LdapUtils.newLdapName(basePathString);
+    DistinguishedName basePath = new DistinguishedName(basePathString);
 
     @SuppressWarnings("unchecked")
     NamingEnumeration<SearchResult> adminGroups = createMock(NamingEnumeration.class);
@@ -136,7 +136,7 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
 
 
     LdapContextSource ldapCtxSource = createMock(LdapContextSource.class);
-    expect(ldapCtxSource.getBaseLdapName())
+    expect(ldapCtxSource.getBaseLdapPath())
         .andReturn(basePath)
         .atLeastOnce();
     expect(ldapCtxSource.getContext(ldapUserDNString, "password"))
@@ -146,7 +146,16 @@ public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
         .andReturn(boundUserContext)
         .once();
 
-    Attributes searchedAttributes = new BasicAttributes("uid", ldapUsername);
+    Attribute uidAttribute = createMock(Attribute.class);
+    expect(uidAttribute.size())
+        .andReturn(1)
+        .atLeastOnce();
+    expect(uidAttribute.get()).andReturn(ldapUsername).atLeastOnce();
+
+    Attributes searchedAttributes = createMock(Attributes.class);
+    expect(searchedAttributes.get("uid"))
+        .andReturn(uidAttribute)
+        .atLeastOnce();
 
     DirContextOperations searchedUserContext = createMock(DirContextOperations.class);
     expect(searchedUserContext.getDn())

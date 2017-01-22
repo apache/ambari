@@ -20,7 +20,6 @@ package org.apache.ambari.server.security.authorization;
 
 import java.util.List;
 
-import javax.naming.Name;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -34,6 +33,7 @@ import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.support.LdapUtils;
@@ -234,8 +234,9 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
     }
 
     BaseLdapPathContextSource baseLdapPathContextSource = (BaseLdapPathContextSource) contextSource;
-    Name userDistinguishedName = user.getDn();
-    Name fullDn = AmbariLdapUtils.getFullDn(userDistinguishedName, baseLdapPathContextSource.getBaseLdapName());
+    DistinguishedName userDistinguishedName = new DistinguishedName(user.getDn());
+    DistinguishedName fullDn = new DistinguishedName(userDistinguishedName);
+    fullDn.prepend(baseLdapPathContextSource.getBaseLdapPath());
 
     LOG.debug("Attempting to bind as {}", fullDn);
 
@@ -251,7 +252,7 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
       // is expected these details will be more complete of querying for them from the bound context.
       // Some LDAP server implementations will no return all attributes to the bound context due to
       // the filter being used in the query.
-      return new DirContextAdapter(user.getAttributes(), userDistinguishedName, baseLdapPathContextSource.getBaseLdapName());
+      return new DirContextAdapter(user.getAttributes(), userDistinguishedName, baseLdapPathContextSource.getBaseLdapPath());
     } catch (org.springframework.ldap.AuthenticationException e) {
       String message = String.format("Failed to bind as %s - %s", user.getDn().toString(), e.getMessage());
       if (LOG.isTraceEnabled()) {
