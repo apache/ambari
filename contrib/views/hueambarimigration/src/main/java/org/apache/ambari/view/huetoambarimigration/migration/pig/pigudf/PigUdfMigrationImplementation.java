@@ -47,6 +47,7 @@ import java.net.URI;
 
 public class PigUdfMigrationImplementation {
     static final Logger logger = Logger.getLogger(PigUdfMigrationImplementation.class);
+    final String USER_DIRECTORY = "/user";
 
     private static String readAll(Reader rd) throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -215,10 +216,16 @@ public class PigUdfMigrationImplementation {
 
                 public Boolean run() throws Exception {
                     URI uri = new URI(dir);
-                    FileSystem fs = FileSystem.get(uri, conf, dir);
+                    FileSystem fs = FileSystem.get(conf);
                     Path src = new Path(dir);
                     Boolean b = fs.mkdirs(src);
-                    fs.setOwner(src,username,"hadoop");
+
+                    String[] subDirs = dir.split("/");
+                    String dirPath = USER_DIRECTORY;
+                    for(int i=2;i<subDirs.length;i++) {
+                        dirPath += "/"+subDirs[i];
+                        fs.setOwner(new Path(dirPath), username, username);
+                    }
                     return b;
                 }
             });
@@ -252,9 +259,16 @@ public class PigUdfMigrationImplementation {
                 public Void run() throws Exception {
 
                     URI uri = new URI(dir);
-                    FileSystem fs = FileSystem.get(uri, conf, username);
+                    FileSystem fs = FileSystem.get(conf);
                     Path src = new Path(dir);
                     fs.mkdirs(src);
+
+                    String[] subDirs = dir.split("/");
+                    String dirPath = USER_DIRECTORY;
+                    for(int i=2;i<subDirs.length;i++) {
+                        dirPath += "/"+subDirs[i];
+                        fs.setOwner(new Path(dirPath), username, username);
+                    }
                     return null;
                 }
             });
@@ -308,7 +322,7 @@ public class PigUdfMigrationImplementation {
                     }
                     in1.close();
                     out.close();
-                    fileSystemAmbari.setOwner(path, username, "hadoop");
+                    fileSystemAmbari.setOwner(path, username, username);
                     fileSystemHue.close();
                     fileSystemAmbari.close();
                     return null;
@@ -371,7 +385,7 @@ public class PigUdfMigrationImplementation {
                     }
                     in1.close();
                     out.close();
-                    fileSystemAmbari.setOwner(path, username, "hadoop");
+                    fileSystemAmbari.setOwner(path, username, username);
                     fileSystemHue.close();
                     fileSystemAmbari.close();
                     return null;
