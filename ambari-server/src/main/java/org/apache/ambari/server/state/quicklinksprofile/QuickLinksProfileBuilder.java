@@ -26,10 +26,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Class to create a {@link QuickLinksProfile} based on data received in a request
@@ -39,6 +43,8 @@ public class QuickLinksProfileBuilder {
   public static final String NAME = "name";
   public static final String COMPONENTS = "components";
   public static final String FILTERS = "filters";
+  public static final Set<String> ALLOWED_FILTER_ATTRIBUTES =
+      ImmutableSet.of(VISIBLE, LINK_NAME, LINK_ATTRIBUTE);
 
   /**
    *
@@ -102,16 +108,24 @@ public class QuickLinksProfileBuilder {
     }
     List<Filter> filters  = new ArrayList<>();
     for (Map<String, String> filterAsMap: (Collection<Map<String, String>>)filtersRaw) {
+      Set<String> invalidAttributes = Sets.difference(filterAsMap.keySet(), ALLOWED_FILTER_ATTRIBUTES);
+
+      Preconditions.checkArgument(invalidAttributes.isEmpty(),
+          "%s%s",
+          QuickLinksFilterDeserializer.PARSE_ERROR_MESSAGE_INVALID_JSON_TAG,
+          invalidAttributes);
+
       String linkName = filterAsMap.get(LINK_NAME);
       String attributeName = filterAsMap.get(LINK_ATTRIBUTE);
       boolean visible = Boolean.parseBoolean(filterAsMap.get(VISIBLE));
 
-      if (null != linkName && null != attributeName) {
-        throw new IllegalArgumentException(
-            String.format("%s link_name: %s, link_attribute: %s",
-                QuickLinksFilterDeserializer.PARSE_ERROR_MESSAGE, linkName, attributeName));
-      }
-      else if (null != linkName) {
+      Preconditions.checkArgument(null == linkName || null == attributeName,
+         "%s link_name: %s, link_attribute: %s",
+          QuickLinksFilterDeserializer.PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER,
+          linkName,
+          attributeName);
+
+      if (null != linkName) {
         filters.add(Filter.linkNameFilter(linkName, visible));
       }
       else if (null != attributeName) {
