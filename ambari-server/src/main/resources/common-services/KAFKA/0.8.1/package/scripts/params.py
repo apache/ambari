@@ -76,8 +76,8 @@ limits_conf_dir = "/etc/security/limits.d"
 # Used while upgrading the stack in a kerberized cluster and running kafka-acls.sh
 zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
 
-kafka_user_nofile_limit = config['configurations']['kafka-env']['kafka_user_nofile_limit']
-kafka_user_nproc_limit = config['configurations']['kafka-env']['kafka_user_nproc_limit']
+kafka_user_nofile_limit = default('/configurations/kafka-env/kafka_user_nofile_limit', 128000)
+kafka_user_nproc_limit = default('/configurations/kafka-env/kafka_user_nproc_limit', 65536)
 
 # parameters for 2.2+
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
