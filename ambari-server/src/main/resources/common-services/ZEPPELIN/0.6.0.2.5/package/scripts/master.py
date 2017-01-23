@@ -151,11 +151,13 @@ class Master(Script):
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     # copy hive-site.xml only if Spark 1.x is installed
-    if 'spark-defaults' in params.config['configurations']:
+    if 'spark-defaults' in params.config['configurations'] and \
+        os.path.exists("/etc/spark/conf/hive-site.xml"):
         File(format("{params.conf_dir}/hive-site.xml"), content=StaticFile("/etc/spark/conf/hive-site.xml"),
              owner=params.zeppelin_user, group=params.zeppelin_group)
 
-    if len(params.hbase_master_hosts) > 0:
+    if len(params.hbase_master_hosts) > 0 and \
+        os.path.exists("/etc/hbase/conf/hbase-site.xml"):
       # copy hbase-site.xml
       File(format("{params.conf_dir}/hbase-site.xml"), content=StaticFile("/etc/hbase/conf/hbase-site.xml"),
            owner=params.zeppelin_user, group=params.zeppelin_group)
