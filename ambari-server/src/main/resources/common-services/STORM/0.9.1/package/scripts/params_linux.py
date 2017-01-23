@@ -222,7 +222,7 @@ atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'a
 if enable_atlas_hook:
   # Only append /etc/atlas/conf to classpath if on HDP 2.4.*
   if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
-    atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+    atlas_conf_dir = format('{stack_root}/current/atlas-server/conf')
     jar_jvm_opts += '-Datlas.conf=' + atlas_conf_dir
 #endregion
 
