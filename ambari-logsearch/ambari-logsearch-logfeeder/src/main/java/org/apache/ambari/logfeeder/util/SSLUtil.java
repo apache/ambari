@@ -21,19 +21,27 @@ package org.apache.ambari.logfeeder.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 
 public class SSLUtil {
+  private static final Logger LOG = Logger.getLogger(SSLUtil.class);
+
   private static final String KEYSTORE_LOCATION_ARG = "javax.net.ssl.keyStore";
   private static final String TRUSTSTORE_LOCATION_ARG = "javax.net.ssl.trustStore";
   private static final String KEYSTORE_TYPE_ARG = "javax.net.ssl.keyStoreType";
   private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
   private static final String KEYSTORE_PASSWORD_ARG = "javax.net.ssl.keyStorePassword";
   private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
+  private static final String KEYSTORE_PASSWORD_PROPERTY_NAME = "logfeeder_keystore_password";
+  private static final String TRUSTSTORE_PASSWORD_PROPERTY_NAME = "logfeeder_truststore_password";
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
-  
+
+  private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
   private static final String LOGFEEDER_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
   private static final String LOGFEEDER_STORE_DEFAULT_PASSWORD = "bigdata";
   
@@ -66,14 +74,45 @@ public class SSLUtil {
   }
   
   public static void ensureStorePasswords() {
-    ensureStorePassword(KEYSTORE_LOCATION_ARG, KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_FILE);
-    ensureStorePassword(TRUSTSTORE_LOCATION_ARG, TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_FILE);
+    ensureStorePassword(KEYSTORE_LOCATION_ARG, KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_PROPERTY_NAME, KEYSTORE_PASSWORD_FILE);
+    ensureStorePassword(TRUSTSTORE_LOCATION_ARG, TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_PROPERTY_NAME, TRUSTSTORE_PASSWORD_FILE);
   }
   
-  private static void ensureStorePassword(String locationArg, String pwdArg, String pwdFile) {
+  private static void ensureStorePassword(String locationArg, String pwdArg, String propertyName, String fileName) {
     if (StringUtils.isNotEmpty(System.getProperty(locationArg)) && StringUtils.isEmpty(System.getProperty(pwdArg))) {
-      String password = getPasswordFromFile(pwdFile);
+      String password = getPassword(propertyName, fileName);
       System.setProperty(pwdArg, password);
+    }
+  }
+
+  private static String getPassword(String propertyName, String fileName) {
+    String credentialStorePassword = getPasswordFromCredentialStore(propertyName);
+    if (credentialStorePassword != null) {
+      return credentialStorePassword;
+    }
+    
+    String filePassword = getPasswordFromFile(fileName);
+    if (filePassword != null) {
+      return filePassword;
+    }
+    
+    return LOGFEEDER_STORE_DEFAULT_PASSWORD;
+  }
+  
+  private static String getPasswordFromCredentialStore(String propertyName) {
+    try {
+      String providerPath = LogFeederUtil.getStringProperty(CREDENTIAL_STORE_PROVIDER_PATH);
+      if (providerPath == null) {
+        return null;
+      }
+      
+      Configuration config = new Configuration();
+      config.set(CREDENTIAL_STORE_PROVIDER_PATH, providerPath);
+      char[] passwordChars = config.getPassword(propertyName);
+      return (ArrayUtils.isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
+    } catch (Exception e) {
+      LOG.warn(String.format("Could not load password %s from credential store, using default password", propertyName));
+      return null;
     }
   }
 
@@ -87,7 +126,8 @@ public class SSLUtil {
         return FileUtils.readFileToString(pwdFile);
       }
     } catch (Exception e) {
-      throw new RuntimeException("Exception occurred during read/write password file for keystore/truststore.", e);
+      LOG.warn("Exception occurred during read/write password file for keystore/truststore.", e);
+      return null;
     }
   }
 
