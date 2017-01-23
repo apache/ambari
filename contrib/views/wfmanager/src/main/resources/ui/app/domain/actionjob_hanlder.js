@@ -367,6 +367,7 @@ var FSActionJobHandler=ActionJobHandler.extend({
       {xml:"delete"},
       {xml:"mkdir"},
       {xml:"move"},
+	  {xml:"chmod"},
       {xml:"touchz"},
       {xml:"chgrp"}
     ];

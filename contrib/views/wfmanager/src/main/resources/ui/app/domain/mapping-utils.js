@@ -233,7 +233,12 @@ var SLAMapper= Ember.Object.extend({
       if (sla.alertContact){
         slaInfo[slaPrefix+":"+"alert-contact"]=sla.alertContact;
       }
-
+      if(sla.notificationMessage){
+        slaInfo[slaPrefix+":"+"notification-msg"]=sla.notificationMessage;
+      }
+      if(sla.upstreamApps){
+        slaInfo[slaPrefix+":"+"upstream-apps"]=sla.upstreamApps;
+      }
     }
     return nodeObj;
   },
@@ -247,6 +252,12 @@ var SLAMapper= Ember.Object.extend({
     }
     if (infoJson["alert-events"] && infoJson["alert-events"].__text){
       sla.alertEvents=infoJson["alert-events"].__text;
+    }
+    if (infoJson["notification-msg"] && infoJson["notification-msg"].__text){
+      sla.notificationMessage=infoJson["notification-msg"].__text;
+    }
+    if (infoJson["upstream-apps"] && infoJson["upstream-apps"].__text){
+      sla.upstreamApps=infoJson["upstream-apps"].__text;
     }
     this.processTimePeriods(sla,infoJson,"should-start","shouldStart");
     this.processTimePeriods(sla,infoJson,"should-end","shouldEnd");
