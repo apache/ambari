@@ -89,27 +89,32 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     'HIVE_METASTORE': {
       deletePropertyName: 'deleteHiveMetaStore',
       hostPropertyName: 'hiveMetastoreHost',
-      configsCallbackName: 'loadHiveConfigs'
+      configTagsCallbackName: 'loadHiveConfigs',
+      configsCallbackName: 'onLoadHiveConfigs'
     },
     'WEBHCAT_SERVER': {
       deletePropertyName: 'deleteWebHCatServer',
       hostPropertyName: 'webhcatServerHost',
-      configsCallbackName: 'loadWebHCatConfigs'
+      configTagsCallbackName: 'loadWebHCatConfigs',
+      configsCallbackName: 'onLoadHiveConfigs'
     },
     'HIVE_SERVER': {
       addPropertyName: 'addHiveServer',
       deletePropertyName: 'deleteHiveServer',
-      configsCallbackName: 'loadHiveConfigs'
+      configTagsCallbackName: 'loadHiveConfigs',
+      configsCallbackName: 'onLoadHiveConfigs'
     },
     'NIMBUS': {
       deletePropertyName: 'deleteNimbusHost',
       hostPropertyName: 'nimbusHost',
-      configsCallbackName: 'loadStormConfigs'
+      configTagsCallbackName: 'loadStormConfigs',
+      configsCallbackName: 'onLoadStormConfigs'
     },
     'RANGER_KMS_SERVER': {
       deletePropertyName: 'deleteRangerKMSServer',
       hostPropertyName: 'rangerKMSServerHost',
-      configsCallbackName: 'loadRangerConfigs'
+      configTagsCallbackName: 'loadRangerConfigs',
+      configsCallbackName: 'onLoadRangerConfigs'
     }
   },
 
@@ -158,6 +163,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   isReconfigureRequired: false,
 
   /**
+   * Contains component-related config properties loaded from server
+   * @type {Object|null}
+   */
+  configs: null,
+
+  /**
    * Array of all properties affected by adding/deleting host component
    * @type {Array}
    */
@@ -189,16 +200,38 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     manualKerberosWarning: App.get('router.mainAdminKerberosController.isManualKerberos') ?
       Em.I18n.t('hosts.host.manualKerberosWarning') : '',
     lastComponent: false,
-    lastComponentError: ''
+    lastComponentError: '',
+    hasHostsSelect: false,
+    selectedHost: null,
+    anyHostsWithoutComponent: true
   }),
 
-  clearConfigsChanges: function () {
+  saveLoadedConfigs: function (data) {
+    var configs = {
+      items: []
+    };
+    data.items.forEach(function (item) {
+      var configTypeObject = Em.getProperties(item, ['type', 'properties_attributes']),
+        properties = {};
+      Em.keys(item.properties).forEach(function (propertyName) {
+        properties[propertyName] = item.properties[propertyName];
+      });
+      configTypeObject.properties = properties;
+      configs.items.push(configTypeObject);
+    });
+    this.set('configs', configs);
+  },
+
+  clearConfigsChanges: function (shouldKeepLoadedConfigs) {
     var arrayNames = ['allPropertiesToChange', 'recommendedPropertiesToChange', 'requiredPropertiesToChange', 'groupedPropertiesToChange'];
     this.abortRequests();
     arrayNames.forEach(function (arrayName) {
       this.get(arrayName).clear();
     }, this);
     this.set('isReconfigureRequired', false);
+    if (!shouldKeepLoadedConfigs) {
+      this.set('configs', null);
+    }
   },
 
   applyConfigsCustomization: function () {
@@ -456,7 +489,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var component = event.context;
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
-    var hostName = event.selectedHost || this.get('content.hostName');
     var returnFunc;
     var componentsMapItem = this.get('addDeleteComponentsMap')[componentName];
     if (componentsMapItem) {
@@ -465,7 +497,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
       this.clearConfigsChanges();
       this.set('isReconfigureRequired', true);
-      returnFunc = this.showDeleteComponentPopup(component, componentsMapItem.configsCallbackName);
+      returnFunc = this.showDeleteComponentPopup(component);
     } else if (componentName === 'JOURNALNODE') {
       returnFunc = App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
@@ -476,18 +508,20 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     return returnFunc;
   },
 
-  showDeleteComponentPopup: function (component, callbackName) {
+  showDeleteComponentPopup: function (component) {
     var self = this,
       isLastComponent = (this.getTotalComponent(component) === 1),
       componentName = component.get('componentName'),
       componentDisplayName = component.get('displayName'),
-      commonMessage = Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(componentDisplayName);
-    if (this.get('isReconfigureRequired')) {
-      this.set('isConfigsLoadingInProgress', true);
-      this.isServiceMetricsLoaded(function () {
-        self.loadConfigs(callbackName);
-      });
+      componentsMapItem = this.get('addDeleteComponentsMap')[componentName],
+      commonMessage = Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(componentDisplayName),
+      configTagsCallbackName,
+      configsCallbackName;
+    if (componentsMapItem) {
+      configTagsCallbackName = componentsMapItem.configTagsCallbackName;
+      configsCallbackName = componentsMapItem.configsCallbackName;
     }
+    this.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       controller: self,
@@ -711,9 +745,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       returnFunc,
       self = this,
       component = event.context,
-      hostName = event.selectedHost || this.get('content.hostName'),
+      hostName = this.get('content.hostName'),
       componentName = component.get('componentName'),
-      missedComponents = event.selectedHost ? [] : this.checkComponentDependencies(componentName, {
+      hasHostsSelect = event.hasOwnProperty('selectedHost'),
+      missedComponents = hasHostsSelect ? [] : this.checkComponentDependencies(componentName, {
         scope: 'host',
         installedComponents: this.get('content.hostComponents').mapProperty('componentName')
       }),
@@ -742,29 +777,40 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
       this.clearConfigsChanges();
       this.set('isReconfigureRequired', true);
-      returnFunc = self.showAddComponentPopup(component, hostName, null, componentsMapItem.configsCallbackName, primary);
+      returnFunc = self.showAddComponentPopup(component, hostName, null, primary, hasHostsSelect);
     } else if (componentName === 'JOURNALNODE') {
       returnFunc = App.showConfirmationPopup(function () {
         App.router.transitionTo('main.services.manageJournalNode');
       }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
     } else {
       returnFunc = this.showAddComponentPopup(component, hostName, function () {
+        if (hasHostsSelect) {
+          hostName = self.get('content.hostName');
+        }
         self.installHostComponentCall(hostName, component);
-      });
+      }, null, hasHostsSelect);
     }
     return returnFunc;
   },
 
-  showAddComponentPopup: function (component, hostName, primary, callbackName, primaryOnReconfigure) {
+  showAddComponentPopup: function (component, hostName, primary, primaryOnReconfigure, hasHostsSelect) {
     var self = this,
       componentName = component.get('componentName'),
       componentDisplayName = component.get('displayName'),
-      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
-    if (this.get('isReconfigureRequired')) {
-      this.set('isConfigsLoadingInProgress', true);
-      this.isServiceMetricsLoaded(function () {
-        self.loadConfigs(callbackName);
-      });
+      componentsMapItem = this.get('addDeleteComponentsMap')[componentName],
+      commonMessage = Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
+      configTagsCallbackName,
+      configsCallbackName;
+    if (componentsMapItem) {
+      configTagsCallbackName = componentsMapItem.configTagsCallbackName || 'loadConfigsSuccessCallback';
+      configsCallbackName = componentsMapItem.configsCallbackName || 'saveZkConfigs';
+    }
+    if (hasHostsSelect) {
+      if (this.get('isReconfigureRequired')) {
+        this.set('isConfigsLoadingInProgress', true);
+      }
+    } else {
+      this.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
     }
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
@@ -776,7 +822,51 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }.property('controller.hasPropertiesToChange'),
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       bodyClass: self.get('addDeleteComponentPopupBody').extend({
-        commonMessage: commonMessage
+        commonMessage: commonMessage,
+        hasHostsSelect: hasHostsSelect,
+        addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
+        selectHostMsg: Em.I18n.t('services.summary.selectHostForComponent').format(componentDisplayName),
+        thereIsNoHostsMsg: Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(componentDisplayName),
+        hostsWithoutComponent: function () {
+          if (this.get('hasHostsSelect')) {
+            var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName'),
+              result = App.get('allHostNames');
+            hostsWithComponent.forEach(function (host) {
+              result = result.without(host);
+            });
+            return result;
+          } else {
+            return [];
+          }
+        }.property('hasHostsSelect'),
+        anyHostsWithoutComponent: Em.computed.or('!hasHostsSelect', 'hostsWithoutComponent.length'),
+        selectedHostObserver: function () {
+          hostName = this.get('selectedHost');
+          self.clearConfigsChanges(true);
+          if (!self.get('content')) {
+            self.set('content', {});
+          }
+          self.setProperties({
+            'isReconfigureRequired': !!componentsMapItem,
+            'content.hostName': hostName
+          });
+          if (componentsMapItem) {
+            var configs = self.get('configs'),
+              params = configs && configs.params || {};
+            if (componentsMapItem.hostPropertyName) {
+              self.set(componentsMapItem.hostPropertyName, hostName);
+            }
+            if (componentsMapItem.addPropertyName) {
+              self.set(componentsMapItem.addPropertyName, true);
+            }
+            if (configs) {
+              this.set('isConfigsLoadingInProgress', true);
+              self[configsCallbackName](configs, null, params);
+            } else {
+              self.loadComponentRelatedConfigs(configTagsCallbackName, configsCallbackName);
+            }
+          }
+        }.observes('selectedHost')
       }),
       disablePrimary: Em.computed.and('controller.isReconfigureRequired', 'controller.isConfigsLoadingInProgress'),
       onPrimary: function () {
@@ -801,6 +891,16 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         self.clearConfigsChanges();
       }
     });
+  },
+
+  loadComponentRelatedConfigs: function (configTagsCallbackName, configsCallbackName) {
+    var self = this;
+    if (this.get('isReconfigureRequired')) {
+      this.set('isConfigsLoadingInProgress', true);
+      this.isServiceMetricsLoaded(function () {
+        self.loadConfigs(configTagsCallbackName, configsCallbackName);
+      });
+    }
   },
 
   /**
@@ -870,16 +970,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for Storm load configs request
    * @param {object} data
+   * @param {object} opt
+   * @param {object} params
    * @method loadStormConfigs
    */
-  loadStormConfigs: function (data) {
+  loadStormConfigs: function (data, opt, params) {
     var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
         urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')'
       },
-      success: 'onLoadStormConfigs'
+      success: params.callback
     });
     this.trackRequest(request);
   },
@@ -975,6 +1077,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       attributes = {},
       propertiesToChange = this.get('allPropertiesToChange');
 
+    this.saveLoadedConfigs(data);
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
@@ -1015,9 +1118,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for load configs request
    * @param {object} data
+   * @param {object} opt
+   * @param {object} params
    * @method loadWebHCatConfigs
    */
-  loadWebHCatConfigs: function (data) {
+  loadWebHCatConfigs: function (data, opt, params) {
     var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -1030,7 +1135,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
         ].join('|')
       },
-      success: 'onLoadHiveConfigs'
+      success: params.callback
     });
     this.trackRequest(request);
     return request;
@@ -1043,7 +1148,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {object} params
    * @method loadHiveConfigs
    */
-  loadHiveConfigs: function (data) {
+  loadHiveConfigs: function (data, opt, params) {
     var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -1055,7 +1160,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
         ].join('|')
       },
-      success: 'onLoadHiveConfigs'
+      success: params.callback
     });
     this.trackRequest(request);
     return request;
@@ -1082,6 +1187,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       hiveMetastorePort: ""
     };
     var initializer = params.webHCat ? App.AddWebHCatComponentsInitializer : App.AddHiveComponentsInitializer;
+    this.saveLoadedConfigs(data);
+    this.set('configs.params', {
+      webHCat: params.webHCat
+    });
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
@@ -1275,16 +1384,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for load configs request
    * @param {object} data
+   * @param {object} opt
+   * @param {object} params
    * @method loadRangerConfigs
    */
-  loadRangerConfigs: function (data) {
+  loadRangerConfigs: function (data, opt, params) {
     var request = App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
         urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')'
       },
-      success: 'onLoadRangerConfigs'
+      success: params.callback
     });
     this.trackRequest(request);
   },
@@ -1324,6 +1435,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       ],
       propertiesToChange = this.get('allPropertiesToChange');
+
+    this.saveLoadedConfigs(data);
 
     properties.forEach(function (property) {
       var typeConfigs = data.items.findProperty('type', property.type).properties,
@@ -1453,11 +1566,14 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * This is required to make sure that service metrics API determining the HA state of components is loaded
    * @method loadConfigs
    */
-  loadConfigs: function (callback) {
+  loadConfigs: function (configTagsCallback, configsCallback) {
     var request = App.ajax.send({
       name: 'config.tags',
       sender: this,
-      success: callback ? callback : 'loadConfigsSuccessCallback',
+      data: {
+        callback: configsCallback || 'saveZkConfigs'
+      },
+      success: configTagsCallback || 'loadConfigsSuccessCallback',
       error: 'onLoadConfigsErrorCallback'
     });
     this.trackRequest(request);
@@ -1474,9 +1590,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * Success callback for load configs request
    * @param {object} data
+   * @param {object} opt
+   * @param {object} params
    * @method loadConfigsSuccessCallback
    */
-  loadConfigsSuccessCallback: function (data) {
+  loadConfigsSuccessCallback: function (data, opt, params) {
     var urlParams = this.constructConfigUrlParams(data);
     if (urlParams.length > 0) {
       var request = App.ajax.send({
@@ -1485,7 +1603,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         data: {
           urlParams: urlParams.join('|')
         },
-        success: 'saveZkConfigs'
+        success: params.callback || 'saveZkConfigs'
       });
       this.trackRequest(request);
       return true;
@@ -1524,6 +1642,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   saveZkConfigs: function (data) {
     var configs = {};
     var attributes = {};
+    this.saveLoadedConfigs(data);
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
@@ -2524,7 +2643,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
   deleteHostSuccessCallback: function (data, rq, requestBody) {
-    var self = this;
     App.router.get('updateController').updateHost(function () {
       App.router.transitionTo('hosts.index');
     });
@@ -2535,7 +2653,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
     var self = this;
-    var callback =   function () {
+    var callback = function () {
       self.loadConfigs();
     };
     self.isServiceMetricsLoaded(callback);

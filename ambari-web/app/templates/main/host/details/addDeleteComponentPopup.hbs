@@ -24,17 +24,29 @@
     </div>
   </div>
 {{/if}}
-{{#if controller.isReconfigureRequired}}
-  {{#if controller.isConfigsLoadingInProgress}}
-    {{view App.SpinnerView}}
-  {{else}}
-    {{view.commonMessage}}
-    {{#if controller.hasPropertiesToChange}}
-      {{view App.DependentConfigsListView isAfterRecommendation=false recommendationsBinding="controller.recommendedPropertiesToChange" requiredChangesBinding="controller.requiredPropertiesToChange"}}
+{{#if view.anyHostsWithoutComponent}}
+  {{#if view.hasHostsSelect}}
+    <div>{{view.selectHostMsg}}</div>
+    <div class="row">
+      <div class="col-md-12">
+        {{view Ember.Select contentBinding="view.hostsWithoutComponent" selectionBinding="view.selectedHost" classNames="form-control"}}
+      </div>
+    </div>
+  {{/if}}
+  {{#if controller.isReconfigureRequired}}
+    {{#if controller.isConfigsLoadingInProgress}}
+      {{view App.SpinnerView}}
+    {{else}}
+      {{view.commonMessage}}
+      {{#if controller.hasPropertiesToChange}}
+        {{view App.DependentConfigsListView isAfterRecommendation=false recommendationsBinding="controller.recommendedPropertiesToChange" requiredChangesBinding="controller.requiredPropertiesToChange"}}
+      {{/if}}
+      {{{view.manualKerberosWarning}}}
     {{/if}}
-    {{{view.manualKerberosWarning}}}
+  {{else}}
+    <div>{{view.commonMessage}}</div>
+    <div>{{{view.manualKerberosWarning}}}</div>
   {{/if}}
 {{else}}
-  <div>{{view.commonMessage}}</div>
-  <div>{{{view.manualKerberosWarning}}}</div>
+  {{view.thereIsNoHostsMsg}}
 {{/if}}
