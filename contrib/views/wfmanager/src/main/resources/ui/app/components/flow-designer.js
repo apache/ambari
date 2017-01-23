@@ -349,6 +349,24 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     });
     return deferred;
   },
+  getAssetFromHdfs(filePath){
+    var url = Ember.ENV.API_URL + "/readAsset?assetPath="+filePath;
+    var deferred = Ember.RSVP.defer();
+    Ember.$.ajax({
+      url: url,
+      method: 'GET',
+      dataType: "text",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        xhr.setRequestHeader("X-Requested-By", "Ambari");
+      }
+    }).done(function(data){
+      deferred.resolve(data);
+    }).fail(function(data){
+      deferred.reject(data);
+    });
+    return deferred;
+  },
   importActionSettingsFromString(actionSettings) {
     var x2js = new X2JS();
     var actionSettingsObj = x2js.xml_str2json(actionSettings);
@@ -945,13 +963,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set("showingActionSettingsFileBrowser", false);
       if(this.get('actionSettingsFilePath')){
         self.set("errorMsg", "");
-        var actionSettingsXmlDefered=this.getWorkflowFromHdfs(this.get('actionSettingsFilePath'));
+        var actionSettingsXmlDefered=this.getAssetFromHdfs(this.get('actionSettingsFilePath'));
         actionSettingsXmlDefered.promise.then(function(data){
           this.importActionSettingsFromString(data);
         }.bind(this)).catch(function(data){
           console.error(data);
           var stackTraceMsg = self.getStackTrace(data.responseText);
-          self.set("errorMsg", "There is some problem while importing.Please try again.");
+          self.set("errorMsg", "There is some problem while importing asset.Please try again.");
           self.showingErrorMsgInDesigner(data);
         });
       }
@@ -964,13 +982,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set("showingImportActionNodeFileBrowser", false);
       if(this.get('actionNodeFilePath')){
         self.set("errorMsg", "");
-        var actionSettingsXmlDefered=this.getWorkflowFromHdfs(this.get('actionNodeFilePath'));
+        var actionSettingsXmlDefered=this.getAssetFromHdfs(this.get('actionNodeFilePath'));
         actionSettingsXmlDefered.promise.then(function(data){
           this.importActionNodeFromString(data);
         }.bind(this)).catch(function(data){
           console.error(data);
           var stackTraceMsg = self.getStackTrace(data.responseText);
-          self.set("errorMsg", "There is some problem while importing.Please try again.");
+          self.set("errorMsg", "There is some problem while importing asset. Please try again.");
           self.showingErrorMsgInDesigner(data);
         });
       }
@@ -1109,22 +1127,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     showAssetList(value) {
       var self=this;
-      if (value) {
-        self.set("errorMsg", "");
-        var fetchAssetsDefered=self.get("assetManager").fetchAssets();
-        fetchAssetsDefered.promise.then(function(response){
-          var assetData = JSON.parse(response).data;
-          assetData = assetData.filterBy('type', self.flowRenderer.currentCyNode.data().node.actionType);
-          self.set('assetList', assetData);
-          self.set('assetListType', self.flowRenderer.currentCyNode.data().node.actionType);
-          self.set('showingAssetList', value);
-        }.bind(this)).catch(function(data){
-          self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
-          self.showingErrorMsgInDesigner(data);
-        });
-      } else {
-        self.set('showingAssetList', value);
-      }
+      self.set('showingAssetList', value);
+      self.set('assetListType', self.flowRenderer.currentCyNode.data().node.actionType);
     },
     importAsset(asset) {
       var self=this;
@@ -1143,19 +1147,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     showAssetNodeList(value) {
       var self=this;
-      if (value) {
-        self.set("errorMsg", "");
-        var fetchAssetsDefered=self.get("assetManager").fetchAssets();
-        fetchAssetsDefered.promise.then(function(response){
-          self.set('assetList', JSON.parse(response).data);
-          self.set('showingAssetNodeList', value);
-        }.bind(this)).catch(function(data){
-          self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
-          self.showingErrorMsgInDesigner(data);
-        });
-      } else {
-        self.set('showingAssetNodeList', value);
-      }
+      self.set('showingAssetNodeList', value);
+      self.set('assetListType', "");
     },
     importAssetNode(asset) {
       var self=this;

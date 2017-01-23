@@ -26,6 +26,16 @@
       </div>
       <div class="modal-body">
         {{input type="text" class="form-control marginBottom10" name="assetSearchCriteria" value=assetSearchCriteria placeholder="Asset Search"}}
+        {{#if (and errorMsg (not (eq errorMsg "")))}}
+          <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
+              {{errorMsg}}
+          </div>
+        {{/if}}
+        {{#if (and successMsg (not (eq successMsg "")))}}
+            <div id="alert"class="alert alert-success alert-dismissible" role="alert">
+                {{successMsg}}
+            </div>
+        {{/if}}
         <div class="panel panel-default mb0 asset-list-panel-header">
           <table class="table asset-list-header-table listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
             <thead>
@@ -38,8 +48,8 @@
             </thead>
           </table>
         </div>
-        <div class="panel panel-default asset-list-panel-body {{if (eq filteredAssetList.length 0) 'no-asset-records'}}">
-          {{#if (eq filteredAssetList.length 0)}}
+        <div class="panel panel-default asset-list-panel-body {{if (and (eq filteredAssetList.length 0) (eq errorMsg "")) 'no-asset-records'}}">
+          {{#if (and (eq filteredAssetList.length 0) (eq errorMsg ""))}}
             <span>No assets</span>
           {{/if}}
           <table id="asset-list" class="table asset-list listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
@@ -49,7 +59,7 @@
                   <td class="col-xs-3">{{asset.name}}</td>
                   <td class="col-xs-3">{{asset.type}}</td>
                   <td class="col-xs-3">{{asset.description}}</td>
-                  <td class="col-xs-3"><span {{action 'deleteAsset' asset}}><i class="fa fa-trash-o"></i></span></td>
+                  <td class="col-xs-3"><span {{action 'showDeleteAssetWarning' asset}}><i class="fa fa-trash-o"></i></span></td>
                 </tr>
               {{/each}}
             </tbody>
@@ -63,3 +73,13 @@
     </div>
   </div>
 </div>
+{{#if showingDeleteAssetWarning}}
+  <div id="asset-delete-confirm-dialog">
+    {{#confirmation-dialog title="Confirm asset delete"
+      confirmationMessage="Do you want to delete this asset ?"
+      okBtnText="Continue" cancelBtnText="Cancel" onOk="deleteAsset"}}{{/confirmation-dialog}}
+  </div>
+{{/if}}
+{{#if inProgress}}
+  {{spin-spinner lines=13 length=20 width=10 top=200}}
+{{/if}}

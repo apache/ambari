@@ -17,26 +17,26 @@
  */
 package org.apache.oozie.ambari.view.workflowmanager;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-
 import org.apache.ambari.view.ViewContext;
 import org.apache.oozie.ambari.view.HDFSFileUtils;
 import org.apache.oozie.ambari.view.JobType;
+import org.apache.oozie.ambari.view.WorkflowFilesService;
 import org.apache.oozie.ambari.view.workflowmanager.model.Workflow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+
 public class WorkflowManagerService {
   private final static Logger LOGGER = LoggerFactory
-    .getLogger(WorkflowManagerService.class);
+          .getLogger(WorkflowManagerService.class);
   private final WorkflowsRepo workflowsRepository;
-  private final HDFSFileUtils hdfsFileUtils;
+  private final WorkflowFilesService workflowFilesService;
 
   public WorkflowManagerService(ViewContext viewContext) {
     workflowsRepository = new WorkflowsRepo(viewContext.getDataStore());
-    hdfsFileUtils = new HDFSFileUtils(viewContext);
+
+    workflowFilesService = new WorkflowFilesService(new HDFSFileUtils(viewContext));
   }
 
   public void saveWorkflow(String projectId, String path, JobType jobType,
@@ -46,16 +46,24 @@ public class WorkflowManagerService {
       Workflow workflowById = workflowsRepository.findById(projectId);
       if (workflowById == null) {
         throw new RuntimeException("could not find project with id :"
-          + projectId);
+                + projectId);
       }
       setWorkflowAttributes(jobType, userName, name, workflowById);
       workflowsRepository.update(workflowById);
+
     } else {
-      Workflow wf = new Workflow();
-      wf.setId(workflowsRepository.generateId());
-      setWorkflowAttributes(jobType, userName, name, wf);
-      wf.setWorkflowDefinitionPath(path);
-      workflowsRepository.create(wf);
+      String workflowFileName = workflowFilesService.getWorkflowFileName(path);
+      Workflow workflowByPath = workflowsRepository.getWorkflowByPath(workflowFileName);
+      if (workflowByPath!=null){
+        setWorkflowAttributes(jobType, userName, name, workflowByPath);
+        workflowsRepository.update(workflowByPath);
+      }else{
+        Workflow wf = new Workflow();
+        wf.setId(workflowsRepository.generateId());
+        setWorkflowAttributes(jobType, userName, name, wf);
+        wf.setWorkflowDefinitionPath(workflowFileName);
+        workflowsRepository.create(wf);
+      }
     }
   }
 
@@ -70,18 +78,10 @@ public class WorkflowManagerService {
     return workflowsRepository.findAll();
   }
 
-  public Workflow getWorkflowByPath(String path) {
-    return workflowsRepository.getWorkflowByPath(path);
-  }
-
   public void deleteWorkflow(String projectId, Boolean deleteDefinition) {
     Workflow workflow = workflowsRepository.findById(projectId);
     if (deleteDefinition) {
-      try {
-        hdfsFileUtils.deleteFile(workflow.getWorkflowDefinitionPath());
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      workflowFilesService.deleteWorkflowFile(workflow.getWorkflowDefinitionPath());
     }
     workflowsRepository.delete(workflow);
   }
