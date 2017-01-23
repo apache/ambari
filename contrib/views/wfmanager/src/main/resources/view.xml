@@ -104,14 +104,14 @@
         <required>false</required>
         <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
     </parameter>
-<!--
+
     <parameter>
         <name>webhdfs.username</name>
         <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
         <label>WebHDFS Username</label>
         <default-value>${username}</default-value>
         <required>false</required>
-    </parameter> -->
+    </parameter>
     <parameter>
         <name>webhdfs.auth</name>
         <description>Semicolon-separated authentication configs.</description>
@@ -146,11 +146,11 @@
   </parameter>
 
     <persistence>
-        <!--
+
         <entity>
              <class>org.apache.oozie.ambari.view.workflowmanager.model.Workflow</class>
             <id-property>id</id-property>
-        </entity> -->
+        </entity>
         <entity>
             <class>org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition</class>
             <id-property>id</id-property>
