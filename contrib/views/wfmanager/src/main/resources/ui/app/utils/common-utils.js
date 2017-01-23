@@ -28,6 +28,6 @@ export default Ember.Object.create({
     window.flowDesignerTestContext=context;
   },
   isSupportedAction(actionType){
-    return Object.values(Constants.actions).findBy('name', actionType)? true : false;
+    return Constants.actions.findBy('name', actionType)? true : false;
   }
 });

@@ -25,8 +25,7 @@ export default Ember.Component.extend({
     this.set('workflowSchemaVersions', this.get('schemaVersions').getSupportedVersions('workflow'));
     this.set('selectedWorkflowVersion', this.get('workflow').schemaVersions.workflowVersion);
     var actionVersions = Ember.A([]);
-    Object.keys(Constants.actions).forEach((key)=>{
-      var action = Constants.actions[key];
+    Constants.actions.forEach((action)=>{
       if(action.supportsSchema){
         actionVersions.push({name:action.name, supporedVersions :this.get('schemaVersions').getSupportedVersions(action.name),
         selectedVersion: this.get('workflow').schemaVersions.actionVersions.get(action.name)});
