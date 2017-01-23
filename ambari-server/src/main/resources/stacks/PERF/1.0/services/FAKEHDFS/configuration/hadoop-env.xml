@@ -202,7 +202,7 @@
     <value>/tmp</value>
     <description>FAKEHDFS tmp Dir</description>
     <display-name>FAKEHDFS tmp Dir</display-name>
-    <property-type>NOT_MANAGED_FAKEHDFS_PATH</property-type>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
     <value-attributes>
       <read-only>true</read-only>
       <overridable>false</overridable>
