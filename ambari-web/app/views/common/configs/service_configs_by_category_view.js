@@ -64,6 +64,15 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   categoryConfigs: [],
 
+  /**
+   * Link to main configs view
+   * @type {Ember.View}
+   */
+  mainView: function () {
+    //todo: Get rid of this logic. Get data from controller instead.
+    return this.get('controller.name') === 'mainServiceInfoConfigsController' ? this.get('parentView.parentView') : this.get('parentView');
+  }.property('controller.name'),
+
   didInsertElement: function () {
     var self = this;
     // If `this.categoryConfigsAll` is a computed property then don't set it.
@@ -175,9 +184,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     var hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
         return config.get('isHiddenByFilter') === false && Em.isNone(config.get('widget'));
       }, this).length > 0;
-    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.parentView.columns').someProperty('selected')) ||
+    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('mainView.columns').someProperty('selected')) ||
       hasFilteredAdvancedConfigs;
-  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'parentView.parentView.columns.@each.selected'),
+  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'mainView.columns.@each.selected'),
 
   /**
    * Re-order the configs to list content displayType properties at last in the category
@@ -320,7 +329,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   collapseCategory: function () {
     if (this.get('state') === 'destroyed') return;
     $('.popover').remove();
-    var filter = this.get('parentView.parentView.filter');
+    var filter = this.get('mainView.filter');
     filter = filter? filter.toLowerCase() : filter; // filter can be undefined in some wizard
     var filteredResult = this.get('categoryConfigs');
     var isInitialRendering = !arguments.length || arguments[1] != 'categoryConfigs';
@@ -643,7 +652,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           var controller = (App.router.get('currentState.name') == 'configs')
             ? App.router.get('mainServiceInfoConfigsController')
             : App.router.get('wizardStep7Controller');
-          this.get('parentView.parentView').onClose();
+          this.get('mainView').onClose();
           controller.set('filter', event.view.get('serviceConfigObj.name'));
         }
       })
