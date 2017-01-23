@@ -1577,7 +1577,7 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
   'admin.ra_highAvailability.wizard.step4.task0.title': 'Stop All Services',
   'admin.ra_highAvailability.wizard.step4.task1.title': 'Install Additional Ranger Admin',
-  'admin.ra_highAvailability.wizard.step4.task2.title': 'Reconfigure Ranger',
+  'admin.ra_highAvailability.wizard.step4.task2.title': 'Reconfigure Services',
   'admin.ra_highAvailability.wizard.step4.task3.title': 'Start All Services',
   'admin.ra_highAvailability.wizard.step4.notice.inProgress': 'Please wait while Ranger Admin HA is being deployed.',
   'admin.ra_highAvailability.wizard.step4.notice.completed': 'Ranger Admin HA has been enabled successfully.',

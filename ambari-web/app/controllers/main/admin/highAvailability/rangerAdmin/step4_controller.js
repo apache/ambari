@@ -51,11 +51,30 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   onLoadConfigsTags: function (data) {
+    var urlParams = [];
+    urlParams.push('(type=admin-properties&tag=' + data.Clusters.desired_configs['admin-properties'].tag + ')');
+    var siteNamesToFetch = [
+      'ranger-hdfs-security',
+      'ranger-yarn-security',
+      'ranger-hbase-security',
+      'ranger-hive-security',
+      'ranger-knox-security',
+      'ranger-kafka-security',
+      'ranger-kms-security',
+      'ranger-storm-security',
+      'ranger-atlas-security'
+    ];
+    siteNamesToFetch.map(function(siteName) {
+      if(siteName in data.Clusters.desired_configs) {
+        urlParams.push('(type=' + siteName + '&tag=' + data.Clusters.desired_configs[siteName].tag + ')');
+      }
+    });
+
     App.ajax.send({
       name: 'reassign.load_configs',
       sender: this,
       data: {
-        urlParams: '(type=admin-properties&tag=' + data.Clusters.desired_configs['admin-properties'].tag + ')'
+        urlParams: urlParams.join('|')
       },
       success: 'onLoadConfigs',
       error: 'onTaskError'
@@ -63,14 +82,70 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   onLoadConfigs: function (data) {
+    var configs = [];
+    var self = this;
     data.items.findProperty('type', 'admin-properties').properties['policymgr_external_url'] = this.get('content.loadBalancerURL');
-    var configData = this.reconfigureSites(['admin-properties'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN', false)));
+    configs.push({
+      Clusters: {
+        desired_config: this.reconfigureSites(['admin-properties'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN', false)))
+      }
+    });
+
+    var configsToChange = [
+      {
+        siteName: 'ranger-hdfs-security',
+        property: 'ranger.plugin.hdfs.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-yarn-security',
+        property: 'ranger.plugin.yarn.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-hbase-security',
+        property: 'ranger.plugin.hbase.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-hive-security',
+        property: 'ranger.plugin.hive.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-knox-security',
+        property: 'ranger.plugin.knox.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-kafka-security',
+        property: 'ranger.plugin.kafka.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-kms-security',
+        property: 'ranger.plugin.kms.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-storm-security',
+        property: 'ranger.plugin.storm.policy.rest.url'
+      },
+      {
+        siteName: 'ranger-atlas-security',
+        property: 'ranger.plugin.atlas.policy.rest.url'
+      }
+    ];
+    configsToChange.map(function(item) {
+      var config = data.items.findProperty('type', item.siteName);
+      if(config) {
+        config.properties[item.property] = self.get('content.loadBalancerURL');
+        configs.push({
+          Clusters: {
+            desired_config: self.reconfigureSites([item.siteName], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN', false)))
+          }
+        });
+      }
+    });
 
     App.ajax.send({
-      name: 'common.service.configurations',
+      name: 'common.service.multiConfigurations',
       sender: this,
       data: {
-        desired_config: configData
+        configs: configs
       },
       success: 'onSaveConfigs',
       error: 'onTaskError'
