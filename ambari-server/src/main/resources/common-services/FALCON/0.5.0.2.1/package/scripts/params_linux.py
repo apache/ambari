@@ -161,8 +161,8 @@ if enable_atlas_hook:
       or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted)
 
   if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
-    atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else format('{stack_root}/current/atlas-server/conf')
-    atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
+    atlas_conf_dir = format('{stack_root}/current/atlas-server/conf')
+    atlas_home_dir = format('{stack_root}/current/atlas-server')
     atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep
   elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, stack_version_formatted):
     atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*') + os.pathsep

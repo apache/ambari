@@ -32,7 +32,7 @@ class TestMetadataServer(RMFTestCase):
 
   def configureResourcesCalled(self):
       # Both server and client
-      self.assertResourceCalled('Directory', '/etc/atlas/conf',
+      self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/conf',
                                 owner='atlas',
                                 group='hadoop',
                                 create_parents = True,
@@ -48,7 +48,7 @@ class TestMetadataServer(RMFTestCase):
                                 cd_access='a',
                                 mode=0755
       )
-      self.assertResourceCalled('Directory', '/etc/atlas/conf/solr',
+      self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/conf/solr',
                                 owner='atlas',
                                 group='hadoop',
                                 create_parents = True,
@@ -94,7 +94,7 @@ class TestMetadataServer(RMFTestCase):
       app_props["atlas.server.address.id1"] = u"%s:%s" % (host_name, metadata_port)
       app_props["atlas.server.ha.enabled"] = "false"
 
-      self.assertResourceCalled('File', '/etc/atlas/conf/atlas-log4j.xml',
+      self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/atlas-log4j.xml',
                           content=InlineTemplate(
                             self.getConfig()['configurations'][
                               'atlas-log4j']['content']),
@@ -102,7 +102,7 @@ class TestMetadataServer(RMFTestCase):
                           group='hadoop',
                           mode=0644,
       )
-      self.assertResourceCalled('File', '/etc/atlas/conf/atlas-env.sh',
+      self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/atlas-env.sh',
                                 content=InlineTemplate(
                                     self.getConfig()['configurations'][
                                         'atlas-env']['content']),
@@ -110,7 +110,7 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0755,
       )
-      self.assertResourceCalled('File', '/etc/atlas/conf/solr/solrconfig.xml',
+      self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/solr/solrconfig.xml',
                                 content=InlineTemplate(
                                     self.getConfig()['configurations'][
                                       'atlas-solrconfig']['content']),
@@ -120,7 +120,7 @@ class TestMetadataServer(RMFTestCase):
       )
       # application.properties file
       self.assertResourceCalled('PropertiesFile',
-                                '/etc/atlas/conf/application.properties',
+                                '/usr/hdp/current/atlas-server/conf/application.properties',
                                 properties=app_props,
                                 owner=u'atlas',
                                 group=u'hadoop',
@@ -156,7 +156,7 @@ class TestMetadataServer(RMFTestCase):
                                       only_if='test -d /tmp/solr_config_atlas_configs_0.[0-9]*')
       self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_atlas_configs_0.[0-9]* --config-set atlas_configs --retry 30 --interval 5',
                                       only_if='test -d /tmp/solr_config_atlas_configs_0.[0-9]*')
-      self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/atlas/conf/solr --config-set atlas_configs --retry 30 --interval 5',
+      self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /usr/hdp/current/atlas-server/conf/solr --config-set atlas_configs --retry 30 --interval 5',
                                       not_if='test -d /tmp/solr_config_atlas_configs_0.[0-9]*')
       self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_atlas_configs_0.[0-9]*',
                                       action=['delete'],
@@ -168,7 +168,7 @@ class TestMetadataServer(RMFTestCase):
 
   def configureResourcesCalledSecure(self):
     # Both server and client
-    self.assertResourceCalled('Directory', '/etc/atlas/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/conf',
                               owner='atlas',
                               group='hadoop',
                               create_parents = True,
@@ -184,7 +184,7 @@ class TestMetadataServer(RMFTestCase):
                               cd_access='a',
                               mode=0755
     )
-    self.assertResourceCalled('Directory', '/etc/atlas/conf/solr',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/conf/solr',
                               owner='atlas',
                               group='hadoop',
                               create_parents = True,
@@ -230,7 +230,7 @@ class TestMetadataServer(RMFTestCase):
     app_props["atlas.server.address.id1"] = u"%s:%s" % (host_name, metadata_port)
     app_props["atlas.server.ha.enabled"] = "false"
 
-    self.assertResourceCalled('File', '/etc/atlas/conf/atlas-log4j.xml',
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/atlas-log4j.xml',
                               content=InlineTemplate(
                                 self.getConfig()['configurations'][
                                   'atlas-log4j']['content']),
@@ -238,7 +238,7 @@ class TestMetadataServer(RMFTestCase):
                               group='hadoop',
                               mode=0644,
                               )
-    self.assertResourceCalled('File', '/etc/atlas/conf/atlas-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/atlas-env.sh',
                               content=InlineTemplate(
                                 self.getConfig()['configurations'][
                                   'atlas-env']['content']),
@@ -246,7 +246,7 @@ class TestMetadataServer(RMFTestCase):
                               group='hadoop',
                               mode=0755,
                               )
-    self.assertResourceCalled('File', '/etc/atlas/conf/solr/solrconfig.xml',
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/solr/solrconfig.xml',
                               content=InlineTemplate(
                                 self.getConfig()['configurations'][
                                   'atlas-solrconfig']['content']),
@@ -256,14 +256,14 @@ class TestMetadataServer(RMFTestCase):
                               )
     # application.properties file
     self.assertResourceCalled('PropertiesFile',
-                              '/etc/atlas/conf/application.properties',
+                              '/usr/hdp/current/atlas-server/conf/application.properties',
                               properties=app_props,
                               owner=u'atlas',
                               group=u'hadoop',
                               mode=0644,
                               )
 
-    self.assertResourceCalled('TemplateConfig', '/etc/atlas/conf/atlas_jaas.conf',
+    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/atlas-server/conf/atlas_jaas.conf',
                               owner = 'atlas',
                               )
 
@@ -298,7 +298,7 @@ class TestMetadataServer(RMFTestCase):
                                     only_if='test -d /tmp/solr_config_atlas_configs_0.[0-9]*')
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_atlas_configs_0.[0-9]* --config-set atlas_configs --retry 30 --interval 5',
                                     only_if='test -d /tmp/solr_config_atlas_configs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/atlas/conf/solr --config-set atlas_configs --retry 30 --interval 5',
+    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /usr/hdp/current/atlas-server/conf/solr --config-set atlas_configs --retry 30 --interval 5',
                                     not_if='test -d /tmp/solr_config_atlas_configs_0.[0-9]*')
     self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_atlas_configs_0.[0-9]*',
                                     action=['delete'],
@@ -324,7 +324,7 @@ class TestMetadataServer(RMFTestCase):
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
-    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/hdfs-site.xml',action = ['delete'],)
 
     self.assertNoMoreResources()
 
@@ -344,7 +344,7 @@ class TestMetadataServer(RMFTestCase):
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
-    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/hdfs-site.xml',action = ['delete'],)
 
 
     self.assertNoMoreResources()
@@ -364,10 +364,10 @@ class TestMetadataServer(RMFTestCase):
                               group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
-    self.assertResourceCalled('File', '/etc/atlas/conf/hdfs-site.xml',action = ['delete'],)
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/conf/hdfs-site.xml',action = ['delete'],)
 
 
-    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py',
+    self.assertResourceCalled('Execute', 'source /usr/hdp/current/atlas-server/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py',
                               not_if = 'ls /var/run/atlas/atlas.pid >/dev/null 2>&1 && ps -p `cat /var/run/atlas/atlas.pid` >/dev/null 2>&1',
                               user = 'atlas',
     )
@@ -383,7 +383,7 @@ class TestMetadataServer(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh; /usr/hdp/current/atlas-server/bin/atlas_stop.py',
+    self.assertResourceCalled('Execute', 'source /usr/hdp/current/atlas-server/conf/atlas-env.sh; /usr/hdp/current/atlas-server/bin/atlas_stop.py',
                               user = 'atlas',
     )
     self.assertResourceCalled('File', '/var/run/atlas/atlas.pid',

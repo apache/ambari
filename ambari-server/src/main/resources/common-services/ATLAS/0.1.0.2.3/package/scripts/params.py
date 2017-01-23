@@ -92,7 +92,7 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
+metadata_home = format('{stack_root}/current/atlas-server')
 metadata_bin = format("{metadata_home}/bin")
 
 python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable
