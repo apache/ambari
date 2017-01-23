@@ -39,8 +39,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     this.schemaVersions = {};
     this.schemaVersions.workflowVersion = schemaVersions.getDefaultVersion('workflow');
     var actionsMap = new Map();
-    Object.keys(Constants.actions).forEach((key)=>{
-      var action = Constants.actions[key];
+    Constants.actions.forEach((action)=>{
       if(action.supportsSchema){
         actionsMap.set(action.name, schemaVersions.getDefaultVersion(action.name));
       }
