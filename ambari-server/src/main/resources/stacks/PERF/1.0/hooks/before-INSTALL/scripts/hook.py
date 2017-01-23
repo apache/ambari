@@ -17,6 +17,8 @@ limitations under the License.
 
 """
 import os
+
+from resource_management import ExecutionFailed
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.script import Hook
 
@@ -37,12 +39,17 @@ class BeforeInstallHook(Hook):
     cache_dir = self.extrakt_var_from_pythonpath(AMBARI_AGENT_CACHE_DIR)
     conf_select = os.path.join(cache_dir, CONF_SELECT_PY)
     dist_select = os.path.join(cache_dir, DISTRO_SELECT_PY)
-    if not os.path.exists(CONF_SELECT_DEST):
-      Execute("cp -f %s %s" % (conf_select, CONF_SELECT_DEST), user="root")
+    try:
+      Execute("cp -n %s %s" % (conf_select, CONF_SELECT_DEST), user="root")
       Execute("chmod a+x %s" % (CONF_SELECT_DEST), user="root")
-    if not os.path.exists(DISTRO_SELECT_DEST):
-      Execute("cp -f %s %s" % (dist_select, DISTRO_SELECT_DEST), user="root")
+    except ExecutionFailed:
+      pass   # Due to concurrent execution, may produce error
+
+    try:
+      Execute("cp -n %s %s" % (dist_select, DISTRO_SELECT_DEST), user="root")
       Execute("chmod a+x %s" % (DISTRO_SELECT_DEST), user="root")
+    except ExecutionFailed:
+      pass   # Due to concurrent execution, may produce error
 
   def extrakt_var_from_pythonpath(self, name):
 
