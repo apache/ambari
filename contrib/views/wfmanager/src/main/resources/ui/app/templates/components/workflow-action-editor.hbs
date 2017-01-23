@@ -64,6 +64,22 @@
                   {{#fs-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/fs-action}}
                 {{else if (eq actionType 'sub-workflow')}}
                   {{#sub-workflow actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/sub-workflow}}
+                {{else}}
+                    <div class="panel panel-default">
+                      <div class="panel-heading">Action XML</div>
+                      <div class="panel-body handlerPanel">
+                        {{designer-errors errors=errors}}
+                        {{textarea class="custom-action-xml" value=actionXml}}
+                      </div>
+                    </div>
+                    <div class="panel panel-default">
+                      <div class="panel-heading">Transition</div>
+                      <div class="panel-body handlerPanel">
+                        {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode}}{{/transition-config}}
+                      </div>
+                    </div>
+                    {{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
+                    {{#sla-info slaInfo=customSlaInfo slaEnabled=customSlaEnabled}}{{/sla-info}}
               {{/if}}
               {{#if containsUnsupportedProperties}}
                 <div id="unsupported-props" class=" panel panel-default">

@@ -88,5 +88,6 @@ export default Ember.Object.create({
   persistWorkInProgressInterval : 30000,
   elConstants : [
     '${YEAR}', '${MONTH}', '${DAY}', '${HOUR}', '${MINUTE}'
-  ]
+  ],
+  customActionEnabled : false
 });

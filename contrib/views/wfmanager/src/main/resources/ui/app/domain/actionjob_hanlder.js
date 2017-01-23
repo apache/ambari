@@ -337,6 +337,26 @@ var MapRedActionJobHandler=ActionJobHandler.extend({
   }
 });
 
+var CustomActionJobHandler=ActionJobHandler.extend({
+  actionType:'',
+  mapping:null,
+  init(){
+    this.mapping=[];
+  },
+  handleImport(actionNode,json){
+    actionNode.set('domain', json);
+  },
+  handle(nodeDomain,nodeObj,nodeName){
+    var customDomain = {};
+    Object.keys(nodeDomain).forEach(key =>{
+      if(key !== 'slaInfo' && key !== 'slaEnabled' && key!=='credentials'){
+        customDomain[key] = nodeDomain[key];
+      }
+    });
+    nodeObj[this.get("actionType")] = customDomain;
+  }
+});
+
 var FSActionJobHandler=ActionJobHandler.extend({
   actionType:"fs",
   mapping:null,
@@ -544,4 +564,4 @@ var FSActionJobHandler=ActionJobHandler.extend({
     });
   }
 });
-export{ActionJobHandler,JavaActionJobHandler,PigActionJobHandler,HiveActionJobHandler,SqoopActionJobHandler,ShellActionJobHandler, EmailActionJobHandler,SparkActionJobHandler,MapRedActionJobHandler, Hive2ActionJobHandler, SubWFActionJobHandler, DistCpJobHandler, SshActionJobHandler, FSActionJobHandler};
+export{ActionJobHandler,JavaActionJobHandler,PigActionJobHandler,HiveActionJobHandler,SqoopActionJobHandler,ShellActionJobHandler, EmailActionJobHandler,SparkActionJobHandler,MapRedActionJobHandler, Hive2ActionJobHandler, SubWFActionJobHandler, DistCpJobHandler, SshActionJobHandler, FSActionJobHandler, CustomActionJobHandler};

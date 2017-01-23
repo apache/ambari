@@ -16,6 +16,7 @@
  */
 
 import Ember from 'ember';
+import Constants from '../utils/constants';
 export default Ember.Object.create({
   extractSchemaVersion(xmlns){
     return xmlns.substring(xmlns.lastIndexOf(":")+1);
@@ -25,5 +26,8 @@ export default Ember.Object.create({
   },
   setTestContext(context){
     window.flowDesignerTestContext=context;
+  },
+  isSupportedAction(actionType){
+    return Object.values(Constants.actions).findBy('name', actionType)? true : false;
   }
 });

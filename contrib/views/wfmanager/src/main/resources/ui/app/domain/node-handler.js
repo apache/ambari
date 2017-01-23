@@ -125,16 +125,16 @@ var ActionNodeHandler= NodeHandler.extend({
       return actionNode;
     }
     var actionJobHandler=this.get("actionTypeResolver").getActionJobHandler(actionType);
-    if (!actionJobHandler){
-      console.error("cannot handle unsupported action type:"+actionType+" for "+nodeJson._name);//TODO error handling...
-      return actionNode;
+    if(actionJobHandler){
+      actionJobHandler.handleImport(actionNode,nodeJson[actionType]);
     }
-    actionJobHandler.handleImport(actionNode,nodeJson[actionType]);
     if (nodeJson.info && nodeJson.info.__prefix==="sla") {
       actionNode.domain.slaEnabled=true;
       this.slaMapper.handleImport(actionNode.domain,nodeJson.info,"slaInfo");
     }
-    actionNode.domain.credentials=nodeJson._cred;
+    if(nodeJson._cred){
+      actionNode.domain.credentials=nodeJson._cred;
+    }
     return actionNode;
   },
   handleImportTransitions(node,json,nodeMap){
