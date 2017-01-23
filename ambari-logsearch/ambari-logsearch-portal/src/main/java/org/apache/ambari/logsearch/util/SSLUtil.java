@@ -21,8 +21,12 @@ package org.apache.ambari.logsearch.util;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
@@ -64,9 +68,12 @@ public class SSLUtil {
   private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
   private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
   private static final String DEFAULT_TRUSTSTORE_TYPE = "JKS";
+  private static final String KEYSTORE_PASSWORD_PROPERTY_NAME = "logsearch_keystore_password";
+  private static final String TRUSTSTORE_PASSWORD_PROPERTY_NAME = "logsearch_truststore_password";
   private static final String KEYSTORE_PASSWORD_FILE = "ks_pass.txt";
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
-  
+  private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
+
   private SSLUtil() {
     throw new UnsupportedOperationException();
   }
@@ -104,8 +111,8 @@ public class SSLUtil {
   }
   
   public static SslContextFactory getSslContextFactory() {
-    setPasswordIfSysPropIsEmpty(KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_FILE);
-    setPasswordIfSysPropIsEmpty(TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_FILE);
+    setPasswordIfSysPropIsEmpty(KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_PROPERTY_NAME, KEYSTORE_PASSWORD_FILE);
+    setPasswordIfSysPropIsEmpty(TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_PROPERTY_NAME, TRUSTSTORE_PASSWORD_FILE);
     SslContextFactory sslContextFactory = new SslContextFactory();
     sslContextFactory.setKeyStorePath(getKeyStoreLocation());
     sslContextFactory.setKeyStorePassword(getKeyStorePassword());
@@ -137,20 +144,50 @@ public class SSLUtil {
     }
   }
 
-  private static String getPasswordFromFile(String certFolder, String fileName, String defaultPassword) {
+  private static String getPasswordFromFile(String fileName) {
     try {
-      String pwdFileName = String.format("%s/%s", certFolder, fileName);
-      File pwdFile = new File(pwdFileName);
+      File pwdFile = new File(LOGSEARCH_CERT_DEFAULT_FOLDER, fileName);
       if (!pwdFile.exists()) {
-        FileUtils.writeStringToFile(pwdFile, defaultPassword);
-        return defaultPassword;
+        FileUtils.writeStringToFile(pwdFile, LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD);
+        return LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD;
       } else {
         return FileUtils.readFileToString(pwdFile);
       }
     } catch (Exception e) {
-      String errMsg = "Exception occurred during read/write password file for keystore.";
-      throw new RuntimeException(errMsg, e);
+      LOG.warn("Exception occurred during read/write password file for keystore/truststore.", e);
+      return null;
     }
+  }
+
+  private static String getPasswordFromCredentialStore(String propertyName) {
+    try {
+      String providerPath = PropertiesHelper.getProperty(CREDENTIAL_STORE_PROVIDER_PATH);
+      if (providerPath == null) {
+        return null;
+      }
+      
+      Configuration config = new Configuration();
+      config.set(CREDENTIAL_STORE_PROVIDER_PATH, providerPath);
+      char[] passwordChars = config.getPassword(propertyName);
+      return (ArrayUtils.isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
+    } catch (Exception e) {
+      LOG.warn(String.format("Could not load password %s from credential store, using default password", propertyName));
+      return null;
+    }
+  }
+
+  private static String getPassword(String propertyName, String fileName) {
+    String credentialStorePassword = getPasswordFromCredentialStore(propertyName);
+    if (credentialStorePassword != null) {
+      return credentialStorePassword;
+    }
+    
+    String filePassword = getPasswordFromFile(fileName);
+    if (filePassword != null) {
+      return filePassword;
+    }
+    
+    return LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD;
   }
 
   /**
@@ -200,10 +237,10 @@ public class SSLUtil {
     }
   }
 
-  private static void setPasswordIfSysPropIsEmpty(String prop, String pwdFile) {
-    if (StringUtils.isEmpty(System.getProperty(prop))) {
-      String password = getPasswordFromFile(LOGSEARCH_CERT_DEFAULT_FOLDER, pwdFile, LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD);
-      System.setProperty(prop, password);
+  private static void setPasswordIfSysPropIsEmpty(String pwdArg, String propertyName, String fileName) {
+    if (StringUtils.isEmpty(System.getProperty(pwdArg))) {
+      String password = getPassword(propertyName, fileName);
+      System.setProperty(pwdArg, password);
     }
   }
 
