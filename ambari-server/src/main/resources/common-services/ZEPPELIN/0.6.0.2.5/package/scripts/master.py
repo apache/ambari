@@ -20,6 +20,7 @@ limitations under the License.
 
 import glob
 import os
+from resource_management.core.base import Fail
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
@@ -32,6 +33,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
@@ -168,7 +170,6 @@ class Master(Script):
   def start(self, env, upgrade_type=None):
     import params
     import status_params
-    import time
     self.configure(env)
 
     Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"), "/etc/zeppelin"),
@@ -345,21 +346,14 @@ class Master(Script):
 
     self.set_interpreter_settings(config_data)
 
-  def check_zeppelin_server(self, retries=10):
+  @retry(times=30, sleep_time=5, err_class=Fail)
+  def check_zeppelin_server(self):
     import params
-    import time
     path = params.conf_dir + "/interpreter.json"
     if os.path.exists(path) and os.path.getsize(path):
       Logger.info("interpreter.json found. Zeppelin server started.")
-      return True
     else:
-      if retries > 0:
-        Logger.info("interpreter.json not found. waiting for zeppelin server to start...")
-        time.sleep(5)
-        self.check_zeppelin_server(retries - 1)
-      else:
-        return False
-    return False
+      raise Fail("interpreter.json not found. waiting for Zeppelin server to start...")
 
   def get_zeppelin_spark_dependencies(self):
     import params
