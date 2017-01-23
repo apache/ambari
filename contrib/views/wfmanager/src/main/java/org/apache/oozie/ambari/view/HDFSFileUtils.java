@@ -19,6 +19,7 @@ package org.apache.oozie.ambari.view;
 
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.hdfs.UserService;
 import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class HDFSFileUtils {
@@ -118,5 +120,22 @@ public class HDFSFileUtils {
 		}
 
 	}
+	public boolean hdfsCheck()  {
+		try {
+			getHdfsgetApi().getStatus();
+			return true;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
+	public boolean homeDirCheck(){
+		UserService userservice = new UserService(viewContext, getViewConfigs(viewContext));
+		userservice.homeDir();
+		return true;
+	}
+	private Map<String,String> getViewConfigs(ViewContext context) {
+		Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+		return props.isPresent()? props.get() : new HashMap<String, String>();
+	}
 }

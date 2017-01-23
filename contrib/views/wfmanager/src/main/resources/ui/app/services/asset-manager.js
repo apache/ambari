@@ -138,5 +138,24 @@ export default Ember.Service.extend({
       deferred.reject(data);
     });
     return deferred;
+  },
+  assetNameAvailable(assetName) {
+    var url = Ember.ENV.API_URL + "/assets/assetNameAvailable?name=" + assetName;
+    var deferred = Ember.RSVP.defer();
+    Ember.$.ajax({
+      url: url,
+      method: "GET",
+      dataType: "text",
+      contentType: "text/plain;charset=utf-8",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        xhr.setRequestHeader("X-Requested-By", "workflow-designer");
+      }
+    }).done(function(data){
+      deferred.resolve(data);
+    }).fail(function(data){
+      deferred.reject(data);
+    });
+    return deferred;
   }
 });

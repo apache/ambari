@@ -201,7 +201,7 @@
               </div>
             {{/if}}
           {{/each}}
-          <div class="overlay-node-label">asd</div>
+          <div class="overlay-node-label"></div>
           <div class="overlay-transition-content">
             <div class="decision-condition-label">
               <div class="decision-condition-header">Condition</div>
@@ -306,7 +306,7 @@
   {{#asset-list showAssetList="showAssetList" importAsset="importAsset" assetList=assetList assetListType=assetListType}}{{/asset-list}}
 {{/if}}
 {{#if showingAssetNodeList}}
-  {{#asset-list showAssetList="showAssetNodeList" importAsset="importAssetNode" deleteAsset="deleteAsset" assetList=assetList}}{{/asset-list}}
+  {{#asset-list showAssetList="showAssetNodeList" importAsset="importAssetNode" assetList=assetList}}{{/asset-list}}
 {{/if}}
 {{#if showingPreview}}
   {{#preview-dialog title="Workflow XML Preview" previewXml=previewXml closePreview="closePreview"}}{{/preview-dialog}}

@@ -17,7 +17,10 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+  assetManager : Ember.inject.service('asset-manager'),
   assetSearchCriteria: "",
+  currentAsset: null,
+  filteredAssetList:  Ember.A([]),
   fuseSearchOptions: {
     shouldSort: true,
     threshold: 0.1,
@@ -45,7 +48,17 @@ export default Ember.Component.extend({
       this.sendAction('showAssetManager', false);
     }.bind(this));
 
-    this.initializeFuseSearch();
+    self.set("inProgress", true);
+    self.set("errorMsg", "");
+    var fetchAssetsDefered=self.get("assetManager").fetchMyAssets();
+    fetchAssetsDefered.promise.then(function(response){
+      self.set('assetList', JSON.parse(response).data);
+      self.initializeFuseSearch();
+      self.set("inProgress", false);
+    }.bind(this)).catch(function(data){
+      self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
+      self.set("inProgress", false);
+    });
   }.on('didInsertElement'),
   initializeFuseSearch() {
      this.set('fuse', new Fuse(this.get("assetList"), this.get('fuseSearchOptions')));
@@ -62,9 +75,39 @@ export default Ember.Component.extend({
     close() {
       this.$('#asset_manager_dialog').modal('hide');
     },
-    deleteAsset(asset) {
-      this.$('#asset_manager_dialog').modal('hide');
-      this.sendAction('deleteAsset', asset);
+    deleteAsset() {
+      var self=this;
+      self.set("inProgress", true);
+      self.set("errorMsg", "");
+      self.set("successMsg", "");
+      var deleteAssetDefered=self.get("assetManager").deleteAsset(self.get("currentAsset").id);
+      deleteAssetDefered.promise.then(function(response){
+        var fetchAssetsDefered=self.get("assetManager").fetchMyAssets();
+        fetchAssetsDefered.promise.then(function(response){
+          self.get("assetList").clear();
+          self.get("assetList").pushObjects(JSON.parse(response).data);
+          if (self.get("assetSearchCriteria") !== "") {
+            self.set('filteredAssetList', self.get('fuse').search(self.get("assetSearchCriteria")));
+          } else {
+            self.set('filteredAssetList', self.get("assetList"));
+          }
+          self.set("successMsg", "Asset got deleted successfully");
+          self.set("inProgress", false);
+        }.bind(this)).catch(function(data){
+          self.set("errorMsg", "There is some problem while fetching assets. Please try again.");
+          self.set("inProgress", false);
+        });
+      }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while deleting asset. Please try again.");
+        self.set("inProgress", false);
+      });
+    },
+    showDeleteAssetWarning(asset) {
+      this.set("currentAsset", asset);
+      this.set('showingDeleteAssetWarning', true);
+      Ember.run.later(()=>{
+        this.$('#ConfirmDialog').modal('show');
+      });
     }
   }
 });

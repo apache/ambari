@@ -17,9 +17,15 @@
  */
 package org.apache.oozie.ambari.view;
 
-public class Constants {
-  public static final String STATUS_FAILED = "failed";
-  public static final String STATUS_OK = "ok";
-  public static final String STATUS_KEY = "status";
-  public static final String MESSAGE_KEY = "message";
+public interface Constants {
+  String STATUS_FAILED = "failed";
+  String STATUS_OK = "ok";
+  String STATUS_KEY = "status";
+  String MESSAGE_KEY = "message";
+  String WF_DRAFT_EXTENSION = ".wfdraft";
+  String WF_EXTENSION = ".xml";
+  String DEFAULT_WORKFLOW_FILENAME="workflow.xml";
+  String DEFAULT_DRAFT_FILENAME="workflow"+WF_DRAFT_EXTENSION;
+  String WF_ASSET_EXTENSION = ".wfasset";
+  String DEFAULT_WORKFLOW_ASSET_FILENAME="asset"+WF_ASSET_EXTENSION;
 }

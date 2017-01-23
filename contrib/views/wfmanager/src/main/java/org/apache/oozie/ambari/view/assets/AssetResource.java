@@ -145,6 +145,13 @@ public class AssetResource {
   }
 
   @GET
+  @Path("/assetNameAvailable")
+  public Response assetNameAvailable(@QueryParam("name") String name){
+    boolean available=assetService.isAssetNameAvailable(name);
+    return Response.ok(available).build();
+  }
+
+  @GET
   @Path("/{id}")
   public Response getAssetDetail(@PathParam("id") String id) {
     try {
