@@ -62,6 +62,7 @@ require('views/common/configs/service_config_container_view');
 require('views/common/configs/service_configs_by_category_view');
 require('views/common/configs/service_config_view');
 require('views/common/configs/service_config_tab_view');
+require('views/common/configs/config_category_container_view');
 require('views/common/configs/overriddenPropertyRow_view');
 require('views/common/configs/overriddenProperty_view');
 require('views/common/configs/compare_property_view');
