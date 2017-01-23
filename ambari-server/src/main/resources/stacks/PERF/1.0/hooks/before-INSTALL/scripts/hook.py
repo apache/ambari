@@ -38,10 +38,10 @@ class BeforeInstallHook(Hook):
     conf_select = os.path.join(cache_dir, CONF_SELECT_PY)
     dist_select = os.path.join(cache_dir, DISTRO_SELECT_PY)
     if not os.path.exists(CONF_SELECT_DEST):
-      Execute("cp %s %s" % (conf_select, CONF_SELECT_DEST), user="root")
+      Execute("cp -f %s %s" % (conf_select, CONF_SELECT_DEST), user="root")
       Execute("chmod a+x %s" % (CONF_SELECT_DEST), user="root")
     if not os.path.exists(DISTRO_SELECT_DEST):
-      Execute("cp %s %s" % (dist_select, DISTRO_SELECT_DEST), user="root")
+      Execute("cp -f %s %s" % (dist_select, DISTRO_SELECT_DEST), user="root")
       Execute("chmod a+x %s" % (DISTRO_SELECT_DEST), user="root")
 
   def extrakt_var_from_pythonpath(self, name):
