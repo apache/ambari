@@ -131,7 +131,9 @@ class TestZeppelinMaster(RMFTestCase):
         group = 'zeppelin',
     )
 
-  def test_configure_default(self):
+  @patch('os.path.exists')
+  def test_configure_default(self, os_path_exists_mock):
+    os_path_exists_mock.side_effect = lambda path: path == '/etc/spark/conf/hive-site.xml'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "configure",
@@ -142,7 +144,9 @@ class TestZeppelinMaster(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  def test_configure_secured(self):
+  @patch('os.path.exists')
+  def test_configure_secured(self, os_path_exists_mock):
+    os_path_exists_mock.side_effect = lambda path: path == '/etc/spark/conf/hive-site.xml'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "configure",
@@ -199,116 +203,9 @@ class TestZeppelinMaster(RMFTestCase):
     )
     self.assertNoMoreResources()
     
-
-  def test_start_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
-                       classname = "Master",
-                       command = "start",
-                       config_file = "secured.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    self.assert_configure_secured()
-    self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
-        sudo = True,
-    )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/zeppelin.server.kerberos.keytab zeppelin@EXAMPLE.COM; ',
-        user = 'zeppelin',
-    )
-    self.assertResourceCalled('HdfsResource', '/user/zeppelin',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        owner = 'zeppelin',
-        recursive_chown = True,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        recursive_chmod = True,
-    )
-    self.assertResourceCalled('HdfsResource', '/user/zeppelin/test',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        owner = 'zeppelin',
-        recursive_chown = True,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        recursive_chmod = True,
-    )
-    self.assertResourceCalled('HdfsResource', '/apps/zeppelin',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        owner = 'zeppelin',
-        recursive_chown = True,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        recursive_chmod = True,
-    )
-    self.assertResourceCalled('HdfsResource', '/apps/zeppelin/tmp',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        source = '/tmp',
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        replace_existing_files = True,
-        hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        owner = 'zeppelin',
-        group = 'zeppelin',
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        type = 'file',
-        action = ['create_on_execute'],
-        mode = 0444,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-        hdfs_resource_ignore_file = '/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-        hdfs_site = {u'a': u'b'},
-        kinit_path_local = '/usr/bin/kinit',
-        principal_name = UnknownConfigurationMock(),
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
-    self.assertResourceCalled('File', '/etc/zeppelin/conf/interpreter.json',
-        content = '{\n  "interpreterSettings": []\n}',
-        owner = 'zeppelin',
-        group = 'zeppelin',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/zeppelin-server/bin/zeppelin-daemon.sh restart >> /var/log/zeppelin/zeppelin-setup.log',
-        user = 'zeppelin',
-    )
-    self.assertNoMoreResources()
- 
-  def test_start_default(self):
+  @patch('os.path.exists')
+  def test_start_default(self, os_path_exists_mock):
+    os_path_exists_mock.side_effect = lambda path: path == '/etc/spark/conf/hive-site.xml'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "start",
@@ -320,7 +217,9 @@ class TestZeppelinMaster(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
         sudo = True,
     )
-  def test_start_secured(self):
+
+  @patch('os.path.exists', return_value = True)
+  def test_start_secured(self, os_path_exists_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "start",
@@ -430,6 +329,4 @@ class TestZeppelinMaster(RMFTestCase):
         user = 'zeppelin',
     )
     self.assertNoMoreResources()
-    
-    
-    
+
