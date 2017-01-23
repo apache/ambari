@@ -17,6 +17,7 @@
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
+import CommonUtils from '../utils/common-utils';
 import {SlaInfo} from '../domain/sla-info';
 
 export default Ember.Component.extend( Ember.Evented,{
@@ -40,6 +41,7 @@ export default Ember.Component.extend( Ember.Evented,{
   clonedActionModel : {},
   showingFileBrowser : false,
   childComponents : new Map(),
+  errors : Ember.A([]),
   isActionNode : Ember.computed('nodeType',function(){
     if(this.get('nodeType') === 'action'){
       return true;
@@ -58,13 +60,43 @@ export default Ember.Component.extend( Ember.Evented,{
     return this.get('actionIcons')[this.get('actionType')];
   }),
   saveClicked : false,
-  containsUnsupportedProperties : Ember.computed('actionModel.unsupportedProperties', function(){
-    return this.get('actionModel.unsupportedProperties') ? !Ember.isEmpty(Object.keys(this.get('actionModel.unsupportedProperties'))) : false;
-  }),
-  unsupportedPropertiesXml : Ember.computed('actionModel.unsupportedProperties', function(){
-    if(this.get('containsUnsupportedProperties')){
-      var x2js = new X2JS();
+  unsupportedPropertiesXml : Ember.computed('actionModel.unsupportedProperties', {
+    get(key){
+      let x2js = new X2JS();
       return vkbeautify.xml(x2js.json2xml_str(this.get('actionModel.unsupportedProperties')));
+    },
+    set(key, value) {
+      let x2js = new X2JS();
+      var temp = x2js.xml_str2json(vkbeautify.xmlmin(`<unsupportedProperties>${value}</unsupportedProperties>`));
+      this.set('actionModel.unsupportedProperties', temp.unsupportedProperties);
+      Object.keys(this.get('actionModel.unsupportedProperties')).forEach(key =>{
+        this.set(`actionModel.${key}`, this.get(`actionModel.unsupportedProperties.${key}`));
+      });
+      return value;
+    }
+  }),
+  actionXml : Ember.computed('actionModel', {
+    get(key) {
+      let x2js = new X2JS();
+      var startTag = `<${this.get('actionType')}`;
+      Object.keys(this.get('actionModel')).forEach(key => {
+        if(key.startsWith('_')){
+          startTag = `${startTag} ${key.substr(1)}="${this.get('actionModel')[key]}"`;
+        }
+      });
+      startTag = `${startTag}>`;
+      return vkbeautify.xml(`${startTag}${x2js.json2xml_str(this.get('actionModel'))}</${this.get('actionType')}>`);
+    },
+    set(key, value) {
+      let x2js = new X2JS();
+      this.set('errors', Ember.A([]));
+      let temp = x2js.xml_str2json(vkbeautify.xmlmin(value));
+      if(temp){
+        this.set('actionModel', temp[this.get('actionType')]);
+      }else{
+        this.get('errors').pushObject({message:'Action Xml is syntatically incorrect'});
+      }
+      return value;
     }
   }),
   fileBrowser : Ember.inject.service('file-browser'),
@@ -87,14 +119,29 @@ export default Ember.Component.extend( Ember.Evented,{
       errorNode : errorNode
     });
     this.set('transition',transition);
-    if (Ember.isBlank(this.get("actionModel.jobTracker"))){
-      this.set('actionModel.jobTracker',Constants.rmDefaultValue);
+    if(CommonUtils.isSupportedAction(this.get('actionType'))){
+      if (Ember.isBlank(this.get("actionModel.jobTracker"))){
+        this.set('actionModel.jobTracker',Constants.rmDefaultValue);
+      }
+      if (Ember.isBlank(this.get("actionModel.nameNode"))){
+        this.set('actionModel.nameNode','${nameNode}');
+      }
     }
-    if (Ember.isBlank(this.get("actionModel.nameNode"))){
-      this.set('actionModel.nameNode','${nameNode}');
-    }
-    if(this.get('nodeType') === 'action' && this.get('actionModel.slaInfo') === undefined){
+    if(this.get('nodeType') === 'action' && CommonUtils.isSupportedAction(this.get('actionType')) && this.get('actionModel.slaInfo') === undefined){
       this.set('actionModel.slaInfo', SlaInfo.create({}));
+    }
+    if(!CommonUtils.isSupportedAction(this.get('actionType')) && !this.get('actionModel.slaInfo')){
+      this.set('customSlaInfo',  SlaInfo.create({}));
+    }else{
+      this.set('customSlaInfo',  this.get('actionModel.slaInfo'));
+      this.set('customSlaEnabled', this.get('actionModel.slaEnabled'));
+      delete this.get('actionModel').slaInfo;
+      delete this.get('actionModel').slaEnabled;
+    }
+    if(this.get('actionModel.unsupportedProperties') && !Ember.isEmpty(Object.keys(this.get('actionModel.unsupportedProperties')))){
+      this.set('containsUnsupportedProperties', true);
+    }else{
+      this.set('containsUnsupportedProperties', false);
     }
   }.on('init'),
   initialize : function(){
@@ -150,9 +197,13 @@ export default Ember.Component.extend( Ember.Evented,{
     },
     save () {
       var isChildComponentsValid = this.validateChildrenComponents();
-      if(this.get('validations.isInvalid') || !isChildComponentsValid) {
+      if(this.get('validations.isInvalid') || !isChildComponentsValid || this.get('errors').length > 0) {
         this.set('showErrorMessage', true);
         return;
+      }
+      if(!CommonUtils.isSupportedAction(this.get('actionType'))){
+        this.set('actionModel.slaInfo',  this.get('customSlaInfo'));
+        this.set('actionModel.slaEnabled', this.get('customSlaEnabled'));
       }
       this.processMultivaluedComponents();
       this.processStaticProps();

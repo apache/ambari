@@ -775,6 +775,17 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set('showCreateKillNode', false);
     },
     addNode(type){
+      if(type === 'custom'){
+        this.$('#customTypeModal').modal('show');
+      }else{
+        this.send('addAction', type);
+      }
+    },
+    createCustomAction(type){
+      this.send('addAction', type);
+      this.set('customActionType', '');
+    },
+    addAction(type){
       this.createSnapshot();
       var currentTransition=this.get("currentTransition");
       this.get("workflow").addNode(this.findTransition(this.get("workflow").startNode, currentTransition.sourceNodeId, currentTransition.targetNode.id),type);

@@ -55,7 +55,15 @@ var ActionTypeResolver=Ember.Object.extend({
     return resolvedType;
   },
   getActionJobHandler(jobType){
-    return this.actionJobHandlerMap.get(jobType);
+    if(this.actionJobHandlerMap.has(jobType)) {
+      return this.actionJobHandlerMap.get(jobType);
+    }else{
+      var customActionJobHandler = actionJobHandler.CustomActionJobHandler.create({
+        actionType : jobType
+      });
+      this.actionJobHandlerMap.set(jobType,customActionJobHandler);
+      return customActionJobHandler;
+    }
   }
 });
 
