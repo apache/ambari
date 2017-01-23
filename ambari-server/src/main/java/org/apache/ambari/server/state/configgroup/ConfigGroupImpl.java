@@ -151,11 +151,10 @@ public class ConfigGroupImpl implements ConfigGroup {
         if (host != null && hostEntity != null) {
           hosts.put(hostEntity.getHostId(), host);
         }
-      } catch (AmbariException e) {
-        String msg = "Host seems to be deleted but Config group mapping still " +
-          "exists !";
-        LOG.warn(msg);
-        LOG.debug(msg, e);
+      } catch (Exception e) {
+        LOG.warn("Host {} seems to be deleted but Config group {} mapping " +
+          "still exists !", hostMappingEntity.getHostname(), configGroupEntity.getGroupName());
+        LOG.debug("Host seems to be deleted but Config group mapping still exists !", e);
       }
     }
 
