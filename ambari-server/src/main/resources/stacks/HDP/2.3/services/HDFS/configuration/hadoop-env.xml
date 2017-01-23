@@ -159,7 +159,7 @@ fi
 
 # Enable ACLs on zookeper znodes if required
 {% if hadoop_zkfc_opts is defined %}
-  export HADOOP_ZKFC_OPTS={{hadoop_zkfc_opts}}
+  export HADOOP_ZKFC_OPTS="{{hadoop_zkfc_opts}}"
 {% endif %}
     </value>
     <value-attributes>
