@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 public class QuickLinksProfileBuilderTest {
@@ -130,14 +131,22 @@ public class QuickLinksProfileBuilderTest {
   }
 
   @Test(expected = QuickLinksProfileEvaluationException.class)
-  public void testBuildProfileInvalidProfileDefiniton() throws Exception {
+  public void testBuildProfileInvalidProfileDefiniton_contradictingFilters() throws Exception {
     // Contradicting rules in the profile
     Set<Map<String, String>> filters = newHashSet(
         filter(null, "sso", true),
         filter(null, "sso", false)
     );
 
-    String profileJson = new QuickLinksProfileBuilder().buildQuickLinksProfile(filters, null);
+    new QuickLinksProfileBuilder().buildQuickLinksProfile(filters, null);
+  }
+
+  @Test(expected = QuickLinksProfileEvaluationException.class)
+  public void testBuildProfileInvalidProfileDefiniton_invalidAttribute() throws Exception {
+    Map<String, String> badFilter = ImmutableMap.of("visible", "true", "linkkk_atirbuteee", "sso");
+    Set<Map<String, String>> filters = newHashSet(badFilter);
+
+    new QuickLinksProfileBuilder().buildQuickLinksProfile(filters, null);
   }
 
   /**
