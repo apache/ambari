@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 -->
-<configuration supports_adding_forbidden="true">
+<configuration supports_adding_forbidden="false">
   <!-- log4j.xml -->
   <property>
     <name>falcon_log_maxfilesize</name>
