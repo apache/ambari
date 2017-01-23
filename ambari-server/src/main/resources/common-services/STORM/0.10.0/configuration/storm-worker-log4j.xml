@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="false" supports_adding_forbidden="true">
+<configuration supports_final="false" supports_adding_forbidden="false">
   <property>
     <name>storm_wrkr_a1_maxfilesize</name>
     <value>100</value>
