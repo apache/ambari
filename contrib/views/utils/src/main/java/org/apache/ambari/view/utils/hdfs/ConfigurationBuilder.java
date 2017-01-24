@@ -307,10 +307,10 @@ public class ConfigurationBuilder {
    * @throws HdfsApiException if configuration parsing failed
    */
   public Configuration buildConfig() throws HdfsApiException {
-    parseProperties();
-    setAuthParams(buildAuthenticationConfig());
     copyPropertiesBySite(CORE_SITE);
     copyPropertiesBySite(HDFS_SITE);
+    parseProperties();
+    setAuthParams(buildAuthenticationConfig());
 
     String umask = context.getProperties().get(UMASK_INSTANCE_PROPERTY);
     if (umask != null && !umask.isEmpty()) conf.set(UMASK_CLUSTER_PROPERTY, umask);
