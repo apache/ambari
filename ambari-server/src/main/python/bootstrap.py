@@ -54,6 +54,8 @@ DEFAULT_AGENT_DATA_FOLDER = "/var/lib/ambari-agent/data"
 DEFAULT_AGENT_LIB_FOLDER = "/var/lib/ambari-agent"
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER
 SERVER_AMBARI_SUDO = os.getenv('ROOT','/').rstrip('/') + "/var/lib/ambari-server/ambari-sudo.sh"
+CREATE_PYTHON_WRAP_SCRIPT = os.getenv('ROOT','/').rstrip('/') + "/var/lib/ambari-server/create-python-wrap.sh"
+REMOTE_CREATE_PYTHON_WRAP_SCRIPT = os.path.join(DEFAULT_AGENT_TEMP_FOLDER, 'create-python-wrap.sh')
 AMBARI_SUDO = os.path.join(DEFAULT_AGENT_TEMP_FOLDER, 'ambari-sudo.sh')
 
 class HostLog:
@@ -466,6 +468,19 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("\n")
     return result
 
+  def copyCreatePythonWrapScript(self):
+    # Copying the script which will create python wrap
+    fileToCopy = CREATE_PYTHON_WRAP_SCRIPT
+    target = self.TEMP_FOLDER
+    params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying create-python-wrap script...")
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, fileToCopy,
+              target, params.bootdir, self.host_log)
+    result = scp.run()
+    self.host_log.write("\n")
+    return result
+
   def copyOsCheckScript(self):
     # Copying the os check script file
     fileToCopy = self.getOsCheckScript()
@@ -610,6 +625,20 @@ class BootstrapDefault(Bootstrap):
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port)
 
+  def runCreatePythonWrapScript(self):
+    params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running create-python-wrap script...")
+
+    command = "chmod a+x %s && %s" % \
+              (REMOTE_CREATE_PYTHON_WRAP_SCRIPT, REMOTE_CREATE_PYTHON_WRAP_SCRIPT)
+
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
+              params.bootdir, self.host_log)
+    retcode = ssh.run()
+    self.host_log.write("\n")
+    return retcode
+
   def runOsCheckScript(self):
     params = self.shared_state
     self.host_log.write("==========================\n")
@@ -725,7 +754,9 @@ class BootstrapDefault(Bootstrap):
     action_queue = [self.createTargetDir,
                     self.copyAmbariSudo,
                     self.copyCommonFunctions,
+                    self.copyCreatePythonWrapScript,
                     self.copyOsCheckScript,
+                    self.runCreatePythonWrapScript,
                     self.runOsCheckScript,
                     self.checkSudoPackage
     ]
