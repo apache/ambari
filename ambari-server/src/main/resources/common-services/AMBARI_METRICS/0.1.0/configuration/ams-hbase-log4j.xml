@@ -24,7 +24,7 @@
     <name>ams_hbase_log_maxfilesize</name>
     <value>256</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>HBase Log: backup file size</display-name>
+    <display-name>AMS HBase Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
@@ -34,7 +34,7 @@
     <name>ams_hbase_log_maxbackupindex</name>
     <value>20</value>
     <description>The number of backup files</description>
-    <display-name>HBase Log: # of backup files</display-name>
+    <display-name>AMS HBase Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -45,7 +45,7 @@
     <name>ams_hbase_security_log_maxfilesize</name>
     <value>256</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>HBase Security Log: backup file size</display-name>
+    <display-name>AMS HBase Security Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
@@ -55,7 +55,7 @@
     <name>ams_hbase_security_log_maxbackupindex</name>
     <value>20</value>
     <description>The number of backup files</description>
-    <display-name>HBase Security Log: # of backup files</display-name>
+    <display-name>AMS HBase Security Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
