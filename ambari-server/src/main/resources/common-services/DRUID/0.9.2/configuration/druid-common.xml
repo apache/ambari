@@ -204,4 +204,61 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
+  <property>
+    <name>druid.emitter</name>
+    <value>{{metric_emitter_type}}</value>
+    <description>Emitter used to emit metrics. Values - "noop", "logging", "ambari-metrics", or "http" will initialize
+      one of the emitter modules.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.hostname</name>
+    <value>{{metric_collector_host}}</value>
+    <description>Timeline host</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.port</name>
+    <value>{{metric_collector_port}}</value>
+    <description>Timeline port</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.protocol</name>
+    <value>{{metric_collector_protocol}}</value>
+    <description>Timeline protocol(http or https)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.trustStorePath</name>
+    <value>{{metric_truststore_path}}</value>
+    <description>Location of the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.trustStoreType</name>
+    <value>{{metric_truststore_type}}</value>
+    <description>Optional. Default value is "jks".</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.trustStorePassword</name>
+    <value>{{metric_truststore_password}}</value>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.eventConverter</name>
+    <value>{"type":"whiteList"}</value>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.monitoring.monitors</name>
+    <value>["com.metamx.metrics.JvmMonitor"]</value>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
 </configuration>

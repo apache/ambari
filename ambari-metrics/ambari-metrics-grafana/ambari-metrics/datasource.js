@@ -136,6 +136,12 @@ define([
             if(!_.isEmpty(templateSrv.variables[1]) && templateSrv.variables[1].name === "component") {
               alias = alias + ' on ' + target.sTopology + ' for ' + target.sComponent;
             }
+
+            // Aliases for Druid Datasources.
+            if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "druidDataSources" &&
+                        !templateSrv.variables[1]) {
+              alias = alias.replace('$druidDataSource', target.sDataSource);
+            }
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
@@ -320,6 +326,19 @@ define([
             );
           };
 
+          // Druid calls.
+          var getDruidData = function(target) {
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.sDataSourceMetric + metricTransform
+                          + metricAggregator + '&appId=druid&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+                          allHostMetricsData(target)
+            );
+          };
+
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
           var to = Math.floor(options.range.to.valueOf() / 1000);
@@ -467,6 +486,23 @@ define([
                     .replace('*', target.sPartition);
                 return getStormData(target);
               }));
+            }
+
+            //Templatized Dashboards for Druid
+            if (templateSrv.variables[0].query === "druidDataSources" && !templateSrv.variables[1]) {
+              var allDataSources = templateSrv.variables.filter(function(variable) { return variable.query === "druidDataSources";});
+              var selectedDataSources = (_.isEmpty(allDataSources)) ? "" : allDataSources[0].options.filter(function(dataSource)
+                            { return dataSource.selected; }).map(function(dataSourceName) { return dataSourceName.value; });
+               selectedDataSources = templateSrv._values.druidDataSources.lastIndexOf('}') > 0 ? templateSrv._values.druidDataSources.slice(1,-1) :
+                                              templateSrv._values.druidDataSources;
+              var selectedDataSource = selectedDataSources.split(',');
+              _.forEach(selectedDataSource, function(processDataSource) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.sDataSource = processDataSource;
+                  target.sDataSourceMetric = target.metric.replace('*', target.sDataSource);
+                  return getDruidData(target);
+                }));
+              });
             }
 
             // To speed up querying on templatized dashboards.
@@ -737,6 +773,67 @@ define([
                 });
               });
           }
+
+          // Templated Variable for DruidServices.
+          // It will search the cluster and populate the druid service names.
+          if(interpolated === "druidServices") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var druidMetrics = allMetrics["druid"];
+                // Assumption: each node always emits jvm metrics
+                var extractNodeTypes = druidMetrics.filter(/./.test.bind(new RegExp("jvm/gc/time", 'g')));
+                var nodeTypes = _.map(extractNodeTypes, function(metricName) {
+                  return metricName.substring(0, metricName.indexOf("."));
+                });
+                nodeTypes = _.sortBy(_.uniq(nodeTypes));
+                return _.map(nodeTypes, function (nodeType) {
+                  return {
+                    text: nodeType
+                  };
+                });
+              });
+          }
+
+          // Templated Variable for Druid datasources.
+          // It will search the cluster and populate the druid datasources.
+          if(interpolated === "druidDataSources") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var druidMetrics = allMetrics["druid"];
+                // Assumption: query/time is emitted for each datasource
+                var extractDataSources = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
+                var dataSources = _.map(extractDataSources, function(metricName) {
+                  return metricName.split('.')[1]
+                });
+                dataSources = _.sortBy(_.uniq(dataSources));
+                return _.map(dataSources, function (dataSource) {
+                  return {
+                    text: dataSource
+                  };
+                });
+              });
+          }
+
+          // Templated Variable for Druid query type.
+          // It will search the cluster and populate the druid query types.
+          if(interpolated === "druidQueryTypes") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var druidMetrics = allMetrics["druid"];
+                // Assumption: query/time is emitted for each query type.
+                var extractQueryTypes = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
+                var queryTypes = _.map(extractQueryTypes, function(metricName) {
+                  return metricName.split('.')[2]
+                });
+                queryTypes = _.sortBy(_.uniq(queryTypes));
+                return _.map(queryTypes, function (queryType) {
+                  return {
+                    text: queryType
+                  };
+                });
+              });
+          }
+
           // Templated Variable that will populate all hosts on the cluster.
           // The variable needs to be set to "hosts".
           if (!tComponent){
