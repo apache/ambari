@@ -24,7 +24,7 @@
     <name>zookeeper_log_max_backup_size</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Zookeeper Log: backup file size</display-name>
+    <display-name>ZooKeeper Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
@@ -34,7 +34,7 @@
     <name>zookeeper_log_number_of_backup_files</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Zookeeper Log: # of backup files</display-name>
+    <display-name>ZooKeeper Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
