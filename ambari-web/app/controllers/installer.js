@@ -21,7 +21,7 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 var validator = require('utils/validator');
 
-App.InstallerController = App.WizardController.extend({
+App.InstallerController = App.WizardController.extend(App.UserPref, {
 
   name: 'installerController',
 
@@ -753,6 +753,16 @@ App.InstallerController = App.WizardController.extend({
         } else {
           this.setSelected(data.stackInfo.isStacksExistInDb);
         }
+      }
+      // log diagnosis data for abnormal number of repos
+      var post_diagnosis = false;
+      data.versionDefinition.operating_systems.map(function(item) {
+        if (item.repositories.length > 2) {
+          post_diagnosis = true;
+        }
+      });
+      if (post_diagnosis) {
+        this.postUserPref('stack_response_diagnosis', data);
       }
     }
   },
