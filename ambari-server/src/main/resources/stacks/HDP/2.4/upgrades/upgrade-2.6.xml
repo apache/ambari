@@ -880,6 +880,8 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.HiveEnvClasspathAction">
             <summary>Update hive-env content</summary>
           </task>
+          <task xsi:type="configure" id="hive_log4j_parameterize" />
+          <task xsi:type="configure" id="hive_llap_log4j_parameterize" />
 
         </pre-upgrade>
 
@@ -891,6 +893,10 @@
       </component>
 
       <component name="WEBHCAT_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="webhcat_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -1047,6 +1053,8 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
           <task xsi:type="configure" id="hdp_2_4_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
+          <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
+          <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
         </pre-upgrade>
 
         <pre-downgrade>
