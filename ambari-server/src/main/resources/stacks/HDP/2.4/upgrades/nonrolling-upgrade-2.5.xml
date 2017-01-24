@@ -423,6 +423,22 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Parameterizing Hive Log4J Properties">
+        <task xsi:type="configure" id="hive_log4j_parameterize">
+          <summary>Updating the Hive Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Parameterizing Hive LLAP Log4J Properties">
+        <task xsi:type="configure" id="hive_llap_log4j_parameterize">
+          <summary>Updating the Hive llap Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Parameterizing WebHCat Log4J Properties">
+        <task xsi:type="configure" id="webhcat_log4j_parameterize">
+          <summary>Updating the Webhcat Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <!-- HBASE -->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for Hbase Master">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hbase_audit_db"/>
@@ -483,6 +499,18 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
       </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Parameterizing Storm worker Log4J Properties">
+        <task xsi:type="configure" id="storm_worker_log4j_parameterize">
+          <summary>Updating the Storm worker Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Parameterizing Storm cluster Log4J Properties">
+        <task xsi:type="configure" id="storm_cluster_log4j_parameterize">
+          <summary>Updating the Storm cluster Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
 
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">

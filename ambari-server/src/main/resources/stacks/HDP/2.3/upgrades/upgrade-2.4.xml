@@ -752,6 +752,8 @@
       <component name="HIVE_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication"/>
+          <task xsi:type="configure" id="hive_log4j_parameterize" />
+          <task xsi:type="configure" id="hive_llap_log4j_parameterize" />
         </pre-upgrade>
 
         <pre-downgrade/>
@@ -764,6 +766,7 @@
       <component name="WEBHCAT_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths"/>
+          <task xsi:type="configure" id="webhcat_log4j_parameterize" />
         </pre-upgrade>
 
         <pre-downgrade/>
@@ -931,7 +934,8 @@
       <component name="NIMBUS">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
-
+          <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
+          <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
         </pre-upgrade>
 

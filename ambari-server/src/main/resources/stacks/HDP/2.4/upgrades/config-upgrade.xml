@@ -78,6 +78,21 @@
             <transfer operation="delete" delete-key="atlas.hook.hive.maxThreads" />
           </definition>
 
+          <definition xsi:type="configure" id="hive_log4j_parameterize" summary="Parameterizing Hive Log4J Properties">
+            <type>hive-log4j</type>
+            <set key="hive_log_maxfilesize" value="256"/>
+            <set key = "hive_log_maxbackupindex" value="30"/>
+            <regex-replace key="content" find="#log4j.appender.DRFA.MaxBackupIndex=([0-9]+)" replace-with="#log4j.appender.DRFA.MaxBackupIndex={{hive_log_maxbackupindex}}"/>
+            <replace key="content" find="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.DRFA.MaxFileSize = {{hive_log_maxfilesize}}MB"/>
+          </definition>
+          <definition xsi:type="configure" id="hive_llap_log4j_parameterize" summary="Parameterizing Hive llap Log4J Properties">
+            <type>llap-daemon-log4j</type>
+            <set key="hive_llap_log_maxfilesize" value="256"/>
+            <set key = "hive_llap_log_maxbackupindex" value="240"/>
+            <regex-replace key="content" find="property.llap.daemon.log.maxfilesize = ([0-9]+)MB" replace-with="property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB"/>
+            <regex-replace key="content" find="property.llap.daemon.log.maxbackupindex = ([0-9]+)" replace-with="property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}"/>
+          </definition>
+
         </changes>
       </component>
 
@@ -90,6 +105,13 @@
             <replace key="templeton.hadoop" find="/usr/hdp/current/hadoop-client" replace-with="/usr/hdp/${hdp.version}/hadoop"/>
             <replace key="templeton.hcat" find="/usr/hdp/current/hive-client" replace-with="/usr/hdp/${hdp.version}/hive"/>
             <set key="templeton.hive.extra.files" value="/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib"/>
+          </definition>
+          <definition xsi:type="configure" id="webhcat_log4j_parameterize" summary="Parameterizing Webhcat Log4J Properties">
+            <type>webhcat-log4j</type>
+            <set key="webhcat_log_maxfilesize" value="256"/>
+            <set key = "webhcat_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.standard.MaxFileSize = {{webhcat_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.standard.MaxBackupIndex = {{webhcat_log_maxbackupindex}}"/>
           </definition>
         </changes>
       </component>
@@ -380,6 +402,28 @@
                  if-key="storm.zookeeper.connection.timeout"
                  if-type="storm-site"
                  if-value="15000" />
+          </definition>
+          <definition xsi:type="configure" id="storm_worker_log4j_parameterize" summary="Parameterizing Storm Worker Log4J Properties">
+            <type>storm-worker-log4j</type>
+            <set key="storm_wrkr_a1_maxfilesize" value="100"/>
+            <set key="storm_wrkr_a1_maxbackupindex" value="9"/>
+            <set key="storm_wrkr_out_maxfilesize" value="100"/>
+            <set key="storm_wrkr_out_maxbackupindex" value="4"/>
+            <set key="storm_wrkr_err_maxfilesize" value="100"/>
+            <set key="storm_wrkr_err_maxbackupindex" value="4"/>
+            <regex-replace key="content" find="A1&quot;&#xA;&#009;&#009;fileName=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}&quot;&#xA;&#009;&#009;filePattern=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                           replace-with="A1&quot;&#xA;&#009;&#009;fileName=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}&quot;&#xA;&#009;&#009;filePattern=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_a1_maxbackupindex}}"/>
+            <regex-replace key="content" find="STDOUT&quot;&#xA;&#009;&#009;fileName=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.out&quot;&#xA;&#009;&#009;filePattern=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                           replace-with="STDOUT&quot;&#xA;&#009;&#009;fileName=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.out&quot;&#xA;&#009;&#009;filePattern=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_out_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_out_maxbackupindex}}"/>
+            <regex-replace key="content" find="STDERR&quot;&#xA;&#009;&#009;fileName=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.err&quot;&#xA;&#009;&#009;filePattern=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.err.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                           replace-with="STDERR&quot;&#xA;&#009;&#009;fileName=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.err&quot;&#xA;&#009;&#009;filePattern=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.err.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_err_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_err_maxbackupindex}}"/>
+          </definition>
+          <definition xsi:type="configure" id="storm_cluster_log4j_parameterize" summary="Parameterizing Storm Cluster Log4J Properties">
+            <type>storm-cluster-log4j</type>
+            <set key="storm_a1_maxfilesize" value="100"/>
+            <set key="storm_a1_maxbackupindex" value="9"/>
+            <regex-replace key="content" find="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}&quot;&#xA;                 filePattern=&quot;\$\{sys:storm.log.dir}/\$\{sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
+                           replace-with="A1&quot; immediateFlush=&quot;false&quot;&#xA;                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}&quot;&#xA;                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_a1_maxbackupindex}}"/>
           </definition>
         </changes>
       </component>
