@@ -46,22 +46,19 @@ def update_credential_provider_path(config, config_type, dest_provider_path, fil
   """
   # Get the path to the provider <config_type>.jceks
   if HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME in config:
-    provider_paths = config[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME].split(',')
-    for path_index in range(len(provider_paths)):
-      provider_path = provider_paths[path_index]
-      if config_type == os.path.splitext(os.path.basename(provider_path))[0]:
-        src_provider_path = provider_path[len('jceks://file'):]
-        File(dest_provider_path,
-             owner = file_owner,
-             group = file_group,
-             mode = 0640,
-             content = StaticFile(src_provider_path)
-             )
-        provider_paths[path_index] = 'jceks://file{0}'.format(dest_provider_path)
-        # make a copy of the config dictionary since it is read-only
-        config_copy = config.copy()
-        config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = ','.join(provider_paths)
-        return config_copy
+    provider_path = config[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME]
+    src_provider_path = provider_path[len('jceks://file'):]
+    File(dest_provider_path,
+        owner = file_owner,
+        group = file_group,
+        mode = 0640,
+        content = StaticFile(src_provider_path)
+    )
+    # make a copy of the config dictionary since it is read-only
+    config_copy = config.copy()
+    # overwrite the provider path with the path specified
+    config_copy[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file{0}'.format(dest_provider_path)
+    return config_copy
   return config
 
 def validate_security_config_properties(params, configuration_rules):
