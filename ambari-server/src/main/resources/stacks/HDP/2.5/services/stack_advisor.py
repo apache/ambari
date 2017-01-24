@@ -778,7 +778,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Check if it's 1st invocation after enabling Hive Server Interactive (config: enable_hive_interactive).
       changed_configs_has_enable_hive_int = self.isConfigPropertiesChanged(services, "hive-interactive-env", ['enable_hive_interactive'], False)
       llap_named_queue_selected_in_curr_invocation = None
-      if changed_configs_has_enable_hive_int \
+      # Check if its : 1. 1st invocation from UI ('enable_hive_interactive' in changed-configurations)
+      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case)
+      if (changed_configs_has_enable_hive_int or  0 == len(services['changed-configurations']))\
         and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
         if len(leafQueueNames) == 1 or (len(leafQueueNames) == 2 and llap_queue_name in leafQueueNames):
           llap_named_queue_selected_in_curr_invocation = True
