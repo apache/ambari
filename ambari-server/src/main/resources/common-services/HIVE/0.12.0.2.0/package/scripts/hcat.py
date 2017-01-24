@@ -45,7 +45,7 @@ def hcat():
 
   Directory(params.hive_conf_dir,
             create_parents = True,
-            owner=params.hcat_user,
+            owner=params.hive_user,
             group=params.user_group,
   )
 

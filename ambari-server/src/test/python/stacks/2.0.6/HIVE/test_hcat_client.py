@@ -34,7 +34,7 @@ class TestHcatClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
-                              owner = 'hcat',
+                              owner = 'hive',
                               group = 'hadoop',
                               create_parents = True,
     )
@@ -74,7 +74,7 @@ class TestHcatClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
                               create_parents = True,
-                              owner = 'hcat',
+                              owner = 'hive',
                               group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
