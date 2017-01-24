@@ -70,6 +70,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   hostComponents: [],
 
+  dependentHostComponents: [],
+
   dbPropertyMap: {
     'HIVE_SERVER': {
       type: 'hive-site',
@@ -89,13 +91,32 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * load step info
    */
   loadStep: function () {
-    if (this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
+    var componentName = this.get('content.reassign.component_name');
+    if (componentName === 'NAMENODE' && App.get('isHaEnabled')) {
       this.set('hostComponents', ['NAMENODE', 'ZKFC']);
     } else {
-      this.set('hostComponents', [this.get('content.reassign.component_name')]);
+      this.set('hostComponents', [componentName]);
     }
+    this.setDependentHostComponents(componentName);
     this.set('serviceName', [this.get('content.reassign.service_id')]);
     this._super();
+  },
+
+  /**
+   * Set dependent host-components to <code>dependentHostComponents</code>
+   * @param {string} componentName
+   */
+  setDependentHostComponents: function(componentName) {
+    var installedComponents = App.Host.find(this.get('content.reassignHosts.target'))
+      .get('hostComponents')
+      .mapProperty('componentName');
+    var dependenciesToInstall = App.StackServiceComponent.find(componentName)
+      .get('dependencies')
+      .mapProperty('componentName')
+      .filter(function(component) {
+        return !installedComponents.contains(component);
+      });
+    this.set('dependentHostComponents', dependenciesToInstall);
   },
 
   /**
@@ -213,7 +234,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   createHostComponents: function () {
-    var hostComponents = this.get('hostComponents');
+    var hostComponents = this.get('hostComponents').concat(this.get('dependentHostComponents'));
     var hostName = this.get('content.reassignHosts.target');
     this.set('multiTaskCounter', hostComponents.length);
     for (var i = 0; i < hostComponents.length; i++) {
@@ -245,7 +266,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   installHostComponents: function () {
-    var hostComponents = this.get('hostComponents');
+    var hostComponents = this.get('hostComponents').concat(this.get('dependentHostComponents'));
     var hostName = this.get('content.reassignHosts.target');
     this.set('multiTaskCounter', hostComponents.length);
     for (var i = 0; i < hostComponents.length; i++) {

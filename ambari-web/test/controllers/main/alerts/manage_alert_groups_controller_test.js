@@ -21,7 +21,11 @@ var App = require('app');
 var manageAlertGroupsController;
 
 function getController() {
-  return App.ManageAlertGroupsController.create({});
+  return App.ManageAlertGroupsController.create({
+    selectedAlertGroup: Em.Object.create({
+      name: ''
+    })
+  });
 }
 
 describe('App.ManageAlertGroupsController', function () {
