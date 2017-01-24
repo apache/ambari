@@ -20,7 +20,6 @@
  */
 -->
 <configuration supports_adding_forbidden="true">
-  <!-- These configs were inherited from HDP 2.3 -->
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
@@ -157,6 +156,7 @@
       {% endif %}
       ulimit -n {{hdfs_user_nofile_limit}}
       fi
+
       # Enable ACLs on zookeper znodes if required
       {% if hadoop_zkfc_opts is defined %}
       export HADOOP_ZKFC_OPTS="{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS"
@@ -164,6 +164,17 @@
     </value>
     <value-attributes>
       <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>nfsgateway_heapsize</name>
+    <display-name>NFSGateway maximum Java heap size</display-name>
+    <value>1024</value>
+    <description>Maximum Java heap size for NFSGateway (Java option -Xmx)</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

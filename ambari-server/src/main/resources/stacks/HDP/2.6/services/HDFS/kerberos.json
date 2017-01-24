@@ -24,7 +24,18 @@
           "core-site": {
             "hadoop.security.authentication": "kerberos",
             "hadoop.security.authorization": "true",
-            "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}"
+            "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}",
+            "ha.zookeeper.acl":"sasl:nn:rwcda"
+          }
+        },
+        {
+          "ranger-hdfs-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
           }
         }
       ],
@@ -86,6 +97,15 @@
               "name": "/spnego",
               "principal": {
                 "configuration": "hdfs-site/dfs.namenode.kerberos.internal.spnego.principal"
+              }
+            },
+            {
+              "name": "/HDFS/NAMENODE/namenode_nn",
+              "principal": {
+                "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ],

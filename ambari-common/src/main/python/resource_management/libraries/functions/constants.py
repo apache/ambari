@@ -49,6 +49,7 @@ class StackFeature:
   CONFIG_VERSIONING = "config_versioning"
   FALCON_EXTENSIONS = "falcon_extensions"
   DATANODE_NON_ROOT = "datanode_non_root"
+  SECURE_ZOOKEEPER = "secure_zookeeper"
   REMOVE_RANGER_HDFS_PLUGIN_ENV = "remove_ranger_hdfs_plugin_env"
   RANGER = "ranger"
   RANGER_TAGSYNC_COMPONENT = "ranger_tagsync_component"
