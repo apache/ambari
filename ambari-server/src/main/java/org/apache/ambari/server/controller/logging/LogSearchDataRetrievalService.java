@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariService;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.commons.collections.CollectionUtils;
@@ -76,6 +77,11 @@ public class LogSearchDataRetrievalService extends AbstractService {
   @Inject
   private Injector injector;
 
+  @Inject
+  private Configuration ambariServerConfiguration;
+
+
+
   /**
    * A Cache of host+component names to a set of log files associated with
    *  that Host/Component combination.  This data is retrieved from the
@@ -113,10 +119,17 @@ public class LogSearchDataRetrievalService extends AbstractService {
   protected void doStart() {
 
     LOG.debug("Initializing caches");
+
+    // obtain the max cache expire time from the ambari configuration
+    final int maxTimeoutForCacheInHours =
+      ambariServerConfiguration.getLogSearchMetadataCacheExpireTimeout();
+
+    LOG.debug("Caches configured with a max expire timeout of " + maxTimeoutForCacheInHours + " hours.");
+
     // initialize the log file name cache
-    logFileNameCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
+    logFileNameCache = CacheBuilder.newBuilder().expireAfterWrite(maxTimeoutForCacheInHours, TimeUnit.HOURS).build();
     // initialize the log file tail URI cache
-    logFileTailURICache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
+    logFileTailURICache = CacheBuilder.newBuilder().expireAfterWrite(maxTimeoutForCacheInHours, TimeUnit.HOURS).build();
 
     // initialize the Executor
     executor = Executors.newSingleThreadExecutor();
@@ -125,7 +138,7 @@ public class LogSearchDataRetrievalService extends AbstractService {
   @Override
   protected void doStop() {
     LOG.debug("Invalidating LogSearch caches");
-    // invalidate the cache
+    // invalidate the caches
     logFileNameCache.invalidateAll();
 
     logFileTailURICache.invalidateAll();
@@ -226,6 +239,15 @@ public class LogSearchDataRetrievalService extends AbstractService {
    */
   protected void setExecutor(Executor executor) {
     this.executor = executor;
+  }
+
+  /**
+   * Package-level setter to facilitate simpler unit testing
+   *
+   * @param ambariServerConfiguration
+   */
+  void setConfiguration(Configuration ambariServerConfiguration) {
+    this.ambariServerConfiguration = ambariServerConfiguration;
   }
 
   /**

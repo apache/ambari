@@ -2519,13 +2519,24 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> LOGSEARCH_PORTAL_READ_TIMEOUT = new ConfigurationProperty<>(
     "logsearch.portal.read.timeout", 5000);
 
-
   /**
    * Global disable flag for AmbariServer Metrics.
    */
   @Markdown(description = "Global disable flag for AmbariServer Metrics.")
   public static final ConfigurationProperty<Boolean> AMBARISERVER_METRICS_DISABLE = new ConfigurationProperty<>(
     "ambariserver.metrics.disable", false);
+
+  /**
+   * The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making
+   *   a request to the LogSearch Portal to get the latest metadata.
+   *
+   * The logging metadata (in this case, log file names) is generally quite static, so the default should
+   *   generally be quite long.
+   *
+   */
+  @Markdown(description = "The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making a request to the LogSearch Portal to get the latest metadata.")
+  public static final ConfigurationProperty<Integer> LOGSEARCH_METADATA_CACHE_EXPIRE_TIMEOUT = new ConfigurationProperty<>(
+    "logsearch.metadata.cache.expire.timeout", 24);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -5202,6 +5213,19 @@ public class Configuration {
    */
   public int getLogSearchPortalReadTimeout() {
     return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_READ_TIMEOUT));
+  }
+
+
+  /**
+   *
+   * Get the max time, in hours, to hold data in the LogSearch
+   *   metadata cache prior to expiring the cache and re-loading
+   *   the data from the LogSearch Portal service.
+   *
+   * @return max number of hours that the LogSearch metadata is cached
+   */
+  public int getLogSearchMetadataCacheExpireTimeout() {
+    return NumberUtils.toInt(getProperty(LOGSEARCH_METADATA_CACHE_EXPIRE_TIMEOUT));
   }
 
   /**

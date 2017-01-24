@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
@@ -69,13 +70,18 @@ public class LogSearchDataRetrievalServiceTest {
     LoggingRequestHelper helperMock =
       mockSupport.createMock(LoggingRequestHelper.class);
 
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
+
     expect(helperFactoryMock.getHelper(null, expectedClusterName)).andReturn(helperMock);
     expect(helperMock.createLogFileTailURI("http://localhost", expectedComponentName, expectedHostName)).andReturn(expectedResultURI);
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
 
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setConfiguration(configurationMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
 
@@ -95,16 +101,23 @@ public class LogSearchDataRetrievalServiceTest {
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+    LoggingRequestHelperFactory helperFactoryMock =
+      mockSupport.createMock(LoggingRequestHelperFactory.class);
+
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
 
     // return null, to simulate the case where LogSearch Server is
     // not available for some reason
     expect(helperFactoryMock.getHelper(null, expectedClusterName)).andReturn(null);
 
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
+
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setConfiguration(configurationMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
 
@@ -131,6 +144,9 @@ public class LogSearchDataRetrievalServiceTest {
     Injector injectorMock =
       mockSupport.createMock(Injector.class);
 
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
+
     // expect the executor to be called to execute the LogSearch request
     executorMock.execute(isA(LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable.class));
     // executor should only be called once
@@ -138,11 +154,14 @@ public class LogSearchDataRetrievalServiceTest {
 
     expect(injectorMock.getInstance(LoggingRequestHelperFactory.class)).andReturn(helperFactoryMock);
 
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
+
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
     retrievalService.setInjector(injectorMock);
+    retrievalService.setConfiguration(configurationMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
     retrievalService.setExecutor(executorMock);
@@ -173,10 +192,16 @@ public class LogSearchDataRetrievalServiceTest {
 
     Executor executorMock = mockSupport.createMock(Executor.class);
 
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
+
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
+
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
     retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setConfiguration(configurationMock);
     // call the initialization routine called by the Google framework
     retrievalService.doStart();
     // there should be no expectations set on this mock
