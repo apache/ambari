@@ -32,6 +32,9 @@ from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 
@@ -181,6 +184,9 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
 zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
 
+# get the correct version to use for checking stack features
+version_for_stack_feature_checks = get_stack_feature_version(config)
+
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -191,6 +197,7 @@ has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 has_zeppelin_master = not len(zeppelin_master_hosts) == 0
 has_zkfc_hosts = not len(zkfc_hosts)== 0
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
 if has_namenode or dfs_type == 'HCFS':
     hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
@@ -239,5 +246,5 @@ tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
 
 # if NN HA on secure clutser, access Zookeper securely
-if has_zkfc_hosts and security_enabled:
+if stack_supports_zk_security and has_zkfc_hosts and security_enabled:
     hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")

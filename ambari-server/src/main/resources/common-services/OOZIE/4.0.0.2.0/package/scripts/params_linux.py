@@ -34,6 +34,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 
 from urlparse import urlparse
 
@@ -64,6 +65,7 @@ agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int
 stack_root = status_params.stack_root
 stack_version_unformatted =  status_params.stack_version_unformatted
 stack_version_formatted =  status_params.stack_version_formatted
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
@@ -160,6 +162,7 @@ yarn_resourcemanager_address = config['configurations']['yarn-site']['yarn.resou
 zk_namespace = default('/configurations/oozie-site/oozie.zookeeper.namespace', 'oozie')
 zk_connection_string = default('/configurations/oozie-site/oozie.zookeeper.connection.string', None)
 jaas_file = os.path.join(conf_dir, 'zkmigrator_jaas.conf')
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
 if security_enabled:
   oozie_site = dict(config['configurations']['oozie-site'])

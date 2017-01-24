@@ -75,6 +75,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user
@@ -281,6 +282,9 @@ dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.au
 dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
 # hostname of the standby HDFS HA Namenode (only used when HA is enabled)
 dfs_ha_namenode_standby = default("/configurations/hadoop-env/dfs_ha_initial_namenode_standby", None)
+ha_zookeeper_quorum = config['configurations']['core-site']['ha.zookeeper.quorum']
+jaas_file = os.path.join(hadoop_conf_secure_dir, 'hdfs_jaas.conf')
+zk_namespace = default('/configurations/hdfs-site/ha.zookeeper.parent-znode', '/hadoop-ha')
 
 # Values for the current Host
 namenode_id = None
@@ -376,6 +380,7 @@ name_node_params = default("/commandParams/namenode", None)
 
 java_home = config['hostLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
+java_exec = format("{java_home}/bin/java")
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']

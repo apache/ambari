@@ -180,11 +180,6 @@ if [ "$command" == "datanode" ] &amp;&amp; [ "$EUID" -eq 0 ] &amp;&amp; [ -n "$H
   ulimit -l {{datanode_max_locked_memory}}
 fi
 {% endif %}
-
-# Enable ACLs on zookeper znodes if required
-{% if hadoop_zkfc_opts is defined %}
-  export HADOOP_ZKFC_OPTS="{{hadoop_zkfc_opts}}"
-{% endif %}
     </value>
     <value-attributes>
       <type>content</type>

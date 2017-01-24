@@ -174,13 +174,6 @@ class TestZkfc(RMFTestCase):
                               owner = 'root',
                               )
 
-    self.assertResourceCalled('File', '/etc/hadoop/conf/secure/hdfs_jaas.conf',
-                              owner='root',
-                              group='root',
-                              mode=0644,
-                              content=Template("hdfs_jaas.conf.j2")
-                              )
-
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',

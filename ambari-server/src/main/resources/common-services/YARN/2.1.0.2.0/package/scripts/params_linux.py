@@ -249,6 +249,7 @@ nodemanager_kinit_cmd = ""
 rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-address']
 rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
 rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
 if security_enabled:
   rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']

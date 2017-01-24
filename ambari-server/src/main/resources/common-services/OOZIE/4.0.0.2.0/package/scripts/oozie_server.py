@@ -196,7 +196,11 @@ class OozieServerDefault(OozieServer):
 
   def disable_security(self, env):
     import params
+    if not params.stack_supports_zk_security:
+      Logger.info("Stack doesn't support zookeeper security")
+      return
     if not params.zk_connection_string:
+      Logger.info("No zookeeper connection string. Skipping reverting ACL")
       return
     zkmigrator = ZkMigrator(params.zk_connection_string, params.java_exec, params.java64_home, params.jaas_file, params.oozie_user)
     zkmigrator.set_acls(params.zk_namespace if params.zk_namespace.startswith('/') else '/' + params.zk_namespace, 'world:anyone:crdwa')

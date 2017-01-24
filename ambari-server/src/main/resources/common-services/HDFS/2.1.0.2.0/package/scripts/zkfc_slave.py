@@ -37,6 +37,7 @@ from resource_management.libraries.functions.security_commons import validate_se
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
+from resource_management.core.resources.zkmigrator import ZkMigrator
 
 
 
@@ -62,8 +63,10 @@ class ZkfcSlave(Script):
     env.set_params(params)
     hdfs("zkfc_slave")
 
-    # set up failover /  zookeper ACLs
-    utils.set_up_zkfc_security(params)
+    # set up failover /  zookeper ACLs, this feature is supported from HDP 2.6 ownwards
+    if params.stack_supports_zk_security:
+      utils.set_up_zkfc_security(params)
+
     pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -164,7 +167,16 @@ class ZkfcSlaveDefault(ZkfcSlave):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
-      
+
+  def disable_security(self, env):
+    import params
+
+    if not params.stack_supports_zk_security:
+      return
+
+    zkmigrator = ZkMigrator(params.ha_zookeeper_quorum, params.java_exec, params.java_home, params.jaas_file, params.hdfs_user)
+    zkmigrator.set_acls(params.zk_namespace if params.zk_namespace.startswith('/') else '/' + params.zk_namespace, 'world:anyone:crdwa')
+
   def get_log_folder(self):
     import params
     return params.hdfs_log_dir
