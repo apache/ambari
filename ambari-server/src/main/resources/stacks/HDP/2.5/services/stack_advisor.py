@@ -108,7 +108,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     childValidators = {
       "ATLAS": {"application-properties": self.validateAtlasConfigurations},
       "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations,
-               "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations},
+               "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations,
+               "hive-env": self.validateHiveConfigurationsEnv},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations},
       "SPARK2": {"spark2-defaults": self.validateSpark2Defaults,
@@ -363,6 +364,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         validationItems.append({"config-name": "hive.llap.daemon.queue.name","item": self.getWarnItem(errMsg4)})
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-site")
+    return validationProblems
+
+  def validateHiveConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP25StackAdvisor, self).validateHiveConfigurationsEnv(properties, recommendedDefaults, configurations, services, hosts)
+    hive_site_properties = self.getSiteProperties(configurations, "hive-site")
+    hive_env_properties = self.getSiteProperties(configurations, "hive-env")
+    validationItems = []
+
+    if 'hive.server2.authentication' in hive_site_properties and "LDAP" == hive_site_properties['hive.server2.authentication']:
+      if 'alert_ldap_username' not in hive_env_properties or hive_env_properties['alert_ldap_username'] == "":
+        validationItems.append({"config-name": "alert_ldap_username",
+                                "item": self.getWarnItem(
+                                  "Provide an user to be used for alerts. Hive authentication type LDAP requires valid LDAP credentials for the alerts.")})
+      if 'alert_ldap_password' not in hive_env_properties or hive_env_properties['alert_ldap_password'] == "":
+        validationItems.append({"config-name": "alert_ldap_password",
+                                "item": self.getWarnItem(
+                                  "Provide the password for the alert user. Hive authentication type LDAP requires valid LDAP credentials for the alerts.")})
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-env")
+    validationProblems.extend(parentValidationProblems)
     return validationProblems
 
   def validateHiveInteractiveEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
