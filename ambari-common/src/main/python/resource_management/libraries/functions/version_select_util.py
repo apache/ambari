@@ -67,9 +67,8 @@ def get_component_version(stack_name, component_name):
           raise Exception("Code is nonzero or output is empty")
 
         Logger.debug("Command: %s\nOutput: %s" % (get_stack_comp_version_cmd, str(out)))
-        matches = re.findall(r"( [\d\.]+(\-\d+)?)", out)
-        version = matches[0][0].strip() if matches and len(matches) > 0 and len(matches[0]) > 0 else None
-        Logger.debug("Version for component %s: %s" % (component_name, str(version)))
+        matches = re.findall(r"([\d\.]+\-\d+)", out)
+        version = matches[0] if matches and len(matches) > 0 else None
       except Exception, e:
         Logger.error("Could not determine stack version for component %s by calling '%s'. Return Code: %s, Output: %s." %
                      (component_name, get_stack_comp_version_cmd, str(code), str(out)))
