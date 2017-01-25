@@ -194,7 +194,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       } else {
         delete recommendations.config_groups;
       }
-
+      this.setUserContext(dataToSend);
       if (stepConfigs.someProperty('serviceName', 'MISC')) {
         recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
         dataToSend.recommendations = recommendations;
@@ -239,6 +239,25 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         }
       }
     });
+  },
+
+  setUserContext: function(dataToSend) {
+    var controllerName = this.get('content.controllerName');
+    var changes = dataToSend.changed_configurations;
+    if (changes) {
+      dataToSend['user-context'] = {"operation" : "EditConfig"};
+    } else {
+      if (!controllerName) {
+        dataToSend['user-context'] = {"operation" : "RecommendAttribute"};
+      } else if (controllerName == 'addServiceController') {
+        dataToSend['user-context'] = {
+          "operation" : "AddService",
+          "operation_details" : (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName').join(',')
+        };
+      } else if (controllerName == 'installerController'){
+        dataToSend['user-context'] = {"operation" : "ClusterCreate"};
+      }
+    }
   },
 
   /**
