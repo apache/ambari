@@ -84,21 +84,21 @@
 <div class="col-md-3 database-panel">
   <div class="database-container">
     <div class="row">
-    <div class="panel-group database-panel" id="accordion" role="tablist" aria-multiselectable="true">
+    <div class="panel-group database-panel" id="db_accordion" role="tablist" aria-multiselectable="true">
       {{#each selectedTablesModels as |tableModel|}}
         <div class="panel panel-default">
-          <div class="panel-heading" role="tab">
+          <div class="panel-heading" role="tab" id={{concat 'db_heading_' tableModel.dbname}}>
             <h4 class="panel-title">
-              <a role="button" data-toggle="collapse" data-parent="#accordion"
+              <a role="button" data-i-toggle="collapse" data-i-parent="#db_accordion"
                  href="javascript:void(0)" {{action 'showTables' tableModel.dbname }} aria-expanded="true"
-                 aria-controls={{tableModel.dbname}}>
-                {{ tableModel.dbname }} {{#if tableModel.isSelected}} {{fa-icon "check"}}  {{/if}}
+                 aria-controls={{concat 'db_body_' tableModel.dbname}}>
+                {{ tableModel.dbname }} {{#if (eq tableModel.dbname worksheet.selectedDb)}} {{fa-icon "check"}}  {{/if}}
               </a>
               <small class="pull-right">Tables({{tableModel.tables.length}})</small>
             </h4>
           </div>
-          <div id={{ tableModel.dbname }} class="db-tables collapse panel-collapse {{if singleDbModel 'in'}}" role="tabpanel"
-          aria-labelledby="headingOne">
+          <div id={{concat 'db_body_' tableModel.dbname}} class="db-tables collapse panel-collapse {{if (eq tableModel.dbname worksheet.selectedDb) 'in'}}" role="tabpanel"
+          aria-labelledby={{concat 'db_heading_' tableModel.dbname}}>
           <div class="panel-body">
             {{#if tableModel.tables.length }}
               {{#list-filter header="tables" items=tableModel.tables
