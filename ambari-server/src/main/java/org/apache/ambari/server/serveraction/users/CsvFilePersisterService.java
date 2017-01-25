@@ -18,12 +18,21 @@
 
 package org.apache.ambari.server.serveraction.users;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -51,10 +60,21 @@ public class CsvFilePersisterService implements CollectionPersisterService<Strin
     this.csvFile = csvFile;
   }
 
+  public Set<PosixFilePermission> getCsvPermissions() {
+    Set<PosixFilePermission> permissionsSet = new HashSet<>();
+    permissionsSet.add(PosixFilePermission.OWNER_READ);
+    permissionsSet.add(PosixFilePermission.OWNER_WRITE);
+    permissionsSet.add(PosixFilePermission.GROUP_READ);
+    permissionsSet.add(PosixFilePermission.OTHERS_READ);
+    return permissionsSet;
+  }
+
   @Inject
   public void init() throws IOException {
-    // make 3rd party dependencies be managed by the container (probably constructor binding or factory is needed)
-    fileWriter = new FileWriter(csvFile);
+
+    Path csv = Files.createFile(Paths.get(csvFile), PosixFilePermissions.asFileAttribute(getCsvPermissions()));
+    fileWriter = new FileWriter(csv.toFile());
+
     csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR));
   }
 
