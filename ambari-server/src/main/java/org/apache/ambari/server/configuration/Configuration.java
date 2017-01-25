@@ -5690,16 +5690,14 @@ public class Configuration {
       File keytabFile = new File(kerberosAuthProperties.getSpnegoKeytabFilePath());
       if (!keytabFile.exists()) {
         String message = String.format("The SPNEGO keytab file path (%s) specified in %s does not exist. " +
-                "This will cause issues authenticating users using Kerberos.",
+                "This will cause issues authenticating users using Kerberos. Make sure proper keytab file provided later.",
             keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
         LOG.error(message);
-        throw new IllegalArgumentException(message);
       } else if (!keytabFile.canRead()) {
         String message = String.format("The SPNEGO keytab file path (%s) specified in %s cannot be read. " +
-                "This will cause issues authenticating users using Kerberos.",
+                "This will cause issues authenticating users using Kerberos. Make sure proper keytab file provided later.",
             keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
         LOG.error(message);
-        throw new IllegalArgumentException(message);
       }
     }
 

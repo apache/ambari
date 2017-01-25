@@ -1052,16 +1052,4 @@ public class ConfigurationTest {
 
     new Configuration(properties);
   }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testKerberosAuthenticationSPNEGOKeytabFileNotFound() {
-    Properties properties = new Properties();
-    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
-    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), "/path/to/missing/spnego/keytab/file");
-    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
-    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
-    properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
-
-    new Configuration(properties);
-  }
 }
