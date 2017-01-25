@@ -55,6 +55,19 @@ class PropertyExists implements DependencyConditionInfo {
    */
   protected String property;
 
+  /**
+   * type of conditional dependency
+   */
+  protected String type = this.getClass().getSimpleName();
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
   @XmlElement
   public String getProperty() {
     return property;

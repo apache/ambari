@@ -36,31 +36,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).__init__()
     Logger.initialize_logger()
 
-  def getComponentLayoutValidations(self, services, hosts):
-    parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
-
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    componentsListList = [service["components"] for service in services["services"]]
-    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
-    childItems = []
-
-    if "SPARK" in servicesList:
-      if "SPARK_THRIFTSERVER" in servicesList:
-        if not "HIVE_SERVER" in servicesList:
-          message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
-          childItems.append( {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER'} )
-
-      hmsHosts = self.__getHosts(componentsList, "HIVE_METASTORE") if "HIVE" in servicesList else []
-      sparkTsHosts = self.__getHosts(componentsList, "SPARK_THRIFTSERVER") if "SPARK" in servicesList else []
-
-      # if Spark Thrift Server is deployed but no Hive Server is deployed
-      if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
-        message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
-        childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
-
-    parentItems.extend(childItems)
-    return parentItems
-
   def __getHosts(self, componentsList, componentName):
     host_lists = [component["hostnames"] for component in componentsList if
                   component["component_name"] == componentName]

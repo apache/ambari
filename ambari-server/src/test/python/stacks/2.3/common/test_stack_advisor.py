@@ -106,7 +106,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hiveMetaStore), 0)
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
-    expected = {'component-name': 'SPARK_THRIFTSERVER', 'message': 'SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed.', 'type': 'host-component', 'level': 'ERROR'}
+    expected = {'component-name': 'SPARK_THRIFTSERVER', 'message': 'Spark Thrift Server requires HIVE_METASTORE to be present in the cluster.', 'type': 'host-component', 'level': 'ERROR'}
     self.assertEquals(validations[0], expected)
 
 

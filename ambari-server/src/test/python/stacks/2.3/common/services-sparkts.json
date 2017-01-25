@@ -1,5 +1,5 @@
 {
-  "href" : "/api/v1/stacks/HDP/versions/2.3/?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy,services/configurations/StackConfigurations/property_depends_on,services/configurations/dependencies/StackConfigurationDependency/dependency_name,services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type&services/StackServices/service_name.in(HDFS,YARN,MAPREDUCE2,ZOOKEEPER,SPARK)",
+  "href" : "/api/v1/stacks/HDP/versions/2.3/?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies/Dependencies/scope,services/components/dependencies/Dependencies/conditions,services/components/auto_deploy,services/configurations/StackConfigurations/property_depends_on,services/configurations/dependencies/StackConfigurationDependency/dependency_name,services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type&services/StackServices/service_name.in(HDFS,YARN,MAPREDUCE2,ZOOKEEPER,SPARK)",
   "Versions" : {
     "parent_stack_version" : "2.2",
     "stack_name" : "HDP",
@@ -74,7 +74,9 @@
           "dependent_component_name" : "JOURNALNODE",
           "dependent_service_name" : "HDFS",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {
@@ -117,7 +119,9 @@
           "dependent_component_name" : "NFS_GATEWAY",
           "dependent_service_name" : "HDFS",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {
@@ -2078,18 +2082,11 @@
           "dependent_component_name" : "HISTORYSERVER",
           "dependent_service_name" : "MAPREDUCE2",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.3/services/MAPREDUCE2/components/HISTORYSERVER/dependencies/TEZ_CLIENT",
-        "Dependencies" : {
-          "component_name" : "TEZ_CLIENT",
-          "dependent_component_name" : "HISTORYSERVER",
-          "dependent_service_name" : "MAPREDUCE2",
-          "stack_name" : "HDP",
-          "stack_version" : "2.3"
-        }
-      } ]
+      }]
     }, {
       "href" : "/api/v1/stacks/HDP/versions/2.3/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT",
       "StackServiceComponents" : {
@@ -2858,7 +2855,9 @@
           "dependent_component_name" : "SPARK_JOBHISTORYSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_JOBHISTORYSERVER/dependencies/MAPREDUCE2_CLIENT",
@@ -2867,16 +2866,9 @@
           "dependent_component_name" : "SPARK_JOBHISTORYSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
-        }
-      }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_JOBHISTORYSERVER/dependencies/TEZ_CLIENT",
-        "Dependencies" : {
-          "component_name" : "TEZ_CLIENT",
-          "dependent_component_name" : "SPARK_JOBHISTORYSERVER",
-          "dependent_service_name" : "SPARK",
-          "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_JOBHISTORYSERVER/dependencies/YARN_CLIENT",
@@ -2885,7 +2877,9 @@
           "dependent_component_name" : "SPARK_JOBHISTORYSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {
@@ -2911,16 +2905,20 @@
           "dependent_component_name" : "SPARK_THRIFTSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       }, {
-        "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_THRIFTSERVER/dependencies/HIVE_SERVER",
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_THRIFTSERVER/dependencies/HIVE_METASTORE",
         "Dependencies" : {
-          "component_name" : "HIVE_SERVER",
+          "component_name" : "HIVE_METASTORE",
           "dependent_component_name" : "SPARK_THRIFTSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "cluster",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_THRIFTSERVER/dependencies/MAPREDUCE2_CLIENT",
@@ -2929,7 +2927,9 @@
           "dependent_component_name" : "SPARK_THRIFTSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.3/services/SPARK/components/SPARK_THRIFTSERVER/dependencies/YARN_CLIENT",
@@ -2938,7 +2938,9 @@
           "dependent_component_name" : "SPARK_THRIFTSERVER",
           "dependent_service_name" : "SPARK",
           "stack_name" : "HDP",
-          "stack_version" : "2.3"
+          "stack_version" : "2.3",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     } ],
@@ -3353,16 +3355,7 @@
         "stack_version" : "2.3",
         "hostnames" : [ "jerryshao-sts-test-1.c.pramod-thangali.internal" ]
       },
-      "dependencies" : [ {
-        "href" : "/api/v1/stacks/HDP/versions/2.3/services/YARN/components/RESOURCEMANAGER/dependencies/TEZ_CLIENT",
-        "Dependencies" : {
-          "component_name" : "TEZ_CLIENT",
-          "dependent_component_name" : "RESOURCEMANAGER",
-          "dependent_service_name" : "YARN",
-          "stack_name" : "HDP",
-          "stack_version" : "2.3"
-        }
-      } ]
+      "dependencies" : []
     }, {
       "href" : "/api/v1/stacks/HDP/versions/2.3/services/YARN/components/YARN_CLIENT",
       "StackServiceComponents" : {

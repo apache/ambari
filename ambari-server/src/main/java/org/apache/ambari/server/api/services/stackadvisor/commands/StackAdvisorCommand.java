@@ -78,11 +78,11 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String GET_SERVICES_INFO_URI = "/api/v1/stacks/%s/versions/%s/"
       + "?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version"
       + ",services/StackServices/service_name,services/StackServices/service_version"
-      + ",services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy"
+      + ",services/components/StackServiceComponents,services/components/dependencies/Dependencies/scope"
+      + ",services/components/dependencies/Dependencies/conditions,services/components/auto_deploy"
       + ",services/configurations/StackConfigurations/property_depends_on"
       + ",services/configurations/dependencies/StackConfigurationDependency/dependency_name"
-      + ",services/configurations/dependencies/StackConfigurationDependency/dependency_type"
-      + ",services/configurations/StackConfigurations/type"
+      + ",services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type"
       + "&services/StackServices/service_name.in(%s)";
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";

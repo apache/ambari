@@ -884,6 +884,8 @@ class DefaultStackAdvisor(StackAdvisor):
     if services is None:
       return items
 
+    items.extend(self.validateRequiredComponentsPresent(services))
+
     for service in services["services"]:
       serviceName = service["StackServices"]["service_name"]
       serviceAdvisor = self.getServiceAdvisor(serviceName)
@@ -891,6 +893,52 @@ class DefaultStackAdvisor(StackAdvisor):
         items.extend(serviceAdvisor.getServiceComponentLayoutValidations(services, hosts))
 
     return items
+
+  def validateRequiredComponentsPresent(self, services):
+    """
+    Returns validation items derived from component dependencies as specified in service metainfo.xml for all services
+    :type services dict
+    :rtype list
+    """
+    items = []
+    for service in services["services"]:
+      for component in service["components"]:
+
+        # Client components are not validated for the dependencies
+        # Rather dependent client components are auto-deployed in both UI deployments and blueprint deployments
+        if (self.isSlaveComponent(component) or self.isMasterComponent(component)) and \
+          component["StackServiceComponents"]["hostnames"]:
+          for dependency in component['dependencies']:
+            # account for only dependencies that are not conditional
+            conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
+            if not conditionsPresent:
+              requiredComponent = self.getRequiredComponent(services, dependency["Dependencies"]["component_name"])
+              componentDisplayName = component["StackServiceComponents"]["display_name"]
+              requiredComponentDisplayName = requiredComponent["display_name"] \
+                                             if requiredComponent is not None else dependency["Dependencies"]["component_name"]
+              requiredComponentHosts = requiredComponent["hostnames"] if requiredComponent is not None else []
+
+              # Client dependencies are not included in validation
+              # Client dependencies are auto-deployed in both UI deployements and blueprint deployments
+              if (requiredComponent is None) or \
+                (requiredComponent["component_category"] != "CLIENT"):
+                scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
+                if scope == "host":
+                  componentHosts = component["StackServiceComponents"]["hostnames"]
+                  requiredComponentHostsAbsent = []
+                  for componentHost in componentHosts:
+                    if componentHost not in requiredComponentHosts:
+                      requiredComponentHostsAbsent.append(componentHost)
+                  if requiredComponentHostsAbsent:
+                    message = "{0} requires {1} to be co-hosted on following host(s): {2}.".format(componentDisplayName,
+                               requiredComponentDisplayName, ', '.join(requiredComponentHostsAbsent))
+                    items.append({ "type": 'host-component', "level": 'ERROR', "message": message,
+                                   "component-name": component["StackServiceComponents"]["component_name"]})
+                elif scope == "cluster" and not requiredComponentHosts:
+                  message = "{0} requires {1} to be present in the cluster.".format(componentDisplayName, requiredComponentDisplayName)
+                  items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": component["StackServiceComponents"]["component_name"]})
+    return items
+
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
     """
@@ -1252,6 +1300,21 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def isMasterComponent(self, component):
     return self.getComponentAttribute(component, "is_master")
+
+  def getRequiredComponent(self, services, componentName):
+    """
+    Return Category for component
+
+    :type services dict
+    :type componentName str
+    :rtype dict
+    """
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+    component = next((component for component in componentsList
+                              if component["component_name"] == componentName), None)
+
+    return component
 
   def getComponentAttribute(self, component, attribute):
     serviceComponent = component.get("StackServiceComponents", None)
