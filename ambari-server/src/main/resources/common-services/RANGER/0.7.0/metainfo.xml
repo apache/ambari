@@ -27,6 +27,12 @@
       <comment>Comprehensive security for Hadoop</comment>
       <extends>common-services/RANGER/0.6.0</extends>
       <version>0.7.0</version>
+      <themes>
+        <theme>
+          <fileName>theme_version_5.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
       <configuration-dependencies>
         <config-type>ranger-solr-configuration</config-type>
       </configuration-dependencies>
