@@ -1458,6 +1458,35 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     pass
     return self.toConfigurationValidationProblems(validationItems, "ams-env")
 
+  def get_yarn_nm_mem_in_mb(self, services, configurations):
+    """
+    Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb).
+    Reads from:
+      - configurations (if changed as part of current Stack Advisor invocation (output)), and services["changed-configurations"]
+        is empty, else
+      - services['configurations'] (input).
+
+    services["changed-configurations"] would be empty is Stack Advisor call if made from Blueprints (1st invocation). Subsequent
+    Stack Advisor calls will have it non-empty. We do this because in subsequent invocations, even if Stack Advsior calculates this
+    value (configurations), it is finally not recommended, making 'input' value to survive.
+    """
+    yarn_nm_mem_in_mb = None
+
+    yarn_site = getServicesSiteProperties(services, "yarn-site")
+    yarn_site_properties = getSiteProperties(configurations, "yarn-site")
+
+    # Check if services["changed-configurations"] is empty and 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
+    if not ("changed-configurations" in services and services["changed-configurations"]) and yarn_site_properties and 'yarn.nodemanager.resource.memory-mb' in yarn_site_properties:
+      yarn_nm_mem_in_mb = float(yarn_site_properties['yarn.nodemanager.resource.memory-mb'])
+    elif yarn_site and 'yarn.nodemanager.resource.memory-mb' in yarn_site:
+      # Check if 'yarn.nodemanager.resource.memory-mb' is input in services array.
+      yarn_nm_mem_in_mb = float(yarn_site['yarn.nodemanager.resource.memory-mb'])
+
+    if yarn_nm_mem_in_mb <= 0.0:
+      Logger.warning("'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(yarn_nm_mem_in_mb))
+
+    return yarn_nm_mem_in_mb
+
   def getPreferredMountPoints(self, hostInfo):
 
     # '/etc/resolv.conf', '/etc/hostname', '/etc/hosts' are docker specific mount points
@@ -1534,6 +1563,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return None
     if value < defaultValue:
       return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
+    return None
+
+  def validatorGreaterThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    if propertyName not in recommendedDefaults:
+      # If a property name exists in say hbase-env and hbase-site (which is allowed), then it will exist in the
+      # "properties" dictionary, but not necessarily in the "recommendedDefaults" dictionary". In this case, ignore it.
+      return None
+
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    value = to_number(properties[propertyName])
+    if value is None:
+      return self.getErrorItem("Value should be integer")
+    defaultValue = to_number(recommendedDefaults[propertyName])
+    if defaultValue is None:
+      return None
+    if value > defaultValue:
+      return self.getWarnItem("Value is greater than the recommended default of {0}".format(defaultValue))
     return None
 
   def validatorEqualsPropertyItem(self, properties1, propertyName1,
@@ -1654,10 +1701,36 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     clusterEnv = getSiteProperties(configurations, "cluster-env")
-    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
+    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorGreaterThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.nodemanager.linux-container-executor.group', "item": self.validatorEqualsPropertyItem(properties, "yarn.nodemanager.linux-container-executor.group", clusterEnv, "user_group")},
-                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorGreaterThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+    nmMemory = int(self.get_yarn_nm_mem_in_mb(services, configurations))
+    if "items" in hosts and len(hosts["items"]) > 0:
+      nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
+      nmLowMemoryHosts = []
+      # NodeManager host with least memory is generally used in calculations as it will work in larger hosts.
+      if nodeManagerHosts is not None and len(nodeManagerHosts) > 0:
+        for nmHost in nodeManagerHosts:
+          nmHostName = nmHost["Hosts"]["host_name"]
+          componentNames = []
+          for service in services["services"]:
+            for component in service["components"]:
+              if not self.isClientComponent(component) and component["StackServiceComponents"]["hostnames"] is not None:
+                if nmHostName in component["StackServiceComponents"]["hostnames"]:
+                  componentNames.append(component["StackServiceComponents"]["component_name"])
+          requiredMemory = getMemorySizeRequired(componentNames, configurations)
+          unusedMemory = int((nmHost["Hosts"]["total_mem"] * 1024 - requiredMemory)/ (1024 * 1024)) # in MB
+          if nmMemory > unusedMemory:
+            nmLowMemoryHosts.append(nmHostName)
+
+        if len(nmLowMemoryHosts) > 0:
+          validationItems.append({"config-name": "yarn.nodemanager.resource.memory-mb",
+            "item": self.getWarnItem(
+                "Node manager hosts with high memory usage found (examples : {0}). Consider reducing the allocated "
+                "memory for containers or moving other co-located components "
+                "to a different host.".format(",".join(nmLowMemoryHosts[:3])))})
+
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

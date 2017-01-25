@@ -776,7 +776,7 @@ class TestHDP206StackAdvisor(TestCase):
 
     # Test - Cluster data with 2 hosts - pick minimum memory
     servicesList.append("YARN")
-    services = services = {"services":
+    services = {"services":
                   [{"StackServices":
                       {"service_name" : "YARN",
                        "service_version" : "2.6.0.2.2"
@@ -3180,7 +3180,41 @@ class TestHDP206StackAdvisor(TestCase):
         }
       }
     }
-    services = {'configurations': {} }
+
+    services = {"services":
+      [{"StackServices":
+        {"service_name" : "YARN",
+          "service_version" : "2.6.0.2.2"
+        },
+        "components":[
+          {
+            "StackServiceComponents":{
+              "advertise_version":"true",
+              "cardinality":"1+",
+              "component_category":"SLAVE",
+              "component_name":"NODEMANAGER",
+              "custom_commands":[
+
+              ],
+              "display_name":"NodeManager",
+              "is_client":"false",
+              "is_master":"false",
+              "service_name":"YARN",
+              "stack_name":"HDP",
+              "stack_version":"2.2",
+              "hostnames":[
+                "host1",
+                "host2"
+              ]
+            },
+            "dependencies":[
+            ]
+          }
+        ],
+      }],
+      "configurations": {}
+    }
+
     recommendedDefaults = {'yarn.nodemanager.resource.memory-mb' : '12288',
       'yarn.scheduler.minimum-allocation-mb' : '3072',
       'yarn.nodemanager.linux-container-executor.group': 'hadoop',
@@ -3192,3 +3226,78 @@ class TestHDP206StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertFalse(res)
+
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "host_name" : "host1",
+            "cpu_count" : 2,
+            "total_mem" : 12582912,
+            "disk_info" : [
+              {
+                "available" : "21052800",
+                "device" : "/dev/vda1",
+                "used" : "3303636",
+                "percent" : "14%",
+                "size" : "25666616",
+                "type" : "ext4",
+                "mountpoint" : "/"
+              },
+              {
+                "available" : "244732200",
+                "device" : "/dev/vdb",
+                "used" : "60508",
+                "percent" : "1%",
+                "size" : "257899908",
+                "type" : "ext4",
+                "mountpoint" : "/grid/0"
+              }
+            ]
+          }
+        }
+      ]
+    }
+    # Cluster RAM = 12 GB (12582912 KB)
+    # YARN NodeManager HeapSize = 1024 MB (default)
+    # Max Container Allocation = 11264 MB ( user set to 12288)
+    expectedItems = [
+      {
+        'config-type':  'yarn-site',
+        'message': 'Node manager hosts with high memory usage found (examples : host1). '
+                   'Consider reducing the allocated memory for containers or '
+                   'moving other co-located components to a different host.',
+        'type': 'configuration',
+        'config-name': 'yarn.nodemanager.resource.memory-mb',
+        'level': 'WARN'
+      }
+    ]
+    items = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(expectedItems, items)
+
+
+    recommendedDefaults = {'yarn.nodemanager.resource.memory-mb' : '10240',
+      'yarn.scheduler.minimum-allocation-mb' : '3072',
+      'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+      'yarn.scheduler.maximum-allocation-mb': '10240'}
+
+    expectedItems = [
+      {
+        'config-type':  'yarn-site',
+        'message': 'Value is greater than the recommended default of 10240',
+        'type': 'configuration',
+        'config-name': 'yarn.nodemanager.resource.memory-mb',
+        'level': 'WARN'
+      },
+      {
+        'config-type':  'yarn-site',
+        'message': 'Value is greater than the recommended default of 10240',
+        'type': 'configuration',
+        'config-name': 'yarn.scheduler.maximum-allocation-mb',
+        'level': 'WARN'
+      }
+    ]
+
+    items = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(expectedItems, items)
+

@@ -109,7 +109,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "ATLAS": {"application-properties": self.validateAtlasConfigurations},
       "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations,
                "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations},
-      "YARN": {"yarn-site": self.validateYarnConfigurations},
+      "YARN": {"yarn-site": self.validateYARNConfigurations},
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations},
       "SPARK2": {"spark2-defaults": self.validateSpark2Defaults,
                  "spark2-thrift-sparkconf": self.validateSpark2ThriftSparkConf},
@@ -247,7 +247,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     ]
     return self.toConfigurationValidationProblems(validationItems, "spark2-thrift-sparkconf")
 
-  def validateYarnConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     parentValidationProblems = super(HDP25StackAdvisor, self).validateYARNConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     yarn_site_properties = self.getSiteProperties(configurations, "yarn-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -1360,35 +1360,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       return yarn_min_container_size
     if yarn_min_container_size < 256:
       return 256
-
-  def get_yarn_nm_mem_in_mb(self, services, configurations):
-    """
-    Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb).
-    Reads from:
-      - configurations (if changed as part of current Stack Advisor invocation (output)), and services["changed-configurations"]
-        is empty, else
-      - services['configurations'] (input).
-
-    services["changed-configurations"] would be empty is Stack Advisor call if made from Blueprints (1st invocation). Subsequent
-    Stack Advisor calls will have it non-empty. We do this because in subsequent invocations, even if Stack Advsior calculates this
-    value (configurations), it is finally not recommended, making 'input' value to survive.
-    """
-    yarn_nm_mem_in_mb = None
-
-    yarn_site = self.getServicesSiteProperties(services, "yarn-site")
-    yarn_site_properties = self.getSiteProperties(configurations, "yarn-site")
-
-    # Check if services["changed-configurations"] is empty and 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
-    if not services["changed-configurations"] and yarn_site_properties and 'yarn.nodemanager.resource.memory-mb' in yarn_site_properties:
-      yarn_nm_mem_in_mb = float(yarn_site_properties['yarn.nodemanager.resource.memory-mb'])
-    elif yarn_site and 'yarn.nodemanager.resource.memory-mb' in yarn_site:
-      # Check if 'yarn.nodemanager.resource.memory-mb' is input in services array.
-        yarn_nm_mem_in_mb = float(yarn_site['yarn.nodemanager.resource.memory-mb'])
-
-    if yarn_nm_mem_in_mb <= 0.0:
-      Logger.warning("'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(yarn_nm_mem_in_mb))
-
-    return yarn_nm_mem_in_mb
 
   def calculate_tez_am_container_size(self, services, total_cluster_capacity):
     """
