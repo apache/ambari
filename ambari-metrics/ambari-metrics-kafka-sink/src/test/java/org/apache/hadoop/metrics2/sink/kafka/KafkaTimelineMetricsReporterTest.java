@@ -100,6 +100,32 @@ public class KafkaTimelineMetricsReporterTest {
   }
 
   @Test
+  public void testReporterStartStopHttps() {
+    mockStatic(Metrics.class);
+    EasyMock.expect(Metrics.defaultRegistry()).andReturn(registry).times(2);
+    TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(kafkaTimelineMetricsReporter);
+    kafkaTimelineMetricsReporter.setMetricsCache(timelineMetricsCache);
+    replay(Metrics.class, timelineMetricsCache);
+
+    Properties properties = new Properties();
+    properties.setProperty("zookeeper.connect", "localhost:2181");
+    properties.setProperty("kafka.timeline.metrics.sendInterval", "5900");
+    properties.setProperty("kafka.timeline.metrics.maxRowCacheSize", "10000");
+    properties.setProperty("kafka.timeline.metrics.hosts", "localhost:6188");
+    properties.setProperty("kafka.timeline.metrics.port", "6188");
+    properties.setProperty("kafka.timeline.metrics.reporter.enabled", "true");
+    properties.setProperty("external.kafka.metrics.exclude.prefix", "a.b.c");
+    properties.setProperty("external.kafka.metrics.include.prefix", "a.b.c.d");
+    properties.setProperty("kafka.timeline.metrics.protocol", "https");
+    properties.setProperty("kafka.timeline.metrics.truststore.path", "");
+    properties.setProperty("kafka.timeline.metrics.truststore.type", "");
+    properties.setProperty("kafka.timeline.metrics.truststore.password", "");
+    kafkaTimelineMetricsReporter.init(new VerifiableProperties(properties));
+    kafkaTimelineMetricsReporter.stopReporter();
+    verifyAll();
+  }
+
+  @Test
   public void testMetricsExclusionPolicy() throws Exception {
     mockStatic(Metrics.class);
     EasyMock.expect(Metrics.defaultRegistry()).andReturn(registry).times(2);
