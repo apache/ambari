@@ -713,6 +713,73 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+  def test_recommendRangerConfigurations(self):
+    clusterData = {}
+    services = {
+      "Versions" : {
+        "stack_version" : "2.6",
+        },
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER",
+          "service_version": "0.7.0.2.6"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "ranger-ugsync-site": {
+          "properties": {
+            "ranger.usersync.ldap.deltasync": "true",
+            "ranger.usersync.group.searchenabled": "false"
+            }
+        }
+      }
+    }
+
+    expected = {
+      'ranger-admin-site': {
+        'properties': {
+          'ranger.audit.solr.zookeepers': 'NONE', 
+          'ranger.audit.source.type': 'solr'
+        }
+      }, 
+      'admin-properties': {
+        'properties': {
+          'policymgr_external_url': 'http://host1:6080'
+        }
+      }, 
+      'ranger-tagsync-site': {
+        'properties': {}
+      }, 
+      'tagsync-application-properties': {
+        'properties': {} 
+      }, 
+      'ranger-env': {
+        'properties': {
+          'ranger-storm-plugin-enabled': 'No'
+        }
+      }, 
+      'ranger-ugsync-site': {
+        'properties': {
+          'ranger.usersync.group.searchenabled': 'true'
+        }
+      }
+    }
+
+    recommendedConfigurations = {}
+
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
 def load_json(self, filename):
   file = os.path.join(self.testDirectory, filename)
   with open(file, 'rb') as f:
