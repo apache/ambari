@@ -425,17 +425,24 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
     afterEach(function () {
       controller.createComponent.restore();
+      controller.set('dependentHostComponents', []);
     });
 
-    it('One host-component', function () {
+    it('createComponent should be called for each host-component', function () {
       controller.set('hostComponents', ['COMP1']);
+      controller.set('dependentHostComponents', ['COMP2']);
       controller.set('content.reassignHosts.target', 'host1');
       controller.set('content.reassign.service_id', 'SERVICE1');
 
       controller.createHostComponents();
 
-      expect(controller.get('multiTaskCounter')).to.equal(1);
-      expect(controller.createComponent.calledWith('COMP1', 'host1', 'SERVICE1')).to.be.true;
+      expect(controller.get('multiTaskCounter')).to.equal(2);
+      expect(controller.createComponent.getCall(0).args).to.be.eql([
+        'COMP1', 'host1', 'SERVICE1'
+      ]);
+      expect(controller.createComponent.getCall(1).args).to.be.eql([
+        'COMP2', 'host1', 'SERVICE1'
+      ]);
     });
   });
 
@@ -485,6 +492,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
     afterEach(function () {
       controller.updateComponent.restore();
+      controller.set('dependentHostComponents', []);
     });
 
     it('No host-components', function () {
@@ -495,15 +503,21 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.get('multiTaskCounter')).to.equal(0);
       expect(controller.updateComponent.called).to.be.false;
     });
-    it('One host-component', function () {
+    it('createComponent should be called for each host-component', function () {
       controller.set('hostComponents', ['COMP1']);
+      controller.set('dependentHostComponents', ['COMP2']);
       controller.set('content.reassignHosts.target', 'host1');
       controller.set('content.reassign.service_id', 'SERVICE1');
 
       controller.installHostComponents();
 
-      expect(controller.get('multiTaskCounter')).to.equal(1);
-      expect(controller.updateComponent.calledWith('COMP1', 'host1', 'SERVICE1', 'Install', 1)).to.be.true;
+      expect(controller.get('multiTaskCounter')).to.equal(2);
+      expect(controller.updateComponent.getCall(0).args).to.be.eql([
+        'COMP1', 'host1', 'SERVICE1', 'Install', 2
+      ]);
+      expect(controller.updateComponent.getCall(1).args).to.be.eql([
+        'COMP2', 'host1', 'SERVICE1', 'Install', 2
+      ]);
     });
   });
 
@@ -707,24 +721,21 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#loadStep()', function () {
-    var isHaEnabled = true;
-
     beforeEach(function () {
       controller.set('content.reassign.service_id', 'service1');
       sinon.stub(controller, 'onTaskStatusChange', Em.K);
       sinon.stub(controller, 'initializeTasks', Em.K);
-      sinon.stub(App, 'get', function () {
-        return isHaEnabled;
-      });
+      sinon.stub(controller, 'setDependentHostComponents');
+      this.mockGet = sinon.stub(App, 'get').returns(true);
     });
     afterEach(function () {
+      controller.setDependentHostComponents.restore();
       controller.onTaskStatusChange.restore();
       controller.initializeTasks.restore();
-      App.get.restore();
+      this.mockGet.restore();
     });
 
     it('reassign component is NameNode and HA enabled', function () {
-      isHaEnabled = true;
       controller.set('content.reassign.component_name', 'NAMENODE');
 
       controller.loadStep();
@@ -732,7 +743,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.get('serviceName')).to.eql(['service1']);
     });
     it('reassign component is NameNode and HA disabled', function () {
-      isHaEnabled = false;
+      this.mockGet.returns(false);
       controller.set('content.reassign.component_name', 'NAMENODE');
 
       controller.loadStep();
@@ -740,7 +751,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.get('serviceName')).to.eql(['service1']);
     });
     it('reassign component is JOBTRACKER and HA enabled', function () {
-      isHaEnabled = true;
       controller.set('content.reassign.component_name', 'JOBTRACKER');
 
       controller.loadStep();
@@ -748,12 +758,17 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.get('serviceName')).to.eql(['service1']);
     });
     it('reassign component is RESOURCEMANAGER and HA enabled', function () {
-      isHaEnabled = true;
       controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
 
       controller.loadStep();
       expect(controller.get('hostComponents')).to.eql(['RESOURCEMANAGER']);
       expect(controller.get('serviceName')).to.eql(['service1']);
+    });
+    it('setDependentHostComponents should be called', function () {
+      controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
+
+      controller.loadStep();
+      expect(controller.setDependentHostComponents.calledOnce).to.be.true;
     });
   });
 
@@ -1643,6 +1658,37 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         },
         filteredHosts: ['host1']
       });
+    });
+  });
+
+  describe('#setDependentHostComponents', function() {
+    beforeEach(function() {
+      sinon.stub(App.Host, 'find').returns(Em.Object.create({
+        hostComponents: [
+          Em.Object.create({
+            componentName: 'C1'
+          })
+        ]
+      }));
+      sinon.stub(App.StackServiceComponent, 'find').returns(Em.Object.create({
+        dependencies: [
+          Em.Object.create({
+            componentName: 'C1'
+          }),
+          Em.Object.create({
+            componentName: 'C2'
+          })
+        ]
+      }));
+    });
+    afterEach(function() {
+      App.Host.find.restore();
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('should set dependentHostComponents', function() {
+      controller.setDependentHostComponents();
+      expect(controller.get('dependentHostComponents')).to.be.eql(['C2']);
     });
   });
 });
