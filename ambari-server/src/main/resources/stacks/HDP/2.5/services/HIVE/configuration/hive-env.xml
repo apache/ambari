@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 -->
-<configuration supports_adding_forbidden="true">
+<configuration supports_adding_forbidden="false">
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
@@ -81,4 +81,38 @@
         </value-attributes>
     <on-ambari-upgrade add="true"/>
     </property>
+    <property>
+      <name>alert_ldap_username</name>
+      <value></value>
+      <description>LDAP username to be used for alerts</description>
+      <display-name>LDAP user for Alerts</display-name>
+      <value-attributes>
+        <empty-value-valid>true</empty-value-valid>
+      </value-attributes>
+      <depends-on>
+        <property>
+          <type>hive-site</type>
+          <name>hive.server2.authentication</name>
+        </property>
+      </depends-on>
+      <on-ambari-upgrade add="false"/>
+    </property>
+  <property>
+    <name>alert_ldap_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <description>Password to be used for LDAP user used in alerts</description>
+    <display-name>LDAP password for Alerts</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <type>password</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
