@@ -284,6 +284,12 @@ angular.module('ambariAdminConsole')
     $scope.editVersionDisabled = true;
     delete $scope.updateObj.href;
     $scope.updateObj.operating_systems = [];
+    angular.forEach($scope.osList, function (os) {
+      os.OperatingSystems.ambari_managed_repositories = !$scope.useRedhatSatellite;
+      if (os.selected) {
+        $scope.updateObj.operating_systems.push(os);
+      }
+    });
 
     var skip = $scope.skipValidation || $scope.useRedhatSatellite;
     return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
