@@ -1,7 +1,7 @@
 {
   "id": null,
-  "title": "Ambari Server",
-  "originalTitle": "Ambari Server",
+  "title": "Ambari Server - JVM",
+  "originalTitle": "Ambari Server - JVM",
   "tags": [
     "ambari"
   ],
@@ -81,36 +81,36 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemHeapMax",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "memory.heap.max",
+              "metric": "jvm.memory.heap.max",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemHeapUsed",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "memory.heap.used",
+              "metric": "jvm.memory.heap.used",
               "precision": "default",
               "refId": "B",
               "seriesAggregator": "none",
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemHeapCommitted",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "memory.heap.committed",
+              "metric": "jvm.memory.heap.committed",
               "precision": "default",
               "refId": "C",
               "seriesAggregator": "none",
@@ -176,12 +176,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemNonHeapMax",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "memory.non-heap.max",
+              "metric": "jvm.memory.non-heap.max",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -193,7 +193,7 @@
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "memory.non-heap.used",
+              "metric": "jvm.memory.non-heap.used",
               "precision": "default",
               "refId": "B",
               "seriesAggregator": "none",
@@ -205,7 +205,7 @@
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "memory.non-heap.committed",
+              "metric": "jvm.memory.non-heap.committed",
               "precision": "default",
               "refId": "C",
               "seriesAggregator": "none",
@@ -280,11 +280,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "gc.ParNew.count",
+              "metric": "jvm.gc.ParNew.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -350,11 +350,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "gc.ParNew.time",
+              "metric": "jvm.gc.ParNew.time",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -420,11 +420,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "gc.ConcurrentMarkSweep.count",
+              "metric": "jvm.gc.ConcurrentMarkSweep.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -490,11 +490,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "gc.ConcurrentMarkSweep.time",
+              "metric": "jvm.gc.ConcurrentMarkSweep.time",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -569,60 +569,60 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Total",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "threads.count",
+              "metric": "jvm.threads.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Daemon",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "threads.daemon.count",
+              "metric": "jvm.threads.daemon.count",
               "precision": "default",
               "refId": "B",
               "seriesAggregator": "none",
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Deadlock",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "threads.deadlock.count",
+              "metric": "jvm.threads.deadlock.count",
               "precision": "default",
               "refId": "C",
               "seriesAggregator": "none",
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Blocked",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "threads.blocked.count",
+              "metric": "jvm.threads.blocked.count",
               "precision": "default",
               "refId": "D",
               "seriesAggregator": "none",
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Runnable",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "threads.runnable.count",
+              "metric": "jvm.threads.runnable.count",
               "precision": "default",
               "refId": "E",
               "seriesAggregator": "none",
@@ -679,7 +679,44 @@
     ]
   },
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "ambari_server",
+          "value": "ambari_server"
+        },
+        "datasource": null,
+        "hideLabel": true,
+        "includeAll": false,
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "components",
+        "options": [
+          {
+            "selected": true,
+            "text": "ambari_server",
+            "value": "ambari_server"
+          }
+        ],
+        "query": "ambari_server",
+        "refresh": false,
+        "type": "custom"
+      },
+      {
+        "allFormat": "glob",
+        "datasource": null,
+        "includeAll": false,
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "hosts",
+        "options": [
+        ],
+        "query": "hosts",
+        "refresh": true,
+        "type": "query"
+      }
+    ]
   },
   "annotations": {
     "list": []

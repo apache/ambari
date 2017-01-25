@@ -30,6 +30,9 @@ public enum MessageEnums {
   ERROR_DUPLICATE_OBJECT("logsearch.error.duplicate_object", "Error creating duplicate object"),
   ERROR_SYSTEM("logsearch.error.system", "System Error. Please try later."),
   SOLR_ERROR("logsearch.solr.error","Something went wrong, For more details check the logs or configuration."),
+  ZNODE_NOT_READY("logsearch.zk.znode.error", "ZNode is not available."),
+  ZK_CONFIG_NOT_READY("logsearch.zk.config.error", "Collection configuration has not uploaded yet"),
+  SOLR_COLLECTION_NOT_READY("logsearch.solr.collection.error", "Solr has not accessible yet for collection."),
 
   // Common Validations
   INVALID_PASSWORD("logsearch.validation.invalid_password", "Invalid password"),

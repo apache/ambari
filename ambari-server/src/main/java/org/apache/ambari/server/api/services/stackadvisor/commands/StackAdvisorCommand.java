@@ -93,6 +93,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
+  private static final String USER_CONTEXT_PROPERTY = "user-context";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
@@ -201,6 +202,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     JsonNode changedConfigs = mapper.valueToTree(request.getChangedConfigurations());
     root.put(CHANGED_CONFIGURATIONS_PROPERTY, changedConfigs);
+
+    JsonNode userContext = mapper.valueToTree(request.getUserContext());
+    root.put(USER_CONTEXT_PROPERTY, userContext);
   }
 
   private void populateConfigGroups(ObjectNode root,

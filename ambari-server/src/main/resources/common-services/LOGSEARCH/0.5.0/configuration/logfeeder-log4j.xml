@@ -46,7 +46,7 @@
     <name>logfeeder_json_log_maxfilesize</name>
     <value>10</value>
     <description>The maximum size of backup file before the log is rotated</description>
-    <display-name>Log Feeder Json Log: backup file size</display-name>
+    <display-name>Log Feeder JSON Log: backup file size</display-name>
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
@@ -56,7 +56,7 @@
     <name>logfeeder_json_log_maxbackupindex</name>
     <value>10</value>
     <description>The number of backup files</description>
-    <display-name>Log Feeder Json Log: # of backup files</display-name>
+    <display-name>Log Feeder JSON Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>

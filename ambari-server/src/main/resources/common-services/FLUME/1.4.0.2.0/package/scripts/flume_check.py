@@ -38,11 +38,11 @@ class FlumeServiceCheck(Script):
     import params
     env.set_params(params)
     if params.security_enabled:
-      principal_replaced = params.http_principal.replace("_HOST", params.hostname)
-      Execute(format("{kinit_path_local} -kt {http_keytab} {principal_replaced}"),
-              user=params.smoke_user)
+      Execute(format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}"),
+              user=params.smokeuser)
 
     Execute(format('env JAVA_HOME={java_home} {flume_bin} version'),
+            user=params.smokeuser,
             logoutput=True,
             tries = 3,
             try_sleep = 20)

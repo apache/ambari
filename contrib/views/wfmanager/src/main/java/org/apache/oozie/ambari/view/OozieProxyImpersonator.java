@@ -122,6 +122,16 @@ public class OozieProxyImpersonator {
       viewContext.getInstanceName()));
 
   }
+  @Path("hdfsCheck")
+  public Response hdfsCheck(){
+    hdfsFileUtils.hdfsCheck();
+    return Response.ok().build();
+  }
+  @Path("homeDirCheck")
+  public Response homeDirCheck(){
+    hdfsFileUtils.homeDirCheck();
+    return Response.ok().build();
+  }
 
   @Path("/fileServices")
   public FileServices fileServices() {
@@ -210,7 +220,7 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = workflowFilesService.getWorkflowDrafFileName(appPath.trim());
+    appPath = workflowFilesService.getWorkflowDraftFileName(appPath.trim());
     workflowFilesService.createFile(appPath, postBody, overwrite);
     if (PROJ_MANAGER_ENABLED) {
       JobType jobType = StringUtils.isEmpty(jobTypeStr) ? JobType.WORKFLOW : JobType.valueOf(jobTypeStr);
@@ -261,6 +271,30 @@ public class OozieProxyImpersonator {
     } catch (Exception ex) {
       LOGGER.error(ex.getMessage(), ex);
       return getRespCodeForException(ex);
+    }
+  }
+  @GET
+  @Path("/readAsset")
+  public Response readAsset(
+          @QueryParam("assetPath") String assetPath) {
+    if (StringUtils.isEmpty(assetPath)) {
+      throw new RuntimeException("assetPath can't be empty.");
+    }
+    try {
+      final InputStream is = workflowFilesService
+              .readAssset(assetPath);
+      StreamingOutput streamer = new StreamingOutput() {
+        @Override
+        public void write(OutputStream os) throws IOException,
+                WebApplicationException {
+          IOUtils.copy(is, os);
+          is.close();
+          os.close();
+        }
+      };
+      return Response.ok(streamer).status(200).build();
+    } catch (IOException e) {
+      return getRespCodeForException(e);
     }
   }
 
@@ -375,7 +409,7 @@ public class OozieProxyImpersonator {
 
   @GET
   @Path("/readWorkflowDetail")
-  public Response isDraftAvailable(
+  public Response getWorkflowDetail(
     @QueryParam("workflowXmlPath") String workflowPath) {
     WorkflowFileInfo workflowDetails = workflowFilesService
       .getWorkflowDetails(workflowPath);
@@ -384,7 +418,7 @@ public class OozieProxyImpersonator {
 
   @GET
   @Path("/readWorkflowXml")
-  public Response readWorkflowXxml(
+  public Response readWorkflowXml(
     @QueryParam("workflowXmlPath") String workflowPath) {
     if (StringUtils.isEmpty(workflowPath)) {
       throw new RuntimeException("workflowXmlPath can't be empty.");

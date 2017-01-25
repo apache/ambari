@@ -43,4 +43,9 @@ public class AcceptAllFilter extends Filter {
   public int hashCode() {
     return java.util.Objects.hash(isVisible());
   }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + " (visible=" + isVisible() + ")";
+  }
 }

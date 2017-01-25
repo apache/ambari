@@ -385,19 +385,23 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       self.loadStackVersionsToModel(true).done(function () {
         self.loadRepoVersionsToModel().done(function() {
           self.loadCompatibleVersions().done(function() {
-            var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
-            if (currentVersion) {
-              self.set('currentVersion', {
-                repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
-                repository_name: currentVersion.get('repositoryVersion.displayName')
-              });
-            }
+            self.updateCurrentStackVersion();
             dfd.resolve();
           });
         });
       });
     });
     return dfd.promise();
+  },
+
+  updateCurrentStackVersion: function(){
+    var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
+    if (currentVersion) {
+      this.set('currentVersion', {
+        repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
+        repository_name: currentVersion.get('repositoryVersion.displayName')
+      });
+    }
   },
 
   /**
@@ -656,6 +660,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   confirmDowngrade: function (event) {
     var self = this;
+    if(!this.get('currentVersion')){
+      this.updateCurrentStackVersion();
+    }
     var currentVersion = this.get('currentVersion');
     return App.showConfirmationPopup(
       function() {

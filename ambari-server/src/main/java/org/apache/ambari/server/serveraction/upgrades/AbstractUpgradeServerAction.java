@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Sets;
@@ -34,24 +35,24 @@ import com.google.inject.Inject;;
  */
 public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
 
-  public static final String CLUSTER_NAME_KEY = UpgradeResourceProvider.COMMAND_PARAM_CLUSTER_NAME;
-  public static final String UPGRADE_DIRECTION_KEY = UpgradeResourceProvider.COMMAND_PARAM_DIRECTION;
-  public static final String VERSION_KEY = UpgradeResourceProvider.COMMAND_PARAM_VERSION;
-  protected static final String REQUEST_ID = UpgradeResourceProvider.COMMAND_PARAM_REQUEST_ID;
+  public static final String CLUSTER_NAME_KEY = UpgradeContext.COMMAND_PARAM_CLUSTER_NAME;
+  public static final String UPGRADE_DIRECTION_KEY = UpgradeContext.COMMAND_PARAM_DIRECTION;
+  public static final String VERSION_KEY = UpgradeContext.COMMAND_PARAM_VERSION;
+  protected static final String REQUEST_ID = UpgradeContext.COMMAND_PARAM_REQUEST_ID;
 
   /**
    * The original "current" stack of the cluster before the upgrade started.
    * This is the same regardless of whether the current direction is
    * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
    */
-  protected static final String ORIGINAL_STACK_KEY = UpgradeResourceProvider.COMMAND_PARAM_ORIGINAL_STACK;
+  protected static final String ORIGINAL_STACK_KEY = UpgradeContext.COMMAND_PARAM_ORIGINAL_STACK;
 
   /**
    * The target upgrade stack before the upgrade started. This is the same
    * regardless of whether the current direction is {@link Direction#UPGRADE} or
    * {@link Direction#DOWNGRADE}.
    */
-  protected static final String TARGET_STACK_KEY = UpgradeResourceProvider.COMMAND_PARAM_TARGET_STACK;
+  protected static final String TARGET_STACK_KEY = UpgradeContext.COMMAND_PARAM_TARGET_STACK;
 
   protected static final String SUPPORTED_SERVICES_KEY = UpgradeResourceProvider.COMMAND_PARAM_SUPPORTED_SERVICES;
 

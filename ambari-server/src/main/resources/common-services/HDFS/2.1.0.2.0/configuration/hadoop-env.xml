@@ -235,6 +235,7 @@
   <property>
     <name>hdfs_principal_name</name>
     <description>HDFS principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- hadoop-env.sh -->

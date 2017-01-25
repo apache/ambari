@@ -1,0 +1,649 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_hdfs_dashboard",
+      "display_name": "Standard FAKEHDFS Dashboard",
+      "section_name": "FAKEHDFS_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "FAKEHNameNode GC count",
+          "description": "Count of total garbage collections and count of major type garbage collections of the JVM.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.GcCount._rate",
+              "metric_path": "metrics/jvm/gcCount._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "GC total count",
+              "value": "${jvm.JvmMetrics.GcCount._rate}"
+            },
+            {
+              "name": "GC count of type major collection",
+              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "FAKEHNameNode GC time",
+          "description": "Total time taken by major type garbage collections in milliseconds.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "GC time in major collection",
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "NN Connection Load",
+          "description": "Number of open RPC connections being managed by FAKEHNameNode.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "rpc.rpc.client.NumOpenConnections",
+              "metric_path": "metrics/rpc/client/NumOpenConnections",
+              "category": "",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.NumOpenConnections",
+              "metric_path": "metrics/rpc/datanode/NumOpenConnections",
+              "category": "",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "Open Client Connections",
+              "value": "${rpc.rpc.client.NumOpenConnections}"
+            },
+            {
+              "name": "Open Datanode Connections",
+              "value": "${rpc.rpc.datanode.NumOpenConnections}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "FAKEHNameNode Heap",
+          "description": "Heap memory committed and Heap memory used with respect to time.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.MemHeapCommittedM",
+              "metric_path": "metrics/jvm/memHeapCommittedM",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "JVM heap committed",
+              "value": "${jvm.JvmMetrics.MemHeapCommittedM}"
+            },
+            {
+              "name": "JVM heap used",
+              "value": "${jvm.JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "FAKEHNameNode Host Load",
+          "description": "Percentage of CPU and Memory resources being consumed on FAKEHNameNode host.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_system",
+              "metric_path": "metrics/cpu/cpu_system",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_user",
+              "metric_path": "metrics/cpu/cpu_user",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_nice",
+              "metric_path": "metrics/cpu/cpu_nice",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_idle",
+              "metric_path": "metrics/cpu/cpu_idle",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_wio",
+              "metric_path": "metrics/cpu/cpu_wio",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_total",
+              "metric_path": "metrics/memory/mem_total",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_free",
+              "metric_path": "metrics/memory/mem_free",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU utilization",
+              "value": "${((cpu_system + cpu_user + cpu_nice)/(cpu_system + cpu_user + cpu_nice + cpu_idle + cpu_wio)) * 100}"
+            },
+            {
+              "name": "Memory utilization",
+              "value": "${((mem_total - mem_free)/mem_total) * 100}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
+          }
+        },
+        {
+          "widget_name": "FAKEHNameNode RPC",
+          "description": "Compares the average time spent for RPC request in a queue and RPC request being processed.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "rpc.rpc.client.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/client/RpcQueueTime_avg_time",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.client.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/client/RpcProcessingTime_avg_time",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/datanode/RpcQueueTime_avg_time",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/datanode/RpcProcessingTime_avg_time",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "Client RPC Queue Wait time",
+              "value": "${rpc.rpc.client.RpcQueueTimeAvgTime}"
+            },
+            {
+              "name": "Client RPC Processing time",
+              "value": "${rpc.rpc.client.RpcProcessingTimeAvgTime}"
+            },
+            {
+              "name": "Datanode RPC Queue Wait time",
+              "value": "${rpc.rpc.datanode.RpcQueueTimeAvgTime}"
+            },
+            {
+              "name": "Datanode RPC Processing time",
+              "value": "${rpc.rpc.datanode.RpcProcessingTimeAvgTime}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "ms"
+          }
+        },
+        {
+          "widget_name": "FAKEHNameNode Operations",
+          "description": "Rate per second of number of file operation over time.",
+          "widget_type": "GRAPH",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.namenode.TotalFileOps._rate",
+              "metric_path": "metrics/dfs/namenode/TotalFileOps._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEHNameNode File Operations",
+              "value": "${dfs.namenode.TotalFileOps._rate}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Failed disk volumes",
+          "description": "Number of Failed disk volumes across all FAKEDataNodes. Its indicative of FAKEHDFS bad health.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum",
+              "metric_path": "metrics/dfs/datanode/NumFailedVolumes",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Failed disk volumes",
+              "value": "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum}"
+            }
+          ],
+          "properties": {
+            "display_unit": ""
+          }
+        },
+        {
+          "widget_name": "Blocks With Corrupted Replicas",
+          "description": "Number represents data blocks with at least one corrupted replica (but not all of them). Its indicative of FAKEHDFS bad health.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKEHNameNode,name=FSNamesystem.CorruptBlocks",
+              "metric_path": "metrics/dfs/FSNamesystem/CorruptBlocks",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "Blocks With Corrupted Replicas",
+              "value": "${Hadoop:service=FAKEHNameNode,name=FSNamesystem.CorruptBlocks}"
+            }
+          ],
+          "properties": {
+            "warning_threshold": "0",
+            "error_threshold": "50"
+          }
+        },
+        {
+          "widget_name": "Under Replicated Blocks",
+          "description": "Number represents file blocks that does not meet the replication factor criteria. Its indicative of FAKEHDFS bad health.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKEHNameNode,name=FSNamesystem.UnderReplicatedBlocks",
+              "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKENAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "Under Replicated Blocks",
+              "value": "${Hadoop:service=FAKEHNameNode,name=FSNamesystem.UnderReplicatedBlocks}"
+            }
+          ],
+          "properties": {
+            "warning_threshold": "0",
+            "error_threshold": "50"
+          }
+        },
+        {
+          "widget_name": "FAKEHDFS Space Utilization",
+          "description": "Percentage of available space used in the DFS.",
+          "widget_type": "GAUGE",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining",
+              "metric_path": "metrics/FSDatasetState/org/apache/hadoop/hdfs/server/datanode/fsdataset/impl/FsDatasetImpl/Remaining",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+              "metric_path": "metrics/dfs/datanode/Capacity",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEHDFS Space Utilization",
+              "value": "${(FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity - FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining)/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity}"
+            }
+          ],
+          "properties": {
+            "warning_threshold": "0.75",
+            "error_threshold": "0.9"
+          }
+        }
+      ]
+    },
+    {
+      "layout_name": "default_hdfs_heatmap",
+      "section_name": "FAKEHDFS_HEATMAPS",
+      "display_name": "FAKEHDFS Heatmaps",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "FAKEHDFS Bytes Read",
+          "default_section_name": "FAKEHDFS_HEATMAPS",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesRead._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_read._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEHDFS Bytes Read",
+              "value": "${dfs.datanode.BytesRead._rate}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "1024"
+          }
+        },
+        {
+          "widget_name": "FAKEHDFS Bytes Written",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesWritten._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEHDFS Bytes Written",
+              "value": "${dfs.datanode.BytesWritten._rate}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "1024"
+          }
+        },
+        {
+          "widget_name": "FAKEDataNode Garbage Collection Time",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKEDataNode,name=JvmMetrics.GcTimeMillis",
+              "metric_path": "metrics/jvm/gcTimeMillis",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEDataNode Garbage Collection Time",
+              "value": "${Hadoop:service=FAKEDataNode,name=JvmMetrics.GcTimeMillis}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "max_limit": "10000"
+          }
+        },
+        {
+          "widget_name": "FAKEDataNode JVM Heap Memory Used",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKEDataNode,name=JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEDataNode JVM Heap Memory Used",
+              "value": "${Hadoop:service=FAKEDataNode,name=JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "FAKEDataNode JVM Heap Memory Committed",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKEDataNode,name=JvmMetrics.MemHeapCommittedM",
+              "metric_path": "metrics/jvm/memHeapCommittedM",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEDataNode JVM Heap Memory Committed",
+              "value": "${Hadoop:service=FAKEDataNode,name=JvmMetrics.MemHeapCommittedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "FAKEDataNode Process Disk I/O Utilization",
+          "default_section_name": "FAKEHDFS_HEATMAPS",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesRead._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_read._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "dfs.datanode.BytesWritten._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "dfs.datanode.TotalReadTime._rate",
+              "metric_path": "metrics/dfs/datanode/TotalReadTime._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "dfs.datanode.TotalWriteTime._rate",
+              "metric_path": "metrics/dfs/datanode/TotalWriteTime._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEDataNode Process Disk I/O Utilization",
+              "value": "${((dfs.datanode.BytesRead._rate/dfs.datanode.TotalReadTime._rate)+(dfs.datanode.BytesWritten._rate/dfs.datanode.TotalWriteTime._rate))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "FAKEDataNode Process Network I/O Utilization",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.RemoteBytesRead._rate",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesRead._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "dfs.datanode.ReadsFromRemoteClient._rate",
+              "metric_path": "metrics/dfs/datanode/reads_from_remote_client._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "dfs.datanode.RemoteBytesWritten._rate",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesWritten._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "dfs.datanode.WritesFromRemoteClient._rate",
+              "metric_path": "metrics/dfs/datanode/writes_from_remote_client._rate",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEDataNode Process Network I/O Utilization",
+              "value": "${((dfs.datanode.RemoteBytesRead._rate/dfs.datanode.ReadsFromRemoteClient._rate)+(dfs.datanode.RemoteBytesWritten._rate/dfs.datanode.WritesFromRemoteClient._rate))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "FAKEHDFS Space Utilization",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining",
+              "metric_path": "metrics/FSDatasetState/org/apache/hadoop/hdfs/server/datanode/fsdataset/impl/FsDatasetImpl/Remaining",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            },
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+              "metric_path": "metrics/dfs/datanode/Capacity",
+              "service_name": "FAKEHDFS",
+              "component_name": "FAKEDATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKEHDFS Space Utilization",
+              "value": "${((FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity - FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining)/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        }
+      ]
+    }
+  ]
+}

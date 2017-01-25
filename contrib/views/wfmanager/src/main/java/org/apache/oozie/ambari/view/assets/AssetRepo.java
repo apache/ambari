@@ -36,4 +36,14 @@ public class AssetRepo extends BaseRepo<ActionAsset> {
       throw new RuntimeException(e);
     }
   }
+
+  public boolean assetNameAvailable(String name) {
+    try {
+      Collection<ActionAsset> assets=dataStore.findAll(ActionAsset.class, " name='" + name + "'");
+      boolean assetExists= assets!=null && !assets.isEmpty();
+      return !assetExists;
+    } catch (PersistenceException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

@@ -63,10 +63,14 @@ import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.dao.SettingDAO;
+import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +121,9 @@ public class TopologyManager {
 
   @Inject
   private AmbariEventPublisher ambariEventPublisher;
+
+  @Inject
+  private SettingDAO settingDAO;
 
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
@@ -232,6 +239,11 @@ public class TopologyManager {
 
   public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request) throws InvalidTopologyException, AmbariException {
     ensureInitialized();
+
+    if (null != request.getQuickLinksProfileJson()) {
+      saveOrUpdateQuickLinksProfile(request.getQuickLinksProfileJson());
+    }
+
     ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
     final String repoVersion = request.getRepositoryVersion();
@@ -300,6 +312,32 @@ public class TopologyManager {
     ambariContext.persistInstallStateForUI(clusterName, stack.getName(), stack.getVersion());
     clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     return getRequestStatus(logicalRequest.getRequestId());
+  }
+
+  /**
+   * Saves the quick links profile to the DB as an Ambari setting. Creates a new setting entity or updates the existing
+   * one.
+   * @param quickLinksProfileJson the quicklinks profile in Json format
+   */
+  void saveOrUpdateQuickLinksProfile(String quickLinksProfileJson) {
+    SettingEntity settingEntity = settingDAO.findByName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE);
+    // create new
+    if (null == settingEntity) {
+      settingEntity = new SettingEntity();
+      settingEntity.setName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE);
+      settingEntity.setSettingType(QuickLinksProfile.SETTING_TYPE_AMBARI_SERVER);
+      settingEntity.setContent(quickLinksProfileJson);
+      settingEntity.setUpdatedBy(AuthorizationHelper.getAuthenticatedName());
+      settingEntity.setUpdateTimestamp(System.currentTimeMillis());
+      settingDAO.create(settingEntity);
+    }
+    // update existing
+    else {
+      settingEntity.setContent(quickLinksProfileJson);
+      settingEntity.setUpdatedBy(AuthorizationHelper.getAuthenticatedName());
+      settingEntity.setUpdateTimestamp(System.currentTimeMillis());
+      settingDAO.merge(settingEntity);
+    }
   }
 
   private void submitCredential(String clusterName, Credential credential) {

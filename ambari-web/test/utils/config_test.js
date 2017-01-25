@@ -1363,7 +1363,7 @@ describe('App.config', function() {
             configuration: "hbase-env/hbase_principal_name",
             type: "user",
             local_username: "${hbase-env/hbase_user}",
-            value: "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}"
+            value: "${hbase-env/hbase_user}${principal_suffix}@${realm}"
           },
           name: "hbase",
           keytab: {

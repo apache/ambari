@@ -18,10 +18,16 @@
 <reposinfo>
   <os family="redhat6">
     <repo>
-      <baseurl>http://foo</baseurl>
+      <baseurl>http://foo-1.0.1.0-1</baseurl>
       <repoid>PERF-1.0</repoid>
       <reponame>PERF</reponame>
       <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://foo2</baseurl>
+      <repoid>PERF-UTILS-1.0</repoid>
+      <reponame>PERF-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
 </reposinfo>

@@ -1486,8 +1486,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       },
       onSecondary: function () {
         this._super();
-        self.set('submitButtonClicked', false);
-        App.set('router.nextBtnClickInProgress', false);
+        self.setButtonClickFinish();
         deferred.reject();
       }
     });
@@ -1510,8 +1509,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             }
           },
           onSecondary: function() {
-            App.set('router.nextBtnClickInProgress', false);
-            self.set('submitButtonClicked', false);
+            self.setButtonClickFinish();
             this.hide();
           },
           onClose: function() {
@@ -1545,6 +1543,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       return false;
     }
     App.set('router.nextBtnClickInProgress', true);
+    if (this.get('wizardController.name') === 'addServiceController' && this.get('hasChangedDependencies')) {
+      return this.showChangedDependentConfigs({}, this.proceedWithChecks.bind(this), this.setButtonClickFinish.bind(this));
+    } else {
+      return this.proceedWithChecks();
+    }
+  },
+
+  proceedWithChecks: function () {
     if (this.get('supportsPreInstallChecks')) {
       var preInstallChecksController = App.router.get('preInstallChecksController');
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
@@ -1555,6 +1561,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return this.postSubmit();
   },
 
+  setButtonClickFinish: function () {
+    this.set('submitButtonClicked', false);
+    App.set('router.nextBtnClickInProgress', false);
+  },
+
   postSubmit: function () {
     var self = this;
     this.set('submitButtonClicked', true);
@@ -1563,8 +1574,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     })
       .fail(function (value) {
         if ("invalid_configs" === value) {
-          self.set('submitButtonClicked', false);
-          App.set('router.nextBtnClickInProgress', false);
+          self.setButtonClickFinish();
         } else {
           // Failed due to validation mechanism failure.
           // Should proceed with other checks

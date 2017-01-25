@@ -192,7 +192,6 @@ public class QuickLinkArtifactResourceProviderTest {
       expect(service.getName()).andReturn("YARN").anyTimes();
       binder.bind(AmbariManagementController.class).toInstance(amc);
       replay(amc, metaInfo, stack, service);
-
     }
   }
 }

@@ -96,7 +96,10 @@
                 </tfoot>
             </table>
         </accordion-group>
-        <div class="alert alert-info" ng-show="views && !filteredViews.length">
+        <div ng-if="isLoadingViews" class="spinner-container">
+          <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
+        </div>
+        <div class="alert alert-info" ng-show="views && !filteredViews.length && !isLoadingViews">
             {{'common.alerts.nothingToDisplay' | translate: '{term: constants.views}'}}
         </div>
 

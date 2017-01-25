@@ -31,8 +31,7 @@
             "yarn.resourcemanager.proxyuser.*.groups": "",
             "yarn.resourcemanager.proxyuser.*.hosts": "",
             "yarn.resourcemanager.proxyuser.*.users": "",
-            "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
-            "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda"
+            "yarn.resourcemanager.proxy-user-privileges.enabled": "true"
           }
         },
         {

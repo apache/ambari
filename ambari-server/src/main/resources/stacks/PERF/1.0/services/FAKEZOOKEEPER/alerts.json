@@ -1,0 +1,20 @@
+{
+    "FAKEZOOKEEPER": {
+
+        "FAKEZOOKEEPER_SERVER": [
+            {
+                "name": "zookeeper_server_process",
+                "label": "Zookeeper server Process",
+                "description": "Alert for zk server component process status",
+                "interval": 1,
+                "scope": "HOST",
+                "enabled": true,
+                "source": {
+                    "type": "SCRIPT",
+                    "path": "PERF/1.0/services/FAKEZOOKEEPER/package/alerts/alert_zk_server_process.py",
+                    "parameters": []
+                }
+            }
+        ]
+    }
+}

@@ -235,6 +235,7 @@
   <property>
     <name>hdfs_principal_name</name>
     <description>HDFS principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
 
@@ -400,6 +401,10 @@
       if [ "$command" == "datanode" ] &amp;&amp; [ "$EUID" -eq 0 ] &amp;&amp; [ -n "$HADOOP_SECURE_DN_USER" ]; then
       ulimit -l {{datanode_max_locked_memory}}
       fi
+      {% endif %}
+      # Enable ACLs on zookeper znodes if required
+      {% if hadoop_zkfc_opts is defined %}
+      export HADOOP_ZKFC_OPTS="{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS"
       {% endif %}
     </value>
     <value-attributes>

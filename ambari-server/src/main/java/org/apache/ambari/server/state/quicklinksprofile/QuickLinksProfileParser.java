@@ -20,6 +20,8 @@ package org.apache.ambari.server.state.quicklinksprofile;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
@@ -55,14 +57,21 @@ public class QuickLinksProfileParser {
   public QuickLinksProfile parse(URL url) throws IOException {
     return parse(Resources.toByteArray(url));
   }
+
+  public String encode(QuickLinksProfile profile) throws IOException {
+    return mapper.writeValueAsString(profile);
+  }
 }
 
 /**
  * Custom deserializer is needed to handle filter polymorphism.
  */
 class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
-  private static final String PARSE_ERROR_MESSAGE =
+  static final String PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER =
       "A filter is not allowed to declare both link_name and link_attribute at the same time.";
+
+  static final String PARSE_ERROR_MESSAGE_INVALID_JSON_TAG =
+      "Invalid attribute(s) in filter declaration: ";
 
   QuickLinksFilterDeserializer() {
     super(Filter.class);
@@ -84,21 +93,31 @@ class QuickLinksFilterDeserializer extends StdDeserializer<Filter> {
     ObjectMapper mapper = (ObjectMapper) parser.getCodec();
     ObjectNode root = (ObjectNode) mapper.readTree(parser);
     Class<? extends Filter> filterClass = null;
+    List<String> invalidAttributes = new ArrayList<>();
     for (String fieldName: ImmutableList.copyOf(root.getFieldNames())) {
       switch(fieldName) {
         case LinkAttributeFilter.LINK_ATTRIBUTE:
           if (null != filterClass) {
-            throw new JsonParseException(PARSE_ERROR_MESSAGE, parser.getCurrentLocation());
+            throw new JsonParseException(PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
           }
           filterClass = LinkAttributeFilter.class;
           break;
         case LinkNameFilter.LINK_NAME:
           if (null != filterClass) {
-            throw new JsonParseException(PARSE_ERROR_MESSAGE, parser.getCurrentLocation());
+            throw new JsonParseException(PARSE_ERROR_MESSAGE_AMBIGUOUS_FILTER, parser.getCurrentLocation());
           }
           filterClass = LinkNameFilter.class;
           break;
+        case Filter.VISIBLE:
+          // silently ignore here, will be parsed later in mapper.readValue
+          break;
+        default:
+          invalidAttributes.add(fieldName);
       }
+    }
+    if (!invalidAttributes.isEmpty()) {
+      throw new JsonParseException(PARSE_ERROR_MESSAGE_INVALID_JSON_TAG + invalidAttributes,
+          parser.getCurrentLocation());
     }
     if (null == filterClass) {
       filterClass = AcceptAllFilter.class;

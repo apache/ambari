@@ -59,11 +59,13 @@
   <property>
     <name>storm_principal_name</name>
     <description>Storm principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm_principal_name</name>
     <description>Storm principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -74,6 +76,7 @@
   <property>
     <name>storm_ui_principal_name</name>
     <description>Storm UI principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -89,6 +92,7 @@
   <property>
     <name>nimbus_principal_name</name>
     <description>Nimbus principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

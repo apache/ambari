@@ -178,7 +178,10 @@ def get_role_component_current_stack_version():
     stack_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
 
   if stack_select_component is None:
-    Logger.error("Mapping unavailable for role {0}. Skip checking its version.".format(role))
+    if not role:
+      Logger.error("No role information available.")
+    elif not role.lower().endswith("client"):
+      Logger.error("Mapping unavailable for role {0}. Skip checking its version.".format(role))
     return None
 
   current_stack_version = get_stack_version(stack_select_component)

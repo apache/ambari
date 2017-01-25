@@ -61,6 +61,8 @@ class UpgradeSetAll(Script):
       stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
       cmd = ('ambari-python-wrap', stack_selector_path, 'set', 'all', version)
       code, out = shell.call(cmd, sudo=True)
+      if code != 0:
+        raise Exception("Command '{0}' exit code is nonzero".format(cmd))
 
     if real_ver and check_stack_feature(StackFeature.CONFIG_VERSIONING, real_ver):
       # backup the old and symlink /etc/[component]/conf to <stack-root>/current/[component]

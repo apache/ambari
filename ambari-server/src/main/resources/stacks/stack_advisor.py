@@ -309,6 +309,17 @@ class StackAdvisor(object):
 
 
 class DefaultStackAdvisor(StackAdvisor):
+
+  CLUSTER_CREATE_OPERATION = "ClusterCreate"
+  ADD_SERVICE_OPERATION = "AddService"
+  EDIT_CONFIG_OPERATION = "EditConfig"
+  RECOMMEND_ATTRIBUTE_OPERATION = "RecommendAttribute"
+  OPERATION = "operation"
+  OPERATION_DETAILS = "operation_details"
+
+  ADVISOR_CONTEXT = "advisor_context"
+  CALL_TYPE = "call_type"
+
   """
   Default stack advisor implementation.
   
@@ -2138,6 +2149,24 @@ class DefaultStackAdvisor(StackAdvisor):
       return None
     if value < defaultValue:
       return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
+    return None
+
+  def validatorGreaterThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    if propertyName not in recommendedDefaults:
+      # If a property name exists in say hbase-env and hbase-site (which is allowed), then it will exist in the
+      # "properties" dictionary, but not necessarily in the "recommendedDefaults" dictionary". In this case, ignore it.
+      return None
+
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    value = self.to_number(properties[propertyName])
+    if value is None:
+      return self.getErrorItem("Value should be integer")
+    defaultValue = self.to_number(recommendedDefaults[propertyName])
+    if defaultValue is None:
+      return None
+    if value > defaultValue:
+      return self.getWarnItem("Value is greater than the recommended default of {0}".format(defaultValue))
     return None
 
   def validatorEqualsPropertyItem(self, properties1, propertyName1,

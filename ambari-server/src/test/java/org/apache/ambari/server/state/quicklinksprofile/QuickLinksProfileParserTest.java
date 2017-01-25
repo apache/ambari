@@ -67,10 +67,17 @@ public class QuickLinksProfileParserTest {
   }
 
   @Test(expected = JsonParseException.class)
-  public void testParseInconsistentProfile() throws Exception {
+  public void testParseInconsistentProfile_ambigousFilterDefinition() throws Exception {
     String profileName = "inconsistent_quicklinks_profile.json";
     QuickLinksProfileParser parser = new QuickLinksProfileParser();
-    QuickLinksProfile profile = parser.parse(Resources.getResource(profileName));
+    parser.parse(Resources.getResource(profileName));
+  }
+
+  @Test(expected = JsonParseException.class)
+  public void testParseInconsistentProfile_misspelledFilerDefinition() throws Exception {
+    String profileName = "inconsistent_quicklinks_profile_3.json";
+    QuickLinksProfileParser parser = new QuickLinksProfileParser();
+    parser.parse(Resources.getResource(profileName));
   }
 
 }

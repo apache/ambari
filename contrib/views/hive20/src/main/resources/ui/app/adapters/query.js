@@ -39,6 +39,12 @@ export default ApplicationAdapter.extend({
     }
 
     return this.ajax(url, 'GET')
+  },
+
+  retrieveQueryLog(logFile){
+    let url = '';
+    url = this.buildURL().replace('/jobs','') + '/files' + logFile;
+    return this.ajax(url, 'GET')
   }
 
 });

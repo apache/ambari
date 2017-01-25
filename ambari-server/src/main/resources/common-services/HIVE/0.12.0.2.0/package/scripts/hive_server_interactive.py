@@ -227,20 +227,19 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     def _llap_stop(self, env):
       import params
       Logger.info("Stopping LLAP")
-      SLIDER_APP_NAME = "llap0"
 
-      stop_cmd = ["slider", "stop", SLIDER_APP_NAME]
+      stop_cmd = ["slider", "stop", params.llap_app_name]
 
       code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
       if code == 0:
-        Logger.info(format("Stopped {SLIDER_APP_NAME} application on Slider successfully"))
+        Logger.info(format("Stopped {params.llap_app_name} application on Slider successfully"))
       elif code == 69 and output is not None and "Unknown application instance" in output:
-        Logger.info(format("Application {SLIDER_APP_NAME} was already stopped on Slider"))
+        Logger.info(format("Application {params.llap_app_name} was already stopped on Slider"))
       else:
-        raise Fail(format("Could not stop application {SLIDER_APP_NAME} on Slider. {error}\n{output}"))
+        raise Fail(format("Could not stop application {params.llap_app_name} on Slider. {error}\n{output}"))
 
       # Will exit with code 4 if need to run with "--force" to delete directories and registries.
-      Execute(('slider', 'destroy', SLIDER_APP_NAME, "--force"),
+      Execute(('slider', 'destroy', params.llap_app_name, "--force"),
               user=params.hive_user,
               timeout=30,
               ignore_failures=True,
@@ -253,19 +252,17 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       import params
       env.set_params(params)
 
-      LLAP_APP_NAME = 'llap0'
-
       if params.hive_server_interactive_ha:
         """
         Check llap app state
         """
         Logger.info("HSI HA is enabled. Checking if LLAP is already running ...")
-        status = self.check_llap_app_status(LLAP_APP_NAME, 2, params.hive_server_interactive_ha)
+        status = self.check_llap_app_status(params.llap_app_name, 2, params.hive_server_interactive_ha)
         if status:
-          Logger.info("LLAP app '{0}' is already running.".format(LLAP_APP_NAME))
+          Logger.info("LLAP app '{0}' is already running.".format(params.llap_app_name))
           return True
         else:
-          Logger.info("LLAP app '{0}' is not running. llap will be started.".format(LLAP_APP_NAME))
+          Logger.info("LLAP app '{0}' is not running. llap will be started.".format(params.llap_app_name))
         pass
 
       # Call for cleaning up the earlier run(s) LLAP package folders.
@@ -276,25 +273,27 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
-      # Figure out the Slider Anti-affinity to be used.
-      # YARN does not support anti-affinity, and therefore Slider implements AA by the means of exclusion lists, i.e, it
-      # starts containers one by one and excludes the nodes it gets (adding a delay of ~2sec./machine). When the LLAP
-      # container memory size configuration is more than half of YARN node memory, AA is implicit and should be avoided.
-      slider_placement = 4
-      if long(params.llap_daemon_container_size) > (0.5 * long(params.yarn_nm_mem)):
-        slider_placement = 0
-        Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
-                    "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
-      else:
-        Logger.info("Setting slider_placement: 4, as llap_daemon_container_size : {0} <= 0.5 * "
-                    "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
-
-
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
                    " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m"
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
-                   " --slider-placement {slider_placement} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}"
                    " {params.llap_extra_slider_opts} --skiphadoopversion --skiphbasecp --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
+
+      # '--slider-placement' param is supported from HDP Hive GA version.
+      if params.stack_supports_hive_interactive_ga:
+        # Figure out the Slider Anti-affinity to be used.
+        # YARN does not support anti-affinity, and therefore Slider implements AA by the means of exclusion lists, i.e, it
+        # starts containers one by one and excludes the nodes it gets (adding a delay of ~2sec./machine). When the LLAP
+        # container memory size configuration is more than half of YARN node memory, AA is implicit and should be avoided.
+        slider_placement = 4
+        if long(params.llap_daemon_container_size) > (0.5 * long(params.yarn_nm_mem)):
+          slider_placement = 0
+          Logger.info("Setting slider_placement : 0, as llap_daemon_container_size : {0} > 0.5 * "
+                      "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+        else:
+          Logger.info("Setting slider_placement: 4, as llap_daemon_container_size : {0} <= 0.5 * "
+                     "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
+        cmd += format(" --slider-placement {slider_placement}")
+
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
@@ -308,6 +307,13 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Append args.
       llap_java_args = InlineTemplate(params.llap_app_java_opts).get_content()
       cmd += format(" --args \" {llap_java_args}\"")
+      # Append metaspace size to args.
+      if params.java_version > 7 and params.llap_daemon_container_size > 4096:
+        if params.llap_daemon_container_size <= 32768:
+          metaspaceSize = "256m"
+        else:
+          metaspaceSize = "1024m"
+        cmd = cmd[:-1] + " -XX:MetaspaceSize="+metaspaceSize+ "\""
 
       run_file_path = None
       try:
@@ -334,16 +340,16 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         Logger.info(format("Run file path: {run_file_path}"))
         Execute(run_file_path, user=params.hive_user, logoutput=True)
-        Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
+        Logger.info("Submitted LLAP app name : {0}".format(params.llap_app_name))
 
         # We need to check the status of LLAP app to figure out it got
         # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
-        status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
+        status = self.check_llap_app_status(params.llap_app_name, params.num_retries_for_checking_llap_status)
         if status:
-          Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
+          Logger.info("LLAP app '{0}' deployed successfully.".format(params.llap_app_name))
           return True
         else:
-          Logger.error("LLAP app '{0}' deployment unsuccessful.".format(LLAP_APP_NAME))
+          Logger.error("LLAP app '{0}' deployment unsuccessful.".format(params.llap_app_name))
           return False
       except:
         # Attempt to clean up the packaged application, or potentially rename it with a .bak

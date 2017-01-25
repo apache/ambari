@@ -12,7 +12,7 @@
         {
           "name": "storm_components",
           "principal": {
-            "value": "${storm-env/storm_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${storm-env/storm_user}${principal_suffix}@${realm}",
             "type": "user",
             "configuration": "storm-env/storm_principal_name"
           },

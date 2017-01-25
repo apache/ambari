@@ -18,6 +18,10 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.zookeeper.data.ACL;
+
+import java.util.List;
+
 public interface SolrPropsConfig {
   String getSolrUrl();
 
@@ -46,4 +50,12 @@ public interface SolrPropsConfig {
   String getSplitInterval();
 
   void setSplitInterval(String splitInterval);
+
+  List<ACL> getZkAcls();
+
+  void setZkAcls(List<ACL> zkAcls);
+
+  String getConfigSetFolder();
+
+  void setConfigSetFolder(String configSetFolder);
 }

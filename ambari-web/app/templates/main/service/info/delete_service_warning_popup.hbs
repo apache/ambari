@@ -21,8 +21,6 @@
   {{view App.SpinnerView}}
 {{else}}
   {{#if controller.changedProperties.length}}
-    <div class="alert alert-warning">
-      <span>{{dependenciesMessage}}</span> <a href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
-    </div>
+    {{view App.DependentConfigsListView recommendationsBinding="controller.changedProperties"}}
   {{/if}}
 {{/if}}

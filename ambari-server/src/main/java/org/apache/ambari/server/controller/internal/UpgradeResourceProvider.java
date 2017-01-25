@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -130,7 +129,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -222,32 +220,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
-
-  public static final String COMMAND_PARAM_VERSION = VERSION;
-  public static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
-  public static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
-  private static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
-  public static final String COMMAND_PARAM_REQUEST_ID = "request_id";
-
-  private static final String COMMAND_PARAM_UPGRADE_TYPE = "upgrade_type";
-  private static final String COMMAND_PARAM_TASKS = "tasks";
-  private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
-  private static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
-
-
-  /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
-   */
-  public static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
-
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   */
-  public static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
 
   /**
    * The list of supported services put on a command.
@@ -403,8 +375,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
 
+        // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
+        final String version = (String) requestMap.get(UPGRADE_VERSION);
+
         final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, upgradeType,
-            direction, requestMap);
+            direction, version, requestMap);
 
         UpgradePack upgradePack = validateRequest(upgradeContext);
         upgradeContext.setUpgradePack(upgradePack);
@@ -439,7 +414,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<Resource>();
+    Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -458,7 +433,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             String.format("Cluster %s could not be loaded", clusterName));
       }
 
-      List<UpgradeEntity> upgrades = new ArrayList<UpgradeEntity>();
+      List<UpgradeEntity> upgrades = new ArrayList<>();
 
       String upgradeIdStr = (String) propertyMap.get(UPGRADE_REQUEST_ID);
       if (null != upgradeIdStr) {
@@ -736,7 +711,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String userName = getManagementController().getAuthName();
 
     // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
-    final String version = (String) requestMap.get(UPGRADE_VERSION);
+    final String version = upgradeContext.getVersion();
 
     MasterHostResolver resolver = null;
     if (direction.isUpgrade()) {
@@ -745,15 +720,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       resolver = new MasterHostResolver(configHelper, cluster, version);
     }
 
-    StackId sourceStackId = null;
-    StackId targetStackId = null;
-
     Set<String> supportedServices = new HashSet<>();
     UpgradeScope scope = UpgradeScope.COMPLETE;
 
     switch (direction) {
       case UPGRADE:
-        sourceStackId = cluster.getCurrentStackVersion();
+        StackId sourceStackId = cluster.getCurrentStackVersion();
 
         RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
             sourceStackId.getStackName(), version);
@@ -776,17 +748,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
 
-        targetStackId = targetRepositoryVersion.getStackId();
         break;
       case DOWNGRADE:
-        sourceStackId = cluster.getCurrentStackVersion();
-        targetStackId = cluster.getDesiredStackVersion();
         break;
     }
 
     upgradeContext.setResolver(resolver);
-    upgradeContext.setSourceAndTargetStacks(sourceStackId, targetStackId);
-    upgradeContext.setVersion(version);
     upgradeContext.setSupportedServices(supportedServices);
     upgradeContext.setScope(scope);
 
@@ -856,6 +823,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<>();
     RequestStageContainer req = createRequest(direction, version);
+
+    // the upgrade context calculated these for us based on direction
+    StackId sourceStackId = upgradeContext.getOriginalStackId();
+    StackId targetStackId = upgradeContext.getTargetStackId();
 
     /**
     During a Rolling Upgrade, change the desired Stack Id if jumping across
@@ -1112,9 +1083,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       // We want to skip updating config-types of services that are not in the upgrade pack.
       // Care should be taken as some config-types could be in services that are in and out
       // of the upgrade pack. We should never ignore config-types of services in upgrade pack.
-      Set<String> skipConfigTypes = new HashSet<String>();
-      Set<String> upgradePackServices = new HashSet<String>();
-      Set<String> upgradePackConfigTypes = new HashSet<String>();
+      Set<String> skipConfigTypes = new HashSet<>();
+      Set<String> upgradePackServices = new HashSet<>();
+      Set<String> upgradePackConfigTypes = new HashSet<>();
       AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
       Map<String, ServiceInfo> stackServicesMap = ambariMetaInfo.getServices(targetStack.getStackName(), targetStack.getStackVersion());
       for (Grouping group : upgradePack.getGroups(direction)) {
@@ -1136,7 +1107,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
       }
-      Set<String> servicesNotInUpgradePack = new HashSet<String>(stackServicesMap.keySet());
+      Set<String> servicesNotInUpgradePack = new HashSet<>(stackServicesMap.keySet());
       servicesNotInUpgradePack.removeAll(upgradePackServices);
       for (String serviceNotInUpgradePack : servicesNotInUpgradePack) {
         ServiceInfo serviceInfo = stackServicesMap.get(serviceNotInUpgradePack);
@@ -1346,16 +1317,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter("", "",
-        new ArrayList<String>(wrapper.getHosts()));
+        new ArrayList<>(wrapper.getHosts()));
 
     LOG.debug("Analyzing upgrade item {} with tasks: {}.", entity.getText(), entity.getTasks());
-    Map<String, String> params = getNewParameterMap(request);
-    params.put(COMMAND_PARAM_TASKS, entity.getTasks());
-    params.put(COMMAND_PARAM_VERSION, context.getVersion());
-    params.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
-    params.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
-    params.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
-    params.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+    Map<String, String> params = getNewParameterMap(request, context);
+    params.put(UpgradeContext.COMMAND_PARAM_TASKS, entity.getTasks());
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, params);
@@ -1436,12 +1402,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = context.getCluster();
 
-    List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
+    List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
       // add each host to this stage
       filters.add(new RequestResourceFilter(tw.getService(), tw.getComponent(),
-          new ArrayList<String>(tw.getHosts())));
+          new ArrayList<>(tw.getHosts())));
     }
 
     String function = null;
@@ -1457,20 +1423,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         break;
     }
 
-    Map<String, String> commandParams = getNewParameterMap(request);
-    if (null != context.getType()) {
-      // use the serialized attributes of the enum to convert it to a string,
-      // but first we must convert it into an element so that we don't get a
-      // quoted string - using toString() actually returns a quoted stirng which is bad
-      JsonElement json = s_gson.toJsonTree(context.getType());
-      commandParams.put(COMMAND_PARAM_UPGRADE_TYPE, json.getAsString());
-    }
-
-    commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
-    commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
-    commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
-    commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
-    commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+    Map<String, String> commandParams = getNewParameterMap(request, context);
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
@@ -1503,7 +1456,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
 
-    Map<String, String> requestParams = new HashMap<String, String>();
+    Map<String, String> requestParams = new HashMap<>();
     requestParams.put("command", function);
 
     // !!! it is unclear the implications of this on rolling or express upgrade.  To turn
@@ -1521,7 +1474,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       boolean supportsAutoSkipOnFailure, boolean allowRetry)
           throws AmbariException {
 
-    List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
+    List<RequestResourceFilter> filters = new ArrayList<>();
 
     for (TaskWrapper tw : wrapper.getTasks()) {
       filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String> emptyList()));
@@ -1529,12 +1482,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = context.getCluster();
 
-    Map<String, String> commandParams = getNewParameterMap(request);
-    commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
-    commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
-    commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
-    commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
-    commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+    Map<String, String> commandParams = getNewParameterMap(request, context);
 
     // Apply additional parameters to the command that come from the stage.
     applyAdditionalParameters(wrapper, commandParams);
@@ -1569,7 +1517,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
 
-    Map<String, String> requestParams = getNewParameterMap(request);
+    Map<String, String> requestParams = getNewParameterMap(request, context);
     s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
 
     request.addStages(Collections.singletonList(stage));
@@ -1596,14 +1544,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = context.getCluster();
 
-    Map<String, String> commandParams = getNewParameterMap(request);
-    commandParams.put(COMMAND_PARAM_CLUSTER_NAME, cluster.getClusterName());
-    commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
-    commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
-    commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
-    commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
-    commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
-    commandParams.put(COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
+    Map<String, String> commandParams = getNewParameterMap(request, context);
+    commandParams.put(UpgradeContext.COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
     commandParams.put(COMMAND_PARAM_SUPPORTED_SERVICES, StringUtils.join(context.getSupportedServices(), ','));
 
     // Notice that this does not apply any params because the input does not specify a stage.
@@ -1625,7 +1567,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           ManualTask mt = (ManualTask) task;
 
           if (StringUtils.isNotBlank(mt.structuredOut)) {
-            commandParams.put(COMMAND_PARAM_STRUCT_OUT, mt.structuredOut);
+            commandParams.put(UpgradeContext.COMMAND_PARAM_STRUCT_OUT, mt.structuredOut);
           }
         }
 
@@ -1717,9 +1659,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Gets a map initialized with parameters required for rolling uprgades to
-   * work. The following properties are already set:
+   * Gets a map initialized with parameters required for upgrades to work. The
+   * following properties are already set:
    * <ul>
+   * <li>{@link UpgradeContext#COMMAND_PARAM_CLUSTER_NAME}
+   * <li>{@link UpgradeContext#COMMAND_PARAM_VERSION}
+   * <li>{@link UpgradeContext#COMMAND_PARAM_DIRECTION}
+   * <li>{@link UpgradeContext#COMMAND_PARAM_ORIGINAL_STACK}
+   * <li>{@link UpgradeContext#COMMAND_PARAM_TARGET_STACK}
+   * <li>{@link UpgradeContext#COMMAND_DOWNGRADE_FROM_VERSION}
+   * <li>{@link UpgradeContext#COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
    * they will contain the configurations that were available at the time the
@@ -1729,12 +1678,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * <li>{@link #COMMAND_PARAM_REQUEST_ID}</li> the ID of the request.
    * <ul>
    *
-   * @return
+   * @return the initialized parameter map.
    */
-  private Map<String, String> getNewParameterMap(RequestStageContainer requestStageContainer) {
-    Map<String, String> parameters = new HashMap<String, String>();
-    parameters.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "true");
-    parameters.put(COMMAND_PARAM_REQUEST_ID, String.valueOf(requestStageContainer.getId()));
+  private Map<String, String> getNewParameterMap(RequestStageContainer requestStageContainer,
+      UpgradeContext context) {
+    Map<String, String> parameters = context.getInitializedCommandParameters();
+    parameters.put(UpgradeContext.COMMAND_PARAM_REQUEST_ID,
+        String.valueOf(requestStageContainer.getId()));
     return parameters;
   }
 
@@ -1802,7 +1752,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     } else {
       // Status must be PENDING.
-      List<Long> taskIds = new ArrayList<Long>();
+      List<Long> taskIds = new ArrayList<>();
       List<HostRoleCommandEntity> hrcEntities = s_hostRoleCommandDAO.findByRequestIdAndStatuses(
           requestId, Sets.newHashSet(HostRoleStatus.ABORTED, HostRoleStatus.TIMEDOUT));
 
@@ -2105,7 +2055,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
                 direction.getText(false), e));
       }
 
-      List<Resource> failedResources = new LinkedList<Resource>();
+      List<Resource> failedResources = new LinkedList<>();
       if (preUpgradeCheckResources != null) {
         for (Resource res : preUpgradeCheckResources) {
           PrereqCheckStatus prereqCheckStatus = (PrereqCheckStatus) res.getPropertyValue(

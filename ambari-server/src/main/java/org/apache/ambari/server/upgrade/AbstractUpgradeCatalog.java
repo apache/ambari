@@ -577,7 +577,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
         if (propertiesToLog.size() > 0) {
           try {
-            configuration.wrtiteToAmbariUpgradeConfigUpdatesFile(propertiesToLog, configType, serviceName, ambariUpgradeConfigUpdatesFileName);
+            configuration.writeToAmbariUpgradeConfigUpdatesFile(propertiesToLog, configType, serviceName, ambariUpgradeConfigUpdatesFileName);
           } catch(Exception e) {
             LOG.error("Write to config updates file failed:", e);
           }

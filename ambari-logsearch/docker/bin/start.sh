@@ -81,12 +81,6 @@ function start_solr() {
 }
 
 function start_logsearch() {
-  echo "Upload configuration sets ..."
-
-  $ZKCLI  -zkhost localhost:9983 -cmd upconfig -confdir $LOGSEARCH_SERVER_PATH/solr_configsets/audit_logs/conf -confname audit_logs
-  $ZKCLI  -zkhost localhost:9983 -cmd upconfig -confdir $LOGSEARCH_SERVER_PATH/solr_configsets/hadoop_logs/conf -confname hadoop_logs
-  $ZKCLI  -zkhost localhost:9983 -cmd upconfig -confdir $LOGSEARCH_SERVER_PATH/solr_configsets/history/conf -confname history
-  
   $LOGSEARCH_SERVER_PATH/run.sh
   touch /var/log/ambari-logsearch-portal/logsearch-app.log
 }

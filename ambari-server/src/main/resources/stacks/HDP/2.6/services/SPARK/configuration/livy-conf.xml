@@ -70,4 +70,12 @@
      </description>
      <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+     <name>livy.repl.enableHiveContext</name>
+     <value>true</value>
+     <description>
+            Whether to enable HiveContext in livy interpreter
+     </description>
+     <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

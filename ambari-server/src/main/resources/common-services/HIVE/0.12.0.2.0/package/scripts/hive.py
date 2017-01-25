@@ -121,7 +121,7 @@ def hive(name=None):
   if name == 'hiveserver2':
     setup_hiveserver2()
   if name == 'metastore':
-    setup_metastore() # schematool work
+    setup_metastore()
 
 def setup_hiveserver2():
   import params
@@ -299,32 +299,35 @@ def setup_metastore():
        mode=0755,
        content=StaticFile('startMetastore.sh')
   )
-  if params.init_metastore_schema:
-    create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
-                               "{hive_schematool_bin}/schematool -initSchema "
-                               "-dbType {hive_metastore_db_type} "
-                               "-userName {hive_metastore_user_name} "
-                               "-passWord {hive_metastore_user_passwd!p} -verbose")
 
-    check_schema_created_cmd = as_user(format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
-                                      "{hive_schematool_bin}/schematool -info "
-                                      "-dbType {hive_metastore_db_type} "
-                                      "-userName {hive_metastore_user_name} "
-                                      "-passWord {hive_metastore_user_passwd!p} -verbose"), params.hive_user)
+def create_metastore_schema():
+  import params
 
-    # HACK: in cases with quoted passwords and as_user (which does the quoting as well) !p won't work for hiding passwords.
-    # Fixing it with the hack below:
-    quoted_hive_metastore_user_passwd = quote_bash_args(quote_bash_args(params.hive_metastore_user_passwd))
-    if quoted_hive_metastore_user_passwd[0] == "'" and quoted_hive_metastore_user_passwd[-1] == "'" \
-        or quoted_hive_metastore_user_passwd[0] == '"' and quoted_hive_metastore_user_passwd[-1] == '"':
-      quoted_hive_metastore_user_passwd = quoted_hive_metastore_user_passwd[1:-1]
-    Logger.sensitive_strings[repr(check_schema_created_cmd)] = repr(check_schema_created_cmd.replace(
-        format("-passWord {quoted_hive_metastore_user_passwd}"), "-passWord " + utils.PASSWORDS_HIDE_STRING))
+  create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
+                             "{hive_schematool_bin}/schematool -initSchema "
+                             "-dbType {hive_metastore_db_type} "
+                             "-userName {hive_metastore_user_name} "
+                             "-passWord {hive_metastore_user_passwd!p} -verbose")
 
-    Execute(create_schema_cmd,
-            not_if = check_schema_created_cmd,
-            user = params.hive_user
-    )
+  check_schema_created_cmd = as_user(format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
+                                    "{hive_schematool_bin}/schematool -info "
+                                    "-dbType {hive_metastore_db_type} "
+                                    "-userName {hive_metastore_user_name} "
+                                    "-passWord {hive_metastore_user_passwd!p} -verbose"), params.hive_user)
+
+  # HACK: in cases with quoted passwords and as_user (which does the quoting as well) !p won't work for hiding passwords.
+  # Fixing it with the hack below:
+  quoted_hive_metastore_user_passwd = quote_bash_args(quote_bash_args(params.hive_metastore_user_passwd))
+  if quoted_hive_metastore_user_passwd[0] == "'" and quoted_hive_metastore_user_passwd[-1] == "'" \
+      or quoted_hive_metastore_user_passwd[0] == '"' and quoted_hive_metastore_user_passwd[-1] == '"':
+    quoted_hive_metastore_user_passwd = quoted_hive_metastore_user_passwd[1:-1]
+  Logger.sensitive_strings[repr(check_schema_created_cmd)] = repr(check_schema_created_cmd.replace(
+      format("-passWord {quoted_hive_metastore_user_passwd}"), "-passWord " + utils.PASSWORDS_HIDE_STRING))
+
+  Execute(create_schema_cmd,
+          not_if = check_schema_created_cmd,
+          user = params.hive_user
+  )
     
 """
 Writes configuration files required by Hive.

@@ -1917,6 +1917,13 @@ public class Configuration {
       "agent.task.timeout", 900L);
 
   /**
+   * The time, in {@link TimeUnit#SECONDS}, before agent service check commands are killed.
+   */
+  @Markdown(description = "The time, in seconds, before agent service check commands are killed.")
+  public static final ConfigurationProperty<Long> AGENT_SERVICE_CHECK_TASK_TIMEOUT = new ConfigurationProperty<>(
+      "agent.service.check.task.timeout", 0L);
+
+  /**
    * The time, in {@link TimeUnit#SECONDS}, before package installation commands are killed.
    */
   @Markdown(description = "The time, in seconds, before package installation commands are killed.")
@@ -2594,13 +2601,24 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> LOGSEARCH_PORTAL_READ_TIMEOUT = new ConfigurationProperty<>(
     "logsearch.portal.read.timeout", 5000);
 
-
   /**
    * Global disable flag for AmbariServer Metrics.
    */
   @Markdown(description = "Global disable flag for AmbariServer Metrics.")
   public static final ConfigurationProperty<Boolean> AMBARISERVER_METRICS_DISABLE = new ConfigurationProperty<>(
     "ambariserver.metrics.disable", false);
+
+  /**
+   * The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making
+   *   a request to the LogSearch Portal to get the latest metadata.
+   *
+   * The logging metadata (in this case, log file names) is generally quite static, so the default should
+   *   generally be quite long.
+   *
+   */
+  @Markdown(description = "The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making a request to the LogSearch Portal to get the latest metadata.")
+  public static final ConfigurationProperty<Integer> LOGSEARCH_METADATA_CACHE_EXPIRE_TIMEOUT = new ConfigurationProperty<>(
+    "logsearch.metadata.cache.expire.timeout", 24);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -2995,8 +3013,8 @@ public class Configuration {
   }
 
 
-  public void wrtiteToAmbariUpgradeConfigUpdatesFile(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
-                                                     String configType, String serviceName, String wrtiteToAmbariUpgradeConfigUpdatesFile) {
+  public void writeToAmbariUpgradeConfigUpdatesFile(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
+                                                     String configType, String serviceName, String writeToAmbariUpgradeConfigUpdatesFile) {
     try {
       if (ambariUpgradeConfigUpdatesFilePath == null) {
         Properties log4jProperties = getLog4jProperties();
@@ -3006,7 +3024,7 @@ public class Configuration {
           logPath = StringUtils.replace(logPath, "${ambari.root.dir}", rootPath);
           logPath = StringUtils.replace(logPath, "//", "/");
           if (StringUtils.isNotEmpty(logPath)) {
-            ambariUpgradeConfigUpdatesFilePath = logPath + File.separator + wrtiteToAmbariUpgradeConfigUpdatesFile;
+            ambariUpgradeConfigUpdatesFilePath = logPath + File.separator + writeToAmbariUpgradeConfigUpdatesFile;
           }
         } else {
           LOG.warn("Log4j properties are not available");
@@ -4490,6 +4508,21 @@ public class Configuration {
   }
 
   /**
+   * @return overridden service check task timeout in seconds. This value
+   *         is used at python (agent) code.
+   */
+  public Long getAgentServiceCheckTaskTimeout() {
+    String value = getProperty(AGENT_SERVICE_CHECK_TASK_TIMEOUT);
+    if (StringUtils.isNumeric(value)) {
+      return Long.parseLong(value);
+    } else {
+      LOG.warn("Value of {} ({}) should be a number, falling back to default value ({})",
+        AGENT_SERVICE_CHECK_TASK_TIMEOUT.getKey(), value, AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue());
+      return AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue();
+    }
+  }
+
+  /**
    * @return default server-side task timeout in seconds.
    */
   public Integer getDefaultServerTaskTimeout() {
@@ -5384,6 +5417,19 @@ public class Configuration {
     return NumberUtils.toInt(getProperty(LOGSEARCH_PORTAL_READ_TIMEOUT));
   }
 
+
+  /**
+   *
+   * Get the max time, in hours, to hold data in the LogSearch
+   *   metadata cache prior to expiring the cache and re-loading
+   *   the data from the LogSearch Portal service.
+   *
+   * @return max number of hours that the LogSearch metadata is cached
+   */
+  public int getLogSearchMetadataCacheExpireTimeout() {
+    return NumberUtils.toInt(getProperty(LOGSEARCH_METADATA_CACHE_EXPIRE_TIMEOUT));
+  }
+
   /**
    * Generates a markdown table which includes:
    * <ul>
@@ -5846,16 +5892,14 @@ public class Configuration {
       File keytabFile = new File(kerberosAuthProperties.getSpnegoKeytabFilePath());
       if (!keytabFile.exists()) {
         String message = String.format("The SPNEGO keytab file path (%s) specified in %s does not exist. " +
-                "This will cause issues authenticating users using Kerberos.",
+                "This will cause issues authenticating users using Kerberos. . Make sure proper keytab file provided later.",
             keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
         LOG.error(message);
-        throw new IllegalArgumentException(message);
       } else if (!keytabFile.canRead()) {
         String message = String.format("The SPNEGO keytab file path (%s) specified in %s cannot be read. " +
-                "This will cause issues authenticating users using Kerberos.",
+                "This will cause issues authenticating users using Kerberos. . Make sure proper keytab file provided later.",
             keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
         LOG.error(message);
-        throw new IllegalArgumentException(message);
       }
     }
 

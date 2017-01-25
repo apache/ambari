@@ -23,19 +23,19 @@ var App = require('app');
  *
  * @param {String} header - header of the popup
  * @param {String} body - body of the popup
- * @param {Function} primary - function to call upon clicking the OK button
+ * @param {Function} callback - function to call upon clicking the OK button, clicking "x" or pressing "Esc"
  * @return {*}
  */
-App.showAlertPopup = function (header, body, primary) {
+App.showAlertPopup = function (header, body, callback) {
   return App.ModalPopup.show({
     primary: Em.I18n.t('ok'),
     secondary: null,
     header: header,
     body: body,
-    onPrimary: function () {
-      this.hide();
-      if (primary) {
-        primary();
+    hide: function () {
+      this._super();
+      if (callback) {
+        callback();
       }
     }
   });

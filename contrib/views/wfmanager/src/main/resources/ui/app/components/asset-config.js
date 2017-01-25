@@ -24,6 +24,7 @@ const Validations = buildValidations({
 });
 
 export default Ember.Component.extend(Validations, {
+  assetManager : Ember.inject.service('asset-manager'),
   initialize: function(){
     this.$('#asset_config_dialog').modal('show');
     this.$('#asset_config_dialog').modal().on('hidden.bs.modal', function() {
@@ -39,8 +40,21 @@ export default Ember.Component.extend(Validations, {
         this.set('showErrorMessage', true);
         return;
       }
-      this.$('#asset_config_dialog').modal('hide');
-      this.sendAction('saveAssetConfig');
+      this.set("inProgress", true);
+      var assetNameAvailableDefered=this.get("assetManager").assetNameAvailable(this.get("assetModel.name"));
+      assetNameAvailableDefered.promise.then(function(data){
+        this.set("inProgress", false);
+        if (data === "false") {
+          this.set("assetErrorMsg", "Asset name already exists");
+          return;
+        } else {
+          this.$('#asset_config_dialog').modal('hide');
+          this.sendAction('saveAssetConfig');
+        }
+      }.bind(this)).catch(function(data){
+        model.set("inProgress", false);
+        return "There is some problem while checking asset name availability. Please try again.";
+      });
     }
   }
 });

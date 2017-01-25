@@ -228,8 +228,11 @@ class ResourcemanagerDefault(Resourcemanager):
 
   def disable_security(self, env):
     import params
+    if not params.stack_supports_zk_security:
+      Logger.info("Stack doesn't support zookeeper security")
+      return
     if not params.rm_zk_address:
-      Logger.info("Skipping reverting ACL")
+      Logger.info("No zookeeper connection string. Skipping reverting ACL")
       return
     zkmigrator = ZkMigrator(
       params.rm_zk_address, \

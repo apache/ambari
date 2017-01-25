@@ -594,7 +594,7 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
@@ -619,6 +619,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'getStormNimbusHosts').returns("host1");
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       controller.set('nimbusHost', 'host2');
       controller.onLoadStormConfigs(data);
     });
@@ -626,6 +627,7 @@ describe('App.MainHostDetailsController', function () {
       controller.getStormNimbusHosts.restore();
       controller.updateZkConfigs.restore();
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
     it("updateZkConfigs called with valid arguments", function() {
       expect(controller.updateZkConfigs.calledWith({'storm-site': {
@@ -665,7 +667,7 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
@@ -689,7 +691,7 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
@@ -952,7 +954,7 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('url params is empty', function () {
-      expect(controller.loadConfigsSuccessCallback()).to.be.false;
+      expect(controller.loadConfigsSuccessCallback(null, null, {})).to.be.false;
       var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
       expect(args).not.exists;
     });
@@ -1018,6 +1020,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
       sinon.stub(controller, 'updateZkConfigs', Em.K);
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       sinon.stub(App.Service, 'find', function() {
         return [
           Em.Object.create({ serviceName: 'HIVE' }),
@@ -1034,6 +1037,7 @@ describe('App.MainHostDetailsController', function () {
       App.Service.find.restore();
       controller.updateZkConfigs.restore();
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
 
       it('configs for YARN', function () {
@@ -3270,11 +3274,13 @@ describe('App.MainHostDetailsController', function () {
     ];
 
     beforeEach(function () {
-      sinon.spy(controller, 'saveConfigsBatch')
+      sinon.spy(controller, 'saveConfigsBatch');
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
     });
 
     afterEach(function () {
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
 
     cases.forEach(function (item) {
@@ -3518,10 +3524,13 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function() {
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
+      controller.set('configs', {});
     });
 
     afterEach(function() {
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
 
     var makeHostComponentModel = function(componentName, hostNames) {
@@ -3960,29 +3969,134 @@ describe('App.MainHostDetailsController', function () {
         recommendedPropertiesToChange: [{}],
         requiredPropertiesToChange: [{}],
         groupedPropertiesToChange: [{}],
-        isReconfigureRequired: true
+        isReconfigureRequired: true,
+        configs: {}
       });
-      controller.clearConfigsChanges();
     });
 
     afterEach(function () {
       controller.abortRequests.restore();
     });
 
-    it('allPropertiesToChange', function () {
-      expect(controller.get('allPropertiesToChange')).to.have.length(0);
+    describe('default case', function () {
+
+      beforeEach(function () {
+        controller.clearConfigsChanges();
+      });
+
+      it('allPropertiesToChange', function () {
+        expect(controller.get('allPropertiesToChange')).to.have.length(0);
+      });
+
+      it('recommendedPropertiesToChange', function () {
+        expect(controller.get('recommendedPropertiesToChange')).to.have.length(0);
+      });
+
+      it('groupedPropertiesToChange', function () {
+        expect(controller.get('groupedPropertiesToChange')).to.have.length(0);
+      });
+
+      it('isReconfigureRequired', function () {
+        expect(controller.get('isReconfigureRequired')).to.be.false;
+      });
+
+      it('configs', function () {
+        expect(controller.get('configs')).to.be.null;
+      });
+
     });
 
-    it('recommendedPropertiesToChange', function () {
-      expect(controller.get('recommendedPropertiesToChange')).to.have.length(0);
+    describe('no loaded configs cleanup', function () {
+
+      beforeEach(function () {
+        controller.clearConfigsChanges(true);
+      });
+
+      it('configs shouldn\'t be cleared', function () {
+        expect(controller.get('configs')).to.not.be.null;
+      });
+
     });
 
-    it('groupedPropertiesToChange', function () {
-      expect(controller.get('groupedPropertiesToChange')).to.have.length(0);
+  });
+
+  describe('#saveLoadedConfigs', function () {
+
+    var data = {
+      items: [
+        {
+          type: 't0',
+          properties: {
+            p0: 'v0',
+            p1: 'v1'
+          },
+          properties_attributes: {}
+        },
+        {
+          type: 't1',
+          properties: {
+            p2: 'v2',
+            p3: 'v3'
+          },
+          properties_attributes: {}
+        }
+      ]
+    };
+
+    it('should store data in configs object', function () {
+      controller.set('configs', null);
+      controller.saveLoadedConfigs(data);
+      expect(controller.get('configs')).to.eql(data);
     });
 
-    it('isReconfigureRequired', function () {
-      expect(controller.get('isReconfigureRequired')).to.be.false;
+  });
+
+  describe('#loadComponentRelatedConfigs', function () {
+
+    var testCases = [
+      {
+        isReconfigureRequired: true,
+        loadConfigsCallCount: 1,
+        isConfigsLoadingInProgress: true,
+        message: 'reconfigure required'
+      },
+      {
+        isReconfigureRequired: false,
+        loadConfigsCallCount: 0,
+        isConfigsLoadingInProgress: false,
+        message: 'no reconfigure required'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+
+      describe(test.message, function () {
+
+        beforeEach(function () {
+          sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
+          sinon.stub(controller, 'loadConfigs', Em.K);
+          controller.setProperties({
+            isReconfigureRequired: test.isReconfigureRequired,
+            isConfigsLoadingInProgress: false
+          });
+          controller.loadComponentRelatedConfigs();
+        });
+
+        afterEach(function () {
+          controller.isServiceMetricsLoaded.restore();
+          controller.loadConfigs.restore();
+        });
+
+        it('loadConfigs', function () {
+          expect(controller.loadConfigs.callCount).to.equal(test.loadConfigsCallCount);
+        });
+
+        it('isConfigsLoadingInProgress', function () {
+          expect(controller.get('isConfigsLoadingInProgress')).to.equal(test.isConfigsLoadingInProgress);
+        });
+
+      });
+
     });
 
   });

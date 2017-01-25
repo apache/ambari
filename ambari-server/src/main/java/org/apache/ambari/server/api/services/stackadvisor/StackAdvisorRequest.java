@@ -46,6 +46,7 @@ public class StackAdvisorRequest {
   private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
   private List<ChangedConfigInfo> changedConfigurations = new LinkedList<ChangedConfigInfo>();
   private Set<RecommendationResponse.ConfigGroup> configGroups;
+  private Map<String, String> userContext = new HashMap<String, String>();
 
   public String getStackName() {
     return stackName;
@@ -97,6 +98,14 @@ public class StackAdvisorRequest {
 
   public void setChangedConfigurations(List<ChangedConfigInfo> changedConfigurations) {
     this.changedConfigurations = changedConfigurations;
+  }
+
+  public Map<String, String> getUserContext() {
+    return this.userContext;
+  }
+
+  public void setUserContext(Map<String, String> userContext) {
+    this.userContext = userContext;
   }
 
   public Set<RecommendationResponse.ConfigGroup> getConfigGroups() {
@@ -164,6 +173,12 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withChangedConfigurations(
       List<ChangedConfigInfo> changedConfigurations) {
       this.instance.changedConfigurations = changedConfigurations;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withUserContext(
+        Map<String, String> userContext) {
+      this.instance.userContext = userContext;
       return this;
     }
 

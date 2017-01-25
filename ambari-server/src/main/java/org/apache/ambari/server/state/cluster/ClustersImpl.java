@@ -99,8 +99,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class ClustersImpl implements Clusters {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-      ClustersImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ClustersImpl.class);
 
   private final ConcurrentHashMap<String, Cluster> clusters = new ConcurrentHashMap<String, Cluster>();
   private final ConcurrentHashMap<Long, Cluster> clustersById = new ConcurrentHashMap<Long, Cluster>();

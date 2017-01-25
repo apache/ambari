@@ -29,6 +29,7 @@ import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -57,9 +58,13 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.RequestFinishedEvent;
+import org.apache.ambari.server.orm.dao.SettingDAO;
+import org.apache.ambari.server.orm.entities.SettingEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -68,15 +73,20 @@ import org.easymock.Mock;
 import org.easymock.MockType;
 import org.easymock.TestSubject;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import junit.framework.Assert;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * TopologyManager unit tests
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest( { TopologyManager.class })
 public class TopologyManagerTest {
 
   private static final String CLUSTER_NAME = "test-cluster";
@@ -84,6 +94,10 @@ public class TopologyManagerTest {
   private static final String BLUEPRINT_NAME = "test-bp";
   private static final String STACK_NAME = "test-stack";
   private static final String STACK_VERSION = "test-stack-version";
+  private static final String SAMPLE_QUICKLINKS_PROFILE_1 = "{\"filters\":[{\"visible\":true}],\"services\":[]}";
+  private static final String SAMPLE_QUICKLINKS_PROFILE_2 =
+      "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}";
+
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -133,6 +147,8 @@ public class TopologyManagerTest {
   private ClusterController clusterController;
   @Mock(type = MockType.STRICT)
   private ResourceProvider resourceProvider;
+  @Mock(type = MockType.STRICT)
+  private SettingDAO settingDAO;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
@@ -345,13 +361,15 @@ public class TopologyManagerTest {
 
   @After
   public void tearDown() {
+    PowerMock.verify(System.class);
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, mockFuture);
+        requestStatusResponse, executor, persistedState, mockFuture, settingDAO);
 
+    PowerMock.reset(System.class);
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, mockFuture);
+        requestStatusResponse, executor, persistedState, mockFuture, settingDAO);
   }
 
   @Test
@@ -481,7 +499,7 @@ public class TopologyManagerTest {
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
             configurationRequest, configurationRequest2, configurationRequest3, executor,
             persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
-            mockFuture, requestStatusResponse, logicalRequest);
+            mockFuture, requestStatusResponse, logicalRequest, settingDAO);
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -503,5 +521,65 @@ public class TopologyManagerTest {
     topologyManager.provisionCluster(request);
     topologyManager.scaleHosts(new ScaleClusterRequest(propertySet));
     Assert.fail("InvalidTopologyException should have been thrown");
+  }
+
+  @Test
+  public void testProvisionCluster_QuickLinkProfileIsSavedTheFirstTime() throws Exception {
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+        List<LogicalRequest>>emptyMap()).anyTimes();
+
+    // request has a quicklinks profile
+    expect(request.getQuickLinksProfileJson()).andReturn(SAMPLE_QUICKLINKS_PROFILE_1).anyTimes();
+
+    // this means no quicklinks profile exists before calling provisionCluster()
+    expect(settingDAO.findByName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE)).andReturn(null);
+
+    // expect that settingsDao saves the quick links profile with the right content
+    final long timeStamp = System.currentTimeMillis();
+    mockStatic(System.class);
+    expect(System.currentTimeMillis()).andReturn(timeStamp);
+    PowerMock.replay(System.class);
+    final SettingEntity quickLinksProfile = createQuickLinksSettingEntity(SAMPLE_QUICKLINKS_PROFILE_1, timeStamp);
+    settingDAO.create(eq(quickLinksProfile));
+
+    replayAll();
+
+    topologyManager.provisionCluster(request);
+  }
+
+  @Test
+  public void testProvisionCluster_ExistingQuickLinkProfileIsOverwritten() throws Exception {
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+        List<LogicalRequest>>emptyMap()).anyTimes();
+
+    // request has a quicklinks profile
+    expect(request.getQuickLinksProfileJson()).andReturn(SAMPLE_QUICKLINKS_PROFILE_2).anyTimes();
+
+    // existing quick links profile returned by dao
+    final long timeStamp1 = System.currentTimeMillis();
+    SettingEntity originalProfile = createQuickLinksSettingEntity(SAMPLE_QUICKLINKS_PROFILE_1, timeStamp1);
+    expect(settingDAO.findByName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE)).andReturn(originalProfile);
+
+    // expect that settingsDao overwrites the quick links profile with the new content
+    mockStatic(System.class);
+    final long timeStamp2 = timeStamp1 + 100;
+    expect(System.currentTimeMillis()).andReturn(timeStamp2);
+    PowerMock.replay(System.class);
+    final SettingEntity newProfile = createQuickLinksSettingEntity(SAMPLE_QUICKLINKS_PROFILE_2, timeStamp2);
+    expect(settingDAO.merge(newProfile)).andReturn(newProfile);
+
+    replayAll();
+
+    topologyManager.provisionCluster(request);
+  }
+
+  private SettingEntity createQuickLinksSettingEntity(String content, long timeStamp) {
+    SettingEntity settingEntity = new SettingEntity();
+    settingEntity.setName(QuickLinksProfile.SETTING_NAME_QUICKLINKS_PROFILE);
+    settingEntity.setSettingType(QuickLinksProfile.SETTING_TYPE_AMBARI_SERVER);
+    settingEntity.setContent(content);
+    settingEntity.setUpdatedBy(AuthorizationHelper.getAuthenticatedName());
+    settingEntity.setUpdateTimestamp(timeStamp);
+    return settingEntity;
   }
 }

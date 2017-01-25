@@ -15,30 +15,37 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+<!-- Solr managed schema - automatically generated - DO NOT EDIT -->
 <schema name="audit-logs-schema" version="1.5">
   <uniqueKey>id</uniqueKey>
   <fieldType name="binary" class="solr.BinaryField"/>
   <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
-  <fieldType name="booleans" class="solr.BoolField" multiValued="true" sortMissingLast="true"/>
-  <fieldType name="date" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
-  <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0"/>
-  <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" positionIncrementGap="0"/>
-  <fieldType name="ignored" class="solr.StrField" multiValued="true" indexed="false" stored="false"/>
-  <fieldType name="int" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0"/>
-  <fieldType name="key_lower_case" class="solr.TextField" multiValued="false" sortMissingLast="true" omitNorms="true">
+  <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+  <fieldType name="date" class="solr.TrieDateField" positionIncrementGap="0" precisionStep="0"/>
+  <fieldType name="double" class="solr.TrieDoubleField" positionIncrementGap="0" precisionStep="0"/>
+  <fieldType name="float" class="solr.TrieFloatField" positionIncrementGap="0" precisionStep="0"/>
+  <fieldType name="ignored" class="solr.StrField" indexed="false" stored="false" multiValued="true"/>
+  <fieldType name="int" class="solr.TrieIntField" positionIncrementGap="0" precisionStep="0"/>
+  <fieldType name="key_lower_case" class="solr.TextField" omitNorms="true" sortMissingLast="true" multiValued="false">
     <analyzer>
       <tokenizer class="solr.KeywordTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
     </analyzer>
   </fieldType>
-  <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+  <fieldType name="long" class="solr.TrieLongField" positionIncrementGap="0" precisionStep="0"/>
+  <fieldType name="n_gram" class="solr.TextField" omitNorms="true" sortMissingLast="true">
+    <analyzer>
+      <tokenizer class="solr.NGramTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
   <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
   <fieldType name="string" class="solr.StrField" sortMissingLast="true"/>
-  <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
-  <fieldType name="tdates" class="solr.TrieDateField" precisionStep="6" multiValued="true" positionIncrementGap="0"/>
-  <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0"/>
-  <fieldType name="tdoubles" class="solr.TrieDoubleField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
-  <fieldType name="text_std_token_lower_case" class="solr.TextField" multiValued="true" positionIncrementGap="100">
+  <fieldType name="tdate" class="solr.TrieDateField" positionIncrementGap="0" precisionStep="6"/>
+  <fieldType name="tdates" class="solr.TrieDateField" positionIncrementGap="0" multiValued="true" precisionStep="6"/>
+  <fieldType name="tdouble" class="solr.TrieDoubleField" positionIncrementGap="0" precisionStep="8"/>
+  <fieldType name="tdoubles" class="solr.TrieDoubleField" positionIncrementGap="0" multiValued="true" precisionStep="8"/>
+  <fieldType name="text_std_token_lower_case" class="solr.TextField" positionIncrementGap="100" multiValued="true">
     <analyzer>
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.LowerCaseFilterFactory"/>
@@ -50,45 +57,54 @@
       <filter class="solr.LowerCaseFilterFactory"/>
     </analyzer>
   </fieldType>
-  <fieldType name="n_gram" class="solr.TextField" sortMissingLast="true" omitNorms="true">
-    <analyzer>
-      <tokenizer class="solr.NGramTokenizerFactory"/>
-      <filter class="solr.LowerCaseFilterFactory"/>
-    </analyzer>
-  </fieldType>
-  
-  <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" positionIncrementGap="0"/>
-  <fieldType name="tfloats" class="solr.TrieFloatField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
-  <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" positionIncrementGap="0"/>
-  <fieldType name="tints" class="solr.TrieIntField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
-  <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
-  <fieldType name="tlongs" class="solr.TrieLongField" precisionStep="8" multiValued="true" positionIncrementGap="0"/>
+  <fieldType name="tfloat" class="solr.TrieFloatField" positionIncrementGap="0" precisionStep="8"/>
+  <fieldType name="tfloats" class="solr.TrieFloatField" positionIncrementGap="0" multiValued="true" precisionStep="8"/>
+  <fieldType name="tint" class="solr.TrieIntField" positionIncrementGap="0" precisionStep="8"/>
+  <fieldType name="tints" class="solr.TrieIntField" positionIncrementGap="0" multiValued="true" precisionStep="8"/>
+  <fieldType name="tlong" class="solr.TrieLongField" positionIncrementGap="0" precisionStep="8"/>
+  <fieldType name="tlongs" class="solr.TrieLongField" positionIncrementGap="0" multiValued="true" precisionStep="8"/>
   <field name="_expire_at_" type="tdate" multiValued="false" stored="true"/>
+  <field name="_router_field_" type="int" multiValued="false" indexed="false" stored="false"/>
   <field name="_ttl_" type="string" multiValued="false" indexed="true" stored="true"/>
   <field name="_version_" type="long" indexed="true" stored="true"/>
-  <field name="_router_field_" type="int" indexed="false" stored="false" multiValued="false"/>
-    
   <field name="access" type="key_lower_case" multiValued="false"/>
   <field name="action" type="key_lower_case" multiValued="false"/>
   <field name="agent" type="key_lower_case" multiValued="false"/>
   <field name="agentHost" type="key_lower_case" multiValued="false"/>
+  <field name="authType" type="key_lower_case"/>
+  <field name="bundle_id" type="key_lower_case" multiValued="false"/>
+  <field name="case_id" type="key_lower_case" multiValued="false"/>
   <field name="cliIP" type="key_lower_case" multiValued="false"/>
   <field name="cliType" type="key_lower_case" multiValued="false"/>
   <field name="cluster" type="key_lower_case" multiValued="false"/>
-  <field name="reqContext" type="key_lower_case" multiValued="true"/>
+  <field name="dst" type="key_lower_case"/>
   <field name="enforcer" type="key_lower_case" multiValued="false"/>
-  <field name="event_count" type="tlong" multiValued="false" docValues="true" default="1"/>
+  <field name="event_count" type="tlong" default="1" docValues="true" multiValued="false"/>
   <field name="event_dur_ms" type="tlong" multiValued="false" docValues="true"/>
-  <field name="evtTime" type="tdate"  docValues="true"/>
+  <field name="event_md5" type="string" multiValued="false"/>
+  <field name="evtTime" type="tdate" docValues="true"/>
+  <field name="file" type="key_lower_case" multiValued="false"/>
+  <field name="host" type="key_lower_case"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
+  <field name="ip" type="key_lower_case"/>
+  <field name="level" type="key_lower_case"/>
   <field name="logType" type="key_lower_case" multiValued="false"/>
+  <field name="log_message" type="key_lower_case" multiValued="false" omitNorms="false"/>
+  <field name="logfile_line_number" type="tint" omitNorms="false"/>
+  <field name="logger_name" type="key_lower_case"/>
+  <field name="message_md5" type="string" multiValued="false"/>
+  <field name="path" type="key_lower_case"/>
+  <field name="perm" type="key_lower_case"/>
   <field name="policy" type="tlong" docValues="true"/>
   <field name="proxyUsers" type="key_lower_case" multiValued="true"/>
   <field name="reason" type="text_std_token_lower_case" multiValued="false" omitNorms="false"/>
   <field name="repo" type="key_lower_case" multiValued="false"/>
   <field name="repoType" type="tint" multiValued="false" docValues="true"/>
+  <field name="reqContext" type="key_lower_case" multiValued="true"/>
   <field name="reqData" type="text_std_token_lower_case" multiValued="false"/>
   <field name="reqUser" type="key_lower_case" multiValued="false"/>
+  <field name="req_caller_id" type="key_lower_case" multiValued="false"/>
+  <field name="req_self_id" type="key_lower_case" multiValued="false"/>
   <field name="resType" type="key_lower_case" multiValued="false"/>
   <field name="resource" type="key_lower_case" multiValued="false"/>
   <field name="result" type="tint" multiValued="false"/>
@@ -96,22 +112,14 @@
   <field name="sess" type="key_lower_case" multiValued="false"/>
   <field name="tags" type="key_lower_case" multiValued="true"/>
   <field name="tags_str" type="text_std_token_lower_case" multiValued="false"/>
+  <field name="task_id" type="tlong"/>
   <field name="text" type="text_std_token_lower_case" multiValued="true" indexed="true" stored="false"/>
-
-  <field name="bundle_id" type="key_lower_case" multiValued="false"/>
-  <field name="case_id" type="key_lower_case" multiValued="false"/>
-  <field name="req_caller_id" type="key_lower_case" multiValued="false"/>
-  <field name="req_self_id" type="key_lower_case" multiValued="false"/>
-  <field name="event_md5" type="string" multiValued="false"/>
-  <field name="file" type="key_lower_case" multiValued="false"/>
-  <field name="log_message" type="key_lower_case" multiValued="false" omitNorms="false"/>
-  <field name="logfile_line_number" type="tint" omitNorms="false"/>
-  <field name="message_md5" type="string" multiValued="false"/>
   <field name="type" type="key_lower_case" multiValued="false"/>
-  
-  <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="true"/>
-  <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="true"/>
-  <dynamicField name='key_*' type="key_lower_case" multiValued="false" stored="true"/>
-  <dynamicField name="ws_*" type="text_ws" multiValued="false" omitNorms="false" stored="true"/>
+  <field name="ugi" type="key_lower_case"/>
+
+  <dynamicField name="ngram_*" type="n_gram" multiValued="false" stored="true"/>
+  <dynamicField name="std_*" type="text_std_token_lower_case" multiValued="false" stored="true"/>
+  <dynamicField name="key_*" type="key_lower_case" multiValued="false" stored="true"/>
+  <dynamicField name="ws_*" type="text_ws" omitNorms="false" multiValued="false" stored="true"/>
   
 </schema>

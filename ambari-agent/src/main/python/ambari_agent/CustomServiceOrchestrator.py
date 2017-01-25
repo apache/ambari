@@ -266,7 +266,6 @@ class CustomServiceOrchestrator():
     serviceName = commandJson['serviceName']
 
     # Gather the password values and remove them from the configuration
-    provider_paths = [] # A service may depend on multiple configs
     configtype_credentials = self.getConfigTypeCredentials(commandJson)
     for config_type, credentials in configtype_credentials.items():
       config = commandJson['configurations'][config_type]
@@ -274,7 +273,6 @@ class CustomServiceOrchestrator():
       if os.path.exists(file_path):
         os.remove(file_path)
       provider_path = 'jceks://file{file_path}'.format(file_path=file_path)
-      provider_paths.append(provider_path)
       logger.info('provider_path={0}'.format(provider_path))
       for alias, pwd in credentials.items():
         logger.debug("config={0}".format(config))
@@ -286,10 +284,8 @@ class CustomServiceOrchestrator():
         cmd_result = subprocess.call(cmd)
         logger.info('cmd_result = {0}'.format(cmd_result))
         os.chmod(file_path, 0644) # group and others should have read access so that the service user can read
-
-    if provider_paths:
-      # Add JCEKS provider paths instead
-      config[self.CREDENTIAL_PROVIDER_PROPERTY_NAME] = ','.join(provider_paths)
+      # Add JCEKS provider path instead
+      config[self.CREDENTIAL_PROVIDER_PROPERTY_NAME] = provider_path
 
     return cmd_result
 

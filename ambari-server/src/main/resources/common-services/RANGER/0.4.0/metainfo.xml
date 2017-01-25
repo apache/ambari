@@ -56,6 +56,10 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>RANGER/RANGER_ADMIN</co-locate>
+          </auto-deploy>
           <commandScript>
             <script>scripts/ranger_usersync.py</script>
             <scriptType>PYTHON</scriptType>

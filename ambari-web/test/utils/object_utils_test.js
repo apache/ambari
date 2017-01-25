@@ -486,7 +486,7 @@ describe('utils/object_utils', function() {
           },
           {
             "principal" : {
-              "value" : "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}",
+              "value" : "${cluster-env/smokeuser}${principal_suffix}@${realm}",
               "local_username" : "${cluster-env/smokeuser}",
               "configuration" : "cluster-env/smokeuser_principal_name",
               "type" : "user"

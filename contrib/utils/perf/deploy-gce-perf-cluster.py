@@ -334,6 +334,8 @@ def create_server_script(server_host_name):
   "mkdir /home ; cd /home ; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-server/resources/stacks/PERF\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
+  "sed -i -f /home/ambari/ambari-server/src/main/resources/stacks/PERF/install_packages.sed /var/lib/ambari-server/resources/custom_actions/scripts/install_packages.py\n" + \
+  "sed -i -f /home/ambari/ambari-server/src/main/resources/stacks/PERF/install_packages.sed /var/lib/ambari-agent/cache/custom_actions/scripts/install_packages.py\n" + \
   "\n" + \
   "\n" + \
   "yum install mysql-connector-java* -y\n" + \
@@ -358,6 +360,7 @@ def create_server_script(server_host_name):
   "sed -i -e 's/local.database.user=postgres//g' /etc/ambari-server/conf/ambari.properties\n" + \
   "sed -i -e 's/server.jdbc.postgres.schema=ambari//g' /etc/ambari-server/conf/ambari.properties\n" + \
   "sed -i -e 's/false/true/g' /var/lib/ambari-server/resources/stacks/PERF/1.0/metainfo.xml\n" + \
+  "sed -i -e 's/false/true/g' /var/lib/ambari-server/resources/stacks/PERF/2.0/metainfo.xml\n" + \
   "sed -i -e 's/-Xmx2048m/-Xmx16384m/g' /var/lib/ambari-server/ambari-env.sh\n" + \
   "\n" + \
   "echo 'server.jdbc.driver=com.mysql.jdbc.Driver' >> /etc/ambari-server/conf/ambari.properties\n" + \
@@ -389,6 +392,7 @@ def create_agent_script(server_host_name):
   "yum clean all; yum install krb5-workstation git ambari-agent -y\n" + \
   "mkdir /home ; cd /home; git clone https://github.com/apache/ambari.git ; cd ambari ; git checkout branch-2.5\n" + \
   "cp -r /home/ambari/ambari-server/src/main/resources/stacks/PERF /var/lib/ambari-agent/cache/stacks/PERF\n" + \
+  "sed -i -f /var/lib/ambari-agent/cache/stacks/PERF/PythonExecutor.sed /usr/lib/python2.6/site-packages/ambari_agent/PythonExecutor.py\n" + \
   "sed -i -e 's/hostname=localhost/hostname={0}/g' /etc/ambari-agent/conf/ambari-agent.ini\n".format(server_host_name) + \
   "sed -i -e 's/agent]/agent]\\nhostname_script={0}\\npublic_hostname_script={1}\\n/1' /etc/ambari-agent/conf/ambari-agent.ini\n".format(hostname_script, public_hostname_script) + \
   "python /home/ambari/ambari-agent/conf/unix/agent-multiplier.py start\n" + \

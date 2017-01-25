@@ -110,6 +110,7 @@
     <value></value>
     <display-name>Log Search External Solr principal</display-name>
     <description>The service principal for Log Search which will be used to access SolrClient  e.g. logsearch/_HOST@REALM</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -174,6 +175,7 @@
     <value>logsearch</value>
     <display-name>Log Search principal</display-name>
     <description>The service principal for Log Search which will be used to access SolrClient.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- logsearch-env.sh -->

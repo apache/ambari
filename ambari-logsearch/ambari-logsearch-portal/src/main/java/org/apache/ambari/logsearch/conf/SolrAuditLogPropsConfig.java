@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.zookeeper.data.ACL;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -53,6 +54,12 @@ public class SolrAuditLogPropsConfig implements SolrPropsConfig {
 
   @Value("${logsearch.collection.audit.logs.replication.factor:1}")
   private Integer replicationFactor;
+
+  @Value("#{ACLPropertiesSplitter.parseAcls('${logsearch.solr.audit.logs.zk.acls:}')}")
+  private List<ACL> zkAcls;
+
+  @Value("${logsearch.solr.audit.logs.config_set.folder:/etc/ambari-logsearch-portal/conf/solr_configsets}")
+  private String configSetFolder;
 
   @Override
   public String getSolrUrl() {
@@ -122,6 +129,26 @@ public class SolrAuditLogPropsConfig implements SolrPropsConfig {
   @Override
   public void setSplitInterval(String splitInterval) {
     this.splitInterval = splitInterval;
+  }
+
+  @Override
+  public List<ACL> getZkAcls() {
+    return zkAcls;
+  }
+
+  @Override
+  public void setZkAcls(List<ACL> zkAcls) {
+    this.zkAcls = zkAcls;
+  }
+
+  @Override
+  public String getConfigSetFolder() {
+    return configSetFolder;
+  }
+
+  @Override
+  public void setConfigSetFolder(String configSetFolder) {
+    this.configSetFolder = configSetFolder;
   }
 
   public String getRangerCollection() {

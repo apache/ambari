@@ -17,9 +17,11 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+  assetManager : Ember.inject.service('asset-manager'),
   currentAssetId: null,
   assetNotSelected: true,
   assetSearchCriteria: "",
+  filteredAssetList:  Ember.A([]),
   fuseSearchOptions: {
     shouldSort: true,
     threshold: 0.1,
@@ -46,7 +48,23 @@ export default Ember.Component.extend({
     this.$('#asset_list_dialog').modal().on('hidden.bs.modal', function() {
       this.sendAction('showAssetList', false);
     }.bind(this));
-    this.initializeFuseSearch();
+
+    self.set("inProgress", true);
+    self.set("assetErrorMsg", "");
+    var fetchAssetsDefered=self.get("assetManager").fetchAssets();
+    fetchAssetsDefered.promise.then(function(response){
+      var assetData = JSON.parse(response).data;
+      if (self.get("assetListType") && self.get("assetListType") !== "") {
+        assetData = assetData.filterBy('type', self.get("assetListType"));
+      }
+      self.set('assetList', assetData);
+      self.initializeFuseSearch();
+      self.set("inProgress", false);
+    }.bind(this)).catch(function(data){
+      self.set("assetErrorMsg", "There is some problem while fetching assets. Please try again.");
+      self.set("inProgress", false);
+    });
+
   }.on('didInsertElement'),
   initializeFuseSearch() {
      this.set('fuse', new Fuse(this.get("assetList"), this.get('fuseSearchOptions')));

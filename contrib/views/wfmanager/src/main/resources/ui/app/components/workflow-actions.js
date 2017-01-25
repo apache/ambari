@@ -16,10 +16,15 @@
 */
 
 import Ember from 'ember';
+import Constants from '../utils/constants';
+
 export default Ember.Component.extend({
   clipboardHasContents : Ember.computed.oneWay('clipboard', function(){
     return !Ember.isEmpty(this.get('clipboard'));
   }),
+  initialize : function(){
+    this.set('customActionEnabled', Constants.customActionEnabled);
+  }.on('init'),
   actions : {
     addAction : function(type){
       this.$(".dr_action").css("background-color", "#fff");

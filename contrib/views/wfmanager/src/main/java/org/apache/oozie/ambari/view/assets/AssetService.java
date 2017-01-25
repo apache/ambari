@@ -112,4 +112,8 @@ public class AssetService {
   public Collection<ActionAsset> getMyAssets() {
     return assetRepo.getMyAsets(viewContext.getUsername());
   }
+
+  public boolean isAssetNameAvailable(String name) {
+    return assetRepo.assetNameAvailable(name);
+  }
 }

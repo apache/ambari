@@ -908,9 +908,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     suggestedMinContainerRam = 1024   # new smaller value for YARN min container
     callContext = getCallContext(services)
 
+    operation = getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
+    if operation:
+      Logger.info("user operation context : " + str(operation))
+
     if services:  # its never None but some unit tests pass it as None
-      if None != getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
-              'recommendConfigurations' != callContext:
+      # If min container value is changed (user is changing it)
+      # if its a validation call - just used what ever value is set
+      # If its not a cluster create or add yarn service (TBD)
+      if (getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
+              'recommendConfigurations' != callContext) and operation != DefaultStackAdvisor.CLUSTER_CREATE_OPERATION:
         '''yarn.scheduler.minimum-allocation-mb has changed - then pick this value up'''
         if "yarn-site" in services["configurations"] and \
                 "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
@@ -1255,7 +1262,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                   if collectorHostName in component["StackServiceComponents"]["hostnames"]:
                     hostComponents.append(component["StackServiceComponents"]["component_name"])
 
-            requiredMemory = getMemorySizeRequired(hostComponents, configurations)
+            requiredMemory = self.getMemorySizeRequired(services, hostComponents, configurations)
             unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
 
             heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
@@ -1342,6 +1349,35 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           heapsize = '1024m'
         totalMemoryRequired += self.formatXmxSizeToBytes(heapsize)
     return totalMemoryRequired
+
+  def get_yarn_nm_mem_in_mb(self, services, configurations):
+    """
+    Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb).
+    Reads from:
+      - configurations (if changed as part of current Stack Advisor invocation (output)), and services["changed-configurations"]
+        is empty, else
+      - services['configurations'] (input).
+
+    services["changed-configurations"] would be empty is Stack Advisor call if made from Blueprints (1st invocation). Subsequent
+    Stack Advisor calls will have it non-empty. We do this because in subsequent invocations, even if Stack Advsior calculates this
+    value (configurations), it is finally not recommended, making 'input' value to survive.
+    """
+    yarn_nm_mem_in_mb = None
+
+    yarn_site = getServicesSiteProperties(services, "yarn-site")
+    yarn_site_properties = getSiteProperties(configurations, "yarn-site")
+
+    # Check if services["changed-configurations"] is empty and 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
+    if not ("changed-configurations" in services and services["changed-configurations"]) and yarn_site_properties and 'yarn.nodemanager.resource.memory-mb' in yarn_site_properties:
+      yarn_nm_mem_in_mb = float(yarn_site_properties['yarn.nodemanager.resource.memory-mb'])
+    elif yarn_site and 'yarn.nodemanager.resource.memory-mb' in yarn_site:
+      # Check if 'yarn.nodemanager.resource.memory-mb' is input in services array.
+      yarn_nm_mem_in_mb = float(yarn_site['yarn.nodemanager.resource.memory-mb'])
+
+    if yarn_nm_mem_in_mb <= 0.0:
+      Logger.warning("'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(yarn_nm_mem_in_mb))
+
+    return yarn_nm_mem_in_mb
 
   def getPreferredMountPoints(self, hostInfo):
 
@@ -1431,10 +1467,37 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     clusterEnv = getSiteProperties(configurations, "cluster-env")
-    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
+
+    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorGreaterThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.nodemanager.linux-container-executor.group', "item": self.validatorEqualsPropertyItem(properties, "yarn.nodemanager.linux-container-executor.group", clusterEnv, "user_group")},
-                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorGreaterThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+    nmMemory = int(self.get_yarn_nm_mem_in_mb(services, configurations))
+    if "items" in hosts and len(hosts["items"]) > 0:
+      nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
+      nmLowMemoryHosts = []
+      # NodeManager host with least memory is generally used in calculations as it will work in larger hosts.
+      if nodeManagerHosts is not None and len(nodeManagerHosts) > 0:
+        for nmHost in nodeManagerHosts:
+          nmHostName = nmHost["Hosts"]["host_name"]
+          componentNames = []
+          for service in services["services"]:
+            for component in service["components"]:
+              if not self.isClientComponent(component) and component["StackServiceComponents"]["hostnames"] is not None:
+                if nmHostName in component["StackServiceComponents"]["hostnames"]:
+                  componentNames.append(component["StackServiceComponents"]["component_name"])
+          requiredMemory = self.getMemorySizeRequired(services, componentNames, configurations)
+          unusedMemory = int((nmHost["Hosts"]["total_mem"] * 1024 - requiredMemory)/ (1024 * 1024)) # in MB
+          if nmMemory > unusedMemory:
+            nmLowMemoryHosts.append(nmHostName)
+
+        if len(nmLowMemoryHosts) > 0:
+          validationItems.append({"config-name": "yarn.nodemanager.resource.memory-mb",
+            "item": self.getWarnItem(
+                "Node manager hosts with high memory usage found (examples : {0}). Consider reducing the allocated "
+                "memory for containers or moving other co-located components "
+                "to a different host.".format(",".join(nmLowMemoryHosts[:3])))})
+
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1712,9 +1775,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 def getCallContext(services):
   if services:
-    if 'context' in services:
-      Logger.info("context : " + str (services['context']))
-      return services['context']['call_type']
+    if DefaultStackAdvisor.ADVISOR_CONTEXT in services:
+      Logger.info("call type context : " + str(services[DefaultStackAdvisor.ADVISOR_CONTEXT]))
+      return services[DefaultStackAdvisor.ADVISOR_CONTEXT][DefaultStackAdvisor.CALL_TYPE]
   return ""
 
 
@@ -1725,6 +1788,14 @@ def getOldValue(self, services, configType, propertyName):
       for changedConfig in changedConfigs:
         if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
           return changedConfig["old_value"]
+  return None
+
+def getUserOperationContext(services, contextName):
+  if services:
+    if 'user-context' in services.keys():
+      userContext = services["user-context"]
+      if contextName in userContext:
+        return userContext[contextName]
   return None
 
 # Validation helper methods

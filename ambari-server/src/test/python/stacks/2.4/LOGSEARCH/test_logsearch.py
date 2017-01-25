@@ -149,39 +149,6 @@ class TestLogSearch(RMFTestCase):
                               group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
-
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_hadoop_logs_0.[0-9]* --config-set hadoop_logs --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_hadoop_logs_0.[0-9]*',
-                                    content=InlineTemplate(self.getConfig()['configurations']['logsearch-service_logs-solrconfig']['content']),
-                                    only_if='test -d /tmp/solr_config_hadoop_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_hadoop_logs_0.[0-9]* --config-set hadoop_logs --retry 30 --interval 5',
-                                    only_if='test -d /tmp/solr_config_hadoop_logs_0.[0-9]*')
-
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf --config-set hadoop_logs --retry 30 --interval 5',
-                                    not_if='test -d /tmp/solr_config_hadoop_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_hadoop_logs_0.[0-9]*',
-                                    action=['delete'],
-                                    create_parents=True)
-
-
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_history_0.[0-9]* --config-set history --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/history/conf --config-set history --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_history_0.[0-9]*',
-                                    action=['delete'],
-                                    create_parents=True)
-
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_audit_logs_0.[0-9]* --config-set audit_logs --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_audit_logs_0.[0-9]*',
-                                    content=InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content']),
-                                    only_if='test -d /tmp/solr_config_audit_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_audit_logs_0.[0-9]* --config-set audit_logs --retry 30 --interval 5',
-                                    only_if='test -d /tmp/solr_config_audit_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf --config-set audit_logs --retry 30 --interval 5',
-                                    not_if='test -d /tmp/solr_config_audit_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_audit_logs_0.[0-9]*',
-                                    action=['delete'],
-                                    create_parents=True)
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo = True
     )

@@ -2059,4 +2059,22 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#setButtonClickFinish', function () {
+
+    beforeEach(function () {
+      installerStep7Controller.set('submitButtonClicked', true);
+      App.set('router.nextBtnClickInProgress', true);
+      installerStep7Controller.setButtonClickFinish();
+    });
+
+    it('submitButtonClicked should be false', function () {
+      expect(installerStep7Controller.get('submitButtonClicked')).to.be.false;
+    });
+
+    it('nextBtnClickInProgress should be false', function () {
+      expect(App.get('router.nextBtnClickInProgress')).to.be.false;
+    });
+
+  });
+
 });

@@ -22,6 +22,11 @@
       "min_version": "2.2.0.0"
     },
     {
+      "name": "secure_zookeeper",
+      "description": "Protect ZNodes with SASL acl in secure clusters",
+      "min_version": "2.6.0.0"
+    },
+    {
       "name": "config_versioning",
       "description": "Configurable versions support",
       "min_version": "2.3.0.0"
@@ -371,6 +376,11 @@
     {
       "name": "atlas_hdfs_site_on_namenode_ha",
       "description": "Need to create hdfs-site under atlas-conf dir when Namenode-HA is enabled.",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "hive_interactive_ga",
+      "description": "Hive Interactive GA support",
       "min_version": "2.6.0.0"
     }
   ]

@@ -137,7 +137,7 @@ export default Ember.Route.extend({
       res.pageSize = len;
       res.totalValue = res.total;
       res.page = page;
-      res.start = start;
+      res.start = res.total > 0 ? start : 0;
       res.end = (start + res.jobs.length - 1);
       res.time = new Date().getTime();
       this.controllerFor('design.dashboardtab').set('model', res);

@@ -55,6 +55,9 @@
           <li class="dr_action disabled hide" data-name="Stream" data-type="stream"> <i class="fa fa-exchange"></i> Stream </li>
           <li {{action 'addAction' 'email'}} class="dr_action  enabled" data-name="Email" data-type="email"> <i class="fa fa-envelope"></i> Email </li>
           <li {{action 'addAction' 'fs'}} class="dr_action  enabled" data-name="fs" data-type="fs"> <i class="fa fa-folder-o"></i> FS </li>
+          {{#if customActionEnabled}}
+            <li {{action 'addAction' 'custom'}} class="dr_action  enabled" data-name="custom" data-type="custom"> <i class="fa fa-magic" aria-hidden="true"></i> Custom </li>
+          {{/if}}
       </ul>
     </div>
     <div class="clearfix"></div>

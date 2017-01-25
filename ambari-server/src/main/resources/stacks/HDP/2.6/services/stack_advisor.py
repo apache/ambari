@@ -105,6 +105,9 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       if "KAFKA" in servicesList:
           extensions_load_list = self.addToList(extensions_load_list, "druid-kafka-indexing-service")
 
+      if 'AMBARI_METRICS' in servicesList:
+        extensions_load_list = self.addToList(extensions_load_list, "ambari-metrics-emitter")
+
       putCommonProperty('druid.extensions.loadList', extensions_load_list)
 
       # JVM Configs go to env properties

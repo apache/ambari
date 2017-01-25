@@ -421,7 +421,8 @@
             "num_llap_nodes" : "1",
             "num_retries_for_checking_llap_status" : 2,
             "llap_heap_size":"280",
-            "llap_log_level":"INFO"
+            "llap_log_level":"INFO",
+            "llap_app_name":"llap0"
         },
         "hive-interactive-site": {
             "hive.enforce.sorting": "true",

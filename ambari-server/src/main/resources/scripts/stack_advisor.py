@@ -42,6 +42,10 @@ STACK_ADVISOR_DEFAULT_IMPL_CLASS = 'DefaultStackAdvisor'
 STACK_ADVISOR_IMPL_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, './../stacks/{0}/{1}/services/stack_advisor.py')
 STACK_ADVISOR_IMPL_CLASS_TEMPLATE = '{0}{1}StackAdvisor'
 
+ADVISOR_CONTEXT = "advisor_context"
+CALL_TYPE = "call_type"
+
+
 
 class StackAdvisorException(Exception):
   pass
@@ -100,23 +104,23 @@ def main(argv=None):
   hosts = stackAdvisor.filterHostMounts(hosts, services)
 
   if action == RECOMMEND_COMPONENT_LAYOUT_ACTION:
-    services['context'] = {'call_type': 'recommendComponentLayout'}
+    services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendComponentLayout'}
     result = stackAdvisor.recommendComponentLayout(services, hosts)
     result_file = os.path.join(actionDir, "component-layout.json")
   elif action == VALIDATE_COMPONENT_LAYOUT_ACTION:
-    services['context'] = {'call_type': 'validateComponentLayout'}
+    services[ADVISOR_CONTEXT] = {CALL_TYPE : 'validateComponentLayout'}
     result = stackAdvisor.validateComponentLayout(services, hosts)
     result_file = os.path.join(actionDir, "component-layout-validation.json")
   elif action == RECOMMEND_CONFIGURATIONS:
-    services['context'] = {'call_type': 'recommendConfigurations'}
+    services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurations'}
     result = stackAdvisor.recommendConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
-    services['context'] = {'call_type': 'recommendConfigurationDependencies'}
+    services[ADVISOR_CONTEXT] = {CALL_TYPE : 'recommendConfigurationDependencies'}
     result = stackAdvisor.recommendConfigurationDependencies(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
   else:  # action == VALIDATE_CONFIGURATIONS
-    services['context'] = {'call_type': 'validateConfigurations'}
+    services[ADVISOR_CONTEXT] = {CALL_TYPE: 'validateConfigurations'}
     result = stackAdvisor.validateConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations-validation.json")
 

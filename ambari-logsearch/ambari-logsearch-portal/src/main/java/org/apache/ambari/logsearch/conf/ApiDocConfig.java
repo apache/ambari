@@ -45,7 +45,6 @@ public class ApiDocConfig {
   public BeanConfig swaggerConfig() throws UnknownHostException {
     BeanConfig beanConfig = new BeanConfig();
     beanConfig.setSchemes(new String[]{"http", "https"});
-    beanConfig.setHost(InetAddress.getLocalHost().getHostAddress() + ":61888"); // TODO: port from property
     beanConfig.setBasePath("/api/v1");
     beanConfig.setTitle("Log Search REST API");
     beanConfig.setDescription("Log aggregation, analysis, and visualization.");

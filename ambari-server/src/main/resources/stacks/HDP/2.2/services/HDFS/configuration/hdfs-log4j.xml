@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="false" supports_adding_forbidden="true">
+<configuration supports_final="false" supports_adding_forbidden="false">
     <property>
     <name>hadoop_security_log_max_backup_size</name>
     <value>256</value>
@@ -53,7 +53,7 @@
   </property>
   <property>
     <name>hadoop_log_number_of_backup_files</name>
-    <value>20</value>
+    <value>10</value>
     <description>The number of backup files</description>
     <display-name>Hadoop Log: # of backup files</display-name>
     <value-attributes>

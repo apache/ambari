@@ -24,6 +24,7 @@ angular.module('ambariAdminConsole')
     admin: $t('users.ambariAdmin'),
     users: $t('common.users').toLowerCase()
   };
+  $scope.isLoading = false;
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;
@@ -44,6 +45,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.loadUsers = function(){
+    $scope.isLoading = true;
     User.list({
       currentPage: $scope.currentPage,
       usersPerPage: $scope.usersPerPage,
@@ -52,6 +54,7 @@ angular.module('ambariAdminConsole')
       active: $scope.currentActiveFilter.value,
       admin: $scope.adminFilter
     }).then(function(data) {
+      $scope.isLoading = false;
       $scope.totalUsers = data.data.itemTotal;
       $scope.users = data.data.items.map(User.makeUser);
       $scope.tableInfo.showed = data.data.items.length;

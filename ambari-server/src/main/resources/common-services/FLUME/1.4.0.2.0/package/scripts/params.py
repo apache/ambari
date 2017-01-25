@@ -22,6 +22,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import get_kinit_path
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 
 if OSCheck.is_windows_family():
@@ -40,7 +41,11 @@ version = default("/commandParams/version", None)
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
-security_enabled = False
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+if security_enabled :
+    _hostname_lowercase = config['hostname'].lower()
+    flume_jaas_princ = config['configurations']['flume-env']['flume_principal_name']
+    flume_keytab_path = config['configurations']['flume-env']['flume_keytab_path']
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
@@ -125,3 +130,8 @@ if not len(default("/clusterHostInfo/zookeeper_hosts", [])) == 0:
   # last port config
   zookeeper_quorum += ':' + zookeeper_clientPort
 
+# smokeuser
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']

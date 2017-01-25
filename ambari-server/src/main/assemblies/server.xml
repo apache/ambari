@@ -237,6 +237,11 @@
       <outputDirectory>/var/lib/ambari-server/</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
+      <source>conf/unix/create-python-wrap.sh</source>
+      <outputDirectory>/var/lib/ambari-server/</outputDirectory>
+    </file>
+    <file>
       <fileMode>700</fileMode>
       <source>conf/unix/install-helper.sh</source>
       <outputDirectory>/var/lib/ambari-server/</outputDirectory>

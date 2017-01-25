@@ -937,63 +937,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param componentName
    */
   addComponent: function (componentName) {
-    var self = this;
     var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
-    var componentDisplayName = component.get('displayName');
 
     App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-      return App.ModalPopup.show({
-        primary: Em.computed.ifThenElse('anyHostsWithoutComponent', Em.I18n.t('hosts.host.addComponent.popup.confirm'), undefined),
-
-        header: Em.I18n.t('popup.confirmation.commonHeader'),
-
-        addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
-
-        selectHostMsg: Em.computed.i18nFormat('services.summary.selectHostForComponent', 'componentDisplayName'),
-
-        thereIsNoHostsMsg: Em.computed.i18nFormat('services.summary.allHostsAlreadyRunComponent', 'componentDisplayName'),
-
-        hostsWithoutComponent: function () {
-          var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
-          var result = App.get('allHostNames');
-
-          hostsWithComponent.forEach(function (host) {
-            result = result.without(host);
-          });
-
-          return result;
-        }.property(),
-
-        anyHostsWithoutComponent: Em.computed.gt('hostsWithoutComponent.length', 0),
-
-        selectedHost: null,
-
-        componentName: componentName,
-
-        componentDisplayName: componentDisplayName,
-
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/service/add_host_popup')
-        }),
-
-        onPrimary: function () {
-          var selectedHost = this.get('selectedHost');
-
-          // Install
-          if (['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost) {
-            App.router.get('mainHostDetailsController').addComponentWithCheck(
-                {
-                  context: component,
-                  selectedHost: selectedHost
-                }
-            );
-          } else {
-            self.installHostComponentCall(selectedHost, component);
-          }
-
-          this.hide();
+      App.router.get('mainHostDetailsController').addComponentWithCheck(
+        {
+          context: component,
+          selectedHost: null
         }
-      });
+      );
     });
   },
 
@@ -1358,6 +1310,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: popupPrimary,
       primaryClass: 'btn-danger',
       disablePrimary: Em.computed.alias('controller.isRecommendationInProgress'),
+      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper', 'controller.changedProperties.length:modal-full-width'],
+      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-lg'], []),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/delete_service_warning_popup'),
         warningMessage: new Em.Handlebars.SafeString(warningMessage)

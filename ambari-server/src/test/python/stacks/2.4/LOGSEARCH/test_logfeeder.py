@@ -84,6 +84,9 @@ class TestLogFeeder(RMFTestCase):
                               properties={'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
                                           'logfeeder.config.files': 'output.config.json,input.config-ambari.json,global.config.json,input.config-logsearch.json,input.config-zookeeper.json',
                                           'logfeeder.metrics.collector.hosts': '',
+                                          'logfeeder.metrics.collector.path': '/ws/v1/timeline/metrics',
+                                          'logfeeder.metrics.collector.port': '',
+                                          'logfeeder.metrics.collector.protocol': '',
                                           'logfeeder.solr.core.config.name': 'history',
                                           'logfeeder.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
                                          }

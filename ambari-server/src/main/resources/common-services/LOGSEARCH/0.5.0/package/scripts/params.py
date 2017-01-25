@@ -33,6 +33,16 @@ def get_port_from_url(address):
   else:
     return address
 
+def get_name_from_principal(principal):
+  if not principal:  # return if empty
+    return principal
+  slash_split = principal.split('/')
+  if len(slash_split) == 2:
+    return slash_split[0]
+  else:
+    at_split = principal.split('@')
+    return at_split[0]
+
 
 # config object that holds the configurations declared in the -site.xml file
 config = Script.get_config()
@@ -69,12 +79,19 @@ logfeeder_metadata = get_logfeeder_metadata(logserch_meta_configs)
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:
-  metrics_collector_hosts_list = ",".join(config['clusterHostInfo']['metrics_collector_hosts'])
-  metrics_collector_port = str(
-    get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
-  metrics_collector_hosts = format('http://{metrics_collector_hosts_list}:{metrics_collector_port}/ws/v1/timeline/metrics')
+  metrics_http_policy = config['configurations']['ams-site']['timeline.metrics.service.http.policy']
+  metrics_collector_protocol = 'http'
+  if metrics_http_policy == 'HTTPS_ONLY':
+    metrics_collector_protocol = 'https'
+    
+  metrics_collector_hosts = ",".join(config['clusterHostInfo']['metrics_collector_hosts'])
+  metrics_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
+  metrics_collector_path = '/ws/v1/timeline/metrics'
 else:
+  metrics_collector_protocol = ''
   metrics_collector_hosts = ''
+  metrics_collector_port = ''
+  metrics_collector_path = ''
 
 #####################################
 # Infra Solr configs
@@ -141,8 +158,6 @@ else:
 
 zookeeper_quorum = logsearch_solr_zk_quorum
 
-
-
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
@@ -172,8 +187,6 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 # Log dirs
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
-hst_log_dir = '/var/log/hst'
-hst_activity_log_dir = '/var/log/smartsense-activity'
 nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 
 # System logs
@@ -222,6 +235,14 @@ logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 
 logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
 
+logsearch_acls = ''
+if 'infra-solr-env' in config['configurations'] and security_enabled and not logsearch_use_external_solr:
+  acl_infra_solr_principal = get_name_from_principal(config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'])
+  acl_logsearch_principal = get_name_from_principal(config['configurations']['logsearch-env']['logsearch_kerberos_principal'])
+  logsearch_acls = format('world:anyone:r,sasl:{acl_infra_solr_principal}:cdrwa,sasl:{acl_logsearch_principal}:cdrwa')
+  logsearch_properties['logsearch.solr.zk.acls'] = logsearch_acls
+  logsearch_properties['logsearch.solr.audit.logs.zk.acls'] = logsearch_acls
+
 # load config values
 
 logsearch_properties = dict(logsearch_properties.items() + dict(config['configurations']['logsearch-properties']).items())
@@ -249,6 +270,10 @@ logsearch_collection_service_logs_numshards = logsearch_properties['logsearch.co
 logsearch_solr_collection_audit_logs = logsearch_properties['logsearch.solr.collection.audit.logs']
 logsearch_audit_logs_split_interval_mins = logsearch_properties['logsearch.audit.logs.split.interval.mins']
 logsearch_collection_audit_logs_numshards = logsearch_properties['logsearch.collection.audit.logs.numshards']
+
+# check if logsearch uses ssl in any way
+
+logsearch_use_ssl = logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl
 
 #####################################
 # Logfeeder configs
@@ -328,6 +353,10 @@ logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_pro
 logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['logfeeder.config.files'])
 logfeeder_properties['logfeeder.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
 
+logfeeder_properties['logfeeder.metrics.collector.protocol'] = metrics_collector_protocol
+logfeeder_properties['logfeeder.metrics.collector.port'] = metrics_collector_port
+logfeeder_properties['logfeeder.metrics.collector.path'] = '/ws/v1/timeline/metrics'
+
 if logsearch_solr_kerberos_enabled:
   if 'logfeeder.solr.kerberos.enable' not in logfeeder_properties:
     logfeeder_properties['logfeeder.solr.kerberos.enable'] = 'true'
@@ -335,6 +364,10 @@ if logsearch_solr_kerberos_enabled:
     logfeeder_properties['logfeeder.solr.jaas.file'] = logfeeder_jaas_file
 
 logfeeder_checkpoint_folder = logfeeder_properties['logfeeder.checkpoint.folder']
+
+# check if logfeeder uses ssl in any way
+
+logfeeder_use_ssl = logsearch_solr_ssl_enabled or metrics_collector_protocol == 'https'
 
 #####################################
 # Smoke command

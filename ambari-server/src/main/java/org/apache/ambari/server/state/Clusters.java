@@ -239,8 +239,7 @@ public interface Clusters {
    * Removes a host.  Inverts {@link #addHost(String)}
    * @param hostname
    */
-  void deleteHost(String hostname)
-      throws AmbariException;
+  void deleteHost(String hostname) throws AmbariException;
 
   /**
    * Publish event set of hosts were removed

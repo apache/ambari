@@ -72,6 +72,8 @@ public class AmbariAuthorizationFilterTest {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
+    urlTests.put("/api/v1/clusters/cluster/", "GET",  true);  // This should probably be an invalid URL, but Ambari seems to allow it.
+    urlTests.put("/api/v1/clusters/cluster/", "POST",  true); // This should probably be an invalid URL, but Ambari seems to allow it.
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
@@ -113,6 +115,8 @@ public class AmbariAuthorizationFilterTest {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
+    urlTests.put("/api/v1/clusters/cluster/", "GET",  true);  // This should probably be an invalid URL, but Ambari seems to allow it.
+    urlTests.put("/api/v1/clusters/cluster/", "POST",  true); // This should probably be an invalid URL, but Ambari seems to allow it.
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
@@ -154,6 +158,8 @@ public class AmbariAuthorizationFilterTest {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
+    urlTests.put("/api/v1/clusters/cluster/", "GET",  true);  // This should probably be an invalid URL, but Ambari seems to allow it.
+    urlTests.put("/api/v1/clusters/cluster/", "POST",  true); // This should probably be an invalid URL, but Ambari seems to allow it.
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
@@ -195,6 +201,8 @@ public class AmbariAuthorizationFilterTest {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
+    urlTests.put("/api/v1/clusters/cluster/", "GET",  true);  // This should probably be an invalid URL, but Ambari seems to allow it.
+    urlTests.put("/api/v1/clusters/cluster/", "POST",  true); // This should probably be an invalid URL, but Ambari seems to allow it.
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
@@ -236,6 +244,8 @@ public class AmbariAuthorizationFilterTest {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
+    urlTests.put("/api/v1/clusters/cluster/", "GET",  true);  // This should probably be an invalid URL, but Ambari seems to allow it.
+    urlTests.put("/api/v1/clusters/cluster/", "POST",  true); // This should probably be an invalid URL, but Ambari seems to allow it.
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);

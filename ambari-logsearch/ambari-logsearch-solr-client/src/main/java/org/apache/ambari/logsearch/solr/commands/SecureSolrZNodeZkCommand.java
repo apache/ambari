@@ -23,6 +23,8 @@ import org.apache.ambari.logsearch.solr.util.AclUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.SolrZooKeeper;
+import org.apache.solr.common.cloud.ZkConfigManager;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
@@ -52,9 +54,13 @@ public class SecureSolrZNodeZkCommand extends AbstractZookeeperRetryCommand<Bool
 
     String configsPath = String.format("%s/%s", zNode, "configs");
     String collectionsPath = String.format("%s/%s", zNode, "collections");
-    List<String> exlustePaths = Arrays.asList(configsPath, collectionsPath);
+    String aliasesPath = String.format("%s/%s", zNode, "aliases.json"); // TODO: protect this later somehow
+    List<String> excludePaths = Arrays.asList(configsPath, collectionsPath, aliasesPath);
 
-    AclUtils.setRecursivelyOn(client.getSolrZkClient().getSolrZooKeeper(), zNode, newAclList, exlustePaths);
+    createZnodeIfNeeded(configsPath, client.getSolrZkClient());
+    createZnodeIfNeeded(collectionsPath, client.getSolrZkClient());
+
+    AclUtils.setRecursivelyOn(client.getSolrZkClient().getSolrZooKeeper(), zNode, newAclList, excludePaths);
 
     List<ACL> commonConfigAcls = new ArrayList<>();
     commonConfigAcls.addAll(saslUserList);
@@ -70,5 +76,12 @@ public class SecureSolrZNodeZkCommand extends AbstractZookeeperRetryCommand<Bool
     AclUtils.setRecursivelyOn(solrZooKeeper, collectionsPath, saslUserList);
 
     return true;
+  }
+
+  private void createZnodeIfNeeded(String configsPath, SolrZkClient zkClient) throws KeeperException, InterruptedException {
+    if (!zkClient.exists(configsPath, true)) {
+      LOG.info("'{}' does not exist. Creating it ...", configsPath);
+      zkClient.makePath(configsPath, true);
+    }
   }
 }

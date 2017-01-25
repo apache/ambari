@@ -49,6 +49,7 @@ class StackFeature:
   CONFIG_VERSIONING = "config_versioning"
   FALCON_EXTENSIONS = "falcon_extensions"
   DATANODE_NON_ROOT = "datanode_non_root"
+  SECURE_ZOOKEEPER = "secure_zookeeper"
   REMOVE_RANGER_HDFS_PLUGIN_ENV = "remove_ranger_hdfs_plugin_env"
   RANGER = "ranger"
   RANGER_TAGSYNC_COMPONENT = "ranger_tagsync_component"
@@ -114,3 +115,4 @@ class StackFeature:
   CORE_SITE_FOR_RANGER_PLUGINS_SUPPORT='core_site_for_ranger_plugins'
   ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT="atlas_install_hook_package_support"
   ATLAS_HDFS_SITE_ON_NAMENODE_HA='atlas_hdfs_site_on_namenode_ha'
+  HIVE_INTERACTIVE_GA_SUPPORT='hive_interactive_ga'

@@ -23,6 +23,7 @@ angular.module('ambariAdminConsole')
     $scope.getConstant = function (key) {
       return $t('common.' + key).toLowerCase();
     };
+    $scope.isLoading = false;
     $scope.clusterName = $routeParams.clusterName;
     $scope.filter = {
       name: '',
@@ -94,6 +95,7 @@ angular.module('ambariAdminConsole')
 
     $scope.fetchRepos = function () {
       return Stack.allRepos($scope.filter, $scope.pagination).then(function (repos) {
+        $scope.isLoading = false;
         $scope.pagination.totalRepos = repos.itemTotal;
         $scope.repos = repos.items;
         $scope.tableInfo.total = repos.itemTotal;
@@ -151,6 +153,7 @@ angular.module('ambariAdminConsole')
     };
 
     $scope.loadAllData = function () {
+      $scope.isLoading = true;
       $scope.fetchStacks()
         .then(function () {
           return $scope.fetchClusters();

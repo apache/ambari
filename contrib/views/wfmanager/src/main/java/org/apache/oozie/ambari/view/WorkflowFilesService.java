@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 public class WorkflowFilesService {
   private final static Logger LOGGER = LoggerFactory
-    .getLogger(WorkflowFilesService.class);
+          .getLogger(WorkflowFilesService.class);
   private HDFSFileUtils hdfsFileUtils;
 
   public WorkflowFilesService(HDFSFileUtils hdfsFileUtils) {
@@ -35,86 +35,104 @@ public class WorkflowFilesService {
   }
 
   public String createFile(String appPath, String content,
-                                   boolean overwrite) throws IOException {
+                           boolean overwrite) throws IOException {
     return hdfsFileUtils.writeToFile(appPath, content,
-      overwrite);
+            overwrite);
   }
 
   public String createAssetFile(String appPath, String content,
                                 boolean overwrite) throws IOException {
     return hdfsFileUtils.writeToFile(appPath, content,
-      overwrite);
+            overwrite);
   }
 
   public InputStream readDraft(String appPath) throws IOException {
-    return hdfsFileUtils.read(getWorkflowDrafFileName(appPath));
+    return hdfsFileUtils.read(getWorkflowDraftFileName(appPath));
   }
 
   public InputStream readWorkflowXml(String appPath) throws IOException {
     return hdfsFileUtils.read(getWorkflowFileName(appPath));
   }
 
-  public String getWorkflowDrafFileName(String appPath) {
-    if (appPath.endsWith(".draft.json")){
+  public InputStream readAssset(String assetPath) throws IOException {
+    return hdfsFileUtils.read(getAssetFileName(assetPath));
+  }
+
+  public String getWorkflowDraftFileName(String appPath) {
+    if (appPath.endsWith(Constants.WF_DRAFT_EXTENSION)) {
       return appPath;
-    }else{
-      return getWorkflowFileName(appPath).concat(".draft.json");
+    } else if (appPath.endsWith(Constants.WF_EXTENSION)) {
+      String folderPath = appPath.substring(0, appPath.lastIndexOf(Constants.WF_EXTENSION));
+      return folderPath + Constants.WF_DRAFT_EXTENSION;
+    } else if (appPath.endsWith("/")) {
+      return appPath + Constants.DEFAULT_DRAFT_FILENAME;
+    } else {
+      return appPath + "/" + Constants.DEFAULT_DRAFT_FILENAME;
     }
   }
 
   public String getWorkflowFileName(String appPath) {
-    String workflowFile = null;
-    if (appPath.endsWith(".xml")) {
-      workflowFile = appPath;
+    if (appPath.endsWith(Constants.WF_EXTENSION)) {
+      return appPath;
+    } else if (appPath.endsWith(Constants.WF_DRAFT_EXTENSION)) {
+      String folderPath = appPath.substring(0, appPath.lastIndexOf(Constants.WF_DRAFT_EXTENSION));
+      return folderPath + Constants.WF_EXTENSION;
+    } else if (appPath.endsWith("/")) {
+      return appPath + Constants.DEFAULT_WORKFLOW_FILENAME;
     } else {
-      workflowFile = appPath + (appPath.endsWith("/") ? "" : "/")
-        + "workflow.xml";
+      return appPath + "/" + Constants.DEFAULT_WORKFLOW_FILENAME;
     }
-    return workflowFile;
   }
 
   public String getAssetFileName(String appPath) {
     String assetFile = null;
-    if (appPath.endsWith(".xml")) {
+    if (appPath.endsWith(Constants.WF_ASSET_EXTENSION)) {
       assetFile = appPath;
     } else {
       assetFile = appPath + (appPath.endsWith("/") ? "" : "/")
-        + "asset.xml";
+              + Constants.DEFAULT_WORKFLOW_ASSET_FILENAME;
     }
     return assetFile;
   }
 
   public void discardDraft(String workflowPath) throws IOException {
-    hdfsFileUtils.deleteFile(getWorkflowDrafFileName(workflowPath));
-
+    hdfsFileUtils.deleteFile(getWorkflowDraftFileName(workflowPath));
   }
 
   public WorkflowFileInfo getWorkflowDetails(String appPath) {
     WorkflowFileInfo workflowInfo = new WorkflowFileInfo();
     workflowInfo.setWorkflowPath(getWorkflowFileName(appPath));
     boolean draftExists = hdfsFileUtils
-      .fileExists(getWorkflowDrafFileName(appPath));
+            .fileExists(getWorkflowDraftFileName(appPath));
     workflowInfo.setDraftExists(draftExists);
     boolean workflowExists = hdfsFileUtils.fileExists(getWorkflowFileName(appPath));
     FileStatus workflowFileStatus = null;
     if (workflowExists) {
       workflowFileStatus = hdfsFileUtils
-        .getFileStatus(getWorkflowFileName(appPath));
+              .getFileStatus(getWorkflowFileName(appPath));
       workflowInfo.setWorkflowModificationTime(workflowFileStatus
-        .getModificationTime());
+              .getModificationTime());
     }
     if (draftExists) {
       FileStatus draftFileStatus = hdfsFileUtils
-        .getFileStatus(getWorkflowDrafFileName(appPath));
+              .getFileStatus(getWorkflowDraftFileName(appPath));
       workflowInfo.setDraftModificationTime(draftFileStatus
-        .getModificationTime());
+              .getModificationTime());
       if (!workflowExists) {
         workflowInfo.setIsDraftCurrent(true);
       } else {
         workflowInfo.setIsDraftCurrent(draftFileStatus.getModificationTime()
-          - workflowFileStatus.getModificationTime() > 0);
+                - workflowFileStatus.getModificationTime() > 0);
       }
     }
     return workflowInfo;
   }
+  public void deleteWorkflowFile(String fullWorkflowFilePath){
+    try {
+      hdfsFileUtils.deleteFile(fullWorkflowFilePath);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }
