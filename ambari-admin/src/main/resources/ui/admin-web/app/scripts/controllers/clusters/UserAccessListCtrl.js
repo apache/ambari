@@ -148,10 +148,12 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         var privilegesOfTypeUser = [];
         var privilegesOfTypeGroup = [];
         for (var i = 0; i < arrayOfPrivileges.length; i++) {
-          if(arrayOfPrivileges[i].PrivilegeInfo.principal_type === "GROUP"){
-            privilegesOfTypeGroup.push(arrayOfPrivileges[i]);
-          } else {
-            privilegesOfTypeUser.push(arrayOfPrivileges[i].PrivilegeInfo);
+          if(arrayOfPrivileges[i].PrivilegeInfo.permission_name != "VIEW.USER") {
+            if(arrayOfPrivileges[i].PrivilegeInfo.principal_type === "GROUP"){
+              privilegesOfTypeGroup.push(arrayOfPrivileges[i]);
+            } else {
+              privilegesOfTypeUser.push(arrayOfPrivileges[i].PrivilegeInfo);
+            }
           }
         }
 
@@ -204,8 +206,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         user.editable = (Cluster.ineditableRoles.indexOf(privilege.permission_name) === -1);
 
         arrayOfPrivileges.forEach(function(privilegeOfTypeGroup) {
-          if (privilegeOfTypeGroup.PrivilegeInfo.principal_type === "GROUP") {
-            privilegesOfTypeGroup.push(privilegeOfTypeGroup.PrivilegeInfo);
+          if(privilegeOfTypeGroup.PrivilegeInfo.permission_name != "VIEW.USER") {
+            if (privilegeOfTypeGroup.PrivilegeInfo.principal_type === "GROUP") {
+              privilegesOfTypeGroup.push(privilegeOfTypeGroup.PrivilegeInfo);
+            }
           }
         });
 
