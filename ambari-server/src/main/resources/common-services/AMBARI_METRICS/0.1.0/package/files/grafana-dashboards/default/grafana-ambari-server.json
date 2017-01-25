@@ -81,7 +81,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemHeapMax",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -93,7 +93,7 @@
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemHeapUsed",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -105,7 +105,7 @@
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemHeapCommitted",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -176,7 +176,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "MemNonHeapMax",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -280,7 +280,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -350,7 +350,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -420,7 +420,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -490,7 +490,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -569,7 +569,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Total",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -581,7 +581,7 @@
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Daemon",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -593,7 +593,7 @@
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Deadlock",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -605,7 +605,7 @@
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Blocked",
               "app": "ambari_server",
               "downsampleAggregator": "avg",
@@ -617,7 +617,7 @@
               "transform": "none"
             },
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "alias": "Runnable",
               "app": "ambari_server",
               "downsampleAggregator": "avg",

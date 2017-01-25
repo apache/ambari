@@ -309,7 +309,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "ns",
+            "none",
             "short"
           ]
         }
@@ -757,7 +757,7 @@
           "grid": {
             "leftLogBase": 1,
             "leftMax": null,
-            "leftMin": null,
+            "leftMin": 0,
             "rightLogBase": 1,
             "rightMax": null,
             "rightMin": null,
