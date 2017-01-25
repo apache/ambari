@@ -97,3 +97,43 @@ class TestVersionSelectUtil(TestCase):
     self.assertEquals(version, stack_expected_version)
     version = self.module.get_component_version("HDP", "hadoop-hdfs-datanode")
     self.assertEquals(version, stack_expected_version)
+
+  @patch('__builtin__.open')
+  @patch("resource_management.core.shell.call")
+  @patch('os.path.exists')
+  @patch("resource_management.libraries.functions.stack_tools.get_stack_tool")
+  def test_get_component_version_no_build_ids(self, get_stack_tool_mock, os_path_exists_mock, call_mock, open_mock):
+    stack_expected_version = "2.2.1.0"
+
+    # Mock classes for reading from a file
+    class MagicFile(object):
+      allowed_names = set(["hive-server2",
+                           "zookeeper-server"])
+      def read(self, value):
+        return (value + " - " + stack_expected_version) if value in self.allowed_names else ("ERROR: Invalid package - " + value)
+
+      def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+      def __enter__(self):
+        return self
+    pass
+
+    class MagicFile1(MagicFile):
+      def read(self):
+        return super(MagicFile1, self).read("hive-server2")
+    class MagicFile2(MagicFile):
+      def read(self):
+        return super(MagicFile2, self).read("zookeeper-server")
+
+    get_stack_tool_mock.side_effect = [("hdp-select", "/usr/bin/hdp-select", "hdp-select"),
+                                       ("hdp-select", "/usr/bin/hdp-select", "hdp-select")]
+    os_path_exists_mock.side_effect = [False, True, True, True]
+    open_mock.side_effect = [MagicFile1(), MagicFile2()]
+    call_mock.side_effect = [(0, "value will come from MagicFile"), ] * 2
+
+    # Pass
+    version = self.module.get_component_version("HDP", "hive-server2")
+    self.assertEquals(version, stack_expected_version)
+    version = self.module.get_component_version("HDP", "zookeeper-server")
+    self.assertEquals(version, stack_expected_version)
