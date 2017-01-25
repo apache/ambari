@@ -444,7 +444,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(validations[0], expected)
 
 
-  def test_validateYarnConfigurations(self):
+  def test_validateYARNConfigurations(self):
     properties = {'enable_hive_interactive': 'true',
                   'hive.tez.container.size': '2048', "yarn.nodemanager.linux-container-executor.group": "hadoop"}
     recommendedDefaults = {'enable_hive_interactive': 'true',
@@ -473,7 +473,7 @@ class TestHDP25StackAdvisor(TestCase):
     res_expected = [
       {'config-type': 'yarn-site', 'message': 'While enabling HIVE_SERVER_INTERACTIVE it is recommended that you enable work preserving restart in YARN.', 'type': 'configuration', 'config-name': 'yarn.resourcemanager.work-preserving-recovery.enabled', 'level': 'WARN'}
     ]
-    res = self.stackAdvisor.validateYarnConfigurations(properties, recommendedDefaults, configurations, services, {})
+    res = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
     pass
 
