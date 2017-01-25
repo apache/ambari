@@ -655,8 +655,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           var controller = (App.router.get('currentState.name') == 'configs')
             ? App.router.get('mainServiceInfoConfigsController')
             : App.router.get('wizardStep7Controller');
-          this.get('mainView').onClose();
-          controller.set('filter', event.view.get('serviceConfigObj.name'));
+          controller.set('filter', this.get('serviceConfigObj.name'));
+          this.get('parentView').onClose();
         }
       })
     });
