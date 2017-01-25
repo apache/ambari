@@ -253,10 +253,6 @@ class TestWebHCatServer(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a'
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-                              path = ['/bin'],
-                              user = 'hcat',
-                              )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
                               owner = 'hcat',
                               group = 'hadoop',

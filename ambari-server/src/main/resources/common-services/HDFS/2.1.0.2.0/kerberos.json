@@ -56,7 +56,7 @@
                 },
                 "group": {
                   "name": "${cluster-env/user_group}",
-                  "access": "r"
+                  "access": ""
                 },
                 "configuration": "hadoop-env/hdfs_user_keytab"
               }
