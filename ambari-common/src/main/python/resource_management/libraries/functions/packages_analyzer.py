@@ -186,7 +186,7 @@ def _lookUpZypperPackages(command, allPackages):
 def nameMatch(lookupName, actualName):
   tokens = actualName.strip().split()
   for token in tokens:
-    if token.lower().find(lookupName.lower()) == 0:
+    if lookupName.lower() in token.lower():
       return True
   return False
 
