@@ -112,7 +112,7 @@
               <span class="label-current label label-success icon-ok" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
           {{/if}}
           {{#if view.displayedServiceVersion.author}}
-            <strong>{{view.displayedServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
+            <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
           {{/if}}
         </div>
         {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
