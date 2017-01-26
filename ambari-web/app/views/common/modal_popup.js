@@ -86,6 +86,7 @@ App.ModalPopup = Ember.View.extend({
     var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
     if (!$.mocho) {
       this.$('#modal').modal({
+        keyboard: false,
         backdrop: false
       });
     }
