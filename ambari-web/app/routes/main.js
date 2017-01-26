@@ -42,7 +42,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                         router.get('mainController').initialize();
                       });
                     } else {
-                      App.router.transitionTo('main.views.index');
+                      // Don't transit to Views when user already on View page
+                      if (App.router.currentState.name !== 'viewDetails') {
+                        App.router.transitionTo('main.views.index');
+                      }
                       App.router.get('clusterController').set('isLoaded', true); // hide loading bar
                     }
                   });
