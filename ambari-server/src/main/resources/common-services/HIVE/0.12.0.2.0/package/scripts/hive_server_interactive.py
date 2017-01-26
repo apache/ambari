@@ -137,7 +137,10 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Stop Hive Interactive Server first
       hive_service_interactive('hiveserver2', action='stop')
 
-      self._llap_stop(env)
+      if not params.is_restart_command:
+        self._llap_stop(env)
+      else:
+        Logger.info("LLAP stop is skipped as its a restart command")
 
     def status(self, env):
       import status_params
