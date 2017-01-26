@@ -245,17 +245,17 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     var controllerName = this.get('content.controllerName');
     var changes = dataToSend.changed_configurations;
     if (changes) {
-      dataToSend['user-context'] = {"operation" : "EditConfig"};
+      dataToSend['user_context'] = {"operation" : "EditConfig"};
     } else {
       if (!controllerName) {
-        dataToSend['user-context'] = {"operation" : "RecommendAttribute"};
+        dataToSend['user_context'] = {"operation" : "RecommendAttribute"};
       } else if (controllerName == 'addServiceController') {
-        dataToSend['user-context'] = {
+        dataToSend['user_context'] = {
           "operation" : "AddService",
           "operation_details" : (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName').join(',')
         };
       } else if (controllerName == 'installerController'){
-        dataToSend['user-context'] = {"operation" : "ClusterCreate"};
+        dataToSend['user_context'] = {"operation" : "ClusterCreate"};
       }
     }
   },
