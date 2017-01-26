@@ -227,9 +227,16 @@ if hive_metastore_db_type == "mssql":
 #users
 hive_user = config['configurations']['hive-env']['hive_user']
 
+# is it a restart command
+is_restart_command = False
+if 'roleCommand' in config and 'CUSTOM_COMMAND' == config['roleCommand']:
+  if 'custom_command' in config['hostLevelParams'] and 'RESTART' == config['hostLevelParams']['custom_command']:
+    is_restart_command = True
+
 #JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 jdk_location = config['hostLevelParams']['jdk_location']
+
 java_share_dir = '/usr/share/java'
 hive_database_name = config['configurations']['hive-env']['hive_database_name']
 hive_database = config['configurations']['hive-env']['hive_database']
