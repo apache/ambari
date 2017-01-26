@@ -32,9 +32,7 @@ export default Ember.Component.extend({
       var filePathModel = this.get('filePathModel');
       if(filePathModel && filePathModel.hasOwnProperty("index") && filePathModel.hasOwnProperty("property")){
         var fileOperation = this.get('fsOps').objectAt(filePathModel.index);
-        var settings = fileOperation.settings;
-        Ember.set(settings, filePathModel.property, fileName);
-        Ember.set(fileOperation, "settings", settings);
+        Ember.set(fileOperation, filePathModel.property, fileName);
       }else{
         this.set(this.get('filePathModel'), fileName);
       }
