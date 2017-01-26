@@ -19,8 +19,10 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.util.Collection;
@@ -34,12 +36,12 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -139,4 +141,32 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
     verifyAll();
   }
+
+  @Test
+  public void testUpdateConfigForceSecurityEnabled() throws Exception {
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDir);
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+
+    Capture<String> configTypes = Capture.newInstance();
+    Capture<Map<String, String>> configUpdates = Capture.newInstance();
+    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(AmbariManagementController.class),
+        capture(configTypes), capture(configUpdates), anyObject(Collection.class), anyObject(String.class), anyObject(String.class));
+    expectLastCall().atLeastOnce();
+
+    replayAll();
+
+    action.setExecutionCommand(executionCommand);
+    action.execute(null);
+
+    assertEquals(configTypes.getValue(), "cluster-env");
+    assertEquals(configUpdates.getValue().get("security_enabled"), "false");
+    verifyAll();
+  }
+
+
 }
