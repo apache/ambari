@@ -24,6 +24,8 @@ import backtype.storm.generated.TopologySummary;
 import backtype.storm.metric.IClusterReporter;
 import backtype.storm.utils.NimbusClient;
 import backtype.storm.utils.Utils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -114,7 +116,12 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       collectorHosts = parseHostsStringIntoCollection(cf.get(COLLECTOR_HOSTS_PROPERTY).toString());
       protocol = cf.get(COLLECTOR_PROTOCOL) != null ? cf.get(COLLECTOR_PROTOCOL).toString() : "http";
       port = cf.get(COLLECTOR_PORT) != null ? cf.get(COLLECTOR_PORT).toString() : "6188";
-      zkQuorum = cf.get(ZOOKEEPER_QUORUM) != null ? cf.get(ZOOKEEPER_QUORUM).toString() : null;
+      Object zkQuorumObj = cf.get(COLLECTOR_ZOOKEEPER_QUORUM);
+      if (zkQuorumObj != null) {
+        zkQuorum = zkQuorumObj.toString();
+      } else {
+        zkQuorum = cf.get(ZOOKEEPER_QUORUM) != null ? cf.get(ZOOKEEPER_QUORUM).toString() : null;
+      }
 
       if (collectorUri.toLowerCase().startsWith("https://")) {
         String trustStorePath = cf.get(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();

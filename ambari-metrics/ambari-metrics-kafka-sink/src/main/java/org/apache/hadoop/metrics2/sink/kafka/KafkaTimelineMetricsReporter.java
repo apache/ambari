@@ -86,7 +86,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
   private int timeoutSeconds = 10;
-  private String zookeeperQuorum;
+  private String zookeeperQuorum = null;
 
   private String[] excludedMetricsPrefixes;
   private String[] includedMetricsPrefixes;
@@ -155,7 +155,9 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         int metricsSendInterval = props.getInt(TIMELINE_METRICS_SEND_INTERVAL_PROPERTY, MAX_EVICTION_TIME_MILLIS);
         int maxRowCacheSize = props.getInt(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY, MAX_RECS_PER_NAME_DEFAULT);
 
-        zookeeperQuorum = props.getString("zookeeper.connect");
+        zookeeperQuorum = props.containsKey(COLLECTOR_ZOOKEEPER_QUORUM) ?
+          props.getString(COLLECTOR_ZOOKEEPER_QUORUM) : props.getString("zookeeper.connect");
+
         metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
         collectorHosts = parseHostsStringIntoCollection(props.getString(TIMELINE_HOSTS_PROPERTY, TIMELINE_DEFAULT_HOST));
         metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);

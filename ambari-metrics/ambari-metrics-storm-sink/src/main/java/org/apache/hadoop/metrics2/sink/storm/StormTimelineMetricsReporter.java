@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -81,6 +82,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   protected String getCollectorPort() {
     return port;
   }
+
   @Override
   protected String getHostname() {
     return hostname;
@@ -106,7 +108,9 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       collectorHosts = parseHostsStringIntoCollection(conf.getProperty(COLLECTOR_HOSTS_PROPERTY).toString());
       port = conf.getProperty(COLLECTOR_PORT) != null ? conf.getProperty(COLLECTOR_PORT) : "6188";
       protocol = conf.getProperty(COLLECTOR_PROTOCOL, "http");
-      zkQuorum = conf.getProperty(ZOOKEEPER_QUORUM) != null ? conf.getProperty(ZOOKEEPER_QUORUM) : null;
+
+      zkQuorum = StringUtils.isEmpty(conf.getProperty(COLLECTOR_ZOOKEEPER_QUORUM)) ?
+        conf.getProperty(ZOOKEEPER_QUORUM) : conf.getProperty(COLLECTOR_ZOOKEEPER_QUORUM);
 
       timeoutSeconds = conf.getProperty(METRICS_POST_TIMEOUT_SECONDS) != null ?
         Integer.parseInt(conf.getProperty(METRICS_POST_TIMEOUT_SECONDS).toString()) :

@@ -70,6 +70,7 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String COLLECTOR_PROTOCOL = "protocol";
   public static final String COLLECTOR_PORT = "port";
   public static final String ZOOKEEPER_QUORUM = "zookeeper.quorum";
+  public static final String COLLECTOR_ZOOKEEPER_QUORUM = "metrics.zookeeper.quorum";
   public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
   public static final String SKIP_COUNTER_TRANSFROMATION = "skipCounterDerivative";
   public static final String RPC_METRIC_PREFIX = "metric.rpc";
