@@ -82,11 +82,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=%.TotalCount",
+              "metric": "dfs.NNTopUserOpCounts.windowMs=60000.op=%.TotalCount",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -152,11 +152,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=%.TotalCount",
+              "metric": "dfs.NNTopUserOpCounts.windowMs=300000.op=%.TotalCount",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -222,7 +222,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "none",
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -305,7 +305,7 @@
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=*.user=%.count",
+              "metric": "dfs.NNTopUserOpCounts.windowMs=60000.op=*.user=%.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -375,7 +375,7 @@
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
-              "metric": "dfs.NNTopUserOpCounts.windowMs=1500000.op=*.user=%.count",
+              "metric": "dfs.NNTopUserOpCounts.windowMs=300000.op=*.user=%.count",
               "precision": "default",
               "refId": "A",
               "seriesAggregator": "none",
@@ -526,7 +526,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -614,7 +614,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
@@ -702,7 +702,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "max",
+              "aggregator": "none",
               "app": "namenode",
               "downsampleAggregator": "avg",
               "errors": {},
