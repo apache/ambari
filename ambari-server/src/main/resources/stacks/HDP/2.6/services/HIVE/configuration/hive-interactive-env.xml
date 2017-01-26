@@ -49,6 +49,19 @@
     <display-name>LLAP app java opts</display-name>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>num_retries_for_checking_llap_status</name>
+    <value>15</value>
+    <description>After starting LLAP app, retry count to check LLAP status before starting HiveServer2.</description>
+    <display-name>Number of retries while checking LLAP app status</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
 
 
