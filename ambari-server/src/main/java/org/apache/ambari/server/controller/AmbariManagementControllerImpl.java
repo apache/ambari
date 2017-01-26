@@ -1447,6 +1447,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  @Transactional
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
