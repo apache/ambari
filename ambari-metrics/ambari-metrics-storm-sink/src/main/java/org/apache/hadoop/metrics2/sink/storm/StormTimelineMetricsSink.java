@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.storm.Constants;
 import org.apache.storm.metric.api.IMetricsConsumer;
 import org.apache.storm.task.IErrorReporter;
@@ -126,7 +127,10 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
     collectorHosts = parseHostsStringIntoCollection(configuration.getProperty(COLLECTOR_HOSTS_PROPERTY));
-    zkQuorum = configuration.getProperty("zookeeper.quorum");
+
+    zkQuorum = StringUtils.isEmpty(configuration.getProperty(COLLECTOR_ZOOKEEPER_QUORUM)) ?
+      configuration.getProperty("zookeeper.quorum") : configuration.getProperty(COLLECTOR_ZOOKEEPER_QUORUM);
+
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");
 
