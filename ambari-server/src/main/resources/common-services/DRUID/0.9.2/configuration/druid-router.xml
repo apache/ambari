@@ -49,7 +49,7 @@
   </property>
   <property>
     <name>druid.router.tierToBrokerMap</name>
-    <value>{}</value>
+    <value>{"_default_tier":"druid/broker"}</value>
     <description>
       Used to route queries for a certain tier of data to their appropriate broker. An ordered JSON map of
       tiers to broker names. The priority of brokers is based on the ordering.
