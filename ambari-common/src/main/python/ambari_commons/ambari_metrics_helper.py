@@ -24,6 +24,7 @@ from resource_management.libraries.functions import conf_select
 
 DEFAULT_COLLECTOR_SUFFIX = '.sink.timeline.collector.hosts'
 DEFAULT_METRICS2_PROPERTIES_FILE_NAME = 'hadoop-metrics2.properties'
+DEFAULT_HADOOP_CONF_DIR_PATH = '/usr/hdp/current/hadoop-client/conf/'
 
 def select_metric_collector_for_sink(sink_name):
   # TODO check '*' sink_name
@@ -42,7 +43,11 @@ def get_random_host(hosts):
   return random.choice(hosts)
 
 def get_metric_collectors_from_properties_file(sink_name):
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+  try:
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+  except Exception as e:
+    print "Can't get hadoop conf directory from conf_select.get_hadoop_conf_dir() - " + str(e)
+    hadoop_conf_dir = DEFAULT_HADOOP_CONF_DIR_PATH
   props = load_properties_from_file(os.path.join(hadoop_conf_dir, DEFAULT_METRICS2_PROPERTIES_FILE_NAME))
   return props.get(sink_name + DEFAULT_COLLECTOR_SUFFIX)
 
