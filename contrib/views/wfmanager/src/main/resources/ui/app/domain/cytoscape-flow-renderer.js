@@ -104,7 +104,7 @@ var CytoscapeRenderer= Ember.Object.extend({
       });
       if (node.transitions.length > 0) {
         node.transitions.forEach(function(transition){
-          if (transition.isOnError()){
+          if (transition.isOnError()|| transition.targetNode.isKillNode()){
             return;
           }
           self.get('dataNodes').pushObject(

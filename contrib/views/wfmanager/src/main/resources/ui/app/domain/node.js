@@ -151,6 +151,33 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     });
     return count;
   },
+  getDefaultConditionTarget(){
+    var target;
+    var transitions=this.get("transitions");
+    transitions.forEach(function(tran){
+      if (tran.condition==="default"){
+        target=tran.targetNode;
+      }
+    });
+    return target;
+  },
+  getNonKillNodeTarget(){
+    var nonKillNodeCount=0;
+    var nonKillNode;
+    var transitions=this.get("transitions");
+    transitions.forEach(function(tran){
+      if (!tran.targetNode.isKillNode()){
+        nonKillNodeCount++;
+        nonKillNode=tran.targetNode;
+      }
+    });
+    if (nonKillNodeCount>0){
+      return nonKillNode;
+    }else{
+      console.log("no non kill nodes transitions.");
+      return null;
+    }
+  },
   getDefaultTransitionTarget(){
     if (this.isForkNode()){
       return this.findNodeById(this,"join_"+this.get("id"));
@@ -161,12 +188,17 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     }else if (transitions.length===1){
       return transitions[0].targetNode;
     }
-    var target=transitions[0].targetNode;
-    transitions.forEach(function(tran){
-      if (tran.condition==="default"){
-        target=tran.targetNode;
+    var target;
+    if (this.isDecisionNode()){
+      var defaultTarget=this.getDefaultConditionTarget();
+      if (defaultTarget.isKillNode()){
+        target=this.getNonKillNodeTarget();
+      }else{
+        target=defaultTarget;
       }
-    });
+    }else{
+      target=transitions[0].targetNode;
+    }
     if (target.isPlaceholder()){
       return target.getDefaultTransitionTarget();
     }
@@ -206,6 +238,9 @@ var Node = Ember.Object.extend(FindNodeMixin,{
   },
   isDefaultKillNode(){
     return this.isKillNode() && this.get("name")===Constants.defaultKillNodeName;
+  },
+  isEndNode(){
+    return this.get("type")==="end";
   }
 });
 export {Node};
