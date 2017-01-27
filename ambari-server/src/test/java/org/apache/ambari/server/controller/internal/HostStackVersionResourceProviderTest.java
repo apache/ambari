@@ -21,11 +21,13 @@ package org.apache.ambari.server.controller.internal;
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -44,6 +46,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -72,6 +75,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
+import org.easymock.Capture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,6 +103,8 @@ public class HostStackVersionResourceProviderTest {
   private ResourceProviderFactory resourceProviderFactory;
   private ResourceProvider csvResourceProvider;
   private ActionManager actionManager;
+  private Capture<org.apache.ambari.server.actionmanager.Request> requestCapture;
+  private Capture<ExecuteActionRequest> executeActionRequestCapture;
   private HostVersionEntity hostVersionEntityMock;
   private RepositoryVersionEntity repoVersion;
   private Resource.Type type = Resource.Type.HostStackVersion;
@@ -337,6 +343,9 @@ public class HostStackVersionResourceProviderTest {
         anyObject(String.class))).andReturn(repoVersion);
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+    requestCapture = newCapture();
+    executeActionRequestCapture = newCapture();
+    actionManager.sendActions(capture(requestCapture), capture(executeActionRequestCapture));
 
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
@@ -384,6 +393,8 @@ public class HostStackVersionResourceProviderTest {
 
     // verify
     verify(managementController, response, clusters);
+
+    assertEquals(requestCapture.getValue().getStages().size(), 2);
   }
 
   @Test
