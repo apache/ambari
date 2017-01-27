@@ -24,7 +24,9 @@ public interface Constants {
   String MESSAGE_KEY = "message";
   String WF_DRAFT_EXTENSION = ".wfdraft";
   String WF_EXTENSION = ".xml";
-  String DEFAULT_WORKFLOW_FILENAME="workflow.xml";
+  String DEFAULT_WORKFLOW_FILENAME="workflow";
+  String DEFAULT_COORDINATOR_FILENAME="coordinator";
+  String DEFAULT_BUNDLE_FILENAME="bundle";
   String DEFAULT_DRAFT_FILENAME="workflow"+WF_DRAFT_EXTENSION;
   String WF_ASSET_EXTENSION = ".wfasset";
   String DEFAULT_WORKFLOW_ASSET_FILENAME="asset"+WF_ASSET_EXTENSION;

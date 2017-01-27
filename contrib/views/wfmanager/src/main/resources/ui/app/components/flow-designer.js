@@ -171,6 +171,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.sendAction('changeTabName', this.get('tabInfo'), this.get('workflow.name'));
     }
   }),
+  workflowFilePath : Ember.computed('tabInfo.filePath', function(){
+    return this.get('tabInfo.filePath');
+  }),
   showParentWorkflow(type, path){
     this.sendAction('openTab', type, path);
   },
@@ -301,10 +304,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var self = this;
     this.set("isWorkflowImporting", true);
     this.resetDesigner();
-    //this.set("isWorkflowImporting", true);
     var workflowXmlDefered=this.getWorkflowFromHdfs(filePath);
-    workflowXmlDefered.promise.then(function(data){
-      this.importWorkflowFromString(data);
+    workflowXmlDefered.promise.then(function(response){
+      if(response.type === 'xml'){
+        this.importWorkflowFromString(response.data);
+      }else {
+        this.importWorkflowFromJSON(response.data);
+      }
       this.set("isWorkflowImporting", false);
       this.set("workflowFilePath", filePath);
     }.bind(this)).catch(function(data){
@@ -331,8 +337,35 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.$('#wf_title').focus();
     }
   },
+  importWorkflowFromJSON(data){
+    var workflowImporter=WorkflowJsonImporter.create({});
+    var workflow=workflowImporter.importWorkflow(data);
+    this.resetDesigner();
+    this.set("workflow", workflow);
+    this.rerender();
+    this.doValidation();
+  },
   getWorkflowFromHdfs(filePath){
-    var url = Ember.ENV.API_URL + "/readWorkflowXml?workflowXmlPath="+filePath;
+    var url = Ember.ENV.API_URL + "/readWorkflow?workflowPath="+filePath+'&jobType=WORKFLOW';
+    var deferred = Ember.RSVP.defer();
+    Ember.$.ajax({
+      url: url,
+      method: 'GET',
+      dataType: "text",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        xhr.setRequestHeader("X-Requested-By", "Ambari");
+      }
+    }).done(function(data, status, xhr){
+      var type = xhr.getResponseHeader("response-type") === "xml" ? 'xml' : 'json';
+      deferred.resolve({data : data, type : type});
+    }).fail(function(data){
+      deferred.reject(data);
+    });
+    return deferred;
+  },
+  getAssetFromHdfs(filePath){
+    var url = Ember.ENV.API_URL + "/readAsset?assetPath="+filePath;
     var deferred = Ember.RSVP.defer();
     Ember.$.ajax({
       url: url,
@@ -439,7 +472,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('errors',[]);
     this.set('errorMsg',"");
     this.set('validationErrors',[]);
-    this.set('workflowFilePath',"");
     this.get("workflow").resetWorfklow();
     this.set('globalConfig', {});
     this.set('parameters', {});
@@ -811,7 +843,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.doValidation();
       this.scrollToNewPosition();
     },
-
     nameChanged(){
       this.doValidation();
     },
@@ -929,30 +960,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       var self = this, path = this.get('workflowFilePath');
       this.set("showingFileBrowser",false);
       if(path){
-        this.isDraftExists().promise.then(function(data){
-          var draftData = JSON.parse(data);
-          if(draftData.draftExists && draftData.isDraftCurrent){
-            self.getDraftWorkflowData(path).promise.then(function(data){
-              var workflowImporter=WorkflowJsonImporter.create({});
-              var workflow=workflowImporter.importWorkflow(data);
-
-              self.resetDesigner();
-              self.set("workflow",workflow);
-              self.rerender();
-              self.doValidation();
-
-            }.bind(this)).catch(function(data){
-
-            });
-
-            //deferred.resolve(workflow);
-          } else {
-            self.importWorkflow(path);
-          }
-        }.bind(this)).catch(function(data){
-          //self.importWorkflow(path);
-          console.error(data);
-        });
+          self.importWorkflow(path);
       }
     },
     showFileBrowser(){
@@ -1007,10 +1015,14 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set('showingExportActionNodeFileBrowser', true);
     },
     createNewWorkflow(){
-      this.resetDesigner();
-      this.rerender();
-      this.set("workflowFilePath", "");
-      this.$('#wf_title').focus();
+      if(Ember.isBlank(this.get('workflowFilePath'))){
+        this.resetDesigner();
+        this.rerender();
+        this.set("workflowFilePath", "");
+        this.$('#wf_title').focus();
+      }else{
+        this.importWorkflow(this.get('workflowFilePath'));
+      }
     },
     conirmCreatingNewWorkflow(){
       this.set('showingConfirmationNewWorkflow', true);

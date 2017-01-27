@@ -22,6 +22,7 @@ public class WorkflowFileInfo {
 	private String draftPath;
 	private Boolean draftExists;
 	private Boolean isDraftCurrent=false;
+	private Boolean workflowDefinitionExists=false;
 	public Boolean getIsDraftCurrent() {
 		return isDraftCurrent;
 	}
@@ -60,5 +61,8 @@ public class WorkflowFileInfo {
 	public Long getDraftModificationTime() {
 		return draftModificationTime;
 	}
-	
+
+	public void setWorkflowDefinitionExists(Boolean workflowDefinitionExists) {
+		this.workflowDefinitionExists = workflowDefinitionExists;
+	}
 }

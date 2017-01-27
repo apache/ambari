@@ -29,7 +29,7 @@ import java.util.Collection;
 
 public class WorkflowManagerService {
   private final static Logger LOGGER = LoggerFactory
-          .getLogger(WorkflowManagerService.class);
+    .getLogger(WorkflowManagerService.class);
   private final WorkflowsRepo workflowsRepository;
   private final WorkflowFilesService workflowFilesService;
 
@@ -46,18 +46,18 @@ public class WorkflowManagerService {
       Workflow workflowById = workflowsRepository.findById(projectId);
       if (workflowById == null) {
         throw new RuntimeException("could not find project with id :"
-                + projectId);
+          + projectId);
       }
       setWorkflowAttributes(jobType, userName, name, workflowById);
       workflowsRepository.update(workflowById);
 
     } else {
-      String workflowFileName = workflowFilesService.getWorkflowFileName(path);
+      String workflowFileName = workflowFilesService.getWorkflowFileName(path, jobType);
       Workflow workflowByPath = workflowsRepository.getWorkflowByPath(workflowFileName);
-      if (workflowByPath!=null){
+      if (workflowByPath != null) {
         setWorkflowAttributes(jobType, userName, name, workflowByPath);
         workflowsRepository.update(workflowByPath);
-      }else{
+      } else {
         Workflow wf = new Workflow();
         wf.setId(workflowsRepository.generateId());
         setWorkflowAttributes(jobType, userName, name, wf);
