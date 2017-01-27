@@ -108,8 +108,8 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
       port = configuration.getProperty(COLLECTOR_PORT, "6188");
       
-      zkQuorum = StringUtils.isEmpty(conf.getProperty(COLLECTOR_ZOOKEEPER_QUORUM)) ?
-        conf.getProperty(ZOOKEEPER_QUORUM) : conf.getProperty(COLLECTOR_ZOOKEEPER_QUORUM);
+      zkQuorum = StringUtils.isEmpty(configuration.getProperty(COLLECTOR_ZOOKEEPER_QUORUM)) ?
+        configuration.getProperty(ZOOKEEPER_QUORUM) : configuration.getProperty(COLLECTOR_ZOOKEEPER_QUORUM);
 
       timeoutSeconds = configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS) != null ?
           Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS)) :
