@@ -22,7 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.util.Collection;
@@ -163,15 +163,8 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
     action.setExecutionCommand(executionCommand);
     action.execute(null);
 
-    assertTrue(configTypes.getValues().contains("cluster-env"));
-    boolean containsSecurityEnabled = false;
-    for(Map<String, String> properties: configUpdates.getValues()) {
-      if(properties.containsKey("security_enabled")) {
-        containsSecurityEnabled = true;
-        break;
-      }
-    }
-    assertTrue(containsSecurityEnabled);
+    assertEquals(configTypes.getValue(), "cluster-env");
+    assertEquals(configUpdates.getValue().get("security_enabled"), "false");
     verifyAll();
   }
 
