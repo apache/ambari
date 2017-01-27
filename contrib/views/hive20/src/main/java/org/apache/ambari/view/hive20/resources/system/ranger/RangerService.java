@@ -25,7 +25,7 @@ import org.apache.ambari.view.hive20.utils.AuthorizationChecker;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.hbase.util.Strings;
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -81,7 +81,7 @@ public class RangerService {
       LOG.error("Failed to fetch Ranger URL from ambari. Exception: {}", e);
       throw new RangerException("Failed to fetch Ranger URL from Ambari", "AMBARI_FETCH_FAILED", 500, e);
     }
-    if (Strings.isEmpty(rangerUrl)) {
+    if (StringUtils.isEmpty(rangerUrl)) {
       LOG.info("Ranger url is not configured for the instance");
       throw new RangerException("Ranger url is not configured in Ambari.", "CONFIGURATION_ERROR", 500);
     }
@@ -91,7 +91,7 @@ public class RangerService {
 
   private List<Policy> getPoliciesFromNonAmbariCluster(String database, String table) {
     String rangerUrl = getRangerUrlFromConfig();
-    if (Strings.isEmpty(rangerUrl)) {
+    if (StringUtils.isEmpty(rangerUrl)) {
       LOG.info("Ranger url is not configured for the instance");
       throw new RangerException("Ranger url is not configured in Ambari Instance.", "CONFIGURATION_ERROR", 500);
     }
@@ -107,7 +107,7 @@ public class RangerService {
     }
 
     String rangerResponse = fetchResponseFromRanger(rangerUrl, cred.username, cred.password, database, table);
-    if (Strings.isEmpty(rangerResponse)) {
+    if (StringUtils.isEmpty(rangerResponse)) {
       return Lists.newArrayList();
     }
 
@@ -141,7 +141,16 @@ public class RangerService {
       JSONObject policyItem = (JSONObject) policyItems.get(0);
       JSONArray usersJson = (JSONArray) policyItem.get("users");
       JSONArray groupsJson = (JSONArray) policyItem.get("groups");
+      JSONArray accesses = (JSONArray) policyItem.get("accesses");
 
+
+      for (Object accessJson : accesses) {
+        JSONObject access = (JSONObject) accessJson;
+        Boolean isAllowed = (Boolean) access.get("isAllowed");
+        if (isAllowed) {
+          policy.addAccess((String) access.get("type"));
+        }
+      }
 
       for (Object user : usersJson) {
         policy.addUser((String) user);
@@ -159,7 +168,7 @@ public class RangerService {
   private String fetchResponseFromRanger(String rangerUrl, String username, String password, String database, String table) {
 
     String serviceName = context.getProperties().get("hive.ranger.servicename");
-    if(Strings.isEmpty(serviceName)) {
+    if (StringUtils.isEmpty(serviceName)) {
       LOG.error("Bad service name configured");
       throw new RangerException("Ranger service name is not configured in Ambari Instance.", "CONFIGURATION_ERROR", 500);
     }
@@ -182,15 +191,15 @@ public class RangerService {
 
   private StringBuilder getRangerUrl(String rangerUrl, String database, String table, String serviceName) {
     StringBuilder queryParams = new StringBuilder();
-    if (!Strings.isEmpty(database)) {
+    if (!StringUtils.isEmpty(database)) {
       queryParams.append("resource:database=");
       queryParams.append(database);
-      if (!Strings.isEmpty(table)) {
+      if (!StringUtils.isEmpty(table)) {
         queryParams.append("&");
       }
     }
 
-    if (!Strings.isEmpty(table)) {
+    if (!StringUtils.isEmpty(table)) {
       queryParams.append("resource:table=");
       queryParams.append(table);
     }
@@ -203,7 +212,7 @@ public class RangerService {
     urlBuilder.append("/service/public/v2/api/service/");
     urlBuilder.append(serviceName);
     urlBuilder.append("/policy");
-    if (!Strings.isEmpty(queryParamString)) {
+    if (!StringUtils.isEmpty(queryParamString)) {
       urlBuilder.append("?");
       urlBuilder.append(queryParamString);
     }
@@ -259,6 +268,7 @@ public class RangerService {
     private String name;
     private List<String> users = new ArrayList<>();
     private List<String> groups = new ArrayList<>();
+    private List<String> accesses = new ArrayList<>();
 
     public Policy(String name) {
       this.name = name;
@@ -288,6 +298,13 @@ public class RangerService {
       this.groups = groups;
     }
 
+    public List<String> getAccesses() {
+      return accesses;
+    }
+
+    public void setAccesses(List<String> accesses) {
+      this.accesses = accesses;
+    }
 
     public void addUser(String user) {
       users.add(user);
@@ -295,6 +312,10 @@ public class RangerService {
 
     public void addGroup(String group) {
       groups.add(group);
+    }
+
+    public void addAccess(String access) {
+      accesses.add(access);
     }
   }
 
@@ -311,7 +332,7 @@ public class RangerService {
     }
 
     public boolean isValid() {
-      return !(Strings.isEmpty(username) || Strings.isEmpty(password));
+      return !(StringUtils.isEmpty(username) || StringUtils.isEmpty(password));
     }
   }
 }
