@@ -94,6 +94,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
   /**
    * Whether to force creating of install command on a host which is not member of any cluster yet.
+   * This will also run hdp-select for specified stack version.
    */
   protected static final String HOST_STACK_VERSION_FORCE_INSTALL_ON_NON_MEMBER_HOST_PROPERTY_ID = PropertyHelper
     .getPropertyId("HostStackVersions", "force_non_member_install");
@@ -105,6 +106,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String COMPONENT_NAME_PROPERTY_ID = "name";
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
+  protected static final String STACK_SELECT_ACTION = "ru_set_all";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
 
 
@@ -303,7 +305,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
   private RequestStageContainer createInstallPackagesRequest(String hostName, final String desiredRepoVersion,
                                                              String stackName, String stackVersion, String clName,
-                                                             boolean forceInstallOnNonMemberHost,
+                                                             final boolean forceInstallOnNonMemberHost,
                                                              Set<Map<String, String>> componentNames)
     throws NoSuchParentResourceException, SystemException {
 
@@ -523,6 +525,11 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       throw new SystemException("Can not modify stage", e);
     }
 
+    if (forceInstallOnNonMemberHost) {
+      addSelectStackStage(desiredRepoVersion, forceInstallOnNonMemberHost, cluster, filter, caption, req,
+        hostLevelParams, clusterHostInfoJson);
+    }
+
     try {
       if (!forceInstallOnNonMemberHost) {
         hostVersEntity.setState(RepositoryVersionState.INSTALLING);
@@ -534,6 +541,43 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       throw new SystemException("Can not persist request", e);
     }
     return req;
+  }
+
+  private void addSelectStackStage(String desiredRepoVersion, boolean forceInstallOnNonMemberHost, Cluster cluster,
+                                 RequestResourceFilter filter, String caption, RequestStageContainer req, Map<String, String> hostLevelParams, String clusterHostInfoJson) throws SystemException {
+    Stage stage;
+    long stageId;
+    ActionExecutionContext actionContext;
+    Map<String, String> commandParams = new HashMap();
+    commandParams.put("version", desiredRepoVersion);
+
+    stage = stageFactory.createNew(req.getId(),
+      "/tmp/ambari",
+      cluster.getClusterName(),
+      cluster.getClusterId(),
+      caption,
+      clusterHostInfoJson,
+      StageUtils.getGson().toJson(commandParams),
+      StageUtils.getGson().toJson(hostLevelParams));
+
+    stageId = req.getLastStageId() + 1;
+    if (0L == stageId) {
+      stageId = 1L;
+    }
+    stage.setStageId(stageId);
+    req.addStages(Collections.singletonList(stage));
+
+    actionContext = new ActionExecutionContext(
+      cluster.getClusterName(), STACK_SELECT_ACTION,
+      Collections.singletonList(filter),
+      Collections.<String, String>emptyMap());
+    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+
+    try {
+      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null, !forceInstallOnNonMemberHost);
+    } catch (AmbariException e) {
+      throw new SystemException("Can not modify stage", e);
+    }
   }
 
 
