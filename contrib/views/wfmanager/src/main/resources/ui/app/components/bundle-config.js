@@ -48,23 +48,19 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   fileBrowser : Ember.inject.service('file-browser'),
   workspaceManager : Ember.inject.service('workspace-manager'),
   initialize : function(){
-    var draftBundle = this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id'));
-    if(draftBundle){
-      this.set('bundle', JSON.parse(draftBundle));
-    }else{
-      this.set('bundle', this.createBundle());
-    }
+    var self = this;
+    this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id')).promise.then(function(draftBundle){
+      self.loadBundle(draftBundle);
+    }.bind(this)).catch(function(data){
+      self.loadBundle();
+    }.bind(this));
     this.get('fileBrowser').on('fileBrowserOpened',function(context){
       this.get('fileBrowser').setContext(context);
     }.bind(this));
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
-    if(Ember.isBlank(this.get('bundle.name'))){
-      this.set('bundle.name', Ember.copy(this.get('tabInfo.name')));
-    }
     this.set('showErrorMessage', false);
-    this.schedulePersistWorkInProgress();
   }.on('init'),
   onDestroy : function(){
     Ember.run.cancel(this.schedulePersistWorkInProgress);
@@ -92,6 +88,17 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   bundleFilePath : Ember.computed('tabInfo.filePath', function(){
     return this.get('tabInfo.filePath');
   }),
+  loadBundle(draftBundle){
+    if(draftBundle){
+      this.set('bundle', JSON.parse(draftBundle));
+    }else{
+      this.set('bundle', this.createBundle());
+    }
+    if(Ember.isBlank(this.get('bundle.name'))){
+      this.set('bundle.name', Ember.copy(this.get('tabInfo.name')));
+    }
+    this.schedulePersistWorkInProgress();
+  }, 
   schedulePersistWorkInProgress (){
     Ember.run.later(function(){
       this.persistWorkInProgress();

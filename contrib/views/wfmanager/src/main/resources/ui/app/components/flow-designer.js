@@ -586,10 +586,14 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   getDraftWorkflow(){
     var deferred = Ember.RSVP.defer();
-    var drafWorkflowJson = this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id'));
-    var workflowImporter=WorkflowJsonImporter.create({});
-    var workflow=workflowImporter.importWorkflow(drafWorkflowJson);
-    deferred.resolve(workflow);
+
+    this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id')).promise.then(function(drafWorkflowJson){
+          var workflowImporter=WorkflowJsonImporter.create({});
+          var workflow=workflowImporter.importWorkflow(drafWorkflowJson);
+          deferred.resolve(workflow);
+        }.bind(this)).catch(function(data){
+          deferred.resolve("");
+        });
     return deferred;
   },
   createSnapshot() {

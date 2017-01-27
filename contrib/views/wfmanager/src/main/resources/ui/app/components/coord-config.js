@@ -75,22 +75,13 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     this.persistWorkInProgress();
   }.on('willDestroyElement'),
   initialize : function(){
-    var draftCoordinator = this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id'));
-    if(draftCoordinator){
-      this.set('coordinator', JSON.parse(draftCoordinator));
-    }else{
-      this.set('coordinator', this.createNewCoordinator());
-    }
-    this.set('timeUnitOptions',Ember.A([]));
-    this.get('timeUnitOptions').pushObject({value:'',displayName:'Select'});
-    this.get('timeUnitOptions').pushObject({value:'months',displayName:'Months'});
-    this.get('timeUnitOptions').pushObject({value:'endOfMonths',displayName:'End of Months'});
-    this.get('timeUnitOptions').pushObject({value:'days',displayName:'Days'});
-    this.get('timeUnitOptions').pushObject({value:'endOfDays',displayName:'End of Days'});
-    this.get('timeUnitOptions').pushObject({value:'hours',displayName:'Hours'});
-    this.get('timeUnitOptions').pushObject({value:'minutes',displayName:'Minutes'});
-    this.get('timeUnitOptions').pushObject({value:'cron',displayName:'Cron'});
-    this.set('coordinator.slaInfo', SlaInfo.create({}));
+    var self = this;
+
+    this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id')).promise.then(function(draftCoordinator){
+      self.loadCoordinator(draftCoordinator);
+    }.bind(this)).catch(function(data){
+      self.loadCoordinator();
+    }.bind(this));
 
     this.get('fileBrowser').on('fileBrowserOpened',function(context){
       this.get('fileBrowser').setContext(context);
@@ -98,18 +89,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
-    this.set('coordinatorControls',[
-      {'name':'timeout', 'displayName':'Timeout', 'value':''},
-      {'name':'concurrency', 'displayName':'Concurrency', 'value':''},
-      {'name':'execution', 'displayName':'Execution', 'value':''},
-      {'name':'throttle', 'displayName':'Throttle', 'value':''}
-    ]);
-    this.set('timezoneList', Ember.copy(Constants.timezoneList));
-    if(Ember.isBlank(this.get('coordinator.name'))){
-      this.set('coordinator.name', Ember.copy(this.get('tabInfo.name')));
-    }
-    this.schedulePersistWorkInProgress();
-    this.set('childComponents', new Map());
+
   }.on('init'),
   conditionalDataInExists :false,
   elementsInserted : function(){
@@ -141,6 +121,34 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.sendAction('changeTabName', this.get('tabInfo'), this.get('coordinator.name'));
     }
   }),
+  loadCoordinator(draftCoordinator){
+    if(draftCoordinator){
+      this.set('coordinator', JSON.parse(draftCoordinator));
+    }else{
+      this.set('coordinator', this.createNewCoordinator());
+    }
+    this.set('timeUnitOptions',Ember.A([]));
+    this.get('timeUnitOptions').pushObject({value:'',displayName:'Select'});
+    this.get('timeUnitOptions').pushObject({value:'months',displayName:'Months'});
+    this.get('timeUnitOptions').pushObject({value:'endOfMonths',displayName:'End of Months'});
+    this.get('timeUnitOptions').pushObject({value:'days',displayName:'Days'});
+    this.get('timeUnitOptions').pushObject({value:'endOfDays',displayName:'End of Days'});
+    this.get('timeUnitOptions').pushObject({value:'hours',displayName:'Hours'});
+    this.get('timeUnitOptions').pushObject({value:'minutes',displayName:'Minutes'});
+    this.get('timeUnitOptions').pushObject({value:'cron',displayName:'Cron'});
+    this.set('coordinator.slaInfo', SlaInfo.create({}));
+    this.set('coordinatorControls',[
+      {'name':'timeout', 'displayName':'Timeout', 'value':''},
+      {'name':'concurrency', 'displayName':'Concurrency', 'value':''},
+      {'name':'execution', 'displayName':'Execution', 'value':''},
+      {'name':'throttle', 'displayName':'Throttle', 'value':''}
+    ]);
+    this.set('timezoneList', Ember.copy(Constants.timezoneList));
+    if(Ember.isBlank(this.get('coordinator.name'))){
+      this.set('coordinator.name', Ember.copy(this.get('tabInfo.name')));
+    }
+    this.schedulePersistWorkInProgress();    
+  },
   coordinatorFilePath : Ember.computed('tabInfo.filePath', function(){
     return this.get('tabInfo.filePath');
   }),
