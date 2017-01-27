@@ -592,6 +592,7 @@ App.format = {
         name = name.split(separator).map(function(singleName) {
           return this.normalizeName(singleName.toUpperCase());
         }, this).join(' ');
+        break;
       }
     }
     return name.capitalize();
