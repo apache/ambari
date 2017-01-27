@@ -30,7 +30,7 @@ export default Ember.Component.extend({
   currentIndex : Ember.computed('tabs.[]', function() {
     return this.get('tabs').length > 0 ? this.get('tabs').length - 1 : 0;
   }),
-  tabsObserver : Ember.observer('tabs.[]', function(){
+  tabsObserver : Ember.observer('tabs.[]', 'tabs.@each.name', 'tabs.@each.filePath', function(){
     this.get('workspaceManager').saveTabs(this.get('tabs'));
   }),
   initialize : function(){

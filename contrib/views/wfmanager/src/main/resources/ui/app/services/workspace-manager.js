@@ -42,7 +42,8 @@ export default Ember.Service.extend({
       tabArray.push({
         type : tab.type,
         id : tab.id,
-        name : tab.name
+        name : tab.name,
+        filePath : tab.filePath
       });
     });
     console.log("Saving tabs "+JSON.stringify(tabArray));

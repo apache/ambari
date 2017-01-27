@@ -122,11 +122,15 @@ public class OozieProxyImpersonator {
       viewContext.getInstanceName()));
 
   }
+
+  @GET
   @Path("hdfsCheck")
   public Response hdfsCheck(){
     hdfsFileUtils.hdfsCheck();
     return Response.ok().build();
   }
+
+  @GET
   @Path("homeDirCheck")
   public Response homeDirCheck(){
     hdfsFileUtils.homeDirCheck();
@@ -179,13 +183,17 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = workflowFilesService.getWorkflowFileName(appPath.trim());
+
+    JobType deducedJobType = oozieUtils.deduceJobType(postBody);
+    appPath = workflowFilesService.getWorkflowFileName(appPath.trim(),deducedJobType);
+
     if (!overwrite) {
       boolean fileExists = hdfsFileUtils.fileExists(appPath);
       if (fileExists) {
         return getFileExistsResponse();
       }
     }
+
     postBody = utils.formatXml(postBody);
     try {
       String filePath = workflowFilesService.createFile(appPath,
@@ -193,7 +201,6 @@ public class OozieProxyImpersonator {
       LOGGER.info(String.format(
         "submit workflow job done. filePath=[%s]", filePath));
       if (PROJ_MANAGER_ENABLED) {
-        JobType deducedJobType = oozieUtils.deduceJobType(postBody);
         String workflowName = oozieUtils.deduceWorkflowNameFromXml(postBody);
         workflowManagerService.saveWorkflow(projectId, appPath,
           deducedJobType, description,
@@ -220,10 +227,10 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = workflowFilesService.getWorkflowDraftFileName(appPath.trim());
+    JobType jobType = StringUtils.isEmpty(jobTypeStr) ? JobType.WORKFLOW : JobType.valueOf(jobTypeStr);
+    appPath = workflowFilesService.getWorkflowDraftFileName(appPath.trim(),jobType);
     workflowFilesService.createFile(appPath, postBody, overwrite);
     if (PROJ_MANAGER_ENABLED) {
-      JobType jobType = StringUtils.isEmpty(jobTypeStr) ? JobType.WORKFLOW : JobType.valueOf(jobTypeStr);
       String name = oozieUtils.deduceWorkflowNameFromJson(postBody);
       workflowManagerService.saveWorkflow(projectId, appPath,
         jobType, description,
@@ -337,7 +344,7 @@ public class OozieProxyImpersonator {
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-    appPath = workflowFilesService.getWorkflowFileName(appPath.trim());
+    appPath = workflowFilesService.getWorkflowFileName(appPath.trim(), jobType);
     if (!overwrite) {
       boolean fileExists = hdfsFileUtils.fileExists(appPath);
       if (fileExists) {
@@ -412,17 +419,52 @@ public class OozieProxyImpersonator {
   public Response getWorkflowDetail(
     @QueryParam("workflowXmlPath") String workflowPath) {
     WorkflowFileInfo workflowDetails = workflowFilesService
-      .getWorkflowDetails(workflowPath);
+      .getWorkflowDetails(workflowPath, null);
     return Response.ok(workflowDetails).build();
+  }
+
+  @GET
+  @Path("/readWorkflow")
+  public Response readWorkflow(
+    @QueryParam("workflowPath") String workflowPath,@QueryParam("jobType") String jobTypeStr) {
+    WorkflowFileInfo workflowDetails = workflowFilesService
+      .getWorkflowDetails(workflowPath,JobType.valueOf(jobTypeStr));
+    String filePath;
+    String responseType;
+
+    if (workflowPath.endsWith(Constants.WF_DRAFT_EXTENSION) || workflowDetails.getIsDraftCurrent()){
+      filePath=workflowFilesService.getWorkflowDraftFileName(workflowPath,JobType.valueOf(jobTypeStr));
+      responseType="draft";
+    }else{
+      filePath=workflowFilesService.getWorkflowFileName(workflowPath,JobType.valueOf(jobTypeStr));
+      responseType="xml";
+    }
+    try {
+      final InputStream is = workflowFilesService
+        .readWorkflowXml(filePath);
+      StreamingOutput streamer = new StreamingOutput() {
+        @Override
+        public void write(OutputStream os) throws IOException,
+          WebApplicationException {
+          IOUtils.copy(is, os);
+          is.close();
+          os.close();
+        }
+      };
+      return Response.ok(streamer).header("response-type",responseType).status(200).build();
+    } catch (IOException e) {
+      return getRespCodeForException(e);
+    }
   }
 
   @GET
   @Path("/readWorkflowXml")
   public Response readWorkflowXml(
-    @QueryParam("workflowXmlPath") String workflowPath) {
+    @QueryParam("workflowXmlPath") String workflowPath,@QueryParam("jobType") String jobTypeStr) {
     if (StringUtils.isEmpty(workflowPath)) {
       throw new RuntimeException("workflowXmlPath can't be empty.");
     }
+
     try {
       final InputStream is = workflowFilesService
         .readWorkflowXml(workflowPath);

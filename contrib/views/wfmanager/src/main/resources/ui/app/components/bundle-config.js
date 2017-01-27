@@ -89,6 +89,9 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.sendAction('changeTabName', this.get('tabInfo'), this.get('bundle.name'));
     }
   }),
+  bundleFilePath : Ember.computed('tabInfo.filePath', function(){
+    return this.get('tabInfo.filePath');
+  }),
   schedulePersistWorkInProgress (){
     Ember.run.later(function(){
       this.persistWorkInProgress();
@@ -133,17 +136,45 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   },
   importBundle (filePath){
     this.set("bundleFilePath", filePath);
-    this.set("isImporting", false);
+    this.set("isImporting", true);
     filePath = this.appendFileName(filePath, 'bundle');
-    var deferred = this.getFromHdfs(filePath);
-    deferred.promise.then(function(data){
-      this.getBundleFromXml(data);
+    var deferred = this.getBundleFromHdfs(filePath);
+    deferred.promise.then(function(response){
+      if(response.type === 'xml'){
+        this.getBundleFromXml(response.data);
+      }else{
+        this.getBundleFromJSON(response.data);
+      }
+      this.set('bundleFilePath', filePath);
       this.set("isImporting", false);
     }.bind(this)).catch(function(e){
       this.set("isImporting", false);
       this.set("isImportingSuccess", false);
-	  throw new Error(e);
+      throw new Error(e);
     }.bind(this));
+  },
+  getBundleFromJSON(filePath){
+    this.set('bundle', JSON.parse(draftBundle));
+  },
+  getBundleFromHdfs(filePath){
+    var url =  Ember.ENV.API_URL + "/readWorkflow?workflowPath="+filePath+"&jobType=BUNDLE";
+    var deferred = Ember.RSVP.defer();
+    Ember.$.ajax({
+      url: url,
+      method: 'GET',
+      dataType: "text",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        xhr.setRequestHeader("X-Requested-By", "Ambari");
+      }
+    }).done(function(data, status, xhr){
+      var type = xhr.getResponseHeader("response-type") === "xml" ? 'xml' : 'json';
+      deferred.resolve({data : data, type : type});
+    }).fail(function(e){
+      console.error(e);
+      deferred.reject();
+    });
+    return deferred;
   },
   getFromHdfs(filePath){
     var url =  Ember.ENV.API_URL + "/readWorkflowXml?workflowXmlPath="+filePath;
@@ -194,7 +225,9 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     return deferred;
   },
   appendFileName(filePath, type){
-    if(!filePath.endsWith('.xml') && type === 'bundle'){
+    if(filePath.endsWith('.wfdraft')){
+      return filePath;
+    }else if(!filePath.endsWith('.xml') && type === 'bundle'){
       return filePath = `${filePath}/bundle.xml`;
     }else if(!filePath.endsWith('.xml') && type === 'coord'){
       return filePath = `${filePath}/coordinator.xml`;
@@ -263,8 +296,12 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.set('showingResetConfirmation', true);
     },
     resetBundle(){
-      this.set('bundle', this.createBundle());
-      this.set('errors').clear();
+      this.get('errors').clear();
+      if(this.get('bundleFilePath')){
+        this.importBundle(this.get('bundleFilePath'));
+      }else {
+        this.set('bundle', this.createBundle());
+      }
     },
     closeBundleSubmitConfig(){
       this.set("showingJobConfig", false);

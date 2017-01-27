@@ -53,6 +53,7 @@ export default Ember.Component.extend(Validations, {
   filePath : Ember.computed.oneWay('jobFilePath',function(){
     return Ember.copy(this.get('jobFilePath'));
   }),
+  isDraft : Ember.computed.alias('jobConfigs.isDraft'),
   initialize : function(){
     this.set('overwritePath', true);
   }.on('init'),
@@ -82,7 +83,7 @@ export default Ember.Component.extend(Validations, {
     }
   },
   saveJob(){
-    var url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
+    var url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath") + "&jobType="+this.get('displayName').toUpperCase();
     this.saveWfJob(url, this.get("jobJson"));
     if(!this.get('isDraft')){
        url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
@@ -91,6 +92,7 @@ export default Ember.Component.extend(Validations, {
   },
   saveWfJob(url, workflowData) {
     var self = this;
+    self.set("savingInProgress",true);
     this.get("saveJobService").saveWorkflow(url, workflowData).promise.then(function(response){
         self.showNotification({
           "type": "success",

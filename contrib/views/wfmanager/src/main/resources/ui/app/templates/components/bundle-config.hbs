@@ -35,7 +35,7 @@
             <ul class="dropdown-menu">
               <li>
               <a  class="pointer" title="Import workflow" {{action "openFileBrowser" "bundleFilePath"}}>
-                <i class="fa fa-download"> Import</i>
+                <i class="fa fa-download marginright5"></i>Import
               </a>
             </li>
             <li>
@@ -128,7 +128,7 @@
 {{/if}}
 {{#if showingResetConfirmation}}
   {{#confirmation-dialog title="Confirm Bundle Reset"
-  confirmationMessage="Any unsaved changes may be lost. Do you want to proceed resetting the bundle ?"
+  confirmationMessage="File will be reset to last saved version in the HDFS. Do you want to proceed?"
   okBtnText="Continue" cancelBtnText="Cancel" onOk="resetBundle"}}{{/confirmation-dialog}}
 {{/if}}
 {{#if showingPreview}}
