@@ -79,6 +79,9 @@ cluster_name = config['clusterName']
 
 java_version = expect("/hostLevelParams/java_version", int)
 
+zk_root = default('/configurations/application-properties/atlas.server.ha.zookeeper.zkroot', '/apache_atlas')
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _atlas_principal_name = config['configurations']['application-properties']['atlas.authentication.principal']
@@ -113,6 +116,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 # metadata env
 java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 env_sh_template = config['configurations']['atlas-env']['content']
 
 # credential provider

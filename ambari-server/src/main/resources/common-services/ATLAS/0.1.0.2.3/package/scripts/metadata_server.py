@@ -35,7 +35,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.core.resources.system import Directory
 from resource_management.core.logger import Logger
 from setup_ranger_atlas import setup_ranger_atlas
-
+from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class MetadataServer(Script):
 
@@ -149,6 +149,17 @@ class MetadataServer(Script):
       raise
 
     File(params.pid_file, action="delete")
+
+  def disable_security(self, env):
+    import params
+    if not params.stack_supports_zk_security:
+      Logger.info("Stack doesn't support zookeeper security")
+      return
+    if not params.zookeeper_quorum:
+      Logger.info("No zookeeper connection string. Skipping reverting ACL")
+      return
+    zkmigrator = ZkMigrator(params.zookeeper_quorum, params.java_exec, params.java64_home, params.atlas_jaas_file, params.metadata_user)
+    zkmigrator.set_acls(params.zk_root if params.zk_root.startswith('/') else '/' + params.zk_root, 'world:anyone:crdwa')
 
   def status(self, env):
     import status_params
