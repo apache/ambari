@@ -81,10 +81,14 @@
   margin: 0;
 }
 
-/*90% width modal window start*/
+/*90% width wizard modal window start*/
 .wizard-modal-wrapper {
   .modal {
     .modal-body {
+      padding: 0;
+      .wizard {
+        border: none;
+      }
       div.error {
         color: #b94a48;
         .help-block {
@@ -114,8 +118,42 @@
   }
 
 }
+/*90% width wizard modal window end*/
 
-/*90% width modal window end*/
+/*90% width modal (non-wizard) window start*/
+
+.wide-modal-wrapper {
+  .modal {
+    .modal-body {
+      div.error {
+        color: #b94a48;
+        .help-block {
+          color: #b94a48;
+        }
+      }
+
+      div.error input{
+        border-color: #b94a48;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      }
+    }
+  }
+
+  .content {
+    padding: 0;
+  }
+
+  //fix stripped in inner table
+  .table-striped tbody tr:nth-child(odd)
+  td .table-striped tbody
+  tr:nth-child(odd) td,
+  tr:nth-child(even) th {
+    background-color: transparent;
+  }
+}
+/*90% width modal window (non-wizard) end*/
 
 /*700px width modal window start*/
 .modal-690px-width {
