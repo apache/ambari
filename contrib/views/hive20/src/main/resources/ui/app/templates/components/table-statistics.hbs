@@ -1,0 +1,153 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="row">
+  <div class="alert">
+    <p class="lead">
+      {{fa-icon "line-chart" size=2}}&nbsp;&nbsp;&nbsp;&nbsp; STATISTICS
+      <div class="pull-right">
+        <button class="btn btn-success"
+          {{action "analyseTable"}}>{{fa-icon "location-arrow"}} {{#if (not tableStatisticsEnabled)}}
+          Compute {{else}} Recompute {{/if}}</button>
+
+        <label>
+          {{input type="checkbox" checked=analyseWithStatistics}}
+          <small>include columns</small>
+        </label>
+      </div>
+    </p>
+
+  </div>
+</div>
+<div class="row">
+  {{#if tableStatisticsEnabled}}
+    <div class="stats-section">
+      <p><strong>TABLE STATISTICS</strong></p>
+      <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+          <td width="50%">STATS NAME</td>
+          <td width="50%">VALUE</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>Number of Files</td>
+          <td>{{tableStats.numFiles}}</td>
+        </tr>
+        <tr>
+          <td>Raw Data Size</td>
+          <td>{{tableStats.rawDataSize}}</td>
+        </tr>
+        <tr>
+          <td>Total Size</td>
+          <td>{{tableStats.totalSize}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  {{else}}
+    <div class="alert alert-danger">
+      <p>Table statistics are not computed</p>
+    </div>
+  {{/if}}
+
+</div>
+
+<div class="row stats-section">
+  <p><strong>COLUMNS STATISTICS</strong></p>
+  <table class="table table-bordered table-hover">
+    <thead>
+    <tr>
+      <td width="50%">COLUMN NAME</td>
+      <td width="50%">STATISTICS</td>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each columns as |column|}}
+      <tr>
+        <td>{{column.name}}</td>
+        <td>
+          {{#if column.hasStatistics}}
+            {{#if column.stats}}
+              <button class="btn btn-success btn-sm" {{action "toggleShowStats" column}}>
+                {{fa-icon "location-arrow"}}
+                {{#if column.showStats}}
+                  Hide
+                {{else}}
+                  Show
+                {{/if}}
+              </button>
+            {{else}}
+              <button class="btn btn-success btn-sm" disabled={{or column.isFetchingStats column.stats}} {{action "fetchStats" column}}>
+                {{#if column.isFetchingStats}}
+                  {{fa-icon "cog" spin=true}} Fetching Stats
+                {{else}}
+                  {{fa-icon "location-arrow"}} Show
+                {{/if}}
+              </button>
+            {{/if}}
+
+            {{#if (and column.stats column.showStats)}}
+              <div class="col-stats-details">
+                <table class="table table-bordered table-hover ">
+                  <thead>
+                  <tr>
+                    <td width="50%">KEY</td>
+                    <td width="50%">VALUE</td>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {{#each column.stats as |stat| }}
+                    <tr>
+                      <td>{{stat.label}}</td>
+                      <td>{{stat.value}}</td>
+                    </tr>
+                  {{/each}}
+                  </tbody>
+                </table>
+              </div>
+            {{/if}}
+          {{else}}
+            No statistics computed
+          {{/if}}
+        </td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+</div>
+
+{{#if showAnalyseModal}}
+  {{#modal-dialog
+    translucentOverlay=true
+    clickOutsideToClose=false
+    container-class="modal-dialog"}}
+    <div class="modal-content">
+      <div class="modal-header">
+        <p class="modal-title">{{fa-icon "location-arrow" size="lg"}} {{analyseTitle}}</p>
+      </div>
+      <div class="modal-body text-center">
+        <div class="alert alert-danger">
+          Analyse table statistics operation may take long time
+        </div>
+        <p><strong>{{analyseMessage}}</strong></p>
+      </div>
+    </div>
+  {{/modal-dialog}}
+{{/if}}

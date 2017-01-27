@@ -48,6 +48,10 @@ export default Ember.Route.extend({
 
     editTable(table) {
       console.log("Edit table");
+    },
+
+    refreshTableInfo() {
+      this.refresh();
     }
   },
 

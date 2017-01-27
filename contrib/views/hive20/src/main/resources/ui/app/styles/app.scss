@@ -194,6 +194,10 @@ $table-info-background: lighten($body-bg, 10%);
       }
     }
   }
+
+  .alert {
+    margin: 0;
+  }
 }
 
 .table-name-input {
@@ -209,13 +213,7 @@ pre {
   }
 }
 
-.dipayan {
-  .CodeMirror {
-    height: 100vh;
-  }
-}
-
-.dipayan123 {
+.scroll-fix {
   background-color: lighten($body-bg, 5%);
   height: calc(100vh - 180px);
   overflow-y: scroll;
@@ -810,11 +808,14 @@ pre {
   padding-bottom: 25px;
 }
 
-.authorizations {
-  &.alert {
-    margin: 0;
-  }
+.stats-section {
+  margin-top: 20px;
 }
+
+.col-stats-details {
+  padding-top: 10px;
+}
+
 
 
 
