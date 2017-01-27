@@ -25,6 +25,7 @@ export default DS.Model.extend({
   ddl: DS.attr('string'),
   partitionInfo: DS.attr(),
   detailedInfo: DS.attr(),
+  tableStats: DS.attr(),
   storageInfo: DS.attr(),
   viewInfo: DS.attr()
 });
