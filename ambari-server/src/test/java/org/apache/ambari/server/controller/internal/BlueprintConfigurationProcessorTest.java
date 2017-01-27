@@ -1571,6 +1571,7 @@ public class BlueprintConfigurationProcessorTest {
 
     // setup properties that include host information
     hiveSiteProperties.put("hive.metastore.uris", "thrift://" + expectedHostName + ":" + expectedPortNum + "," + "thrift://" + expectedHostNameTwo + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.server2.authentication.ldap.url", "ldap://myexternalhost.com:1389");
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
@@ -1624,6 +1625,8 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("hive property not properly exported",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hive.hosts"));
 
+    assertFalse("hive.server2.authentication.ldap.url should not have been present in the exported configuration",
+        hiveSiteProperties.containsKey("hive.server2.authentication.ldap.url"));
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.HTTP.hosts"));
 

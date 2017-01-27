@@ -2491,6 +2491,7 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
 
     // HIVE_SERVER
+    hiveSiteMap.put("hive.server2.authentication.ldap.url", new SingleHostTopologyUpdater("HIVE_SERVER2"));
     multiHiveSiteMap.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true, true, true));
     dbHiveSiteMap.put("javax.jdo.option.ConnectionURL",
         new DBTopologyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
