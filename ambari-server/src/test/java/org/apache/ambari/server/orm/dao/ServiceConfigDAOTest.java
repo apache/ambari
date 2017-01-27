@@ -262,23 +262,43 @@ public class ServiceConfigDAOTest {
   @Test
   public void testGetLastServiceConfigsForService() throws Exception {
     String serviceName = "HDFS";
+    Clusters clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1", HDP_01);
+    ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
+    ClusterEntity clusterEntity = clusterDAO.findById(1L);
+    configGroupEntity1.setClusterEntity(clusterEntity);
+    configGroupEntity1.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity1.setGroupName("group1");
+    configGroupEntity1.setDescription("group1_desc");
+    configGroupEntity1.setTag("HDFS");
+    configGroupEntity1.setServiceName("HDFS");
+    configGroupDAO.create(configGroupEntity1);
+    ConfigGroupEntity group1 = configGroupDAO.findByName("group1");
+    ConfigGroupEntity configGroupEntity2 = new ConfigGroupEntity();
+    configGroupEntity2.setClusterEntity(clusterEntity);
+    configGroupEntity2.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity2.setGroupName("group2");
+    configGroupEntity2.setDescription("group2_desc");
+    configGroupEntity2.setTag("HDFS");
+    configGroupEntity2.setServiceName("HDFS");
+    configGroupDAO.create(configGroupEntity2);
+    ConfigGroupEntity group2 = configGroupDAO.findByName("group2");
     createServiceConfig(serviceName, "admin", 1L, 1L, 1111L, null);
     createServiceConfig(serviceName, "admin", 2L, 2L, 1010L, null);
-    createServiceConfigWithGroup(serviceName, "admin", 3L, 3L, 2222L, null, 1L);
-    createServiceConfigWithGroup(serviceName, "admin", 5L, 5L, 3333L, null, 2L);
-    createServiceConfigWithGroup(serviceName, "admin", 4L, 4L, 3330L, null, 2L);
+    createServiceConfigWithGroup(serviceName, "admin", 3L, 3L, 2222L, null, group1.getGroupId());
+    createServiceConfigWithGroup(serviceName, "admin", 5L, 5L, 3333L, null, group2.getGroupId());
+    createServiceConfigWithGroup(serviceName, "admin", 4L, 4L, 3330L, null, group2.getGroupId());
 
-    List<ServiceConfigEntity> serviceConfigEntities =
-        serviceConfigDAO.getLastServiceConfigsForService(clusterDAO.findByName("c1").getClusterId(), serviceName);
-
+    List<ServiceConfigEntity> serviceConfigEntities = serviceConfigDAO
+        .getLastServiceConfigsForService(clusterDAO.findByName("c1").getClusterId(), serviceName);
     Assert.assertNotNull(serviceConfigEntities);
     Assert.assertEquals(3, serviceConfigEntities.size());
 
-    for (ServiceConfigEntity sce: serviceConfigEntities) {
-     if (sce.getGroupId() != null && sce.getGroupId().equals(2L)) {
-       // Group ID with the highest version should be selected
-       Assert.assertEquals(sce.getVersion(), Long.valueOf(5L));
-     }
+    for (ServiceConfigEntity sce : serviceConfigEntities) {
+      if (sce.getGroupId() != null && sce.getGroupId().equals(group2.getGroupId())) {
+        // Group ID with the highest version should be selected
+        Assert.assertEquals(sce.getVersion(), Long.valueOf(5L));
+      }
     }
   }
 
@@ -525,6 +545,30 @@ public class ServiceConfigDAOTest {
     }
   }
 
+  @Test
+  public void testGetLastServiceConfigsForServiceWhenAConfigGroupIsDeleted() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    clusters.addCluster("c1", HDP_01);
+    initClusterEntitiesWithConfigGroups();
+    ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
+    ClusterEntity clusterEntity = clusterDAO.findById(1L);
+    configGroupEntity1.setClusterEntity(clusterEntity);
+    configGroupEntity1.setClusterId(clusterEntity.getClusterId());
+    configGroupEntity1.setGroupName("toTestDeleteGroup_OOZIE");
+    configGroupEntity1.setDescription("toTestDeleteGroup_OOZIE_DESC");
+    configGroupEntity1.setTag("OOZIE");
+    configGroupEntity1.setServiceName("OOZIE");
+    configGroupDAO.create(configGroupEntity1);
+    ConfigGroupEntity testDeleteGroup_OOZIE = configGroupDAO.findByName("toTestDeleteGroup_OOZIE");
+    createServiceConfigWithGroup("OOZIE", "", 2L, 2L, System.currentTimeMillis(), null,
+        testDeleteGroup_OOZIE.getGroupId());
+    Collection<ServiceConfigEntity> serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(1L,
+        "OOZIE");
+    Assert.assertEquals(2, serviceConfigEntityList.size());
+    configGroupDAO.remove(configGroupEntity1);
+    serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(1L, "OOZIE");
+    Assert.assertEquals(1, serviceConfigEntityList.size());
+  }
   private void initClusterEntities() throws Exception{
     String userName = "admin";
 
