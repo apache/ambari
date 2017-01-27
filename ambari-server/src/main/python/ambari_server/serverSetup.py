@@ -741,9 +741,9 @@ class JDKSetupLinux(JDKSetup):
     super(JDKSetupLinux, self).__init__()
     self.JDK_DEFAULT_CONFIGS = [
       JDKRelease("jdk1.8", "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
-                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u77-linux-x64.tar.gz", "jdk-8u77-linux-x64.tar.gz",
+                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz", "jdk-8u112-linux-x64.tar.gz",
                  "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip", "jce_policy-8.zip",
-                 AmbariPath.get("/usr/jdk64/jdk1.8.0_77"),
+                 AmbariPath.get("/usr/jdk64/jdk1.8.0_112"),
                  "(jdk.*)/jre")
     ]
 
