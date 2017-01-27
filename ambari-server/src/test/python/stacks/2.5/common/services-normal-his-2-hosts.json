@@ -1052,7 +1052,8 @@
         "hive.llap.daemon.queue.name": "llap",
         "hive.server2.enable.doAs": "true",
         "hive.llap.daemon.num.executors": "0",
-        "hive.server2.tez.sessions.per.default.queue": "32"
+        "hive.server2.tez.sessions.per.default.queue": "32",
+        "hive.tez.container.size" : "341"
       }
     },
     "hive-interactive-env" : {
@@ -1100,6 +1101,11 @@
       }
     },
     "tez-site": {
+      "properties": {
+        "tez.am.resource.memory.mb" : "341"
+      }
+    },
+    "tez-interactive-site": {
       "properties": {
         "tez.am.resource.memory.mb" : "341"
       }

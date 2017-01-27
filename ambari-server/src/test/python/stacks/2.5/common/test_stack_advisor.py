@@ -492,7 +492,8 @@ class TestHDP25StackAdvisor(TestCase):
         "properties": {"hive_security_authorization": "None"}
       },
       "yarn-site": {
-        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
+        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true",
+                       "yarn.resourcemanager.scheduler.monitor.enable": "false"}
       }
     }
     configurations2 = {
@@ -506,17 +507,22 @@ class TestHDP25StackAdvisor(TestCase):
         "properties": {"hive_security_authorization": "None"}
       },
       "yarn-site": {
-        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true"}
+        "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "true",
+                       "yarn.resourcemanager.scheduler.monitor.enable": "true"}
       }
     }
     services = self.load_json("services-normal-his-valid.json")
 
+    # Checks for WARN message that 'yarn.resourcemanager.scheduler.monitor.enable' should be true.
     res_expected = [
+      {'config-type': 'hive-interactive-env', 'message': "When enabling LLAP, set 'yarn.resourcemanager.scheduler.monitor.enable' to true to ensure that LLAP gets the full allocated capacity.", 'type': 'configuration', 'config-name': 'enable_hive_interactive', 'level': 'WARN'}
     ]
     # the above error is not what we are checking for - just to keep test happy without having to test
     res = self.stackAdvisor.validateHiveInteractiveEnvConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
+    # (1). Checks for ERROR message for 'enable_hive_interactive' to be true.
+    # (2). Further, no message regarding 'yarn.resourcemanager.scheduler.monitor.enable' as it is true already.
     res_expected = [
       {'config-type': 'hive-interactive-env', 'message': 'HIVE_SERVER_INTERACTIVE requires enable_hive_interactive in hive-interactive-env set to true.', 'type': 'configuration', 'config-name': 'enable_hive_interactive', 'level': 'ERROR'}
     ]
@@ -525,7 +531,6 @@ class TestHDP25StackAdvisor(TestCase):
     pass
 
 
-  ''' TODO: Commenting, Need to fix validations in 2.5/stack_advisor and then fix the test code
   """
   Tests validations for Hive Server Interactive site.
   """
@@ -558,7 +563,7 @@ class TestHDP25StackAdvisor(TestCase):
     # Expected : Error telling about the current size compared to minimum required size.
     services1 = self.load_json("services-normal-his-valid.json")
     res_expected1 = [
-      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49%) is less than minimum required "
+      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49.0%) is less than minimum required "
         "capacity (50%) for LLAP app to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
     ]
     res1 = self.stackAdvisor.validateHiveInteractiveSiteConfigurations({}, {}, {}, services1, hosts)
@@ -575,7 +580,7 @@ class TestHDP25StackAdvisor(TestCase):
     #               than 50% of queue capacity for LLAP.
     services2 = self.load_json("services-normal-his-2-hosts.json")
     res_expected2 = [
-      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49%) is less than minimum required "
+      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49.0%) is less than minimum required "
                                                           "capacity (50%) for LLAP app to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
       {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' current state is : 'STOPPED'. It is required to be in "
                                                           "'RUNNING' state for LLAP to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
@@ -636,7 +641,7 @@ class TestHDP25StackAdvisor(TestCase):
       },
     }
     res_expected4 = [
-      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49%) is less than minimum required capacity (200%) for LLAP app to run",
+      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49.0%) is less than minimum required capacity (200%) for LLAP app to run",
        'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
       {'config-type': 'hive-interactive-site', 'message': "Capacity used by 'llap' queue is '250.88'. Service checks may not run as remaining available capacity "
                                                           "(261.12) in cluster is less than 512 MB.", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'WARN'}]
@@ -645,7 +650,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(res4, res_expected4)
     pass
 
-  '''
 
 
 

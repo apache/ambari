@@ -388,8 +388,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
   def validateHiveInteractiveEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_site_env_properties = self.getSiteProperties(configurations, "hive-interactive-env")
+    yarn_site_properties = self.getSiteProperties(configurations, "yarn-site")
     validationItems = []
     hsi_hosts = self.getHostsForComponent(services, "HIVE", "HIVE_SERVER_INTERACTIVE")
+
+    # Check for expecting 'enable_hive_interactive' is ON given that there is HSI on atleast one host present.
     if len(hsi_hosts) > 0:
       # HIVE_SERVER_INTERACTIVE is mapped to a host
       if 'enable_hive_interactive' not in hive_site_env_properties or (
@@ -406,6 +409,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         validationItems.append({"config-name": "enable_hive_interactive",
                                 "item": self.getErrorItem(
                                   "enable_hive_interactive in hive-interactive-env should be set to false.")})
+
+    # Check for 'yarn.resourcemanager.scheduler.monitor.enable' config to be true if HSI is ON.
+    if yarn_site_properties and 'yarn.resourcemanager.scheduler.monitor.enable' in yarn_site_properties:
+      scheduler_monitor_enabled = yarn_site_properties['yarn.resourcemanager.scheduler.monitor.enable']
+      if scheduler_monitor_enabled.lower() == 'false' and hive_site_env_properties and 'enable_hive_interactive' in hive_site_env_properties and \
+        hive_site_env_properties['enable_hive_interactive'].lower() == 'true':
+        validationItems.append({"config-name": "enable_hive_interactive",
+                                "item": self.getWarnItem(
+                                  "When enabling LLAP, set 'yarn.resourcemanager.scheduler.monitor.enable' to true to ensure that LLAP gets the full allocated capacity.")})
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-env")
     return validationProblems
