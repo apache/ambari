@@ -20,18 +20,36 @@ import Ember from 'ember';
 export default Ember.Service.extend({
   tabsInfo : {},
   workInProgress : {},
+  userInfo : Ember.inject.service('user-info'),
   setLastActiveTab(tabId){
-    console.log("setting last active tabId "+tabId);
-    localStorage.setItem('lastActiveTab', tabId);
+    this.get("userInfo").getUserData().promise.then(function(data){
+       localStorage.setItem(data+"-lastActiveTab", tabId);
+      }.bind(this)).catch(function(e){
+        console.error(e);
+      });
   },
   getLastActiveTab(){
-    console.log("get last active "+localStorage.getItem('lastActiveTab'));
-    return localStorage.getItem('lastActiveTab');
+      this.get("userInfo").getUserData().promise.then(function(data){
+        return localStorage.getItem(data+"-lastActiveTab");
+      }.bind(this)).catch(function(e){
+        console.error(e);
+      });
   },
   restoreTabs(){
-    var tabs = localStorage.getItem('tabsInfo');
-    console.log("Restoring tabs "+tabs);
-    return JSON.parse(tabs);
+      var deferred = Ember.RSVP.defer();
+
+      this.get("userInfo").getUserData().promise.then(function(data){
+        var tabs = localStorage.getItem(data+'-tabsInfo');
+        console.log("Restoring tabs "+tabs);
+        deferred.resolve(JSON.parse(tabs));
+
+        //return JSON.parse(tabs);
+
+      }.bind(this)).catch(function(e){
+        deferred.resolve("");
+        console.error(e);
+      });
+    return deferred;
   },
   saveTabs(tabs){
     if(!tabs){
@@ -46,18 +64,33 @@ export default Ember.Service.extend({
         filePath : tab.filePath
       });
     });
-    console.log("Saving tabs "+JSON.stringify(tabArray));
-    localStorage.setItem('tabsInfo', JSON.stringify(tabArray));
+    this.get("userInfo").getUserData().promise.then(function(data){
+          localStorage.setItem(data+'-tabsInfo', JSON.stringify(tabArray));
+    }.bind(this)).catch(function(e){
+      console.error(e);
+    });
   },
   restoreWorkInProgress(id){
-    console.log("Restoring workInProgress "+id);
-    return localStorage.getItem(id);
+    var deferred = Ember.RSVP.defer();
+    this.get("userInfo").getUserData().promise.then(function(data){
+       deferred.resolve(localStorage.getItem(data+"-"+id));
+    }.bind(this)).catch(function(data){
+       deferred.resolve("");
+    });
+    return deferred;
   },
   saveWorkInProgress(id, workInProgress){
-    console.log("Restoring workInProgress "+id);
-    localStorage.setItem(id, workInProgress);
+    this.get("userInfo").getUserData().promise.then(function(data){
+      localStorage.setItem(data+"-"+id, workInProgress);
+    }.bind(this)).catch(function(e){
+      console.error(e);
+    });    
   },
   deleteWorkInProgress(id){
-    localStorage.removeItem(id);
+    this.get("userInfo").getUserData().promise.then(function(data){
+      localStorage.removeItem(data+"-"+id);
+    }.bind(this)).catch(function(e){
+      console.error(e);
+    });
   }
 });

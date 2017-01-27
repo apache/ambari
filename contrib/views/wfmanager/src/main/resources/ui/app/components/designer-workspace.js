@@ -19,6 +19,7 @@ import CommonUtils from "../utils/common-utils";
 import Constants from '../utils/constants';
 export default Ember.Component.extend({
   workspaceManager : Ember.inject.service('workspace-manager'),
+  userInfo : Ember.inject.service('user-info'),
   xmlAppPath : null,
   appPath : null,
   type : 'wf',
@@ -42,18 +43,20 @@ export default Ember.Component.extend({
     this.get('tabCounter').set('wf', 0);
     this.get('tabCounter').set('coord', 0);
     this.get('tabCounter').set('bundle', 0);
-    var tabs = this.get('workspaceManager').restoreTabs();
-    if(tabs){
-      this.set('tabs', tabs);
-    }
-    this.get('tabs').forEach((tab)=>{
-      this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
-    }, this);
+    var tabsData = this.get('workspaceManager').restoreTabs();
+    tabsData.promise.then(function(tabs){
+        if(tabs){
+          this.set('tabs', tabs);
+        }
+        this.get('tabs').forEach((tab)=>{
+          this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
+        }, this);
+        Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path){
+          this.createNewTab('wf', path);
+        }.bind(this));
 
-    Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path){
-      this.createNewTab('wf', path);
-    }.bind(this));
-
+      }.bind(this)).catch(function(data){
+      });
   }.on('init'),
   elementsInserted : function(){
     this.$('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
