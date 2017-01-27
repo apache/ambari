@@ -250,19 +250,19 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
         except ComponentIsNotRunning:
           pass
 
-  hadoop_daemon = format("{hadoop_bin}/hadoop-daemon.sh")
+  hdfs_bin = format("{hadoop_bin}/hdfs")
 
   if user == "root":
-    cmd = [hadoop_daemon, "--config", params.hadoop_conf_dir, action, name]
+    cmd = [hdfs_bin, "--config", params.hadoop_conf_dir, "--daemon", action, name]
     if options:
       cmd += [options, ]
     daemon_cmd = as_sudo(cmd)
   else:
-    cmd = format("{ulimit_cmd} {hadoop_daemon} --config {hadoop_conf_dir} {action} {name}")
+    cmd = format("{ulimit_cmd} {hdfs_bin} --config {hadoop_conf_dir} --daemon {action} {name}")
     if options:
       cmd += " " + options
     daemon_cmd = as_user(cmd, user)
-     
+
   if action == "start":
     # remove pid file from dead process
     File(pid_file, action="delete", not_if=process_id_exists_command)

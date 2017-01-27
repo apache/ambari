@@ -20,6 +20,7 @@ import unittest
 import multiprocessing
 import os
 import sys
+import re
 import traceback
 from Queue import Empty
 from random import shuffle
@@ -86,6 +87,99 @@ def get_stack_name():
 def get_stack_name():
   return "HDP"
 
+def extract_extends_field_from_file(metainfo):
+  pattern = re.compile(r"^\s*?<extends>(.*?)</extends>", re.IGNORECASE)
+  if os.path.isfile(metainfo):
+    with open(metainfo) as f:
+        for line in f.readlines():
+          m = pattern.match(line)
+          if m and len(m.groups()) == 1:
+            extract = m.groups(1)[0]
+            return extract
+  return None
+
+def get_extends_field_from_metainfo(service_metainfo):
+  """
+  Parse the metainfo.xml file to retrieve the <extends> value.
+  
+  @param service_metainfo: Path to the service metainfo.xml file
+  :return Extract the "extends" field if it exists and return its value. Otherwise, return None.
+  """
+  extract = extract_extends_field_from_file(service_metainfo)
+  if extract is not None:
+    return extract
+
+  # If couldn't find it in the service's metainfo.xml, check the stack's metainfo.xml
+  stack_metainfo = os.path.join(os.path.dirname(service_metainfo), "..", "..", "metainfo.xml")
+  extract = extract_extends_field_from_file(stack_metainfo)
+
+  return extract
+
+def resolve_paths_to_import_from_common_services(metainfo_file, base_stack_folder, common_services_parent_dir, service):
+  """
+  Get a list of paths to append to sys.path in order to import all of the needed modules.
+  This is important when a service has  multiple definitions in common-services so that we import the correct one
+  instead of a higher version.
+  
+  @param metainfo_file: Path to the metainfo.xml file.
+  @param base_stack_folder: Path to stacks folder that does not include the version number. This can potentially be None.
+  @param common_services_parent_dir: Path to the common-services directory for a specified service, not including the version.
+  @param service: Service name
+  :return A list of paths to insert to sys.path by following the chain of inheritence.
+  """
+  paths_to_import = []
+
+  if metainfo_file is None or service is None:
+    return paths_to_import
+
+  # This could be either a version number of a path to common-services
+  extract = get_extends_field_from_metainfo(metainfo_file)
+  if extract is not None:
+    if "common-services" in extract:
+      # If in common-services, we are done.
+      scripts_path = os.path.join(common_services_parent_dir, extract, "package", "scripts")
+      paths_to_import.append(scripts_path)
+    else:
+      # If a version number, we need to import it and check that version as well.
+      inherited_from_older_version_path = os.path.join(base_stack_folder, "..", extract)
+
+      metainfo_file = os.path.join(inherited_from_older_version_path, "services", service, "metainfo.xml")
+      if os.path.isdir(inherited_from_older_version_path):
+        paths_to_import += resolve_paths_to_import_from_common_services(metainfo_file, inherited_from_older_version_path, common_services_parent_dir, service)
+  else:
+    print "Service %s. Could not get extract <extends></extends> from metainfo file: %s. This may prevent modules from being imported." % (service, str(metainfo_file))
+
+  return paths_to_import
+
+def append_paths(server_src_dir, base_stack_folder, service):
+  """
+  Append paths to sys.path in order to import modules.
+  
+  @param server_src_dir: Server source directory
+  @param base_stack_folder: If present, the directory of the stack.
+  @param service: Service name.
+  """
+  paths_to_add = []
+  if base_stack_folder is not None:
+    # Append paths
+    metainfo_file = None
+    if base_stack_folder is not None:
+      metainfo_file = os.path.join(base_stack_folder, "services", service, "metainfo.xml")
+
+    common_services_parent_dir = os.path.join(server_src_dir, "main", "resources")
+    paths_to_add = resolve_paths_to_import_from_common_services(metainfo_file, base_stack_folder, common_services_parent_dir, service)
+  else:
+    # We couldn't add paths using the base directory, be greedy and add all available for this service in common-services.
+    # Add the common-services scripts directories to the PATH
+    base_common_services_folder = os.path.join(server_src_dir, "main", "resources", "common-services")
+    for folder, subFolders, files in os.walk(os.path.join(base_common_services_folder, service)):
+      if "package/scripts" in folder:
+        paths_to_add.append(folder)
+
+  for path in paths_to_add:
+    if os.path.exists(path) and path not in sys.path:
+      sys.path.append(path)
+
 def stack_test_executor(base_folder, service, stack, test_mask, executor_result):
   """
   Stack tests executor. Must be executed in separate process to prevent module
@@ -95,6 +189,7 @@ def stack_test_executor(base_folder, service, stack, test_mask, executor_result)
   server_src_dir = get_parent_path(base_folder, 'src')
   script_folders = set()
 
+  base_stack_folder = None
   if stack is not None:
     base_stack_folder = os.path.join(server_src_dir,
                                      "main", "resources", "stacks", get_stack_name(), stack)
@@ -104,16 +199,7 @@ def stack_test_executor(base_folder, service, stack, test_mask, executor_result)
       if os.path.split(root)[-1] in ["scripts", "files"] and service in root:
         script_folders.add(root)
 
-  # Add the common-services scripts directories to the PATH
-  base_commserv_folder = os.path.join(server_src_dir, "main", "resources", "common-services")
-  for folder, subFolders, files in os.walk(os.path.join(base_commserv_folder, service)):
-    # folder will return the versions of the services
-    scripts_dir = os.path.join(folder, "package", "scripts")
-    if os.path.exists(scripts_dir):
-      script_folders.add(scripts_dir)
-
-  sys.path.extend(script_folders)
-
+  append_paths(server_src_dir, base_stack_folder, service)
   tests = get_test_files(base_folder, mask = test_mask)
 
   #TODO Add an option to randomize the tests' execution

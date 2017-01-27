@@ -35,13 +35,17 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <!--
+  This property is deleted in Hadoop 3.0. Need to remove it during Stack Upgrade.
   <property>
     <name>dfs.support.append</name>
     <value>true</value>
     <description>to enable dfs append</description>
     <final>true</final>
     <on-ambari-upgrade add="true"/>
+    <deleted>true</deleted>
   </property>
+  -->
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>

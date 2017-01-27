@@ -243,7 +243,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertNoMoreResources()
 
   '''
-  restart should not call slider destroy
+  #restart should not call slider destroy
   '''
   @patch("os.path.isfile")
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
