@@ -121,7 +121,7 @@
               </span>
           {{/if}}
           {{#if view.displayedServiceVersion.author}}
-            &nbsp;<strong>{{view.displayedServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
+            &nbsp;<strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
           {{/if}}
         </div>
         {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}

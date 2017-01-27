@@ -50,7 +50,6 @@ define([
 			this.lagCollection = new BaseCollection();
 			this.systemFlag = false;
 			this.windowSize = ':all-time';
-			this.initializeData();
 			return {
 				model: this.model,
 				graphData: {},
@@ -63,6 +62,7 @@ define([
 		},
 		componentWillMount: function(){
 			$('.loader').show();
+			this.initializeData();
 		},
 		componentDidMount: function(){
 			$(".boot-switch.systemSum").bootstrapSwitch({
@@ -89,7 +89,6 @@ define([
 			$('.loader').hide();
 		},
 		componentWillUpdate: function(){
-			$('.loader').show();
 			$('#collapse-spout').off('hidden.bs.collapse');
 			$('#collapse-spout').off('shown.bs.collapse');
 			$('#collapse-bolt').off('hidden.bs.collapse');
@@ -122,7 +121,6 @@ define([
 			if(this.refs.barChart){
 				ReactDOM.findDOMNode(document.getElementById('lag-graph')).appendChild(this.refs.barChart.legendsEl)
 			}
-			$('.loader').hide();
 		},
 		initializeData: function(){
 			this.model.getData({
@@ -147,6 +145,7 @@ define([
 			this.initializeWorkerData();
 		},
 		initializeGraphData: function(){
+			$('#graphLoader').show();
 			this.model.getGraphData({
 				id: this.model.get('id'),
 				window: this.windowSize,
@@ -159,6 +158,7 @@ define([
 						}
 						this.setState({graphData: model});
 					}
+					$('#graphLoader').hide();
 				}.bind(this),
 				error: function(model, response, options){
 					Utils.notifyError("Error occured in fetching topology visualization data.");
@@ -184,23 +184,40 @@ define([
 		},
 
 		initializeLagData: function(){
+			$('#kafkaLoader').show();
 			this.model.getTopologyLag({
 				id: this.model.get('id'),
 				success: function(model, response){
 					if(response.error || model.error){
 						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
-						if(model && model.length){
-							var result = JSON.parse(model[0].spoutLagResult);
-							for(var i = 0; i < result.length; i++){
-								result[i]['spoutId'] = model[0].spoutId;
-								result[i]['spoutType'] = model[0].spoutType;
+						if(model && _.keys(model).length > 0){
+							var keys = _.keys(model);
+							var arr = [];
+							for(var i = 0; i < keys.length; i++){
+								var data = model[keys[i]];
+								var topicKeys = _.keys(data.spoutLagResult);
+								for(var j = 0; j < topicKeys.length; j++){
+									var topicName = topicKeys[j];
+									var partitionData = data.spoutLagResult[topicName];
+									var id = _.keys(partitionData);
+									for(var k = 0; k < id.length; k++){
+										var partitionId = id[k];
+										var obj = partitionData[partitionId];
+										obj['spoutId'] = data.spoutId;
+										obj['spoutType'] = data.spoutType;
+										obj['partition'] = partitionId;
+										obj['topic'] = topicName;
+										arr.push(obj);
+									}
+								}
 							}
-							this.resetLagCollection(result);
+							this.resetLagCollection(arr);
 						} else {
 							this.setState({hideKafkaLagBox : true});
 						}
 					}
+					$('#kafkaLoader').hide();
 				}.bind(this)
 			})
 		},
@@ -788,6 +805,7 @@ define([
 					</div>
 					<div className="row">
 						<div className="col-sm-12">
+							<div className="inner-loader" id="graphLoader" />
 							<TopologyDetailGraph model={this.state.model} graphData={this.state.graphData}/>
 						</div>
 					</div>
@@ -811,7 +829,8 @@ define([
 									<div className="box-body">
 										<div className="row">
 											<div className="col-sm-12">
-												<div id="lag-graph" className="displayNone">
+												<div className="inner-loader" id="kafkaLoader" />
+												<div id="lag-graph">
 													{this.lagCollection.length > 0 ? 
 													<BarChart
 														ref="barChart"

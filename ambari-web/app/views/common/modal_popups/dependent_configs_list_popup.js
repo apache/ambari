@@ -18,6 +18,25 @@
 
 var App = require('app');
 
+App.DependentConfigsTableView = Em.View.extend({
+  templateName: require('templates/common/modal_popups/dependent_configs_table'),
+  recommendations: [],
+  isEditable: true,
+  title: Em.computed.ifThenElse('isEditable', Em.I18n.t('popup.dependent.configs.table.recommended'), Em.I18n.t('popup.dependent.configs.table.required')),
+  message: function () {
+    var message = '';
+    if (this.get('isEditable')) {
+      if (this.get('parentView.isAfterRecommendation')) {
+        message += Em.I18n.t('popup.dependent.configs.title.recommendation') + '<br>';
+      }
+      message += Em.I18n.t('popup.dependent.configs.title.values');
+    } else {
+      message += Em.I18n.t('popup.dependent.configs.title.required');
+    }
+    return message;
+  }.property('isEditable')
+});
+
 App.DependentConfigsListView = Em.View.extend({
   templateName: require('templates/common/modal_popups/dependent_configs_list'),
   isAfterRecommendation: true,

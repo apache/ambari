@@ -485,6 +485,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     desiredStateEntity.setClusterServiceEntity(serviceEntity);
     serviceComponentDesiredStateDAO.create(desiredStateEntity);
+    serviceEntity.getServiceComponentDesiredStateEntities().add(desiredStateEntity);
     serviceEntity = clusterServiceDAO.merge(serviceEntity);
   }
 

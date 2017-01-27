@@ -274,6 +274,7 @@
         "Dependencies/service_name",
         "Dependencies/component_name",
         "Dependencies/scope",
+        "Dependencies/conditions",
         "auto_deploy/enabled",
         "auto_deploy/location"
     ],

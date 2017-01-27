@@ -47,40 +47,69 @@ public class WorkflowFilesService {
   }
 
   public InputStream readDraft(String appPath) throws IOException {
-    return hdfsFileUtils.read(getWorkflowDraftFileName(appPath));
+    return hdfsFileUtils.read(getWorkflowDraftFileName(appPath,null));
   }
 
   public InputStream readWorkflowXml(String appPath) throws IOException {
-    return hdfsFileUtils.read(getWorkflowFileName(appPath));
+    return hdfsFileUtils.read(appPath);
   }
 
   public InputStream readAssset(String assetPath) throws IOException {
     return hdfsFileUtils.read(getAssetFileName(assetPath));
   }
 
-  public String getWorkflowDraftFileName(String appPath) {
+  public String getWorkflowDraftFileName(String appPath,JobType jobType) {
     if (appPath.endsWith(Constants.WF_DRAFT_EXTENSION)) {
       return appPath;
     } else if (appPath.endsWith(Constants.WF_EXTENSION)) {
       String folderPath = appPath.substring(0, appPath.lastIndexOf(Constants.WF_EXTENSION));
       return folderPath + Constants.WF_DRAFT_EXTENSION;
-    } else if (appPath.endsWith("/")) {
-      return appPath + Constants.DEFAULT_DRAFT_FILENAME;
+    }
+    if (jobType==null){
+      throw new RuntimeException("Could not determine jobType(Workflow/Coordniator/Bundle");
+    }
+    if (appPath.endsWith("/")) {
+      return appPath + getDefaultDraftFileName(jobType);
     } else {
-      return appPath + "/" + Constants.DEFAULT_DRAFT_FILENAME;
+      return appPath + "/" + getDefaultDraftFileName(jobType);
     }
   }
 
-  public String getWorkflowFileName(String appPath) {
+  public String getWorkflowFileName(String appPath, JobType jobType) {
     if (appPath.endsWith(Constants.WF_EXTENSION)) {
       return appPath;
     } else if (appPath.endsWith(Constants.WF_DRAFT_EXTENSION)) {
       String folderPath = appPath.substring(0, appPath.lastIndexOf(Constants.WF_DRAFT_EXTENSION));
       return folderPath + Constants.WF_EXTENSION;
     } else if (appPath.endsWith("/")) {
-      return appPath + Constants.DEFAULT_WORKFLOW_FILENAME;
+      return appPath + getDefaultFileName(jobType);
     } else {
-      return appPath + "/" + Constants.DEFAULT_WORKFLOW_FILENAME;
+      return appPath + "/" + getDefaultFileName(jobType);
+    }
+  }
+
+  private String getDefaultFileName(JobType jobType){
+    switch (jobType){
+      case BUNDLE:
+        return Constants.DEFAULT_BUNDLE_FILENAME+Constants.WF_EXTENSION;
+      case COORDINATOR:
+        return Constants.DEFAULT_COORDINATOR_FILENAME+Constants.WF_EXTENSION;
+      case WORKFLOW:
+        return Constants.DEFAULT_WORKFLOW_FILENAME+Constants.WF_EXTENSION;
+      default:
+        return null;
+    }
+  }
+  private String getDefaultDraftFileName(JobType jobType) {
+    switch (jobType){
+      case BUNDLE:
+        return Constants.DEFAULT_BUNDLE_FILENAME+Constants.WF_DRAFT_EXTENSION;
+      case COORDINATOR:
+        return Constants.DEFAULT_COORDINATOR_FILENAME+Constants.WF_DRAFT_EXTENSION;
+      case WORKFLOW:
+        return Constants.DEFAULT_WORKFLOW_FILENAME+Constants.WF_DRAFT_EXTENSION;
+      default:
+        return null;
     }
   }
 
@@ -96,26 +125,29 @@ public class WorkflowFilesService {
   }
 
   public void discardDraft(String workflowPath) throws IOException {
-    hdfsFileUtils.deleteFile(getWorkflowDraftFileName(workflowPath));
+    hdfsFileUtils.deleteFile(getWorkflowDraftFileName(workflowPath,null));
   }
 
-  public WorkflowFileInfo getWorkflowDetails(String appPath) {
+  public WorkflowFileInfo getWorkflowDetails(String appPath, JobType jobType) {
+    appPath=appPath.trim();
     WorkflowFileInfo workflowInfo = new WorkflowFileInfo();
-    workflowInfo.setWorkflowPath(getWorkflowFileName(appPath));
+    workflowInfo.setWorkflowPath(appPath);
     boolean draftExists = hdfsFileUtils
-            .fileExists(getWorkflowDraftFileName(appPath));
+            .fileExists(getWorkflowDraftFileName(appPath,jobType
+            ));
     workflowInfo.setDraftExists(draftExists);
-    boolean workflowExists = hdfsFileUtils.fileExists(getWorkflowFileName(appPath));
+    boolean workflowExists = hdfsFileUtils.fileExists(appPath);
+    workflowInfo.setWorkflowDefinitionExists(workflowExists);
     FileStatus workflowFileStatus = null;
     if (workflowExists) {
       workflowFileStatus = hdfsFileUtils
-              .getFileStatus(getWorkflowFileName(appPath));
+              .getFileStatus(appPath);
       workflowInfo.setWorkflowModificationTime(workflowFileStatus
               .getModificationTime());
     }
     if (draftExists) {
       FileStatus draftFileStatus = hdfsFileUtils
-              .getFileStatus(getWorkflowDraftFileName(appPath));
+              .getFileStatus(getWorkflowDraftFileName(appPath,jobType));
       workflowInfo.setDraftModificationTime(draftFileStatus
               .getModificationTime());
       if (!workflowExists) {

@@ -1448,6 +1448,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  @Transactional
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
@@ -2186,7 +2187,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 RoleCommand roleCommand,
                                 Map<String, String> commandParamsInp,
                                 ServiceComponentHostEvent event,
-                                boolean skipFailure
+                                boolean skipFailure,
+                                ClusterVersionEntity effectiveClusterVersion,
+                                boolean isUpgradeSuspended
                                 )
                                 throws AmbariException {
 
@@ -2302,7 +2305,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
 
-        ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
         if (effectiveClusterVersion != null) {
          commandParams.put(VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
         }
@@ -2360,7 +2362,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // in the context of an upgrade and we should send the repo ID which matches
     // the version being send down
     RepositoryVersionEntity repoVersion = null;
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
     if (null != effectiveClusterVersion) {
       repoVersion = effectiveClusterVersion.getRepositoryVersion();
     } else {
@@ -2426,7 +2427,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // !!! consistent with where custom commands put variables
     // !!! after-INSTALL hook checks this such that the stack selection tool won't
     // select-all to a version that is not being upgraded, breaking RU
-    if (cluster.isUpgradeSuspended()) {
+    if (isUpgradeSuspended) {
       cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
     }
 
@@ -2560,6 +2561,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       LOG.info("Created 0 stages");
       return requestStages;
     }
+
+    // caching effective cluster version
+    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+
+    // caching upgrade suspended
+    boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
 
     // smoke test any service that goes from installed to started
     Set<String> smokeTestServices = getServicesForSmokeTests(cluster,
@@ -2893,7 +2900,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               scHost.setState(State.INSTALLED);
             } else {
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event, skipFailure);
+                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended);
             }
 
           }
@@ -3029,8 +3036,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         configurationAttributes =
         new TreeMap<>();
 
+    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+    boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false);
+                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
     // createHostAction does not take a hostLevelParams but creates one

@@ -108,7 +108,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     childValidators = {
       "ATLAS": {"application-properties": self.validateAtlasConfigurations},
       "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations,
-               "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations},
+               "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations,
+               "hive-env": self.validateHiveConfigurationsEnv},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations},
       "SPARK2": {"spark2-defaults": self.validateSpark2Defaults,
@@ -365,6 +366,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-site")
     return validationProblems
 
+  def validateHiveConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP25StackAdvisor, self).validateHiveConfigurationsEnv(properties, recommendedDefaults, configurations, services, hosts)
+    hive_site_properties = self.getSiteProperties(configurations, "hive-site")
+    hive_env_properties = self.getSiteProperties(configurations, "hive-env")
+    validationItems = []
+
+    if 'hive.server2.authentication' in hive_site_properties and "LDAP" == hive_site_properties['hive.server2.authentication']:
+      if 'alert_ldap_username' not in hive_env_properties or hive_env_properties['alert_ldap_username'] == "":
+        validationItems.append({"config-name": "alert_ldap_username",
+                                "item": self.getWarnItem(
+                                  "Provide an user to be used for alerts. Hive authentication type LDAP requires valid LDAP credentials for the alerts.")})
+      if 'alert_ldap_password' not in hive_env_properties or hive_env_properties['alert_ldap_password'] == "":
+        validationItems.append({"config-name": "alert_ldap_password",
+                                "item": self.getWarnItem(
+                                  "Provide the password for the alert user. Hive authentication type LDAP requires valid LDAP credentials for the alerts.")})
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-env")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
+
   def validateHiveInteractiveEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_site_env_properties = self.getSiteProperties(configurations, "hive-interactive-env")
     validationItems = []
@@ -418,9 +439,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if spark_queue is not None:
       putSparkProperty("spark.yarn.queue", spark_queue)
 
-    spart_thrift_queue = self.recommendYarnQueue(services, "spark2-thrift-sparkconf", "spark.yarn.queue")
-    if spart_thrift_queue is not None:
-      putSparkThriftSparkConf("spark.yarn.queue", spart_thrift_queue)
+    spark_thrift_queue = self.recommendYarnQueue(services, "spark2-thrift-sparkconf", "spark.yarn.queue")
+    if spark_thrift_queue is not None:
+      putSparkThriftSparkConf("spark.yarn.queue", spark_thrift_queue)
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
@@ -710,10 +731,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     timeline_plugin_classes_values = []
     timeline_plugin_classpath_values = []
 
-    if self.__isServiceDeployed(services, "TEZ"):
+    if self.isServiceDeployed(services, "TEZ"):
       timeline_plugin_classes_values.append('org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
 
-    if self.__isServiceDeployed(services, "SPARK"):
+    if self.isServiceDeployed(services, "SPARK"):
       timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
       timeline_plugin_classpath_values.append(stack_root + "/${hdp.version}/spark/hdpLib/*")
 
@@ -1195,39 +1216,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveSiteProperty('hive.llap.io.memory.size', 0)
     putHiveInteractiveEnvProperty('llap_heap_size', 0)
     putHiveInteractiveEnvProperty('slider_am_container_mb', slider_am_container_size)
-
-  def isConfigPropertiesChanged(self, services, config_type, config_names, all_exists=True):
-    """
-    Checks for the presence of passed-in configuration properties in a given config, if they are changed.
-    Reads from services["changed-configurations"].
-
-    :argument services: Configuration information for the cluster
-    :argument config_type: Type of the configuration
-    :argument config_names: Set of configuration properties to be checked if they are changed.
-    :argument all_exists: If True: returns True only if all properties mentioned in 'config_names_set' we found
-                            in services["changed-configurations"].
-                            Otherwise, returns False.
-                          If False: return True, if any of the properties mentioned in config_names_set we found in
-                            services["changed-configurations"].
-                            Otherwise, returns False.
-
-
-    :type services: dict
-    :type config_type: str
-    :type config_names: list|set
-    :type all_exists: bool
-    """
-    changedConfigs = services["changed-configurations"]
-    changed_config_names_set = set([changedConfig['name'] for changedConfig in changedConfigs if changedConfig['type'] == config_type])
-    config_names_set = set(config_names)
-
-    configs_intersection = changed_config_names_set & config_names_set
-    if all_exists and configs_intersection == config_names_set:
-        return True
-    elif not all_exists and len(configs_intersection) > 0:
-        return True
-
-    return False
 
   def get_num_llap_nodes(self, services, configurations):
     """
@@ -1976,10 +1964,6 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                                     "Need to Install ATLAS service to set ranger.tagsync.source.atlas as true.")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
-
-  def __isServiceDeployed(self, services, serviceName):
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    return serviceName in servicesList
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return super(HDP25StackAdvisor, self).isComponentUsingCardinalityForLayout (componentName) or  componentName in ['SPARK2_THRIFTSERVER', 'LIVY2_SERVER', 'LIVY_SERVER']

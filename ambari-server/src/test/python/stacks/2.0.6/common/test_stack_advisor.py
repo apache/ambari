@@ -191,6 +191,110 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
+  def test_validateRequiredComponentsPresent(self):
+    services = {
+      "Versions":
+        {
+          "stack_name":"HDP",
+          "stack_version":"2.0.6"
+        },
+      "services" : [
+        {
+          "StackServices" : {
+            "service_name" : "HDFS",
+            "service_version" : "2.0.6",
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "stack_version": "2.0.6",
+                "stack_name": "HDP",
+                "component_category": "MASTER",
+                "is_client": False,
+                "is_master": True,
+                "service_name": "HDFS",
+                "cardinality": "1-2",
+                "hostnames": ["c6401.ambari.apache.org"],
+                "component_name": "NAMENODE",
+                "display_name": "NameNode"
+              },
+              "dependencies": [
+                {
+                  "Dependencies": {
+                    "stack_name": "HDP",
+                    "stack_version": "2.0.6",
+                    "scope": "cluster",
+                    "conditions": [
+                      {
+                        "configType": "hdfs-site",
+                        "property": "dfs.nameservices",
+                        "type": "PropertyExists",
+                      }
+                    ],
+                    "dependent_service_name": "HDFS",
+                    "dependent_component_name": "NAMENODE",
+                    "component_name": "ZOOKEEPER_SERVER"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "StackServices" : {
+            "service_name" : "ZOOKEEPER",
+            "service_version" : "2.0.6",
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "stack_version": "2.0.6",
+                "stack_name": "HDP",
+                "component_category": "MASTER",
+                "is_client": False,
+                "is_master": True,
+                "service_name": "HDFS",
+                "cardinality": "1-2",
+                "hostnames": [],
+                "component_name": "ZOOKEEPER_SERVER",
+                "display_name": "ZooKeeper Server"
+              },
+              "dependencies": []
+            }
+          ]
+        }
+      ]
+    }
+
+    actualItems = self.stackAdvisor.validateRequiredComponentsPresent(services)
+    self.assertTrue(len(actualItems) == 0, "Only dependencies that have no associated condition should be accounted")
+
+    services["services"][0]["components"][0]["dependencies"][0]["Dependencies"]["conditions"] = []
+    actualItems = self.stackAdvisor.validateRequiredComponentsPresent(services)
+    self.assertFalse(len(actualItems) == 0, "Dependencies without conditions should be accounted")
+    expectedItems = [{ "type": 'host-component', "level": 'ERROR', "message": "NameNode requires ZooKeeper Server to be present in the cluster.", "component-name": "NAMENODE"}]
+    self.assertEqual(expectedItems, actualItems, "Cluster scope dependency error should be raised")
+
+    services["services"][1]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org"]
+    actualItems = self.stackAdvisor.validateRequiredComponentsPresent(services)
+    self.assertTrue(len(actualItems) == 0, "Validation error should not be raised when cluster scope dependency is satisfied")
+
+    services["services"][0]["components"][0]["dependencies"][0]["Dependencies"]["scope"] = "host"
+    actualItems = self.stackAdvisor.validateRequiredComponentsPresent(services)
+    self.assertFalse(len(actualItems) == 0, "Validation error should be raised when host scope dependency is not satisfied")
+    expectedItems = [{ "type": 'host-component', "level": 'ERROR', "message": "NameNode requires ZooKeeper Server to be co-hosted on following host(s): c6401.ambari.apache.org.", "component-name": "NAMENODE"}]
+    self.assertEqual(expectedItems, actualItems, "Host scope dependency error should be raised")
+
+    services["services"][1]["components"][0]["StackServiceComponents"]["component_category"] = "CLIENT"
+    actualItems = self.stackAdvisor.validateRequiredComponentsPresent(services)
+    self.assertTrue(len(actualItems) == 0, "Validation error should not be raised when dependency is a client component")
+
+    services["services"][1]["components"][0]["StackServiceComponents"]["component_category"] = "SLAVE"
+    services["services"][1]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6401.ambari.apache.org"]
+    actualItems = self.stackAdvisor.validateRequiredComponentsPresent(services)
+    self.assertTrue(len(actualItems) == 0, "Validation error should not be raised when host scope dependency is satisfied")
+
+
   def test_get_components_list(self):
     servicesInfo = [
       {
@@ -1034,7 +1138,8 @@ class TestHDP206StackAdvisor(TestCase):
             "cardinality": component["cardinality"],
             "component_category": component["category"],
             "is_master": component["is_master"]
-          }
+          },
+          "dependencies": []
         }
         try:
           nextComponent["StackServiceComponents"]["hostnames"] = component["hostnames"]

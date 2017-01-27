@@ -85,7 +85,7 @@ def get_stack_version(package_name):
 
   stack_version = re.sub(package_name + ' - ', '', stack_output)
   stack_version = stack_version.rstrip()
-  match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', stack_version)
+  match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+(-[0-9]+)?', stack_version)
 
   if match is None:
     Logger.info('Failed to get extracted version with ' + stack_selector_path)

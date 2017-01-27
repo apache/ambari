@@ -194,6 +194,10 @@ $table-info-background: lighten($body-bg, 10%);
       }
     }
   }
+
+  .alert {
+    margin: 0;
+  }
 }
 
 .table-name-input {
@@ -209,25 +213,10 @@ pre {
   }
 }
 
-.dipayan {
-  .CodeMirror {
-    height: 100vh;
-  }
-}
-
-.dipayan123 {
+.scroll-fix {
   background-color: lighten($body-bg, 5%);
   height: calc(100vh - 180px);
   overflow-y: scroll;
-}
-
-.grip {
-  height: 20px;
-  border: 0 1px 1px solid #ddd;
-  background-color: #f5f5f5;
-  color: #bbb;
-  text-align: center;
-  font-size: inherit;
 }
 
 .hv-dropdown {
@@ -819,11 +808,14 @@ pre {
   padding-bottom: 25px;
 }
 
-.authorizations {
-  &.alert {
-    margin: 0;
-  }
+.stats-section {
+  margin-top: 20px;
 }
+
+.col-stats-details {
+  padding-top: 10px;
+}
+
 
 
 

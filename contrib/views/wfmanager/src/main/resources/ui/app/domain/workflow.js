@@ -168,7 +168,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
   deleteNode(node){
     var self=this;
     var target=node.getDefaultTransitionTarget();
-    if (node.isForkNode()|| node.isDecisionNode()){
+    if (!target.isEndNode() && (node.isForkNode()|| node.isDecisionNode())){
       target=this.findJoinNode(node);
       if (!target){//A bug will give target as null if the decision has single path.
         target=node.getDefaultTransitionTarget();

@@ -25,7 +25,7 @@ from resource_management.libraries.functions import format
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
                            transport_mode="binary", http_endpoint="cliservice", ssl=False, ssl_keystore=None,
-                           ssl_password=None, check_command_timeout=30):
+                           ssl_password=None, check_command_timeout=30, ldap_username="", ldap_password=""):
   """
   Hive thrift SASL port check
   """
@@ -49,12 +49,17 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
   if hive_auth == "NOSASL":
     beeline_url.append('auth=noSasl')
 
+  credential_str = ""
+  # append username and password for LDAP
+  if hive_auth == "LDAP":
+    credential_str = "-n '{ldap_username}' -p '{ldap_password!p}'"
+
   # append url according to ssl configuration
   if ssl and ssl_keystore is not None and ssl_password is not None:
     beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', 'trustStorePassword={ssl_password!p}'])
 
   # append url according to principal and execute kinit
-  if kinitcmd:
+  if kinitcmd and hive_auth != "LDAP":
     beeline_url.append('principal={key}')
 
     # prevent concurrent kinit
@@ -65,8 +70,8 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
     finally:
       kinit_lock.release()
 
-  cmd = "! beeline -u '%s' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
-        format(";".join(beeline_url))
+  cmd = "! beeline -u '%s' %s -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
+        (format(";".join(beeline_url)), format(credential_str))
 
   Execute(cmd,
     user=smokeuser,

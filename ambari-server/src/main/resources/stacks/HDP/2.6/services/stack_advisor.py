@@ -32,7 +32,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       childRecommendConfDict = {
           "DRUID": self.recommendDruidConfigurations,
           "ATLAS": self.recommendAtlasConfigurations,
-          "TEZ": self.recommendTezConfigurations
+          "TEZ": self.recommendTezConfigurations,
+          "RANGER": self.recommendRangerConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
@@ -185,7 +186,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       childValidators = {
           "DRUID": {"druid-env": self.validateDruidEnvConfigurations,
                     "druid-historical": self.validateDruidHistoricalConfigurations,
-                    "druid-broker": self.validateDruidBrokerConfigurations}
+                    "druid-broker": self.validateDruidBrokerConfigurations},
+          "RANGER": {"ranger-ugsync-site": self.validateRangerUsersyncConfigurations}
       }
       self.mergeValidators(parentValidators, childValidators)
       return parentValidators
@@ -246,3 +248,33 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     tez_jvm_updated_opts = tez_jvm_opts + jvmGCParams + "{{heap_dump_opts}}"
     putTezProperty('tez.task.launch.cmd-opts', tez_jvm_updated_opts)
     Logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' as : {0}".format(tez_jvm_updated_opts))
+
+  def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+
+    putRangerUgsyncSite = self.putProperty(configurations, 'ranger-ugsync-site', services)
+
+    delta_sync_enabled = False
+    if 'ranger-ugsync-site' in services['configurations'] and 'ranger.usersync.ldap.deltasync' in services['configurations']['ranger-ugsync-site']['properties']:
+      delta_sync_enabled = services['configurations']['ranger-ugsync-site']['properties']['ranger.usersync.ldap.deltasync'] == "true"
+
+    if delta_sync_enabled:
+      putRangerUgsyncSite("ranger.usersync.group.searchenabled", "true")
+    else:
+      putRangerUgsyncSite("ranger.usersync.group.searchenabled", "false")
+
+  def validateRangerUsersyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    ranger_usersync_properties = properties
+    validationItems = []
+
+    delta_sync_enabled = 'ranger.usersync.ldap.deltasync' in ranger_usersync_properties \
+      and ranger_usersync_properties['ranger.usersync.ldap.deltasync'].lower() == 'true'
+    group_sync_enabled = 'ranger.usersync.group.searchenabled' in ranger_usersync_properties \
+      and ranger_usersync_properties['ranger.usersync.group.searchenabled'].lower() == 'true'
+
+    if delta_sync_enabled and not group_sync_enabled:
+      validationItems.append({"config-name": "ranger.usersync.group.searchenabled",
+                            "item": self.getWarnItem(
+                            "Need to set ranger.usersync.group.searchenabled as true, as ranger.usersync.ldap.deltasync is enabled")})
+
+    return self.toConfigurationValidationProblems(validationItems, "ranger-ugsync-site")

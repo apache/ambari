@@ -131,7 +131,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if recommended_spark_queue is not None:
         putSparkThriftSparkConf("spark.yarn.queue", recommended_spark_queue)
 
-
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)

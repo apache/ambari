@@ -242,6 +242,85 @@ class TestHiveServerInteractive(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  '''
+  restart should not call slider destroy
+  '''
+  @patch("os.path.isfile")
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  @patch("socket.socket")
+  @patch("time.sleep")
+  def test_restart_default_with_llap_multi_line_output(self, sleep_mock, socket_mock, copy_to_hfds_mock, is_file_mock):
+    self.maxDiff = None
+    copy_to_hfds_mock.return_value = False
+    s = socket_mock.return_value
+    is_file_mock.return_value = True
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server_interactive.py",
+                       classname="HiveServerInteractive",
+                       command="restart",
+                       config_file=self.get_src_folder() + "/test/python/stacks/2.5/configs/hsi_default_for_restart.json",
+                       stack_version=self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_COMMON_SERVICES,
+                       checked_call_mocks=[(0, "OK.", ""),
+                                           #(0, "OK.", ""),
+                                           (0, "UNWANTED_STRING \n "
+                                               "       Prepared llap-slider-05Apr2016/run.sh for running LLAP \n     "
+                                               "UNWANTED_STRING \n ", ""),
+                                           (0, """{
+                                                      \"state\" : \"RUNNING_ALL\"
+                                                   }""", ""),
+                                           (0, """{
+                                                      \"state\" : \"RUNNING_ALL\"
+                                                   }""", ""),
+                                           (0, "OK.", "")],
+                       )
+
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+                              not_if="! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
+                              )
+    self.assertResourceCalled('Execute',
+                              "! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
+                              tries=10,
+                              try_sleep=3,
+                              )
+
+    self.assertResourceCalled('Execute',
+                              "! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
+                              tries=20,
+                              try_sleep=3,
+                              )
+    self.assertResourceCalled('File', '/var/run/hive/hive-interactive.pid',
+                              action=['delete'],
+                              )
+
+    self.assert_configure_default()
+
+    self.assertResourceCalled('Execute',
+                              '/home/hive/llap-slider-05Apr2016/run.sh',
+                              logoutput= True, user=u'hive'
+    )
+    self.assertResourceCalled('Execute',
+                              'hive --config /usr/hdp/current/hive-server2-hive2/conf/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
+                              environment={'PATH': '/usr/hdp/current/hadoop-client/bin'},
+                              user='hive'
+    )
+    self.assertResourceCalled('Execute',
+                              '/tmp/start_hiveserver2_interactive_script /var/run/hive/hive-server2-interactive.out /var/log/hive/hive-server2-interactive.err /var/run/hive/hive-interactive.pid /usr/hdp/current/hive-server2-hive2/conf/conf.server /var/log/hive',
+                              environment={'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
+                                           'HIVE_BIN': 'hive2',
+                                           'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+                              not_if="ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
+                              user='hive',
+                              path=['/bin:/usr/hdp/current/hive-server2-hive2/bin:/usr/hdp/current/hadoop-client/bin'],
+                              )
+    self.assertResourceCalled('Execute',
+                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2-hive2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries=5,
+                              try_sleep=10
+    )
+    self.assertNoMoreResources()
+
+
   """
   Tests HSI start with llap package creation output having multiple lines.
   Sample output : "UNWANTED STRING \n Prepared llap-slider-05Apr2016/run.sh for running LLAP \n UNWANTED STRING \n"
@@ -299,6 +378,7 @@ class TestHiveServerInteractive(RMFTestCase):
                               try_sleep=10
                               )
     self.assertNoMoreResources()
+
 
   def test_stop_default(self):
     self.maxDiff = None
@@ -814,42 +894,42 @@ class TestHiveServerInteractive(RMFTestCase):
 
 
 
-  # Tests for fn : 'check_llap_app_status()'
+  # Tests for fn : 'check_llap_app_status_in_hdp_tp()'
 
 
   # Status : RUNNING
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_running_all_wait_negative(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_running_all_wait_negative_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('running.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, -1)
     self.assertEqual(status, True)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_running_all_wait_0(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_running_all_wait_0_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('running.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 0)
     self.assertEqual(status, True)
 
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_running_all_wait_2(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_running_all_wait_2_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('running.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 2)
     self.assertEqual(status, True)
 
 
@@ -857,36 +937,36 @@ class TestHiveServerInteractive(RMFTestCase):
 
   # Status : RUNNING_PARTIAL (2 out of 3 running -> < 80% instances ON)
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_one_container_down_wait_negative(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_one_container_down_wait_negative_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('oneContainerDown.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, -1)
     self.assertEqual(status, False)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_one_container_down_wait_0(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_one_container_down_wait_0_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('oneContainerDown.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 0)
     self.assertEqual(status, False)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_one_container_down_wait_2(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_one_container_down_wait_2_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('oneContainerDown.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 2)
     self.assertEqual(status, False)
 
 
@@ -894,37 +974,37 @@ class TestHiveServerInteractive(RMFTestCase):
 
   # Status : RUNNING_PARTIAL (4 out of 5 running -> > 80% instances ON)
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_two_container_down_1_wait_negative(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_two_container_down_1_wait_negative_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('oneContainerDown1.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, -1)
     self.assertEqual(status, True)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_two_container_down_1_wait_0(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_two_container_down_1_wait_0_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('oneContainerDown1.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 0)
     self.assertEqual(status, True)
 
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_two_container_down_1_wait_2(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_two_container_down_1_wait_2_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('oneContainerDown1.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 2)
     self.assertEqual(status, True)
 
 
@@ -932,36 +1012,36 @@ class TestHiveServerInteractive(RMFTestCase):
 
   # Status : LAUNCHING
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_starting_wait_negative(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_starting_wait_negative_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('starting.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, -1)
     self.assertEqual(status, False)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_starting_wait_0(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_starting_wait_0_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('starting.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 0)
     self.assertEqual(status, False)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_starting_wait_2(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_starting_wait_2_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('starting.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 2)
     self.assertEqual(status, False)
 
 
@@ -970,36 +1050,36 @@ class TestHiveServerInteractive(RMFTestCase):
 
   # Status : COMPLETE
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_complete_wait_negative(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_complete_wait_negative_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('appComplete.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, -1)
     self.assertEqual(status, False)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_complete_wait_0(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_complete_wait_0_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('appComplete.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 0)
     self.assertEqual(status, False)
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_complete_wait_2(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_complete_wait_2_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('appComplete.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 2)
     self.assertEqual(status, False)
 
 
@@ -1007,36 +1087,267 @@ class TestHiveServerInteractive(RMFTestCase):
 
   # Status : APP_NOT_FOUND
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_invalid_wait_negative(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_invalid_wait_negative_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('invalidApp.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, -1)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, -1)
     self.assertEqual(status, False)
 
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_invalid_wait_0(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_invalid_wait_0_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('invalidApp.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 0)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 0)
     self.assertEqual(status, False)
 
 
   @patch("time.sleep")
-  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info')
-  def test_check_llap_app_status_invalid_wait_2(self, mock_get_llap_app_status_data, sleep_mock):
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_tp')
+  def test_check_llap_app_status_invalid_wait_2_in_llap_tp(self, mock_get_llap_app_status_data, sleep_mock):
     sleep_mock.return_value = 1
 
     llap_app_json = self.load_json('invalidApp.json')
     mock_get_llap_app_status_data.return_value = llap_app_json
 
-    status = self.hsi.check_llap_app_status(self.llap_app_name, 2)
+    status = self.hsi.check_llap_app_status_in_llap_tp(self.llap_app_name, 2)
+    self.assertEqual(status, False)
+
+
+
+
+
+  # Tests for fn : 'check_llap_app_status_in_llap_ga()'
+
+
+  # Status : RUNNING
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_running_all_wait_negative_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('running.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, -1)
+    self.assertEqual(status, True)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_running_all_wait_0_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('running.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 0)
+    self.assertEqual(status, True)
+
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_running_all_wait_2_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('running.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 2)
+    self.assertEqual(status, True)
+
+
+
+
+  # Status : RUNNING_PARTIAL (2 out of 3 running -> < 80% instances ON)
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_one_container_down_wait_negative_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('oneContainerDown.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, -1)
+    self.assertEqual(status, False)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_one_container_down_wait_0_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('oneContainerDown.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 0)
+    self.assertEqual(status, False)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_one_container_down_wait_2_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('oneContainerDown.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 2)
+    self.assertEqual(status, False)
+
+
+
+
+  # Status : RUNNING_PARTIAL (4 out of 5 running -> > 80% instances ON)
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_two_container_down_1_wait_negative_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('oneContainerDown1.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, -1)
+    self.assertEqual(status, True)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_two_container_down_1_wait_0_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('oneContainerDown1.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 0)
+    self.assertEqual(status, True)
+
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_two_container_down_1_wait_2_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('oneContainerDown1.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 2)
+    self.assertEqual(status, True)
+
+
+
+
+  # Status : LAUNCHING
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_starting_wait_negative_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('starting.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, -1)
+    self.assertEqual(status, False)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_starting_wait_0_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('starting.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 0)
+    self.assertEqual(status, False)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_starting_wait_2_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('starting.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 2)
+    self.assertEqual(status, False)
+
+
+
+
+
+  # Status : COMPLETE
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_complete_wait_negative_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('appComplete.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, -1)
+    self.assertEqual(status, False)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_complete_wait_0_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('appComplete.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 0)
+    self.assertEqual(status, False)
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_complete_wait_2_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('appComplete.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 2)
+    self.assertEqual(status, False)
+
+
+
+
+  # Status : APP_NOT_FOUND
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_invalid_wait_negative_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('invalidApp.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, -1)
+    self.assertEqual(status, False)
+
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_invalid_wait_0_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('invalidApp.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 0)
+    self.assertEqual(status, False)
+
+
+  @patch("time.sleep")
+  @patch('hive_server_interactive.HiveServerInteractiveDefault._get_llap_app_status_info_in_llap_ga')
+  def test_check_llap_app_status_invalid_wait_2_in_llap_ga(self, mock_get_llap_app_status_data, sleep_mock):
+    sleep_mock.return_value = 1
+
+    llap_app_json = self.load_json('invalidApp.json')
+    mock_get_llap_app_status_data.return_value = llap_app_json
+
+    status = self.hsi.check_llap_app_status_in_llap_ga(self.llap_app_name, 2)
     self.assertEqual(status, False)

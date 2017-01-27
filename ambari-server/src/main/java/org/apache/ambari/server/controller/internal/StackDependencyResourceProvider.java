@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 
 /**
@@ -62,6 +63,8 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       PropertyHelper.getPropertyId("Dependencies", "component_name");
   protected static final String SCOPE_ID =
       PropertyHelper.getPropertyId("Dependencies", "scope");
+  protected static final String CONDITIONS_ID = PropertyHelper
+    .getPropertyId("Dependencies","conditions");
   protected static final String AUTO_DEPLOY_ENABLED_ID = PropertyHelper
       .getPropertyId("auto_deploy", "enabled");
   protected static final String AUTO_DEPLOY_LOCATION_ID = PropertyHelper
@@ -248,6 +251,11 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
         setResourceProperty(resource, AUTO_DEPLOY_LOCATION_ID,
             autoDeployInfo.getCoLocate(), requestedIds);
       }
+    }
+    List<DependencyConditionInfo> dependencyConditionsInfo = dependency.getDependencyConditions();
+    if(dependencyConditionsInfo != null){
+      setResourceProperty(resource, CONDITIONS_ID,
+        dependencyConditionsInfo, requestedIds);
     }
     return resource;
   }

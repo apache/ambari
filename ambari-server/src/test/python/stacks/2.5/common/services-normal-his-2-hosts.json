@@ -1,5 +1,5 @@
 {
-  "href" : "/api/v1/stacks/HDP/versions/2.5/?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy,services/configurations/StackConfigurations/property_depends_on,services/configurations/dependencies/StackConfigurationDependency/dependency_name,services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type&services/StackServices/service_name.in(HDFS,YARN,MAPREDUCE2,TEZ,HIVE,PIG,ZOOKEEPER,SLIDER)",
+  "href" : "/api/v1/stacks/HDP/versions/2.5/?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies/Dependencies/scope,services/components/dependencies/Dependencies/conditions,services/components/auto_deploy,services/configurations/StackConfigurations/property_depends_on,services/configurations/dependencies/StackConfigurationDependency/dependency_name,services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type&services/StackServices/service_name.in(HDFS,YARN,MAPREDUCE2,TEZ,HIVE,PIG,ZOOKEEPER,SLIDER)",
   "Versions" : {
     "parent_stack_version" : "2.4",
     "stack_name" : "HDP",
@@ -92,7 +92,9 @@
           "dependent_component_name" : "JOURNALNODE",
           "dependent_service_name" : "HDFS",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {
@@ -147,7 +149,9 @@
           "dependent_component_name" : "NFS_GATEWAY",
           "dependent_service_name" : "HDFS",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {
@@ -319,7 +323,9 @@
           "dependent_component_name" : "HIVE_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER/dependencies/TEZ_CLIENT",
@@ -328,7 +334,9 @@
           "dependent_component_name" : "HIVE_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER/dependencies/YARN_CLIENT",
@@ -337,7 +345,9 @@
           "dependent_component_name" : "HIVE_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER/dependencies/ZOOKEEPER_SERVER",
@@ -346,7 +356,9 @@
           "dependent_component_name" : "HIVE_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "cluster",
+          "conditions": []
         }
       } ]
     }, {
@@ -378,7 +390,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE/dependencies/MAPREDUCE2_CLIENT",
@@ -387,7 +401,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE/dependencies/PIG",
@@ -396,7 +412,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE/dependencies/SLIDER",
@@ -405,7 +423,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE/dependencies/TEZ_CLIENT",
@@ -414,7 +434,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE/dependencies/YARN_CLIENT",
@@ -423,7 +445,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE/dependencies/ZOOKEEPER_SERVER",
@@ -432,7 +456,9 @@
           "dependent_component_name" : "HIVE_SERVER_INTERACTIVE",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "cluster",
+          "conditions": []
         }
       } ]
     }, {
@@ -487,7 +513,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/WEBHCAT_SERVER/dependencies/HIVE_CLIENT",
@@ -496,7 +524,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
@@ -505,7 +535,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/WEBHCAT_SERVER/dependencies/PIG",
@@ -514,7 +546,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
@@ -523,7 +557,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
@@ -532,7 +568,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
@@ -541,7 +579,9 @@
           "dependent_component_name" : "WEBHCAT_SERVER",
           "dependent_service_name" : "HIVE",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     } ],
@@ -598,7 +638,9 @@
           "dependent_component_name" : "HISTORYSERVER",
           "dependent_service_name" : "MAPREDUCE2",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/MAPREDUCE2/components/HISTORYSERVER/dependencies/TEZ_CLIENT",
@@ -607,7 +649,9 @@
           "dependent_component_name" : "HISTORYSERVER",
           "dependent_service_name" : "MAPREDUCE2",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {
@@ -749,7 +793,9 @@
           "dependent_component_name" : "SLIDER",
           "dependent_service_name" : "SLIDER",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/SLIDER/components/SLIDER/dependencies/YARN_CLIENT",
@@ -758,7 +804,9 @@
           "dependent_component_name" : "SLIDER",
           "dependent_service_name" : "SLIDER",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     } ],
@@ -822,7 +870,9 @@
           "dependent_component_name" : "TEZ_CLIENT",
           "dependent_service_name" : "TEZ",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/TEZ/components/TEZ_CLIENT/dependencies/MAPREDUCE2_CLIENT",
@@ -831,7 +881,9 @@
           "dependent_component_name" : "TEZ_CLIENT",
           "dependent_service_name" : "TEZ",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       }, {
         "href" : "/api/v1/stacks/HDP/versions/2.5/services/TEZ/components/TEZ_CLIENT/dependencies/YARN_CLIENT",
@@ -840,7 +892,9 @@
           "dependent_component_name" : "TEZ_CLIENT",
           "dependent_service_name" : "TEZ",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     } ],
@@ -939,7 +993,9 @@
           "dependent_component_name" : "RESOURCEMANAGER",
           "dependent_service_name" : "YARN",
           "stack_name" : "HDP",
-          "stack_version" : "2.5"
+          "stack_version" : "2.5",
+          "scope": "host",
+          "conditions": []
         }
       } ]
     }, {

@@ -280,13 +280,13 @@ def create_vms(args, number_of_nodes):
   :param number_of_nodes: Number of VMs to request.
   """
   print "Creating server VM {0}-server-{1} with xxlarge nodes on centos6...".format(cluster_prefix, args.cluster_suffix)
-  execute_command(args, args.controller, "/usr/sbin/gce up {0}-server-{1} 1 --centos6 --xxlarge --ex --disk-xxlarge".format(cluster_prefix, args.cluster_suffix),
+  execute_command(args, args.controller, "/usr/sbin/gce up {0}-server-{1} 1 --centos6 --xxlarge --ex --disk-xxlarge --ssd".format(cluster_prefix, args.cluster_suffix),
                   "Failed to create server, probably not enough resources!", "-tt")
   time.sleep(10)
 
   # trying to create cluster with needed params
   print "Creating agent VMs {0}-agent-{1} with {2} xlarge nodes on centos6...".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes))
-  execute_command(args, args.controller, "/usr/sbin/gce up {0}-agent-{1} {2} --centos6 --xlarge --ex --disk-large".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
+  execute_command(args, args.controller, "/usr/sbin/gce up {0}-agent-{1} {2} --centos6 --xlarge --ex --disk-xlarge".format(cluster_prefix, args.cluster_suffix, str(number_of_nodes)),
                   "Failed to create cluster VMs, probably not enough resources!", "-tt")
 
   # VMs are not accessible immediately

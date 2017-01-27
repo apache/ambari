@@ -27,38 +27,40 @@
       <components>
 
         <component>
-          <component>
-            <name>APP_TIMELINE_SERVER</name>
-            <displayName>App Timeline Server</displayName>
-            <category>MASTER</category>
-            <cardinality>1</cardinality>
-            <versionAdvertised>true</versionAdvertised>
-            <reassignAllowed>true</reassignAllowed>
+          <name>APP_TIMELINE_SERVER</name>
+          <displayName>App Timeline Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
 
-            <commandScript>
-              <script>scripts/application_timeline_server.py</script>
-              <scriptType>PYTHON</scriptType>
-              <timeout>1200</timeout>
-            </commandScript>
+          <commandScript>
+            <script>scripts/application_timeline_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
 
-            <dependencies>
-              <dependency>
-                <name>TEZ/TEZ_CLIENT</name>
-                <scope>host</scope>
-                <auto-deploy>
-                  <enabled>true</enabled>
-                </auto-deploy>
-              </dependency>
-              <dependency>
-                <name>SPARK/SPARK_CLIENT</name>
-                <scope>host</scope>
-                <auto-deploy>
-                  <enabled>true</enabled>
-                </auto-deploy>
-              </dependency>
-            </dependencies>
-          </component>
+          <!-- TODO Alejandro add later after UI is fixed,
+          <dependencies>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SPARK/SPARK_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          -->
+        </component>
 
+        <component>
           <name>RESOURCEMANAGER</name>
           <displayName>ResourceManager</displayName>
           <category>MASTER</category>
@@ -70,6 +72,8 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+
+          <!-- TODO Alejandro add later after UI is fixed,
           <dependencies>
             <dependency>
               <name>TEZ/TEZ_CLIENT</name>
@@ -79,6 +83,8 @@
               </auto-deploy>
             </dependency>
           </dependencies>
+          -->
+
           <logs>
             <log>
               <logId>yarn_resourcemanager</logId>
@@ -91,6 +97,7 @@
               <logId>yarn_jobsummary</logId>
             </log>
           </logs>
+
           <customCommands>
             <customCommand>
               <name>DECOMMISSION</name>
@@ -109,6 +116,7 @@
               </commandScript>
             </customCommand>
           </customCommands>
+
           <configuration-dependencies>
             <config-type>capacity-scheduler</config-type>
             <config-type>hdfs-site</config-type>
@@ -245,7 +253,7 @@
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-      <version>2.1.0.2.0.6.0</version>
+      <version>3.0.0.3.0</version>
 
       <components>
         <component>
@@ -259,6 +267,8 @@
             <enabled>true</enabled>
             <co-locate>YARN/RESOURCEMANAGER</co-locate>
           </auto-deploy>
+
+          <!-- TODO Alejandro add later after UI is fixed,
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -282,6 +292,8 @@
               </auto-deploy>
             </dependency>
           </dependencies>
+          -->
+
           <commandScript>
             <script>scripts/historyserver.py</script>
             <scriptType>PYTHON</scriptType>
@@ -369,6 +381,7 @@
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-env</config-type>
         <config-type>core-site</config-type>
+        <config-type>yarn-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>mapred-env</config-type>
         <config-type>ssl-client</config-type>

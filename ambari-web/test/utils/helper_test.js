@@ -298,6 +298,8 @@ describe('utils/helper', function() {
           'app-timeline-server': 'App Timeline Server',
           'APP TIMELINE SERVER': 'App Timeline Server',
           'app timeline server': 'App Timeline Server',
+          'run-hcat-sync': 'Run HCat Client Sync',
+          'rUN_hCAt_syNc': 'Run HCat Client Sync',
           'FALCON': 'Falcon',
           'falcon': 'Falcon'
         };

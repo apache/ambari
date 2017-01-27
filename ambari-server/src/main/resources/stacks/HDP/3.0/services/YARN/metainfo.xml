@@ -55,7 +55,8 @@
     <service>
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
-      <version>2.7.1.3.0</version>
+      <version>3.0.0.3.0</version>
+      <extends>common-services/MAPREDUCE2/3.0.0.3.0</extends>
 
       <osSpecifics>
         <osSpecific>
