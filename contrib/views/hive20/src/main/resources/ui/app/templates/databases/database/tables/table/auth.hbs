@@ -26,8 +26,9 @@
     <thead>
     <tr>
       <th width="20%">POLICY NAME</th>
-      <th width="40%">USERS</th>
-      <th width="40%">GROUPS</th>
+      <th width="25%">USERS</th>
+      <th width="25%">GROUPS</th>
+      <th width="30%">ACCESS</th>
     </tr>
     </thead>
     <tbody>
@@ -42,6 +43,11 @@
         <td>
           {{#each policy.groups as |group|}}
             <span class="label label-success">{{group}}</span>
+          {{/each}}
+        </td>
+        <td>
+          {{#each policy.accesses as |access|}}
+            <span class="label label-success">{{access}}</span>
           {{/each}}
         </td>
       </tr>
