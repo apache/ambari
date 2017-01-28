@@ -119,7 +119,8 @@ public class PostUserCreationHookServerAction extends AbstractServerAction {
         params.get(UserHookParams.CMD_INPUT_FILE.param()),
         params.get(UserHookParams.CLUSTER_SECURITY_TYPE.param()),
         params.get(UserHookParams.CMD_HDFS_PRINCIPAL.param()),
-        params.get(UserHookParams.CMD_HDFS_KEYTAB.param())
+        params.get(UserHookParams.CMD_HDFS_KEYTAB.param()),
+        params.get(UserHookParams.CMD_HDFS_USER.param())
     };
     LOGGER.debug("Server action command to be executed: {}", cmdArray);
     return cmdArray;
@@ -150,6 +151,11 @@ public class PostUserCreationHookServerAction extends AbstractServerAction {
     if (!commandParams.containsKey(UserHookParams.CLUSTER_SECURITY_TYPE.param())) {
       LOGGER.error("Missing command parameter: {}; Failing the server action.", UserHookParams.CLUSTER_SECURITY_TYPE.param());
       throw new IllegalArgumentException("Missing command parameter: [" + UserHookParams.CLUSTER_SECURITY_TYPE.param() + "]");
+    }
+
+    if (!commandParams.containsKey(UserHookParams.CMD_HDFS_USER.param())) {
+      LOGGER.error("Missing command parameter: {}; Failing the server action.", UserHookParams.CMD_HDFS_USER.param());
+      throw new IllegalArgumentException("Missing command parameter: [" + UserHookParams.CMD_HDFS_USER.param() + "]");
     }
 
     LOGGER.info("Command parameter validation passed.");

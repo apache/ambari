@@ -115,6 +115,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
     commandParams.put(UserHookParams.CMD_TIME_FRAME.param(), "1000");
     commandParams.put(UserHookParams.CMD_INPUT_FILE.param(), "/test/user_data.csv");
     commandParams.put(UserHookParams.CLUSTER_SECURITY_TYPE.param(), SecurityType.KERBEROS.name());
+    commandParams.put(UserHookParams.CMD_HDFS_USER.param(), "test-hdfs-user");
 
     EasyMock.expect(executionCommand.getCommandParams()).andReturn(commandParams);
     EasyMock.expect(objectMapperMock.readValue(payloadJson, Map.class)).andReturn(payload);
@@ -139,7 +140,7 @@ public class PostUserCreationHookServerActionTest extends EasyMockSupport {
     String[] commandArray = commandCapture.getValue();
     Assert.assertNotNull("The command to be executed must not be null!", commandArray);
 
-    Assert.assertEquals("The command argument array length is not as expected!", 5, commandArray.length);
+    Assert.assertEquals("The command argument array length is not as expected!", 6, commandArray.length);
     Assert.assertEquals("The command script is not as expected", "/hookfolder/hook.name", commandArray[0]);
   }
 
