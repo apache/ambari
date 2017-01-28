@@ -630,8 +630,7 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("==========================\n")
     self.host_log.write("Running create-python-wrap script...")
 
-    command = "chmod a+x %s && %s" % \
-              (REMOTE_CREATE_PYTHON_WRAP_SCRIPT, REMOTE_CREATE_PYTHON_WRAP_SCRIPT)
+    command = "chmod a+x {script} && {sudo} {script}".format(sudo=AMBARI_SUDO, script=REMOTE_CREATE_PYTHON_WRAP_SCRIPT)
 
     ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
