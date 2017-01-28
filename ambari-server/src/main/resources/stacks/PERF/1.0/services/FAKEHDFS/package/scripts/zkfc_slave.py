@@ -33,6 +33,11 @@ class ZkfcSlave(Dummy):
   def __init__(self):
     super(ZkfcSlave, self).__init__()
     self.component_name = "FAKEZKFC"
+    self.principal_conf_name = "hadoop-env"
+    self.principal_name = "hdfs_principal_name"
+    self.keytab_conf_name = "hadoop-env"
+    self.keytab_name = "hdfs_user_keytab"
+
 
 if __name__ == "__main__":
   ZkfcSlave().execute()
