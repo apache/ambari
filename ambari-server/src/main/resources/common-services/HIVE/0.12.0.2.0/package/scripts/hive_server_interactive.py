@@ -285,9 +285,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
                    " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m"
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
-                   " {params.llap_extra_slider_opts} --skiphadoopversion --skiphbasecp --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
+                   " {params.llap_extra_slider_opts} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
 
-      # '--slider-placement' param is supported from HDP Hive GA version.
+      # Append params that are supported from Hive llap GA version.
       if params.stack_supports_hive_interactive_ga:
         # Figure out the Slider Anti-affinity to be used.
         # YARN does not support anti-affinity, and therefore Slider implements AA by the means of exclusion lists, i.e, it
@@ -301,7 +301,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         else:
           Logger.info("Setting slider_placement: 4, as llap_daemon_container_size : {0} <= 0.5 * "
                      "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
-        cmd += format(" --slider-placement {slider_placement}")
+        cmd += format(" --slider-placement {slider_placement} --skiphadoopversion --skiphbasecp")
 
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
