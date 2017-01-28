@@ -1045,15 +1045,25 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     callContext = getCallContext(services)
 
     operation = getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
+    adding_yarn = isServiceBeingAdded(services, 'YARN')
     if operation:
       Logger.info("user operation context : " + str(operation))
 
     if services:  # its never None but some unit tests pass it as None
       # If min container value is changed (user is changing it)
-      # if its a validation call - just used what ever value is set
-      # If its not a cluster create or add yarn service (TBD)
-      if (getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
-              'recommendConfigurations' != callContext) and operation != DefaultStackAdvisor.CLUSTER_CREATE_OPERATION:
+      # if its a validation call - just use what ever value is set
+      # If its a recommend attribute call (when UI lands on a page)
+      # If add service but YARN is not being added
+      if getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
+              'recommendConfigurations' != callContext or \
+              operation == DefaultStackAdvisor.RECOMMEND_ATTRIBUTE_OPERATION or \
+          (operation == DefaultStackAdvisor.ADD_SERVICE_OPERATION and not adding_yarn):
+
+        Logger.info("Full context: callContext = " + str(callContext) +
+                    " and operation = " + str(operation) + " and adding YARN = " + str(adding_yarn) +
+                    " and old value exists = " +
+                    str(getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb")))
+
         '''yarn.scheduler.minimum-allocation-mb has changed - then pick this value up'''
         if "yarn-site" in services["configurations"] and \
                 "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
@@ -2066,6 +2076,18 @@ def getUserOperationContext(services, contextName):
       if contextName in userContext:
         return userContext[contextName]
   return None
+
+# if serviceName is being added
+def isServiceBeingAdded(services, serviceName):
+  if services:
+    if 'user-context' in services.keys():
+      userContext = services["user-context"]
+      if DefaultStackAdvisor.OPERATION in userContext and \
+              'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \
+              DefaultStackAdvisor.OPERATION_DETAILS in userContext:
+        if -1 != userContext["operation_details"].find(serviceName):
+          return True
+  return False
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):

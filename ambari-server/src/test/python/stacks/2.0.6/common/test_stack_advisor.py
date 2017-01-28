@@ -596,6 +596,154 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
     self.assertEquals(result, expected_2048)
 
+    # Recommend attribute call - pick user specified value
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "2048",
+                      "yarn.scheduler.maximum-allocation-mb": "12288"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "user-context" : {
+                  "operation" : "RecommendAttribute"
+                },
+                "advisor_context": {'call_type': 'recommendConfigurations'}
+    }
+
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected_2048)
+
+    # Add service and not adding YARN - pick user specified value
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "2048",
+                      "yarn.scheduler.maximum-allocation-mb": "12288"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "user-context" : {
+                  "operation" : "AddService",
+                  "operation_details" : "TEZ,HIVE,SLIDER"
+                },
+                "advisor_context": {'call_type': 'recommendConfigurations'}
+    }
+
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected_2048)
+
+    # Add service and adding YARN - compute the value
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name": "YARN",
+                       "service_version": "2.6.0.2.2"
+                      },
+                    "components": [
+                      {
+                        "StackServiceComponents": {
+                          "advertise_version": "true",
+                          "cardinality": "1+",
+                          "component_category": "SLAVE",
+                          "component_name": "NODEMANAGER",
+                          "custom_commands": [
+
+                          ],
+                          "display_name": "NodeManager",
+                          "is_client": "false",
+                          "is_master": "false",
+                          "service_name": "YARN",
+                          "stack_name": "HDP",
+                          "stack_version": "2.2",
+                          "hostnames": [
+                            "host1"
+                          ]
+                        },
+                        "dependencies": [
+                        ]
+                      }
+                    ],
+                    }],
+                "configurations": {
+                  "yarn-site": {
+                    "properties": {
+                      "yarn.scheduler.minimum-allocation-mb": "512"
+                    }
+                  }
+                },
+                "changed-configurations": [],
+                "user-context" : {
+                  "operation" : "AddService",
+                  "operation_details" : "TEZ,HIVE,YARN,SLIDER"
+                },
+                "advisor_context": {'call_type': 'recommendConfigurations'}
+    }
+
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, services)
+    self.assertEquals(result, expected)
+
     # Recommend config dependencies call - pick user specified value
     services = {"services":
                   [{"StackServices":
