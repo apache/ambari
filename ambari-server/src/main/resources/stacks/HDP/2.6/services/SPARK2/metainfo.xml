@@ -23,8 +23,9 @@
   <services>
     <service>
       <name>SPARK2</name>
-      <comment>Apache Spark 2.1 is a fast and general engine for large-scale data processing. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
-      <version>2.1.x</version>
+      <comment>Apache Spark is a fast and general engine for large-scale data processing</comment>
+      <version>2.x</version>
+      <selection>DEFAULT</selection>
 
       <components>
         <component>
