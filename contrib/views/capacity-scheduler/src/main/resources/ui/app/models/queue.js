@@ -106,6 +106,9 @@ App.Queue = DS.Model.extend({
           }.bind(this));
           this.notifyPropertyChange('labels');
       }
+      else {
+        this.get('labels').clear();
+      }
     }
 
     return this.get('_accessAllLabels');
