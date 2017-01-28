@@ -229,9 +229,9 @@
     </service>
 
     <service>
-      <name>FAKEFAKEMAPREDUCE2</name>
+      <name>FAKEMAPREDUCE2</name>
       <version>2.7.1.2.5</version>
-      <displayName>FAKEFAKEMapReduce2</displayName>
+      <displayName>FAKEMapReduce2</displayName>
       <comment>Apache Hadoop NextGen MapReduce (FAKEYARN)</comment>
       <configuration-dir>configuration-mapred</configuration-dir>
 
