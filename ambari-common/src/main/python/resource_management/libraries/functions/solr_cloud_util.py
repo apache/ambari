@@ -143,14 +143,14 @@ def create_znode(zookeeper_quorum, solr_znode, java64_home, retry = 5 , interval
   create_znode_cmd = format('{solr_cli_prefix} --create-znode --retry {retry} --interval {interval}')
   Execute(create_znode_cmd)
 
-def setup_kerberos_plugin(zookeeper_quorum, solr_znode, java64_home, secure=False, jaas_file = None):
+def setup_kerberos_plugin(zookeeper_quorum, solr_znode, java64_home, secure=False, security_json_location = None, jaas_file = None):
   """
   Set Kerberos plugin on the Solr znode in security.json, if secure is False, then clear the security.json
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
   setup_kerberos_plugin_cmd = format('{solr_cli_prefix} --setup-kerberos-plugin')
-  if secure and jaas_file is not None:
-    setup_kerberos_plugin_cmd+=format(' --jaas-file {jaas_file} --secure')
+  if secure and jaas_file is not None and security_json_location is not None:
+    setup_kerberos_plugin_cmd+=format(' --jaas-file {jaas_file} --secure --security-json-location {security_json_location}')
   Execute(setup_kerberos_plugin_cmd)
 
 def set_cluster_prop(zookeeper_quorum, solr_znode, prop_name, prop_value, java64_home, jaas_file = None):

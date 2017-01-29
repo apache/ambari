@@ -72,6 +72,15 @@ def setup_infra_solr(name = None):
          group=params.user_group
          )
 
+    security_json_file_location = format("{infra_solr_conf}/security.json")
+
+    File(security_json_file_location,
+         content=InlineTemplate(params.infra_solr_security_json_content),
+         owner=params.infra_solr_user,
+         group=params.user_group,
+         mode=0644
+         )
+
     jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
     url_scheme = 'https' if params.infra_solr_ssl_enabled else 'http'
 
@@ -96,7 +105,8 @@ def setup_infra_solr(name = None):
       solr_znode=params.infra_solr_znode,
       jaas_file=jaas_file,
       java64_home=params.java64_home,
-      secure=params.security_enabled
+      secure=params.security_enabled,
+      security_json_location=security_json_file_location
     )
 
     if params.security_enabled:

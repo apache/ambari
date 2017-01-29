@@ -50,6 +50,7 @@ public class AmbariSolrCloudCLI {
   private static final String CHECK_ZNODE = "check-znode";
   private static final String SECURE_ZNODE_COMMAND = "secure-znode";
   private static final String SECURE_SOLR_ZNODE_COMMAND = "secure-solr-znode";
+  private static final String SECURITY_JSON_LOCATION = "security-json-location";
   private static final String CMD_LINE_SYNTAX =
     "\n./solrCloudCli.sh --create-collection -z host1:2181,host2:2181/ambari-solr -c collection -cs conf_set"
       + "\n./solrCloudCli.sh --upload-config -z host1:2181,host2:2181/ambari-solr -d /tmp/myconfig_dir -cs config_set"
@@ -61,7 +62,7 @@ public class AmbariSolrCloudCLI {
       + "\n./solrCloudCli.sh --cluster-prop -z host1:2181,host2:2181/ambari-solr -cpn urlScheme -cpn http"
       + "\n./solrCloudCli.sh --secure-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
       + "\n./solrCloudCli.sh --secure-solr-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
-      + "\n./solrCloudCli.sh --setup-kerberos-plugin -z host1:2181,host2:2181 -zn /ambari-solr\n";
+      + "\n./solrCloudCli.sh --setup-kerberos-plugin -z host1:2181,host2:2181 -zn /ambari-solr --security-json-location /etc/infra-solr/conf/security.json\n";
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -306,6 +307,13 @@ public class AmbariSolrCloudCLI {
       .argName("atlas,ranger,logsearch-solr")
       .build();
 
+    final Option securityJsonLocationOption = Option.builder("sjl")
+      .longOpt(SECURITY_JSON_LOCATION)
+      .desc("Local security.json path")
+      .numberOfArgs(1)
+      .argName("security.json location")
+      .build();
+
     final Option secureOption = Option.builder("sec")
       .longOpt("secure")
       .desc("Flag for enable/disable kerberos (with --setup-kerberos or --setup-kerberos-plugin)")
@@ -349,6 +357,7 @@ public class AmbariSolrCloudCLI {
     options.addOption(saslUsersOption);
     options.addOption(checkZnodeOption);
     options.addOption(setupKerberosPluginOption);
+    options.addOption(securityJsonLocationOption);
 
     AmbariSolrCloudClient solrCloudClient = null;
 
@@ -427,6 +436,7 @@ public class AmbariSolrCloudCLI {
       String znode = cli.hasOption("zn") ? cli.getOptionValue("zn") : null;
       boolean isSecure = cli.hasOption("sec");
       String saslUsers = cli.hasOption("su") ? cli.getOptionValue("su") : "";
+      String securityJsonLocation = cli.hasOption("sjl") ? cli.getOptionValue("sjl") : "";
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
         .withZkConnectString(zkConnectString)
@@ -450,6 +460,7 @@ public class AmbariSolrCloudCLI {
         .withTrustStoreType(trustStoreType)
         .withClusterPropName(clusterPropName)
         .withClusterPropValue(clusterPropValue)
+        .withSecurityJsonLocation(securityJsonLocation)
         .withZnode(znode)
         .withSecure(isSecure)
         .withSaslUsers(saslUsers);
