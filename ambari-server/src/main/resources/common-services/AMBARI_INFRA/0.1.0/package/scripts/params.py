@@ -120,6 +120,8 @@ if security_enabled:
   infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules'].replace('$', '\$')
   infra_solr_sasl_user = get_name_from_principal(infra_solr_kerberos_principal)
 
+infra_solr_security_json_content = config['configurations']['infra-solr-security-json']['content']
+
 #Solr log4j
 infra_log_maxfilesize = default('configurations/infra-solr-log4j/infra_log_maxfilesize',10)
 infra_log_maxbackupindex = default('configurations/infra-solr-log4j/infra_log_maxbackupindex',9)

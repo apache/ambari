@@ -239,6 +239,9 @@
         "logsearch_admin_password" : "admin",
         "content": "admin json content"
       },
+      "infra-solr-security-json" : {
+        "content" : "{\"authentication\": \"org.apache.solr.security.KerberosPlugin\"}"
+      },
       "infra-solr-client-log4j" : {
         "infra_solr_client_log_dir" : "/var/log/ambari-infra-solr-client",
         "content" : "content"

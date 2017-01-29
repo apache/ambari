@@ -51,6 +51,7 @@ public class AmbariSolrCloudClientBuilder {
   String saslUsers;
   String propName;
   String propValue;
+  String securityJsonLocation;
   boolean secure;
 
   public AmbariSolrCloudClient build() {
@@ -192,6 +193,11 @@ public class AmbariSolrCloudClientBuilder {
 
   public AmbariSolrCloudClientBuilder withClusterPropValue(String clusterPropValue) {
     this.propValue = clusterPropValue;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withSecurityJsonLocation(String securityJson) {
+    this.securityJsonLocation = securityJson;
     return this;
   }
 

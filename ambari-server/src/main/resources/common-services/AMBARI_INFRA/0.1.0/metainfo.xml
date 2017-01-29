@@ -64,6 +64,7 @@
             <config-type>infra-solr-env</config-type>
             <config-type>infra-solr-xml</config-type>
             <config-type>infra-solr-log4j</config-type>
+            <config-type>infra-solr-security-json</config-type>
           </configuration-dependencies>
         </component>
 
