@@ -49,6 +49,8 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
 
   private final List<UserType> userTypeOrder;
 
+  private final String authToLocalRules;
+
   /**
    * Constructor.
    * <p>
@@ -80,18 +82,23 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
       orderedUserTypes = Collections.singletonList(UserType.LDAP);
     }
 
-    KerberosName.setRules(authToLocalRules);
-
     this.users = users;
     this.userTypeOrder = orderedUserTypes;
+    this.authToLocalRules = authToLocalRules;
   }
 
   @Override
   public UserDetails loadUserByUsername(String principal) throws UsernameNotFoundException {
-    KerberosName kerberosName = new KerberosName(principal);
-
     try {
-      String username = kerberosName.getShortName();
+      String username;
+
+      // Since KerberosName relies on a static variable to hold on to the auth-to-local rules, attempt
+      // to protect access to the rule set by blocking other threads from chaning the rules out from
+      // under us during this operation.  Similar logic is used in org.apache.ambari.server.view.ViewContextImpl.getUsername().
+      synchronized (KerberosName.class) {
+        KerberosName.setRules(authToLocalRules);
+        username = new KerberosName(principal).getShortName();
+      }
 
       if (username == null) {
         String message = String.format("Failed to translate %s to a local username during Kerberos authentication.", principal);
