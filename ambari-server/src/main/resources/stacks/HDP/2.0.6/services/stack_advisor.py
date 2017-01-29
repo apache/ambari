@@ -1457,6 +1457,18 @@ def getUserOperationContext(services, contextName):
         return userContext[contextName]
   return None
 
+# if serviceName is being added
+def isServiceBeingAdded(services, serviceName):
+  if services:
+    if 'user-context' in services.keys():
+      userContext = services["user-context"]
+      if DefaultStackAdvisor.OPERATION in userContext and \
+              'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \
+              DefaultStackAdvisor.OPERATION_DETAILS in userContext:
+        if -1 != userContext["operation_details"].find(serviceName):
+          return True
+  return False
+
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
   siteConfig = configurations.get(siteName)
