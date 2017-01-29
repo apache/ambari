@@ -26,10 +26,20 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcContentSignerBuilder;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.security.InvalidKeyException;
@@ -49,13 +60,12 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
-
-import static org.apache.ambari.logsearch.LogSearch.LOGSEARCH_CERT_DEFAULT_FOLDER;
-import static org.apache.ambari.logsearch.LogSearch.LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD;
 
 public class SSLUtil {
   private static final Logger LOG = LoggerFactory.getLogger(SSLUtil.class);
@@ -74,6 +84,18 @@ public class SSLUtil {
   private static final String TRUSTSTORE_PASSWORD_FILE = "ts_pass.txt";
   private static final String CREDENTIAL_STORE_PROVIDER_PATH = "hadoop.security.credential.provider.path";
 
+  private static final String LOGSEARCH_CERT_FOLDER_LOCATION = "logsearch.cert.folder.location";
+  private static final String LOGSEARCH_CERT_ALGORITHM = "logsearch.cert.algorithm";
+  
+  private static final String LOGSEARCH_CERT_FILENAME = "logsearch.crt";
+  private static final String LOGSEARCH_KEYSTORE_FILENAME = "logsearch.jks";
+  private static final String LOGSEARCH_KEYSTORE_PRIVATE_KEY = "logsearch.private.key";
+  private static final String LOGSEARCH_KEYSTORE_PUBLIC_KEY = "logsearch.public.key";
+  private static final String LOGSEARCH_CERT_DEFAULT_ALGORITHM = "sha256WithRSA";
+
+  private static final String LOGSEARCH_CERT_DEFAULT_FOLDER = "/etc/ambari-logsearch-portal/conf/keys";
+  private static final String LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD = "bigdata";
+  
   private SSLUtil() {
     throw new UnsupportedOperationException();
   }
@@ -111,8 +133,6 @@ public class SSLUtil {
   }
   
   public static SslContextFactory getSslContextFactory() {
-    setPasswordIfSysPropIsEmpty(KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_PROPERTY_NAME, KEYSTORE_PASSWORD_FILE);
-    setPasswordIfSysPropIsEmpty(TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_PROPERTY_NAME, TRUSTSTORE_PASSWORD_FILE);
     SslContextFactory sslContextFactory = new SslContextFactory();
     sslContextFactory.setKeyStorePath(getKeyStoreLocation());
     sslContextFactory.setKeyStorePassword(getKeyStorePassword());
@@ -171,7 +191,7 @@ public class SSLUtil {
       char[] passwordChars = config.getPassword(propertyName);
       return (ArrayUtils.isNotEmpty(passwordChars)) ? new String(passwordChars) : null;
     } catch (Exception e) {
-      LOG.warn(String.format("Could not load password %s from credential store, using default password", propertyName));
+      LOG.warn(String.format("Could not load password %s from credential store, using default password", propertyName), e);
       return null;
     }
   }
@@ -193,7 +213,7 @@ public class SSLUtil {
   /**
    * Put private key into in-memory keystore and write it to a file (JKS file)
    */
-  public static void setKeyAndCertInKeystore(X509Certificate cert, KeyPair keyPair, KeyStore keyStore, String keyStoreLocation, char[] password)
+  private static void setKeyAndCertInKeystore(X509Certificate cert, KeyPair keyPair, KeyStore keyStore, String keyStoreLocation, char[] password)
     throws Exception {
     Certificate[] certChain = new Certificate[1];
     certChain[0] = cert;
@@ -201,7 +221,7 @@ public class SSLUtil {
       keyStore.setKeyEntry("logsearch.alias", keyPair.getPrivate(), password, certChain);
       keyStore.store(fos, password);
     } catch (Exception e) {
-      LOG.error("Could not write certificate to Keystore");
+      LOG.error("Could not write certificate to Keystore", e);
       throw e;
     }
   }
@@ -209,7 +229,7 @@ public class SSLUtil {
   /**
    * Create in-memory keypair with bouncy castle
    */
-  public static KeyPair createKeyPair(String encryptionType, int byteCount)
+  private static KeyPair createKeyPair(String encryptionType, int byteCount)
     throws NoSuchProviderException, NoSuchAlgorithmException {
     Security.addProvider(new BouncyCastleProvider());
     KeyPairGenerator keyPairGenerator = createKeyPairGenerator(encryptionType, byteCount);
@@ -219,7 +239,7 @@ public class SSLUtil {
   /**
    * Generate X509 certificate if it does not exist
    */
-  public static X509Certificate generateCertificate(String certificateLocation, KeyPair keyPair, String algorithm) throws Exception {
+  private static X509Certificate generateCertificate(String certificateLocation, KeyPair keyPair, String algorithm) throws Exception {
     try {
       File certFile = new File(certificateLocation);
       if (certFile.exists()) {
@@ -227,21 +247,26 @@ public class SSLUtil {
         return getCertFile(certificateLocation);
       } else {
         Security.addProvider(new BouncyCastleProvider());
-        X509Certificate cert = SSLUtil.createCert(keyPair, algorithm, InetAddress.getLocalHost().getCanonicalHostName());
+        X509Certificate cert = createCert(keyPair, algorithm, InetAddress.getLocalHost().getCanonicalHostName());
         FileUtils.writeByteArrayToFile(certFile, cert.getEncoded());
         return cert;
       }
     } catch (Exception e) {
-      LOG.error("Could not create certificate.");
+      LOG.error("Could not create certificate.", e);
       throw e;
     }
   }
 
-  private static void setPasswordIfSysPropIsEmpty(String pwdArg, String propertyName, String fileName) {
-    if (StringUtils.isEmpty(System.getProperty(pwdArg))) {
+  private static void ensureStorePassword(String locationArg, String pwdArg, String propertyName, String fileName) {
+    if (StringUtils.isNotEmpty(System.getProperty(locationArg)) && StringUtils.isEmpty(System.getProperty(pwdArg))) {
       String password = getPassword(propertyName, fileName);
       System.setProperty(pwdArg, password);
     }
+  }
+  
+  public static void ensureStorePasswords() {
+    ensureStorePassword(KEYSTORE_LOCATION_ARG, KEYSTORE_PASSWORD_ARG, KEYSTORE_PASSWORD_PROPERTY_NAME, KEYSTORE_PASSWORD_FILE);
+    ensureStorePassword(TRUSTSTORE_LOCATION_ARG, TRUSTSTORE_PASSWORD_ARG, TRUSTSTORE_PASSWORD_PROPERTY_NAME, TRUSTSTORE_PASSWORD_FILE);
   }
 
   private static X509Certificate getCertFile(String location) throws Exception {
@@ -249,22 +274,38 @@ public class SSLUtil {
       CertificateFactory factory = CertificateFactory.getInstance("X.509");
       return (X509Certificate) factory.generateCertificate(fos);
     } catch (Exception e) {
-      LOG.error("Cannot read cert file. ('{}')", location);
+      LOG.error("Cannot read cert file. ('" + location + "')", e);
       throw e;
     }
   }
 
   private static X509Certificate createCert(KeyPair keyPair, String signatureAlgoritm, String domainName)
-    throws CertificateEncodingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-    X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
-    v3CertGen.setSerialNumber(BigInteger.valueOf(Math.abs(new SecureRandom().nextInt())));
-    v3CertGen.setIssuerDN(new X509Principal("CN=" + domainName + ", OU=None, O=None L=None, C=None"));
-    v3CertGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));
-    v3CertGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365*10)));
-    v3CertGen.setSubjectDN(new X509Principal("CN=" + domainName + ", OU=None, O=None L=None, C=None"));
-    v3CertGen.setPublicKey(keyPair.getPublic());
-    v3CertGen.setSignatureAlgorithm(signatureAlgoritm);
-    return v3CertGen.generate(keyPair.getPrivate());
+    throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, OperatorCreationException, CertificateException, IOException {
+    
+    RSAPublicKey rsaPublicKey = (RSAPublicKey) keyPair.getPublic();
+    RSAPrivateKey rsaPrivateKey = (RSAPrivateKey) keyPair.getPrivate();
+    
+    AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(signatureAlgoritm);
+    AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+    BcContentSignerBuilder sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId);
+    
+    SubjectPublicKeyInfo pubKey = new SubjectPublicKeyInfo(sigAlgId, rsaPublicKey.getEncoded());
+    
+    X509v3CertificateBuilder v3CertBuilder = new X509v3CertificateBuilder(
+        new X500Name("CN=" + domainName + ", OU=None, O=None L=None, C=None"),
+        BigInteger.valueOf(Math.abs(new SecureRandom().nextInt())),
+        new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30),
+        new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365*10)),
+        new X500Name("CN=" + domainName + ", OU=None, O=None L=None, C=None"),
+        pubKey);
+    
+    RSAKeyParameters keyParams = new RSAKeyParameters(true, rsaPrivateKey.getPrivateExponent(), rsaPrivateKey.getModulus());
+    ContentSigner contentSigner = sigGen.build(keyParams);
+    
+    X509CertificateHolder certificateHolder = v3CertBuilder.build(contentSigner);
+    
+    JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
+    return certConverter.getCertificate(certificateHolder);
   }
 
   private static KeyPairGenerator createKeyPairGenerator(String algorithmIdentifier, int bitCount)
@@ -272,6 +313,48 @@ public class SSLUtil {
     KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithmIdentifier, BouncyCastleProvider.PROVIDER_NAME);
     kpg.initialize(bitCount);
     return kpg;
+  }
+
+  /**
+   * Create keystore with keys and certificate (only if the keystore does not exist or if you have no permissions on the keystore file)
+   */
+  public static void loadKeystore() {
+    try {
+      String certFolder = PropertiesHelper.getProperty(LOGSEARCH_CERT_FOLDER_LOCATION, LOGSEARCH_CERT_DEFAULT_FOLDER);
+      String certAlgorithm = PropertiesHelper.getProperty(LOGSEARCH_CERT_ALGORITHM, LOGSEARCH_CERT_DEFAULT_ALGORITHM);
+      String certLocation = String.format("%s/%s", LOGSEARCH_CERT_DEFAULT_FOLDER, LOGSEARCH_CERT_FILENAME);
+      String keyStoreLocation = StringUtils.isNotEmpty(getKeyStoreLocation()) ? getKeyStoreLocation()
+        : String.format("%s/%s", LOGSEARCH_CERT_DEFAULT_FOLDER, LOGSEARCH_KEYSTORE_FILENAME);
+      char[] password = StringUtils.isNotEmpty(getKeyStorePassword()) ?
+        getKeyStorePassword().toCharArray() : LOGSEARCH_KEYSTORE_DEFAULT_PASSWORD.toCharArray();
+      boolean keyStoreFileExists = new File(keyStoreLocation).exists();
+      if (!keyStoreFileExists) {
+        FileUtil.createDirectory(certFolder);
+        LOG.warn("Keystore file ('{}') does not exist, creating new one. " +
+          "If the file exists, make sure you have proper permissions on that.", keyStoreLocation);
+        if (isKeyStoreSpecified() && !"JKS".equalsIgnoreCase(getKeyStoreType())) {
+          throw new RuntimeException(String.format("Keystore does not exist. Only JKS keystore can be auto generated. (%s)", keyStoreLocation));
+        }
+        LOG.info("SSL keystore is not specified. Generating it with certificate ... (using default format: JKS)");
+        Security.addProvider(new BouncyCastleProvider());
+        KeyPair keyPair = createKeyPair("RSA", 2048);
+        File privateKeyFile = new File(String.format("%s/%s", certFolder, LOGSEARCH_KEYSTORE_PRIVATE_KEY));
+        if (!privateKeyFile.exists()) {
+          FileUtils.writeByteArrayToFile(privateKeyFile, keyPair.getPrivate().getEncoded());
+        }
+        File file = new File(String.format("%s/%s", certFolder, LOGSEARCH_KEYSTORE_PUBLIC_KEY));
+        if (!file.exists()) {
+          FileUtils.writeByteArrayToFile(file, keyPair.getPublic().getEncoded());
+        }
+        X509Certificate cert = generateCertificate(certLocation, keyPair, certAlgorithm);
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, password);
+        setKeyAndCertInKeystore(cert, keyPair, keyStore, keyStoreLocation, password);
+        FileUtil.setPermissionOnDirectory(certFolder, "600");
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }

@@ -23,6 +23,9 @@ import java.io.File;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Chmod;
+import org.apache.tools.ant.types.FileSet;
 
 public class FileUtil {
   private static final Logger logger = Logger.getLogger(FileUtil.class);
@@ -43,4 +46,27 @@ public class FileUtil {
     return file;
   }
 
+  public static void createDirectory(String dirPath) {
+    File dir = new File(dirPath);
+    if (!dir.exists()) {
+      logger.info("Directory " + dirPath + " does not exist. Creating ...");
+      boolean mkDirSuccess = dir.mkdirs();
+      if (!mkDirSuccess) {
+        String errorMessage = String.format("Could not create directory %s", dirPath);
+        logger.error(errorMessage);
+        throw new RuntimeException(errorMessage);
+      }
+    }
+  }
+
+  public static void setPermissionOnDirectory(String dirPath, String permission) {
+    Chmod chmod = new Chmod();
+    chmod.setProject(new Project());
+    FileSet fileSet = new FileSet();
+    fileSet.setDir(new File(dirPath));
+    fileSet.setIncludes("**");
+    chmod.addFileset(fileSet);
+    chmod.setPerm(permission);
+    chmod.execute();
+  }
 }
