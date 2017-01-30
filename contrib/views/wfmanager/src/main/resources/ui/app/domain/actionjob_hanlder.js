@@ -363,6 +363,7 @@ var FSActionJobHandler=ActionJobHandler.extend({
   init(){
     this.mapping=[
       {xml:"name-node",domain:"nameNode"},
+      {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
       {xml:"configuration", customHandler:this.configurationMapper},
       {xml:"delete"},
       {xml:"mkdir"},
