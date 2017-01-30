@@ -18,26 +18,25 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import backtype.storm.generated.ClusterSummary;
-import backtype.storm.generated.SupervisorSummary;
-import backtype.storm.generated.TopologySummary;
-import backtype.storm.metric.IClusterReporter;
-import backtype.storm.utils.NimbusClient;
-import backtype.storm.utils.Utils;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.Validate;
+import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
+
+import backtype.storm.generated.ClusterSummary;
+import backtype.storm.generated.SupervisorSummary;
+import backtype.storm.generated.TopologySummary;
+import backtype.storm.metric.IClusterReporter;
+import backtype.storm.utils.NimbusClient;
+import backtype.storm.utils.Utils;
 
 public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   implements IClusterReporter {
