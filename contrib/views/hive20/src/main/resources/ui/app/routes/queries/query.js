@@ -26,9 +26,7 @@ export default Ember.Route.extend({
 
   beforeModel(){
     let existingWorksheets = this.store.peekAll('worksheet');
-    existingWorksheets.forEach((worksheet) => {
-      worksheet.set('selected', false);
-    });
+    existingWorksheets.setEach('selected', false);
   },
 
   afterModel(model) {
@@ -39,9 +37,13 @@ export default Ember.Route.extend({
   },
 
   model(params) {
-    let selectedWs = this.modelFor('queries').filterBy('title', params.worksheetId).get('firstObject');
-    selectedWs.set('selected', true);
-    return selectedWs;
+    let selectedWs = this.store.peekAll('worksheet').filterBy('title', params.worksheetId).get('firstObject');
+    if(selectedWs) {
+      selectedWs.set('selected', true);
+      return selectedWs;
+    } else {
+      this.transitionTo('queries');
+    }
   },
 
   setupController(controller, model) {
@@ -73,10 +75,10 @@ export default Ember.Route.extend({
     selectedMultiDb.pushObject(selecteDBName);
 
     controller.set('worksheet', model);
-    controller.set('selectedTablesModels',this.get('controller.model').get('selectedTablesModels') || selectedTablesModels );
+    controller.set('selectedTablesModels',model.get('selectedTablesModels') || selectedTablesModels );
 
-    controller.set('selectedMultiDb', this.get('controller.model').get('selectedMultiDb') || selectedMultiDb);
-    controller.set('isQueryRunning', false);
+    controller.set('selectedMultiDb', model.get('selectedMultiDb') || selectedMultiDb);
+    controller.set('isQueryRunning', model.get('isQueryRunning'));
     controller.set('currentQuery', model.get('query'));
     controller.set('queryResult', model.get('queryResult'));
     controller.set('currentJobId', null);
@@ -141,7 +143,7 @@ export default Ember.Route.extend({
       let worksheetTitle = this.get('controller.model').get('title');
 
       self.get('controller.model').set('jobData', []);
-      self.get('controller').set('isQueryRunning', true);
+      self.get('controller.model').set('isQueryRunning', true);
 
       //Making the result set emply every time query runs.
       self.get('controller').set('queryResult', self.get('controller').get('queryResult'));
@@ -173,7 +175,7 @@ export default Ember.Route.extend({
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
 
-        self.get('jobs').waitForJobToComplete(data.job.id, 5 * 1000)
+        self.get('jobs').waitForJobToComplete(data.job.id, 5 * 1000, false)
           .then((status) => {
             Ember.run.later(() => {
               self.get('controller').set('isJobSuccess', true);
@@ -245,7 +247,7 @@ export default Ember.Route.extend({
 
         self.get('controller').set('queryResult', data);
         self.get('controller.model').set('queryResult', data);
-        self.get('controller').set('isQueryRunning', false);
+        self.get('controller.model').set('isQueryRunning', false);
 
         let localArr = self.get('controller.model').get("jobData");
         localArr.push(data);
@@ -297,7 +299,7 @@ export default Ember.Route.extend({
           console.log('getJob route', data );
           self.get('controller').set('queryResult', data);
           self.get('controller.model').set('queryResult', data);
-          self.get('controller').set('isQueryRunning', false);
+          self.get('controller.model').set('isQueryRunning', false);
           self.get('controller.model').set('hidePreviousButton', false);
 
           let localArr = self.get('controller.model').get("jobData");
@@ -468,4 +470,5 @@ export default Ember.Route.extend({
       $('.editor-result-list').addClass('active');
     }
   }
+
 });

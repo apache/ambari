@@ -21,6 +21,27 @@
 -->
 <configuration supports_final="false" supports_adding_forbidden="false">
   <property>
+    <name>hive2_log_maxfilesize</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Hive Log2: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive2_log_maxbackupindex</name>
+    <value>30</value>
+    <description>The number of backup files</description>
+    <display-name>Hive Log2: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>hive-log4j2 template</display-name>
     <description>Custom hive-log4j2.properties</description>
@@ -74,7 +95,9 @@ appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy
 appender.DRFA.policies.time.interval = 1
 appender.DRFA.policies.time.modulate = true
 appender.DRFA.strategy.type = DefaultRolloverStrategy
-appender.DRFA.strategy.max = 30
+appender.DRFA.strategy.max = {{hive2_log_maxbackupindex}}
+appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy
+appender.DRFA.policies.fsize.size = {{hive2_log_maxfilesize}}MB
 
 # list of all loggers
 loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX

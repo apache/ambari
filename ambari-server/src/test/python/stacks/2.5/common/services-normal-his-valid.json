@@ -1049,7 +1049,8 @@
   "configurations" : {
     "hive-interactive-site" : {
       "properties": {
-        "hive.llap.daemon.queue.name": "llap"
+        "hive.llap.daemon.queue.name": "llap",
+        "hive.tez.container.size" : "341"
       }
     },
     "capacity-scheduler" : {
@@ -1092,6 +1093,11 @@
       }
     },
     "tez-site": {
+      "properties": {
+        "tez.am.resource.memory.mb" : "341"
+      }
+    },
+    "tez-interactive-site": {
       "properties": {
         "tez.am.resource.memory.mb" : "341"
       }

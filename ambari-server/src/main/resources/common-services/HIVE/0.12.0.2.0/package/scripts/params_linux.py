@@ -513,7 +513,7 @@ hive_site_config = dict(config['configurations']['hive-site'])
 ########################################################
 ############# AMS related params #####################
 ########################################################
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
@@ -602,6 +602,14 @@ has_hive_interactive = len(hive_interactive_hosts) > 0
 #llap log4j properties
 hive_llap_log_maxfilesize = default('/configurations/llap-daemon-log4j/hive_llap_log_maxfilesize', 256)
 hive_llap_log_maxbackupindex = default('/configurations/llap-daemon-log4j/hive_llap_log_maxbackupindex', 240)
+
+#hive log4j2 properties
+hive2_log_maxfilesize = default('/configurations/hive-log4j2/hive2_log_maxfilesize', 256)
+hive2_log_maxbackupindex = default('/configurations/hive-log4j2/hive2_log_maxbackupindex', 30)
+
+#llap cli log4j2 properties
+llap_cli_log_maxfilesize = default('/configurations/llap-cli-log4j2/llap_cli_log_maxfilesize', 256)
+llap_cli_log_maxbackupindex = default('/configurations/llap-cli-log4j2/llap_cli_log_maxbackupindex', 30)
 
 if has_hive_interactive:
   llap_daemon_log4j = config['configurations']['llap-daemon-log4j']['content']

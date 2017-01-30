@@ -20,56 +20,9 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
 
-  model() {
-
-    let existingWorksheets = this.store.peekAll('worksheet');
-
-    if(existingWorksheets.get('length') === 0) {
-      this.store.createRecord('worksheet', {
-        id: 'worksheet1',
-        title: 'Worksheet1',
-        query: 'select 1;',
-        selectedDb : 'default',
-        owner: 'admin',
-        selected: true
-      });
-    }
-
-    return this.store.peekAll('worksheet');
-
-  },
-  setupController(controller, model) {
-    this._super(...arguments);
-    controller.set('worksheets', model);
-
-    // This is just the initial currentWorksheet, It will be set on correctly on click of worksheet.
-    controller.set('currentWorksheet', controller.get('worksheets').get('firstObject'));
-
-  },
-
   actions: {
-
     createNewWorksheet(){
-
-      let worksheets = this.controllerFor('queries').get('model');
-      worksheets.forEach((worksheet) => {
-        worksheet.set('selected', false);
-      });
-
-      let localWs = {
-        id: `worksheet${worksheets.get('length') + 1}`,
-        title:`Worksheet${worksheets.get('length') + 1}`,
-        query: 'select '+ parseInt(worksheets.get('length') + 1) + ';',
-        selectedDb : 'default',
-        owner: 'admin',
-        selected: true
-      };
-
-      let newWorksheet = this.store.createRecord('worksheet', localWs );
-      this.set('controller.worksheets', this.store.peekAll('worksheet'));
-
-      this.transitionTo('queries.query', localWs.title);
+      this.transitionTo('queries.new');
     }
-
   }
 });

@@ -18,15 +18,12 @@
 
 package org.apache.ambari.server.serveraction.users;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -72,7 +69,8 @@ public class CsvFilePersisterService implements CollectionPersisterService<Strin
   @Inject
   public void init() throws IOException {
 
-    Path csv = Files.createFile(Paths.get(csvFile), PosixFilePermissions.asFileAttribute(getCsvPermissions()));
+    Path csv = Files.createFile(Paths.get(csvFile));
+    Files.setPosixFilePermissions(Paths.get(csvFile), getCsvPermissions());
     fileWriter = new FileWriter(csv.toFile());
 
     csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR));

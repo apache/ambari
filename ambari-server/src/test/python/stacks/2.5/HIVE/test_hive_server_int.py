@@ -566,13 +566,13 @@ class TestHiveServerInteractive(RMFTestCase):
                                     mode=0600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-cli-log4j2.properties'),
-                                    content='con\ntent',
+                                    content=InlineTemplate('con\ntent'),
                                     owner='hive',
                                     group='hadoop',
                                     mode=0600,
                                     )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-log4j2.properties'),
-                                    content='con\ntent',  # Test new line
+                                    content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
                                     mode=0600,
@@ -631,13 +631,13 @@ class TestHiveServerInteractive(RMFTestCase):
                                     mode=0644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'llap-cli-log4j2.properties'),
-                                    content='con\ntent',
+                                    content=InlineTemplate('con\ntent'),
                                     owner='hive',
                                     group='hadoop',
                                     mode=0644,
           )
           self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-log4j2.properties'),
-                                    content='con\ntent',  # Test new line
+                                    content=InlineTemplate('con\ntent'),  # Test new line
                                     owner='hive',
                                     group='hadoop',
                                     mode=0644,

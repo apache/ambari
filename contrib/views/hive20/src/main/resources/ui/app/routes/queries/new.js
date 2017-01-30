@@ -17,29 +17,22 @@
  */
 
 import Ember from 'ember';
-import Resolver from './resolver';
-import loadInitializers from 'ember-load-initializers';
-import config from './config/environment';
 
-let App;
-
-Ember.MODEL_FACTORY_INJECTIONS = true;
-
-App = Ember.Application.extend({
-  // Basic logging, e.g. "Transitioned into 'post'"
-  LOG_TRANSITIONS: false,
-
-  // Extremely detailed logging, highlighting every internal
-  // step made while transitioning into a route, including
-  // `beforeModel`, `model`, and `afterModel` hooks, and
-  // information about redirects and aborted transitions
-  LOG_TRANSITIONS_INTERNAL: false,
-
-  modulePrefix: config.modulePrefix,
-  podModulePrefix: config.podModulePrefix,
-  Resolver
+export default Ember.Route.extend({
+  beforeModel() {
+    let existingWorksheets = this.store.peekAll('worksheet');
+    let newWorksheetName = `worksheet${existingWorksheets.get('length') + 1}`;
+    let newWorksheetTitle = newWorksheetName.capitalize();
+    this.store.createRecord('worksheet', {
+      id: newWorksheetName,
+      title: newWorksheetTitle,
+      //query: 'select 1;',
+      selectedDb : 'default',
+      //owner: 'admin',
+      selected: true
+    });
+    existingWorksheets.setEach('selected', false);
+    this.controllerFor('queries').set('worksheets', this.store.peekAll('worksheet'));
+    this.transitionTo('queries.query', newWorksheetTitle);
+  }
 });
-
-loadInitializers(App, config.modulePrefix);
-
-export default App;

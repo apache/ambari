@@ -19,16 +19,19 @@
 package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.SolrZooKeeper;
 import org.apache.zookeeper.CreateMode;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class EnableKerberosPluginSolrZkCommand extends AbstractZookeeperRetryCommand<String> {
 
   private static final String SECURITY_JSON = "/security.json";
-  private static final String SECURE_CONTENT = "{\"authentication\":{\"class\": \"org.apache.solr.security.KerberosPlugin\"}}";
   private static final String UNSECURE_CONTENT = "{}";
 
   public EnableKerberosPluginSolrZkCommand(int maxRetries, int interval) {
@@ -39,12 +42,13 @@ public class EnableKerberosPluginSolrZkCommand extends AbstractZookeeperRetryCom
   protected String executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
     String result = "";
     String filePath = client.getZnode() + SECURITY_JSON;
-    String fileContent = getFileContent(zkClient, filePath);
+    String fileContent = getFileContentFromZnode(zkClient, filePath);
+    String securityContent = getFileContent(client.getSecurityJsonLocation());
     if (client.isSecure()) {
-      if (!fileContent.equals(SECURE_CONTENT)) {
-        putFileContent(zkClient, filePath, SECURE_CONTENT);
+      if (!fileContent.equals(securityContent)) {
+        putFileContent(zkClient, filePath, securityContent);
       }
-      result = SECURE_CONTENT;
+      result = securityContent;
     } else {
       if (!fileContent.equals(UNSECURE_CONTENT)) {
         putFileContent(zkClient, filePath, UNSECURE_CONTENT);
@@ -62,7 +66,7 @@ public class EnableKerberosPluginSolrZkCommand extends AbstractZookeeperRetryCom
     }
   }
 
-  private String getFileContent(SolrZkClient zkClient, String fileName) throws Exception {
+  private String getFileContentFromZnode(SolrZkClient zkClient, String fileName) throws Exception {
     String result;
     if (zkClient.exists(fileName, true)) {
       byte[] data = zkClient.getData(fileName, null, null, true);
@@ -71,5 +75,14 @@ public class EnableKerberosPluginSolrZkCommand extends AbstractZookeeperRetryCom
       result = UNSECURE_CONTENT;
     }
     return result;
+  }
+
+  private String getFileContent(String fileLocation) throws IOException {
+    File securityJson = new File(fileLocation);
+    if (StringUtils.isNotEmpty(fileLocation) && securityJson.exists()) {
+      return FileUtils.readFileToString(securityJson);
+    } else {
+      return UNSECURE_CONTENT;
+    }
   }
 }

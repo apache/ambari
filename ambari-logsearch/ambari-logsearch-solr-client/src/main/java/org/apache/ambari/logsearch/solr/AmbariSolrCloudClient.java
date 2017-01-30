@@ -68,6 +68,7 @@ public class AmbariSolrCloudClient {
   private final String saslUsers;
   private final String propName;
   private final String propValue;
+  private final String securityJsonLocation;
   private final boolean secure;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
@@ -90,6 +91,7 @@ public class AmbariSolrCloudClient {
     this.saslUsers = builder.saslUsers;
     this.propName = builder.propName;
     this.propValue = builder.propValue;
+    this.securityJsonLocation = builder.securityJsonLocation;
     this.secure = builder.secure;
   }
 
@@ -324,5 +326,9 @@ public class AmbariSolrCloudClient {
 
   public boolean isSecure() {
     return secure;
+  }
+
+  public String getSecurityJsonLocation() {
+    return securityJsonLocation;
   }
 }

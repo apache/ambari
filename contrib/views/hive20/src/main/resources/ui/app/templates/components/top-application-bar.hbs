@@ -19,7 +19,7 @@
 <h3 class="clearfix">
   <strong>HIVE</strong>
   <span class="pull-right">
-    <button class="btn btn-sm btn-success">{{fa-icon "plus"}} NEW JOB</button>
-    <button class="btn btn-sm btn-success">{{fa-icon "plus"}} NEW TABLE</button>
+    {{#link-to 'queries.new' class="btn btn-sm btn-success"}}{{fa-icon "plus"}} NEW JOB{{/link-to}}
+    {{#link-to 'databases.newtable' class="btn btn-sm btn-success"}}{{fa-icon "plus"}} NEW TABLE{{/link-to}}
   </span>
 </h3>

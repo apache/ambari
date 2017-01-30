@@ -49,10 +49,8 @@ var BundleXmlImporter= Ember.Object.extend({
     } else {
       bundle.schemaVersions.bundleVersion = bundleVersion;
     }
-    if(bundleApp.control && bundleApp.control["kick-off-time"]) {
-      bundle.kickOffTime = this.extractDateField(bundleApp["control"]["kick-off-time"]);
-    }else{
-
+    if(bundleApp.controls && bundleApp.controls["kick-off-time"]) {
+      bundle.kickOffTime = this.extractDateField(bundleApp["controls"]["kick-off-time"]);
     }
     this.processCoordinatorsJson(bundleApp, bundle);
     return {bundle: bundle, errors: errors};

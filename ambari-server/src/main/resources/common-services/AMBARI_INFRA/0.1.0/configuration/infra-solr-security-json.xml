@@ -1,3 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,31 +18,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import Ember from 'ember';
-import Resolver from './resolver';
-import loadInitializers from 'ember-load-initializers';
-import config from './config/environment';
-
-let App;
-
-Ember.MODEL_FACTORY_INJECTIONS = true;
-
-App = Ember.Application.extend({
-  // Basic logging, e.g. "Transitioned into 'post'"
-  LOG_TRANSITIONS: false,
-
-  // Extremely detailed logging, highlighting every internal
-  // step made while transitioning into a route, including
-  // `beforeModel`, `model`, and `afterModel` hooks, and
-  // information about redirects and aborted transitions
-  LOG_TRANSITIONS_INTERNAL: false,
-
-  modulePrefix: config.modulePrefix,
-  podModulePrefix: config.podModulePrefix,
-  Resolver
-});
-
-loadInitializers(App, config.modulePrefix);
-
-export default App;
+-->
+<!-- This is a special config file for properties used to monitor status of the service -->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>content</name>
+    <display-name>infra-solr security.json template</display-name>
+    <description>This is the jinja template for security.json file on the solr znode (only used if the cluster is secure)</description>
+    <value/>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>infra-solr-security.json.j2</property-file-name>
+      <property-file-type>text</property-file-type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

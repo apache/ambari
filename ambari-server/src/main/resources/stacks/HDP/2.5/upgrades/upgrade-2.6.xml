@@ -783,6 +783,8 @@
           <task xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_java_heap_dump_options"/>
           <task xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_heap_dump_options"/>
           <task xsi:type="configure" id="webhcat_log4j_parameterize" />
+          <task xsi:type="configure" id="hive_log4j2_parameterize"/>
+          <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -793,6 +795,10 @@
       </component>
 
       <component name="WEBHCAT_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="webhcat_log4j_parameterize" />
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

@@ -20,7 +20,7 @@ import DS from 'ember-data';
 
 export default DS.Model.extend({
   title: DS.attr('string'),
-  query: DS.attr('string'),
+  query: DS.attr('string', {defaultValue: ''}),
   selectedDb: DS.attr('string'),
   owner: DS.attr('string'),
   queryResult: DS.attr({defaultValue: {'schema' :[], 'rows' :[]}}),
@@ -35,6 +35,7 @@ export default DS.Model.extend({
   selectedMultiDb: DS.attr(),
   queryFile: DS.attr('string', {defaultValue: ""}),
   logFile: DS.attr('string', {defaultValue: ""}),
-  logResults: DS.attr('string', {defaultValue: ""})
+  logResults: DS.attr('string', {defaultValue: ""}),
+  isQueryRunning: DS.attr('boolean', {defaultValue: false})
 
 });

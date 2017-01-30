@@ -175,6 +175,8 @@ public class AmbariCustomCommandExecutionHelper {
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
 
+  private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
+
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
   protected static final String START_COMMAND_NAME = "START";
   protected static final String RESTART_COMMAND_NAME = "RESTART";
@@ -381,6 +383,20 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setConfigurationTags(configTags);
 
       execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
+
+      // Get the value of credential store enabled from the DB
+      Service clusterService = cluster.getService(serviceName);
+      execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
+
+      // Get the map of service config type to password properties for the service
+      Map<String, Map<String, String>> configCredentials;
+      configCredentials = configCredentialsForService.get(clusterService.getName());
+      if (configCredentials == null) {
+        configCredentials = configHelper.getCredentialStoreEnabledProperties(stackId, clusterService);
+        configCredentialsForService.put(clusterService.getName(), configCredentials);
+      }
+
+      execCmd.setConfigurationCredentials(configCredentials);
 
       Map<String, String> hostLevelParams = new TreeMap<>();
 

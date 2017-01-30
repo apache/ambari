@@ -374,6 +374,18 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Parameterizing LLAP Cli Log4J2 Properties">
+        <task xsi:type="configure" id="llap_cli_log4j2_parameterize">
+          <summary>Updating the LLAP Cli Log4J2 properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Parameterizing Hive Log4J2 Properties">
+        <task xsi:type="configure" id="hive_log4j2_parameterize">
+          <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Parameterizing WebHCat Log4J Properties">
         <task xsi:type="configure" id="webhcat_log4j_parameterize">
           <summary>Updating the Webhcat Log4J properties to include parameterizations</summary>

@@ -444,7 +444,19 @@
 
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Appending Java heap dump options for HiveSever2 Interactive">
         <task xsi:type="configure" id="hdp_2_6_0_0_hive_llap_append_java_heap_dump_options"/>
-      </execute-stage>      
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Parameterizing LLAP Cli Log4J2 Properties">
+        <task xsi:type="configure" id="llap_cli_log4j2_parameterize">
+          <summary>Updating the LLAP Cli Log4J2 properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Parameterizing Hive Log4J2 Properties">
+        <task xsi:type="configure" id="hive_log4j2_parameterize">
+          <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
     </group>
 
     <!--

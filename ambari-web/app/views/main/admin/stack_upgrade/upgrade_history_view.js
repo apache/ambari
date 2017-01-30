@@ -297,7 +297,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
     this.get('controller').set('currentUpgradeRecord', record);
 
     App.ModalPopup.show({
-      classNames: ['wizard-modal-wrapper'],
+      classNames: ['wide-modal-wrapper'],
       modalDialogClasses: ['modal-xlg'],
       header: Em.I18n.t('admin.stackVersions.upgradeHistory.record.title').format(displayName, direction, toVersion),
       bodyClass: App.MainAdminStackUpgradeHistoryDetailsView,

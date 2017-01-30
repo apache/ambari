@@ -37,6 +37,7 @@ import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -89,6 +90,9 @@ public class UserHookServiceTest extends EasyMockSupport {
 
   @Mock
   private Stage stageMock;
+
+  @Mock
+  private Config configMock;
 
   @TestSubject
   private UserHookService hookService = new UserHookService();
@@ -193,9 +197,14 @@ public class UserHookServiceTest extends EasyMockSupport {
     Map<String, Cluster> clsMap = new HashMap<>();
     clsMap.put("test-cluster", clusterMock);
 
+    Map<String, String> configMap = new HashMap<>();
+    configMap.put("hdfs_user", "hdfs-test-user");
+
     EasyMock.expect(clusterMock.getClusterId()).andReturn(1l);
     EasyMock.expect(clusterMock.getClusterName()).andReturn("test-cluster");
     EasyMock.expect(clusterMock.getSecurityType()).andReturn(SecurityType.NONE).times(3);
+    EasyMock.expect(clusterMock.getDesiredConfigByType("hadoop-env")).andReturn(configMock);
+    EasyMock.expect(configMock.getProperties()).andReturn(configMap);
 
 
     EasyMock.expect(actionManagerMock.getNextRequestId()).andReturn(1l);

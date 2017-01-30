@@ -25,8 +25,8 @@ var BundleGenerator= Ember.Object.extend({
     bundleApp._xmlns = "uri:oozie:bundle:"+this.bundle.schemaVersions.bundleVersion;
     bundleApp._name = this.bundle.name;
     if(!Ember.isEmpty(this.bundle.kickOffTime.value)){
-      bundleApp["control"] = {};
-      bundleApp["control"]["kick-off-time"] = this.bundle.kickOffTime.value;
+      bundleApp["controls"] = {};
+      bundleApp["controls"]["kick-off-time"] = this.bundle.kickOffTime.value;
     }
     this.generateCoordinatorsJson(bundleApp);
     var xmlAsStr = this.get("x2js").json2xml_str(xmlJson);
