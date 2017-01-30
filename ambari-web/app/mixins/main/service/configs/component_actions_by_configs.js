@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var batchUtils = require('utils/batch_scheduled_requests');
 var stringUtils = require('utils/string_utils');
 
 /**
@@ -61,15 +62,19 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
 
         if (configs.length) {
           if(config_action.get('fileName') === 'capacity-scheduler.xml' && !self.isYarnQueueRefreshed) {
+            var hsiInstance = App.HostComponent.find().filterProperty('componentName', "HIVE_SERVER_INTERACTIVE");
             if(self.get('content.serviceName') === 'HIVE') {
               // Auto refresh yarn capacity scheduler if capacity-scheduler configs are changed from Hive configs page
               self.popupPrimaryButtonCallback(config_action);
+              // Show a popup to restart HSI if HSI is enabled
+              if(hsiInstance.length > 0) {
+                self.showHsiRestartPopup(hsiInstance);
+              }
             } else {
               self.configAction = config_action;
               var body = config_action.get('popupProperties').body;
               if(config_action.get('popupProperties').hasOwnProperty('conditionalWarning') && config_action.get('popupProperties').conditionalWarning === true) {
                 // Check if Hive Server 2 Interactive is enabled and show a warning message if it is enabled
-                var hsiInstance = App.HostComponent.find().filterProperty('componentName', "HIVE_SERVER_INTERACTIVE");
                 if(hsiInstance.length > 0) {
                   body += "<br/><br/>" + config_action.get('popupProperties').warningMessage;
                 }
@@ -82,6 +87,17 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         }
       });
     }
+  },
+
+  showHsiRestartPopup: function (components) {
+    var self = this;
+    App.showConfirmationPopup(function () {
+      self.hsiRestartPopupPrimaryButtonCallback(components);
+    }, Em.I18n.t('popup.confirmation.hsiRestart.body'), null, Em.I18n.t('popup.confirmation.commonHeader'), Em.I18n.t('popup.confirmation.hsiRestart.buttonText'), false, 'restart_hsi')
+  },
+
+  hsiRestartPopupPrimaryButtonCallback: function (components) {
+    batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(components[0].get('displayName')), "HOST_COMPONENT");
   },
 
   popupPrimaryButtonCallback: function (config_action) {
