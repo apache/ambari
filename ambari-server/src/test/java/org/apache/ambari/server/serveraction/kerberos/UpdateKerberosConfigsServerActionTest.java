@@ -22,7 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Collection;
@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Rule;
@@ -152,8 +153,8 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
-    Capture<String> configTypes = Capture.newInstance();
-    Capture<Map<String, String>> configUpdates = Capture.newInstance();
+    Capture<String> configTypes = Capture.newInstance(CaptureType.ALL);
+    Capture<Map<String, String>> configUpdates = Capture.newInstance(CaptureType.ALL);
     configHelper.updateConfigType(anyObject(Cluster.class), anyObject(AmbariManagementController.class),
         capture(configTypes), capture(configUpdates), anyObject(Collection.class), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
@@ -163,8 +164,15 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
     action.setExecutionCommand(executionCommand);
     action.execute(null);
 
-    assertEquals(configTypes.getValue(), "cluster-env");
-    assertEquals(configUpdates.getValue().get("security_enabled"), "false");
+    assertTrue(configTypes.getValues().contains("cluster-env"));
+    boolean containsSecurityEnabled = false;
+    for(Map<String, String> properties: configUpdates.getValues()) {
+      if(properties.containsKey("security_enabled")) {
+        containsSecurityEnabled = true;
+        break;
+      }
+    }
+    assertTrue(containsSecurityEnabled);
     verifyAll();
   }
 
