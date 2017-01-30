@@ -616,7 +616,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }
     this.rerender();
     this.doValidation();
-    this.showUndo('node');
+    this.showUndo('nodeDeleted');
   },
   addWorkflowBranch(node){
     this.createSnapshot();
@@ -846,6 +846,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.rerender();
       this.doValidation();
       this.scrollToNewPosition();
+      this.showUndo('nodeAdded');
     },
     nameChanged(){
       this.doValidation();
@@ -1095,7 +1096,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.persistWorkInProgress();
     },
 
-    undoDelete () {
+    undo () {
       var workflowImporter = WorkflowJsonImporter.create({});
       var workflow = workflowImporter.importWorkflow(this.get('workflowSnapshot'));
       this.resetDesigner();
