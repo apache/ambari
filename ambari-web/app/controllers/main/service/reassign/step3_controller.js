@@ -259,6 +259,8 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
 
   configs: null,
 
+  configsAttributes: null,
+
   secureConfigs: [],
 
   stepConfigs: [],
@@ -281,6 +283,7 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
   clearStep: function () {
     this.setProperties({
       configs: null,
+      configsAttributes: null,
       secureConfigs: [],
       propertiesToChange: {}
     });
@@ -396,11 +399,17 @@ App.ReassignMasterWizardStep3Controller = Em.Controller.extend({
     var componentName = this.get('content.reassign.component_name');
     var targetHostName = this.get('content.reassignHosts.target');
     var configs = {};
+    var attributes = {};
     var secureConfigs = [];
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
+      if (item.properties_attributes) {
+        attributes[item.type] = item.properties_attributes;
+      }
     });
+
+    this.set('configsAttributes', attributes);
 
     this.setAdditionalConfigs(configs, componentName, targetHostName);
     this.setSecureConfigs(secureConfigs, configs, componentName);

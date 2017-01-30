@@ -276,22 +276,24 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   reconfigure: function () {
     var configs = this.get('content.configs'),
+      attributes = this.get('content.configsAttributes'),
       secureConfigs = this.get('content.secureConfigs'),
       componentName = this.get('content.reassign.component_name');
     this.saveClusterStatus(secureConfigs, this.getComponentDir(configs, componentName));
-    this.saveConfigsToServer(configs);
+    this.saveConfigsToServer(configs, attributes);
   },
 
   /**
    * make PUT call to save configs to server
    * @param configs
+   * @param attributes
    */
-  saveConfigsToServer: function (configs) {
+  saveConfigsToServer: function (configs, attributes) {
     App.ajax.send({
       name: 'common.across.services.configurations',
       sender: this,
       data: {
-        data: '[' + this.getServiceConfigData(configs).toString() + ']'
+        data: '[' + this.getServiceConfigData(configs, attributes).toString() + ']'
       },
       success: 'onSaveConfigs',
       error: 'onTaskError'
@@ -300,10 +302,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   /**
    * gather and format config data before sending to server
    * @param configs
+   * @param attributes
    * @return {Array}
    * @method getServiceConfigData
    */
-  getServiceConfigData: function (configs) {
+  getServiceConfigData: function (configs, attributes) {
     var componentName = this.get('content.reassign.component_name');
     var tagName = 'version' + (new Date).getTime();
     var configData = Object.keys(configs).map(function (_siteName) {
@@ -311,6 +314,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         type: _siteName,
         tag: tagName,
         properties: configs[_siteName],
+        properties_attributes: attributes[_siteName] || {},
         service_config_version_note: Em.I18n.t('services.reassign.step4.save.configuration.note').format(App.format.role(componentName, false))
       }
     });

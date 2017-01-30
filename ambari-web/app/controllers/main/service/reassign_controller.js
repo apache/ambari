@@ -65,7 +65,9 @@ App.ReassignMasterController = App.WizardController.extend({
     hasCheckDBStep: false,
     componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],
     componentsWithoutSecurityConfigs: ['MYSQL_SERVER'],
-    reassignComponentsInMM: []
+    reassignComponentsInMM: [],
+    configs: null,
+    configsAttributes: null
   }),
 
   /**
@@ -320,14 +322,18 @@ App.ReassignMasterController = App.WizardController.extend({
     this.set('content.serviceProperties', serviceProperties);
   },
 
-  saveConfigs: function (configs) {
-    this.setDBProperty('configs', configs);
-    this.set('content.configs', configs);
+  saveConfigs: function (configs, attributes) {
+    var configsObject = {
+      configs: configs,
+      configsAttributes: attributes
+    };
+    this.setDBProperties(configsObject);
+    this.get('content').setProperties(configsObject);
   },
 
   loadConfigs: function () {
-    var configs = this.getDBProperty('configs');
-    this.set('content.configs', configs);
+    var configsObject = this.getDBProperties(['configs', 'configsAttributes']);
+    this.get('content').setProperties(configsObject);
   },
 
   saveDatabaseType: function (type) {

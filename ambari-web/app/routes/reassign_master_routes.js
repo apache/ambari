@@ -184,6 +184,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('reassignMasterController'),
         stepController = router.get('reassignMasterWizardStep3Controller'),
         configs = stepController.get('configs'),
+        attributes = stepController.get('configsAttributes'),
         secureConfigs = stepController.get('secureConfigs');
       App.db.setReassignTasksStatuses(undefined);
       App.db.setReassignTasksRequestIds(undefined);
@@ -195,7 +196,7 @@ module.exports = App.WizardRoute.extend({
       });
       controller.saveReassignComponentsInMM(controller.getReassignComponentsInMM());
       stepController.updateServiceConfigs();
-      controller.saveConfigs(configs);
+      controller.saveConfigs(configs, attributes);
       controller.saveSecureConfigs(secureConfigs);
       router.transitionTo('step4');
     },
