@@ -345,17 +345,6 @@
           </definition>
         </changes>
       </component>
-      <component name = "WEBHCAT_SERVER">
-        <changes>
-          <definition xsi:type="configure" id="webhcat_log4j_parameterize" summary="Parameterizing Webhcat Log4J Properties">
-            <type>webhcat-log4j</type>
-            <set key="webhcat_log_maxfilesize" value="256"/>
-            <set key = "webhcat_log_maxbackupindex" value="20"/>
-            <replace key="content" find="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.standard.MaxFileSize = {{webhcat_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.standard  =  org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.standard.MaxBackupIndex = {{webhcat_log_maxbackupindex}}"/>
-          </definition>
-        </changes>
-      </component>
     </service>
 
   </services>
