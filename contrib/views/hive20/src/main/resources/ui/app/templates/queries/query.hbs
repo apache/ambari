@@ -30,7 +30,7 @@
       <div class="row query-editor-controls">
         <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
-        {{#if isQueryRunning}}
+        {{#if worksheet.isQueryRunning}}
           {{fa-icon "spinner fa-1-5" spin=true}}
         {{/if}}
       </div>
