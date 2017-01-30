@@ -160,7 +160,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       throw new Error(e);
     }.bind(this));
   },
-  getBundleFromJSON(filePath){
+  getBundleFromJSON(draftBundle){
     this.set('bundle', JSON.parse(draftBundle));
   },
   getBundleFromHdfs(filePath){
