@@ -35,6 +35,7 @@ export default DS.Model.extend({
   selectedMultiDb: DS.attr(),
   queryFile: DS.attr('string', {defaultValue: ""}),
   logFile: DS.attr('string', {defaultValue: ""}),
-  logResults: DS.attr('string', {defaultValue: ""})
+  logResults: DS.attr('string', {defaultValue: ""}),
+  isQueryRunning: DS.attr('boolean', {defaultValue: false})
 
 });
