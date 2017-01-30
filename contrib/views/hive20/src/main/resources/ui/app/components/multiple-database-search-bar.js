@@ -66,6 +66,12 @@ export default Ember.Component.extend({
     return selecteddblist;
   }),
 
+  focusComesFromOutside(e){
+    let blurredEl = e.relatedTarget;
+    return !blurredEl || !blurredEl.classList.contains('ember-power-select-search-input');
+  },
+
+
   actions: {
     createOnEnter(select, e) {
       if (e.keyCode === 13 && select.isOpen &&
@@ -79,10 +85,33 @@ export default Ember.Component.extend({
       }
     },
 
+    handleFocus(select, e) {
+      if (this.focusComesFromOutside(e)) {
+        select.actions.open();
+        this.$('.browse').addClass('open');
+      }
+
+    },
+
+    handleBlur() {
+      //console.log('handleBlur');
+    },
+
     updateTables(){
       this.sendAction('changeDbHandler', this.get('selectedDbs'));
-    }
+    },
 
+    browse(){
+
+      if(this.$('.browse').hasClass('open')){
+        this.$('.browse').removeClass('open');
+        this.$('.multiple-db-select input').focusout();
+      } else {
+        this.$('.browse').addClass('open');
+        this.$('.multiple-db-select input').focus();
+      }
+
+    }
   }
 
 });
