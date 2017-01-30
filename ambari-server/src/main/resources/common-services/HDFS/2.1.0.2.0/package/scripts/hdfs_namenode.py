@@ -34,6 +34,7 @@ from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import get_dfsadmin_base_command
+from utils import set_up_zkfc_security
 
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
@@ -95,6 +96,9 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     #we need this directory to be present before any action(HA manual steps for
     #additional namenode)
     create_name_dirs(params.dfs_name_dir)
+
+    # set up failover /  secure zookeper ACLs, this feature is supported from HDP 2.6 ownwards
+    set_up_zkfc_security(params)
   elif action == "start":
     Logger.info("Called service {0} with upgrade_type: {1}".format(action, str(upgrade_type)))
     setup_ranger_hdfs(upgrade_type=upgrade_type)

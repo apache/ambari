@@ -387,20 +387,24 @@ def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode = False):
 def set_up_zkfc_security(params):
     """ Sets up security for accessing zookeper on secure clusters """
 
-    # check if the namenode is HA (this may be redundant as the component is only installed if affirmative)
+    if params.stack_supports_zk_security is False:
+      Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for HDP 2.6 and above.")
+      return
+
+    # check if the namenode is HA
     if params.dfs_ha_enabled is False:
-        Logger.info("The namenode is not HA, zkfc security setup skipped.")
+        Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for NameNode HA mode.")
         return
 
     # check if the cluster is secure (skip otherwise)
     if params.security_enabled is False:
-        Logger.info("The cluster is not secure, zkfc security setup skipped.")
+        Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for secure clusters.")
         return
 
     # process the JAAS template
     File(os.path.join(params.hadoop_conf_secure_dir, 'hdfs_jaas.conf'),
-         owner='root',
-         group='root',
+         owner=params.hdfs_user,
+         group=params.user_group,
          mode=0644,
          content=Template("hdfs_jaas.conf.j2")
          )
