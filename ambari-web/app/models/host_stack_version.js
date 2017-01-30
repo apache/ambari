@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+var stringUtils = require('utils/string_utils');
+
 App.HostStackVersion = DS.Model.extend({
   stack: DS.attr('string'),
   version: DS.attr('string'),
@@ -86,5 +88,5 @@ App.HostStackVersion.statusDefinition = [
 App.HostStackVersion.formatStatus = function (status) {
   return App.HostStackVersion.statusDefinition.contains(status) ?
     Em.I18n.t('hosts.host.stackVersions.status.' + status.toLowerCase()) :
-    status.toCapital();
+    stringUtils.upperUnderscoreToText(status);
 };

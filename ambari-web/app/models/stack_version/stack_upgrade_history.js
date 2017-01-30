@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+var stringUtils = require('utils/string_utils');
+
 App.StackUpgradeHistory = DS.Model.extend({
   requestId: DS.attr('number'),
   clusterName: DS.attr('string'),
@@ -31,7 +33,10 @@ App.StackUpgradeHistory = DS.Model.extend({
   skipServiceCheckFailures: DS.attr('boolean'),
   endTime: DS.attr('number'),
   startTime: DS.attr('number'),
-  createTime: DS.attr('number')
+  createTime: DS.attr('number'),
+  displayStatus: function() {
+    return stringUtils.upperUnderscoreToText(this.get('requestStatus'));
+  }.property('requestStatus')
 });
 
 App.StackUpgradeHistory.FIXTURES = [];
