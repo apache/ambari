@@ -35,7 +35,7 @@
       <div class="form-group">
         <label class="control-label col-xs-2">Should Start</label>
         <div class="col-xs-3">
-          {{input class="form-control" type="text" value=slaInfo.shouldStart.time placeholder="Should Start"}}
+          {{input class="form-control" type="text" value=slaInfo.shouldStart.time placeholder="Time period(eg. 5)" title="Time period in minutes/hours/days"}}
           {{field-error model=this field='slaInfo.shouldStart.time' showErrorMessage=showErrorMessage}}
         </div>
         <div class="col-xs-2">
@@ -50,7 +50,7 @@
       <div class="form-group">
         <label class="control-label col-xs-2">Should End<span class="requiredField">&nbsp;*</span></label>
         <div class="col-xs-3">
-          {{input class="form-control" type="text" value=slaInfo.shouldEnd.time placeholder="Should End"}}
+          {{input class="form-control" type="text" value=slaInfo.shouldEnd.time placeholder="Time period(eg. 5)" title="Time period in minutes/hours/days"}}
           {{field-error model=this field='slaInfo.shouldEnd.time' showErrorMessage=showErrorMessage}}
         </div>
         <div class="col-xs-2">
@@ -65,7 +65,7 @@
       <div class="form-group">
         <label class="control-label col-xs-2">Max Duration</label>
         <div class="col-xs-3">
-          {{input class="form-control" type="text" value=slaInfo.maxDuration.time placeholder="Max Duration"}}
+          {{input class="form-control" type="text" value=slaInfo.maxDuration.time placeholder="Time period(eg. 5)" title="Time period in minutes/hours/days"}}
         </div>
         <div class="col-xs-2">
           <select class="form-control" name="time-unit" title="Time Unit" onchange={{action (mut slaInfo.maxDuration.unit) value="target.value"}}>

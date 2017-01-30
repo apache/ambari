@@ -32,7 +32,7 @@
     <div class="form-group padding10">
       <label for="inputEmail" class="control-label col-xs-2">Command</label>
       <div class="col-xs-7">
-        {{input type="text" class="form-control" name="command" value=actionModel.command placeholder="Sqoop Command"}}
+        {{input type="text" class="form-control" name="command" value=actionModel.command placeholder="Command" title="eg. import --connect jdbc:hsqldb:file:db.hsqldb --table TT --target-dir /user/${wf:user()}/output-data/sqoop -m 1"}}
       </div>
     </div>
   {{/if}}

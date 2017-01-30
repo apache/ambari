@@ -132,7 +132,7 @@ export default Ember.Component.extend( Ember.Evented,{
     }
     if(!CommonUtils.isSupportedAction(this.get('actionType')) && !this.get('actionModel.slaInfo')){
       this.set('customSlaInfo',  SlaInfo.create({}));
-    }else{
+    }else if(!CommonUtils.isSupportedAction(this.get('actionType')) && this.get('actionModel.slaInfo')){
       this.set('customSlaInfo',  this.get('actionModel.slaInfo'));
       this.set('customSlaEnabled', this.get('actionModel.slaEnabled'));
       delete this.get('actionModel').slaInfo;
