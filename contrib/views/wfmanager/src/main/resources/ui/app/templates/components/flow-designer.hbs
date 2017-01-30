@@ -141,10 +141,12 @@
       {{designer-errors errors=errors validationErrors=validationErrors}}
       {{#if undoAvailable}}
         <div id="alert"class="alert alert-warning" role="alert">
-          {{#if (eq undoType 'node')}}
-            <label>Node <i>{{deletedNode.name}}</i> deleted <span class="undo" {{action 'undoDelete'}}><u>Undo</u></span></label>
+          {{#if (eq undoType 'nodeDeleted')}}
+            <label>Node deleted <span class="undo" {{action 'undo'}}><u>Undo</u></span></label>
+          {{else if (eq undoType 'nodeAdded')}}
+            <label>Node added <span class="undo" {{action 'undo'}}><u>Undo</u></span></label>
           {{else}}
-            <label>Transition deleted <span class="undo" {{action 'undoDelete'}}><u>Undo</u></span></label>
+            <label>Transition deleted <span class="undo" {{action 'undo'}}><u>Undo</u></span></label>
           {{/if}}
         </div>
       {{/if}}
