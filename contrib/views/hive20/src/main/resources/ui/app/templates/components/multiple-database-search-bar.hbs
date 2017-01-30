@@ -22,22 +22,21 @@
 </div>
 <div class="col-md-9">
   <div class="input-group-lg">
-
     {{#power-select-multiple
+    class="multiple-db-select"
     placeholder="Search databases"
     options=allDbs
     selected=selectedMultiDb
     onchange=(pipe-action (action (mut selectedDbs)) (action "updateTables"))
+    onfocus=(action "handleFocus")
+    onblur=(action "handleBlur")
     onkeydown=(action "createOnEnter")
     as |number|}}
       {{fa-icon "database"}} {{number}}
     {{/power-select-multiple}}
-
-    <span class="input-group-btn" style="top: 0;right: 130px;position: absolute;">
-      <button type="button" class="btn btn-default">{{fa-icon "folder"}} Browse <span class="caret"></span></button>
+    <span class="input-group-btn browse" style="top: 0;right: 130px;position: absolute;">
+      <button type="button" class="btn btn-default" {{action "browse" }}>{{fa-icon "folder"}} Browse <span class="caret"></span></button>
     </span>
-
-
   </div>
 </div>
 
