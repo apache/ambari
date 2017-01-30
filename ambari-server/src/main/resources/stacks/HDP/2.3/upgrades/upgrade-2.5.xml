@@ -916,6 +916,17 @@
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
+
+      <component name="HIVE_SERVER_INTERACTIVE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hive_log4j2_parameterize"/>
+          <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
+        </pre-upgrade>
+        <pre-downgrade/>
+        <upgrade>
+	  <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
     </service>
 
     <service name="SLIDER">

@@ -235,14 +235,14 @@ def hive_interactive(name=None):
            mode=mode_identified,
            group=params.user_group,
            owner=params.hive_user,
-           content=params.llap_cli_log4j2)
+           content=InlineTemplate(params.llap_cli_log4j2))
 
       hive_log4j2_filename = 'hive-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{hive_log4j2_filename}"),
          mode=mode_identified,
          group=params.user_group,
          owner=params.hive_user,
-         content=params.hive_log4j2)
+         content=InlineTemplate(params.hive_log4j2))
 
       hive_exec_log4j2_filename = 'hive-exec-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{hive_exec_log4j2_filename}"),
