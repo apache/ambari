@@ -62,11 +62,6 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
     hdfs("zkfc_slave")
-
-    # set up failover /  zookeper ACLs, this feature is supported from HDP 2.6 ownwards
-    if params.stack_supports_zk_security:
-      utils.set_up_zkfc_security(params)
-
     pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

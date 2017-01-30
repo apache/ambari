@@ -36,9 +36,7 @@ from resource_management.libraries.functions.security_commons import get_params_
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version_select_util import get_component_version
 from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class ZkfcSlave(Script):
@@ -62,11 +60,6 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
     hdfs("zkfc_slave")
-
-    # set up failover /  zookeper ACLs, this feature is supported from HDP 2.6 ownwards
-    if params.stack_supports_zk_security:
-      utils.set_up_zkfc_security(params)
-
     pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

@@ -182,7 +182,6 @@ oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
-zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -196,8 +195,19 @@ has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 has_zeppelin_master = not len(zeppelin_master_hosts) == 0
-has_zkfc_hosts = not len(zkfc_hosts)== 0
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+
+# HDFS High Availability properties
+dfs_ha_enabled = False
+dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+if dfs_ha_nameservices is None:
+  dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.nameservices', None)
+dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+if dfs_ha_namenode_ids:
+  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+  if dfs_ha_namenode_ids_array_len > 1:
+    dfs_ha_enabled = True
 
 if has_namenode or dfs_type == 'HCFS':
     hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
@@ -246,5 +256,5 @@ tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
 
 # if NN HA on secure clutser, access Zookeper securely
-if stack_supports_zk_security and has_zkfc_hosts and security_enabled:
+if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
     hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")
