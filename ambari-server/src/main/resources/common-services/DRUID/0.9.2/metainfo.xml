@@ -43,6 +43,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-coordinator</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>DRUID_OVERLORD</name>
@@ -63,6 +66,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-overlord</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>DRUID_HISTORICAL</name>
@@ -83,6 +89,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-historical</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>DRUID_BROKER</name>
@@ -103,6 +112,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-broker</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>DRUID_MIDDLEMANAGER</name>
@@ -123,6 +135,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-middlemanager</config-type>
+          </configuration-dependencies>
         </component>
         <component>
           <name>DRUID_ROUTER</name>
@@ -144,6 +159,9 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
+        <configuration-dependencies>
+          <config-type>druid-router</config-type>
+        </configuration-dependencies>
       </components>
 
       <themes>
@@ -182,19 +200,9 @@
       <configuration-dependencies>
         <config-type>druid-common</config-type>
         <config-type>druid-env</config-type>
-        <config-type>druid-coordinator</config-type>
-        <config-type>druid-overlord</config-type>
-        <config-type>druid-historical</config-type>
-        <config-type>druid-broker</config-type>
-        <config-type>druid-middlemanager</config-type>
         <config-type>druid-log4j</config-type>
         <config-type>druid-logrotate</config-type>
-        <config-type>druid-router</config-type>
         <config-type>zoo.cfg</config-type>
-        <config-type>core-site</config-type>
-        <config-type>mapred-site</config-type>
-        <config-type>yarn-site</config-type>
-        <config-type>hdfs-site</config-type>
       </configuration-dependencies>
 
       <quickLinksConfigurations>
