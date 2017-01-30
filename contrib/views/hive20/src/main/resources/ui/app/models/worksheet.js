@@ -20,7 +20,7 @@ import DS from 'ember-data';
 
 export default DS.Model.extend({
   title: DS.attr('string'),
-  query: DS.attr('string'),
+  query: DS.attr('string', {defaultValue: ''}),
   selectedDb: DS.attr('string'),
   owner: DS.attr('string'),
   queryResult: DS.attr({defaultValue: {'schema' :[], 'rows' :[]}}),

@@ -17,29 +17,14 @@
  */
 
 import Ember from 'ember';
-import Resolver from './resolver';
-import loadInitializers from 'ember-load-initializers';
-import config from './config/environment';
 
-let App;
+export default Ember.Route.extend({
 
-Ember.MODEL_FACTORY_INJECTIONS = true;
-
-App = Ember.Application.extend({
-  // Basic logging, e.g. "Transitioned into 'post'"
-  LOG_TRANSITIONS: false,
-
-  // Extremely detailed logging, highlighting every internal
-  // step made while transitioning into a route, including
-  // `beforeModel`, `model`, and `afterModel` hooks, and
-  // information about redirects and aborted transitions
-  LOG_TRANSITIONS_INTERNAL: false,
-
-  modulePrefix: config.modulePrefix,
-  podModulePrefix: config.podModulePrefix,
-  Resolver
+  setupController(controller, model) {
+    this._super(controller, model);
+    let selectedDatabase = this.modelFor('databases').filterBy('selected', true).get('firstObject');
+    Ember.run.later(() => {
+      this.transitionTo('databases.database.tables.new', selectedDatabase.get('name'));
+    }, 100);
+  }
 });
-
-loadInitializers(App, config.modulePrefix);
-
-export default App;

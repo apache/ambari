@@ -31,6 +31,7 @@ Router.map(function() {
   this.route('savedqueries');
 
   this.route('databases', function() {
+    this.route('newtable');
     this.route('database', {path: '/:databaseId'}, function() {
       this.route('tables', {path: '/tables'}, function() {
         this.route('new');
@@ -52,6 +53,7 @@ Router.map(function() {
   });
 
   this.route('queries', function() {
+    this.route('new');
     this.route('query', {path: '/:worksheetId'}, function() {
 
     });
