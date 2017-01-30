@@ -31,7 +31,7 @@
         <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
         {{#if isQueryRunning}}
-          <img src="http://www.bba-reman.com/images/fbloader.gif" height="22" width="32" />
+          {{fa-icon "spinner fa-1-5" spin=true}}
         {{/if}}
       </div>
     </div>
