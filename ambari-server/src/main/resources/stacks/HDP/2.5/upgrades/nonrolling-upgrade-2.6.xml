@@ -360,6 +360,9 @@
           <summary>Updating the Ranger tagsync Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
+      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Apply config changes for Ranger Usersync">
+        <task xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade"/>
+      </execute-stage>
 
       <!--RANGER-KMS-->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Parameterizing Ranger Kms Log4J Properties">
