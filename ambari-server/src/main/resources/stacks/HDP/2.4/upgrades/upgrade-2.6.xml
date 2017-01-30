@@ -619,6 +619,7 @@
       <component name="RANGER_USERSYNC">
         <pre-upgrade>
           <task xsi:type="configure" id="usersync_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
