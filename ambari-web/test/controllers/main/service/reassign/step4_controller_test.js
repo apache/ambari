@@ -1095,13 +1095,13 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('No services', function () {
       services = [];
       controller.set('content.reassign.component_name', 'COMP1');
-      expect(controller.getServiceConfigData([])).to.eql([]);
+      expect(controller.getServiceConfigData({})).to.eql([]);
     });
     it('No services in stackServices', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
       stackServices = [];
       controller.set('content.reassign.component_name', 'COMP1');
-      expect(controller.getServiceConfigData([])).to.eql([]);
+      expect(controller.getServiceConfigData({}, {})).to.eql([]);
     });
     it('Services in stackServices, but configTypesRendered is empty', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
@@ -1110,7 +1110,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         configTypesRendered: {}
       })];
       controller.set('content.reassign.component_name', 'COMP1');
-      expect(controller.getServiceConfigData([])[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
+      expect(controller.getServiceConfigData({}, {})[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
     });
     it('Services in stackServices, and configTypesRendered has data, but configs is empty', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
@@ -1121,7 +1121,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         })
       ];
       controller.set('content.reassign.component_name', 'COMP1');
-      expect(controller.getServiceConfigData([])[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
+      expect(controller.getServiceConfigData({}, {})[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
     });
     it('Services in stackServices, and configTypesRendered has data, and configs present', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
@@ -1137,7 +1137,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         }
       };
       controller.set('content.reassign.component_name', 'COMP1');
-      expect(JSON.parse(controller.getServiceConfigData(configs)[0]).Clusters.desired_config.length).to.equal(1);
+      expect(JSON.parse(controller.getServiceConfigData(configs, {})[0]).Clusters.desired_config.length).to.equal(1);
     });
   });
 
