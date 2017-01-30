@@ -332,7 +332,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
           Set<String> installedServices = cluster.getServices().keySet();
 
           if (installedServices.contains("HIVE")) {
-            Config hiveSite = cluster.getDesiredConfigByType("hive-interactive-site");
+            Config hiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
             if (hiveSite != null) {
               Map<String, String> hiveSiteProperties = hiveSite.getProperties();
               String schedulerDelay = hiveSiteProperties.get("hive.llap.task.scheduler.locality.delay");
@@ -343,19 +343,19 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                     int schedulerDelayInt = Integer.parseInt(schedulerDelay);
                     if (schedulerDelayInt == -1) {
                       // Old default. Set to new default.
-                      updateConfigurationProperties("hive-interactive-site", Collections
+                      updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
                               .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
                           false);
                     }
                   } catch (NumberFormatException e) {
                     // Invalid existing value. Set to new default.
-                    updateConfigurationProperties("hive-interactive-site", Collections
+                    updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
                             .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
                         false);
                   }
                 }
               }
-              updateConfigurationProperties("hive-interactive-site",
+              updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
                   Collections.singletonMap("hive.mapjoin.hybridgrace.hashtable", "true"), true,
                   false);
               updateConfigurationProperties("tez-interactive-site",
@@ -607,6 +607,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    *
    * @throws AmbariException
    */
+  private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
   protected void updateHIVEInteractiveConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -615,16 +616,29 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Config hiveInteractiveSite = cluster.getDesiredConfigByType("hive-interactive-site");
+          Config hiveInteractiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
           if (hiveInteractiveSite != null) {
-            updateConfigurationProperties("hive-interactive-site", Collections.singletonMap("hive.tez.container.size",
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.tez.container.size",
                 "SET_ON_FIRST_INVOCATION"), true, true);
 
-            updateConfigurationProperties("hive-interactive-site", Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
                 "1000000000"), true, true);
-            updateConfigurationProperties("hive-interactive-site",
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
                 Collections.singletonMap("hive.llap.execution.mode", "only"),
                 true, true);
+            String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
+            if (StringUtils.isNotBlank(llapRpcPortString)) {
+              try {
+                int llapRpcPort = Integer.parseInt(llapRpcPortString);
+                if (llapRpcPort == 15001) {
+                  updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
+                      Collections.singletonMap("hive.llap.daemon.rpc.port", "only"),
+                      true, true);
+                }
+              } catch (NumberFormatException e) {
+                LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
+              }
+            }
           }
         }
       }
