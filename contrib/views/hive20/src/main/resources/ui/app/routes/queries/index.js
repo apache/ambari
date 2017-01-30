@@ -20,10 +20,13 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
   beforeModel() {
-    if(this.modelFor('queries').filterBy('selected', true).length > 0){
-      let selectedWorksheet = this.modelFor('queries').filterBy('selected', true).get('firstObject');
-      console.log('worksheet-title', selectedWorksheet.get('title'));
+    let existingWorksheets = this.store.peekAll('worksheet');
+    if(existingWorksheets.get('length') > 0) {
+      let selectedWorksheet = existingWorksheets.filterBy('selected', true).get('firstObject');
+      this.controllerFor('queries').set('worksheets', existingWorksheets);
       this.transitionTo('queries.query', selectedWorksheet.get('title'));
+    } else {
+      this.transitionTo('queries.new');
     }
   }
 });

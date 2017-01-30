@@ -60,6 +60,10 @@ export default Ember.Service.extend({
           reject(error);
         });
     });
-  }
+  },
+
+  _fetchDummyResult(jobId) {
+    this.get('store').adapterFor('job').fetchResult(jobId);
+  },
 
 });

@@ -34,6 +34,8 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
+      LOG_VIEW_LOOKUPS: false,
+      LOG_ACTIVE_GENERATION: false
     }
   };
 
