@@ -454,7 +454,7 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
 
       Note: All memory calculations are in MB, unless specified otherwise.
     """
-    Logger.info("DBG: Entered updateLlapConfigs");
+    Logger.info("DBG: Entered updateLlapConfigs")
     putHiveInteractiveSiteProperty = self.putProperty(configurations, YARNRecommender.HIVE_INTERACTIVE_SITE, services)
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, YARNRecommender.HIVE_INTERACTIVE_SITE)
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
@@ -1530,7 +1530,8 @@ class MAPREDUCE2Recommender(YARNRecommender):
 
   def recommendMapReduce2ConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
     # Needs to be able to access yarn-site
-    # TODO, this is a hack that was introduced in 2015. =
+    # TODO, this is a hack that was introduced in 2015. The yarn-site configs will not actually be saved
+    # as part of MAPREDUCE2 because yarn-site doesn't belong to it according to its metainfo.xml
     # MAPREDUCE2 Recommender first needs to call all methods from YARN Recommender
     self.recommendYARNConfigurationsFromHDP206(configurations, clusterData, services, hosts)
     self.recommendYARNConfigurationsFromHDP22(configurations, clusterData, services, hosts)
