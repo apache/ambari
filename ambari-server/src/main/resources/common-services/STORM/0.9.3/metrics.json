@@ -101,8 +101,8 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/api/v1/cluster/summary/nimbusUptime": {
-              "metric": "/api/v1/cluster/summary##nimbusUptime",
+            "metrics/api/v1/nimbus/summary": {
+              "metric": "/api/v1/nimbus/summary?field=nimbuses##nimbuses",
               "pointInTime": true,
               "temporal": false
             }
