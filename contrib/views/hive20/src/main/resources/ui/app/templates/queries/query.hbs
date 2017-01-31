@@ -36,48 +36,50 @@
       </div>
     </div>
 
+    {{#if worksheet.isQueryResultContainer}}
+      <div class="query-result-container">
+        <div>
+          <ul class="row nav nav-tabs inverse">
+            <li class="editor-result-list active">
+              <a href="javascript:void(0)" class="editor-result-list-anchor" {{action 'showQueryEditorResult' }}>
+                {{fa-icon "file-text-o"}}&nbsp;&nbsp;RESULT
+              </a>
+            </li>
+            <li class="log-list">
+              <a href="javascript:void(0)" class="log-list-anchor active" {{action 'showQueryEditorLog' }}>
+                {{fa-icon "list"}}&nbsp;&nbsp;LOG
+              </a>
+            </li>
+          </ul>
+        </div>
 
-    <div>
-      <ul class="row nav nav-tabs inverse">
-        <li class="log-list active">
-          <a href="javascript:void(0)" class="log-list-anchor active" {{action 'showQueryEditorLog' }}>
-            <i id="ember855" aria-hidden="true" class="fa fa-list"><!----></i>&nbsp;&nbsp;LOG
-          </a>
-        </li>
-        <li class="editor-result-list">
-          <a href="javascript:void(0)" class="editor-result-list-anchor" {{action 'showQueryEditorResult' }}>
-            <i id="ember866" aria-hidden="true" class="fa fa-file-text-o"><!----></i>&nbsp;&nbsp;RESULT
-          </a>
-        </li>
-      </ul>
-    </div>
+        {{#if showQueryEditorLog}}
+          <div class="clearfix row query-editor-log">
+            {{query-result-log logResults=worksheet.logResults }}
+          </div>
+        {{/if}}
+        {{#if showQueryEditorResult}}
+          <div class="clearfix row query-editor-results">
+            {{query-result-table
+            queryResult=queryResult
+            jobId=currentJobId
+            updateQuery='updateQuery'
+            previousPage=worksheet.previousPage
+            hidePreviousButton=hidePreviousButton
+            goNextPage='goNextPage'
+            goPrevPage='goPrevPage'
+            expandQueryResultPanel='expandQueryResultPanel'
+            saveToHDFS='saveToHDFS'
+            downloadAsCsv='downloadAsCsv'
+            isExportResultSuccessMessege=isExportResultSuccessMessege
+            isExportResultFailureMessege=isExportResultFailureMessege
+            showSaveHdfsModal=showSaveHdfsModal
+            }}
+          </div>
+        {{/if}}
 
-    {{#if showQueryEditorLog}}
-      <div class="clearfix row query-editor-log" >
-        {{query-result-log logResults=worksheet.logResults }}
       </div>
     {{/if}}
-
-    {{#if showQueryEditorResult}}
-      <div class="clearfix row query-editor-results" >
-        {{query-result-table
-        queryResult=queryResult
-        jobId=currentJobId
-        updateQuery='updateQuery'
-        previousPage=worksheet.previousPage
-        hidePreviousButton=hidePreviousButton
-        goNextPage='goNextPage'
-        goPrevPage='goPrevPage'
-        expandQueryResultPanel='expandQueryResultPanel'
-        saveToHDFS='saveToHDFS'
-        downloadAsCsv='downloadAsCsv'
-        isExportResultSuccessMessege=isExportResultSuccessMessege
-        isExportResultFailureMessege=isExportResultFailureMessege
-        showSaveHdfsModal=showSaveHdfsModal
-        }}
-      </div>
-    {{/if}}
-
   </div>
 </div>
 
@@ -97,7 +99,8 @@
               <small class="pull-right">Tables({{tableModel.tables.length}})</small>
             </h4>
           </div>
-          <div id={{concat 'db_body_' tableModel.dbname}} class="db-tables collapse panel-collapse {{if (eq tableModel.dbname worksheet.selectedDb) 'in'}}" role="tabpanel"
+          <div id={{concat 'db_body_' tableModel.dbname}} class="db-tables collapse
+               panel-collapse {{if (eq tableModel.dbname worksheet.selectedDb) 'in'}}" role="tabpanel"
           aria-labelledby={{concat 'db_heading_' tableModel.dbname}}>
           <div class="panel-body">
             {{#if tableModel.tables.length }}
@@ -145,7 +148,8 @@
 
       <div class="modal-footer">
         <button type="button" class="btn btn-default" {{action "saveWorksheetModal"}}>{{fa-icon "check"}} Save</button>
-        <button type="button" class="btn btn-default" {{action "closeWorksheetModal"}}>{{fa-icon "close"}} Cancel</button>
+        <button type="button" class="btn btn-default" {{action "closeWorksheetModal"}}>{{fa-icon "close"}}Cancel
+        </button>
       </div>
     </div>
   {{/modal-dialog}}

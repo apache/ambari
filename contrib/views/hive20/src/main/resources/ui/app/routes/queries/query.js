@@ -90,7 +90,7 @@ export default Ember.Route.extend({
     controller.set('showSaveHdfsModal', false);
 
     controller.set('logResults', model.get('logResults') || '');
-    controller.set('showQueryEditorLog', true);
+    controller.set('showQueryEditorLog', false);
     controller.set('showQueryEditorResult', !controller.get('showQueryEditorLog'));
 
 
@@ -125,6 +125,10 @@ export default Ember.Route.extend({
 
     },
 
+    showQueryResultContainer(){
+      this.get('controller.model').set('isQueryResultContainer', true);
+    },
+
     showTables(db){
       let self = this;
       //should we do this by writing a seperate component.
@@ -148,6 +152,8 @@ export default Ember.Route.extend({
       //Making the result set emply every time query runs.
       self.get('controller').set('queryResult', self.get('controller').get('queryResult'));
       self.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
+
+      self.send('showQueryResultContainer');
 
       let payload ={
         "title":worksheetTitle,
@@ -185,7 +191,7 @@ export default Ember.Route.extend({
               self.send('fetchLogs');
 
               //Open result tab and hide log tab
-              self.send('showQueryEditorResult');
+              //self.send('showQueryEditorResult');
             }, 2 * 1000);
           }, (error) => {
             Ember.run.later(() => {
@@ -469,6 +475,10 @@ export default Ember.Route.extend({
       $('.editor-result-list-anchor').addClass('active');
       $('.editor-result-list').addClass('active');
     }
+  },
+
+  showQueryResultContainer(){
+    this.get('controller.model').set('isQueryResultContainer', true);
   }
 
 });

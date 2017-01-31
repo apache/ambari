@@ -41,7 +41,7 @@ export default Ember.Service.extend({
             } else if (status === 'error') {
               reject(status)
             } else {
-              resolve(this.waitForJobToComplete(jobId, after, fetchDummyResult));
+              resolve(this.waitForJobToComplete(jobId, after));
             }
           }, (error) => {
             reject(error);
