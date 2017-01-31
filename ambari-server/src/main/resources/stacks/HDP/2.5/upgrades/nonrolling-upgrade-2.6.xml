@@ -409,6 +409,11 @@
         </task>
       </execute-stage>
 
+      <!-- PIG -->
+      <execute-stage service="PIG" component="PIG" title="Apply config changes for Pig">
+        <task xsi:type="configure" id="hdp_2_6_0_0_pig_use_tez" />
+      </execute-stage>
+
       <!--HIVE-->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Parameterizing Hive Log4J Properties">
         <task xsi:type="configure" id="hive_log4j_parameterize">

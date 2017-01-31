@@ -831,6 +831,9 @@
 
     <service name="PIG">
       <component name="PIG">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_pig_use_tez"/>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

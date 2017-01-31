@@ -359,6 +359,11 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs" />
       </execute-stage>
 
+      <!-- PIG -->
+      <execute-stage service="PIG" component="PIG" title="Apply config changes for Pig">
+        <task xsi:type="configure" id="hdp_2_6_0_0_pig_use_tez" />
+      </execute-stage>
+
       <!-- HIVE -->
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths"/>

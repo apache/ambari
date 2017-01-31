@@ -57,6 +57,17 @@
       </component>
     </service>
 
+    <service name="PIG">
+      <component name="PIG">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_pig_use_tez">
+            <type>pig-properties</type>
+            <replace key="exectype" find="exectype=mapreduce" replace-with="exectype=tez" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
