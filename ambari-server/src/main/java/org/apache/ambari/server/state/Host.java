@@ -27,10 +27,13 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 public interface Host extends Comparable {
+
+  HostEntity getHostEntity();
 
   /**
    * @return the hostName
@@ -171,6 +174,8 @@ public interface Host extends Comparable {
    * @return the osFamily
    */
   String getOsFamily();
+
+  String getOSFamilyFromHostAttributes(Map<String, String> hostAttributes);
 
   /**
    * @param osType the osType to set

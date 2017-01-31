@@ -1122,6 +1122,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public StackId getStackVersion() {
     HostComponentStateEntity schStateEntity = getStateEntity();
+    return getStackVersionFromSCHStateEntity(schStateEntity);
+  }
+
+  private StackId getStackVersionFromSCHStateEntity(HostComponentStateEntity schStateEntity) {
     if (schStateEntity == null) {
       return new StackId();
     }
@@ -1178,13 +1182,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public StackId getDesiredStackVersion() {
     HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+    return getDesiredStackVersionFromHostComponentDesiredStateEntity(desiredStateEntity);
+  }
+
+  private StackId getDesiredStackVersionFromHostComponentDesiredStateEntity(HostComponentDesiredStateEntity desiredStateEntity) {
     if (desiredStateEntity != null) {
       StackEntity desiredStackEntity = desiredStateEntity.getDesiredStack();
       return new StackId(desiredStackEntity.getStackName(), desiredStackEntity.getStackVersion());
     } else {
       LOG.warn("Trying to fetch a member from an entity object that may "
-          + "have been previously deleted, serviceName = " + getServiceName() + ", "
-          + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
+              + "have been previously deleted, serviceName = " + getServiceName() + ", "
+              + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
     }
     return null;
   }
@@ -1244,22 +1252,25 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       return null;
     }
 
+    StackId stackVersion = getStackVersionFromSCHStateEntity(hostComponentStateEntity);
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = getDesiredStateEntity();
+
     String clusterName = serviceComponent.getClusterName();
     String serviceName = serviceComponent.getServiceName();
     String serviceComponentName = serviceComponent.getName();
     String hostName = getHostName();
     String publicHostName = getPublicHostName();
     String state = getState().toString();
-    String stackId = getStackVersion().getStackId();
-    String desiredState = getDesiredState().toString();
-    String desiredStackId = getDesiredStackVersion().getStackId();
+    String stackId = stackVersion.getStackId();
+    String desiredState = (hostComponentDesiredStateEntity == null) ? null : hostComponentDesiredStateEntity.getDesiredState().toString();
+    String desiredStackId = getDesiredStackVersionFromHostComponentDesiredStateEntity(hostComponentDesiredStateEntity).getStackId();
     HostComponentAdminState componentAdminState = getComponentAdminState();
     UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
 
     String displayName = null;
     try {
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(getStackVersion().getStackName(),
-          getStackVersion().getStackVersion(), serviceName, serviceComponentName);
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(stackVersion.getStackName(),
+              stackVersion.getStackVersion(), serviceName, serviceComponentName);
       displayName = compInfo.getDisplayName();
     } catch (AmbariException e) {
       displayName = serviceComponentName;

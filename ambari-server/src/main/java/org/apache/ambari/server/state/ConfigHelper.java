@@ -537,8 +537,19 @@ public class ConfigHelper {
   }
 
   public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType,
-      Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+                                                       Cluster cluster, Map<String,
+                                                       DesiredConfig> desiredConfigs) throws AmbariException {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+
+    return getPropertyValuesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
+  }
+
+  public Set<String> getPropertyValuesWithPropertyType(PropertyType propertyType,
+                                                       Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
+                                                       Map<String, ServiceInfo> servicesMap,
+                                                       Set<PropertyInfo> stackProperties) throws AmbariException {
     Map<String, Config> actualConfigs = new HashMap<>();
     Set<String> result = new HashSet<String>();
 
@@ -549,7 +560,7 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
@@ -561,7 +572,6 @@ public class ConfigHelper {
       }
     }
 
-    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
 
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {

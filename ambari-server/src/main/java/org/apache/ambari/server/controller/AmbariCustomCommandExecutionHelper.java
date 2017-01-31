@@ -1148,28 +1148,33 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public String getRepoInfo(Cluster cluster, Host host) throws AmbariException {
 
+    return getRepoInfo(cluster, host.getOsType(), host.getOsFamily(), host.getHostName());
+  }
+
+  public String getRepoInfo(Cluster cluster, String hostOSType, String hostOSFamily, String hostName) throws AmbariException {
+
     StackId stackId = cluster.getDesiredStackVersion();
 
     Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
-        stackId.getStackName(), stackId.getStackVersion());
+            stackId.getStackName(), stackId.getStackVersion());
 
-    String family = os_family.find(host.getOsType());
+    String family = os_family.find(hostOSType);
     if (null == family) {
-      family = host.getOsFamily();
+      family = hostOSFamily;
     }
 
     JsonElement gsonList = null;
 
     // !!! check for the most specific first
-    if (repos.containsKey(host.getOsType())) {
-      gsonList = gson.toJsonTree(repos.get(host.getOsType()));
+    if (repos.containsKey(hostOSType)) {
+      gsonList = gson.toJsonTree(repos.get(hostOSType));
     } else if (null != family && repos.containsKey(family)) {
       gsonList = gson.toJsonTree(repos.get(family));
     } else {
       LOG.warn("Could not retrieve repo information for host"
-          + ", hostname=" + host.getHostName()
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
+              + ", hostname=" + hostName
+              + ", clusterName=" + cluster.getClusterName()
+              + ", stackInfo=" + stackId.getStackId());
     }
 
     if (null != gsonList) {

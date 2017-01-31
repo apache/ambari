@@ -258,7 +258,7 @@ public class HeartbeatMonitor implements Runnable {
     Collection<Config> clusterConfigs = cluster.getAllConfigs();
 
     // creating list with desired config types to validate if cluster config actual
-    Set<String> desiredConfigTypes = cluster.getDesiredConfigs().keySet();
+    Set<String> desiredConfigTypes = desiredConfigs.keySet();
 
     // Apply global properties for this host from all config groups
     Map<String, Map<String, String>> allConfigTags = configHelper
