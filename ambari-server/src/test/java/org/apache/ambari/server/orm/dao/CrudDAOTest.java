@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.sql.SQLException;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -31,7 +35,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * CrudDAO unit tests.
@@ -53,6 +56,7 @@ public class CrudDAOTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     stackDAO = injector.getInstance(StackDAO.class);
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
 
     // required to populate stacks into the database
@@ -120,8 +124,7 @@ public class CrudDAOTest {
   }
 
   @After
-  public void after() {
-    injector.getInstance(PersistService.class).stop();
-    injector = null;
+  public void after() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 }

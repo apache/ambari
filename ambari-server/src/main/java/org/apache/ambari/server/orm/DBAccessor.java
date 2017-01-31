@@ -623,6 +623,7 @@ public interface DBAccessor {
     MYSQL,
     POSTGRES,
     DERBY,
+    H2,
     UNKNOWN
   }
 

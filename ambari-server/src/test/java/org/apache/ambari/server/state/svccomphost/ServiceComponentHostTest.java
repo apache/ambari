@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -74,7 +76,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 public class ServiceComponentHostTest {
   private static Logger LOG = LoggerFactory.getLogger(ServiceComponentHostTest.class);
@@ -130,8 +131,8 @@ public class ServiceComponentHostTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private ClusterEntity createCluster(StackId stackId, String clusterName) throws AmbariException {

@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.easymock.EasyMockSupport;

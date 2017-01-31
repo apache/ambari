@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
@@ -46,6 +49,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -82,6 +86,10 @@ public class CalculatedStatusTest {
     s_field.setAccessible(true);
   }
 
+  @After
+  public void after() throws Exception {
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
+  }
 
   @Test
   public void testGetStatus() throws Exception {

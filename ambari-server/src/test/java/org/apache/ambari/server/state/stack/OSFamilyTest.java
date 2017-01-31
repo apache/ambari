@@ -19,13 +19,18 @@ package org.apache.ambari.server.state.stack;
 
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -44,8 +49,13 @@ public class OSFamilyTest {
   @Before
   public void setup() throws Exception {
     injector  = Guice.createInjector(new InMemoryDefaultTestModule());
-
+    injector.getInstance(GuiceJpaInitializer.class);
     os_family = injector.getInstance(OsFamily.class);
+  }
+
+  @After
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

@@ -24,10 +24,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.entities.SettingEntity;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,6 +46,11 @@ public class SettingDAOTest {
     dao = injector.getInstance(SettingDAO.class);
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(OrmTestHelper.class).createCluster();
+  }
+
+  @After
+  public void teardown() throws Exception {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

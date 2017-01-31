@@ -29,7 +29,6 @@ import static org.easymock.EasyMock.verify;
 import javax.naming.Name;
 import javax.naming.NamingException;
 
-
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.junit.Assert;
 import org.junit.Test;

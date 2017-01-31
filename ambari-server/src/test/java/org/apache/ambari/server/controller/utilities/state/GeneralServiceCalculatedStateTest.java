@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.controller.utilities.state;
 
-  import java.util.Map;
+import java.sql.SQLException;
+import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -41,7 +44,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 public abstract class GeneralServiceCalculatedStateTest {
@@ -107,8 +109,8 @@ public abstract class GeneralServiceCalculatedStateTest {
 
 
   @After
-  public void after() {
-    injector.getInstance(PersistService.class).stop();
+  public void after() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     injector = null;
   }
 

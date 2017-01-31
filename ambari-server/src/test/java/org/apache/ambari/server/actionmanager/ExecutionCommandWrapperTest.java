@@ -19,6 +19,7 @@
 package org.apache.ambari.server.actionmanager;
 
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
@@ -42,6 +44,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jettison.json.JSONException;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -261,5 +264,10 @@ public class ExecutionCommandWrapperTest {
     Assert.assertEquals(SERVICE_SITE_VAL4, mergedConfig.get(SERVICE_SITE_NAME4));
     Assert.assertEquals(SERVICE_SITE_VAL5, mergedConfig.get(SERVICE_SITE_NAME5));
     Assert.assertEquals(SERVICE_SITE_VAL6_H, mergedConfig.get(SERVICE_SITE_NAME6));
+  }
+
+  @AfterClass
+  public static void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 }

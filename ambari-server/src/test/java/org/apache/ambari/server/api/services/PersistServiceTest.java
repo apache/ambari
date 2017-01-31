@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -35,7 +36,6 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -80,7 +80,7 @@ public class PersistServiceTest extends RandomPortJerseyTest {
   @After
   public void tearDown() throws Exception {
     super.tearDown();
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

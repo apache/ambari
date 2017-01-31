@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.persistence.EntityManager;
 
@@ -90,6 +91,8 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
@@ -102,6 +105,10 @@ import junit.framework.Assert;
 
 @Singleton
 public class OrmTestHelper {
+
+  private static Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
+
+  private AtomicInteger uniqueCounter = new AtomicInteger();
 
   @Inject
   public Provider<EntityManager> entityManagerProvider;
@@ -559,7 +566,7 @@ public class OrmTestHelper {
       Set<AlertTargetEntity> targets) throws Exception {
     AlertGroupEntity group = new AlertGroupEntity();
     group.setDefault(false);
-    group.setGroupName("Group Name " + System.currentTimeMillis());
+    group.setGroupName("Group Name " + System.currentTimeMillis() + uniqueCounter.incrementAndGet());
     group.setClusterId(clusterId);
     group.setAlertTargets(targets);
 
@@ -620,8 +627,9 @@ public class OrmTestHelper {
     if (repositoryVersion == null) {
       try {
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()), "");
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
       } catch (Exception ex) {
+        LOG.error("Caught exception", ex);
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }
