@@ -126,6 +126,15 @@
                       value="org.apache.ambari.server.DBConnectionVerification" />
                   </manifest>
                 </jar>
+                <jar destfile="target/CredentialUtil.jar">
+                  <fileset dir="${basedir}/target/classes/">
+                    <include name="**/CredentialUtil*.class" />
+                  </fileset>
+                  <manifest>
+                    <attribute name="Main-Class"
+                               value="org.apache.ambari.server.credentialapi.CredentialUtil" />
+                  </manifest>
+                </jar>
               </tasks>
             </configuration>
             <goals>
@@ -1452,6 +1461,11 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-auth</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
     <dependency>
