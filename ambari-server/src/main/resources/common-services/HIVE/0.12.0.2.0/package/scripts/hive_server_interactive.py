@@ -303,6 +303,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                      "YARN NodeManager Memory({1})".format(params.llap_daemon_container_size, params.yarn_nm_mem))
         cmd += format(" --slider-placement {slider_placement} --skiphadoopversion --skiphbasecp")
 
+        # Setup the logger for the ga version only
+        cmd += format(" --logger {params.llap_logger}")
+
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
