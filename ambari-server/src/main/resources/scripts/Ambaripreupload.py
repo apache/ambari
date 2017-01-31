@@ -19,6 +19,8 @@ limitations under the License.
 """
 import os
 import sys
+import tarfile
+from contextlib import closing
 from optparse import OptionParser
 os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
 sys.path.append("/usr/lib/python2.6/site-packages")
@@ -146,6 +148,9 @@ with Environment() as env:
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
     })
     fs_default = get_fs_root()
+    slider_home_dir = '/usr/hdp/' + stack_version + '/slider'
+    slider_lib_dir = slider_home_dir + '/lib'
+    slider_tarball = slider_lib_dir + "/slider.tar.gz"
     oozie_secure = ''
     oozie_home="/usr/hdp/" + stack_version + "/oozie"
     oozie_setup_sh=format("/usr/hdp/" + stack_version + "/oozie/bin/oozie-setup.sh")
@@ -298,6 +303,15 @@ with Environment() as env:
   def putSQLDriverToOozieShared():
     params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
                         owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
+
+  def recreate_slider_tarball():
+    """
+    Re-create tarball to include extra jars, which were put into slider lib dir.
+    """
+    Logger.info(format("Re-creating {slider_tarball}"))
+    with closing(tarfile.open(params.slider_tarball, "w:gz")) as tar:
+      for filepath in glob.glob(format("{slider_lib_dir}/*.jar")):
+        tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
       
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
@@ -335,6 +349,8 @@ with Environment() as env:
   oozie_user = 'oozie'
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
+
+  recreate_slider_tarball()
 
   if options.upgrade:
     Logger.info("Skipping uploading oozie shared lib during upgrade")
