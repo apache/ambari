@@ -2894,13 +2894,13 @@ public class ClusterImpl implements Cluster {
 
     Service service = clusterServices.get(serviceName);
     Map<String, ServiceComponent> components = service.getServiceComponents();
-    Map<String, ServiceComponentHost> serviceComponentHosts = components.get(componentName).getServiceComponentHosts();
 
-    if (!components.containsKey(componentName) || serviceComponentHosts.size() == 0) {
+    if (!components.containsKey(componentName) ||
+            components.get(componentName).getServiceComponentHosts().size() == 0) {
       return Collections.emptySet();
     }
 
-    return serviceComponentHosts.keySet();
+    return components.get(componentName).getServiceComponentHosts().keySet();
   }
 
   @Override
