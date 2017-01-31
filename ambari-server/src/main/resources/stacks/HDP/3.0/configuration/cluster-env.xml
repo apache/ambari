@@ -290,4 +290,10 @@ gpgcheck=0</value>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
+  <property>
+    <name>enable_external_ranger</name>
+    <value>false</value>
+    <description>Flag to turn on when external setup of External Ranger is done.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
