@@ -21,11 +21,19 @@
 #side-nav {
   position: fixed;
   top: 0px;
-  bottom: auto;
+  bottom: 0px;
   z-index: 2079;
-  padding-bottom: 9999px;
-  margin-bottom: -9999px;
 
+  .side-nav-header {
+    position: absolute;
+    top: 0px;
+  }
+  .side-nav-menu {
+    position: fixed;
+    top: 55px;
+    bottom: 50px;
+    overflow-y: auto;
+  }
   .side-nav-footer {
     position: fixed;
     bottom: 0px;

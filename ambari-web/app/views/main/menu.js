@@ -202,7 +202,7 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
   },
 
   tagName:'ul',
-  classNames:[ 'sub-menu', 'nav', 'nav-pills', 'nav-stacked'],
+  classNames:[ 'sub-menu', 'nav', 'nav-pills', 'nav-stacked', 'services-submenu'],
 
   itemViewClass:Em.View.extend({
 

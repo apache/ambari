@@ -753,10 +753,13 @@ input.radio:checked + label:after {
   padding: 0px 0px;
   overflow: hidden;
 }
+.navigation-bar-container ul.nav.side-nav-header {
+  width: 190px;
+}
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header {
   background: #313d54;
   padding: 15px 5px 15px 25px;
-  min-height: 50px;
+  height: 55px;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-logo {
   padding: 0px;
@@ -818,6 +821,11 @@ input.radio:checked + label:after {
   background: #404351;
   color: #fff;
 }
+.navigation-bar-container ul.nav.side-nav-menu,
+.navigation-bar-container ul.nav.side-nav-footer {
+  background-color: #323544;
+  width: 190px;
+}
 .navigation-bar-container ul.nav.side-nav-menu li,
 .navigation-bar-container ul.nav.side-nav-footer li {
   padding: 0px;
@@ -860,6 +868,7 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer {
   background: #313d54;
+  height: 50px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer a .navigation-icon,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer a .navigation-icon {
@@ -950,6 +959,9 @@ input.radio:checked + label:after {
   width: 50px;
   overflow: visible;
 }
+.navigation-bar-container.collapsed ul.nav.side-nav-header {
+  width: 50px;
+}
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header {
   padding: 15px 0px 15px 17px;
 }
@@ -957,6 +969,10 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.toggle-icon,
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header .dropdown-menu {
   display: none;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer {
+  width: 50px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li a {
@@ -978,9 +994,16 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
   display: none;
   width: 190px;
-  position: absolute;
+  position: fixed;
   left: 50px;
-  top: 0px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.admin-submenu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.admin-submenu {
+  top: 249px;
+}
+.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.services-submenu,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.services-submenu {
+  top: 103px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li:hover ul.sub-menu,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li:hover ul.sub-menu {

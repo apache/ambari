@@ -33,7 +33,7 @@
   {{view App.SideNavServiceMenuView}}
 {{/if}}
 {{#if view.isAdminItem}}
-  <ul class="sub-menu nav nav-pills nav-stacked">
+  <ul class="admin-submenu sub-menu nav nav-pills nav-stacked">
     {{#each category in view.dropdownCategories}}
       {{#view view.AdminDropdownItemView itemBinding="category.name"}}
         <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
