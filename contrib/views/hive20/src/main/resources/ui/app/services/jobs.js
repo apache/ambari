@@ -21,18 +21,22 @@ import Ember from 'ember';
 export default Ember.Service.extend({
   store: Ember.inject.service(),
   getQuery(jobId) {
-    return this.get('store').findRecord('job', jobId).then((job) => {
+    let job = this.get('store').peekRecord('job', jobId);
+    if (job) {
       return this.get('store').findRecord('file', job.get('queryFile'));
-    })
+    }
   },
 
   waitForJobToComplete(jobId, after, fetchDummyResult = true) {
     return new Ember.RSVP.Promise((resolve, reject) => {
       Ember.run.later(() => {
-        this.get('store').findRecord('job', jobId, { reload: true })
+        this.get('store').findRecord('job', jobId, {reload: true})
           .then((job) => {
             let status = job.get('status').toLowerCase();
             if (status === 'succeeded') {
+              if (fetchDummyResult) {
+                this._fetchDummyResult(jobId);
+              }
               resolve(status);
             } else if (status === 'error') {
               reject(status)

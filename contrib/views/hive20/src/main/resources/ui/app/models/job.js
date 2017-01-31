@@ -25,7 +25,7 @@ export default DS.Model.extend({
   queryFile: DS.attr('string'),
   owner: DS.attr('string'),
   dataBase: DS.attr('string'),
-  duration: DS.attr(),
+  duration: DS.attr('number'),
   status: DS.attr('string'),
   statusMessage: DS.attr('string'),
   dateSubmitted: DS.attr('date'),
