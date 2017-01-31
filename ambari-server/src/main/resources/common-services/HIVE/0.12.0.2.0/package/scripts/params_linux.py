@@ -44,6 +44,7 @@ from resource_management.libraries import functions
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.get_architecture import get_architecture
 
 # Default log4j version; put config files under /etc/hive/conf
 log4j_version = '1'
@@ -51,6 +52,7 @@ log4j_version = '1'
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+architecture = get_architecture()
 sudo = AMBARI_SUDO_BINARY
 
 stack_root = status_params.stack_root
