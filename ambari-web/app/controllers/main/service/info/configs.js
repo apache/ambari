@@ -515,14 +515,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    /* if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+
+    var isRangerPresent =  App.Service.find().someProperty('serviceName', 'RANGER');
+    if (isRangerPresent) {
       App.router.get('mainServiceInfoSummaryController').updateRangerPluginsStatus();
       this.setVisibilityForRangerProperties(selectedService);
+      this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
+      App.loadTimer.finish('Service Configs Page');
     } else {
-      App.config.removeRangerConfigs(this.get('stepConfigs'));
-    } */
-    this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
-    App.loadTimer.finish('Service Configs Page');
+      var mainController = App.get('router.mainController');
+      var clusterController = App.get('router.clusterController');
+      var self = this;
+      mainController.isLoading.call(clusterController, 'clusterEnv').done(function () {
+        var isExternalRangerSetup = clusterController.get("clusterEnv")["properties"]["enable_external_ranger"];
+        if (isExternalRangerSetup) {
+          self.setVisibilityForRangerProperties(selectedService);
+        } else {
+          App.config.removeRangerConfigs(self.get('stepConfigs'));
+        }
+        self.loadConfigRecommendations(null, self._onLoadComplete.bind(self));
+        App.loadTimer.finish('Service Configs Page');
+      });
+    }
   },
 
   /**
