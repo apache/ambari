@@ -17,11 +17,5 @@
 }}
 
 <div class="row">
-{{!--
-  {{ivy-codemirror value=table.ddl
-      options=(hash lineNumbers=true
-      readOnly=true
-      mode="sql"
-      theme="solarized")}}
---}}
+  {{query-editor query=table.ddl readOnly=true }}
 </div>
