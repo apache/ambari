@@ -36,6 +36,7 @@ export default DS.Model.extend({
   queryFile: DS.attr('string', {defaultValue: ""}),
   logFile: DS.attr('string', {defaultValue: ""}),
   logResults: DS.attr('string', {defaultValue: ""}),
-  isQueryRunning: DS.attr('boolean', {defaultValue: false})
+  isQueryRunning: DS.attr('boolean', {defaultValue: false}),
+  isQueryResultContainer: DS.attr('boolean', {defaultValue: false})
 
 });

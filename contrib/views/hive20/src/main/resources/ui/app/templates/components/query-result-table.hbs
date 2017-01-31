@@ -16,6 +16,16 @@
 * limitations under the License.
 }}
 
+
+{{#unless columns.length}}
+   <div style="position:relative">
+       <div style="margin: auto;position: absolute;top: 0;left: 0;bottom: 0;right: 0;text-align: center">
+         {{fa-icon "spinner fa-2" spin=true}}
+       </div>
+    </div>
+{{/unless}}
+
+
 {{#if columns.length}}
   <div class="clearfix" style="text-align: right; padding-right:5px">
 
