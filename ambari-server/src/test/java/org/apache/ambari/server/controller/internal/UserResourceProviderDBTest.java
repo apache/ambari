@@ -40,6 +40,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,6 +50,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -95,9 +98,9 @@ public class UserResourceProviderDBTest {
      * Closes the JPA connection after executing the test suite.
      */
     @AfterClass
-    public static void teardownInMemoryDB() {
+    public static void teardownInMemoryDB() throws AmbariException, SQLException {
         if (injector != null) {
-            injector.getInstance(PersistService.class).stop();
+            H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
         }
     }
 

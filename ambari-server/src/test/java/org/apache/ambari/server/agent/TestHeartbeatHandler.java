@@ -58,6 +58,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
@@ -108,7 +109,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
 
@@ -162,7 +162,7 @@ public class TestHeartbeatHandler {
 
   @After
   public void teardown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     EasyMock.reset(auditLogger);
   }
 
@@ -445,6 +445,7 @@ public class TestHeartbeatHandler {
 
     HeartBeatResponse hbr = handler.handleHeartBeat(hb);
     assertNull(hbr.getRecoveryConfig());
+    handler.stop();
   }
 
   //

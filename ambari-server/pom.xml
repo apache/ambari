@@ -264,7 +264,6 @@
         <configuration>
           <excludes>
             <exclude>pass.txt</exclude>
-            <exclude>derby.log</exclude>
             <exclude>src/test/resources/version</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/gsInstaller-hosts.txt</exclude>
@@ -1052,14 +1051,9 @@
       <version>3.0</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derbytools</artifactId>
-      <version>10.11.1.1</version>
-      <scope>test</scope>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.193</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>

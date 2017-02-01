@@ -35,6 +35,7 @@ import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.easymock.EasyMockSupport;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,13 +65,14 @@ public class AmbariBasicAuthenticationFilterTest extends EasyMockSupport {
 
   @Test
   public void testDoFilter() throws IOException, ServletException {
+    SecurityContextHolder.getContext().setAuthentication(null);
     // GIVEN
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     FilterChain filterChain = createMock(FilterChain.class);
     expect(request.getHeader("Authorization")).andReturn("Basic ").andReturn(null);
-    expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
-    expect(mockedAuditLogger.isEnabled()).andReturn(true);
+    expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4").anyTimes();
+    expect(mockedAuditLogger.isEnabled()).andReturn(true).anyTimes();
     mockedAuditLogger.log(anyObject(AuditEvent.class));
     expectLastCall().times(1);
     filterChain.doFilter(request, response);

@@ -18,15 +18,18 @@
 
 package org.apache.ambari.server.security.ldap;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.AuthorizationTestModule;
 import org.apache.ambari.server.security.authorization.Users;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -72,6 +75,11 @@ public class LdapPerformanceTest {
     configuration.setProperty(Configuration.LDAP_BIND_ANONYMOUSLY.getKey(), String.valueOf(false));
     configuration.setProperty(Configuration.LDAP_MANAGER_DN.getKey(), "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org");
     configuration.setProperty(Configuration.LDAP_MANAGER_PASSWORD.getKey(), "hdfs");
+  }
+
+  @After
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

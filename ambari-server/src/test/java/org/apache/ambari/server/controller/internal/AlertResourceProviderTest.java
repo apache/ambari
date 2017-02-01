@@ -735,8 +735,8 @@ public class AlertResourceProviderTest {
 
       expect(configuration.getDatabaseUrl()).andReturn(JDBC_IN_MEMORY_URL).anyTimes();
       expect(configuration.getDatabaseDriver()).andReturn(JDBC_IN_MEMORY_DRIVER).anyTimes();
-      expect(configuration.getDatabaseUser()).andReturn("test").anyTimes();
-      expect(configuration.getDatabasePassword()).andReturn("test").anyTimes();
+      expect(configuration.getDatabaseUser()).andReturn("sa").anyTimes();
+      expect(configuration.getDatabasePassword()).andReturn("").anyTimes();
       expect(configuration.getAlertEventPublisherPoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS.getDefaultValue())).anyTimes();
       expect(configuration.getMasterKeyLocation()).andReturn(new File("/test")).anyTimes();
       expect(configuration.getTemporaryKeyStoreRetentionMinutes()).andReturn(2l).anyTimes();

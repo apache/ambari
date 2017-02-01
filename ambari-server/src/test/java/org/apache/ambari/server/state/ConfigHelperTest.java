@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
@@ -69,7 +71,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 
 import junit.framework.Assert;
@@ -222,8 +223,8 @@ public class ConfigHelperTest {
     }
 
     @AfterClass
-    public static void tearDown() {
-      injector.getInstance(PersistService.class).stop();
+    public static void tearDown() throws AmbariException, SQLException {
+      H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
 
       // Clear the authenticated user
       SecurityContextHolder.getContext().setAuthentication(null);

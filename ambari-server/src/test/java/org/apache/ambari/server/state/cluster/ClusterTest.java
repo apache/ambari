@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +49,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.AgentEnv.Directory;
 import org.apache.ambari.server.agent.DiskInfo;
@@ -122,7 +124,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
@@ -213,9 +214,9 @@ public class ClusterTest {
   }
 
   @After
-  public void teardown() {
+  public void teardown() throws AmbariException, SQLException {
     injector.getInstance(UnitOfWork.class).end();
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private void createDefaultCluster() throws Exception {
@@ -353,7 +354,7 @@ public class ClusterTest {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertEquals(clusterName, cluster.getClusterName());
-    Assert.assertEquals(1, cluster.getClusterId());
+    //Assert.assertEquals(1, cluster.getClusterId());
 
     // Add Hosts
     List<String> hostNames = new ArrayList<String>() {{ add("h-1"); add("h-2"); add("h-3"); }};
@@ -980,6 +981,7 @@ public class ClusterTest {
     res = c1.getDesiredConfigByType("core-site");
     Assert.assertNull("Expected null config", res);
 
+    Thread.sleep(1);
     c1.addDesiredConfig("_test", Collections.singleton(config2));
     res = c1.getDesiredConfigByType("global");
     Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getTag());
@@ -1008,6 +1010,7 @@ public class ClusterTest {
     }
 
     c1.addDesiredConfig("_test1", Collections.singleton(config1));
+    Thread.sleep(1);
     c1.addDesiredConfig("_test3", Collections.singleton(config3));
 
     Map<String, DesiredConfig> desiredConfigs = c1.getDesiredConfigs();
@@ -1022,9 +1025,11 @@ public class ClusterTest {
     Assert.assertTrue("Expect no host-level overrides",
       (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
 
+    Thread.sleep(1);
     c1.addDesiredConfig("_test2", Collections.singleton(config2));
     Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
 
+    Thread.sleep(1);
     c1.addDesiredConfig("_test1", Collections.singleton(config1));
 
     // setup a host that also has a config override
@@ -2164,7 +2169,6 @@ public class ClusterTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c1 = clusters.getCluster(clusterName);
     Assert.assertEquals(clusterName, c1.getClusterName());
-    Assert.assertEquals(1, c1.getClusterId());
 
     clusters.addHost("h-1");
     clusters.addHost("h-2");
@@ -2233,7 +2237,6 @@ public class ClusterTest {
     clusters.addCluster(clusterName, stackId);
     final Cluster c1 = clusters.getCluster(clusterName);
     Assert.assertEquals(clusterName, c1.getClusterName());
-    Assert.assertEquals(1, c1.getClusterId());
 
     clusters.addHost("h-1");
     clusters.addHost("h-2");

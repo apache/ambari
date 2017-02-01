@@ -29,6 +29,7 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -91,7 +92,7 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -165,8 +166,9 @@ public class UpgradeCatalog240Test {
     stackDAO.find("HDP", "2.2.0");
   }
 
-  @After
-  public void tearDown() {
+  @AfterClass
+  public static void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

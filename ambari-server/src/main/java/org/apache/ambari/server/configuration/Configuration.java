@@ -236,17 +236,36 @@ public class Configuration {
   public static final String DEFAULT_DERBY_SCHEMA = "ambari";
 
   /**
-   * The JDBC URL to use when creating a {@link DatabaseType#DERBY} database for
+   * The schema to use when creating a {@link DatabaseType#H2} database for
+   * unit tests.
+   */
+  public static final String DEFAULT_H2_SCHEMA = "ambari";
+
+  /**
+   * The JDBC URL to use when creating a {@link DatabaseType#H2} database for
    * unit tests.
    */
   public static final String JDBC_IN_MEMORY_URL = String.format(
-      "jdbc:derby:memory:myDB/%s;create=true", DEFAULT_DERBY_SCHEMA);
+      "jdbc:h2:mem:%1$s;ALIAS_COLUMN_NAME=TRUE;INIT=CREATE SCHEMA IF NOT EXISTS %1$s\\;SET SCHEMA %1$s;",
+      DEFAULT_DERBY_SCHEMA);
 
   /**
-   * The Derby driver to use when creating a {@link DatabaseType#DERBY} database
+   * The H2 driver to use when creating a {@link DatabaseType#H2} database
    * for unit tests.
    */
-  public static final String JDBC_IN_MEMORY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+  public static final String JDBC_IN_MEMORY_DRIVER = "org.h2.Driver";
+
+  /**
+   * The H2 default user driver to use when creating a {@link DatabaseType#H2} database
+   * for unit tests.
+   */
+  public static final String JDBC_IN_MEMORY_USER = "sa";
+
+  /**
+   * The H2 default password to use when creating a {@link DatabaseType#H2} database
+   * for unit tests.
+   */
+  public static final String JDBC_IN_MEMORY_PASSWORD = "";
 
   /**
    * The JSSE property which governs the location of the keystore file
@@ -2725,7 +2744,8 @@ public class Configuration {
     MYSQL("mysql"),
     DERBY("derby"),
     SQL_SERVER("sqlserver"),
-    SQL_ANYWHERE("sqlanywhere");
+    SQL_ANYWHERE("sqlanywhere"),
+    H2("h2");
 
     private static final Map<String, DatabaseType> m_mappedTypes =
       new HashMap<String, Configuration.DatabaseType>(5);
@@ -3622,10 +3642,16 @@ public class Configuration {
   }
 
   public String getDatabaseUser() {
+    if (getPersistenceType() == PersistenceType.IN_MEMORY) {
+      return JDBC_IN_MEMORY_USER;
+    }
     return getProperty(SERVER_JDBC_USER_NAME);
   }
 
   public String getDatabasePassword() {
+    if (getPersistenceType() == PersistenceType.IN_MEMORY) {
+      return JDBC_IN_MEMORY_PASSWORD;
+    }
     String passwdProp = properties.getProperty(SERVER_JDBC_USER_PASSWD.getKey());
     String dbpasswd = null;
     boolean isPasswordAlias = false;
@@ -4617,6 +4643,8 @@ public class Configuration {
       databaseType = DatabaseType.SQL_SERVER;
     } else if (dbUrl.contains(DatabaseType.SQL_ANYWHERE.getName())) {
       databaseType = DatabaseType.SQL_ANYWHERE;
+    } else if (dbUrl.contains(DatabaseType.H2.getName())) {
+      databaseType = DatabaseType.H2;
     } else {
       throw new RuntimeException(
         "The database type could be not determined from the JDBC URL "
@@ -4643,6 +4671,8 @@ public class Configuration {
       databaseSchema = getDatabaseUser();
     } else if (databaseType.equals(DatabaseType.DERBY)) {
       databaseSchema = DEFAULT_DERBY_SCHEMA;
+    } else if (databaseType.equals(DatabaseType.H2)) {
+      databaseSchema = DEFAULT_H2_SCHEMA;
     } else {
       databaseSchema = null;
     }

@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.state;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
@@ -37,7 +39,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 
 import junit.framework.Assert;
@@ -75,8 +76,8 @@ public class ConfigGroupTest {
   }
 
   @After
-  public void teardown() throws AmbariException {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Transactional
@@ -97,7 +98,7 @@ public class ConfigGroupTest {
     Map<Long, Host> hosts = new HashMap<Long, Host>();
 
     configs.put(config.getType(), config);
-    hosts.put(1L, host);
+    hosts.put(host.getHostId(), host);
 
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "cg-test",
       "HDFS", "New HDFS configs for h1", configs, hosts);
@@ -213,13 +214,15 @@ public class ConfigGroupTest {
     configGroup = cluster.getConfigGroups().get(id);
     Assert.assertNotNull(configGroup);
 
+    long hostId = clusters.getHost("h1").getHostId();
+
     clusters.unmapHostFromCluster("h1", clusterName);
 
     Assert.assertNull(clusters.getHostsForCluster(clusterName).get("h1"));
     // Assumes that 1L is the id of host h1, as specified in createConfigGroup
-    Assert.assertNotNull(configGroupHostMappingDAO.findByHostId(1L));
-    Assert.assertTrue(configGroupHostMappingDAO.findByHostId(1L).isEmpty());
-    Assert.assertFalse(configGroup.getHosts().containsKey(1L));
+    Assert.assertNotNull(configGroupHostMappingDAO.findByHostId(hostId));
+    Assert.assertTrue(configGroupHostMappingDAO.findByHostId(hostId).isEmpty());
+    Assert.assertFalse(configGroup.getHosts().containsKey(hostId));
   }
 
   @Test

@@ -22,10 +22,10 @@ import java.util.Properties;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
@@ -92,7 +92,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
 
   @After
   public void tearDown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test(expected = InvalidUsernamePasswordCombinationException.class)

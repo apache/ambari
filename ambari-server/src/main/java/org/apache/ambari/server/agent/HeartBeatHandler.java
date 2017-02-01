@@ -706,4 +706,8 @@ public class HeartBeatHandler {
     }
   }
 
+  public void stop() {
+    heartbeatMonitor.shutdown();
+    heartbeatProcessor.stopAsync();
+  }
 }

@@ -46,6 +46,7 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -92,6 +93,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -131,7 +133,7 @@ public class AmbariMetaInfoTest {
   private static final int PROPERTIES_CNT = 62;
   private static final int OS_CNT = 4;
 
-  private static AmbariMetaInfo metaInfo = null;
+  private static TestAmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
@@ -155,6 +157,11 @@ public class AmbariMetaInfoTest {
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
     metaInfo = createAmbariMetaInfo(stacks, version);
+  }
+
+  @AfterClass
+  public static void tearDown() throws Exception {
+    H2DatabaseCleaner.clearDatabase(metaInfo.injector.getProvider(EntityManager.class).get());
   }
 
   public class MockModule extends AbstractModule {
@@ -2081,11 +2088,12 @@ public class AmbariMetaInfoTest {
     AlertDefinitionDAO alertDefinitionDAO;
     AlertDefinitionFactory alertDefinitionFactory;
     OsFamily osFamily;
+    Injector injector;
 
     public TestAmbariMetaInfo(Configuration configuration) throws Exception {
       super(configuration);
 
-      Injector injector = Guice.createInjector(Modules.override(
+      injector = Guice.createInjector(Modules.override(
           new InMemoryDefaultTestModule()).with(new MockModule()));
 
       injector.getInstance(GuiceJpaInitializer.class);

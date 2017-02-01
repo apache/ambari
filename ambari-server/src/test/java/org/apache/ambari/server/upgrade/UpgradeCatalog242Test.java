@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -82,7 +83,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog242} unit tests.
  */
@@ -119,8 +119,8 @@ public class UpgradeCatalog242Test {
   }
 
   @After
-  public void tearDown() {
-    injector.getInstance(PersistService.class).stop();
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

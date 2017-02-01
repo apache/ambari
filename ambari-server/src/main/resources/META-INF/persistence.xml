@@ -106,8 +106,8 @@
       <property name="eclipselink.connection-pool.sequence" value="true" />
       <property name="eclipselink.weaving" value="static" />
       <property name="eclipselink.session.customizer" value="org.apache.ambari.server.orm.EclipseLinkSessionCustomizer"/>
-      <property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>
-      <property name="eclipselink.logging.level" value="INFO"/>
+      <!--<property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>-->
+      <!--<property name="eclipselink.logging.level" value="INFO"/>-->
     </properties>
   </persistence-unit>
 
@@ -119,8 +119,8 @@
       <property name="eclipselink.cache.size.default" value="10000" />
       <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
       <property name="eclipselink.weaving" value="static" />
-      <property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>
-      <property name="eclipselink.logging.level" value="INFO"/>
+      <!--<property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>-->
+      <!--<property name="eclipselink.logging.level" value="INFO"/>-->
     </properties>
   </persistence-unit>
   <persistence-unit name="ambari-view-migration" transaction-type="RESOURCE_LOCAL">
@@ -130,8 +130,8 @@
       <property name="eclipselink.cache.size.default" value="10000" />
       <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
       <property name="eclipselink.weaving" value="static" />
-      <property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>
-      <property name="eclipselink.logging.level" value="INFO"/>
+      <!--<property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>-->
+      <!--<property name="eclipselink.logging.level" value="INFO"/>-->
     </properties>
   </persistence-unit>
 

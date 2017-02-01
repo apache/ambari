@@ -392,6 +392,8 @@
             <exclude>ambari-metrics/*/target/**</exclude>
             <!-- ignore .settings and .project  -->
             <exclude>ambari-metrics/**/.*/**</exclude>
+            <!-- generated DDL-->
+            <exclude>**/createDDL.jdbc</exclude>
           </excludes>
         </configuration>
         <executions>
