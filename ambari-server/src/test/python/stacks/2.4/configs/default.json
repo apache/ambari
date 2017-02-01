@@ -240,6 +240,7 @@
         "content": "admin json content"
       },
       "infra-solr-security-json" : {
+        "infra_solr_ranger_audit_service_users" : "hbase,hdfs",
         "content" : "{\"authentication\": \"org.apache.solr.security.KerberosPlugin\"}"
       },
       "infra-solr-client-log4j" : {

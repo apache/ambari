@@ -22,8 +22,58 @@
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
   <property>
+    <name>infra_solr_ranger_audit_service_users</name>
+    <display-name>Ranger audit service users</display-name>
+    <value>{default_ranger_audit_users}</value>
+    <description>
+      List of comma separated kerberos service users who can write into ranger audit collections if the cluster is secure. (atlas and rangeradmin supported by default)
+      Change values in that case of custom values are used for kerberos principals. (default_ranger_audit_users is resolved ranger-*-audit/xasecure.audit.jaas.Client.option.principal,
+      by default namenode, hbase, hive knox, kafka, ranger kms and nifi are supported, to change it you can edit the security content,
+      or add a new username next to the default value, e.g.: {default_ranger_audit_users},customuser)
+    </description>
+    <depends-on>
+      <property>
+        <type>ranger-hdfs-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-hbase-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-hive-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-knox-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-kafka-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-kms-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-storm-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-yarn-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+      <property>
+        <type>ranger-nifi-audit</type>
+        <name>xasecure.audit.jaas.Client.option.principal</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
-    <display-name>infra-solr security.json template</display-name>
+    <display-name>security.json template</display-name>
     <description>This is the jinja template for security.json file on the solr znode (only used if the cluster is secure)</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
@@ -31,6 +81,16 @@
       <property-file-name>infra-solr-security.json.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.authentication.principal</name>
+      </property>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.admin.kerberos.principal</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
