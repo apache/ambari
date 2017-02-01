@@ -145,6 +145,35 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       });
     }
   },
+
+  importWorkflowFromProjManager(path){
+      var self = this;
+      this.set("showingFileBrowser",false);
+      if(path){
+        self.set("isWorkflowImporting", true);
+        this.isDraftExists(path).promise.then(function(data){
+          var draftData = JSON.parse(data);
+          if(draftData.draftExists && draftData.isDraftCurrent) {
+              self.set("workflowFilePath", path);
+              self.getDraftWorkflowData(path).promise.then(function(data){
+                var workflowImporter = WorkflowJsonImporter.create({});
+                var workflow = workflowImporter.importWorkflow(data);
+                self.resetDesigner();
+                self.set("workflow", workflow);
+                self.initAndRenderWorkflow();
+                self.set("isWorkflowImporting", false);
+                self.doValidation();
+              }.bind(this)).catch(function(data){
+              });
+          } else {
+            self.importWorkflow(path);
+          }
+        }.bind(this)).catch(function(e){
+          console.error(e);
+        });
+      }
+  },
+
   observeXmlAppPath : Ember.observer('xmlAppPath', function(){
     if(!this.get('xmlAppPath') || null === this.get('xmlAppPath')){
       return;
@@ -193,7 +222,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         }
       }
     }
-    this.importWorkflow(relXmlPath);
+    this.importWorkflowFromProjManager(relXmlPath);
   },
   setConentWidth(){
     var offset = 120;

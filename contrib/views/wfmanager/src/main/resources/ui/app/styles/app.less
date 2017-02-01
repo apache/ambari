@@ -1587,15 +1587,11 @@ input:invalid {
   width:5%;
 }
 #draftsTable {
-  padding-top: 0.5%;
-  padding-left: 0.5%;
-  padding-right: 0.5%;
   max-height:500px;
-  overflow:scroll;
+  overflow-y:scroll;
 }
 #emptyDrafts {
-  padding-left:40%;
-  padding-top:5%;
+  padding-left:35%;
 }
 .width300 {
   white-space: nowrap;
@@ -1627,10 +1623,16 @@ input:invalid {
   width: 100%;
   min-height: 100px;
 }
+.displayBlock {
+ display : block;
+}
 .no-asset-records {
   text-align: center;
   padding: 3px;
   overflow-y: auto;
+}
+#projectsList .modal-dialog {
+  width:850px;
 }
 .custom-action-xml{
   width: 100%;
@@ -1639,4 +1641,37 @@ input:invalid {
 #asset-delete-confirm-dialog .modal-dialog{
   width: 650px;
   top: 60px;
+}
+.tab-pane #draftsTable, #projectsList #dashboard, .tab-pane .searchWorkflows {
+  display : none;
+}
+#projectDeleteModal .modal-dialog {
+  width:500px;
+}
+.projects-list {
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.proj-menu {
+  width:200px;
+}
+.pl10 {
+  padding-left:10px;
+}
+.fixed-col {
+  width:15%;
+}
+.width100 {
+    white-space: nowrap;
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.l-input {
+  height: 30px;
+  width: 60%;
+  margin-bottom: 10px;
+  margin-right: 3px;
 }
