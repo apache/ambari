@@ -164,6 +164,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateTEZInteractiveConfigs();
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
+    updateZeppelinConfigs();
     updateAtlasConfigs();
     updateLogSearchConfigs();
     updateAmbariInfraConfigs();
@@ -293,6 +294,32 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("DELETE from viewinstance WHERE view_name='ZEPPELIN{1.0.0}'", true);
     dbAccessor.executeQuery("DELETE from viewmain WHERE view_name='ZEPPELIN{1.0.0}'", true);
     dbAccessor.executeQuery("DELETE from viewparameter WHERE view_name='ZEPPELIN{1.0.0}'", true);
+  }
+
+  /**
+   * Updates Zeppelin configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateZeppelinConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config zeppelinEnvProperties = cluster.getDesiredConfigByType("zeppelin-env");
+          if (zeppelinEnvProperties != null) {
+            String log4jPropertiesContent = zeppelinEnvProperties.getProperties().get("log4j_properties_content");
+            String shiroIniContent = zeppelinEnvProperties.getProperties().get("shiro_ini_content");
+
+            updateConfigurationProperties("zeppelin-log4j-properties", Collections.singletonMap("log4j_properties_content", log4jPropertiesContent), true, true);
+            updateConfigurationProperties("zeppelin-shiro-ini", Collections.singletonMap("shiro_ini_content", shiroIniContent), true, true);
+          }
+        }
+      }
+    }
   }
 
   protected String updateAmsEnvContent(String content) {
