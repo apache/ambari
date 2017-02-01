@@ -52,6 +52,7 @@ require('mixins/wizard/addSecurityConfigs');
 require('mixins/wizard/wizard_menu_view');
 require('mixins/wizard/assign_master_components');
 require('mixins/wizard/wizardHostsLoading');
+require('mixins/common/configs/widgets/unique/num_llap_nodes');
 require('mixins/common/configs/config_recommendations');
 require('mixins/common/configs/config_recommendation_parser');
 require('mixins/common/configs/config_with_override_recommendation_parser');

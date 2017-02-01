@@ -33,6 +33,7 @@
   {{/unless}}
 {{/if}}
 {{#if view.canEdit}}
+  {{#unless view.readOnly}}
   <div {{bindAttr class=":widget-config-controls view.referToSelectedGroup::clear-min-height"}}>
     <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::not-show"}}>
       <a href="#"
@@ -98,6 +99,7 @@
       {{/if}}
     </div>
   </div>
+  {{/unless}}
 {{/if}}
 
 {{#if controller.selectedConfigGroup.isDefault}}
