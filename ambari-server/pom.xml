@@ -327,6 +327,9 @@
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
+
+            <!-- generated DDL-->
+            <exclude>**/createDDL.jdbc</exclude>
           </excludes>
         </configuration>
         <executions>
