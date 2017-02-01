@@ -17,9 +17,12 @@
 
 import Ember from 'ember';
 
-export function formatUnicodeDate(params) {
-    var date = new Date(parseInt(params[0])).toUTCString();
-    return [moment(date).format("MM/DD/YYYY hh:mm A")].join("")
-}
-
-export default Ember.Helper.helper(formatUnicodeDate);
+export default Ember.Service.extend({
+	currentJob: null,
+	setCurrentJob(job){
+      this.set("currentJob", job);
+	},
+	getCurrentJob(){
+      return this.get("currentJob");
+	}
+});

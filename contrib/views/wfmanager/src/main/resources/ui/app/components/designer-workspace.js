@@ -24,6 +24,7 @@ export default Ember.Component.extend({
   appPath : null,
   type : 'wf',
   tabId : 0,
+  store:Ember.inject.service(),
   //isProjectManagerEnabled : Constants.isProjectManagerEnabled,
   hasMultitabSupport : true,
   tabCounter : new Map(),
@@ -51,8 +52,14 @@ export default Ember.Component.extend({
         this.get('tabs').forEach((tab)=>{
           this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
         }, this);
-        Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path){
-          this.createNewTab('wf', path);
+        Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path, type){
+          if(type === 'COORDINATOR'){
+            this.createNewTab('coord', path);
+          }else if(type === 'BUNDLE'){
+            this.createNewTab('bundle', path);
+          }else{
+            this.createNewTab('wf', path);
+          }
         }.bind(this));
 
       }.bind(this)).catch(function(data){
@@ -92,6 +99,11 @@ export default Ember.Component.extend({
     this.get('tabs').clear();
   }.on('willDestroyElement'),
   createNewTab : function(type, path){
+    var existingTab = this.get('tabs').findBy("filePath", path);
+    if(existingTab && path){
+      this.$('.nav-tabs a[href="#' + existingTab.id + '"]').tab("show");
+      return;
+    }
     var tab = {
       type : type,
       id : this.generateTabId(),
@@ -157,7 +169,39 @@ export default Ember.Component.extend({
   generateTabId(){
     return 'tab-'+ Math.ceil(Math.random() * 100000);
   },
+  recentFilesSorted: Ember.computed.sort("recentFiles", "['updatedAt:desc']"),
+  projList:Ember.computed("recentFilesSorted", function() {
+     return this.get("recentFilesSorted").slice(0, 10);
+  }),
   actions : {
+    deleteWorkflowJob(){
+      this.sendAction("deleteWorkflowJob");
+    },
+    showTopRecentList(){
+      var deferred = Ember.RSVP.defer();
+      this.sendAction('getAllRecentWorks', deferred);
+      deferred.promise.then((data)=>{
+        this.set("recentFiles", data);
+      }).catch((e)=>{
+        console.error(e);
+      })
+    },
+    editWorkflow(path, type){
+      this.sendAction('editWorkflow', path, type);
+    },
+    showProjectManagerList(){
+      var deferred = Ember.RSVP.defer();
+      this.sendAction('getAllRecentWorks', deferred);
+      deferred.promise.then((data)=>{
+        this.set("recentFiles", data);
+        this.set("isProjManagerVisible", true);
+      }).catch((e)=>{
+        console.error(e);
+      })
+    },
+    hideProjectManagerList(){
+      this.set("isProjManagerVisible", false);
+    },
     register(tabInfo, context){
       var tab = this.get('tabs').findBy('id', tabInfo.id);
       Ember.set(tab, 'context', context);

@@ -15,5 +15,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{designer-workspace xmlAppPath=xmlAppPath editWorkflow="editWorkflow" currentDraft=currentDraft showDashboard="showDashboard" showProjManager="showProjManager" getAllRecentWorks="getAllRecentWorks"
-  hideDashboard="hideDashboard" hideProjManager="hideProjManager" adminConfig=model.adminConfig}}
+<div class="modal" id="projectsList" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">My Workflows</h4>
+      </div>
+      <div class="modal-body">
+         {{drafts-wf model=recentFiles routeToDesigner="routeToDesigner" editWorkflow="editWorkflow" deleteWorkflow="deleteWorkflow"}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

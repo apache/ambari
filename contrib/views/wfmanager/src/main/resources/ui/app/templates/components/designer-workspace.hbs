@@ -26,6 +26,39 @@
         </div>
         <div class="col-sm-8">
           <div class="text-right pull-right paddingtop7">
+              <button {{action 'showDashboard'}} class="backto-dashboard btn btn-default" title="Workflow Dashboard">
+                <i class="fa fa-th marginright5"></i>Dashboard
+              </button>
+            <div class="dropdown create-wf-menu">
+              <button class="btn btn-default dropdown-toggle borderRightRadiusNone" {{action "showTopRecentList"}} type="button" data-toggle="dropdown">Recent
+                <span class="caret"></span></button>
+                <ul class="dropdown-menu proj-menu">
+                 {{#if projList}}
+                  {{#each projList as |proj index|}}
+                    <li>
+                      <a id="wfs_btn" class="pointer projects-list" title={{proj.workflowDefinitionPath}} {{action "editWorkflow" proj.workflowDefinitionPath proj.type}}>
+                      {{#if (eq proj.type "WORKFLOW")}}
+                          <i class="fa fa-sitemap marginright5"></i>{{proj.name}}
+                      {{else if  (eq proj.type "COORDINATOR")}}
+                          <i class="fa fa-history marginright5"></i>{{proj.name}}
+                      {{else}}
+                          <i class="fa fa-cubes marginright5"></i>{{proj.name}}
+                      {{/if}}
+                      </a>
+                    </li>
+                   {{/each}}
+                  <li>
+                      <a {{action "showProjectManagerList"}} title="My Workflows" class="pointer">
+                      More...
+                      </a>
+                  </li>
+                 {{else}}
+                  <li class="pl10">
+                    No recent workflows.
+                  </li>
+                 {{/if}}
+                </ul>
+             </div>
             <div class="dropdown create-wf-menu">
               <button class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown">Create
                 <span class="caret"></span></button>
@@ -62,9 +95,6 @@
                   </li>
                 </ul>
               </div>
-              <button {{action 'showDashboard'}} class="backto-dashboard btn btn-default" title="Workflow Dashboard">
-                <i class="fa fa-th marginright5"></i>Dashboard
-              </button>
               <button {{action "showAssetManager" true}} class="btn btn-default" title="Manage Assets">
                   Manage Assets
               </button>
@@ -127,6 +157,9 @@
   </div>
   {{#if showingAssetManager}}
     {{#asset-manager showAssetManager="showAssetManager"}}{{/asset-manager}}
+  {{/if}}
+  {{#if isProjManagerVisible}}
+    {{recent-projects recentFiles=recentFiles routeToDesigner="routeToDesigner" editWorkflow="editWorkflow" deleteWorkflow="deleteWorkflow" close="hideProjectManagerList" deleteWorkflowJob="deleteWorkflowJob" currentDraft=currentDraft}}
   {{/if}}
   {{#if showingWarning}}
   {{#confirmation-dialog title="Confirm workflow reset"
