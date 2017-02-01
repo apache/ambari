@@ -61,8 +61,8 @@ App.ApplicationView = Em.View.extend({
           // keep showing all submenu
           $('.navigation-bar-container ul.sub-menu').show();
           $(".navigation-bar-container .side-nav-menu>li").unbind('mouseenter mouseleave');
-          $('[data-toggle=collapseSubMenu]').removeClass('glyphicon-menu-right');
-          $('[data-toggle=collapseSubMenu]').addClass('glyphicon-menu-down');
+          $('[data-toggle=collapseSubMenu]').children('.toggle-icon').removeClass('glyphicon-menu-right');
+          $('[data-toggle=collapseSubMenu]').children('.toggle-icon').addClass('glyphicon-menu-down');
         }
 
         //set main content left margin based on the width of side-nav

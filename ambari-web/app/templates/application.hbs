@@ -27,16 +27,16 @@
         <a {{translateAttr href="topnav.logo.href"}} class="ambari-logo">
           <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
         </a>
-        <a {{translateAttr href="topnav.logo.href"}} class="ambari-header" title="Apache Ambari">{{t app.name}}</a>
       {{else}}
         <a class="ambari-logo">
           <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
         </a>
-        <a class="ambari-header" title="Apache Ambari">{{t app.name}}</a>
       {{/if}}
-
       <div class="btn-group">
-        <span class="dropdown-toggle toggle-icon glyphicon glyphicon-triangle-bottom" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+        <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="ambari-header" title="Apache Ambari">{{t app.name}}</span>
+          <span class="toggle-icon glyphicon glyphicon-triangle-bottom"></span>
+        </div>
         <ul class="dropdown-menu">
           {{#if view.views.length}}
             {{#each item in view.views}}

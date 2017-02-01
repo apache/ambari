@@ -62,8 +62,8 @@ App.MainSideMenuView = Em.CollectionView.extend({
 
     didInsertElement: function () {
       $('[data-toggle=collapseSubMenu]').off('click').on('click', function(event){
-        $(this).parent().siblings('.sub-menu').slideToggle(600);
-        $(this).toggleClass('glyphicon-menu-right glyphicon-menu-down');
+        $(this).siblings('.sub-menu').slideToggle(600);
+        $(this).children('.toggle-icon').toggleClass('glyphicon-menu-right glyphicon-menu-down');
         event.stopPropagation();
       });
     },

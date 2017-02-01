@@ -17,30 +17,38 @@
 }}
 
 
-<a {{action goToSection view.content.routing target="view"}} {{bindAttr class="view.content.isView:views-button-container"}}>
-  <span {{bindAttr  class=":navigation-icon view.content.iconClass"}}></span>
-  <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
-  {{#if view.isServicesItem}}
-    <span class="toggle-icon glyphicon glyphicon-menu-down" data-toggle="collapseSubMenu"></span>
-  {{/if}}
-  {{#if view.isAdminItem}}
-    <span class="toggle-icon glyphicon glyphicon-menu-down" data-toggle="collapseSubMenu"></span>
-  {{/if}}
-</a>
+
 
 <!--dropdown menu for the items had dropdowns-->
 {{#if view.isServicesItem}}
+  <a {{bindAttr class="view.content.isView:views-button-container"}} data-toggle="collapseSubMenu">
+    <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
+    <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
+    <span class="toggle-icon glyphicon glyphicon-menu-down"></span>
+  </a>
   {{view App.SideNavServiceMenuView}}
+{{else}}
+  {{#if view.isAdminItem}}
+    <a {{bindAttr class="view.content.isView:views-button-container"}} data-toggle="collapseSubMenu">
+      <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
+      <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
+      <span class="toggle-icon glyphicon glyphicon-menu-down"></span>
+    </a>
+    <ul class="admin-submenu sub-menu nav nav-pills nav-stacked">
+      {{#each category in view.dropdownCategories}}
+        {{#view view.AdminDropdownItemView itemBinding="category.name"}}
+          <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
+        {{/view}}
+      {{/each}}
+    </ul>
+  {{else}}
+    <a {{action goToSection view.content.routing target="view"}} {{bindAttr class="view.content.isView:views-button-container"}}>
+      <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
+      <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
+    </a>
+  {{/if}}
 {{/if}}
-{{#if view.isAdminItem}}
-  <ul class="admin-submenu sub-menu nav nav-pills nav-stacked">
-    {{#each category in view.dropdownCategories}}
-      {{#view view.AdminDropdownItemView itemBinding="category.name"}}
-        <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
-      {{/view}}
-    {{/each}}
-  </ul>
-{{/if}}
+
 
 
 

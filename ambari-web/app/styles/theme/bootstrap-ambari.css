@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 @font-face {
   font-family: 'Roboto';
   font-weight: normal;
@@ -770,7 +769,7 @@ input.radio:checked + label:after {
   margin-top: -2px;
   margin-left: -3px;
 }
-.navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-header {
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header .btn-group span.ambari-header {
   font-family: 'Roboto', sans-serif;
   font-weight: normal;
   font-style: normal;
@@ -778,17 +777,22 @@ input.radio:checked + label:after {
   color: #333;
   font-size: 20px;
   width: 55px;
+  cursor: pointer;
   display: inline;
   color: #fff;
-  padding: 0px 8px;
+  padding: 0px 8px 0px 10px;
 }
-.navigation-bar-container ul.nav.side-nav-header li.navigation-header span.toggle-icon {
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header .btn-group span.toggle-icon {
   margin-bottom: 5px;
   font-size: 13px;
   cursor: pointer;
   display: inline-block;
   vertical-align: middle;
   color: #b8bec4;
+}
+.navigation-bar-container ul.nav.side-nav-header li.navigation-header .btn-group.open .dropdown-toggle {
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header ul.dropdown-menu {
   min-width: 190px;
@@ -965,7 +969,7 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header {
   padding: 15px 0px 15px 17px;
 }
-.navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header a.ambari-header,
+.navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.ambari-header,
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.toggle-icon,
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header .dropdown-menu {
   display: none;
