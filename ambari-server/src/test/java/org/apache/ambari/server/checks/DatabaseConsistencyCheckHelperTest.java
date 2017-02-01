@@ -170,6 +170,64 @@ public class DatabaseConsistencyCheckHelperTest {
   }
 
   @Test
+  public void testCheckTopologyTablesAreConsistent() throws Exception {
+    testCheckTopologyTablesConsistent(2);
+    Assert.assertTrue(!DatabaseConsistencyCheckHelper.ifErrorsFound());
+  }
+
+  @Test
+  public void testCheckTopologyTablesAreNotConsistent() throws Exception {
+    testCheckTopologyTablesConsistent(1);
+    Assert.assertTrue(DatabaseConsistencyCheckHelper.ifErrorsFound());
+  }
+
+  private void testCheckTopologyTablesConsistent(int resultCount) throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
+    final ResultSet mockCountResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet mockJoinResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
+    expect(mockCountResultSet.next()).andReturn(true).once();
+    expect(mockCountResultSet.getInt(1)).andReturn(2);
+    expect(mockJoinResultSet.next()).andReturn(true).once();
+    expect(mockJoinResultSet.getInt(1)).andReturn(resultCount);
+    expect(mockStatement.executeQuery("select count(tpr.id) from topology_request tpr")).andReturn(mockCountResultSet);
+    expect(mockStatement.executeQuery("select count(DISTINCT tpr.id) from topology_request tpr join " +
+      "topology_logical_request tlr on tpr.id = tlr.request_id join topology_host_request thr on tlr.id = thr.logical_request_id join topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task tlt on tht.id = tlt.host_task_id")).andReturn(mockJoinResultSet);
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
+
+    easyMockSupport.replayAll();
+
+
+    DatabaseConsistencyCheckHelper.checkTopologyTables();
+
+    easyMockSupport.verifyAll();
+
+  }
+
+  @Test
   public void testCheckHostComponentStatesCountEqualsHostComponentsDesiredStates() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 

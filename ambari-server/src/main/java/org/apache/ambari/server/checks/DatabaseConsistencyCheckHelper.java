@@ -137,6 +137,7 @@ public class DatabaseConsistencyCheckHelper {
     checkForHostsWithoutState();
     checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
     checkServiceConfigs();
+    checkTopologyTables();
     LOG.info("******************************* Check database completed *******************************");
   }
 
@@ -341,6 +342,83 @@ public class DatabaseConsistencyCheckHelper {
       }
     }
   }
+
+
+  /**
+   * This method checks that for each row in topology_request there is at least one row in topology_logical_request,
+   * topology_host_request, topology_host_task, topology_logical_task.
+   * */
+  public static void checkTopologyTables() {
+    LOG.info("Checking Topology tables");
+
+    String SELECT_REQUEST_COUNT_QUERY = "select count(tpr.id) from topology_request tpr";
+
+    String SELECT_JOINED_COUNT_QUERY = "select count(DISTINCT tpr.id) from topology_request tpr join " +
+      "topology_logical_request tlr on tpr.id = tlr.request_id join topology_host_request thr on tlr.id = " +
+      "thr.logical_request_id join topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task " +
+      "tlt on tht.id = tlt.host_task_id";
+
+    int topologyRequestCount = 0;
+    int topologyRequestTablesJoinedCount = 0;
+
+    ResultSet rs = null;
+    Statement statement = null;
+
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+
+    try {
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+      rs = statement.executeQuery(SELECT_REQUEST_COUNT_QUERY);
+      if (rs != null) {
+        while (rs.next()) {
+          topologyRequestCount = rs.getInt(1);
+        }
+      }
+
+      rs = statement.executeQuery(SELECT_JOINED_COUNT_QUERY);
+      if (rs != null) {
+        while (rs.next()) {
+          topologyRequestTablesJoinedCount = rs.getInt(1);
+        }
+      }
+
+      if (topologyRequestCount != topologyRequestTablesJoinedCount) {
+        LOG.error("Your topology request hierarchy is not complete for each row in topology_request should exist " +
+          "at least one raw in topology_logical_request, topology_host_request, topology_host_task, " +
+          "topology_logical_task.");
+        errorsFound = true;
+      }
+
+
+    } catch (SQLException e) {
+      LOG.error("Exception occurred during topology request tables check: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
+        }
+      }
+    }
+
+  }
+
+
 
   /**
   * This method checks if count of host component states equals count
