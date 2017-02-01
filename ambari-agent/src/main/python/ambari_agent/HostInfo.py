@@ -30,6 +30,7 @@ import time
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.firewall import Firewall
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core import shell
 
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
@@ -169,6 +170,7 @@ class HostInfoLinux(HostInfo):
 
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
+  SERVICE_STATUS_CMD_LIST = shlex.split(SERVICE_STATUS_CMD)
 
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
@@ -333,13 +335,16 @@ class HostInfoLinux(HostInfo):
 
     pass
 
-  def getServiceStatus(self, serivce_name):
-    service_check_live = shlex.split(self.SERVICE_STATUS_CMD)
-    service_check_live[1] = serivce_name
-    osStat = subprocess.Popen(service_check_live, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-    out, err = osStat.communicate()
-    return out, err, osStat.returncode
+  def getServiceStatus(self, service_name):
+    service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
+    service_check_live[1] = service_name
+    try:
+      code, out, err = shell.call(service_check_live, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
+      return out, err, code
+    except Exception as ex:
+      logger.warn("Checking service {0} status failed".format(service_name))
+      return '', str(ex), 1
+
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

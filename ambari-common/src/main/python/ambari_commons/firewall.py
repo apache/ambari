@@ -18,11 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import subprocess
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import print_warning_msg
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.os_utils import run_os_command
-
+from resource_management.core import shell
 
 class Firewall(object):
   def __init__(self):
@@ -81,10 +81,13 @@ class FirewallChecks(object):
     return result
 
   def run_command(self):
-    retcode, out, err = run_os_command(self.get_command())
-    self.returncode = retcode
-    self.stdoutdata = out
-    self.stderrdata = err
+    try:
+      retcode, out, err = shell.call(self.get_command(), stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
+      self.returncode = retcode
+      self.stdoutdata = out
+      self.stderrdata = err
+    except Exception as ex:
+      print_warning_msg("Unable to check firewall status: {0}".format(ex))
 
   def check_firewall(self):
     try:
@@ -128,12 +131,6 @@ class RedHat7FirewallChecks(FirewallChecks):
         return True
     return False
 
-
-  def run_command(self):
-    retcode, out, err = run_os_command(self.get_command())
-    self.returncode = retcode
-    self.stdoutdata = out
-    self.stderrdata = err
 
 class Fedora18FirewallChecks(FirewallChecks):
   def __init__(self):
