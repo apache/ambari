@@ -281,6 +281,7 @@ public class UpgradeCatalog250Test {
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
+    Method updateZeppelinConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateZeppelinConfigs");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
@@ -297,6 +298,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateHIVEInteractiveConfigs)
         .addMockedMethod(updateTEZInteractiveConfigs)
         .addMockedMethod(updateTablesForZeppelinViewRemoval)
+        .addMockedMethod(updateZeppelinConfigs)
         .addMockedMethod(updateAtlasConfigs)
         .addMockedMethod(updateLogSearchConfigs)
         .addMockedMethod(updateAmbariInfraConfigs)
@@ -326,6 +328,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateTablesForZeppelinViewRemoval();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateZeppelinConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.updateAtlasConfigs();
