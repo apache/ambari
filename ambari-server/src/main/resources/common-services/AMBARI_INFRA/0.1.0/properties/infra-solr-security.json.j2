@@ -18,5 +18,51 @@
 {
   "authentication": {
     "class": "org.apache.solr.security.KerberosPlugin"
+  },
+  "authorization": {
+    "class": "org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
+    "user-role": {
+      "{{infra_solr_kerberos_service_user}}@{{kerberos_realm}}": "admin",
+      "{{logsearch_kerberos_service_user}}@{{kerberos_realm}}": ["logsearch_user", "ranger_user", "dev"],
+      "{{logfeeder_kerberos_service_user}}@{{kerberos_realm}}": ["logfeeder_user", "dev"],
+      "{{atlas_kerberos_service_user}}@{{kerberos_realm}}": ["atlas_user", "ranger_audit_user", "dev"],
+{% if infra_solr_ranger_audit_service_users %}
+{%   for ranger_audit_service_user in infra_solr_ranger_audit_service_users %}
+      "{{ranger_audit_service_user}}@{{kerberos_realm}}": ["ranger_audit_user", "dev"],
+{%   endfor %}
+{% endif %}
+      "{{ranger_admin_kerberos_service_user}}@{{kerberos_realm}}": ["ranger_user", "ranger_audit_user", "dev"]
+    },
+    "permissions": [
+    {
+      "name" : "collection-admin-read",
+      "role" :null
+    },
+    {
+      "name" : "collection-admin-edit",
+      "role" : ["admin", "logsearch_user", "logfeeder_user", "atlas_user", "ranger_user"]
+    },
+    {
+      "name":"read",
+      "role": "dev"
+    },
+    {
+      "collection": ["{{logsearch_service_logs_collection}}", "{{logsearch_audit_logs_collection}}", "history"],
+      "role": ["admin", "logsearch_user", "logfeeder_user"],
+      "name": "logsearch-manager",
+      "path": "/*"
+    },
+    {
+       "collection": ["vertex_index", "edge_index", "fulltext_index"],
+       "role": ["admin", "atlas_user"],
+       "name": "atlas-manager",
+       "path": "/*"
+    },
+    {
+       "collection": "{{ranger_solr_collection_name}}",
+       "role": ["admin", "ranger_user", "ranger_audit_user"],
+       "name": "ranger-manager",
+       "path": "/*"
+    }]
   }
 }

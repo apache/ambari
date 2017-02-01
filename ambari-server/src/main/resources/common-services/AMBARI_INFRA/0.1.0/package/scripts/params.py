@@ -108,6 +108,7 @@ for host in config['clusterHostInfo']['zookeeper_hosts']:
   if index < len(config['clusterHostInfo']['zookeeper_hosts']):
     zookeeper_quorum += ","
 
+default_ranger_audit_users = 'nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi'
 
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
@@ -119,7 +120,23 @@ if security_enabled:
   infra_solr_web_kerberos_principal = config['configurations']['infra-solr-env']['infra_solr_web_kerberos_principal'].replace('_HOST',_hostname_lowercase)
   infra_solr_kerberos_name_rules = config['configurations']['infra-solr-env']['infra_solr_kerberos_name_rules'].replace('$', '\$')
   infra_solr_sasl_user = get_name_from_principal(infra_solr_kerberos_principal)
+  kerberos_realm = config['configurations']['kerberos-env']['realm']
 
+  ranger_audit_principal_conf_key = "xasecure.audit.jaas.Client.option.principal"
+  ranger_audit_principals = []
+  ranger_audit_principals.append(default('configurations/ranger-hdfs-audit/' + ranger_audit_principal_conf_key, 'nn'))
+  ranger_audit_principals.append(default('configurations/ranger-hbase-audit/' + ranger_audit_principal_conf_key, 'hbase'))
+  ranger_audit_principals.append(default('configurations/ranger-hive-audit/' + ranger_audit_principal_conf_key, 'hive'))
+  ranger_audit_principals.append(default('configurations/ranger-knox-audit/' + ranger_audit_principal_conf_key, 'knox'))
+  ranger_audit_principals.append(default('configurations/ranger-kafka-audit/' + ranger_audit_principal_conf_key, 'kafka'))
+  ranger_audit_principals.append(default('configurations/ranger-kms-audit/' + ranger_audit_principal_conf_key, 'kms'))
+  ranger_audit_principals.append(default('configurations/ranger-storm-audit/' + ranger_audit_principal_conf_key, 'storm'))
+  ranger_audit_principals.append(default('configurations/ranger-yarn-audit/' + ranger_audit_principal_conf_key, 'yarn'))
+  ranger_audit_principals.append(default('configurations/ranger-nifi-audit/' + ranger_audit_principal_conf_key, 'nifi'))
+  ranger_audit_names_from_principals = [ get_name_from_principal(x) for x in ranger_audit_principals ]
+  default_ranger_audit_users = ','.join(ranger_audit_names_from_principals)
+
+infra_solr_ranger_audit_service_users = format(config['configurations']['infra-solr-security-json']['infra_solr_ranger_audit_service_users']).split(',')
 infra_solr_security_json_content = config['configurations']['infra-solr-security-json']['content']
 
 #Solr log4j
@@ -132,4 +149,14 @@ solr_log4j_content = default('configurations/infra-solr-log4j/content', None)
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
+
+ranger_solr_collection_name = default('configurations/ranger-env/ranger_solr_collection_name', 'ranger_audits')
+logsearch_service_logs_collection = default('configurations/logsearch-properties/logsearch.solr.collection.service.logs', 'hadoop_logs')
+logsearch_audit_logs_collection = default('configurations/logsearch-properties/logsearch.solr.collection.audit.logs', 'audit_logs')
+
+ranger_admin_kerberos_service_user = get_name_from_principal(default('configurations/ranger-admin-site/ranger.admin.kerberos.principal', 'rangeradmin'))
+atlas_kerberos_service_user = get_name_from_principal(default('configurations/application-properties/atlas.authentication.principal', 'atlas'))
+logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
+logfeeder_kerberos_service_user = get_name_from_principal(default('configurations/logfeeder-env/logfeeder_kerberos_principal', 'logfeeder'))
+infra_solr_kerberos_service_user = get_name_from_principal(default('configurations/infra-solr-env/infra_solr_kerberos_principal', 'infra-solr'))
 
