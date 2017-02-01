@@ -453,11 +453,16 @@ Em.I18n.translations = {
   'popup.invalid.KDC.admin.password': 'Admin password',
 
   'popup.dependent.configs.header': 'Dependent Configurations',
-  'popup.dependent.configs.title': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes. <br/> Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
+  'popup.dependent.configs.title.recommendation': 'Based on your configuration changes, Ambari is recommending the following dependent configuration changes.',
+  'popup.dependent.configs.title.values': 'Ambari will update all checked configuration changes to the <b>Recommended Value</b>. Uncheck any configuration to retain the <b>Current Value</b>.',
+  'popup.dependent.configs.title.required': 'The following configuration changes are required and will be applied automatically.',
+  'popup.dependent.configs.table.recommended': 'Recommended Changes',
+  'popup.dependent.configs.table.required': 'Required Changes',
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.initValue': 'Initial value',
   'popup.dependent.configs.table.currentValue': 'Current Value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
+  'popup.dependent.configs.table.newValue': 'New Value',
   'popup.dependent.configs.table.not.defined': 'Not Defined',
 
 

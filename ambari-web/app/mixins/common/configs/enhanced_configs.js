@@ -385,9 +385,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   showChangedDependentConfigs: function(event, callback, secondary) {
     var self = this;
-    var recommendations = event ? this.get('changedProperties') : this.get('recommendations');
+    var recommendations = event ? this.get('changedProperties') : this.get('recommendations'),
+      recommendedChanges = recommendations.filterProperty('isEditable'),
+      requiredChanges = recommendations.filterProperty('isEditable', false);
     if (recommendations.length > 0) {
-      App.showDependentConfigsPopup(recommendations, function() {
+      App.showDependentConfigsPopup(recommendedChanges, requiredChanges, function() {
         self.onSaveRecommendedPopup(recommendations);
         if (callback) callback();
       }, secondary);

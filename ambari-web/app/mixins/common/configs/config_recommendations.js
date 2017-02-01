@@ -54,16 +54,17 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @param {string} recommendedValue
    * @param {string} initialValue
    * @param {Object[]} parentProperties
+   * @param {boolean} isEditable
    * @returns {recommendation}
    */
-  applyRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentProperties) {
+  applyRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentProperties, isEditable) {
     try {
       var parentPropertyIds = this.formatParentProperties(parentProperties);
       var recommendation = this.getRecommendation(name, fileName, configGroupName);
       if (recommendation) {
         return this.updateRecommendation(recommendation, recommendedValue, parentPropertyIds);
       }
-      return this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds);
+      return this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds, isEditable);
     } catch(e) {
       console.error(e.message);
     }
@@ -90,9 +91,10 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @param {string} recommendedValue
    * @param {string} initialValue
    * @param {string[]} parentPropertyIds
+   * @param {boolean} isEditable
    * @returns {recommendation}
    */
-  addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds) {
+  addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds, isEditable) {
     Em.assert('name and fileName should be defined', name && fileName);
     var site = App.config.getConfigTagFromFileName(fileName);
     var service = App.config.get('serviceByConfigTypeMap')[site];
@@ -113,7 +115,8 @@ App.ConfigRecommendations = Em.Mixin.create({
       allowChangeGroup: false,//TODO groupName!= "Default" && (service.get('serviceName') != this.get('selectedService.serviceName'))
       //TODO&& (App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')).length > 1), //TODO
       serviceDisplayName: service.get('displayName'),
-      recommendedValue: recommendedValue
+      recommendedValue: recommendedValue,
+      isEditable: isEditable !== false
     };
     this.get('recommendations').pushObject(recommendation);
     return recommendation;

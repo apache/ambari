@@ -16,48 +16,11 @@
 * limitations under the License.
 }}
 
-<div class="alert alert-warning">
-  {{t popup.dependent.configs.title}}
-</div>
 <span id="config-dependencies" class="limited-height-2">
-  <table class="table table-striped">
-    <thead>
-    <tr>
-      <th class="check-box-col">{{view view.toggleAll}}</th>
-      <th>{{t common.property}}</th>
-      <th>{{t common.service}}</th>
-      <th>{{t common.configGroup}}</th>
-      <th>{{t common.fileName}}</th>
-      <th class="row-fliud">
-          <div class="span6">
-            {{t popup.dependent.configs.table.currentValue}}
-          </div>
-          <div class="span6">
-            {{t popup.dependent.configs.table.recommendedValue}}
-          </div>
-      </th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#each recommendation in view.parentView.recommendations}}
-      <tr>
-        <td class="check-box-col">{{view Em.Checkbox checkedBinding="recommendation.saveRecommended"}}</td>
-        <td class="config-dependency-name">{{recommendation.propertyName}}</td>
-        <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
-        <td class="config-dependency-group">
-          <span {{bindAttr class="recommendation.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
-            {{action showSelectGroupPopup recommendation.serviceName target="App.router.mainServiceInfoConfigsController"}}>
-            {{recommendation.configGroup}}
-          </a></span>
-        </td>
-        <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
-        <td>
-          <div>
-            {{view App.ConfigDiffView configBinding="recommendation"}}
-          </div>
-        </td>
-      </tr>
-    {{/each}}
-    </tbody>
-  </table>
+  {{#if view.recommendations.length}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations"}}
+  {{/if}}
+  {{#if view.requiredChanges.length}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false}}
+  {{/if}}
 </span>
