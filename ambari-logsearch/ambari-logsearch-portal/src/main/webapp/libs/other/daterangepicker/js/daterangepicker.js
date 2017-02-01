@@ -49,7 +49,6 @@
         this.linkedCalendars = true;
         this.autoUpdateInput = true;
         this.alwaysShowCalendars = false;
-        this.ranges = {};
 
         this.opens = 'right';
         if (this.element.hasClass('pull-right'))
@@ -301,45 +300,8 @@
         }
 
         if (typeof options.ranges === 'object') {
-            for (range in options.ranges) {
-
-                if (typeof options.ranges[range][0] === 'string')
-                    start = moment(options.ranges[range][0], this.locale.format);
-                else
-                    start = moment(options.ranges[range][0]);
-
-                if (typeof options.ranges[range][1] === 'string')
-                    end = moment(options.ranges[range][1], this.locale.format);
-                else
-                    end = moment(options.ranges[range][1]);
-
-                // If the start or end date exceed those allowed by the minDate or dateLimit
-                // options, shorten the range to the allowable period.
-                if (this.minDate && start.isBefore(this.minDate))
-                    start = this.minDate.clone();
-
-                var maxDate = this.maxDate;
-                if (this.dateLimit && maxDate && start.clone().add(this.dateLimit).isAfter(maxDate))
-                    maxDate = start.clone().add(this.dateLimit);
-                if (maxDate && end.isAfter(maxDate))
-                    end = maxDate.clone();
-
-                // If the end of the range is before the minimum or the start of the range is
-                // after the maximum, don't display this range option at all.
-                if ((this.minDate && end.isBefore(this.minDate, this.timepicker ? 'minute' : 'day')) 
-                  || (maxDate && start.isAfter(maxDate, this.timepicker ? 'minute' : 'day')))
-                    continue;
-
-                //Support unicode chars in the range names.
-                var elem = document.createElement('textarea');
-                elem.innerHTML = range;
-                var rangeHtml = elem.value;
-
-                this.ranges[rangeHtml] = [start, end];
-            }
-
             var list = '<ul>';
-            for (range in this.ranges) {
+            for (range of options.ranges) {
                 list += '<li data-range-key="' + range + '">' + range + '</li>';
             }
             if (this.showCustomRangeLabel) {
@@ -614,9 +576,9 @@
 
             //highlight any predefined range matching the current start and end dates
             this.container.find('.ranges li').removeClass('active');
+            this.chosenLabel = this.container.find('.ranges li:last').addClass('active').html();
             if (this.endDate == null) return;
-
-            this.calculateChosenLabel();
+            this.showCalendars();
         },
 
         renderCalendar: function(side) {
@@ -649,11 +611,14 @@
             }
 
             //populate the calendar with date objects
+            var curDate;
             var startDay = daysInLastMonth - dayOfWeek + this.locale.firstDay + 1;
-            if (startDay > daysInLastMonth + 1)
-                startDay -= 7;
-
-            var curDate = moment([lastYear, lastMonth, startDay, 12, minute, second]);
+            if (startDay == daysInLastMonth + 1)
+                curDate = moment([year, month, 1, 12, minute, second]);
+            else if (startDay > daysInLastMonth )
+                curDate = moment([lastYear, lastMonth, startDay-7, 12, minute, second]);
+            else
+                curDate = moment([lastYear, lastMonth, startDay, 12, minute, second]);
 
             var col, row;
             for (var i = 0, col = 0, row = 0; i < 42; i++, col++, curDate = moment(curDate).add(24, 'hour')) {
@@ -1180,7 +1145,6 @@
         },
 
         hoverRange: function(e) {
-
             //ignore mouse movements while an above-calendar text input has focus
             if (this.container.find('input[name=daterangepicker_start]').is(":focus") || this.container.find('input[name=daterangepicker_end]').is(":focus"))
                 return;
@@ -1190,7 +1154,8 @@
             if (label == this.locale.customRangeLabel) {
                 this.updateView();
             } else {
-                var dates = this.ranges[label];
+                var Utils = require('utils/Utils');
+                var dates = Utils.dateUtil.getRelativeDateFromString(label);
                 this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.locale.format));
                 this.container.find('input[name=daterangepicker_end]').val(dates[1].format(this.locale.format));
             }
@@ -1203,7 +1168,8 @@
             if (label == this.locale.customRangeLabel) {
                 this.showCalendars();
             } else {
-                var dates = this.ranges[label];
+                var Utils = require('utils/Utils');
+                var dates = Utils.dateUtil.getRelativeDateFromString(label);
                 this.startDate = dates[0];
                 this.endDate = dates[1];
 
@@ -1346,7 +1312,7 @@
                 }
                 this.setEndDate(date.clone());
                 if (this.autoApply) {
-                  this.calculateChosenLabel();
+                  this.showCalendars();
                   this.clickApply();
                 }
             }
@@ -1362,32 +1328,6 @@
             //This is to cancel the blur event handler if the mouse was in one of the inputs
             e.stopPropagation();
 
-        },
-
-        calculateChosenLabel: function() {
-          var customRange = true;
-          var i = 0;
-          for (var range in this.ranges) {
-              if (this.timePicker) {
-                  if (this.startDate.isSame(this.ranges[range][0]) && this.endDate.isSame(this.ranges[range][1])) {
-                      customRange = false;
-                      this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').html();
-                      break;
-                  }
-              } else {
-                  //ignore times when comparing dates if time picker is not enabled
-                  if (this.startDate.format('YYYY-MM-DD') == this.ranges[range][0].format('YYYY-MM-DD') && this.endDate.format('YYYY-MM-DD') == this.ranges[range][1].format('YYYY-MM-DD')) {
-                      customRange = false;
-                      this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').html();
-                      break;
-                  }
-              }
-              i++;
-          }
-          if (customRange && this.showCustomRangeLabel) {
-              this.chosenLabel = this.container.find('.ranges li:last').addClass('active').html();
-              this.showCalendars();
-          }
         },
 
         clickApply: function(e) {
