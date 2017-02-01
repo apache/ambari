@@ -1920,25 +1920,21 @@ class TestAmbariServer(TestCase):
     self.assertTrue(set_file_permissions_mock.called)
     pass
 
-  @patch("subprocess.Popen")
+  @patch("resource_management.core.shell.call")
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  def test_check_firewall_is_running(self, get_os_major_version_mock, get_os_type_mock, get_os_family_mock, popen_mock):
+  def test_check_firewall_is_running(self, get_os_major_version_mock, get_os_type_mock, get_os_family_mock, shell_call_mock):
 
     get_os_major_version_mock.return_value = 18
     get_os_type_mock.return_value = OSConst.OS_FEDORA
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    p = MagicMock()
-    p.communicate.return_value = ("active", "err")
-    p.returncode = 0
-    popen_mock.return_value = p
+    shell_call_mock.return_value = (0, "active", "err")
     self.assertEqual("Fedora18FirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("", "err")
-    p.returncode = 3
+    shell_call_mock.return_value = (3, "", "err")
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
@@ -1947,12 +1943,10 @@ class TestAmbariServer(TestCase):
     get_os_family_mock.return_value = OSConst.UBUNTU_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    p.communicate.return_value = ("Status: active", "err")
-    p.returncode = 0
+    shell_call_mock.return_value = (0, "Status: active", "err")
     self.assertEqual("UbuntuFirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("Status: inactive", "err")
-    p.returncode = 0
+    shell_call_mock.return_value = (0, "Status: inactive", "err")
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
@@ -1960,12 +1954,10 @@ class TestAmbariServer(TestCase):
     get_os_family_mock.return_value = OSConst.SUSE_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    p.communicate.return_value = ("running", "err")
-    p.returncode = 0
+    shell_call_mock.return_value = (0, "running", "err")
     self.assertEqual("SuseFirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("unused", "err")
-    p.returncode = 0
+    shell_call_mock.return_value = (0, "unused", "err")
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
@@ -1974,12 +1966,10 @@ class TestAmbariServer(TestCase):
     get_os_major_version_mock.return_value = 6
 
     firewall_obj = Firewall().getFirewallObject()
-    p.communicate.return_value = ("Table: filter", "err")
-    p.returncode = 0
+    shell_call_mock.return_value = (0, "Table: filter", "err")
     self.assertEqual("FirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("", "err")
-    p.returncode = 3
+    shell_call_mock.return_value = (3, "", "err")
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
@@ -1988,18 +1978,14 @@ class TestAmbariServer(TestCase):
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    p.communicate.return_value = ("active\nactive", "err")
-    p.returncode = 0
+    shell_call_mock.return_value = (0, "active\nactive", "err")
     self.assertEqual("RedHat7FirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("inactive\nactive", "err")
-    p.returncode = 3
+    shell_call_mock.return_value = (3, "inactive\nactive", "err")
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("active\ninactive", "err")
-    p.returncode = 3
+    shell_call_mock.return_value = (3, "active\ninactive", "err")
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("inactive\ninactive", "err")
-    p.returncode = 3
+    shell_call_mock.return_value = (3, "inactive\ninactive", "err")
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
@@ -3666,7 +3652,7 @@ class TestAmbariServer(TestCase):
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("pwd.getpwnam")
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   @patch("os.path.exists")
   @patch("os.path.isfile")
   @patch("ambari_commons.os_utils.remove_file")
@@ -3901,7 +3887,7 @@ class TestAmbariServer(TestCase):
 
   @only_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   @patch("os.path.exists")
   @patch("os.path.isfile")
   @patch("ambari_commons.os_utils.remove_file")
@@ -6222,7 +6208,7 @@ class TestAmbariServer(TestCase):
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   @patch("ambari_server.serverSetup.verify_setup_allowed")
   @patch("sys.exit")
   @patch("ambari_server.serverSetup.get_YN_input")
@@ -6291,7 +6277,7 @@ class TestAmbariServer(TestCase):
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   @patch("sys.exit")
   @patch("ambari_server.userInput.get_YN_input")
   @patch("ambari_commons.os_utils.is_root")
@@ -8100,7 +8086,7 @@ class TestAmbariServer(TestCase):
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   @patch("ambari_server.dbConfiguration_linux.PGConfig._is_jdbc_user_changed")
   @patch("ambari_server.serverSetup.verify_setup_allowed")
   @patch("ambari_server.serverSetup.get_YN_input")
