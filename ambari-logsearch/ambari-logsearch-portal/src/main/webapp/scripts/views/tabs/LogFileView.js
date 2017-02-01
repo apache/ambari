@@ -352,16 +352,16 @@ define(['require',
                 });
             },
             getIdRowForTableLayout : function(){
-            	var IdRow =  Backgrid.Row.extend({
-				    render: function() {
-				        IdRow.__super__.render.apply(this, arguments);
-				        if (this.model.has("id")) {
-				            this.$el.attr("data-id", this.model.get('id'));
-				        }
-				        return this;
-				    }
-				});
-            	return IdRow;
+                var IdRow =  Backgrid.Row.extend({
+                    render: function() {
+                        IdRow.__super__.render.apply(this, arguments);
+                        if (this.model.has("id")) {
+                            this.$el.attr("data-id", this.model.get('id'));
+                        }
+                        return this;
+                    }
+                });
+            return IdRow;
             },
             renderTableLikeLogFile: function() {
                 var that = this;
@@ -820,6 +820,33 @@ define(['require',
                         "class": "btn btn-default",
                         click: function() {
                             that.onDialogClosed();
+                        }
+                    },
+                    {
+                        id: "copyBtn",
+                        text: "Select for Copy",
+                        "class": "btn btn-default",
+                        click: function() {
+                            if ($('.logsContainer-clipboard').length != 0)
+                                return;
+                            
+                            var logElement = $(".logsContainer");
+                            var logElementRect = logElement[0].getBoundingClientRect();
+                            logElement.css("display", "none");
+                            
+                            var text = '';
+                            logElement.find('div').each(function(){
+                                text += this.innerText + '\n';
+                            });
+                            
+                            var textarea = $('<textarea class="logsContainer-clipboard"></textarea>');
+                            $(".logsDetail").append(textarea);
+                            textarea
+                            .text(text)
+                            .css('display', 'block')
+                            .width(logElementRect.width)
+                            .height(logElementRect.height)
+                            .select();
                         }
                     }]
                 };
