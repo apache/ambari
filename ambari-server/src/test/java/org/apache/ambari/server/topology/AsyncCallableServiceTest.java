@@ -75,8 +75,8 @@ public class AsyncCallableServiceTest extends EasyMockSupport {
   public void testCallableServiceShouldCancelTaskWhenTimeoutExceeded() throws Exception {
     // GIVEN
 
-    //the timeout period should be small!!!
-    timeout = 1l;
+    //the timeout period should be less zero for guaranteed timeout!
+    timeout = -1l;
 
     // the task to be executed never completes successfully
     expect(futureMock.get(timeout, TimeUnit.MILLISECONDS)).andThrow(new TimeoutException("Testing the timeout exceeded case"));
