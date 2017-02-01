@@ -195,33 +195,6 @@
             <regex-replace key="content" find="#log4j.appender.DRFA.MaxBackupIndex=([0-9]+)" replace-with="#log4j.appender.DRFA.MaxBackupIndex={{hive_log_maxbackupindex}}"/>
             <replace key="content" find="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.DRFA.MaxFileSize = {{hive_log_maxfilesize}}MB"/>
           </definition>
-          <definition xsi:type="configure" id="hive_llap_log4j_parameterize" summary="Parameterizing Hive llap Log4J Properties">
-            <type>llap-daemon-log4j</type>
-            <set key="hive_llap_log_maxfilesize" value="256"/>
-            <set key = "hive_llap_log_maxbackupindex" value="240"/>
-            <regex-replace key="content" find="property.llap.daemon.log.maxfilesize = ([0-9]+)MB" replace-with="property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB"/>
-            <regex-replace key="content" find="property.llap.daemon.log.maxbackupindex = ([0-9]+)" replace-with="property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}"/>
-          </definition>
-        </changes>
-      </component>
-
-      <component name="HIVE_SERVER_INTERACTIVE">
-        <changes>
-          <definition xsi:type="configure" id="hive_log4j2_parameterize" summary="Parameterizing Hive Log4J2 Properties">
-            <type>hive-log4j2</type>
-            <set key="hive2_log_maxfilesize" value="256"/>
-            <set key = "hive2_log_maxbackupindex" value="30"/>
-            <regex-replace key="content" find="appender.DRFA.strategy.max = ([0-9]+)" replace-with="appender.DRFA.strategy.max = {{hive2_log_maxbackupindex}}"/>
-            <replace key="content" find="appender.DRFA.strategy.type = DefaultRolloverStrategy" replace-with="appender.DRFA.strategy.type = DefaultRolloverStrategy&#xA;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#xA;appender.DRFA.policies.fsize.size = {{hive2_log_maxfilesize}}MB"/>
-          </definition>
-
-          <definition xsi:type="configure" id="llap_cli_log4j2_parameterize" summary="Parameterizing LLAP Cli Log4J2 Properties">
-            <type>llap-cli-log4j2</type>
-            <set key="llap_cli_log_maxfilesize" value="256"/>
-            <set key = "llap_cli_log_maxbackupindex" value="30"/>
-            <regex-replace key="content" find="appender.DRFA.strategy.max = ([0-9]+)" replace-with="appender.DRFA.strategy.max = {{llap_cli_log_maxbackupindex}}"/>
-            <replace key="content" find="appender.DRFA.strategy.type = DefaultRolloverStrategy" replace-with="appender.DRFA.strategy.type = DefaultRolloverStrategy&#xA;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#xA;appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB"/>
-          </definition>
         </changes>
       </component>
 
