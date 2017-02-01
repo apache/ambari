@@ -173,7 +173,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       if (!Em.isNone(recommendedValue) && !Em.get(config, 'hiddenBySection')) {
         Em.set(config, 'isVisible', true);
       }
-      this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties);
+      this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
     }
     if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
       Em.set(config, 'initialValue', recommendedValue);
@@ -202,7 +202,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       addedPropertyObject = App.ServiceConfigProperty.create(newConfig);
 
     this.applyRecommendation(name, fileName, "Default",
-      recommendedValue, null, parentProperties);
+      recommendedValue, null, parentProperties, true);
 
     return addedPropertyObject;
   },
@@ -245,7 +245,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     configsCollection.removeObject(config);
 
     this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'),
-      null, this._getInitialValue(config), parentProperties);
+      null, this._getInitialValue(config), parentProperties, Em.get(config, 'isEditable'));
   },
 
   /**
