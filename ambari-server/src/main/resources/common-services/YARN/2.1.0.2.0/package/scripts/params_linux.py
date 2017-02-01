@@ -250,6 +250,8 @@ rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-a
 rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
 rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+rm_zk_failover_znode = default('/configurations/yarn-site/yarn.resourcemanager.ha.automatic-failover.zk-base-path', '/yarn-leader-election')
+hadoop_registry_zk_root = default('/configurations/yarn-site/hadoop.registry.zk.root', '/registry')
 
 if security_enabled:
   rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
