@@ -280,7 +280,6 @@ public class UpgradeCatalog250Test {
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateHIVEInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHIVEInteractiveConfigs");
-    Method updateTEZInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateTEZInteractiveConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
@@ -292,7 +291,6 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(updateHadoopEnvConfigs)
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateHIVEInteractiveConfigs)
-      .addMockedMethod(updateTEZInteractiveConfigs)
       .addMockedMethod(updateHiveLlapConfigs)
       .addMockedMethod(updateTablesForZeppelinViewRemoval)
       .addMockedMethod(updateZeppelinConfigs)
@@ -319,9 +317,6 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateHIVEInteractiveConfigs();
-    expectLastCall().once();
-
-    upgradeCatalog250.updateTEZInteractiveConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.updateHiveLlapConfigs();

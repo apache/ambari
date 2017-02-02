@@ -161,7 +161,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
-    updateTEZInteractiveConfigs();
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
     updateZeppelinConfigs();
@@ -666,32 +665,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                 LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
               }
             }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Updates Tez for Hive2 Interactive's config in tez-interactive-site.
-   *
-   * @throws AmbariException
-   */
-  protected void updateTEZInteractiveConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Config tezInteractiveSite = cluster.getDesiredConfigByType("tez-interactive-site");
-          if (tezInteractiveSite != null) {
-
-            updateConfigurationProperties("tez-interactive-site", Collections.singletonMap("tez.runtime.io.sort.mb", "512"), true, true);
-
-            updateConfigurationProperties("tez-interactive-site", Collections.singletonMap("tez.runtime.unordered.output.buffer.size-mb",
-                "100"), true, true);
           }
         }
       }
