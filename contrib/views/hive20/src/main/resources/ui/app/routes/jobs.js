@@ -34,22 +34,24 @@ export default Ember.Route.extend({
   model(params) {
     let now = this.get('moment').moment();
     if(Ember.isEmpty(params.startTime) || Ember.isEmpty(params.endTime)) {
-      let initialValue = now.clone();
-      params.endTime = now.valueOf();
-      params.startTime = now.subtract('7', 'days').valueOf();
-      this.set('timeInitializedTo', initialValue);
+      let clone = now.clone();
+      params.endTime = now.endOf('day').valueOf();
+      params.startTime = clone.subtract('7', 'days').startOf('day').valueOf();
+      this.set('startInitTo', params.startTime);
+      this.set('endInitTo', params.endTime);
     }
 
     return this.store.query('job', params);
   },
 
   setupController(controller, model) {
-    if(!Ember.isEmpty(this.get('timeInitializedTo'))) {
+    if(!(Ember.isEmpty(this.get('startInitTo')) || Ember.isEmpty(this.get('endInitTo')))) {
 
-      controller.set('endTime', this.get('timeInitializedTo').valueOf());
-      controller.set('startTime', this.get('timeInitializedTo').subtract('7', 'days').valueOf());
+      controller.set('endTime', this.get('endInitTo'));
+      controller.set('startTime', this.get('startInitTo'));
       //unset timeInitializedTo
-      this.set('timeInitializedTo');
+      this.set('endInitTo');
+      this.set('startInitTo');
     }
 
     this._super(...arguments);
@@ -58,9 +60,12 @@ export default Ember.Route.extend({
 
   actions: {
     dateFilterChanged(startTime, endTime) {
-      this.controller.set('startTime', this.get('moment').moment(startTime, 'YYYY-MM-DD').valueOf())
-      this.controller.set('endTime', this.get('moment').moment(endTime, 'YYYY-MM-DD').valueOf())
+      this.controller.set('startTime', this.get('moment').moment(startTime, 'YYYY-MM-DD').startOf('day').valueOf())
+      this.controller.set('endTime', this.get('moment').moment(endTime, 'YYYY-MM-DD').endOf('day').valueOf())
       this.refresh();
+    },
+    hideDatePicker() {
+      console.log("Hiddennnnn");
     }
   }
 

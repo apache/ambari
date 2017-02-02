@@ -39,10 +39,6 @@ export default Ember.Component.extend({
   actions: {
     setDateRange(startDate, endDate) {
       this.sendAction('filterChanged', startDate, endDate);
-    },
-
-    expandJob(jobId) {
-      console.log("Job to be expanded", jobId);
     }
   }
 });
