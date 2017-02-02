@@ -16,26 +16,27 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
-import tabs from '../configs/top-level-tabs';
+import ApplicationAdapter from './application';
 
-export default Ember.Route.extend({
-  keepAlive: Ember.inject.service('keep-alive'),
-  serviceCheck: Ember.inject.service(),
-  init: function () {
-    this._super(...arguments);
-    this.get('keepAlive').initialize();
+export default ApplicationAdapter.extend({
+
+  doHdfsSeriveCheck() {
+    let url = this.buildURL() + '/hive/hdfsStatus';
+    return this.ajax(url, 'GET');
   },
 
-  beforeModel() {
-    if (!this.get('serviceCheck.checkCompleted')) {
-      this.transitionTo('service-check');
-    }
+  doUserHomeCheck() {
+    let url = this.buildURL() + '/hive/userhomeStatus';
+    return this.ajax(url, 'GET');
   },
 
-  setupController: function (controller, model) {
-    this._super(controller, model);
-    controller.set('tabs', tabs);
+  doAtsCheck() {
+    let url = this.buildURL() + '/hive/atsStatus';
+    return this.ajax(url, 'GET');
+  },
+
+  doHiveCheck() {
+    let url = this.buildURL() + '/connection/connect';
+    return this.ajax(url, 'GET');
   }
-
 });

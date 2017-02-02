@@ -16,12 +16,32 @@
 * limitations under the License.
 }}
 
-<h3 class="clearfix">
-  <strong>HIVE {{#if service}}<small>SERVICE CHECKS</small>{{/if}}</strong>
-  {{#if (not service)}}
-    <span class="pull-right">
-      {{#link-to 'queries.new' class="btn btn-sm btn-success"}}{{fa-icon "plus"}} NEW JOB{{/link-to}}
-        {{#link-to 'databases.newtable' class="btn btn-sm btn-success"}}{{fa-icon "plus"}} NEW TABLE{{/link-to}}
-    </span>
+<p>
+  {{#fa-stack size="lg" as |s|}}
+    {{s.stack-2x "circle-thin"}}
+    {{s.stack-1x iconName}}
+  {{/fa-stack}}
+  <strong>{{label}}</strong>
+</p>
+
+
+{{#if error}}
+  <p>
+    <strong>Message: </strong>{{error.message}}
+    <a href="#" class="btn btn-sm btn-warning"{{action "toggleError"}}>
+      {{#if errorExpanded}}
+        {{fa-icon 'chevron-up'}} Show less
+      {{else}}
+        {{fa-icon 'chevron-down'}} Show more
+      {{/if}}
+    </a>
+  </p>
+
+
+  {{#if errorExpanded}}
+    <p>
+      <pre>{{error.trace}}</pre>
+    </p>
   {{/if}}
-</h3>
+{{/if}}
+

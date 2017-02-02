@@ -57,7 +57,23 @@ export default DS.RESTAdapter.extend({
       // basic authorization. This is for default admin/admin username/password combination.
       headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
       //headers['Authorization'] = 'Basic aGl2ZTpoaXZl';
+      //headers['Authorization'] = 'Basic ZGlwYXlhbjpkaXBheWFu';
     }
      return headers;
   }),
+
+  parseErrorResponse(responseText) {
+    let json = this._super(responseText);
+    let error = {};
+    error.message = json.message;
+    error.trace = json.trace;
+    error.status = json.status;
+
+    delete json.trace;
+    delete json.status;
+    delete json.message;
+
+    json.errors = error;
+    return json;
+  }
 });
