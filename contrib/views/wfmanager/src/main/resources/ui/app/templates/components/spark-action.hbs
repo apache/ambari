@@ -32,7 +32,7 @@
 
           {{input type="text" class="form-control" name="class" value=actionModel.jar placeholder="jar/python"}}
           <span class="input-group-btn">
-            <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.jar"}}>Browse</button>
+            <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "actionModel.jar"}}>Browse</button>
           </span>
         </div>
         {{field-error model=this field='actionModel.jar' showErrorMessage=showErrorMessage}}

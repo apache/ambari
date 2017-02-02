@@ -105,7 +105,7 @@
                 <div class="input-group">
                   {{input type="text" class="form-control" name="appPath" focus-out="showWorkflowName" value=coordinator.workflow.appPath placeholder="Path of the workflow file"}}
                   <span class="input-group-btn">
-                    <button class="btn btn-primary" type="button" {{action "openFileBrowser" "coordinator.workflow.appPath"}}>Browse</button>
+                    <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "coordinator.workflow.appPath"}}>Browse</button>
                     <button class="btn btn-default" type="button" {{action "openTab" 'wf' coordinator.workflow.appPath}} name="button"><i class="fa fa-external-link"></i></button>
                   </span>
                 </div>
@@ -199,10 +199,10 @@
                   <div class="">
                     <label for="" class="control-label col-xs-2">Data Input Type</label>
                     <div class="btn-group">
-                      <button {{action 'toggleDataTnput' 'simple'}} type="button" class="btn btn-default {{if (eq coordinator.dataInputType 'simple') 'btn-primary' ''}} scope-btn">
+                      <button {{action 'toggleDataTnput' 'simple'}} type="button" class="btn btn-default {{if (eq coordinator.dataInputType 'simple') 'btn-secondary' ''}} scope-btn">
                         Simple
                       </button>
-                      <button {{action 'toggleDataTnput' 'logical'}} type="button" class="btn btn-default {{if (eq coordinator.dataInputType 'logical') 'btn-primary' ''}} scope-btn">
+                      <button {{action 'toggleDataTnput' 'logical'}} type="button" class="btn btn-default {{if (eq coordinator.dataInputType 'logical') 'btn-secondary' ''}} scope-btn">
                         Conditional
                       </button>
                     </div>

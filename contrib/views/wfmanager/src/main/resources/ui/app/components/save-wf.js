@@ -103,7 +103,6 @@ export default Ember.Component.extend(Validations, {
     }.bind(this)).catch(function(response){
         console.log(response);
         self.set("savingInProgress",false);
-        self.set("isStackTraceVisible",true);
         self.showNotification({
           "type": "error",
           "message": "Error occurred while saving "+ self.get('displayName').toLowerCase(),

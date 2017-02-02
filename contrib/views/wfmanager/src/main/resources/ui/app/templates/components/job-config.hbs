@@ -45,7 +45,7 @@
                 <div class="input-group">
                   {{input class="form-control" type="text" name=path.name value=path.value}}
                   <span class="input-group-btn">
-                    <button type="button" class="btn btn-primary" {{action "selectFile" path.name}}>Browse</button>
+                    <button type="button" class="btn btn-secondary" {{action "selectFile" path.name}}>Browse</button>
                   </span>
                 </div>
                 {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}
@@ -57,7 +57,7 @@
         {{else if (and (eq type 'coord') containsParameteriedPaths)}}
         <div class="col-xs-24">
           <div class="alert alert-warning" role="alert">
-            Workflow path contains variables. Please provide the absolute path to auto detect templatized variables. Skip this step if you have configured all the templatized varibales of the workflow in the coordinator.
+            Workflow path contains variables. Please provide the absolute path to auto detect templatized variables. Skip this step if you have configured all the templatized variables of the workflow in the coordinator.
           </div>
         </div>
         <div class="row form-group">
@@ -68,7 +68,7 @@
             <div class="input-group">
               {{input class="form-control" type="text" name='wfPath' value=parameterizedWorkflowPath}}
               <span class="input-group-btn">
-                <button type="button" class="btn btn-primary" {{action "selectFile" 'wfPath'}}>Browse</button>
+                <button type="button" class="btn btn-secondary" {{action "selectFile" 'wfPath'}}>Browse</button>
               </span>
             </div>
             {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}
@@ -100,7 +100,7 @@
                 <div class="input-group">
                   {{input class="form-control" name="filePath" type="text" value=filePath}}
                   <span class="input-group-btn">
-                    <button type="button" class="btn btn-primary" {{action "selectFile" "filePath"}}>Browse</button>
+                    <button type="button" class="btn btn-secondary" {{action "selectFile" "filePath"}}>Browse</button>
                   </span>
                 </div>
                 {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}

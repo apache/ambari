@@ -70,8 +70,8 @@
       </thead>
       <tbody>
         {{#each model.bundleCoordJobs as |coordJob|}}
-        <tr {{action 'showCoord' coordJob.coordJobId}} class="{{if (eq actionInfo model.actionDetails) "active"}}">
-          <td class="pointer">{{coordJob.coordJobName}}</td>
+        <tr class="{{if (eq actionInfo model.actionDetails) "active"}}">
+          <td class="pointer action-link" {{action 'showCoord' coordJob.coordJobId}}>{{coordJob.coordJobName}}</td>
           <td>{{coordJob.status}}</td>
           <td>{{coordJob.user}}</td>
           <td>{{coordJob.group}}</td>
@@ -97,7 +97,7 @@
   <div role="tabpanel" class="tab-pane" id="jobConfig">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <table class="table table-striped configuration-property-table">
+        <table class="table table-striped configuration-property-table listing">
           <thead>
             <tr>
               <th class="propertyName">Name</th>

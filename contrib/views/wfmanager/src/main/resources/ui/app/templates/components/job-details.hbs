@@ -16,8 +16,12 @@
 * limitations under the License.
 }}
 <div id="job-details" class="panel panel-default">
-  <div class="panel-heading">
+  <div class="panel-heading container-custom">
     <div class="pull-right">
+      <button type="button" class="btn btn-default" title="Refresh" {{action 'doRefresh'}}>
+          <i class="fa fa-refresh"></i>
+      </button>
+
       {{#link-to 'design.dashboardtab' class="backto-dashboard"}}
       <button type="button" class="btn btn-default" title="Workflow Dashboard">
           <i class="fa fa-th"></i>
@@ -47,7 +51,6 @@
           </li>
         </ol>
       </div>
-      <span class="fa fa-refresh fa-1 pointer btn btn-default" title="Refresh" {{action 'doRefresh'}} aria-hidden="true"></span>
     </div>
     <div class="clearfix"></div>
   </div>
@@ -67,9 +70,9 @@
             <li role="presentation"><a href="#jobConfig" aria-controls="jobConfig" role="tab" data-toggle="tab">Configuration</a></li>
             <li {{action 'getJobDefinition'}} role="presentation"><a href="#jobDefinition" aria-controls="jobDefinition" role="tab" data-toggle="tab">Definition</a></li>
             <li role="presentation" class="pull-right">
-				<button type="button" class="btn btn-success" title="Edit Workflow" {{action "editWorkflow" model.appPath}}>
-				   Edit Workflow
-				</button>
+              <a class="pointer action-link" href="#" title="Edit Workflow" {{action "editWorkflow" model.appPath}}>
+                Edit Workflow
+              </a>
             </li>
           </ul>
 

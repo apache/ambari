@@ -719,11 +719,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showingErrorMsgInDesigner(data){
       var self = this, stackTraceMsg = self.getStackTrace(data.responseText);
       if(stackTraceMsg.length){
-        self.set("isStackTraceVisible", true);
         self.set("stackTrace", stackTraceMsg);
         self.set("isStackTraceAvailable", true);
       } else {
-        self.set("isStackTraceVisible", false);
         self.set("isStackTraceAvailable", false);
       }
   },
