@@ -710,9 +710,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             putHiveInteractiveSiteProperty("hive.server2.tez.default.queues", hive_tez_default_queue)
             Logger.debug("Updated 'hive.server2.tez.default.queues' config : '{0}'".format(hive_tez_default_queue))
     else:
-      Logger.info("DBG: Setting visibility for num_llap_nodes to false")
+      Logger.info("DBG: Setting 'num_llap_nodes' config's  READ ONLY attribute as 'True'.")
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
-      putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "visible", "false")
+      putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "read_only", "true")
 
     if hsi_properties and "hive.llap.zk.sm.connectionString" in hsi_properties:
       zookeeper_host_port = self.getZKHostPortString(services)
@@ -831,14 +831,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if (len(leafQueueNames) == 2 and (llap_daemon_selected_queue_name and llap_daemon_selected_queue_name == llap_queue_name) or
         llap_named_queue_selected_in_curr_invocation) or \
         (len(leafQueueNames) == 1 and llap_daemon_selected_queue_name == 'default' and llap_named_queue_selected_in_curr_invocation):
-          Logger.info("Setting visibility of num_llap_nodes to true.")
-          putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "visible", "true")
+          Logger.info("DBG: Setting 'num_llap_nodes' config's  READ ONLY attribute as 'False'.")
+          putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "read_only", "false")
           selected_queue_is_ambari_managed_llap = True
           Logger.info("DBG: Selected YARN queue for LLAP is : '{0}'. Current YARN queues : {1}. Setting 'Number of LLAP nodes' "
                         "slider visibility to 'True'".format(llap_queue_name, list(leafQueueNames)))
       else:
-        Logger.info("Setting visibility of num_llap_nodes to false.")
-        putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "visible", "false")
+        Logger.info("DBG: Setting 'num_llap_nodes' config's  READ ONLY attribute as 'True'.")
+        putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "read_only", "true")
         Logger.info("Selected YARN queue for LLAP is : '{0}'. Current YARN queues : {1}. Setting 'Number of LLAP nodes' "
                      "visibility to 'False'.".format(llap_daemon_selected_queue_name, list(leafQueueNames)))
         selected_queue_is_ambari_managed_llap = False
