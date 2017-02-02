@@ -17,25 +17,12 @@
  */
 
 import Ember from 'ember';
-import tabs from '../configs/top-level-tabs';
 
 export default Ember.Route.extend({
-  keepAlive: Ember.inject.service('keep-alive'),
   serviceCheck: Ember.inject.service(),
-  init: function () {
-    this._super(...arguments);
-    this.get('keepAlive').initialize();
-  },
-
   beforeModel() {
-    if (!this.get('serviceCheck.checkCompleted')) {
-      this.transitionTo('service-check');
+    if (this.get('serviceCheck.checkCompleted')) {
+      this.transitionTo('application');
     }
-  },
-
-  setupController: function (controller, model) {
-    this._super(controller, model);
-    controller.set('tabs', tabs);
   }
-
 });
