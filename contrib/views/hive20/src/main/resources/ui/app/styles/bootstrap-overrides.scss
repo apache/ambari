@@ -35,10 +35,14 @@ $nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
 
 .nav-tabs {
   &.inverse {
-    li.active {
+    li {
        a {
-         background-color: $gray-dark;
-         color: #fff;
+         &.active {
+           background-color: $gray-dark;
+           color: #fff;
+           border: 1px solid darken($body-bg, 15%);
+           border-bottom: none;
+         }
        }
     }
   }
@@ -46,6 +50,11 @@ $nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
     a {
       font-weight: bold;
       color: darken($body-bg, 50%);
+      &.active {
+        background-color: #fff;
+        border: 1px solid darken($body-bg, 15%);
+        border-bottom: none;
+      }
     }
   }
 }
