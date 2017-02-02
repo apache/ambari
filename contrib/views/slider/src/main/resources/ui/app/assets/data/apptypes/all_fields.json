@@ -576,7 +576,7 @@
         "site.storm-site.storm.local.mode.zmq" : "false",
         "site.storm-site.storm.messaging.netty.buffer_size" : "5242880",
         "site.storm-site.storm.messaging.netty.client_worker_threads" : "1",
-        "site.storm-site.storm.messaging.netty.max_retries" : "30",
+        "site.storm-site.storm.messaging.netty.max_retries" : "300",
         "site.storm-site.storm.messaging.netty.max_wait_ms" : "1000",
         "site.storm-site.storm.messaging.netty.min_wait_ms" : "100",
         "site.storm-site.storm.messaging.netty.server_worker_threads" : "1",

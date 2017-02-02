@@ -222,7 +222,7 @@
             "drpc.port": "3772",
             "topology.kryo.factory": "backtype.storm.serialization.DefaultKryoFactory",
             "storm.zookeeper.retry.interval": "1000",
-            "storm.messaging.netty.max_retries": "30",
+            "storm.messaging.netty.max_retries": "300",
             "topology.tick.tuple.freq.secs": "null",
             "supervisor.enable": "true",
             "nimbus.task.launch.secs": "120",

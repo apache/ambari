@@ -13755,7 +13755,7 @@
             "property_description" : "Netty based messaging: The max # of retries that a peer will perform when a remote is not accessible.",
             "property_name" : "storm.messaging.netty.max_retries",
             "property_type" : [ ],
-            "property_value" : "30",
+            "property_value" : "300",
             "service_name" : "STORM",
             "stack_name" : "HDP",
             "stack_version" : "2.2",

@@ -354,7 +354,7 @@
       "StackConfigurations" : {
         "property_description" : "",
         "property_name" : "storm.messaging.netty.max_retries",
-        "property_value" : "30",
+        "property_value" : "300",
         "service_name" : "STORM",
         "stack_name" : "HDP",
         "stack_version" : "2.0.8",
