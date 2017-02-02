@@ -1790,6 +1790,7 @@ Em.I18n.translations = {
     "Click on <b>Finalize</b> when you are ready to finalize the downgrade and commit to the new version." +
     " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
     " <b>You cannot go back to the original version once the downgrade is finalized.</b>",
+  'admin.stackUpgrade.finalize.message.autoStart': "Please remember to re-enable Auto Start if you disabled it for upgrade.",
   'admin.stackUpgrade.finalize.message.skippedServiceChecks': "During the upgrade, checks for the following services failed and were skipped:",
   'admin.stackUpgrade.finalize.message.testServices': "You are strongly recommended to test these services before finalizing upgrade.",
   'admin.stackUpgrade.failedHosts.message': "Upgrade did not succeed on",
