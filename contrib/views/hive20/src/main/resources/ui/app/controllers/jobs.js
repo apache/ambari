@@ -26,12 +26,13 @@ export default Ember.Controller.extend({
 
 
   startTimeText: Ember.computed('startTime', function() {
-    return this.get('moment').moment(this.get('startTime')).format('YYYY-MM-DD');
+    let st = typeof(this.get('startTime')) === 'string' ? parseInt(this.get('startTime')) : this.get('startTime');
+    return this.get('moment').moment(st).format('YYYY-MM-DD');
   }),
 
   endTimeText: Ember.computed('endTime', function() {
-    return this.get('moment').moment(this.get('endTime')).format('YYYY-MM-DD');
+    let et = typeof(this.get('endTime')) === 'string' ? parseInt(this.get('endTime')) : this.get('endTime');
+    return this.get('moment').moment(et).format('YYYY-MM-DD');
   })
-
 
 });
