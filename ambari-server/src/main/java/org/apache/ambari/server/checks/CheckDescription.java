@@ -313,6 +313,13 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "Storm does not support rolling upgrades on this version of the stack. If you proceed, you will be required to stop all running topologies before Storm is restarted.").build());
 
+  public static CheckDescription AUTO_START_DISABLED = new CheckDescription("AUTO_START_DISABLED",
+    PrereqCheckType.CLUSTER,
+    "Auto-Start Disabled Check",
+    new ImmutableMap.Builder<String, String>()
+      .put(AbstractCheckDescriptor.DEFAULT,
+        "Auto-Start must be disabled before performing an Upgrade").build());
+
 
   private String m_name;
   private PrereqCheckType m_type;
