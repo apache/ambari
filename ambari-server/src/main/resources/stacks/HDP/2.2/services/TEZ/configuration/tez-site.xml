@@ -58,6 +58,7 @@
     </description>
     <value-attributes>
       <type>int</type>
+      <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -101,6 +102,10 @@
         <name>yarn.scheduler.maximum-allocation-mb</name>
       </property>
     </depends-on>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -133,6 +138,9 @@
     <description>In case of a ScatterGather connection, the fraction of source tasks which should
       complete before tasks for the current vertex are schedule
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -142,12 +150,19 @@
       completed, all tasks on the current vertex can be scheduled. Number of tasks ready for
       scheduling on the current vertex scales linearly between min-fraction and max-fraction
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
     <value>250</value>
     <description>The maximum heartbeat interval between the AM and RM in milliseconds</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -157,6 +172,9 @@
       a Vertex. 1.7 with 100% queue available implies generating a number of tasks roughly equal
       to 170% of the available containers on the queue
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -165,6 +183,10 @@
     <description>Lower bound on the size (in bytes) of a grouped split, to avoid generating
       too many splits
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -173,6 +195,10 @@
     <description>Upper bound on the size (in bytes) of a grouped split, to avoid generating
       excessively large split
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -199,12 +225,20 @@
     <name>tez.am.container.idle.release-timeout-min.millis</name>
     <value>10000</value>
     <description>The minimum amount of time to hold on to a container that is idle. Only active when reuse is enabled.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.am.container.idle.release-timeout-max.millis</name>
     <value>20000</value>
     <description>The maximum amount of time to hold on to a container if no task can be assigned to it immediately. Only active when reuse is enabled.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -213,6 +247,10 @@
     <description>The amount of time to wait before assigning a container to the next level of
       locality. NODE -&gt; RACK -&gt; NON_LOCAL
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -227,12 +265,19 @@
     <description>The maximum number of allowed task attempt failures on a node before
       it gets marked as blacklisted
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.task.am.heartbeat.counter.interval-ms.max</name>
     <value>4000</value>
     <description>Time interval at which task counters are sent to the AM</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -241,12 +286,19 @@
     <description>The maximum amount of time, in seconds, to wait before a task asks an AM for
       another task
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.task.max-events-per-heartbeat</name>
     <value>500</value>
     <description>Maximum number of of events to fetch from the AM by the tasks in a single heartbeat.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -255,6 +307,10 @@
     <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
       the client
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -263,18 +319,28 @@
     <description>Time (in seconds) for which the Tez AM should wait for a DAG to be submitted
       before shutting down
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.counters.max</name>
     <value>5000</value>
     <description>The number of allowed counters for the executing DAG</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.counters.max.groups</name>
     <value>1000</value>
     <description>The number of allowed counter groups for the executing DAG</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- Configuration for runtime components -->
@@ -284,6 +350,9 @@
     <name>tez.runtime.compress</name>
     <value>true</value>
     <description>Whether intermediate data should be compressed or not</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -304,6 +373,10 @@
         <name>tez.task.resource.memory.mb</name>
       </property>
     </depends-on>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -316,6 +389,10 @@
         <name>tez.task.resource.memory.mb</name>
       </property>
     </depends-on>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -331,12 +408,18 @@
     <name>tez.runtime.convert.user-payload.to.history-text</name>
     <value>false</value>
     <description>Whether to publish configuration information to History logger</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.use.cluster.hadoop-libs</name>
     <value>false</value>
     <description>This being true implies that the deployment is relying on hadoop jars being available on the cluster on all nodes.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

@@ -22,6 +22,9 @@
     <value>0.6</value>
     <description>Fraction (0-1) of the available memory which can be used to
       retain shuffled data</description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -30,6 +33,9 @@
     <description>This property determines the maximum size of a shuffle segment
       which can be fetched to memory. Fraction (0-1) of shuffle memory
       (after applying tez.runtime.shuffle.fetch.buffer.percent)</description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

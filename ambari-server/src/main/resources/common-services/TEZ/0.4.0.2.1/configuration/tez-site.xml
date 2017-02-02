@@ -41,6 +41,7 @@
     <description>The amount of memory to be used by the AppMaster</description>
     <value-attributes>
       <type>int</type>
+      <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -57,6 +58,9 @@
     <description>In case of a ScatterGather connection, the fraction of source tasks which should
       complete before tasks for the current vertex are schedule
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -72,6 +76,10 @@
     <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
     <value>250</value>
     <description>The maximum heartbeat interval between the AM and RM in milliseconds</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -94,6 +102,7 @@
     </description>
     <value-attributes>
       <type>int</type>
+      <unit>Bytes</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -105,6 +114,7 @@
     </description>
     <value-attributes>
       <type>int</type>
+      <unit>Bytes</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -136,6 +146,10 @@
       it immediately. Only active when reuse is enabled. Set to -1 to never release a container
       in a session
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -149,9 +163,13 @@
   <property>
     <name>tez.task.get-task.sleep.interval-ms.max</name>
     <value>200</value>
-    <description>The maximum amount of time, in seconds, to wait before a task asks an AM for
+    <description>The maximum amount of time, in milliseconds, to wait before a task asks an AM for
       another task
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -170,6 +188,10 @@
     <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
       the client
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -229,6 +251,9 @@
     <name>tez.yarn.ats.enabled</name>
     <value>true</value>
     <description>Whether to send history events to YARN Application Timeline Server</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
