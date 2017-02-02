@@ -15,7 +15,7 @@
             "local_username" : "${spark2-env/spark_user}"
           },
           "keytab": {
-            "file": "${keytab_dir}/spark.headless.keytab",
+            "file": "${keytab_dir}/spark2.headless.keytab",
             "owner": {
               "name": "${spark2-env/spark_user}",
               "access": "r"
@@ -96,7 +96,7 @@
                 "local_username": "${livy2-env/livy2_user}"
               },
               "keytab": {
-                "file": "${keytab_dir}/livy.service.keytab",
+                "file": "${keytab_dir}/livy2.service.keytab",
                 "owner": {
                   "name": "${livy2-env/livy2_user}",
                   "access": "r"
