@@ -17,20 +17,8 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.configuration.Configuration;
@@ -46,8 +34,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -161,7 +160,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
-    updateTEZInteractiveConfigs();
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
     updateZeppelinConfigs();
@@ -671,32 +669,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                 LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
               }
             }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Updates Tez for Hive2 Interactive's config in tez-interactive-site.
-   *
-   * @throws AmbariException
-   */
-  protected void updateTEZInteractiveConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Config tezInteractiveSite = cluster.getDesiredConfigByType("tez-interactive-site");
-          if (tezInteractiveSite != null) {
-
-            updateConfigurationProperties("tez-interactive-site", Collections.singletonMap("tez.runtime.io.sort.mb", "512"), true, true);
-
-            updateConfigurationProperties("tez-interactive-site", Collections.singletonMap("tez.runtime.unordered.output.buffer.size-mb",
-                "100"), true, true);
           }
         }
       }
