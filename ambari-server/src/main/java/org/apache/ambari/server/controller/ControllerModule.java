@@ -215,14 +215,6 @@ public class ControllerModule extends AbstractModule {
     DatabaseType databaseType = configuration.getDatabaseType();
     LOG.info("Detected {} as the database type from the JDBC URL", databaseType);
 
-    // custom jdbc driver properties
-    Properties customDatabaseDriverProperties = configuration.getDatabaseCustomProperties();
-    properties.putAll(customDatabaseDriverProperties);
-
-    // custom persistence properties
-    Properties customPersistenceProperties = configuration.getPersistenceCustomProperties();
-    properties.putAll(customPersistenceProperties);
-
     switch (configuration.getPersistenceType()) {
       case IN_MEMORY:
         properties.setProperty(JDBC_URL, Configuration.JDBC_IN_MEMORY_URL);
@@ -230,7 +222,6 @@ public class ControllerModule extends AbstractModule {
         properties.setProperty(JDBC_USER, Configuration.JDBC_IN_MEMORY_USER);
         properties.setProperty(JDBC_PASSWORD, Configuration.JDBC_IN_MEMORY_PASSWORD);
         properties.setProperty(DDL_GENERATION, CREATE_ONLY);
-        properties.setProperty(DDL_GENERATION_MODE, DDL_BOTH_GENERATION);
         properties.setProperty(THROW_EXCEPTIONS, "true");
       case REMOTE:
         properties.setProperty(JDBC_URL, configuration.getDatabaseUrl());
@@ -241,6 +232,15 @@ public class ControllerModule extends AbstractModule {
         properties.setProperty(JDBC_DRIVER, Configuration.SERVER_JDBC_DRIVER.getDefaultValue());
         break;
     }
+
+    //allow to override values above
+    // custom jdbc driver properties
+    Properties customDatabaseDriverProperties = configuration.getDatabaseCustomProperties();
+    properties.putAll(customDatabaseDriverProperties);
+
+    // custom persistence properties
+    Properties customPersistenceProperties = configuration.getPersistenceCustomProperties();
+    properties.putAll(customPersistenceProperties);
 
     // determine the type of pool to use
     boolean isConnectionPoolingExternal = false;

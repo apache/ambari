@@ -112,6 +112,7 @@ public class AlertDataManagerTest {
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.getInstance(UnitOfWork.class).begin();
 

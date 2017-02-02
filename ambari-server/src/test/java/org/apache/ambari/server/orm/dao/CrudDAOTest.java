@@ -54,10 +54,11 @@ public class CrudDAOTest {
   @Before
   public void before() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    stackDAO = injector.getInstance(StackDAO.class);
-    repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
+
+    stackDAO = injector.getInstance(StackDAO.class);
+    repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
 
     // required to populate stacks into the database
     injector.getInstance(AmbariMetaInfo.class);
