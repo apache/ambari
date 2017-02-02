@@ -695,9 +695,14 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }, 1000);
   },
   openSaveWorkflow() {
+    if(Ember.isBlank(this.$('[name=wf_title]').val())) {
+      this.set('errors',[{"message":"Workflow name is mandatory"}]);
+      return;
+    }
     var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
     var workflowXml = workflowGenerator.process();
     var workflowJson = this.getWorkflowAsJson();
+    this.set('errors', []);
     var isDraft = this.get('workflowContext').hasErrors()? true: false;
     this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
     this.set("showingSaveWorkflow",true);

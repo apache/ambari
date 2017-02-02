@@ -147,7 +147,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     if(Ember.isBlank(this.get('coordinator.name'))){
       this.set('coordinator.name', Ember.copy(this.get('tabInfo.name')));
     }
-    this.schedulePersistWorkInProgress();    
+    this.schedulePersistWorkInProgress();
   },
   coordinatorFilePath : Ember.computed('tabInfo.filePath', function(){
     return this.get('tabInfo.filePath');
@@ -344,12 +344,12 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.set('inputLogicEnabled', true);
     }
   },
-  validateChildComponents(){
+  validateChildComponents(showErrorMessage){
     var isChildComponentsValid = true;
     this.get('childComponents').forEach((context)=>{
       if(context.get('validations') && context.get('validations.isInvalid')){
         isChildComponentsValid =  false;
-        context.set('showErrorMessage', true);
+        context.set('showErrorMessage', showErrorMessage);
       }
     }.bind(this));
     return isChildComponentsValid;
@@ -457,7 +457,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.send('submit');
     },
     submit(){
-      var isChildComponentsValid = this.validateChildComponents();
+      var isChildComponentsValid = this.validateChildComponents(true);
       if(this.get('validations.isInvalid') || !isChildComponentsValid) {
         this.set('showErrorMessage', true);
         return;
@@ -539,7 +539,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.set('inputLogicExists', false);
     },
     preview(){
-      var isChildComponentsValid = this.validateChildComponents();
+      var isChildComponentsValid = this.validateChildComponents(true);
       if(this.get('validations.isInvalid') || !isChildComponentsValid) {
         this.set('showErrorMessage', true);
         return;
@@ -637,10 +637,13 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       this.set('showVersionSettings', value);
     },
     save(){
+      if (Ember.isBlank(this.$('[name=coord_title]').val())) {
+        return;
+      }
       var isDraft = false, coordinatorXml;
-      var isChildComponentsValid = this.validateChildComponents();
+      var isChildComponentsValid = this.validateChildComponents(false);
       if(this.get('validations.isInvalid') || !isChildComponentsValid) {
-       isDraft = true;
+        isDraft = true;
       }else{
         var coordGenerator = CoordinatorGenerator.create({coordinator:this.get("coordinator")});
         coordinatorXml = coordGenerator.process();
