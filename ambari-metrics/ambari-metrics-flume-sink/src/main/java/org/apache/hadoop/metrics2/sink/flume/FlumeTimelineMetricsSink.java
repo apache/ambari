@@ -107,13 +107,14 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     // Initialize the collector write strategy
     super.init();
 
-    collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
     if (protocol.contains("https")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
       loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
     }
+    collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
+
     pollFrequency = Long.parseLong(configuration.getProperty("collectionFrequency"));
 
     String[] metrics = configuration.getProperty(COUNTER_METRICS_PROPERTY).trim().split(",");

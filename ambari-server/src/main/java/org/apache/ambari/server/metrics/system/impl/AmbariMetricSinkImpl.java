@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceConfigVersionResourceProvider;
@@ -156,6 +157,15 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
 
     hostName = configuration.getProperty("ambariserver.hostname.override", getDefaultLocalHostName());
     LOG.info("Hostname used for ambari server metrics : " + hostName);
+
+    if (protocol.contains("https")) {
+      ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
+      String trustStorePath = sslConfiguration.getTruststorePath();
+      String trustStoreType = sslConfiguration.getTruststoreType();
+      String trustStorePwd = sslConfiguration.getTruststorePassword();
+      loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
+    }
+
     collectorUri = getCollectorUri(findPreferredCollectHost());
 
     int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,

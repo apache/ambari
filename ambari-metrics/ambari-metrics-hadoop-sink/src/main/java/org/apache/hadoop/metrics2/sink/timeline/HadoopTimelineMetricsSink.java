@@ -107,15 +107,15 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     if (collectorHosts.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
-      String preferredCollectorHost = findPreferredCollectHost();
-      collectorUri = constructTimelineMetricUri(protocol, preferredCollectorHost, port);
-      containerMetricsUri = constructContainerMetricUri(protocol, preferredCollectorHost, port);
       if (protocol.contains("https")) {
         String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
         String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
         String trustStorePwd = conf.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
         loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
       }
+      String preferredCollectorHost = findPreferredCollectHost();
+      collectorUri = constructTimelineMetricUri(protocol, preferredCollectorHost, port);
+      containerMetricsUri = constructContainerMetricUri(protocol, preferredCollectorHost, port);
     }
 
     LOG.info("Collector Uri: " + collectorUri);

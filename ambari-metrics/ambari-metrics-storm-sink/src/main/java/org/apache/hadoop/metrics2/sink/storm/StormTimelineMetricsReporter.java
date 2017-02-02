@@ -42,7 +42,6 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "nimbus";
 
   private String hostname;
-  private String collectorUri;
   private String applicationId;
   private int timeoutSeconds;
   private String port;
@@ -117,9 +116,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = conf.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
 
-      collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
-
-      if (collectorUri.toLowerCase().startsWith("https://")) {
+      if (protocol.contains("https")) {
         String trustStorePath = conf.getProperty(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
         String trustStoreType = conf.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
         String trustStorePwd = conf.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
