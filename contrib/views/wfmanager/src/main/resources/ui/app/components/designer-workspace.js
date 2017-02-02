@@ -169,8 +169,9 @@ export default Ember.Component.extend({
   generateTabId(){
     return 'tab-'+ Math.ceil(Math.random() * 100000);
   },
-  recentFilesSorted: Ember.computed.sort("recentFiles", "['updatedAt:desc']"),
-  projList:Ember.computed("recentFilesSorted", function() {
+  sortProp: ['updatedAt:desc'],
+  recentFilesSorted: Ember.computed.sort("recentFiles", "sortProp"),
+  projList: Ember.computed("recentFilesSorted", function() {
      return this.get("recentFilesSorted").slice(0, 10);
   }),
   actions : {
