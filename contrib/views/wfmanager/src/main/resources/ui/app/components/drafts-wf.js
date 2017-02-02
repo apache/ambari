@@ -23,6 +23,7 @@ export default Ember.Component.extend({
   "isBundle": true,
   "isCoordinator": true,
   "isWorkflow": true,
+  "sortProp": ['updatedAt:desc'],
   "filteredModels": Ember.computed("model", "search", "isBundle", "isCoordinator", "isWorkflow", function(){
 	Ember.run.later(()=>{
       this.$('.actions').hide();
@@ -61,7 +62,7 @@ export default Ember.Component.extend({
 	  return eval(condition);
 	});
   }),
-  modelSorted : Ember.computed.sort("filteredModels", "['updatedAt:desc']"),
+  modelSorted : Ember.computed.sort("filteredModels", "sortProp"),
   "isDeleteDraftConformation": false,
   "currentDraft": undefined,
   "deleteInProgress": false,
