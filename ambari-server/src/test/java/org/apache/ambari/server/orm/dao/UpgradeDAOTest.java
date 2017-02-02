@@ -80,7 +80,7 @@ public class UpgradeDAOTest {
 
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
-    entity.setClusterId(Long.valueOf(1));
+    entity.setClusterId(clusterId.longValue());
     entity.setRequestId(Long.valueOf(1));
     entity.setFromVersion("");
     entity.setToVersion("");
@@ -150,14 +150,14 @@ public class UpgradeDAOTest {
     // create upgrade entities
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
-    requestEntity.setClusterId(1L);
+    requestEntity.setClusterId(clusterId.longValue());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<StageEntity>());
     requestDAO.create(requestEntity);
 
     UpgradeEntity entity1 = new UpgradeEntity();
     entity1.setId(11L);
-    entity1.setClusterId(1L);
+    entity1.setClusterId(clusterId.longValue());
     entity1.setDirection(Direction.UPGRADE);
     entity1.setRequestId(1L);
     entity1.setFromVersion("2.2.0.0-1234");
@@ -168,7 +168,7 @@ public class UpgradeDAOTest {
     dao.create(entity1);
     UpgradeEntity entity2 = new UpgradeEntity();
     entity2.setId(22L);
-    entity2.setClusterId(1L);
+    entity2.setClusterId(clusterId.longValue());
     entity2.setDirection(Direction.DOWNGRADE);
     entity2.setRequestId(1L);
     entity2.setFromVersion("2.3.0.0-4567");
@@ -179,7 +179,7 @@ public class UpgradeDAOTest {
     dao.create(entity2);
     UpgradeEntity entity3 = new UpgradeEntity();
     entity3.setId(33L);
-    entity3.setClusterId(1L);
+    entity3.setClusterId(clusterId.longValue());
     entity3.setDirection(Direction.UPGRADE);
     entity3.setRequestId(1L);
     entity3.setFromVersion("2.2.0.0-1234");
@@ -188,7 +188,7 @@ public class UpgradeDAOTest {
     entity3.setUpgradePackage("test-upgrade");
     entity3.setDowngradeAllowed(true);
     dao.create(entity3);
-    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1, Direction.UPGRADE);
+    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(clusterId.longValue(), Direction.UPGRADE);
     assertNotNull(lastUpgradeForCluster);
     assertEquals(33L, (long)lastUpgradeForCluster.getId());
   }
@@ -202,14 +202,14 @@ public class UpgradeDAOTest {
   public void testUpdatableColumns() throws Exception {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(1L);
-    requestEntity.setClusterId(1L);
+    requestEntity.setClusterId(clusterId.longValue());
     requestEntity.setStatus(HostRoleStatus.PENDING);
     requestEntity.setStages(new ArrayList<StageEntity>());
     requestDAO.create(requestEntity);
 
     UpgradeEntity upgradeEntity = new UpgradeEntity();
     upgradeEntity.setId(11L);
-    upgradeEntity.setClusterId(1L);
+    upgradeEntity.setClusterId(clusterId.longValue());
     upgradeEntity.setDirection(Direction.UPGRADE);
     upgradeEntity.setRequestId(1L);
     upgradeEntity.setFromVersion("2.2.0.0-1234");

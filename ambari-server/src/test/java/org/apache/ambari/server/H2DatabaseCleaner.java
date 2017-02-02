@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -39,13 +40,69 @@ import javax.persistence.metamodel.EntityType;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 public class H2DatabaseCleaner {
-  private static final String SEQ_INSERT_PREFIX = "INSERT INTO ambari_sequences";
-  private static List<String> seqInsertStatements;
+  private static final String SEQ_STATEMENT =
+      "INSERT INTO ambari_sequences(sequence_name, sequence_value) values (?, 0);";
+  private static List<String> sequenceList = new ArrayList<>();
+
+  static {
+        sequenceList.add("extension_id_seq");
+        sequenceList.add("resource_id_seq");
+        sequenceList.add("alert_target_id_seq");
+        sequenceList.add("topology_request_id_seq");
+        sequenceList.add("setting_id_seq");
+        sequenceList.add("principal_type_id_seq");
+        sequenceList.add("group_id_seq");
+        sequenceList.add("remote_cluster_id_seq");
+        sequenceList.add("privilege_id_seq");
+        sequenceList.add("servicecomponent_history_id_seq");
+        sequenceList.add("permission_id_seq");
+        sequenceList.add("principal_id_seq");
+        sequenceList.add("repo_version_id_seq");
+        sequenceList.add("cluster_version_id_seq");
+        sequenceList.add("topology_host_task_id_seq");
+        sequenceList.add("topology_logical_task_id_seq");
+        sequenceList.add("host_id_seq");
+        sequenceList.add("servicecomponentdesiredstate_id_seq");
+        sequenceList.add("configgroup_id_seq");
+        sequenceList.add("topology_host_group_id_seq");
+        sequenceList.add("upgrade_item_id_seq");
+        sequenceList.add("requestschedule_id_seq");
+        sequenceList.add("blueprint_setting_id_seq");
+        sequenceList.add("host_version_id_seq");
+        sequenceList.add("hostcomponentstate_id_seq");
+        sequenceList.add("cluster_id_seq");
+        sequenceList.add("view_instance_id_seq");
+        sequenceList.add("resourcefilter_id_seq");
+        sequenceList.add("alert_group_id_seq");
+        sequenceList.add("link_id_seq");
+        sequenceList.add("topology_host_info_id_seq");
+        sequenceList.add("viewentity_id_seq");
+        sequenceList.add("alert_notice_id_seq");
+        sequenceList.add("user_id_seq");
+        sequenceList.add("upgrade_id_seq");
+        sequenceList.add("stack_id_seq");
+        sequenceList.add("alert_current_id_seq");
+        sequenceList.add("widget_id_seq");
+        sequenceList.add("remote_cluster_service_id_seq");
+        sequenceList.add("alert_history_id_seq");
+        sequenceList.add("config_id_seq");
+        sequenceList.add("upgrade_group_id_seq");
+        sequenceList.add("member_id_seq");
+        sequenceList.add("service_config_id_seq");
+        sequenceList.add("widget_layout_id_seq");
+        sequenceList.add("hostcomponentdesiredstate_id_seq");
+        sequenceList.add("operation_level_id_seq");
+        sequenceList.add("servicecomponent_version_id_seq");
+        sequenceList.add("host_role_command_id_seq");
+        sequenceList.add("alert_definition_id_seq");
+        sequenceList.add("resource_type_id_seq");
+  }
 
   public static void clearDatabaseAndStopPersistenceService(Injector injector) throws AmbariException, SQLException {
     clearDatabase(injector.getProvider(EntityManager.class).get());
@@ -57,34 +114,20 @@ public class H2DatabaseCleaner {
       Configuration.JDBC_IN_MEMORY_USER, Configuration.JDBC_IN_MEMORY_PASSWORD);
   }
 
-  private static List<String> collectSequenceInserts() {
-    try {
-      ArrayList<String> statementList = new ArrayList<>();
-      for (String s : Files.readAllLines(Paths.get(DEFAULT_CREATE_JDBC_FILE_NAME), Charset.defaultCharset())) {
-        if (s.startsWith(SEQ_INSERT_PREFIX)) {
-          statementList.add(s);
-        }
-      }
-      return statementList;
-    } catch (IOException e) {
-      return Collections.emptyList();
-    }
-  }
-
   //TODO all tests this method is used in should be modified to remove hardcoded IDs
   public static void resetSequences(Injector injector) {
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
     try {
       if (dbAccessor.tableExists("ambari_sequences")) {
-        if (seqInsertStatements == null) {
-          seqInsertStatements = collectSequenceInserts();
-        }
-        if (!CollectionUtils.isEmpty(seqInsertStatements)) {
-          dbAccessor.truncateTable("ambari_sequences");
-
-          for (String insert : seqInsertStatements) {
-            dbAccessor.executeUpdate(insert);
+        dbAccessor.truncateTable("ambari_sequences");
+        PreparedStatement preparedStatement = dbAccessor.getConnection().prepareStatement(SEQ_STATEMENT);
+        try {
+          for (String sequenceName : sequenceList) {
+            preparedStatement.setString(1, sequenceName);
+            preparedStatement.executeUpdate();
           }
+        } finally {
+          preparedStatement.close();
         }
 
       }
