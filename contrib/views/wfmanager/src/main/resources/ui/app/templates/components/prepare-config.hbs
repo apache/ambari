@@ -29,7 +29,7 @@
         <div class="input-group">
           {{input type="text" class="form-control" value=prep.path placeholder="path of the directory"}}
           <span class="input-group-btn">
-            <button class="btn btn-primary" type="button" {{action "openFileBrowser" index}}>Browse</button>
+            <button class="btn btn-secondary" type="button" {{action "openFileBrowser" index}}>Browse</button>
           </span>
         </div>
       </div>
@@ -54,12 +54,12 @@
       <div class="input-group">
         {{input type="text" class="form-control" value=preparePath placeholder="path of the directory"}}
         <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser"}}>Browse</button>
+          <button class="btn btn-secondary" type="button" {{action "openFileBrowser"}}>Browse</button>
         </span>
       </div>
     </div>
     <div class="col-xs-1">
-      <input class="form-control  btn btn-success" type="button" {{action "addPrepare"}} value="+">
+      <input class="form-control  btn btn-secondary" type="button" {{action "addPrepare"}} value="+">
     </div>
   </div>
 </div>

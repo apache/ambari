@@ -96,8 +96,12 @@
       </thead>
       <tbody>
         {{#each model.actions as |actionInfo|}}
-        <tr {{action 'showWorkflow' actionInfo.externalId}} class="{{if (eq actionInfo model.actionDetails) "active"}}">
-          <td class="pointer">{{actionInfo.id}}</td>
+        <tr class="{{if (eq actionInfo model.actionDetails) "active"}}">
+          {{#if actionInfo.externalId}}
+            <td class="pointer action-link" {{action 'showWorkflow' actionInfo.externalId}}>{{actionInfo.id}}</td>
+          {{else}}
+            <td>{{actionInfo.id}}</td>
+          {{/if}}
           <td>{{actionInfo.status}}</td>
           <td>{{actionInfo.externalId}}</td>
           <td>{{actionInfo.errorCode}}</td>
@@ -121,7 +125,7 @@
   <div role="tabpanel" class="tab-pane" id="jobConfig">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <table class="table table-striped configuration-property-table">
+        <table class="table table-striped configuration-property-table listing">
           <thead>
             <tr>
               <th class="propertyName">Name</th>

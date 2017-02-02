@@ -24,7 +24,7 @@
         <div class="input-group">
           {{input type="text" class="form-control" validations="required" name="appPath" value=actionModel.appPath placeholder="app path"}}
           <span class="input-group-btn">
-            <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.appPath"}}>Browse</button>
+            <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "actionModel.appPath"}}>Browse</button>
           </span>
         </div>
         {{field-error model=this field='actionModel.appPath' showErrorMessage=showErrorMessage}}

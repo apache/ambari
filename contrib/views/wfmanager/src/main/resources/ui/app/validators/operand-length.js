@@ -25,7 +25,7 @@ const OperandLength = BaseValidator.extend({
       if(options.message){
         return options.message;
       }
-      return "Atleast two inputs are required";
+      return "At least two inputs are required";
     }
   }
 });

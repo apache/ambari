@@ -330,18 +330,22 @@ export default Ember.Component.extend({
       },
       doRefresh : function(){
         var tab = this.$(this.get('currentTab')).prop('href');
-        var currentTabHref = tab.substr(tab.indexOf('#')+1);
-        if(currentTabHref === 'jobLog'){
-          this.send('getJobLog', this.get('logParams'));
-        }else if(currentTabHref === 'jobErrorLog'){
-          this.send('getErrorLog');
-        }else if(currentTabHref === 'jobAuditLog'){
-          this.send('getAuditLog');
-        }else if(currentTabHref === 'jobDag'){
-          this.send('getJobDag');
-        }else if(currentTabHref === 'coordActionReruns'){
-          this.send('getCoordActionReruns');
-        }else{
+        if (tab) {
+          var currentTabHref = tab.substr(tab.indexOf('#')+1);
+          if(currentTabHref === 'jobLog'){
+            this.send('getJobLog', this.get('logParams'));
+          }else if(currentTabHref === 'jobErrorLog'){
+            this.send('getErrorLog');
+          }else if(currentTabHref === 'jobAuditLog'){
+            this.send('getAuditLog');
+          }else if(currentTabHref === 'jobDag'){
+            this.send('getJobDag');
+          }else if(currentTabHref === 'coordActionReruns'){
+            this.send('getCoordActionReruns');
+          }else{
+            this.sendAction('doRefresh');
+          }
+        } else {
           this.sendAction('doRefresh');
         }
       },

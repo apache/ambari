@@ -24,10 +24,10 @@
   <div class="col-xs-7">
     <div class="input-group">
       <div class="input-group-btn">
-        <button onclick={{action (mut dateField.type) "date"}} type="button" class="btn btn-default {{if (eq dateField.type 'date') 'btn-primary' ''}} scope-btn">
+        <button onclick={{action (mut dateField.type) "date"}} type="button" class="btn btn-default {{if (eq dateField.type 'date') 'btn-secondary' ''}} scope-btn">
           Date
         </button>
-        <button onclick={{action (mut dateField.type) "expr"}} type="button" class="btn btn-default {{if (eq dateField.type 'expr') 'btn-primary' ''}} scope-btn">
+        <button onclick={{action (mut dateField.type) "expr"}} type="button" class="btn btn-default {{if (eq dateField.type 'expr') 'btn-secondary' ''}} scope-btn">
           Expression
         </button>
       </div>
