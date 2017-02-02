@@ -89,5 +89,5 @@ export default Ember.Object.create({
   elConstants : [
     '${YEAR}', '${MONTH}', '${DAY}', '${HOUR}', '${MINUTE}'
   ],
-  customActionEnabled : false
+  customActionEnabled : true
 });

@@ -268,7 +268,7 @@
         {{/if}}
       </div>
       <div id="workflow-actions" class="hidden">
-        {{workflow-actions element=popOverElement addNode="addNode" pasteNode="pasteNode" showImportActionNodeFileBrowser="showImportActionNodeFileBrowser" importActionNodeLocalFS="importActionNodeLocalFS" showAssetNodeList="showAssetNodeList" clipboard=clipboard}}
+        {{workflow-actions element=popOverElement addNode="addAction" pasteNode="pasteNode" showImportActionNodeFileBrowser="showImportActionNodeFileBrowser" importActionNodeLocalFS="importActionNodeLocalFS" showAssetNodeList="showAssetNodeList" clipboard=clipboard}}
       </div>
     </div>
   </div>
@@ -379,28 +379,3 @@
 {{#if showKillNodeManager}}
   {{#killnode-manager killNodes=workflow.killNodes killNode=killNode createKillnodeError=createKillnodeError createKillNode="createKillNode" deleteNode="deleteNode" addKillNodeMode=addKillNodeMode editMode=editMode closeKillNodeManager="closeKillNodeManager"}}{{/killnode-manager}}
 {{/if}}
-
-<div id="customTypeModal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Custom Action</h4>
-      </div>
-      <div class="modal-body">
-        <form class="form-horizontal">
-          <div class="form-group">
-            <label for="inputEmail" class="control-label col-xs-2">Type</label>
-            <div class="col-xs-7">
-              {{input type="text" class="form-control" name="job-tracker" value=customActionType placeholder="Custom Action Type"}}
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" {{action 'createCustomAction' customActionType}}>OK</button>
-      </div>
-    </div>
-  </div>
-</div>

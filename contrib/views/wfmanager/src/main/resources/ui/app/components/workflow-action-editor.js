@@ -92,7 +92,19 @@ export default Ember.Component.extend( Ember.Evented,{
       this.set('errors', Ember.A([]));
       let temp = x2js.xml_str2json(vkbeautify.xmlmin(value));
       if(temp){
-        this.set('actionModel', temp[this.get('actionType')]);
+        let tempKeys = Object.keys(temp);
+        let actionType = tempKeys && tempKeys.get('firstObject')? tempKeys.get('firstObject') : this.get('actionType');
+        if(CommonUtils.isSupportedAction(actionType)){
+          this.get('errors').pushObject({message: `Looks like you are creating "${actionType}" action. Please use the ${actionType} action editor.`});
+        }else{
+          this.set('currentNode.actionType', actionType);
+          this.set('actionType', actionType);
+        }
+        if(Ember.isBlank(temp[actionType])){
+          this.set('actionModel', {});
+        }else{
+          this.set('actionModel', temp[actionType]);
+        }
       }else{
         this.get('errors').pushObject({message:'Action Xml is syntatically incorrect'});
       }
