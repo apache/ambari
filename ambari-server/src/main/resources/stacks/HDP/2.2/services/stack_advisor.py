@@ -87,10 +87,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
     if (nodeManagerHost is not None):
-      cpuPercentageLimit = 0.8
-      if "yarn.nodemanager.resource.percentage-physical-cpu-limit" in configurations["yarn-site"]["properties"]:
-        cpuPercentageLimit = float(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"])
-      cpuLimit = max(1, int(floor(nodeManagerHost["Hosts"]["cpu_count"] * cpuPercentageLimit)))
+      cpuPercentageLimit = 80.0
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.percentage-physical-cpu-limit" in services["configurations"]["yarn-site"]["properties"]:
+        cpuPercentageLimit = float(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"])
+      cpuLimit = max(1, int(floor(nodeManagerHost["Hosts"]["cpu_count"] * (cpuPercentageLimit / 100.0))))
       putYarnProperty('yarn.nodemanager.resource.cpu-vcores', str(cpuLimit))
       putYarnProperty('yarn.scheduler.maximum-allocation-vcores', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'maximum', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb

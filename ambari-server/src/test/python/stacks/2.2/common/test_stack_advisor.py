@@ -1152,7 +1152,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test host NodeManager CPU cores and 'yarn.nodemanager.resource.percentage-physical-cpu-limit'
     hosts["items"][2]["Hosts"]["cpu_count"] = 10
-    configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
+    services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '50'
     services["changed-configurations"].append({
           "type": "yarn-site",
           "name": "yarn.nodemanager.resource.percentage-physical-cpu-limit",
@@ -1161,7 +1161,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '5'
     expected["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-vcores"] = '1'
     expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '5'
-    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '50'
     expected["yarn-site"]["property_attributes"]["yarn.nodemanager.resource.cpu-vcores"]["maximum"] = '20'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '5'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '5'
@@ -1175,7 +1175,8 @@ class TestHDP22StackAdvisor(TestCase):
         "old_value": "1280"
     }]
     services.pop("configurations", None)
-    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321'}}}
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321',
+                                                               "yarn.nodemanager.resource.percentage-physical-cpu-limit" : '50'}}}
 
     expected["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] = '4321'
     expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"] = '4321'
