@@ -307,6 +307,10 @@
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <source>${project.build.directory}/CredentialUtil.jar</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
       <source>src/main/resources/APACHE-AMBARI-MIB.txt</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
