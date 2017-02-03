@@ -40,7 +40,7 @@
             <timeout>1200</timeout>
           </commandScript>
 
-          <!-- TODO Alejandro add later after UI is fixed,
+          <!-- TODO HDP 3.0, add later after UI is fixed,
           <dependencies>
             <dependency>
               <name>TEZ/TEZ_CLIENT</name>
@@ -73,7 +73,7 @@
             <timeout>1200</timeout>
           </commandScript>
 
-          <!-- TODO Alejandro add later after UI is fixed,
+          <!-- TODO HDP 3.0, add later after UI is fixed,
           <dependencies>
             <dependency>
               <name>TEZ/TEZ_CLIENT</name>
@@ -268,7 +268,7 @@
             <co-locate>YARN/RESOURCEMANAGER</co-locate>
           </auto-deploy>
 
-          <!-- TODO Alejandro add later after UI is fixed,
+          <!-- TODO HDP 3.0, add later after UI is fixed,
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

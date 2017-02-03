@@ -25,14 +25,14 @@
     <display-name>Service name</display-name>
     <description>Service name for Logsearch Portal (label)</description>
     <value>HDFS</value>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>component_mappings</name>
     <display-name>Component mapping</display-name>
     <description>Logsearch component logid mapping list (e.g.: COMPONENT1:logid1,logid2;COMPONENT2:logid3)</description>
     <value>NAMENODE:hdfs_namenode;DATANODE:hdfs_datanode;SECONDARY_NAMENODE:hdfs_secondarynamenode;JOURNALNODE:hdfs_journalnode;ZKFC:hdfs_zkfc;NFS_GATEWAY:hdfs_nfs3</value>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>content</name>
@@ -243,6 +243,6 @@
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
