@@ -674,8 +674,7 @@ class TestHistoryServer(RMFTestCase):
       mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
-      content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content'] +
-                               '\nYARN_OPTS="$YARN_OPTS -Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config=/usr/hdp/current/hadoop-client/conf/yarn_jaas.conf -Dzookeeper.sasl.clientconfig=Client"\n'),
+      content = InlineTemplate(self.getConfig()['configurations']['yarn-env']['content']),
       owner = 'yarn',
       group = 'hadoop',
       mode = 0755,
