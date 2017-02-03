@@ -339,8 +339,10 @@ def create_server_script(server_host_name):
   "\n" + \
   "\n" + \
   "yum install mysql-connector-java* -y\n" + \
-  "yum install mysql-server -y\n" + \
-  "sed -i -e 's/mysqld]/mysqld]\\nmax_allowed_packet=16M/1' /etc/my.cnf\n" + \
+  "cd /etc/yum.repos.d/; wget http://repo.mysql.com/mysql-community-release-el6-5.noarch.rpm; rpm -ivh mysql-community-release-el6-5.noarch.rpm;" + \
+  "yum clean all; yum install mysql-server -y\n" + \
+  "sed -i -e 's/mysqld]/mysqld]\\nmax_allowed_packet=1024M\\njoin_buffer_size=512M\\nsort_buffer_size=128M\\nread_rnd_buffer_size=128M\\ninnodb_buffer_pool_size=16G" \
+  "\\ninnodb_file_io_threads=16\\ninnodb_thread_concurrency=32\\nkey_buffer_size=16G\\nquery_cache_limit=16M\\nquery_cache_size=512M\\nthread_cache_size=128\\ninnodb_log_buffer_size=512M/1' /etc/my.cnf\n" + \
   "service mysqld start\n" + \
   "mysql -uroot -e \"CREATE DATABASE ambari;\"\n" + \
   "mysql -uroot -e \"SOURCE /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql;\" ambari\n" + \
@@ -359,6 +361,8 @@ def create_server_script(server_host_name):
   "sed -i -e 's/server.persistence.type=local/server.persistence.type=remote/g' /etc/ambari-server/conf/ambari.properties\n" + \
   "sed -i -e 's/local.database.user=postgres//g' /etc/ambari-server/conf/ambari.properties\n" + \
   "sed -i -e 's/server.jdbc.postgres.schema=ambari//g' /etc/ambari-server/conf/ambari.properties\n" + \
+  "sed -i -e 's/agent.threadpool.size.max=25/agent.threadpool.size.max=100/g' /etc/ambari-server/conf/ambari.properties\n" + \
+  "sed -i -e 's/client.threadpool.size.max=25/client.threadpool.size.max=65/g' /etc/ambari-server/conf/ambari.properties\n" + \
   "sed -i -e 's/false/true/g' /var/lib/ambari-server/resources/stacks/PERF/1.0/metainfo.xml\n" + \
   "sed -i -e 's/false/true/g' /var/lib/ambari-server/resources/stacks/PERF/2.0/metainfo.xml\n" + \
   "sed -i -e 's/-Xmx2048m/-Xmx16384m/g' /var/lib/ambari-server/ambari-env.sh\n" + \
@@ -370,6 +374,9 @@ def create_server_script(server_host_name):
   "echo 'server.jdbc.port=3306' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'server.jdbc.hostname=localhost' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'server.jdbc.driver.path=/usr/share/java/mysql-connector-java.jar' >> /etc/ambari-server/conf/ambari.properties\n" + \
+  "echo 'alerts.cache.enabled=true' >> /etc/ambari-server/conf/ambari.properties\n" + \
+  "echo 'alerts.cache.size=100000' >> /etc/ambari-server/conf/ambari.properties\n" + \
+  "echo 'alerts.execution.scheduler.maxThreads=4' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "echo 'security.temporary.keystore.retention.minutes=180' >> /etc/ambari-server/conf/ambari.properties\n" + \
   "\n" + \
   "ambari-server start --skip-database-check\n" + \
