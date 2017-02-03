@@ -23,8 +23,8 @@
   <property>
     <name>enable_hive_interactive</name>
     <value>false</value>
-    <description>Enable or disable interactive query in this cluster.</description>
-    <display-name>Enable Interactive Query</display-name>
+    <description>Enable or disable interactive query in this cluster. &lt;br&gt; Note: Hive LLAP may not start up on busy clusters if YARN pre-emption is not enabled. Enable via the YARN configs page.</description>
+    <display-name>Enable Interactive Query (requires YARN pre-emption)</display-name>
     <value-attributes>
       <type>value-list</type>
       <overridable>false</overridable>
