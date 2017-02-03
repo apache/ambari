@@ -264,7 +264,7 @@ if security_enabled:
   rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
   yarn_jaas_file = os.path.join(config_dir, 'yarn_jaas.conf')
-  yarn_env_sh_template += format('\nYARN_OPTS="$YARN_OPTS -Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client"\n')
+  rm_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client')
 
   # YARN timeline security options
   if has_ats:
