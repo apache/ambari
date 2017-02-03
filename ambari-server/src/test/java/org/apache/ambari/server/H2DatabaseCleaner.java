@@ -18,19 +18,12 @@
 
 package org.apache.ambari.server;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DEFAULT_CREATE_JDBC_FILE_NAME;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -39,8 +32,6 @@ import javax.persistence.metamodel.EntityType;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessorImpl;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
