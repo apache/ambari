@@ -74,6 +74,9 @@ druid_log_dir = config['configurations']['druid-env']['druid_log_dir']
 druid_classpath = config['configurations']['druid-env']['druid_classpath']
 druid_extensions = config['configurations']['druid-common']['druid.extensions.pullList']
 druid_repo_list = config['configurations']['druid-common']['druid.extensions.repositoryList']
+druid_extensions_load_list = config['configurations']['druid-common']['druid.extensions.loadList']
+druid_security_extensions_load_list = config['configurations']['druid-common']['druid.security.extensions.loadList']
+
 
 # status params
 druid_pid_dir = status_params.druid_pid_dir
@@ -121,7 +124,7 @@ hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 dfs_type = default("/commandParams/dfs_type", "")
 
-# Kerberose
+# Kerberos
 druid_principal_name = default('/configurations/druid-common/druid.hadoop.security.kerberos.principal',
                                'missing_principal')
 druid_user_keytab = default('/configurations/druid-common/druid.hadoop.security.kerberos.keytab', 'missing_keytab')

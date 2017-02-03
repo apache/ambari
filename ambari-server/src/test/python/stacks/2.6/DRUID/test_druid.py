@@ -445,6 +445,8 @@ class TestDruid(RMFTestCase):
     druid_common_config['druid.extensions.hadoopDependenciesDir'] = format('/usr/hdp/current/{role}/hadoop-dependencies')
     druid_common_config['druid.selectors.indexing.serviceName'] = 'druid/overlord'
     druid_common_config['druid.selectors.coordinator.serviceName'] = 'druid/coordinator'
+    druid_common_config['druid.extensions.loadList'] = '["mysql-metadata-storage", "druid-datasketches", "druid-kerberos"]'
+
 
     self.assertResourceCalled('PropertiesFile', 'common.runtime.properties',
                               dir=format("/usr/hdp/current/{role}/conf/_common"),

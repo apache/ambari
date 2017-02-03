@@ -46,6 +46,12 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>druid.security.extensions.loadList</name>
+    <value>[]</value>
+    <description>A comma-separated list of one or more druid security extensions to load. This property will be set via the kerberos wizard and User will not be allowed to modify this when security is enabled.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>druid.zk.service.host</name>
     <value>localhost:2181</value>
     <description>

@@ -4,7 +4,13 @@
       "name": "DRUID",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "/spnego",
+          "principal": {
+            "configuration": "druid-common/druid.hadoop.security.spnego.principal"
+          },
+          "keytab": {
+            "configuration": "druid-common/druid.hadoop.security.spnego.keytab"
+          }
         },
         {
           "name": "druid",
@@ -72,6 +78,17 @@
             }
           ]
         }
+      ],
+      "configurations": [
+        {
+          "druid-common": {
+            "druid.hadoop.security.spnego.excludedPaths": "[\"/status\"]",
+            "druid.security.extensions.loadList" : "[\"druid-kerberos\"]"
+          }
+        }
+      ],
+      "auth_to_local_properties" : [
+        "druid-common/druid.hadoop.security.spnego.authToLocal|new_lines_escaped"
       ]
     }
   ]

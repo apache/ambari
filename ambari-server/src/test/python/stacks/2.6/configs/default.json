@@ -430,7 +430,8 @@
       "druid.indexer.logs.directory": "/user/druid/logs",
       "druid.extensions.pullList": "[\"custom-druid-extension\"]",
       "druid.extensions.repositoryList": "[\"http://custom-mvn-repo/public/release\"]",
-      "druid.extensions.loadList": "[\"mysql-metadata-storage\", \"druid-datasketches\"]"
+      "druid.extensions.loadList": "[\"mysql-metadata-storage\", \"druid-datasketches\"]",
+      "druid.security.extensions.loadList": "[\"druid-kerberos\"]"
     },
     "druid-historical" : {
       "druid.segmentCache.infoDir" : "/apps/druid/segmentCache/info_dir",

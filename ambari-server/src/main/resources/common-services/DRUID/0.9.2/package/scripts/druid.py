@@ -48,6 +48,8 @@ def druid(upgrade_type=None, nodeType=None):
     'druid.service']
   druid_common_config['druid.selectors.coordinator.serviceName'] = \
     params.config['configurations']['druid-coordinator']['druid.service']
+  druid_common_config['druid.extensions.loadList'] = json.dumps(eval(params.druid_extensions_load_list) +
+                                                     eval(params.druid_security_extensions_load_list))
 
   # delete the password and user if empty otherwiswe derby will fail.
   if 'derby' == druid_common_config['druid.metadata.storage.type']:
