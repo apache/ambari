@@ -26,7 +26,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>policy_user</name>
@@ -39,7 +39,7 @@
       </property>
     </depends-on>
     <description>This user must be system user and also present at Ranger admin portal</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger-hbase-plugin-enabled</name>
@@ -56,14 +56,14 @@
         <name>ranger-hbase-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <value>hbase</value>
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
@@ -74,7 +74,7 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>XAAUDIT.DB.IS_ENABLED</name>
