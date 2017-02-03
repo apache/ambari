@@ -2193,7 +2193,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 boolean skipFailure,
                                 ClusterVersionEntity effectiveClusterVersion,
                                 boolean isUpgradeSuspended,
-                                DatabaseType databaseType
+                                DatabaseType databaseType,
+                                Map<String, DesiredConfig> clusterDesiredConfigs
                                 )
                                 throws AmbariException {
 
@@ -2397,19 +2398,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String packageList = gson.toJson(packages);
     hostParams.put(PACKAGE_LIST, packageList);
 
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-
     Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackInfo.getName(), stackInfo.getVersion());
 
-    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.USER, cluster, desiredConfigs, servicesMap, stackProperties);
+    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String userList = gson.toJson(userSet);
     hostParams.put(USER_LIST, userList);
 
-    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, desiredConfigs, servicesMap, stackProperties);
+    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs, servicesMap, stackProperties);
+    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -2899,9 +2898,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 configurationAttributes =
                 new TreeMap<>();
             Host host = clusters.getHost(scHost.getHostName());
+            Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
 
             Map<String, Map<String, String>> configTags =
-                findConfigurationTagsWithOverrides(cluster, host.getHostName());
+                    configHelper.getEffectiveDesiredTags(cluster, host.getHostName(), clusterDesiredConfigs);
+
 
             // Skip INSTALL task in case SysPrepped hosts and in case of server components. In case of server component
             // START task should run configuration script.
@@ -2910,7 +2911,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               scHost.setState(State.INSTALLED);
             } else {
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended, databaseType);
+                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended,
+                databaseType, clusterDesiredConfigs);
             }
 
           }
@@ -3049,8 +3051,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
     DatabaseType databaseType = configs.getDatabaseType();
+    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended, databaseType);
+                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended, databaseType,
+                     clusterDesiredConfigs);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
     // createHostAction does not take a hostLevelParams but creates one

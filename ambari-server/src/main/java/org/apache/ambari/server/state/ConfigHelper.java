@@ -38,6 +38,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.SecretReference;
@@ -435,10 +436,17 @@ public class ConfigHelper {
    */
   public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> requestDesiredConfigs)
       throws AmbariException {
-    boolean stale = calculateIsStaleConfigs(sch, requestDesiredConfigs);
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = sch.getDesiredStateEntity();
+    return isStaleConfigs(sch, requestDesiredConfigs, hostComponentDesiredStateEntity);
+  }
+
+  public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> requestDesiredConfigs,
+                                HostComponentDesiredStateEntity hostComponentDesiredStateEntity)
+          throws AmbariException {
+    boolean stale = calculateIsStaleConfigs(sch, requestDesiredConfigs, hostComponentDesiredStateEntity);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Cache configuration staleness for host {} and component {} as {}",
-          sch.getHostName(), sch.getServiceComponentName(), stale);
+              sch.getHostName(), sch.getServiceComponentName(), stale);
     }
     return stale;
   }
@@ -996,7 +1004,14 @@ public class ConfigHelper {
   private boolean calculateIsStaleConfigs(ServiceComponentHost sch,
       Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
-    if (sch.isRestartRequired()) {
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = sch.getDesiredStateEntity();
+    return calculateIsStaleConfigs(sch, desiredConfigs, hostComponentDesiredStateEntity);
+  }
+
+  private boolean calculateIsStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs,
+                                          HostComponentDesiredStateEntity hostComponentDesiredStateEntity) throws AmbariException {
+
+    if (sch.isRestartRequired(hostComponentDesiredStateEntity)) {
       return true;
     }
 
@@ -1008,16 +1023,16 @@ public class ConfigHelper {
     Cluster cluster = clusters.getClusterById(sch.getClusterId());
 
     Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(),
-        desiredConfigs);
+            desiredConfigs);
 
     Boolean stale = null;
     int staleHash = 0;
     if (STALE_CONFIGS_CACHE_ENABLED){
       staleHash = Objects.hashCode(actual.hashCode(),
-          desired.hashCode(),
-          sch.getHostName(),
-          sch.getServiceComponentName(),
-          sch.getServiceName());
+              desired.hashCode(),
+              sch.getHostName(),
+              sch.getServiceComponentName(),
+              sch.getServiceName());
       stale = staleConfigsCache.getIfPresent(staleHash);
       if(stale != null) {
         return stale;
@@ -1029,7 +1044,7 @@ public class ConfigHelper {
     StackId stackId = cluster.getDesiredStackVersion();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), sch.getServiceName());
+            stackId.getStackVersion(), sch.getServiceName());
 
     ComponentInfo componentInfo = serviceInfo.getComponentByName(sch.getServiceComponentName());
     // Configs are considered stale when:
