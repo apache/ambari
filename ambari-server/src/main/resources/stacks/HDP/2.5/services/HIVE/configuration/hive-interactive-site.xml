@@ -537,7 +537,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.llap.daemon.rpc.port</name>
-    <value>15001</value>
+    <value>0</value>
     <description>The LLAP daemon RPC port.</description>
     <on-ambari-upgrade add="true"/>
   </property>

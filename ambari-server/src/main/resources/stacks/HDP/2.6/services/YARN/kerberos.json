@@ -32,7 +32,11 @@
             "yarn.resourcemanager.proxyuser.*.hosts": "",
             "yarn.resourcemanager.proxyuser.*.users": "",
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
-            "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda"
+            "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda",
+            "hadoop.registry.secure" : "true",
+            "hadoop.registry.system.accounts" : "sasl:yarn,sasl:mapred,sasl:hadoop,sasl:hdfs,sasl:rm,sasl:hive",
+            "hadoop.registry.client.auth" : "kerberos",
+            "hadoop.registry.jaas.context" : "Client"
           }
         },
         {

@@ -21,6 +21,7 @@
 
 ### BEGIN INIT INFO
 # Provides:          ambari-server
+# Required-Start:    $ALL
 # Required-Start:
 # Required-Stop:
 # Default-Start:     2 3 4 5

@@ -17,20 +17,8 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.configuration.Configuration;
@@ -46,8 +34,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -161,9 +160,9 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
-    updateTEZInteractiveConfigs();
     updateHiveLlapConfigs();
     updateTablesForZeppelinViewRemoval();
+    updateZeppelinConfigs();
     updateAtlasConfigs();
     updateLogSearchConfigs();
     updateAmbariInfraConfigs();
@@ -233,7 +232,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
           Set<String> installedServices = cluster.getServices().keySet();
 
           if (installedServices.contains("HIVE")) {
-            Config hiveSite = cluster.getDesiredConfigByType("hive-interactive-site");
+            Config hiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
             if (hiveSite != null) {
               Map<String, String> hiveSiteProperties = hiveSite.getProperties();
               String schedulerDelay = hiveSiteProperties.get("hive.llap.task.scheduler.locality.delay");
@@ -244,19 +243,19 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                     int schedulerDelayInt = Integer.parseInt(schedulerDelay);
                     if (schedulerDelayInt == -1) {
                       // Old default. Set to new default.
-                      updateConfigurationProperties("hive-interactive-site", Collections
+                      updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
                                                         .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
                                                     false);
                     }
                   } catch (NumberFormatException e) {
                     // Invalid existing value. Set to new default.
-                    updateConfigurationProperties("hive-interactive-site", Collections
+                    updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
                                                       .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
                                                   false);
                   }
                 }
               }
-              updateConfigurationProperties("hive-interactive-site",
+              updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
                                             Collections.singletonMap("hive.mapjoin.hybridgrace.hashtable", "true"), true,
                                             false);
               updateConfigurationProperties("tez-interactive-site",
@@ -349,6 +348,32 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("DELETE from viewinstance WHERE view_name='ZEPPELIN{1.0.0}'", true);
     dbAccessor.executeQuery("DELETE from viewmain WHERE view_name='ZEPPELIN{1.0.0}'", true);
     dbAccessor.executeQuery("DELETE from viewparameter WHERE view_name='ZEPPELIN{1.0.0}'", true);
+  }
+
+  /**
+   * Updates Zeppelin configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateZeppelinConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config zeppelinEnvProperties = cluster.getDesiredConfigByType("zeppelin-env");
+          if (zeppelinEnvProperties != null) {
+            String log4jPropertiesContent = zeppelinEnvProperties.getProperties().get("log4j_properties_content");
+            String shiroIniContent = zeppelinEnvProperties.getProperties().get("shiro_ini_content");
+
+            updateConfigurationProperties("zeppelin-log4j-properties", Collections.singletonMap("log4j_properties_content", log4jPropertiesContent), true, true);
+            updateConfigurationProperties("zeppelin-shiro-ini", Collections.singletonMap("shiro_ini_content", shiroIniContent), true, true);
+          }
+        }
+      }
+    }
   }
 
   protected String updateAmsEnvContent(String content) {
@@ -612,6 +637,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    *
    * @throws AmbariException
    */
+  private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
   protected void updateHIVEInteractiveConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -620,42 +646,29 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Config hiveInteractiveSite = cluster.getDesiredConfigByType("hive-interactive-site");
+          Config hiveInteractiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
           if (hiveInteractiveSite != null) {
-            updateConfigurationProperties("hive-interactive-site", Collections.singletonMap("hive.tez.container.size",
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.tez.container.size",
                 "SET_ON_FIRST_INVOCATION"), true, true);
 
-            updateConfigurationProperties("hive-interactive-site", Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
                 "1000000000"), true, true);
-            updateConfigurationProperties("hive-interactive-site",
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
                 Collections.singletonMap("hive.llap.execution.mode", "only"),
                 true, true);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Updates Tez for Hive2 Interactive's config in tez-interactive-site.
-   *
-   * @throws AmbariException
-   */
-  protected void updateTEZInteractiveConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Config tezInteractiveSite = cluster.getDesiredConfigByType("tez-interactive-site");
-          if (tezInteractiveSite != null) {
-
-            updateConfigurationProperties("tez-interactive-site", Collections.singletonMap("tez.runtime.io.sort.mb", "512"), true, true);
-
-            updateConfigurationProperties("tez-interactive-site", Collections.singletonMap("tez.runtime.unordered.output.buffer.size-mb",
-                "100"), true, true);
+            String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
+            if (StringUtils.isNotBlank(llapRpcPortString)) {
+              try {
+                int llapRpcPort = Integer.parseInt(llapRpcPortString);
+                if (llapRpcPort == 15001) {
+                  updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
+                      Collections.singletonMap("hive.llap.daemon.rpc.port", "only"),
+                      true, true);
+                }
+              } catch (NumberFormatException e) {
+                LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
+              }
+            }
           }
         }
       }

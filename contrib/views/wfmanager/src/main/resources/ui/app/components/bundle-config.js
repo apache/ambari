@@ -31,7 +31,7 @@ const Validations = buildValidations({
       validator('operand-length', {
         min : 1,
         dependentKeys: ['bundle','bundle.coordinators.[]'],
-        message : 'Alteast one coordinator is required',
+        message : 'At least one coordinator is required',
         disabled(model, attribute) {
           return !model.get('bundle');
         }
@@ -390,9 +390,12 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.set('showVersionSettings', value);
     },
     save(){
+      if (Ember.isBlank(this.$('[name=bundle_title]').val())) {
+        return;
+      }
       var isDraft = false, bundleXml;
       if(this.get('validations.isInvalid')) {
-       isDraft = true;
+        isDraft = true;
       }else{
         var bundleGenerator = BundleGenerator.create({bundle:this.get("bundle")});
         bundleXml = bundleGenerator.process();

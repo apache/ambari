@@ -19,7 +19,7 @@
   <property>
     <name>ranger.usersync.ldap.deltasync</name>
     <display-name>Incremental Sync</display-name>
-    <value>false</value>
+    <value>true</value>
     <description>Enable Incremental Sync</description>
     <value-attributes>
       <type>value-list</type>

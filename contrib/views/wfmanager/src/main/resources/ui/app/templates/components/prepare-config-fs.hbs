@@ -33,7 +33,7 @@
           </select>
         </div>
         <div class="col-xs-1">
-          <input class="form-control  btn btn-success" type="button" {{action "addPrepare" index}} value="+">
+          <input class="form-control  btn btn-secondary" type="button" {{action "addPrepare" index}} value="+">
         </div>
         {{#if (not-eq index 0)}}
           <div class="col-xs-1">
@@ -48,7 +48,7 @@
           <div class="input-group">
             {{input type="text" class="form-control" value=prep.path placeholder="path of the directory"}}
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
+              <button class="btn btn-secondary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
             </span>
           </div>
         </div>
@@ -70,7 +70,7 @@
           <div class="input-group">
             {{input type="text" class="form-control" name="name" value=prep.path placeholder="Path"}}
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
+              <button class="btn btn-secondary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
             </span>
           </div>
         </div>
@@ -117,7 +117,7 @@
           <div class="input-group">
             {{input type="text" class="form-control" name="name" value=prep.source placeholder="Source"}}
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "source"}}>Browse</button>
+              <button class="btn btn-secondary" type="button" {{action "openFileBrowserForListItem" index "source"}}>Browse</button>
             </span>
           </div>
         </div>
@@ -138,7 +138,7 @@
           <div class="input-group">
             {{input class="form-control" type="text" indValidations="required"  name="value" value=prep.target placeholder="Target"}}
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "target"}}>Browse</button>
+              <button class="btn btn-secondary" type="button" {{action "openFileBrowserForListItem" index "target"}}>Browse</button>
             </span>
           </div>
         </div>
@@ -161,7 +161,7 @@
           <div class="input-group">
             {{input type="text" class="form-control" name="name" value=prep.path placeholder="Path"}}
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
+              <button class="btn btn-secondary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
             </span>
           </div>
         </div>

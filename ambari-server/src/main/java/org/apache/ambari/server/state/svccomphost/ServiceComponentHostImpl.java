@@ -1122,6 +1122,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public StackId getStackVersion() {
     HostComponentStateEntity schStateEntity = getStateEntity();
+    return getStackVersionFromSCHStateEntity(schStateEntity);
+  }
+
+  private StackId getStackVersionFromSCHStateEntity(HostComponentStateEntity schStateEntity) {
     if (schStateEntity == null) {
       return new StackId();
     }
@@ -1178,13 +1182,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public StackId getDesiredStackVersion() {
     HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+    return getDesiredStackVersionFromHostComponentDesiredStateEntity(desiredStateEntity);
+  }
+
+  private StackId getDesiredStackVersionFromHostComponentDesiredStateEntity(HostComponentDesiredStateEntity desiredStateEntity) {
     if (desiredStateEntity != null) {
       StackEntity desiredStackEntity = desiredStateEntity.getDesiredStack();
       return new StackId(desiredStackEntity.getStackName(), desiredStackEntity.getStackVersion());
     } else {
       LOG.warn("Trying to fetch a member from an entity object that may "
-          + "have been previously deleted, serviceName = " + getServiceName() + ", "
-          + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
+              + "have been previously deleted, serviceName = " + getServiceName() + ", "
+              + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
     }
     return null;
   }
@@ -1206,10 +1214,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public HostComponentAdminState getComponentAdminState() {
     HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
+    return getComponentAdminStateFromDesiredStateEntity(desiredStateEntity);
+  }
+
+  private HostComponentAdminState getComponentAdminStateFromDesiredStateEntity(HostComponentDesiredStateEntity desiredStateEntity) {
     if (desiredStateEntity != null) {
       HostComponentAdminState adminState = desiredStateEntity.getAdminState();
       if (adminState == null && !serviceComponent.isClientComponent()
-          && !serviceComponent.isMasterComponent()) {
+              && !serviceComponent.isMasterComponent()) {
         adminState = HostComponentAdminState.INSERVICE;
       }
       return adminState;
@@ -1237,6 +1249,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs) {
     HostComponentStateEntity hostComponentStateEntity = getStateEntity();
+    HostEntity hostEntity = hostComponentStateEntity.getHostEntity();
     if (null == hostComponentStateEntity) {
       LOG.warn(
           "Could not convert ServiceComponentHostResponse to a response. It's possible that Host {} was deleted.",
@@ -1244,22 +1257,25 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       return null;
     }
 
+    StackId stackVersion = getStackVersionFromSCHStateEntity(hostComponentStateEntity);
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = getDesiredStateEntity();
+
     String clusterName = serviceComponent.getClusterName();
     String serviceName = serviceComponent.getServiceName();
     String serviceComponentName = serviceComponent.getName();
     String hostName = getHostName();
-    String publicHostName = getPublicHostName();
+    String publicHostName = hostEntity.getPublicHostName();
     String state = getState().toString();
-    String stackId = getStackVersion().getStackId();
-    String desiredState = getDesiredState().toString();
-    String desiredStackId = getDesiredStackVersion().getStackId();
-    HostComponentAdminState componentAdminState = getComponentAdminState();
+    String stackId = stackVersion.getStackId();
+    String desiredState = (hostComponentDesiredStateEntity == null) ? null : hostComponentDesiredStateEntity.getDesiredState().toString();
+    String desiredStackId = getDesiredStackVersionFromHostComponentDesiredStateEntity(hostComponentDesiredStateEntity).getStackId();
+    HostComponentAdminState componentAdminState = getComponentAdminStateFromDesiredStateEntity(hostComponentDesiredStateEntity);
     UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
 
     String displayName = null;
     try {
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(getStackVersion().getStackName(),
-          getStackVersion().getStackVersion(), serviceName, serviceComponentName);
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(stackVersion.getStackName(),
+              stackVersion.getStackVersion(), serviceName, serviceComponentName);
       displayName = compInfo.getDisplayName();
     } catch (AmbariException e) {
       displayName = serviceComponentName;
@@ -1273,7 +1289,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     r.setUpgradeState(upgradeState);
 
     try {
-      r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs));
+      r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs, hostComponentDesiredStateEntity));
     } catch (Exception e) {
       LOG.error("Could not determine stale config", e);
     }
@@ -1492,6 +1508,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public boolean isRestartRequired(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
+    return hostComponentDesiredStateEntity.isRestartRequired();
+  }
+
+  @Override
   public void setRestartRequired(boolean restartRequired) {
     LOG.debug("Set RestartRequired on serviceName = {} componentName = {} hostName = {} to {}",
         getServiceName(), getServiceComponentName(), getHostName(), restartRequired);
@@ -1577,7 +1598,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    *
    * @return
    */
-  private HostComponentDesiredStateEntity getDesiredStateEntity() {
+  @Override
+  public HostComponentDesiredStateEntity getDesiredStateEntity() {
     return hostComponentDesiredStateDAO.findById(desiredStateEntityId);
   }
 

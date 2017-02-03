@@ -33,7 +33,7 @@ define(['require',
     var params = Utils.getQueryParams(window.location.search);
     this.defaultParams = {
       q: "*:*",
-      from: moment().hours("00").minutes("00").seconds("01").milliseconds("000").toJSON(),
+      from: moment().hours("00").minutes("00").seconds("00").milliseconds("000").toJSON(),
       to: moment().hours("23").minutes("59").seconds("59").milliseconds("999").toJSON(),
       unit: "+1HOUR",
       level: "FATAL,ERROR,WARN"

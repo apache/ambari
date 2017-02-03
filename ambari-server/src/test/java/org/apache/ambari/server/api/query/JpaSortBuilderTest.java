@@ -27,6 +27,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
 import org.apache.ambari.server.controller.internal.SortRequestImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -38,6 +39,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity_;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,6 +60,11 @@ public class JpaSortBuilderTest {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.injectMembers(this);
+  }
+
+  @After
+  public void teardown() throws Exception {
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
   }
 
   /**

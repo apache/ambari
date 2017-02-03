@@ -36,6 +36,7 @@ from CommandStatusDict import CommandStatusDict
 from CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_commons.str_utils import split_on_chunks
+from resource_management.libraries.script import Script
 
 
 logger = logging.getLogger()
@@ -548,6 +549,10 @@ class ActionQueue(threading.Thread):
         globalConfig = configurations['global']
       else:
         globalConfig = {}
+
+      if not Script.config :
+        logger.debug('Setting Script.config to last status command configuration')
+        Script.config = command
 
       livestatus = LiveStatus(cluster, service, component,
                               globalConfig, self.config, self.configTags)

@@ -21,6 +21,7 @@ limitations under the License.
 import os.path
 import logging
 import subprocess
+from resource_management.core import shell
 from resource_management.core.shell import call
 from resource_management.core.exceptions import ExecuteTimeoutException, Fail
 from ambari_commons.shell import shellRunner
@@ -136,8 +137,13 @@ class Hardware:
     if not cls._check_remote_mounts(config):
       command.append("-l")
 
-    df = subprocess.Popen(command, stdout=subprocess.PIPE)
-    dfdata = df.communicate()[0]
+    try:
+      code, out, err = shell.call(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = int(timeout), quiet = True)
+      dfdata = out
+    except Exception as ex:
+      logger.warn("Checking disk usage failed: " + str(ex))
+      dfdata = ''
+
     mounts = [cls._parse_df_line(line) for line in dfdata.splitlines() if line]
     result_mounts = []
     ignored_mounts = []

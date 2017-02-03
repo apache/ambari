@@ -21,24 +21,25 @@ package org.apache.ambari.logfeeder.input;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.util.Base64;
+
+import com.google.common.base.Joiner;
 
 public class InputSimulate extends Input {
 
-  private static final String LOG_MESSAGE_PREFIX = "Simulated log message for testing, line";
-  
-  private static final String LOG_TEXT_PATTERN =
-      "{ logtime=\"%d\", level=\"%s\", log_message=\"<LOG_MESSAGE_PATTERN>\"}";
+  private static final String LOG_TEXT_PATTERN = "{ logtime=\"%d\", level=\"%s\", log_message=\"%s\"}";
   
   private static final Map<String, String> typeToFilePath = new HashMap<>();
   public static void loadTypeToFilePath(List<Map<String, Object>> inputList) {
@@ -55,16 +56,21 @@ public class InputSimulate extends Input {
   
   private final List<String> types;
   private final String level;
-  private final String logText;
+  private final int numberOfWords;
+  private final int minLogWords;
+  private final int maxLogWords;
   private final long sleepMillis;
   
   public InputSimulate() throws Exception {
     this.types = getSimulatedLogTypes();
     this.level = LogFeederUtil.getStringProperty("logfeeder.simulate.log_level", "WARN");
-    this.logText = getLogText();
+    this.numberOfWords = LogFeederUtil.getIntProperty("logfeeder.simulate.number_of_words", 1000, 50, 1000000);
+    this.minLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.min_log_words", 5, 1, 10);
+    this.maxLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.max_log_words", 10, 10, 20);
     this.sleepMillis = LogFeederUtil.getIntProperty("logfeeder.simulate.sleep_milliseconds", 10000);
     
     Filter filter = new FilterJSON();
+    filter.loadConfig(Collections.<String, Object> emptyMap());
     filter.setInput(this);
     addFilter(filter);
   }
@@ -78,15 +84,6 @@ public class InputSimulate extends Input {
       simulatedLogTypes.retainAll(typeToFilePath.keySet());
       return simulatedLogTypes;
     }
-  }
-
-  private String getLogText() {
-    int logTextSize = LogFeederUtil.getIntProperty("logfeeder.simulate.log_message_size", 100);
-    int fillerSize = Math.max(logTextSize - LOG_MESSAGE_PREFIX.length() - 10, 0);
-    String filler = StringUtils.repeat("X", fillerSize);
-    String logMessagePattern = LOG_MESSAGE_PREFIX + " %08d " + filler;
-    
-    return LOG_TEXT_PATTERN.replaceAll("<LOG_MESSAGE_PATTERN>", logMessagePattern);
   }
 
   @Override
@@ -103,12 +100,12 @@ public class InputSimulate extends Input {
     while (true) {
       String type = imitateRandomLogFile();
       
+      String line = getLine();
       InputMarker marker = getInputMarker(type);
-      String line = getLine(marker);
       
       outputLine(line, marker);
       
-      try { Thread.sleep(sleepMillis); } catch(Exception e) {}
+      try { Thread.sleep(sleepMillis); } catch(Exception e) { /* Ignore */ }
     }
   }
 
@@ -143,9 +140,24 @@ public class InputSimulate extends Input {
     return Base64.byteArrayToBase64(fileKey.getBytes());
   }
 
-  private String getLine(InputMarker marker) {
+  private String getLine() {
     Date d = new Date();
-    return String.format(logText, d.getTime(), level, marker.lineNumber);
+    String logMessage = createLogMessage();
+    return String.format(LOG_TEXT_PATTERN, d.getTime(), level, logMessage);
+  }
+  
+  private String createLogMessage() {
+    int logMessageLength = minLogWords + random.nextInt(maxLogWords - minLogWords + 1);
+    Set<Integer> words = new TreeSet<>();
+    List<String> logMessage = new ArrayList<>();
+    while (words.size() < logMessageLength) {
+      int word = random.nextInt(numberOfWords);
+      if (words.add(word)) {
+        logMessage.add(String.format("Word%06d", word));
+      }
+    }
+    
+    return Joiner.on(' ').join(logMessage);
   }
 
   @Override

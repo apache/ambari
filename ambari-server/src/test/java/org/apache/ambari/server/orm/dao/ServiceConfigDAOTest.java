@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -47,7 +49,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 public class ServiceConfigDAOTest {
   private static final StackId HDP_01 = new StackId("HDP", "0.1");
@@ -78,8 +79,8 @@ public class ServiceConfigDAOTest {
   }
 
   @After
-  public void teardown() throws AmbariException {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private ServiceConfigEntity createServiceConfig(String serviceName,
@@ -156,9 +157,11 @@ public class ServiceConfigDAOTest {
     ServiceConfigEntity serviceConfigEntity =
       createServiceConfig("HDFS", "admin", 1L, 1L, 1111L, null);
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     Assert.assertNotNull(serviceConfigEntity);
     Assert.assertEquals("c1", serviceConfigEntity.getClusterEntity().getClusterName());
-    Assert.assertEquals(Long.valueOf(1), serviceConfigEntity.getClusterEntity()
+    Assert.assertEquals(clusterId, serviceConfigEntity.getClusterEntity()
       .getClusterId());
     Assert.assertEquals("HDFS", serviceConfigEntity.getServiceName());
     Assert.assertEquals(Long.valueOf(1111L), serviceConfigEntity.getCreateTimestamp());
@@ -175,9 +178,11 @@ public class ServiceConfigDAOTest {
 
     ServiceConfigEntity serviceConfigEntity = serviceConfigDAO.find(sce.getServiceConfigId());
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     Assert.assertNotNull(serviceConfigEntity);
     Assert.assertEquals("c1", serviceConfigEntity.getClusterEntity().getClusterName());
-    Assert.assertEquals(Long.valueOf(1), serviceConfigEntity.getClusterEntity()
+    Assert.assertEquals(clusterId, serviceConfigEntity.getClusterEntity()
       .getClusterId());
     Assert.assertEquals("HDFS", serviceConfigEntity.getServiceName());
     Assert.assertEquals(Long.valueOf(1111L), serviceConfigEntity.getCreateTimestamp());
@@ -195,9 +200,11 @@ public class ServiceConfigDAOTest {
     ServiceConfigEntity serviceConfigEntity =
       serviceConfigDAO.findByServiceAndVersion("HDFS", 1L);
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     Assert.assertNotNull(serviceConfigEntity);
     Assert.assertEquals("c1", serviceConfigEntity.getClusterEntity().getClusterName());
-    Assert.assertEquals(Long.valueOf(1), serviceConfigEntity.getClusterEntity()
+    Assert.assertEquals(clusterId, serviceConfigEntity.getClusterEntity()
       .getClusterId());
     Assert.assertEquals("HDFS", serviceConfigEntity.getServiceName());
     Assert.assertEquals(Long.valueOf(1111L), serviceConfigEntity.getCreateTimestamp());
@@ -235,10 +242,12 @@ public class ServiceConfigDAOTest {
     Assert.assertNotNull(serviceConfigEntities);
     Assert.assertEquals(2, serviceConfigEntities.size());
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     for (ServiceConfigEntity sce: serviceConfigEntities) {
       if ("HDFS".equals(sce.getServiceName())) {
         Assert.assertEquals("c1", sce.getClusterEntity().getClusterName());
-        Assert.assertEquals(Long.valueOf(1), sce.getClusterEntity()
+        Assert.assertEquals(clusterId, sce.getClusterEntity()
           .getClusterId());
         Assert.assertEquals(Long.valueOf(2222L), sce.getCreateTimestamp());
         Assert.assertEquals(Long.valueOf(2), sce.getVersion());
@@ -247,7 +256,7 @@ public class ServiceConfigDAOTest {
       }
       if ("YARN".equals(sce.getServiceName())) {
         Assert.assertEquals("c1", sce.getClusterEntity().getClusterName());
-        Assert.assertEquals(Long.valueOf(1), sce.getClusterEntity()
+        Assert.assertEquals(clusterId, sce.getClusterEntity()
           .getClusterId());
         Assert.assertEquals(Long.valueOf(3333L), sce.getCreateTimestamp());
         Assert.assertEquals(Long.valueOf(1), sce.getVersion());
@@ -265,7 +274,7 @@ public class ServiceConfigDAOTest {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1", HDP_01);
     ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
-    ClusterEntity clusterEntity = clusterDAO.findById(1L);
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
     configGroupEntity1.setClusterEntity(clusterEntity);
     configGroupEntity1.setClusterId(clusterEntity.getClusterId());
     configGroupEntity1.setGroupName("group1");
@@ -309,12 +318,14 @@ public class ServiceConfigDAOTest {
     createServiceConfig("HDFS", "admin", 2L, 2L, 2222L, null);
     createServiceConfig("YARN", "admin", 1L, 3L, 3333L, null);
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     ServiceConfigEntity serviceConfigEntity =
-      serviceConfigDAO.getLastServiceConfig(1L, "HDFS");
+      serviceConfigDAO.getLastServiceConfig(clusterId, "HDFS");
 
     Assert.assertNotNull(serviceConfigEntity);
     Assert.assertEquals("c1", serviceConfigEntity.getClusterEntity().getClusterName());
-    Assert.assertEquals(Long.valueOf(1), serviceConfigEntity.getClusterEntity()
+    Assert.assertEquals(clusterId, serviceConfigEntity.getClusterEntity()
       .getClusterId());
     Assert.assertEquals("HDFS", serviceConfigEntity.getServiceName());
     Assert.assertEquals(Long.valueOf(2222L), serviceConfigEntity.getCreateTimestamp());
@@ -330,8 +341,10 @@ public class ServiceConfigDAOTest {
     createServiceConfig("HDFS", "admin", 2L, 2L, 2222L, null);
     createServiceConfig("YARN", "admin", 1L, 3L, 3333L, null);
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     List<ServiceConfigEntity> serviceConfigEntities =
-      serviceConfigDAO.getServiceConfigs(clusterDAO.findByName("c1").getClusterId());
+      serviceConfigDAO.getServiceConfigs(clusterId);
 
     Assert.assertNotNull(serviceConfigEntities);
     Assert.assertEquals(3, serviceConfigEntities.size());
@@ -339,21 +352,21 @@ public class ServiceConfigDAOTest {
     for (ServiceConfigEntity sce: serviceConfigEntities) {
       if ("HDFS".equals(sce.getServiceName()) && (sce.getVersion() == 1)) {
         Assert.assertEquals("c1", sce.getClusterEntity().getClusterName());
-        Assert.assertEquals(Long.valueOf(1), sce.getClusterEntity()
+        Assert.assertEquals(clusterId, sce.getClusterEntity()
           .getClusterId());
         Assert.assertEquals(Long.valueOf(1111L), sce.getCreateTimestamp());
         Assert.assertTrue(sce.getClusterConfigEntities().isEmpty());
         Assert.assertNotNull(sce.getServiceConfigId());
       } else if ("HDFS".equals(sce.getServiceName()) && (sce.getVersion() == 2)) {
         Assert.assertEquals("c1", sce.getClusterEntity().getClusterName());
-        Assert.assertEquals(Long.valueOf(1), sce.getClusterEntity()
+        Assert.assertEquals(clusterId, sce.getClusterEntity()
           .getClusterId());
         Assert.assertEquals(Long.valueOf(2222L), sce.getCreateTimestamp());
         Assert.assertTrue(sce.getClusterConfigEntities().isEmpty());
         Assert.assertNotNull(sce.getServiceConfigId());
       } else if ("YARN".equals(sce.getServiceName())) {
         Assert.assertEquals("c1", sce.getClusterEntity().getClusterName());
-        Assert.assertEquals(Long.valueOf(1), sce.getClusterEntity()
+        Assert.assertEquals(clusterId, sce.getClusterEntity()
           .getClusterId());
         Assert.assertEquals(Long.valueOf(3333L), sce.getCreateTimestamp());
         Assert.assertEquals(Long.valueOf(1), sce.getVersion());
@@ -457,11 +470,13 @@ public class ServiceConfigDAOTest {
 
     List<ConfigGroupEntity> configGroupEntities = configGroupDAO.findAllByTag("OOZIE");
 
+    Long clusterId = clusterDAO.findByName("c1").getClusterId();
+
     Assert.assertNotNull(configGroupEntities);
     ConfigGroupEntity configGroupEntity = configGroupEntities.get(0);
     Assert.assertNotNull(configGroupEntity);
     Assert.assertEquals("c1", configGroupEntity.getClusterEntity().getClusterName());
-    Assert.assertEquals(Long.valueOf(1), configGroupEntity.getClusterEntity()
+    Assert.assertEquals(clusterId, configGroupEntity.getClusterEntity()
       .getClusterId());
     Assert.assertEquals("oozie_server", configGroupEntity.getGroupName());
     Assert.assertEquals("OOZIE", configGroupEntity.getTag());
@@ -551,7 +566,8 @@ public class ServiceConfigDAOTest {
     clusters.addCluster("c1", HDP_01);
     initClusterEntitiesWithConfigGroups();
     ConfigGroupEntity configGroupEntity1 = new ConfigGroupEntity();
-    ClusterEntity clusterEntity = clusterDAO.findById(1L);
+    ClusterEntity clusterEntity = clusterDAO.findByName("c1");
+    Long clusterId = clusterEntity.getClusterId();
     configGroupEntity1.setClusterEntity(clusterEntity);
     configGroupEntity1.setClusterId(clusterEntity.getClusterId());
     configGroupEntity1.setGroupName("toTestDeleteGroup_OOZIE");
@@ -562,11 +578,11 @@ public class ServiceConfigDAOTest {
     ConfigGroupEntity testDeleteGroup_OOZIE = configGroupDAO.findByName("toTestDeleteGroup_OOZIE");
     createServiceConfigWithGroup("OOZIE", "", 2L, 2L, System.currentTimeMillis(), null,
         testDeleteGroup_OOZIE.getGroupId());
-    Collection<ServiceConfigEntity> serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(1L,
+    Collection<ServiceConfigEntity> serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId,
         "OOZIE");
     Assert.assertEquals(2, serviceConfigEntityList.size());
     configGroupDAO.remove(configGroupEntity1);
-    serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(1L, "OOZIE");
+    serviceConfigEntityList = serviceConfigDAO.getLastServiceConfigsForService(clusterId, "OOZIE");
     Assert.assertEquals(1, serviceConfigEntityList.size());
   }
   private void initClusterEntities() throws Exception{
@@ -589,6 +605,7 @@ public class ServiceConfigDAOTest {
     String oozieSite = "oozie-site";
 
     for (int i = 1; i < 6; i++){
+      Thread.sleep(1);
       ClusterConfigEntity entity = new ClusterConfigEntity();
       entity.setClusterEntity(clusterEntity);
       entity.setClusterId(clusterEntity.getClusterId());
@@ -613,6 +630,7 @@ public class ServiceConfigDAOTest {
       clusterEntity.setConfigMappingEntities(entities);
     }
 
+    Thread.sleep(1);
     ClusterConfigMappingEntity e1 = new ClusterConfigMappingEntity();
     e1.setClusterEntity(clusterEntity);
     e1.setClusterId(clusterEntity.getClusterId());
@@ -624,6 +642,7 @@ public class ServiceConfigDAOTest {
     entities.add(e1);
     clusterDAO.merge(clusterEntity);
 
+    Thread.sleep(1);
     ClusterConfigMappingEntity e2 = new ClusterConfigMappingEntity();
     e2.setClusterEntity(clusterEntity);
     e2.setClusterId(clusterEntity.getClusterId());
@@ -635,6 +654,7 @@ public class ServiceConfigDAOTest {
     entities.add(e2);
     clusterDAO.merge(clusterEntity);
 
+    Thread.sleep(1);
     ClusterConfigMappingEntity e3 = new ClusterConfigMappingEntity();
     e3.setClusterEntity(clusterEntity);
     e3.setClusterId(clusterEntity.getClusterId());
@@ -666,6 +686,7 @@ public class ServiceConfigDAOTest {
 
     int count = 3;
     for (int i = 1; i < count; i++){
+      Thread.sleep(1);
       ClusterConfigEntity entity = new ClusterConfigEntity();
       entity.setClusterEntity(clusterEntity);
       entity.setClusterId(clusterEntity.getClusterId());
@@ -686,6 +707,7 @@ public class ServiceConfigDAOTest {
       clusterEntity.setConfigMappingEntities(entities);
     }
 
+    Thread.sleep(1);
     ClusterConfigMappingEntity e1 = new ClusterConfigMappingEntity();
     e1.setClusterEntity(clusterEntity);
     e1.setClusterId(clusterEntity.getClusterId());
@@ -697,6 +719,7 @@ public class ServiceConfigDAOTest {
     entities.add(e1);
     clusterDAO.merge(clusterEntity);
 
+    Thread.sleep(1);
     ClusterConfigMappingEntity e2 = new ClusterConfigMappingEntity();
     e2.setClusterEntity(clusterEntity);
     e2.setClusterId(clusterEntity.getClusterId());
@@ -749,6 +772,7 @@ public class ServiceConfigDAOTest {
         config.setClusterId(clusterEntity.getClusterId());
         clusterDAO.createConfig(config);
 
+        Thread.sleep(1);
         ConfigGroupConfigMappingEntity configMappingEntity = new
           ConfigGroupConfigMappingEntity();
         configMappingEntity.setClusterId(clusterEntity.getClusterId());

@@ -75,6 +75,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -90,6 +91,7 @@ import com.google.inject.Injector;
  * Tests for the component resource provider.
  */
 public class ComponentResourceProviderTest {
+  private static final Logger LOG = Logger.getLogger(ComponentResourceProviderTest.class);
 
   private static final long CLUSTER_ID = 100;
   private static final String CLUSTER_NAME = "Cluster100";

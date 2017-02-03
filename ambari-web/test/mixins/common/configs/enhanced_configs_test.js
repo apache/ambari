@@ -1090,7 +1090,7 @@ describe('App.EnhancedConfigsMixin', function () {
     };
 
     beforeEach(function() {
-      sinon.stub(App, 'showDependentConfigsPopup', function(r, callback) {
+      sinon.stub(App, 'showDependentConfigsPopup', function(rec, req, callback) {
         callback();
       });
       sinon.stub(mixin, 'onSaveRecommendedPopup');

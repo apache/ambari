@@ -120,6 +120,7 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.ExtensionEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -228,6 +229,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * Property name of request context.
    */
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
+
+  private static final Type hostAttributesType =
+          new TypeToken<Map<String, String>>() {}.getType();
 
   private static final String CLUSTER_PHASE_PROPERTY = "phase";
   private static final String CLUSTER_PHASE_INITIAL_INSTALL = "INITIAL_INSTALL";
@@ -2189,7 +2193,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 ServiceComponentHostEvent event,
                                 boolean skipFailure,
                                 ClusterVersionEntity effectiveClusterVersion,
-                                boolean isUpgradeSuspended
+                                boolean isUpgradeSuspended,
+                                DatabaseType databaseType,
+                                Map<String, DesiredConfig> clusterDesiredConfigs
                                 )
                                 throws AmbariException {
 
@@ -2200,7 +2206,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
-    String osFamily = clusters.getHost(hostname).getOsFamily();
+    Host host = clusters.getHost(hostname);
+    HostEntity hostEntity = host.getHostEntity();
+    Map<String, String> hostAttributes = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
+    String osFamily = host.getOSFamilyFromHostAttributes(hostAttributes);
     StackId stackId = cluster.getDesiredStackVersion();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
@@ -2209,11 +2218,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       serviceName, componentName);
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stackInfo.getName(), stackInfo.getVersion());
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
       scHost.getServiceComponentName()).getExecutionCommand();
-
-    Host host = clusters.getHost(scHost.getHostName());
 
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
@@ -2241,7 +2249,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // Propagate HCFS service type info
     for (Service service : cluster.getServices().values()) {
-      ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), service.getName());
+      ServiceInfo serviceInfoInstance = servicesMap.get(service.getName());
       LOG.debug("Iterating service type Instance in createHostAction: {}", serviceInfoInstance.getName());
       String serviceType = serviceInfoInstance.getServiceType();
       if (serviceType != null) {
@@ -2345,7 +2353,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
     }
 
-    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, host);
+    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, hostEntity.getOsType(), osFamily , hostname);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent"
         + ", hostname=" + scHost.getHostName()
@@ -2391,21 +2399,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String packageList = gson.toJson(packages);
     hostParams.put(PACKAGE_LIST, packageList);
 
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stackInfo.getName(), stackInfo.getVersion());
 
-    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
+    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String userList = gson.toJson(userSet);
     hostParams.put(USER_LIST, userList);
 
-    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredConfigs);
+    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.NOT_MANAGED_HDFS_PATH, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
-    DatabaseType databaseType = configs.getDatabaseType();
     if (databaseType == DatabaseType.ORACLE) {
       hostParams.put(DB_DRIVER_FILENAME, configs.getOjdbcJarName());
     } else if (databaseType == DatabaseType.MYSQL) {
@@ -2567,6 +2574,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // caching upgrade suspended
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
+
+    // caching database type
+    DatabaseType databaseType = configs.getDatabaseType();
 
     // smoke test any service that goes from installed to started
     Set<String> smokeTestServices = getServicesForSmokeTests(cluster,
@@ -2889,9 +2899,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 configurationAttributes =
                 new TreeMap<>();
             Host host = clusters.getHost(scHost.getHostName());
+            Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
 
             Map<String, Map<String, String>> configTags =
-                findConfigurationTagsWithOverrides(cluster, host.getHostName());
+                    configHelper.getEffectiveDesiredTags(cluster, host.getHostName(), clusterDesiredConfigs);
+
 
             // Skip INSTALL task in case SysPrepped hosts and in case of server components. In case of server component
             // START task should run configuration script.
@@ -2900,7 +2912,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               scHost.setState(State.INSTALLED);
             } else {
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended);
+                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended,
+                databaseType, clusterDesiredConfigs);
             }
 
           }
@@ -3038,8 +3051,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
+    DatabaseType databaseType = configs.getDatabaseType();
+    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended);
+                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended, databaseType,
+                     clusterDesiredConfigs);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
     // createHostAction does not take a hostLevelParams but creates one

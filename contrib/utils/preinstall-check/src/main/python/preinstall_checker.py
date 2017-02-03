@@ -128,7 +128,7 @@ def validate_options(options):
   if not options.password:
     errors.append("No Ambari admin user passsword provided.")
   if not options.log:
-      errors.append("No log patch provided.")
+      errors.append("No log home path provided.")
 
   """General check for operations"""
   if not options.operation:

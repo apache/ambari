@@ -75,6 +75,9 @@ class CustomServiceOrchestrator():
   # The property name used by the hadoop credential provider
   CREDENTIAL_PROVIDER_PROPERTY_NAME = 'hadoop.security.credential.provider.path'
 
+  # Property name for credential store class path
+  CREDENTIAL_STORE_CLASS_PATH_NAME = 'credentialStoreClassPath'
+
   def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
@@ -286,6 +289,7 @@ class CustomServiceOrchestrator():
         os.chmod(file_path, 0644) # group and others should have read access so that the service user can read
       # Add JCEKS provider path instead
       config[self.CREDENTIAL_PROVIDER_PROPERTY_NAME] = provider_path
+      config[self.CREDENTIAL_STORE_CLASS_PATH_NAME] = cs_lib_path
 
     return cmd_result
 

@@ -25,6 +25,7 @@ from mock.mock import patch, MagicMock, Mock
 import unittest
 import platform
 import socket
+import subprocess
 import os
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
@@ -32,6 +33,7 @@ from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Facter import Facter, FacterLinux
 from ambari_commons import OSCheck
+from resource_management.core import shell
 
 
 @not_for_platform(PLATFORM_WINDOWS)
@@ -85,7 +87,8 @@ class TestHardware(TestCase):
 
   @patch.object(Hardware, "_chk_writable_mount")
   @patch("ambari_agent.Hardware.path_isfile")
-  def test_osdisks_parsing(self, isfile_mock, chk_writable_mount_mock):
+  @patch("resource_management.core.shell.call")
+  def test_osdisks_parsing(self, shell_call_mock, isfile_mock, chk_writable_mount_mock):
     df_output =\
                 """Filesystem                                                                                        Type  1024-blocks     Used Available Capacity Mounted on
                 /dev/mapper/docker-253:0-4980899-d45c264d37ab18c8ed14f890f4d59ac2b81e1c52919eb36a79419787209515f3 xfs      31447040  1282384  30164656       5% /
@@ -108,18 +111,9 @@ class TestHardware(TestCase):
 
     isfile_mock.side_effect = isfile_side_effect
     chk_writable_mount_mock.side_effect = chk_writable_mount_side_effect
+    shell_call_mock.return_value = (0, df_output, '')
 
-    with patch("subprocess.Popen") as open_mock:
-      proc_mock = Mock()
-      attr = {
-        'communicate.return_value': [
-          df_output
-        ]
-      }
-      proc_mock.configure_mock(**attr)
-      open_mock.return_value = proc_mock
-
-      result = Hardware.osdisks()
+    result = Hardware.osdisks()
 
     self.assertEquals(1, len(result))
 
@@ -130,39 +124,40 @@ class TestHardware(TestCase):
 
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  @patch("subprocess.Popen")
-  @patch("subprocess.Popen.communicate")
-  def test_osdisks_remote(self, communicate_mock, popen_mock,
-                          get_os_version_mock, get_os_type_mock):
+  @patch("resource_management.core.shell.call")
+  def test_osdisks_remote(self, shell_call_mock, get_os_version_mock, get_os_type_mock):
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
     Hardware.osdisks()
-    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT"], stdout=-1)
+    timeout = 10
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config = AmbariConfig()
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT"], stdout=-1)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "true")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT"], stdout=-1)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "false")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT", "-l"], stdout=-1)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "0")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT", "-l"], stdout=-1)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
-    config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "1")
+    timeout = 1
+    config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, str(timeout))
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(["timeout", "1", "df", "-kPT", "-l"], stdout=-1)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
-    config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "2")
+    timeout = 2
+    config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, str(timeout))
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(["timeout", "2", "df", "-kPT", "-l"], stdout=-1)
+    shell_call_mock.assert_called_with(['timeout', str(timeout), "df", "-kPT", "-l"], stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = timeout, quiet = True)
 
   def test_parse_df_line(self):
     df_line_sample = "device type size used available percent mountpoint"
@@ -382,7 +377,8 @@ SwapFree:        1598676 kB
 
   @patch.object(Hardware, "_chk_writable_mount")
   @patch("ambari_agent.Hardware.path_isfile")
-  def test_osdisks_blacklist(self, isfile_mock, chk_writable_mount_mock):
+  @patch("resource_management.core.shell.call")
+  def test_osdisks_blacklist(self, shell_call_mock, isfile_mock, chk_writable_mount_mock):
     df_output = \
       """Filesystem                                                                                        Type  1024-blocks     Used Available Capacity Mounted on
       /dev/mapper/docker-253:0-4980899-d45c264d37ab18c8ed14f890f4d59ac2b81e1c52919eb36a79419787209515f3 xfs      31447040  1282384  30164656       5% /
@@ -414,33 +410,25 @@ SwapFree:        1598676 kB
       }
     }
 
-    with patch("subprocess.Popen") as open_mock:
-      proc_mock = Mock()
-      attr = {
-        'communicate.return_value': [
-          df_output
-        ]
-      }
-      proc_mock.configure_mock(**attr)
-      open_mock.return_value = proc_mock
+    shell_call_mock.return_value = (0, df_output, '')
 
-      def conf_get(section, key, default=""):
-        if section in config_dict and key in config_dict[section]:
-          return config_dict[section][key]
+    def conf_get(section, key, default=""):
+      if section in config_dict and key in config_dict[section]:
+        return config_dict[section][key]
 
-        return default
+      return default
 
-      def has_option(section, key):
-        return section in config_dict and key in config_dict[section]
+    def has_option(section, key):
+      return section in config_dict and key in config_dict[section]
 
-      conf = Mock()
-      attr = {
-        'get.side_effect': conf_get,
-        'has_option.side_effect': has_option
-      }
-      conf.configure_mock(**attr)
+    conf = Mock()
+    attr = {
+      'get.side_effect': conf_get,
+      'has_option.side_effect': has_option
+    }
+    conf.configure_mock(**attr)
 
-      result = Hardware.osdisks(conf)
+    result = Hardware.osdisks(conf)
 
     self.assertEquals(1, len(result))
 

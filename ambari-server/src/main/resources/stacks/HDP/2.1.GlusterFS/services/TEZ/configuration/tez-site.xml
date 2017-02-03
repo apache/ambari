@@ -39,6 +39,10 @@
     <name>tez.am.resource.memory.mb</name>
     <value>1536</value>
     <description>The amount of memory to be used by the AppMaster</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- tez picks the java opts from yarn.app.mapreduce.am.command-opts for MR tasks. Likewise for the AM memory MB -->
@@ -54,6 +58,9 @@
     <description>In case of a ScatterGather connection, the fraction of source tasks which should
       complete before tasks for the current vertex are schedule
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -63,12 +70,19 @@
       completed, all tasks on the current vertex can be scheduled. Number of tasks ready for
       scheduling on the current vertex scales linearly between min-fraction and max-fraction
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
     <value>250</value>
     <description>The maximum heartbeat interval between the AM and RM in milliseconds</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -78,6 +92,9 @@
       a Vertex. 1.4 with 100% queue available implies generating a number of tasks roughly equal
       to 140% of the available containers on the queue
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -86,6 +103,10 @@
     <description>Lower bound on the size (in bytes) of a grouped split, to avoid generating
       too many splits
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -94,12 +115,19 @@
     <description>Upper bound on the size (in bytes) of a grouped split, to avoid generating
       excessively large split
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.am.container.reuse.enabled</name>
     <value>true</value>
     <description>Configuration to specify whether container should be reused</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -107,6 +135,9 @@
     <value>true</value>
     <description>Whether to reuse containers for rack local tasks. Active only if reuse is enabled
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -114,6 +145,9 @@
     <value>true</value>
     <description>Whether to reuse containers for non-local tasks. Active only if reuse is enabled
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -124,6 +158,10 @@
       it immediately. Only active when reuse is enabled. Set to -1 to never release a container
       in a session
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -132,14 +170,22 @@
     <description>The amount of time to wait before assigning a container to the next level of
       locality. NODE -&gt; RACK -&gt; NON_LOCAL
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.task.get-task.sleep.interval-ms.max</name>
     <value>200</value>
-    <description>The maximum amount of time, in seconds, to wait before a task asks an AM for
+    <description>The maximum amount of time, in milliseconds, to wait before a task asks an AM for
       another task
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -158,6 +204,10 @@
     <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
       the client
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -166,6 +216,10 @@
     <description>Time (in seconds) for which the Tez AM should wait for a DAG to be submitted
       before shutting down
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>seconds</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- Configuration for runtime components -->
@@ -175,6 +229,9 @@
     <name>tez.runtime.intermediate-output.should-compress</name>
     <value>false</value>
     <description>Whether intermediate output should be compressed or not</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -189,6 +246,9 @@
     <name>tez.runtime.intermediate-input.is-compressed</name>
     <value>false</value>
     <description>Whether intermediate input is compressed</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -203,6 +263,9 @@
     <name>tez.yarn.ats.enabled</name>
     <value>true</value>
     <description>Whether to send history events to YARN Application Timeline Server</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

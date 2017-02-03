@@ -257,6 +257,8 @@ rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-a
 rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
 rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+rm_zk_failover_znode = default('/configurations/yarn-site/yarn.resourcemanager.ha.automatic-failover.zk-base-path', '/yarn-leader-election')
+hadoop_registry_zk_root = default('/configurations/yarn-site/hadoop.registry.zk.root', '/registry')
 
 if security_enabled:
   rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
@@ -264,7 +266,8 @@ if security_enabled:
   rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
   yarn_jaas_file = os.path.join(config_dir, 'yarn_jaas.conf')
-  yarn_env_sh_template += format('\nYARN_OPTS="$YARN_OPTS -Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client"\n')
+  if stack_supports_zk_security:
+    rm_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client')
 
   # YARN timeline security options
   if has_ats:

@@ -19,6 +19,7 @@ package org.apache.ambari.server.orm;
 
 import java.util.Properties;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
@@ -30,7 +31,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 public class JdbcPropertyTest {
   Properties properties;
@@ -48,7 +48,7 @@ public class JdbcPropertyTest {
 
   @After
   public void tearDown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

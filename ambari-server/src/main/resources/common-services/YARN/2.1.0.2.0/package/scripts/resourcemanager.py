@@ -241,6 +241,8 @@ class ResourcemanagerDefault(Resourcemanager):
       params.yarn_jaas_file, \
       params.yarn_user)
     zkmigrator.set_acls(params.rm_zk_znode, 'world:anyone:crdwa')
+    zkmigrator.set_acls(params.rm_zk_failover_znode, 'world:anyone:crdwa')
+    zkmigrator.set_acls(params.hadoop_registry_zk_root, 'world:anyone:crdwa')
 
   def wait_for_dfs_directories_created(self, *dirs):
     import params

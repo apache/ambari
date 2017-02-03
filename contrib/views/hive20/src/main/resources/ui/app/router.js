@@ -25,6 +25,8 @@ const Router = Ember.Router.extend({
 });
 
 Router.map(function() {
+  this.route('service-check');
+
   this.route('jobs');
   this.route('udfs');
   this.route('settings');

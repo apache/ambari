@@ -24,10 +24,15 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      {{top-application-bar}}
-      {{#tabs-pane tabs=tabs as |tab|}}
-        {{tabs-item tab=tab tabs=tabs}}
-      {{/tabs-pane}}
+      {{#if serviceCheckCompleted}}
+        {{top-application-bar}}
+        {{#tabs-pane tabs=tabs as |tab|}}
+          {{tabs-item tab=tab tabs=tabs}}
+        {{/tabs-pane}}
+      {{else}}
+        {{top-application-bar service=true}}
+      {{/if}}
+
     </div>
   </div>
   <div class="row">

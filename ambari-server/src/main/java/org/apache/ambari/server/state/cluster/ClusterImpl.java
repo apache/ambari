@@ -2896,7 +2896,7 @@ public class ClusterImpl implements Cluster {
     Map<String, ServiceComponent> components = service.getServiceComponents();
 
     if (!components.containsKey(componentName) ||
-        components.get(componentName).getServiceComponentHosts().size() == 0) {
+            components.get(componentName).getServiceComponentHosts().size() == 0) {
       return Collections.emptySet();
     }
 

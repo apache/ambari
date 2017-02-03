@@ -145,6 +145,35 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       });
     }
   },
+
+  importWorkflowFromProjManager(path){
+      var self = this;
+      this.set("showingFileBrowser",false);
+      if(path){
+        self.set("isWorkflowImporting", true);
+        this.isDraftExists(path).promise.then(function(data){
+          var draftData = JSON.parse(data);
+          if(draftData.draftExists && draftData.isDraftCurrent) {
+              self.set("workflowFilePath", path);
+              self.getDraftWorkflowData(path).promise.then(function(data){
+                var workflowImporter = WorkflowJsonImporter.create({});
+                var workflow = workflowImporter.importWorkflow(data);
+                self.resetDesigner();
+                self.set("workflow", workflow);
+                self.initAndRenderWorkflow();
+                self.set("isWorkflowImporting", false);
+                self.doValidation();
+              }.bind(this)).catch(function(data){
+              });
+          } else {
+            self.importWorkflow(path);
+          }
+        }.bind(this)).catch(function(e){
+          console.error(e);
+        });
+      }
+  },
+
   observeXmlAppPath : Ember.observer('xmlAppPath', function(){
     if(!this.get('xmlAppPath') || null === this.get('xmlAppPath')){
       return;
@@ -193,7 +222,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         }
       }
     }
-    this.importWorkflow(relXmlPath);
+    this.importWorkflowFromProjManager(relXmlPath);
   },
   setConentWidth(){
     var offset = 120;
@@ -666,9 +695,14 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }, 1000);
   },
   openSaveWorkflow() {
+    if(Ember.isBlank(this.$('[name=wf_title]').val())) {
+      this.set('errors',[{"message":"Workflow name is mandatory"}]);
+      return;
+    }
     var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
     var workflowXml = workflowGenerator.process();
     var workflowJson = this.getWorkflowAsJson();
+    this.set('errors', []);
     var isDraft = this.get('workflowContext').hasErrors()? true: false;
     this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
     this.set("showingSaveWorkflow",true);
@@ -690,11 +724,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showingErrorMsgInDesigner(data){
       var self = this, stackTraceMsg = self.getStackTrace(data.responseText);
       if(stackTraceMsg.length){
-        self.set("isStackTraceVisible", true);
         self.set("stackTrace", stackTraceMsg);
         self.set("isStackTraceAvailable", true);
       } else {
-        self.set("isStackTraceVisible", false);
         self.set("isStackTraceAvailable", false);
       }
   },
@@ -827,17 +859,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.doValidation();
       this.$("#kill-node-dialog").modal("hide");
       this.set('showCreateKillNode', false);
-    },
-    addNode(type){
-      if(type === 'custom'){
-        this.$('#customTypeModal').modal('show');
-      }else{
-        this.send('addAction', type);
-      }
-    },
-    createCustomAction(type){
-      this.send('addAction', type);
-      this.set('customActionType', '');
     },
     addAction(type){
       this.createSnapshot();

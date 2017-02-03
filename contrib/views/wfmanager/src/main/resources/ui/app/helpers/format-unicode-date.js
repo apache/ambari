@@ -18,7 +18,8 @@
 import Ember from 'ember';
 
 export function formatUnicodeDate(params) {
-  return new Date(parseInt(params[0])).toUTCString();
+    var date = new Date(parseInt(params[0])).toUTCString();
+    return [moment(date).format("MM/DD/YYYY hh:mm A")].join("")
 }
 
 export default Ember.Helper.helper(formatUnicodeDate);

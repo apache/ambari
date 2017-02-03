@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.sql.SQLException;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -32,7 +36,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * ClusterVersionDAO unit tests.
@@ -63,10 +66,11 @@ public class ClusterVersionDAOTest {
   @Before
   public void before() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+
     clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
     clusterDAO = injector.getInstance(ClusterDAO.class);
     helper = injector.getInstance(OrmTestHelper.class);
-    injector.getInstance(GuiceJpaInitializer.class);
   }
 
   /**
@@ -253,8 +257,8 @@ public class ClusterVersionDAOTest {
   }
 
   @After
-  public void after() {
-    injector.getInstance(PersistService.class).stop();
+  public void after() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     injector = null;
   }
 }

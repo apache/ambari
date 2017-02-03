@@ -115,7 +115,7 @@ public class AssetResource {
     String workflowXml = oozieUtils.generateWorkflowXml(postBody);
     try {
       Map<String, String> result = new HashMap<>();
-      String tempWfPath = "/tmp" + "/tmpooziewfs/tempwf.xml";
+      String tempWfPath = "/tmp" + "/tmpooziewfs/tempwf_" + Math.round(Math.random()*100000) + ".xml";
       hdfsFileUtils.writeToFile(tempWfPath, workflowXml, true);
       queryParams.put("oozieparam.action", getAsList("dryrun"));
       queryParams.put("oozieconfig.rerunOnFailure", getAsList("false"));
@@ -125,6 +125,7 @@ public class AssetResource {
         tempWfPath, queryParams, JobType.WORKFLOW);
       LOGGER.info(String.format("resp from validating asset=[%s]",
         dryRunResp));
+      hdfsFileUtils.deleteFile(tempWfPath);
       if (dryRunResp != null && dryRunResp.trim().startsWith("{")) {
         JsonElement jsonElement = new JsonParser().parse(dryRunResp);
         JsonElement idElem = jsonElement.getAsJsonObject().get("id");

@@ -127,7 +127,7 @@ describe('App.MainDashboardServiceYARNView', function () {
 
     it("App.tooltip should be called", function() {
       view.didInsertElement();
-      expect(App.tooltip.calledOnce).to.be.true;
+      expect(App.tooltip.calledTwice).to.be.true;
     });
   });
 

@@ -47,6 +47,7 @@ class StatusCommandsExecutor(multiprocessing.Process):
   def run(self):
     try:
       bind_debug_signal_handlers()
+      logger.info("StatusCommandsExecutor starting")
       while True:
         command = self.actionQueue.statusCommandQueue.get(True) # blocks until status status command appears
         logger.debug("Running status command for {0}".format(command['componentName']))

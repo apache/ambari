@@ -57,6 +57,8 @@
       <displayName>MapReduce2</displayName>
       <version>3.0.0.3.0</version>
       <extends>common-services/MAPREDUCE2/3.0.0.3.0</extends>
+      
+      <configuration-dir>configuration-mapred</configuration-dir>
 
       <osSpecifics>
         <osSpecific>

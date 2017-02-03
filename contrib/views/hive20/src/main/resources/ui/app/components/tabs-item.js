@@ -32,30 +32,12 @@ export default Ember.Component.extend({
     }
   }),
 
-  didInsertElement: function() {
-    Ember.run.later(() => this.send('changeActiveState'));
-    this.$('a').click(() => {
-      Ember.run.later(() => {
-        this.send('changeActiveState');
-      });
-    });
-  },
 
   actions : {
     selected() {
-      this.get('tabs').forEach((x) => x.set('active', false));
+      this.get('tabs').setEach('active', false);
       this.set('active', true);
       this.sendAction('activate', this.get('tab.link'));
-    },
-
-    changeActiveState: function() {
-      if(this.get('shouldTransition')) {
-        let classes = this.$('a').attr('class').split(' ');
-        if(classes.contains('active')) {
-          this.get('tabs').forEach((x) => x.set('active', false));
-          this.set('active', true);
-        }
-      }
     }
   }
 });

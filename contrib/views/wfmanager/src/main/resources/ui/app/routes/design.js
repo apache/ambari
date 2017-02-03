@@ -19,7 +19,7 @@ import Ember from 'ember';
 import SchemaVersions from '../domain/schema-versions';
 
 export default Ember.Route.extend(Ember.Evented, {
-
+  currentDraft: null,
   beforeModel: function(transition){
     this.set("xmlAppPath", transition.queryParams.appPath);
     this.controllerFor('design').set("xmlAppPath", transition.queryParams.appPath);
@@ -71,25 +71,30 @@ export default Ember.Route.extend(Ember.Evented, {
       this.set('failedSchemaVersions', true);
       transition.retry();
     },
-    editWorkflow(path){
-      this.trigger('openNewTab', path);
+    editWorkflow(path, type){
+      this.trigger('openNewTab', path, type);
+    },
+    deleteWorkflow(job){
+      this.set("currentDraft", job);
     },
     showDashboard(){
       this.controller.set('dashboardShown', true);
       this.transitionTo('design.dashboardtab');
     },
-    showProjManager(){
-      //this.controller.set('ProjManagerShown', true);
-      this.transitionTo('design.projManagerTab');
+    getAllRecentWorks(deferred){
+      this.store.findAll("wfproject", { reload: true }).then((data)=>{
+        deferred.resolve(data);
+      }).catch((e)=>{
+        deferred.reject(e);
+      });
     },
     hideDashboard(){
       this.controller.set('dashboardShown', false);
       this.transitionTo('design');
     },
     hideProjManager(){
-      //this.controller.set('ProjManagerShown', false);
+      this.controller.set('dashboardShown', false);
       this.transitionTo('design');
     }
   }
-
 });

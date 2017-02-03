@@ -61,7 +61,7 @@
     </property>
     <property>
         <name>spark_home</name>
-        <value>{{stack_root}}/current/spark2-client</value>
+        <value>/usr/hdp/current/spark2-client</value>
         <value-attributes>
             <type>directory</type>
         </value-attributes>

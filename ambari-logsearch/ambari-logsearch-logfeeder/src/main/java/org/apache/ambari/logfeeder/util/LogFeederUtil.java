@@ -171,8 +171,20 @@ public class LogFeederUtil {
   }
 
   public static int getIntProperty(String key, int defaultValue) {
+    return getIntProperty(key, defaultValue, null, null);
+  }
+
+  public static int getIntProperty(String key, int defaultValue, Integer minValue, Integer maxValue) {
     String value = getStringProperty(key);
     int retValue = objectToInt(value, defaultValue, ", key=" + key);
+    if (minValue != null && retValue < minValue) {
+      LOG.info("Minimum rule was applied for " + key + ": " + retValue + " < " + minValue);
+      retValue = minValue;
+    }
+    if (maxValue != null && retValue > maxValue) {
+      LOG.info("Maximum rule was applied for " + key + ": " + retValue + " > " + maxValue);
+      retValue = maxValue;
+    }
     return retValue;
   }
 

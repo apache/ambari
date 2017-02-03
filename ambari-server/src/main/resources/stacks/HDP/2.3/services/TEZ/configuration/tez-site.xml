@@ -106,12 +106,18 @@
     <name>tez.counters.max</name>
     <value>10000</value>
     <description>The number of allowed counters for the executing DAG</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.counters.max.groups</name>
     <value>3000</value>
     <description>The number of allowed counter groups for the executing DAG</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

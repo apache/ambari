@@ -52,9 +52,9 @@ export default Ember.Component.extend(Validations, {
           this.sendAction('saveAssetConfig');
         }
       }.bind(this)).catch(function(data){
-        model.set("inProgress", false);
-        return "There is some problem while checking asset name availability. Please try again.";
-      });
+        this.set("inProgress", false);
+        this.set("assetErrorMsg", "There is some problem while checking asset name availability. Please try again.");
+      }.bind(this));
     }
   }
 });

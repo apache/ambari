@@ -24,7 +24,7 @@
       <div class="input-group">
         {{input type="text" class="form-control" name="exec" title="Command or the path of the Shell command to execute" value=actionModel.exec placeholder="Script path or shell command"}}
         <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.exec"}}>Browse</button>
+          <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "actionModel.exec"}}>Browse</button>
         </span>
       </div>
       {{field-error model=this field='actionModel.exec' showErrorMessage=showErrorMessage}}

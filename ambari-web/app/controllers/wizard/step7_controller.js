@@ -535,13 +535,40 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
     this.selectProperService();
-    /* var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
-    if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
-      App.config.removeRangerConfigs(this.get('stepConfigs'));
-    } */
-    console.timeEnd('applyServicesConfigs execution time: ');
-    console.time('loadConfigRecommendations execution time: ');
-    this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
+    var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
+    var self = this;
+    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    var isRangerServiceAbsent =  rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected');
+    if (isRangerServiceAbsent) {
+      var isExternalRangerSetup;
+      if (isInstallerWizard) {
+        isExternalRangerSetup = configs.filterProperty('fileName','cluster-env.xml').findProperty('name','enable_external_ranger');
+        if (Em.isNone(isExternalRangerSetup) || isExternalRangerSetup.value !== "true") {
+          App.config.removeRangerConfigs(this.get('stepConfigs'));
+        }
+        console.timeEnd('applyServicesConfigs execution time: ');
+        console.time('loadConfigRecommendations execution time: ');
+        self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
+      } else {
+        var mainController = App.get('router.mainController');
+        var clusterController = App.get('router.clusterController');
+        mainController.isLoading.call(clusterController, 'clusterEnv').done(function () {
+          isExternalRangerSetup = clusterController.get("clusterEnv")["properties"]["enable_external_ranger"];
+          if (isExternalRangerSetup !== "true") {
+            App.config.removeRangerConfigs(self.get('stepConfigs'));
+          }
+          console.timeEnd('applyServicesConfigs execution time: ');
+          console.time('loadConfigRecommendations execution time: ');
+          self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
+        });
+      }
+
+    } else {
+      console.timeEnd('applyServicesConfigs execution time: ');
+      console.time('loadConfigRecommendations execution time: ');
+      self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
+    }
+
   },
 
   /**

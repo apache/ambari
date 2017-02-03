@@ -37,7 +37,7 @@ class TestRegistration(TestCase):
   @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_registration_build(self, get_os_version_mock, get_os_type_mock, run_os_cmd_mock, Popen_mock):

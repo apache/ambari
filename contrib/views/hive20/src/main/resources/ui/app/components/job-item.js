@@ -25,14 +25,19 @@ export default Ember.Component.extend({
   expandedValue: null,
   actions: {
     toggleExpandJob(jobId) {
-      this.toggleProperty('expanded');
-      this.set('valueLoading', true);
-      this.get('jobs').getQuery(jobId).then((queryFile) => {
-        this.set('queryFile', queryFile);
-        this.set('valueLoading', false);
-      }).catch((err) => {
-        this.set('valueLoading', false);
-      })
+      if(this.get('expanded')) {
+        this.set('expanded', false);
+      } else {
+        this.set('expanded', true);
+        this.set('valueLoading', true);
+        this.get('jobs').getQuery(jobId).then((queryFile) => {
+          this.set('queryFile', queryFile);
+          this.set('valueLoading', false);
+        }).catch((err) => {
+          this.set('valueLoading', false);
+        });
+      }
+
     }
   }
 });

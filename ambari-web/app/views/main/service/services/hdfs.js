@@ -74,10 +74,12 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       $('[rel=healthTooltip]').tooltip('destroy')
     }
   }),
-
-  didInsertElement: function() {
-    App.tooltip($("[rel='tooltip']"));
-  },
+  
+  metricsNotAvailableObserver: function () {
+    if(!this.get("service.metricsNotAvailable")) {
+      App.tooltip($("[rel='tooltip']"));
+    }
+  }.observes("service.metricsNotAvailable"),
 
   willDestroyElement: function() {
     $("[rel='tooltip']").tooltip('destroy');

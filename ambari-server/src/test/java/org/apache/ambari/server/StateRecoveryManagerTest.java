@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -46,7 +47,6 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 public class StateRecoveryManagerTest {
@@ -67,8 +67,8 @@ public class StateRecoveryManagerTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

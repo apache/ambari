@@ -58,6 +58,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
@@ -171,7 +172,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
 
@@ -241,6 +241,7 @@ public class AmbariManagementControllerTest {
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
     backingProperties = module.getProperties();
     injector = Guice.createInjector(module);
+    H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
@@ -257,7 +258,7 @@ public class AmbariManagementControllerTest {
 
   @Before
   public void setup() throws Exception {
-    entityManager = injector.getInstance(EntityManager.class);
+    entityManager = injector.getProvider(EntityManager.class).get();
     actionDB = injector.getInstance(ActionDBAccessor.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     serviceComponentFactory = injector.getInstance(
@@ -284,7 +285,7 @@ public class AmbariManagementControllerTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private static String getUniqueName() {

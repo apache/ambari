@@ -431,8 +431,10 @@ Em.I18n.translations = {
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
   'popup.confirmation.refreshYarnQueues.body':'It is strongly recommended to <strong>Refresh Yarn Queues</strong> after making a change to the capacity scheduler configuration. Would you like to proceed?',
-  'popup.warning.refreshYarnQueues.body': '<div class="alert alert-warning"><strong>Warning: </strong>The queue configuration change may have affected the queue used by LLAP. An LLAP reconfiguration or restart may be required.</div>',
+  'popup.warning.refreshYarnQueues.body': '<div class="alert alert-warning"><strong>Warning: </strong>The queue configuration change may have affected the queue used by Hive LLAP. A Hive LLAP reconfiguration or restart may be required.</div>',
   'popup.confirmation.refreshYarnQueues.buttonText':'Refresh Yarn Queues',
+  'popup.confirmation.hsiRestart.body':'It is strongly recommended to <strong>Restart HiveServer2 Interactive</strong> after making a change to the Hive LLAP sizing configuration. Would you like to proceed?',
+  'popup.confirmation.hsiRestart.buttonText':'Restart HiveServer2 Interactive',
   'popup.prompt.commonHeader':'Prompt',
   'popup.confirmationFeedBack.sending':'Sending...',
   'popup.confirmationFeedBack.query.fail':'Request failed',
@@ -1816,6 +1818,7 @@ Em.I18n.translations = {
     "Click on <b>Finalize</b> when you are ready to finalize the downgrade and commit to the new version." +
     " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
     " <b>You cannot go back to the original version once the downgrade is finalized.</b>",
+  'admin.stackUpgrade.finalize.message.autoStart': "Please remember to re-enable Auto Start if you disabled it for upgrade.",
   'admin.stackUpgrade.finalize.message.skippedServiceChecks': "During the upgrade, checks for the following services failed and were skipped:",
   'admin.stackUpgrade.finalize.message.testServices': "You are strongly recommended to test these services before finalizing upgrade.",
   'admin.stackUpgrade.failedHosts.message': "Upgrade did not succeed on",
@@ -2928,7 +2931,18 @@ Em.I18n.translations = {
   'dashboard.services.yarn.resourceManager.standby':'Standby ResourceManager',
   'dashboard.services.resourceManager.nodes.heap':'ResourceManager Heap',
   'dashboard.services.yarn.nodeManagers.status': 'NodeManagers Status',
-  'dashboard.services.yarn.nodeManagers.status.msg': '{0} active / {1} lost / {2} unhealthy / {3} rebooted / {4} decommissioned',
+  'dashboard.services.yarn.nodeManagers.status.active': 'active',
+  'dashboard.services.yarn.nodeManagers.status.lost': 'lost',
+  'dashboard.services.yarn.nodeManagers.status.unhealthy': 'unhealthy',
+  'dashboard.services.yarn.nodeManagers.status.rebooted': 'rebooted',
+  'dashboard.services.yarn.nodeManagers.status.decommissioned': 'decommissioned',
+  'dashboard.services.yarn.nodeManagers.status.tooltip.active': 'This is the number of NodeManagers that are active as reported from the ResourceManager',
+  'dashboard.services.yarn.nodeManagers.status.tooltip.lost': 'This is the number of NodeManagers that are lost as reported from the ResourceManager. ' +
+    'Even if a NodeManager process is up, the ResourceManager might see the status as lost if the NodeManager is not communicating with the ' +
+    'ResourceManager as expected. This can be due to situations such as a network issue or a hanging NodeManager process due to excessive garbage collection.',
+  'dashboard.services.yarn.nodeManagers.status.tooltip.unhealthy': 'This is the number of NodeManagers that are unhealthy as reported from the ResourceManager.',
+  'dashboard.services.yarn.nodeManagers.status.tooltip.rebooted': 'This is the number of NodeManagers that are in the rebooted state as reported from the ResourceManager.',
+  'dashboard.services.yarn.nodeManagers.status.tooltip.decommissioned': 'This is the number of NodeManagers that are decommissioned as reported from the ResourceManager.',
   'dashboard.services.yarn.containers': 'Containers',
   'dashboard.services.yarn.containers.msg': '{0} allocated / {1} pending / {2} reserved',
   'dashboard.services.yarn.apps': 'Applications',
@@ -3342,8 +3356,6 @@ Em.I18n.translations = {
       'Click <b>Save</b> to commit the change or <b>Discard</b> to revert your changes',
   'admin.serviceAutoStart.save.popup.transition.title': 'Warning',
   'admin.serviceAutoStart.save.popup.transition.body': 'You have unsaved changes',
-  'admin.serviceAutoStart.disabled.popup.body': 'During RU/EU auto-start of service components will be disabled.' +
-  ' Auto-start will be enabled after upgrade is completed.',
 
   'reset.ui.states': 'Reset UI State',
   'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?',

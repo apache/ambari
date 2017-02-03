@@ -747,8 +747,18 @@ public class HostImpl implements Host {
   @Override
   public String getOsFamily() {
     Map<String, String> hostAttributes = getHostAttributes();
-    String majorVersion = hostAttributes.get(OS_RELEASE_VERSION).split("\\.")[0];
-	  return hostAttributes.get(OSFAMILY) + majorVersion;
+	  return getOSFamilyFromHostAttributes(hostAttributes);
+  }
+
+  @Override
+  public String getOSFamilyFromHostAttributes(Map<String, String> hostAttributes) {
+    try {
+      String majorVersion = hostAttributes.get(OS_RELEASE_VERSION).split("\\.")[0];
+      return hostAttributes.get(OSFAMILY) + majorVersion;
+    } catch(Exception e) {
+      LOG.error("Error while getting os family from host attributes:", e);
+    }
+    return null;
   }
 
   @Override
@@ -1145,6 +1155,7 @@ public class HostImpl implements Host {
   }
 
   // Get the cached host entity or load it fresh through the DAO.
+  @Override
   public HostEntity getHostEntity() {
     return hostDAO.findById(hostId);
   }

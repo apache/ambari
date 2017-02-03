@@ -77,6 +77,9 @@ var WorkflowImporter= Ember.Object.extend({
     });
 
     importedWfActionVersions._keys.forEach(function(wfActionType){
+      if(!CommonUtils.isSupportedAction(wfActionType)){
+        return;
+      }
       var maxImportedActionVersion = Math.max(...importedWfActionVersions.get(wfActionType));
       var supportedVersions = this.get('schemaVersions').getSupportedVersions(wfActionType);
       importedWfActionVersions.get(wfActionType).forEach((version)=>{

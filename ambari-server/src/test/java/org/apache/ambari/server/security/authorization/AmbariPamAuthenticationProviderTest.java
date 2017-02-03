@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.expect;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -41,7 +42,6 @@ import org.springframework.security.core.AuthenticationException;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
 
@@ -65,7 +65,7 @@ public class AmbariPamAuthenticationProviderTest {
 
   @After
   public void tearDown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test(expected = AuthenticationException.class)

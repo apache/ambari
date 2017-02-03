@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.helpers.ScriptRunner;
 import org.apache.ambari.server.orm.helpers.dbms.DbmsHelper;
 import org.apache.ambari.server.orm.helpers.dbms.DerbyHelper;
 import org.apache.ambari.server.orm.helpers.dbms.GenericDbmsHelper;
+import org.apache.ambari.server.orm.helpers.dbms.H2Helper;
 import org.apache.ambari.server.orm.helpers.dbms.MySqlHelper;
 import org.apache.ambari.server.orm.helpers.dbms.OracleHelper;
 import org.apache.ambari.server.orm.helpers.dbms.PostgresHelper;
@@ -55,6 +56,7 @@ import org.eclipse.persistence.logging.AbstractSessionLog;
 import org.eclipse.persistence.logging.SessionLogEntry;
 import org.eclipse.persistence.platform.database.DatabasePlatform;
 import org.eclipse.persistence.platform.database.DerbyPlatform;
+import org.eclipse.persistence.platform.database.H2Platform;
 import org.eclipse.persistence.platform.database.MySQLPlatform;
 import org.eclipse.persistence.platform.database.OraclePlatform;
 import org.eclipse.persistence.platform.database.PostgreSQLPlatform;
@@ -130,6 +132,9 @@ public class DBAccessorImpl implements DBAccessor {
     } else if (databasePlatform instanceof DerbyPlatform) {
       dbType = DbType.DERBY;
       return new DerbyHelper(databasePlatform);
+    } else if (databasePlatform instanceof H2Platform) {
+      dbType = DbType.H2;
+      return new H2Helper(databasePlatform);
     } else {
       dbType = DbType.UNKNOWN;
       return new GenericDbmsHelper(databasePlatform);

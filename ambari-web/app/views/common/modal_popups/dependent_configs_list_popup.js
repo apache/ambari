@@ -66,13 +66,14 @@ App.DependentConfigsListView = Em.View.extend({
 
 /**
  * Show confirmation popup
- * @param {[Object]} recommendations
+ * @param {[Object]} recommendedChanges
+ * @param {[Object]} requiredChanges
  * @param {function} [primary=null]
  * @param {function} [secondary=null]
  * we use this parameter to defer saving configs before we make some decisions.
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
+App.showDependentConfigsPopup = function (recommendedChanges, requiredChanges, primary, secondary) {
   return App.ModalPopup.show({
     encodeBody: false,
     header: Em.I18n.t('popup.dependent.configs.header'),
@@ -80,15 +81,16 @@ App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
     modalDialogClasses: ['modal-lg'],
     secondaryClass: 'cancel-button',
     bodyClass: App.DependentConfigsListView.extend({
-      recommendations: recommendations
+      recommendations: recommendedChanges,
+      requiredChanges: requiredChanges
     }),
     saveChanges: function() {
-      recommendations.forEach(function (c) {
+      recommendedChanges.forEach(function (c) {
         Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
       })
     },
     discardChanges: function() {
-      recommendations.forEach(function(c) {
+      recommendedChanges.forEach(function(c) {
         Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
       });
     },
