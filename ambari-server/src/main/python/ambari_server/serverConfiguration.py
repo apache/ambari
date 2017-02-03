@@ -207,6 +207,11 @@ REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PAT
                        BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, PID_DIR_PROPERTY,
                        MPACKS_STAGING_PATH_PROPERTY]
 
+# if these properties are available 'ambari-server setup -s' is not triggered again.
+SETUP_DONE_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, JDK_NAME_PROPERTY, JDBC_DATABASE_PROPERTY,
+                         NR_USER_PROPERTY, PERSISTENCE_TYPE_PROPERTY
+]
+
 def get_conf_dir():
   try:
     conf_dir = os.environ[AMBARI_CONF_VAR]
@@ -1451,9 +1456,9 @@ def get_server_temp_location(properties):
     server_tmp_dir = configDefaults.SERVER_TMP_DIR_DEFAULT
   return server_tmp_dir
 
-def get_missing_properties(properties):
+def get_missing_properties(properties, property_set=REQUIRED_PROPERTIES):
   missing_propertiers = []
-  for property in REQUIRED_PROPERTIES:
+  for property in property_set:
     value = properties[property]
     if not value:
       missing_propertiers.append(property)
