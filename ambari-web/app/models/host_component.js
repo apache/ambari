@@ -51,7 +51,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isClient: function () {
-    return App.get('components.clients').contains(this.get('componentName'));
+    return App.HostComponent.isClient(this.get('componentName'));
   }.property('componentName'),
   /**
    * Determine if component is running now
@@ -73,7 +73,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isMaster: function () {
-    return App.get('components.masters').contains(this.get('componentName'));
+    return App.HostComponent.isMaster(this.get('componentName'));
   }.property('componentName', 'App.components.masters'),
 
   /**
@@ -81,7 +81,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isSlave: function () {
-    return App.get('components.slaves').contains(this.get('componentName'));
+    return App.HostComponent.isSlave(this.get('componentName'));
   }.property('componentName'),
   /**
    * Only certain components can be deleted.
@@ -164,6 +164,17 @@ App.HostComponent = DS.Model.extend({
 
 App.HostComponent.FIXTURES = [];
 
+App.HostComponent.isClient = function(componentName) {
+  return App.get('components.clients').contains(componentName);
+};
+
+App.HostComponent.isMaster = function(componentName) {
+  return App.get('components.masters').contains(componentName);
+};
+
+App.HostComponent.isSlave = function(componentName) {
+  return App.get('components.slaves').contains(componentName);
+};
 
 /**
  * get particular counter of host-component by name
