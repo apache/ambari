@@ -705,7 +705,10 @@ if has_hive_interactive:
     hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
   pass
 
-hive_server2_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
+if len(hive_server_hosts) == 0 and len(hive_server_interactive_hosts) > 0:
+  hive_server2_zookeeper_namespace = config['configurations']['hive-interactive-site']['hive.server2.zookeeper.namespace']
+else:
+  hive_server2_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
 hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
 
 if security_enabled:
