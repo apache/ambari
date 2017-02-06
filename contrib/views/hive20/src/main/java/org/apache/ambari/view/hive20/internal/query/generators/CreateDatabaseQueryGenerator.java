@@ -18,14 +18,14 @@
 
 package org.apache.ambari.view.hive20.internal.query.generators;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
 import org.apache.ambari.view.hive20.exceptions.ServiceException;
+import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Optional;
 
-public class DeleteDatabaseQueryGenerator implements QueryGenerator{
-  private String databaseName;
+public class CreateDatabaseQueryGenerator implements QueryGenerator {
+  public final String databaseName;
 
-  public DeleteDatabaseQueryGenerator(String databaseName) {
+  public CreateDatabaseQueryGenerator(String databaseName) {
     this.databaseName = databaseName;
   }
 
@@ -33,16 +33,12 @@ public class DeleteDatabaseQueryGenerator implements QueryGenerator{
     return databaseName;
   }
 
-  public void setDatabaseName(String databaseName) {
-    this.databaseName = databaseName;
-  }
-
   @Override
   public Optional<String> getQuery() throws ServiceException {
-    if(Strings.isNullOrEmpty(this.getDatabaseName())){
+    if(StringUtils.isEmpty(this.getDatabaseName())){
       throw new ServiceException("Database name cannot be null or empty.");
     }
 
-    return Optional.of("drop database `" + this.getDatabaseName() + "`");
+    return Optional.of("CREATE DATABASE `" + this.getDatabaseName() + "`");
   }
 }

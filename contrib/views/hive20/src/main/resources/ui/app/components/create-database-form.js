@@ -16,19 +16,44 @@
  * limitations under the License.
  */
 
-import DDLAdapter from './ddl';
+import Ember from 'ember';
 
-export default DDLAdapter.extend({
-  deleteDatabase(databaseName) {
-    let deletURL = this.urlForFindRecord(databaseName, 'database');
-    return this.ajax(deletURL, 'DELETE');
+export default Ember.Component.extend({
+  classNames: ['form-horizontal'],
+
+  errorCleaner: Ember.observer('newDatabaseName', function() {
+    if(this.get('error')) {
+      this.clearError();
+    }
+  }),
+
+  validate() {
+    if(Ember.isEmpty(this.get('newDatabaseName'))) {
+      this.setError("Database name cannot be empty");
+      return false;
+    }
+    return true;
   },
 
-  createDatabase(databaseName) {
-    let createUrl = this.urlForFindAll('database');
-    let data = {
-      database: { name: databaseName}
-    };
-    return this.ajax(createUrl, 'POST', {data: data});
+  setError(message) {
+    this.set('error', true);
+    this.set('errorMessage', message);
+  },
+
+  clearError() {
+    this.set('error');
+    this.set('errorMessage');
+  },
+
+  actions: {
+    rename() {
+      if(this.validate()) {
+        this.sendAction('create', this.get('newDatabaseName'));
+      }
+    },
+
+    cancel() {
+      this.sendAction('cancel');
+    }
   }
 });

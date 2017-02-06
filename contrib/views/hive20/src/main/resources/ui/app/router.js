@@ -36,6 +36,7 @@ Router.map(function() {
     this.route('newtable');
     this.route('database', {path: '/:databaseId'}, function() {
       this.route('tables', {path: '/tables'}, function() {
+        this.route('new-database');
         this.route('new');
         this.route('table', {path: '/:name'}, function() {
           this.route('columns');

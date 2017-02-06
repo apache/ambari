@@ -76,10 +76,6 @@ export default Ember.Route.extend({
       this.get('controller').set('confirmDropDatabase', true);
     },
 
-    createTable() {
-      console.log("Table created");
-    },
-
     notEmptyDialogClosed() {
       this.get('controller').set('databaseNotEmpty', false);
       this.get('controller').set('databaseToDelete', undefined);
