@@ -138,12 +138,12 @@ public class HiveHistoryQueryMigrationImplementation {
     String epochtime1 = Long.toString(epochtime);
     PreparedStatement prSt = null;
     String revsql = null;
-    if (versionName.contains("1.5")) {
-      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username);
-    }
     if (versionName.contains("1.0")) {
       prSt = ambaridatabase.insertToHiveHistoryForHive(c, id, maxcount1, epochtime, dirname, username);
+    } else {
+      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username);
     }
+
     logger.info("The actual insert statement is " + prSt);
     prSt.executeUpdate();
     revsql = ambaridatabase.revertSql(id, maxcount1);
