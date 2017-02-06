@@ -389,41 +389,26 @@ describe('App.MainServiceController', function () {
     beforeEach(function () {
       sinon.spy(App, 'showConfirmationPopup');
       sinon.spy(mainServiceController, 'restartHostComponents');
-      sinon.stub(App.HostComponent, 'find', function() {
+      sinon.stub(App.Service, 'find', function() {
         return [
           Em.Object.create({
-            componentName: 'componentName1',
-            hostName: 'hostName1',
-            service: {
-              serviceName: 'serviceName1',
-              displayName: 'displayName1'
-            },
-            staleConfigs: true
+            displayName: 'displayName1',
+            isRestartRequired: true
           }),
           Em.Object.create({
-            componentName: 'componentName2',
-            hostName: 'hostName2',
-            service: {
-              serviceName: 'serviceName2',
-              displayName: 'displayName2'
-            },
-            staleConfigs: true
+            displayName: 'displayName2',
+            isRestartRequired: true
           }),
           Em.Object.create({
-            componentName: 'componentName3',
-            hostName: 'hostName3',
-            service: {
-              serviceName: 'serviceName3',
-              displayName: 'displayName3'
-            },
-            staleConfigs: false
+            displayName: 'displayName3',
+            isRestartRequired: false
           })
         ];
       });
     });
 
     afterEach(function () {
-      App.HostComponent.find.restore();
+      App.Service.find.restore();
       App.showConfirmationPopup.restore();
       mainServiceController.restartHostComponents.restore();
     });
