@@ -36,7 +36,8 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     unknown_count: 'ServiceComponentInfo.unknown_count',
     started_count: 'ServiceComponentInfo.started_count',
     total_count: 'ServiceComponentInfo.total_count',
-    host_names: 'host_names'
+    host_names: 'host_names',
+    stale_config_hosts: 'stale_config_hosts'
   },
 
   slaveModel: App.SlaveComponent,
@@ -171,6 +172,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     var slaves = [];
     var masters = [];
     var hasNewComponents = false;
+    var staleConfigHostsMap = App.cache.staleConfigsComponentHosts;
 
     if (json.items) {
       if (!App.isEmptyObject(Em.getWithDefault(App, 'cache.services', {}))) {
@@ -184,6 +186,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         var extendedModel = this.getExtendedModel(item.ServiceComponentInfo.service_name);
         var cacheService = App.cache['services'].findProperty('ServiceInfo.service_name', item.ServiceComponentInfo.service_name);
 
+        item.stale_config_hosts = staleConfigHostsMap[item.ServiceComponentInfo.component_name] || [];
         if (item.ServiceComponentInfo.category === 'CLIENT') {
           item.host_names = item.host_components.mapProperty('HostRoles.host_name');
           clients.push(this.parseIt(item, this.clientMap));

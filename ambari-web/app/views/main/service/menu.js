@@ -63,7 +63,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     templateName:require('templates/main/service/menu_item'),
     restartRequiredMessage: null,
 
-    shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
+    shouldBeRestarted: Em.computed.equal('content.isRestartRequired'),
 
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
@@ -164,7 +164,7 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     templateName:require('templates/main/service/menu_item'),
     restartRequiredMessage: null,
 
-    shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
+    shouldBeRestarted: Em.computed.equal('content.isRestartRequired'),
 
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';

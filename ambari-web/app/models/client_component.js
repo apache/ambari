@@ -31,6 +31,7 @@ App.ClientComponent = DS.Model.extend({
   totalCount: DS.attr('number'),
   stackInfo: DS.belongsTo('App.StackServiceComponent'),
   hostNames: DS.attr('array'),
+  staleConfigHosts: DS.attr('array'),
 
   /**
    * Determines if component may be deleted

@@ -307,7 +307,7 @@ App.MainServiceController = Em.ArrayController.extend({
       return App.showConfirmationPopup(function () {
             self.restartHostComponents();
           }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(
-              App.HostComponent.find().filterProperty('staleConfigs').mapProperty('service.displayName').uniq().join(', ')),
+              App.Service.find().filterProperty('isRestartRequired').mapProperty('displayName').uniq().join(', ')),
           null,
           null,
           Em.I18n.t('services.service.restartAll.confirmButton')

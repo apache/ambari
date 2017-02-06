@@ -108,18 +108,23 @@ App.Service = DS.Model.extend({
    * actual_configs, then a restart is required.
    */
   isRestartRequired: function () {
-    var rhc = this.get('hostComponents').filterProperty('staleConfigs', true);
+    var serviceComponents = this.get('clientComponents').toArray()
+      .concat(this.get('slaveComponents').toArray())
+      .concat(this.get('masterComponents').toArray());
     var hc = {};
 
-    rhc.forEach(function(_rhc) {
-      var hostName = _rhc.get('hostName');
-      if (!hc[hostName]) {
-        hc[hostName] = [];
-      }
-      hc[hostName].push(_rhc.get('displayName'));
+    serviceComponents.forEach(function(component) {
+      var displayName = component.get('displayName');
+      component.get('staleConfigHosts').forEach(function(hostName) {
+        if (!hc[hostName]) {
+          hc[hostName] = [];
+        }
+        hc[hostName].push(displayName);
+      });
     });
+
     this.set('restartRequiredHostsAndComponents', hc);
-    return (rhc.length > 0);
+    return (serviceComponents.filterProperty('staleConfigHosts.length').length > 0);
   }.property('serviceName'),
   
   /**
