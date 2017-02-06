@@ -56,6 +56,17 @@ export default Ember.Service.extend({
     })
   },
 
+  renameTable(databaseName, newTableName, oldTableName ) {
+    return new Promise((resolve, reject) => {
+      this.get('store').adapterFor('table').renameTable(databaseName, newTableName, oldTableName).then((data) => {
+        this.get('store').pushPayload(data);
+        resolve(this.get('store').peekRecord('job', data.job.id));
+      }, (err) => {
+        reject(err);
+      });
+    })
+  },
+
   deleteDatabase(database) {
     return new Promise((resolve, reject) => {
       this.get('store').adapterFor('database').deleteDatabase(database.get('name')).then((data) => {

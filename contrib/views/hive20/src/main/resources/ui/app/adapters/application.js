@@ -21,14 +21,14 @@ import DS from 'ember-data';
 import ENV from 'ui/config/environment';
 
 export default DS.RESTAdapter.extend({
-  init: function() {
+  init: function () {
     Ember.$.ajaxSetup({
       cache: false
     });
   },
 
-  namespace: Ember.computed(function() {
-    var parts = window.location.pathname.split('/').filter(function(i) {
+  namespace: Ember.computed(function () {
+    var parts = window.location.pathname.split('/').filter(function (i) {
       return i !== "";
     });
     var view = parts[parts.length - 3];
@@ -39,19 +39,19 @@ export default DS.RESTAdapter.extend({
       instance = parts[parts.length - 2];
       version = '';
     }
-    if(ENV.environment === 'development') {
+    if (ENV.environment === 'development') {
       return 'resources';
     }
     return 'api/v1/views/' + view + version + '/instances/' + instance + '/resources';
   }),
 
-  headers: Ember.computed(function() {
+  headers: Ember.computed(function () {
     let headers = {
       'X-Requested-By': 'ambari',
       'Content-Type': 'application/json'
     };
 
-    if(ENV.environment === 'development') {
+    if (ENV.environment === 'development') {
       // In development mode when the UI is served using ember serve the xhr requests are proxied to ambari server
       // by setting the proxyurl parameter in ember serve and for ambari to authenticate the requests, it needs this
       // basic authorization. This is for default admin/admin username/password combination.
@@ -59,21 +59,24 @@ export default DS.RESTAdapter.extend({
       //headers['Authorization'] = 'Basic aGl2ZTpoaXZl';
       //headers['Authorization'] = 'Basic ZGlwYXlhbjpkaXBheWFu';
     }
-     return headers;
+    return headers;
   }),
 
   parseErrorResponse(responseText) {
     let json = this._super(responseText);
-    let error = {};
-    error.message = json.message;
-    error.trace = json.trace;
-    error.status = json.status;
+    if (Ember.isEmpty(json.errors)) {
+      let error = {};
+      error.message = json.message;
+      error.trace = json.trace;
+      error.status = json.status;
 
-    delete json.trace;
-    delete json.status;
-    delete json.message;
+      delete json.trace;
+      delete json.status;
+      delete json.message;
 
-    json.errors = error;
+      json.errors = error;
+    }
+
     return json;
   }
 });

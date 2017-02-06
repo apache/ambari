@@ -17,9 +17,12 @@
  */
 
 import Ember from 'ember';
+import ENV from 'ui/config/environment';
 
 export default Ember.Controller.extend({
   serviceCheck: Ember.inject.service(),
 
-  serviceCheckCompleted: Ember.computed.alias('serviceCheck.transitionToApplication')
+  serviceCheckCompleted: Ember.computed('serviceCheck.transitionToApplication', function() {
+    return !ENV.APP.SHOULD_PERFORM_SERVICE_CHECK || this.get('serviceCheck.transitionToApplication');
+  })
 });

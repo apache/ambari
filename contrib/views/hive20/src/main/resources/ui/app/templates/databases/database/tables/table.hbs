@@ -26,6 +26,7 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu1">
           <li><a href="#" class="text-uppercase" {{action "editTable" model}}>{{fa-icon "edit"}} Edit</a></li>
+          <li>{{#link-to "databases.database.tables.table.rename" class="text-uppercase"}}{{fa-icon "edit"}} Rename{{/link-to}}</li>
           <li><a href="#" class="text-uppercase" {{action "deleteTable" model}}>{{fa-icon "trash"}} Delete</a></li>
         </ul>
       </div>
