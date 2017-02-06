@@ -28,6 +28,7 @@ from unittest import TestCase
 import threading
 import tempfile
 import time
+import traceback
 from threading import Thread
 
 from mock.mock import MagicMock, patch
@@ -277,6 +278,23 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
     self.assertEqual(run_file_mock.call_count, 3)
+
+    # running a status command
+    run_file_mock.reset_mock()
+    def return_traceback(*args, **kwargs):
+      return {
+        'stderr': traceback.format_exc(),
+        'stdout': '',
+        'exitcode': 0,
+      }
+    run_file_mock.side_effect = return_traceback
+
+    status_command = dict(command)
+    status_command['commandType'] = 'STATUS_COMMAND'
+    del status_command['taskId']
+    del status_command['roleCommand']
+    ret = orchestrator.runCommand(status_command, "out.txt", "err.txt")
+    self.assertEqual('None\n', ret['stderr'])
 
     run_file_mock.reset_mock()
 

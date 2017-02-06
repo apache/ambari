@@ -309,14 +309,10 @@ class CustomServiceOrchestrator():
         server_url_prefix = command['hostLevelParams']['jdk_location']
       else:
         server_url_prefix = command['commandParams']['jdk_location']
-        
-      task_id = "status"
-      
-      try:
-        task_id = command['taskId']
-        command_name = command['roleCommand']
-      except KeyError:
-        pass  # Status commands have no taskId
+
+      # Status commands have no taskId nor roleCommand
+      task_id = command['taskId'] if 'taskId' in command else 'status'
+      command_name = command['roleCommand'] if 'roleCommand' in command else None
 
       if forced_command_name is not None:  # If not supplied as an argument
         command_name = forced_command_name
