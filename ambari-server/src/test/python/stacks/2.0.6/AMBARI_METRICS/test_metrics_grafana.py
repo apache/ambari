@@ -91,6 +91,7 @@ class TestMetricsGrafana(RMFTestCase):
                               owner = 'ams',
                               group = 'hadoop',
                               mode=0755,
+                              create_parents = True,
                               recursive_ownership = True
                               )
 

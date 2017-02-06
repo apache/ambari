@@ -418,6 +418,7 @@ def ams(name=None, action=None):
                 owner=params.ams_user,
                 group=params.user_group,
                 mode=0755,
+                create_parents = True,
                 recursive_ownership = True
                 )
 
