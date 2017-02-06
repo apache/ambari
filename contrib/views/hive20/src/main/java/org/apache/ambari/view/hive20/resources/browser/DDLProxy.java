@@ -44,6 +44,7 @@ import org.apache.ambari.view.hive20.internal.dto.TableResponse;
 import org.apache.ambari.view.hive20.internal.parsers.TableMetaParserImpl;
 import org.apache.ambari.view.hive20.internal.query.generators.AlterTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.AnalyzeTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.CreateDatabaseQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.CreateTableQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.DeleteDatabaseQueryGenerator;
 import org.apache.ambari.view.hive20.internal.query.generators.DeleteTableQueryGenerator;
@@ -307,6 +308,17 @@ public class DDLProxy {
       return createJob(databaseName, deleteQuery, "Delete database " + databaseName , resourceManager);
     }else{
       throw new ServiceException("Failed to generate delete database query for database " + databaseName);
+    }
+  }
+
+  public Job createDatabase(String databaseName, JobResourceManager resourceManager) throws ServiceException {
+    CreateDatabaseQueryGenerator queryGenerator = new CreateDatabaseQueryGenerator(databaseName);
+    Optional<String> deleteDatabase = queryGenerator.getQuery();
+    if(deleteDatabase.isPresent()) {
+      String deleteQuery = deleteDatabase.get();
+      return createJob("default", deleteQuery, "CREATE DATABASE " + databaseName , resourceManager);
+    }else{
+      throw new ServiceException("Failed to generate create database query for database " + databaseName);
     }
   }
 

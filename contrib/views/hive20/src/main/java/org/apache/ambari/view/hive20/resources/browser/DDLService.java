@@ -112,6 +112,23 @@ public class DDLService extends BaseService {
     }
   }
 
+  @POST
+  @Path("databases")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response createDatabase(CreateDatabaseRequestWrapper wrapper) {
+    String databaseId = wrapper.database.name;
+    Job job = null;
+    try {
+      job = proxy.createDatabase(databaseId, getResourceManager());
+      JSONObject response = new JSONObject();
+      response.put("job", job);
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while delete database {}", databaseId, e);
+      throw new ServiceFormattedException(e);
+    }
+  }
+
   @GET
   @Path("databases/{database_id}/tables")
   @Produces(MediaType.APPLICATION_JSON)
@@ -314,5 +331,19 @@ public class DDLService extends BaseService {
    */
   public static class TableMetaRequest {
     public TableMeta tableInfo;
+  }
+
+  /**
+   * Wrapper class for create database request
+   */
+  public static class CreateDatabaseRequestWrapper {
+    public CreateDatabaseRequest database;
+  }
+
+  /**
+   * Request class for create database
+   */
+  public static class CreateDatabaseRequest {
+    public String name;
   }
 }
