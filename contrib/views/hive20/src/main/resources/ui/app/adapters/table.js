@@ -49,6 +49,15 @@ export default DDLAdapter.extend({
     return this.ajax(deletURL, 'DELETE');
   },
 
+  renameTable(database, newTableName, oldTableName) {
+    let renameUrl = this.buildURL('table', null, null, 'query', { databaseId: database, tableName: oldTableName }) + '/rename';
+    let data = {
+      newDatabase: database,
+      newTable: newTableName
+    };
+    return this.ajax(renameUrl, 'PUT', {data: data});
+  },
+
   analyseTable(databaseName, tableName, withColumns = false) {
     let analyseUrl = this.buildURL('table', null, null, 'query', { databaseId: databaseName, tableName: tableName }) +
       '/analyze' +

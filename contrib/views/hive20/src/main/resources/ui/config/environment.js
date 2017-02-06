@@ -34,6 +34,7 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
+      SHOULD_PERFORM_SERVICE_CHECK: true
     }
   };
 
@@ -43,6 +44,11 @@ module.exports = function(environment) {
     // ENV.APP.LOG_TRANSITIONS = true;
     // ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
     // ENV.APP.LOG_VIEW_LOOKUPS = true;
+
+
+    // Change the value to false to prevent the service checks. This is required in development mode
+    // as service checks take up time and hence increase the overall development time.
+    ENV.APP.SHOULD_PERFORM_SERVICE_CHECK = true;
   }
 
   if (environment === 'test') {
