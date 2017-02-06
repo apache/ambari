@@ -28,7 +28,7 @@ require('controllers/main/service/reassign_controller');
 require('controllers/main/service/item');
 var batchUtils = require('utils/batch_scheduled_requests');
 var testHelpers = require('test/helpers');
-var stackSerivceModel = {
+var stackServiceModel = {
   'HDFS': Em.Object.create({
     serviceName: 'HDFS',
     requiredServices: ['ZOOKEEPER']
@@ -1352,7 +1352,7 @@ describe('App.MainServiceItemController', function () {
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
       sinon.stub(App.StackService, 'find', function (serviceName) {
-        return stackSerivceModel[serviceName];
+        return stackServiceModel[serviceName];
       });
       this.mockService = sinon.stub(App.Service, 'find');
     });
@@ -1644,7 +1644,7 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       sinon.stub(App.StackService, 'find', function (serviceName) {
-        return stackSerivceModel[serviceName];
+        return stackServiceModel[serviceName];
       });
       mainServiceItemController = App.MainServiceItemController.create({
         content: {}
@@ -1800,6 +1800,54 @@ describe('App.MainServiceItemController', function () {
       expect(mainServiceItemController.putChangedConfigurations.calledWith([{}], 'confirmServiceDeletion')).to.be.true;
       expect(mainServiceItemController.confirmServiceDeletion.called).to.be.false;
     });
+  });
+
+  describe('#confirmServiceDeletion', function () {
+
+    var mainServiceItemController = App.MainServiceItemController.create({deleteServiceProgressPopup: null});
+
+    [
+      {
+        content: Em.Object.create({serviceName: 'DRUID'}),
+        stackServices: [
+          Em.Object.create({id: 'DRUID', displayName: 'Druid', serviceName: 'DRUID', requiredServices: []})
+        ],
+        m: 'No required services',
+        e: Em.I18n.t('services.service.delete.service.success.confirmation').format('Druid')
+      },
+      {
+        content: Em.Object.create({serviceName: 'MAPREDUCE2'}),
+        stackServices: [
+          Em.Object.create({id: 'MAPREDUCE2', serviceName: 'MAPREDUCE2', requiredServices: ['YARN'], displayName: 'MapReduce2'}),
+          Em.Object.create({id: 'YARN', serviceName: 'YARN', requiredServices: ['MAPREDUCE2'], displayName: 'YARN'}),
+        ],
+        m: 'One required service',
+        e: Em.I18n.t('services.service.delete.service.success.confirmation.plural').format('MapReduce2, YARN')
+      }
+    ].forEach(function(test) {
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          sinon.stub(App.StackService, 'find', function (id) {
+            return arguments.length ? test.stackServices.findProperty('id', id) : test.stackServices;
+          });
+          sinon.spy(App, 'showAlertPopup');
+          mainServiceItemController.set('content', test.content);
+          mainServiceItemController.confirmServiceDeletion();
+        });
+
+        afterEach(function () {
+          App.StackService.find.restore();
+          App.showAlertPopup.restore();
+        });
+
+        it('Popup body has display service names', function () {
+          expect(App.showAlertPopup.args[0][1]).to.be.equal(test.e);
+        });
+
+      });
+    });
+
   });
 
   describe("#isRangerPluginEnabled()", function () {

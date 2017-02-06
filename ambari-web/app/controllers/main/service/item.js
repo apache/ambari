@@ -1531,10 +1531,17 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   confirmServiceDeletion: function() {
-    var progressPopup = this.get('deleteServiceProgressPopup'),
-      msg = this.get('interDependentServices.length')
-        ? Em.I18n.t('services.service.delete.service.success.confirmation.plural').format(this.get('serviceNamesToDelete').join(','))
-        : Em.I18n.t('services.service.delete.service.success.confirmation').format(this.get('content.serviceName'));
+    let serviceNames, msg;
+    if (this.get('interDependentServices.length')) {
+      serviceNames = this.get('serviceNamesToDelete').map(serviceName => App.format.role(serviceName, true)).join(', ');
+      msg = Em.I18n.t('services.service.delete.service.success.confirmation.plural').format(serviceNames);
+    }
+    else {
+      serviceNames = App.format.role(this.get('content.serviceName'), true);
+      msg = Em.I18n.t('services.service.delete.service.success.confirmation').format(serviceNames);
+    }
+
+    var progressPopup = this.get('deleteServiceProgressPopup');
     if (progressPopup) {
       progressPopup.onClose();
     }
