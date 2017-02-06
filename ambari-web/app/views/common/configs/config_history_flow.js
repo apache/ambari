@@ -45,11 +45,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     COMPARE: 'compare',
     REVERT: 'revert'
   },
-
-  /**
-   * serviceVersion object that is currently being hovered in the dropdown menu
-   */
-  hoveredServiceVersion: null,
+  
   /**
    * flag to check if sub-menu popup is currently being hovered
    */
@@ -303,11 +299,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   switchVersion: function (event) {
     var version = event.context.get('version');
-    if(this.get('hoveredServiceVersion')) {
-      version = this.get('hoveredServiceVersion.version');
-    }
     var versionIndex = 0;
-
     this.set('compareServiceVersion', null);
     this.get('serviceVersions').forEach(function (serviceVersion, index) {
       if (serviceVersion.get('version') === version) {
@@ -326,7 +318,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
-    var serviceConfigVersion = this.get('hoveredServiceVersion') || event.context;
+    var serviceConfigVersion = event.context;
     this.set('controller.compareServiceVersion', serviceConfigVersion);
     this.set('compareServiceVersion', serviceConfigVersion);
 
@@ -363,7 +355,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   revert: function (event) {
     var self = this;
-    var serviceConfigVersion = this.get('hoveredServiceVersion') || event.context || Em.Object.create({
+    var serviceConfigVersion = event.context || Em.Object.create({
       version: this.get('displayedServiceVersion.version'),
       serviceName: this.get('displayedServiceVersion.serviceName'),
       notes:''
@@ -591,9 +583,7 @@ App.ConfigHistoryDropdownRowView = Em.View.extend({
       var $el = $('#config_version_popup');
       var $currentTarget = $(event.currentTarget);
       var parentView = view.get('parentView');
-      parentView.set('hoveredServiceVersion', null);
       if (!serviceVersion.get("isDisplayed"))  {
-        parentView.set('hoveredServiceVersion', serviceVersion);
         parentView.set('isHovered', true);
         var elHeight = $el.outerHeight(),
           pagePosition = window.innerHeight + window.pageYOffset,
