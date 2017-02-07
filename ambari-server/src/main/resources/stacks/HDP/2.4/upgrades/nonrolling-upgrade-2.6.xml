@@ -281,6 +281,13 @@
         </task>
       </execute-stage>
 
+      <!--Yarn-->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Adding YARN Security ACLs">
+        <task xsi:type="configure" id="yarn_env_security_opts">
+          <summary>Adding YARN Security ACLs</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="NODEMANAGER" title="Add Spark2 shuffle">
         <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
@@ -397,6 +404,13 @@
       <execute-stage service="HDFS" component="NAMENODE" title="Parameterizing Hdfs Log4J Properties">
         <task xsi:type="configure" id="hdfs_log4j_parameterize">
           <summary>Updating the Hdfs Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <!--HDFS-->
+      <execute-stage service="HDFS" component="NAMENODE" title="Adding HDFS ZKFC Security ACLs">
+        <task xsi:type="configure" id="hadoop_env_zkfc_security_opts">
+          <summary>Adding HDFS ZKFC Security ACLs</summary>
         </task>
       </execute-stage>
 

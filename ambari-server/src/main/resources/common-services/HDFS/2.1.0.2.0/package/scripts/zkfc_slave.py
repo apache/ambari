@@ -39,8 +39,6 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
 
-
-
 class ZkfcSlave(Script):
   def get_component_name(self):
     import params
@@ -62,6 +60,7 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
     hdfs("zkfc_slave")
+    utils.set_up_zkfc_security(params)
     pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
