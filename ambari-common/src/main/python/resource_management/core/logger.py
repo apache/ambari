@@ -55,6 +55,10 @@ class Logger:
     Logger.logger = logger
 
   @staticmethod
+  def isEnabledFor(level):
+    return Logger.logger is not None and Logger.logger.isEnabledFor(level)
+
+  @staticmethod
   def exception(text):
     Logger.logger.exception(Logger.filter_text(text))
 

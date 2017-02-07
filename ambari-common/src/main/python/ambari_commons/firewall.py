@@ -126,6 +126,9 @@ class RedHat7FirewallChecks(FirewallChecks):
     return "%(servcmd)s is-active %(fwl1)s %(fwl2)s" % {"servcmd":self.SERVICE_CMD,"fwl1":"iptables", "fwl2":"firewalld"}
 
   def check_result(self):
+    if self.stdoutdata is None:
+      return False
+
     for line in self.stdoutdata.split("\n"):
       if line.strip() == "active":
         return True
