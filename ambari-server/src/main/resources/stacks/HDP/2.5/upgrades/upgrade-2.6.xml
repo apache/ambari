@@ -589,6 +589,7 @@
       <component name="NAMENODE">
         <pre-upgrade>
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
+          <task xsi:type="configure" id="hadoop_env_zkfc_security_opts" />
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
@@ -667,6 +668,7 @@
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
           <task xsi:type="configure" id="yarn_log4j_parameterize" />
+          <task xsi:type="configure" id="yarn_env_security_opts" />
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

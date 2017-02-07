@@ -60,6 +60,7 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
     hdfs("zkfc_slave")
+    utils.set_up_zkfc_security(params)
     pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

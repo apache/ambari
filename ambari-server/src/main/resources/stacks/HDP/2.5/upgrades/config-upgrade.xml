@@ -128,6 +128,10 @@
           <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB"/>
           <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}"/>
         </definition>
+        <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
+          <type>yarn-env</type>
+          <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+        </definition>
       </changes>
     </component>
   </service>
@@ -145,6 +149,10 @@
           <regex-replace  key="content" find="log4j.appender.RFA.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RFA.MaxBackupIndex={{hadoop_log_number_of_backup_files}}"/>
           <regex-replace  key="content" find="hadoop.security.log.maxfilesize=([0-9]+)MB" replace-with="hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB"/>
           <regex-replace  key="content" find="hadoop.security.log.maxbackupindex=([0-9]+)" replace-with="hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}"/>
+        </definition>
+        <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
+          <type>hadoop-env</type>
+          <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
         </definition>
       </changes>
     </component>
