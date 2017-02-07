@@ -963,6 +963,12 @@ describe('App.MainHostDetailsController', function () {
       var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
       expect(args).exists;
     });
+    it('isConfigsLoadingInProgress is false', function () {
+      mockUrlParams = [];
+      controller.set('isConfigsLoadingInProgress', true);
+      controller.loadConfigsSuccessCallback(null, null, {});
+      expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
+    });
   });
 
   describe('#saveZkConfigs()', function () {
