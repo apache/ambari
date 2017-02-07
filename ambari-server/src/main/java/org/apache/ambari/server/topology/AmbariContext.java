@@ -186,7 +186,7 @@ public class AmbariContext {
       });
 
     } catch (AmbariException e) {
-      e.printStackTrace();
+      LOG.error("Failed to create Cluster resource: ", e);
       throw new RuntimeException("Failed to create Cluster resource: " + e, e);
     }
   }
@@ -231,14 +231,14 @@ public class AmbariContext {
           new RequestImpl(null, Collections.singleton(installProps), null, null), predicate);
 
       getServiceResourceProvider().updateResources(
-          new RequestImpl(null, Collections.singleton(startProps), null, null), predicate);
+        new RequestImpl(null, Collections.singleton(startProps), null, null), predicate);
     } catch (Exception e) {
       // just log as this won't prevent cluster from being provisioned correctly
       LOG.error("Unable to update state of services during cluster provision: " + e, e);
     }
   }
 
-  public void createAmbariHostResources(long  clusterId, String hostName, Map<String, Collection<String>> components) {
+  public void createAmbariHostResources(long  clusterId, String hostName, Map<String, Collection<String>> components)  {
     Host host;
     try {
       host = getController().getClusters().getHost(hostName);
@@ -248,13 +248,14 @@ public class AmbariContext {
           "Unable to obtain host instance '%s' when persisting host resources", hostName));
     }
 
-    String clusterName = null;
+    Cluster cluster = null;
     try {
-      clusterName = getClusterName(clusterId);
+      cluster = getController().getClusters().getClusterById(clusterId);
     } catch (AmbariException e) {
-      LOG.error("Cannot get cluster name for clusterId = " + clusterId, e);
+      LOG.error("Cannot get cluster for clusterId = " + clusterId, e);
       throw new RuntimeException(e);
     }
+    String clusterName = cluster.getClusterName();
 
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -264,18 +265,23 @@ public class AmbariContext {
     try {
       getHostResourceProvider().createHosts(new RequestImpl(null, Collections.singleton(properties), null, null));
     } catch (AmbariException e) {
-      e.printStackTrace();
+      LOG.error("Unable to create host component resource for host {}", hostName, e);
       throw new RuntimeException(String.format("Unable to create host resource for host '%s': %s",
           hostName, e.toString()), e);
     }
 
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+
     for (Map.Entry<String, Collection<String>> entry : components.entrySet()) {
       String service = entry.getKey();
       for (String component : entry.getValue()) {
         //todo: handle this in a generic manner.  These checks are all over the code
-        if (!component.equals("AMBARI_SERVER")) {
-          requests.add(new ServiceComponentHostRequest(clusterName, service, component, hostName, null));
+        try {
+          if (cluster.getService(service) != null && !component.equals("AMBARI_SERVER")) {
+            requests.add(new ServiceComponentHostRequest(clusterName, service, component, hostName, null));
+          }
+        } catch(AmbariException se) {
+          LOG.warn("Service already deleted from cluster: {}", service);
         }
       }
     }
@@ -288,7 +294,7 @@ public class AmbariContext {
         }
       });
     } catch (AmbariException e) {
-      e.printStackTrace();
+      LOG.error("Unable to create host component resource for host {}", hostName, e);
       throw new RuntimeException(String.format("Unable to create host component resource for host '%s': %s",
           hostName, e.toString()), e);
     }
@@ -328,7 +334,7 @@ public class AmbariContext {
         createConfigGroupsAndRegisterHost(topology, groupName);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Unable to register config group for host: ", e);
       throw new RuntimeException("Unable to register config group for host: " + hostName);
     }
   }
@@ -392,7 +398,7 @@ public class AmbariContext {
         }
       });
     } catch (AmbariException e) {
-      e.printStackTrace();
+      LOG.error("Failed to set configurations on cluster: ", e);
       throw new RuntimeException("Failed to set configurations on cluster: " + e, e);
     }
   }
@@ -436,7 +442,7 @@ public class AmbariContext {
           // sleep before checking the config again
           Thread.sleep(100);
         } catch (InterruptedException e) {
-          e.printStackTrace();
+          LOG.warn("sleep interrupted");
         }
       }
     }
@@ -627,8 +633,6 @@ public class AmbariContext {
         }
       });
 
-
-
       ConfigGroupRequest request = new ConfigGroupRequest(
           null, clusterName, absoluteGroupName, service, "Host Group Configuration",
         Sets.newHashSet(filteredGroupHosts), serviceConfigs);
@@ -640,7 +644,7 @@ public class AmbariContext {
       try {
         configGroupProvider.createResources(Collections.singleton(request));
       } catch (Exception e) {
-        e.printStackTrace();
+        LOG.error("Failed to create new configuration group: " + e);
         throw new RuntimeException("Failed to create new configuration group: " + e, e);
       }
     }
