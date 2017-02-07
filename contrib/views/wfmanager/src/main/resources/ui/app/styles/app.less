@@ -29,7 +29,7 @@
 @actionLinkColor: #49aebf;
 @navTabAnchorColor: #777;
 @navTabAnchorHighlightedColor: #555;
-
+@modalDialogWidth: 60%;
 body {
     background: @bgColor;
     padding: 0;
@@ -75,6 +75,9 @@ a {
 }
 .marginright5{
   margin-right: 5px !important;
+}
+.marginright10 {
+  margin-right: 10px !important;
 }
 .padding15pcnt {
   padding:15%;
@@ -568,7 +571,6 @@ input:invalid {
 }
 
 #action_properties_dialog .modal-body {
-    max-height: @defaultPropertiesEditorHeight;
     overflow-y: scroll;
     overflow-x: hidden;
 }
@@ -584,11 +586,9 @@ input:invalid {
 }
 
 #configureJob .modal-body {
-    max-height: @defaultPropertiesEditorHeight;
     overflow-y: scroll;
     overflow-x: hidden;
 }
-
 #action_properties_dialog .modal-dialog,
 #workflow_sla_dialog .modal-dialog,
 #global_properties_dialog .modal-dialog,
@@ -601,12 +601,15 @@ input:invalid {
 #asset_manager_dialog .modal-dialog,
 #asset_config_dialog .modal-dialog,
 #asset_list_dialog .modal-dialog,
-#actionDetailsModal .modal-dialog {
-    width: 800px;
+#actionDetailsModal .modal-dialog,
+#configureJob .modal-dialog,
+#asset-delete-confirm-dialog .modal-dialog,
+#projectsList .modal-dialog,
+#previewModal .modal-dialog {
+    width: @modalDialogWidth;
+height: 100vh;
 }
-#configureJob .modal-dialog{
-  width: 650px;
-}
+
 #collapseOne{
     margin: 10px;
 }
@@ -1617,9 +1620,10 @@ input:invalid {
 }
 #search-table td:first-child {
   width:5%;
+  height:40px;
 }
 #draftsTable {
-  max-height:500px;
+  max-height: @defaultPropertiesEditorHeight;
   overflow-y:scroll;
 }
 #emptyDrafts {
@@ -1665,7 +1669,6 @@ input:invalid {
   min-height: 175px;
 }
 #asset-delete-confirm-dialog .modal-dialog{
-  width: 650px;
   top: 60px;
 }
 .action-link, .action-link:hover, .action-link:focus {
@@ -1699,14 +1702,8 @@ input:invalid {
 .displayBlock {
   display : block;
 }
-#projectsList .modal-dialog {
-  width:850px;
-}
 .tab-pane #draftsTable, #projectsList #dashboard, .tab-pane .searchWorkflows {
    display : none;
- }
- #projectDeleteModal .modal-dialog {
-   width:500px;
  }
  .projects-list {
    white-space: nowrap;
@@ -1734,4 +1731,14 @@ input:invalid {
    width: 60%;
    margin-bottom: 10px;
    margin-right: 3px;
+ }
+ .modal {
+   height: 90vh;
+ }
+ .modal-body {
+   max-height:70vh;
+   overflow:scroll;
+ }
+ .CodeMirror{
+   height: auto;
  }
