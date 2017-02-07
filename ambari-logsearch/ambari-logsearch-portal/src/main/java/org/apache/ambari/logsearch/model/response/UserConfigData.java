@@ -43,9 +43,6 @@ public class UserConfigData {
   @ApiModelProperty
   private String rowType;
 
-  @ApiModelProperty
-  private boolean isOverwrite = false;
-
   public UserConfigData() {
     id = String.valueOf(new Date().getTime());
   }
@@ -96,13 +93,5 @@ public class UserConfigData {
 
   public void setRowType(String rowType) {
     this.rowType = rowType;
-  }
-
-  public boolean isOverwrite() {
-    return isOverwrite;
-  }
-
-  public void setOverwrite(boolean overwrite) {
-    isOverwrite = overwrite;
   }
 }

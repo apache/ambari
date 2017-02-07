@@ -101,7 +101,6 @@ public class LogSearchConstants {
   public static final String REQUEST_PARAM_SOURCE_LOG_ID = "sourceLogId";
   public static final String REQUEST_PARAM_KEYWORD_TYPE = "keywordType";
   public static final String REQUEST_PARAM_TOKEN = "token";
-  public static final String REQUEST_PARAM_USER_ID = "userId";
   public static final String REQUEST_PARAM_FILTER_NAME = "filterName";
   public static final String REQUEST_PARAM_ROW_TYPE = "rowType";
   public static final String REQUEST_PARAM_UTC_OFFSET = "utcOffset";

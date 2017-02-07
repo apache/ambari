@@ -30,8 +30,6 @@ import java.util.List;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.FILTER_NAME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.ROW_TYPE;
-import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.SHARE_NAME_LIST;
-import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.USER_NAME;
 
 @Named
 public class UserConfigRequestQueryConverter extends AbstractConverterAware<UserConfigRequest, SolrQuery> {
@@ -43,21 +41,16 @@ public class UserConfigRequestQueryConverter extends AbstractConverterAware<User
 
     int startIndex = StringUtils.isNotEmpty(userConfigRequest.getStartIndex()) && StringUtils.isNumeric(userConfigRequest.getStartIndex())
       ? Integer.parseInt(userConfigRequest.getStartIndex()) : 0;
-    int maxRows = StringUtils.isNotEmpty(userConfigRequest.getPageSize()) && StringUtils.isNumeric(userConfigRequest.getStartIndex())
-      ? Integer.parseInt(userConfigRequest.getStartIndex()) : 10;
+    int maxRows = StringUtils.isNotEmpty(userConfigRequest.getPageSize()) && StringUtils.isNumeric(userConfigRequest.getPageSize())
+      ? Integer.parseInt(userConfigRequest.getPageSize()) : 10;
 
     SolrQuery.ORDER order = userConfigRequest.getSortType() != null && SolrQuery.ORDER.desc.equals(SolrQuery.ORDER.valueOf(userConfigRequest.getSortType()))
       ? SolrQuery.ORDER.desc : SolrQuery.ORDER.asc;
-    String sortBy = StringUtils.isNotEmpty(userConfigRequest.getSortBy()) ? userConfigRequest.getSortBy(): FILTER_NAME;
+    String sortBy = StringUtils.isNotEmpty(userConfigRequest.getSortBy()) ? userConfigRequest.getSortBy() : FILTER_NAME;
     String filterName = StringUtils.isBlank(userConfigRequest.getFilterName()) ? "*" : "*" + userConfigRequest.getFilterName() + "*";
 
-    userConfigQuery.addFilterQuery(String.format("%s:%s",
-      ROW_TYPE, userConfigRequest.getRowType()));
-    userConfigQuery.addFilterQuery(String.format("%s:%s OR %s:%s",
-      USER_NAME, userConfigRequest.getUserId(),
-      SHARE_NAME_LIST, userConfigRequest.getUserId()));
-    userConfigQuery.addFilterQuery(String.format("%s:%s",
-      FILTER_NAME, SolrUtil.makeSearcableString(filterName)));
+    userConfigQuery.addFilterQuery(String.format("%s:%s", ROW_TYPE, userConfigRequest.getRowType()));
+    userConfigQuery.addFilterQuery(String.format("%s:%s", FILTER_NAME, SolrUtil.makeSearcableString(filterName)));
     userConfigQuery.setStart(startIndex);
     userConfigQuery.setRows(maxRows);
 

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.UserConfigSolrDao;
 import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
@@ -32,6 +33,7 @@ import org.apache.ambari.logsearch.model.response.UserConfigData;
 import org.apache.ambari.logsearch.model.response.UserConfigDataListResponse;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -53,7 +55,6 @@ import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.FILTER_NAME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.ROW_TYPE;
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.SHARE_NAME_LIST;
-import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.COMPOSITE_KEY;
 
 @Named
 public class UserConfigManager extends JsonManagerBase {
@@ -66,44 +67,24 @@ public class UserConfigManager extends JsonManagerBase {
   private ConversionService conversionService;
 
   public String saveUserConfig(UserConfigData userConfig) {
+    String filterName = userConfig.getFiltername();
 
     SolrInputDocument solrInputDoc = new SolrInputDocument();
     if (!isValid(userConfig)) {
       throw RESTErrorUtil.createRESTException("No FilterName Specified", MessageEnums.INVALID_INPUT_DATA);
     }
 
-    if (isNotUnique(userConfig) && !userConfig.isOverwrite()) {
+    if (isNotUnique(filterName)) {
       throw RESTErrorUtil.createRESTException( "Name '" + userConfig.getFiltername() + "' already exists", MessageEnums.INVALID_INPUT_DATA);
     }
-    String loggedInUserName = userConfig.getUserName();
-    String filterName = userConfig.getFiltername();
-
     solrInputDoc.addField(ID, userConfig.getId());
-    solrInputDoc.addField(USER_NAME, loggedInUserName);
+    solrInputDoc.addField(USER_NAME, LogSearchContext.getCurrentUsername());
     solrInputDoc.addField(VALUES, userConfig.getValues());
     solrInputDoc.addField(FILTER_NAME, filterName);
     solrInputDoc.addField(ROW_TYPE, userConfig.getRowType());
     List<String> shareNameList = userConfig.getShareNameList();
-    if (shareNameList != null && !shareNameList.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(shareNameList)) {
       solrInputDoc.addField(SHARE_NAME_LIST, shareNameList);
-    }
-    // Check whether the Filter Name exists in solr
-    SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setQuery("*:*");
-    solrQuery.addFilterQuery(String.format("%s:%s", FILTER_NAME, SolrUtil.makeSearcableString(filterName)));
-    solrQuery.addFilterQuery(String.format("%s:%s", USER_NAME, loggedInUserName));
-    try {
-      QueryResponse queryResponse = userConfigSolrDao.process(solrQuery);
-      if (queryResponse != null) {
-        SolrDocumentList documentList = queryResponse.getResults();
-        if (documentList != null && !documentList.isEmpty() && !userConfig.isOverwrite()) {
-          logger.error("Filtername is already present");
-          throw RESTErrorUtil.createRESTException("Filtername is already present", MessageEnums.INVALID_INPUT_DATA);
-        }
-      }
-    } catch (SolrException e) {
-      logger.error("Error in checking same filtername config", e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
     try {
@@ -115,14 +96,14 @@ public class UserConfigManager extends JsonManagerBase {
     }
   }
 
-  private boolean isNotUnique(UserConfigData userConfig) {
-    String filterName = userConfig.getFiltername();
-    String rowType = userConfig.getRowType();
+  private boolean isNotUnique(String filterName) {
 
-    if (filterName != null && rowType != null) {
+    if (filterName != null) {
       SolrQuery solrQuery = new SolrQuery();
       filterName = SolrUtil.makeSearcableString(filterName);
-      solrQuery.setQuery(COMPOSITE_KEY + ":" + filterName + "-" + rowType);
+      solrQuery.setQuery("*:*");
+      solrQuery.addFilterQuery(FILTER_NAME + ":" + filterName);
+      solrQuery.addFilterQuery(USER_NAME + ":" + LogSearchContext.getCurrentUsername());
       SolrUtil.setRowCount(solrQuery, 0);
       try {
         Long numFound = userConfigSolrDao.process(solrQuery).getResults().getNumFound();
@@ -139,7 +120,6 @@ public class UserConfigManager extends JsonManagerBase {
   private boolean isValid(UserConfigData vHistory) {
     return StringUtils.isNotBlank(vHistory.getFiltername())
         && StringUtils.isNotBlank(vHistory.getRowType())
-        && StringUtils.isNotBlank(vHistory.getUserName())
         && StringUtils.isNotBlank(vHistory.getValues());
   }
 
@@ -159,12 +139,9 @@ public class UserConfigManager extends JsonManagerBase {
       throw RESTErrorUtil.createRESTException("row type was not specified", MessageEnums.INVALID_INPUT_DATA);
     }
 
-    String userName = request.getUserId();
-    if (StringUtils.isBlank(userName)) {
-      throw RESTErrorUtil.createRESTException("user name was not specified", MessageEnums.INVALID_INPUT_DATA);
-    }
-
     SolrQuery userConfigQuery = conversionService.convert(request, SolrQuery.class);
+    userConfigQuery.addFilterQuery(String.format("%s:%s OR %s:%s", USER_NAME, LogSearchContext.getCurrentUsername(),
+        SHARE_NAME_LIST, LogSearchContext.getCurrentUsername()));
     SolrDocumentList solrList = userConfigSolrDao.process(userConfigQuery).getResults();
 
     Collection<UserConfigData> configList = new ArrayList<>();
@@ -197,10 +174,6 @@ public class UserConfigManager extends JsonManagerBase {
 
     return response;
 
-  }
-
-  public String updateUserConfig(UserConfigData userConfig) {
-    return saveUserConfig(userConfig);
   }
 
   // ////////////////////////////LEVEL FILTER/////////////////////////////////////

@@ -107,7 +107,6 @@ public class SolrConstants {
     public static final String VALUES = "jsons";
     public static final String FILTER_NAME = "filtername";
     public static final String ROW_TYPE = "rowtype";
-    public static final String COMPOSITE_KEY = "composite_filtername-username";
     public static final String SHARE_NAME_LIST = "share_username_list";
   }
 }
