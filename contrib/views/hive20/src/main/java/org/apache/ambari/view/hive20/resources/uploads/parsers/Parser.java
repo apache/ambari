@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive20.resources.uploads.parsers;
 
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.resources.uploads.ColumnDescriptionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,7 @@ public abstract class Parser implements IParser {
     LOG.info("generating preview for : {}", this.parseOptions );
 
     ArrayList<Row> previewRows;
-    List<ColumnDescription> header;
+    List<ColumnInfo> header;
 
     try {
       numberOfPreviewRows = (Integer) parseOptions.getOption(ParseOptions.OPTIONS_NUMBER_OF_PREVIEW_ROWS);
@@ -137,11 +138,11 @@ public abstract class Parser implements IParser {
     // find data types.
     header = generateHeader(headerRow,previewRows,numOfCols);
 
-    return new PreviewData(header,previewRows);
+    return new PreviewData(header, previewRows);
   }
 
-  private List<ColumnDescription> generateHeader(Row headerRow,List<Row> previewRows, int numOfCols) {
-    List<ColumnDescription> header = new ArrayList<>();
+  private List<ColumnInfo> generateHeader(Row headerRow, List<Row> previewRows, int numOfCols) {
+    List<ColumnInfo> header = new ArrayList<>();
 
     for (int colNum = 0; colNum < numOfCols; colNum++) {
       ColumnDescription.DataTypes type = getLikelyDataType(previewRows,colNum);
@@ -151,7 +152,7 @@ public abstract class Parser implements IParser {
       if (null != headerRow)
         colName = (String) headerRow.getRow()[colNum];
 
-      ColumnDescription cd = new ColumnDescriptionImpl(colName, type.toString(), colNum);
+      ColumnInfo cd = new ColumnInfo(colName, type.toString());
       header.add(cd);
     }
 

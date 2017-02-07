@@ -30,6 +30,10 @@ public class ColumnInfo {
   private Integer scale;
   private String comment;
 
+  private ColumnInfo(){
+    // for json de-serialization
+  }
+
   public ColumnInfo(String name, String type, Integer precision, Integer scale, String comment) {
     this.name = name;
     this.type = type;

@@ -21,7 +21,7 @@ package org.apache.ambari.view.hive20.resources.upload;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.ColumnDescriptionShort;
 import org.apache.ambari.view.hive20.client.Row;
-import org.apache.ambari.view.hive20.resources.uploads.ColumnDescriptionImpl;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.DataParser;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.ParseOptions;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.PreviewData;
@@ -68,11 +68,11 @@ public class DataParserXMLTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(2, pd.getPreviewRows().size()); // header row + preview rows
       Assert.assertEquals(5, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("col1", ColumnDescriptionShort.DataTypes.STRING.toString(), 0),
-              new ColumnDescriptionImpl("col2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1),
-              new ColumnDescriptionImpl("col3", ColumnDescriptionShort.DataTypes.STRING.toString(), 2),
-              new ColumnDescriptionImpl("col4", ColumnDescriptionShort.DataTypes.INT.toString(), 3),
-              new ColumnDescriptionImpl("col5", ColumnDescriptionShort.DataTypes.INT.toString(), 4)
+      ColumnInfo[] cd = {new ColumnInfo("col1", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col2", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col3", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col4", ColumnDescriptionShort.DataTypes.INT.toString()),
+              new ColumnInfo("col5", ColumnDescriptionShort.DataTypes.INT.toString())
       };
 
       Row row2 = new Row(new Object[]{"row1-col1-Value", "row1-col2-Value", "row1-col3-Value", "10", "11"});
@@ -236,8 +236,8 @@ public class DataParserXMLTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("col1", ColumnDescriptionShort.DataTypes.STRING.toString(), 0),
-        new ColumnDescriptionImpl("col2", ColumnDescriptionShort.DataTypes.INT.toString(), 1)};
+      ColumnInfo[] cd = {new ColumnInfo("col1", ColumnDescriptionShort.DataTypes.STRING.toString()),
+        new ColumnInfo("col2", ColumnDescriptionShort.DataTypes.INT.toString())};
 
       Object cols1[] = new Object[2];
       cols1[0] = "row1-col1-Value";
@@ -278,8 +278,8 @@ public class DataParserXMLTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("column1", ColumnDescriptionShort.DataTypes.STRING.toString(), 0),
-        new ColumnDescriptionImpl("column2", ColumnDescriptionShort.DataTypes.INT.toString(), 1)};
+      ColumnInfo[] cd = {new ColumnInfo("column1", ColumnDescriptionShort.DataTypes.STRING.toString()),
+        new ColumnInfo("column2", ColumnDescriptionShort.DataTypes.INT.toString())};
 
       Object cols1[] = new Object[2];
       cols1[0] = "row1-col1-Value";

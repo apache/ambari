@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive20.resources.upload;
 
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive20.resources.uploads.TableDataReader;
 import org.junit.Assert;
@@ -78,9 +79,9 @@ public class TableDataReaderTest {
   @Test
   public void testCSVReader() throws IOException {
     RowIter rowIter = new RowIter(10,10);
-    List<ColumnDescriptionImpl> colDescs = new LinkedList<>();
+    List<ColumnInfo> colDescs = new LinkedList<>();
     for(int i = 0 ; i < 10 ; i++ ) {
-      ColumnDescriptionImpl cd = new ColumnDescriptionImpl("col" + (i+1) , ColumnDescription.DataTypes.STRING.toString(), i);
+      ColumnInfo cd = new ColumnInfo("col" + (i+1) , ColumnDescription.DataTypes.STRING.toString());
       colDescs.add(cd);
     }
 

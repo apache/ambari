@@ -27,42 +27,64 @@ export default Ember.Route.extend({
     controller.set('tabs', Ember.copy(tabs));
   },
 
+  // function is used in sub-classes
+  /**
+   * @param settings
+   * @param shouldTransition : should transition to other route?
+   * @returns {Promise.<TResult>|*}
+   */
+  createTable: function(settings, shouldTransition){
+    this.controller.set('showCreateTableModal', true);
+    this.controller.set('createTableMessage', 'Submitting request to create table');
+    let databaseModel = this.controllerFor('databases.database').get('model');
+    return this.get('tableOperations').submitCreateTable(databaseModel.get('name'), settings)
+      .then((job) => {
+        console.log('Created job: ', job.get('id'));
+        this.controller.set('createTableMessage', 'Waiting for the table to be created');
+        return this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
+          .then((status) => {
+            this.controller.set('createTableMessage', "Successfully created table");
+            Ember.run.later(() => {
+            this.controller.set('showCreateTableModal', false);
+            this.controller.set('createTableMessage');
+            this._addTableToStoreLocally(databaseModel, settings.name);
+            this._resetModelInTablesController(databaseModel.get('tables'));
+              if(shouldTransition){
+                this._transitionToCreatedTable(databaseModel.get('name'), settings.name);
+              }
+            }, 2 * 1000);
+            return Ember.RSVP.Promise.resolve(job);
+          }, (error) => {
+            // TODO: handle error
+            Ember.run.later(() => {
+              this.controller.set('showCreateTableModal', false);
+              this.controller.set('createTableMessage');
+              if(shouldTransition) {
+                this.transitionTo('databases.database', databaseModel.get('name'));
+              }
+            }, 2 * 1000);
+
+            return Ember.RSVP.Promise.reject(error);
+          });
+      }, (error) => {
+        console.log("Error encountered", error);
+        this.controller.set('showCreateTableModal', true);
+        throw error;
+      });
+  },
   actions: {
     cancel() {
       let databaseController = this.controllerFor('databases.database');
       this.transitionTo('databases.database', databaseController.get('model'));
     },
+    toggleCSVFormat: function() {
+      console.log("inside new route toggleCSVFormat");
+      this.toggleProperty('showCSVFormatInput')
+    },
 
     create(settings) {
-      this.controller.set('showCreateTableModal', true);
-      this.controller.set('createTableMessage', 'Submitting request to create table');
-      let databaseModel = this.controllerFor('databases.database').get('model');
-      this.get('tableOperations').submitCreateTable(databaseModel.get('name'), settings)
-        .then((job) => {
-          console.log('Created job: ', job.get('id'));
-          this.controller.set('createTableMessage', 'Waiting for the table to be created');
-          this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
-            .then((status) => {
-              this.controller.set('createTableMessage', "Successfully created table");
-              Ember.run.later(() => {
-                this.controller.set('showCreateTableModal', false);
-                this.controller.set('createTableMessage');
-                this._addTableToStoreLocally(databaseModel, settings.name);
-                this._resetModelInTablesController(databaseModel.get('tables'));
-                this._transitionToCreatedTable(databaseModel.get('name'), settings.name);
-              }, 2 * 1000);
-            }, (error) => {
-              // TODO: handle error
-              Ember.run.later(() => {
-                this.controller.set('showCreateTableModal', false);
-                this.controller.set('createTableMessage');
-                this.transitionTo('databases.database', databaseModel.get('name'));
-              }, 2 * 1000);
-            });
-        }, (error) => {
-          console.log("Error encountered", error);
-          this.controller.set('showCreateTableModal', true);
-        });
+      // keep this a function call call only as the createTable function is used in sub-classes
+      this.createTable(settings, true);
     }
   },
 

@@ -18,16 +18,22 @@
 
 package org.apache.ambari.view.hive20.resources.uploads;
 
+import com.google.common.base.Optional;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.resources.uploads.CSVParams;
 import org.apache.ambari.view.hive20.BaseService;
 import org.apache.ambari.view.hive20.ConnectionFactory;
 import org.apache.ambari.view.hive20.ConnectionSystem;
 import org.apache.ambari.view.hive20.client.DDLDelegator;
 import org.apache.ambari.view.hive20.client.DDLDelegatorImpl;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.exceptions.ServiceException;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
+import org.apache.ambari.view.hive20.internal.dto.TableMeta;
+import org.apache.ambari.view.hive20.internal.query.generators.CreateTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.DeleteTableQueryGenerator;
+import org.apache.ambari.view.hive20.internal.query.generators.InsertFromQueryGenerator;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobController;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl;
@@ -37,8 +43,6 @@ import org.apache.ambari.view.hive20.resources.uploads.parsers.ParseOptions;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.PreviewData;
 import org.apache.ambari.view.hive20.resources.uploads.query.DeleteQueryInput;
 import org.apache.ambari.view.hive20.resources.uploads.query.InsertFromQueryInput;
-import org.apache.ambari.view.hive20.resources.uploads.query.QueryGenerator;
-import org.apache.ambari.view.hive20.resources.uploads.query.TableInfo;
 import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive20.utils.SharedObjectsFactory;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
@@ -52,11 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -163,7 +163,7 @@ public class UploadService extends BaseService {
     }
   }
 
-  @POST
+  @PUT
   @Path("/preview")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public Response uploadForPreview(
@@ -225,29 +225,6 @@ public class UploadService extends BaseService {
   }
 
 
-  @Path("/createTable")
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response createTable(TableInput tableInput) {
-    try {
-      tableInput.validate();
-      String databaseName = tableInput.getDatabaseName();
-      String tableCreationQuery = generateCreateQuery(tableInput);
-      LOG.info("tableCreationQuery : {}", tableCreationQuery);
-
-      Job job = createJob(tableCreationQuery, databaseName);
-      LOG.info("job created for table creation {}", job);
-      return Response.ok(job).build();
-    } catch (WebApplicationException e) {
-      LOG.error(getErrorMessage(e), e);
-      throw e;
-    } catch (Throwable e) {
-      LOG.error(e.getMessage(), e);
-      throw new ServiceFormattedException(e);
-    }
-  }
-
   @Path("/uploadFromHDFS")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -281,7 +258,7 @@ public class UploadService extends BaseService {
   }
 
   @Path("/upload")
-  @POST
+  @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   public Response uploadFile(
@@ -301,7 +278,7 @@ public class UploadService extends BaseService {
     try {
       CSVParams csvParams = getCsvParams(csvDelimiter, csvQuote, csvEscape);
       ObjectMapper mapper = new ObjectMapper();
-      List<ColumnDescriptionImpl> columnList = mapper.readValue(header, new TypeReference<List<ColumnDescriptionImpl>>(){});
+      List<ColumnInfo> columnList = mapper.readValue(header, new TypeReference<List<ColumnInfo>>(){});
       String path = uploadFileFromStream(uploadedInputStream, isFirstRowHeader, inputFileType, tableName, databaseName, columnList, containsEndlines, csvParams);
 
       JSONObject jo = new JSONObject();
@@ -325,29 +302,10 @@ public class UploadService extends BaseService {
       String insertQuery = generateInsertFromQuery(input);
       LOG.info("insertQuery : {}", insertQuery);
 
-      Job job = createJob(insertQuery, "default");
+      Job job = createJob(insertQuery, input.getFromDatabase(), "Insert from " +
+              input.getFromDatabase() + "." + input.getFromTable() + " to " +
+              input.getToDatabase() + "." + input.getToTable());
       LOG.info("Job created for insert from temp table : {}", job);
-      return Response.ok(job).build();
-    } catch (WebApplicationException e) {
-      LOG.error(getErrorMessage(e), e);
-      throw e;
-    } catch (Throwable e) {
-      LOG.error(e.getMessage(), e);
-      throw new ServiceFormattedException(e);
-    }
-  }
-
-  @Path("/deleteTable")
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response deleteTable(DeleteQueryInput input) {
-    try {
-      String deleteQuery = generateDeleteQuery(input);
-      LOG.info("deleteQuery : {}", deleteQuery);
-
-      Job job = createJob(deleteQuery, "default");
-      LOG.info("Job created for delete temp table : {} ", job);
       return Response.ok(job).build();
     } catch (WebApplicationException e) {
       LOG.error(getErrorMessage(e), e);
@@ -388,23 +346,42 @@ public class UploadService extends BaseService {
     return ambariApi;
   }
 
-  private String generateCreateQuery(TableInfo ti) {
-    return new QueryGenerator().generateCreateQuery(ti);
+  private String generateCreateQuery(TableMeta ti) throws ServiceException {
+    CreateTableQueryGenerator createTableQueryGenerator = new CreateTableQueryGenerator(ti);
+    Optional<String> query = createTableQueryGenerator.getQuery();
+    if(query.isPresent()){
+      return query.get();
+    }else{
+      throw new ServiceException("Failed to generate create table query.");
+    }
   }
 
-  private String generateInsertFromQuery(InsertFromQueryInput input) {
-    return new QueryGenerator().generateInsertFromQuery(input);
+  private String generateInsertFromQuery(InsertFromQueryInput input) throws ServiceException {
+    InsertFromQueryGenerator queryGenerator = new InsertFromQueryGenerator(input);
+    Optional<String> query = queryGenerator.getQuery();
+    if(query.isPresent()){
+      return query.get();
+    }else{
+      throw new ServiceException("Failed to generate Insert From Query.");
+    }
   }
 
-  private String generateDeleteQuery(DeleteQueryInput deleteQueryInput) {
-    return new QueryGenerator().generateDropTableQuery(deleteQueryInput);
+  private String generateDeleteQuery(DeleteQueryInput deleteQueryInput) throws ServiceException {
+    DeleteTableQueryGenerator deleteQuery = new DeleteTableQueryGenerator(deleteQueryInput.getDatabase(), deleteQueryInput.getTable());
+    Optional<String> query = deleteQuery.getQuery();
+    if(query.isPresent()){
+      return query.get();
+    }else{
+      throw new ServiceException("Failed to generate delete table query.");
+    }
   }
 
-  private Job createJob(String query, String databaseName) throws Throwable{
+  private Job createJob(String query, String databaseName, String jobTitle) throws Throwable{
     Map jobInfo = new HashMap<>();
-    jobInfo.put("title", "Internal Job");
+    jobInfo.put("title", jobTitle);
     jobInfo.put("forcedContent", query);
     jobInfo.put("dataBase", databaseName);
+    jobInfo.put("referrer", JobImpl.REFERRER.INTERNAL.name());
 
     Job job = new JobImpl(jobInfo);
     LOG.info("creating job : {}", job);
@@ -523,7 +500,7 @@ public class UploadService extends BaseService {
     String inputFileType,   // the format of the file uploaded. CSV/JSON etc.
     String tableName,
     String databaseName,
-    List<ColumnDescriptionImpl> header,
+    List<ColumnInfo> header,
     boolean containsEndlines,
     CSVParams csvParams
   ) throws Exception {

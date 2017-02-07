@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive20.resources.uploads;
 import com.opencsv.CSVWriter;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
@@ -38,14 +39,14 @@ import java.util.List;
 public class TableDataReader extends Reader {
 
   private static final int CAPACITY = 1024;
-  private final List<ColumnDescriptionImpl> header;
+  private final List<ColumnInfo> header;
   private StringReader stringReader = new StringReader("");
 
   private Iterator<Row> iterator;
   private boolean encode = false;
   public static final char CSV_DELIMITER = '\001';
 
-  public TableDataReader(Iterator<Row> rowIterator, List<ColumnDescriptionImpl> header, boolean encode) {
+  public TableDataReader(Iterator<Row> rowIterator, List<ColumnInfo> header, boolean encode) {
     this.iterator = rowIterator;
     this.encode = encode;
     this.header = header;

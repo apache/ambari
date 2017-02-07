@@ -154,6 +154,7 @@ public class JobService extends BaseService {
     } catch (ItemNotFound itemNotFound) {
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Exception ex) {
+      LOG.error("exception while fetching status of job with id : {}", jobId, ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }

@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive20.resources.uploads.parsers;
 
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 
 import java.util.List;
 
@@ -27,22 +28,22 @@ import java.util.List;
  * Encapsulating preview data from parser.
  */
 public class PreviewData {
-  private List<ColumnDescription> header;
+  private List<ColumnInfo> header;
   private List<Row> previewRows;
 
   public PreviewData() {
   }
 
-  public PreviewData(List<ColumnDescription> header, List<Row> previewRows) {
+  public PreviewData(List<ColumnInfo> header, List<Row> previewRows) {
     this.header = header;
     this.previewRows = previewRows;
   }
 
-  public List<ColumnDescription> getHeader() {
+  public List<ColumnInfo> getHeader() {
     return header;
   }
 
-  public void setHeader(List<ColumnDescription> header) {
+  public void setHeader(List<ColumnInfo> header) {
     this.header = header;
   }
 
