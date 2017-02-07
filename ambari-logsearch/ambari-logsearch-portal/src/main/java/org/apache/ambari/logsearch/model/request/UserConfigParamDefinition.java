@@ -21,16 +21,10 @@ package org.apache.ambari.logsearch.model.request;
 import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 
-import static org.apache.ambari.logsearch.doc.DocConstants.UserConfigDescriptions.USER_ID_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.UserConfigDescriptions.FILTER_NAME_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.UserConfigDescriptions.ROW_TYPE_D;
 
 public interface UserConfigParamDefinition {
-
-  String getUserId();
-
-  @ApiParam(value = USER_ID_D, name = LogSearchConstants.REQUEST_PARAM_USER_ID)
-  void setUserId(String userId);
 
   String getFilterName();
 

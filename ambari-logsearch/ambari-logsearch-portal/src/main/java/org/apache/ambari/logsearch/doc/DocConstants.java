@@ -100,19 +100,16 @@ public class DocConstants {
   }
 
   public class UserConfigDescriptions {
-    public static final String USER_ID_D = "Get config for a particular user id";
     public static final String FILTER_NAME_D = "The saved query as filter in Solr, search is sopprted by this param";
     public static final String ROW_TYPE_D = "Row type is solr to identify as filter query";
   }
 
   public class UserConfigOperationDescriptions {
     public static final String SAVE_USER_CONFIG_OD = "Save user config";
-    public static final String UPDATE_USER_CONFIG_OD = "Update user config";
     public static final String DELETE_USER_CONFIG_OD = "Delete user config";
     public static final String GET_USER_CONFIG_OD = "Get user config";
     public static final String GET_USER_FILTER_OD = "Get user filter";
     public static final String UPDATE_USER_FILTER_OD = "Update user filter";
-    public static final String GET_USER_FILTER_BY_ID_OD = "Get user filter by id";
     public static final String GET_ALL_USER_NAMES_OD = "Get all user names";
   }
 
