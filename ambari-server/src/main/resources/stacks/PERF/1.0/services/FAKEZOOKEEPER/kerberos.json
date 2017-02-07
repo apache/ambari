@@ -1,7 +1,7 @@
 {
   "services": [
     {
-      "name": "FAKEZOOKEEPER",
+      "name": "ZOOKEEPER",
       "identities": [
         {
           "name": "/smokeuser"
@@ -9,7 +9,7 @@
       ],
       "components": [
         {
-          "name": "FAKEZOOKEEPER_SERVER",
+          "name": "ZOOKEEPER_SERVER",
           "identities": [
             {
               "name": "zookeeper_zk",

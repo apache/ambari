@@ -32,7 +32,7 @@ class ZookeeperServer(Dummy):
 
   def __init__(self):
     super(ZookeeperServer, self).__init__()
-    self.component_name = "FAKEZOOKEEPER_SERVER"
+    self.component_name = "ZOOKEEPER_SERVER"
     self.principal_conf_name = "zookeeper-env"
     self.principal_name = "zookeeper_principal_name"
     self.keytab_conf_name = "zookeeper-env"

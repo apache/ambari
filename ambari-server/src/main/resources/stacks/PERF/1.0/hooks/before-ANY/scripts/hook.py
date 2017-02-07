@@ -18,11 +18,18 @@ limitations under the License.
 """
 
 from resource_management.libraries.script import Hook
+from shared_initialization import *
 
 class BeforeAnyHook(Hook):
 
   def hook(self, env):
     print "Before Any Hook"
+    import params
+    env.set_params(params)
+
+    #For AMS.
+    setup_users()
+    setup_java()
 
 if __name__ == "__main__":
   BeforeAnyHook().execute()
