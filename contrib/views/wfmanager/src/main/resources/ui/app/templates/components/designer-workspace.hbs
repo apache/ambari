@@ -21,7 +21,7 @@
       <div class="row">
         <div class="col-sm-4">
           <div class="navbar-brand">
-            <label for="">Workflow Designer</label>
+            <label for="">Workflow Manager</label>
           </div>
         </div>
         <div class="col-sm-8">
@@ -38,11 +38,11 @@
                     <li>
                       <a id="wfs_btn" class="pointer projects-list" title={{proj.workflowDefinitionPath}} {{action "editWorkflow" proj.workflowDefinitionPath proj.type}}>
                       {{#if (eq proj.type "WORKFLOW")}}
-                          <i class="fa fa-sitemap marginright5"></i>{{proj.name}}
+                          <i class="fa fa-sitemap marginright10"></i><span class="action-link">{{proj.name}}</span>
                       {{else if  (eq proj.type "COORDINATOR")}}
-                          <i class="fa fa-history marginright5"></i>{{proj.name}}
+                          <i class="fa fa-history marginright10"></i><span class="action-link">{{proj.name}}</span>
                       {{else}}
-                          <i class="fa fa-cubes marginright5"></i>{{proj.name}}
+                          <i class="fa fa-cubes marginright10"></i><span class="action-link">{{proj.name}}</span>
                       {{/if}}
                       </a>
                     </li>
@@ -98,11 +98,6 @@
               <button {{action "showAssetManager" true}} class="btn btn-default" title="Manage Assets">
                   Manage Assets
               </button>
-              {{#if (eq isProjectManagerEnabled "true")}}
-              <button {{action "showProjectManager" true}} class="btn btn-default" title="Project Manager">
-                  <i class="fa fa-folder marginright5" aria-hidden="true"></i>Projects
-              </button>
-              {{/if}}
               {{help-icon}}
             </div>
           </div>
