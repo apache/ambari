@@ -70,13 +70,19 @@ describe('App.showClusterCheckPopup', function () {
               {
                 UpgradeChecks: {
                   id: 'w0',
-                  status: 'WARNING'
+                  status: 'WARNING',
+                  check: 'w0 check',
+                  failed_on: 'w0 failed',
+                  reason: 'w0 reason'
                 }
               },
               {
                 UpgradeChecks: {
                   id: 'w1',
-                  status: 'WARNING'
+                  status: 'WARNING',
+                  check: 'w1 check',
+                  failed_on: 'w1 failed',
+                  reason: 'w1 reason'
                 }
               }
             ]
@@ -103,16 +109,14 @@ describe('App.showClusterCheckPopup', function () {
           fails: [],
           warnings: [
             {
-              UpgradeChecks: {
-                id: 'w0',
-                status: 'WARNING'
-              }
+              check: 'w0 check',
+              failed_on: 'w0 failed',
+              reason: 'w0 reason'
             },
             {
-              UpgradeChecks: {
-                id: 'w1',
-                status: 'WARNING'
-              }
+              check: 'w1 check',
+              failed_on: 'w1 failed',
+              reason: 'w1 reason'
             }
           ],
           hasConfigsMergeConflicts: false,
@@ -128,13 +132,19 @@ describe('App.showClusterCheckPopup', function () {
               {
                 UpgradeChecks: {
                   id: 'f0',
-                  status: 'FAIL'
+                  status: 'FAIL',
+                  check: 'f0 check',
+                  failed_on: 'f0 failed',
+                  reason: 'f0 reason'
                 }
               },
               {
                 UpgradeChecks: {
                   id: 'f1',
-                  status: 'FAIL'
+                  status: 'FAIL',
+                  check: 'f1 check',
+                  failed_on: 'f1 failed',
+                  reason: 'f1 reason'
                 }
               }
             ]
@@ -156,16 +166,14 @@ describe('App.showClusterCheckPopup', function () {
           warningAlert: undefined,
           fails: [
             {
-              UpgradeChecks: {
-                id: 'f0',
-                status: 'FAIL'
-              }
+              check: 'f0 check',
+              failed_on: 'f0 failed',
+              reason: 'f0 reason'
             },
             {
-              UpgradeChecks: {
-                id: 'f1',
-                status: 'FAIL'
-              }
+              check: 'f1 check',
+              failed_on: 'f1 failed',
+              reason: 'f1 reason'
             }
           ],
           warnings: [],

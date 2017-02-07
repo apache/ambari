@@ -35,45 +35,6 @@ var service,
       property: 'isStarted'
     }
   ],
-  hostComponentsDataFalse = [
-    [],
-    [
-      {
-        staleConfigs: false
-      }
-    ],
-    [
-      {
-        service: {
-          serviceName: 'HIVE'
-        },
-        staleConfigs: false
-      }
-    ]
-  ],
-  hostComponentsDataTrue = [
-    [
-      Em.Object.create({
-        service: {
-          serviceName: 'HDFS'
-        },
-        staleConfigs: true,
-        displayName: 'service0'
-      })
-    ],
-    [
-      Em.Object.create({
-        host: {
-          publicHostName: 'host0'
-        },
-        service: {
-          serviceName: 'HDFS'
-        },
-        staleConfigs: true,
-        displayName: 'service1'
-      })
-    ]
-  ],
   restartData = {
     host0: ['service0', 'service1']
 };
