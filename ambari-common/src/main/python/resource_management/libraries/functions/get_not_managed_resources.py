@@ -34,17 +34,18 @@ def get_not_managed_resources():
   """
   config = Script.get_config()
   not_managed_hdfs_path_list = json.loads(config['hostLevelParams']['not_managed_hdfs_path_list'])[:]
-  managed_hdfs_resource_property_names = config['configurations']['cluster-env']['managed_hdfs_resource_property_names']
-  managed_hdfs_resource_property_list = filter(None, [property.strip() for property in managed_hdfs_resource_property_names.split(',')])
+  if 'managed_hdfs_resource_property_names' in config['configurations']['cluster-env']:
+    managed_hdfs_resource_property_names = config['configurations']['cluster-env']['managed_hdfs_resource_property_names']
+    managed_hdfs_resource_property_list = filter(None, [property.strip() for property in managed_hdfs_resource_property_names.split(',')])
 
-  for property_name in managed_hdfs_resource_property_list:
-    property_value = default('/configurations/' + property_name, None)
+    for property_name in managed_hdfs_resource_property_list:
+      property_value = default('/configurations/' + property_name, None)
 
-    if property_value == None:
-      Logger.warning(("Property {0} from cluster-env/managed_hdfs_resource_property_names not found in configurations. "
+      if property_value == None:
+        Logger.warning(("Property {0} from cluster-env/managed_hdfs_resource_property_names not found in configurations. "
                      "Management of this DFS resource will not be forced.").format(property_name))
-    else:
-      while property_value in not_managed_hdfs_path_list:
-        not_managed_hdfs_path_list.remove(property_value)
+      else:
+        while property_value in not_managed_hdfs_path_list:
+          not_managed_hdfs_path_list.remove(property_value)
 
   return not_managed_hdfs_path_list

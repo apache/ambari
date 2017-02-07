@@ -22,6 +22,7 @@ from resource_management.libraries.script import Hook
 class BeforeStartHook(Hook):
 
   def hook(self, env):
+    self.run_custom_hook('before-ANY')
     print "Before Start Hook"
 
 if __name__ == "__main__":

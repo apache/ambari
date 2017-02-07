@@ -19,7 +19,8 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>FAKEZOOKEEPER</name>
+      <!-- Note : Service and Component Names are original (not fake) to facilitate AMS dependency on Zk. No Zk Install is done -->
+      <name>ZOOKEEPER</name>
       <version>3.4.6.2.3</version>
       <displayName>FAKEZOOKEEPER</displayName>
       <comment>Centralized service which provides highly reliable distributed coordination</comment>
@@ -27,7 +28,7 @@
       <!-- Overwrite the commandScript for each of the components. -->
       <components>
         <component>
-          <name>FAKEZOOKEEPER_SERVER</name>
+          <name>ZOOKEEPER_SERVER</name>
           <displayName>FAKEZooKeeper Server</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
@@ -40,7 +41,7 @@
         </component>
 
         <component>
-          <name>FAKEZOOKEEPER_CLIENT</name>
+          <name>ZOOKEEPER_CLIENT</name>
           <displayName>FAKEZooKeeper Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>

@@ -1,3 +1,4 @@
+#!/usr/bin/env ambari-python-wrap
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -14,25 +15,23 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
 # Python Imports
 
 # Local Imports
-from resource_management.libraries.script.dummy import Dummy
+from resource_management.core.logger import Logger
+from stack_advisor import DefaultStackAdvisor
 
 
-class ZookeeperClient(Dummy):
-  """
-  Dummy script that simulates a master component.
-  """
+class PERF10StackAdvisor(DefaultStackAdvisor):
 
   def __init__(self):
-    super(ZookeeperClient, self).__init__()
-    self.component_name = "ZOOKEEPER_CLIENT"
+    super(PERF10StackAdvisor, self).__init__()
+    Logger.initialize_logger()
 
-if __name__ == "__main__":
-  ZookeeperClient().execute()
+  def getServiceConfigurationRecommenderDict(self):
+    return {}
+
+  def getServiceConfigurationValidators(self):
+    return {}
