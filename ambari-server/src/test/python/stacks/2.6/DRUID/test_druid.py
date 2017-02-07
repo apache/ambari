@@ -63,7 +63,7 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-overlord')
-    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-overlord/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-overlord/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
                               user='druid',
                               tries=5,
                               try_sleep=10
@@ -109,7 +109,7 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-coordinator')
-    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-coordinator/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-coordinator/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
                               user='druid',
                               tries=5,
                               try_sleep=10
@@ -155,7 +155,7 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-broker')
-    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-broker/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-broker/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
                               user='druid',
                               tries=5,
                               try_sleep=10
@@ -201,7 +201,7 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-router')
-    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-router/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-router/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
                               user='druid',
                               tries=5,
                               try_sleep=10
@@ -247,7 +247,7 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-historical')
-    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-historical/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-historical/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
                               user='druid',
                               tries=5,
                               try_sleep=10
@@ -293,7 +293,7 @@ class TestDruid(RMFTestCase):
                        target=RMFTestCase.TARGET_COMMON_SERVICES
                        )
     self.assert_configure_default('druid-middlemanager')
-    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-middlemanager/extensions/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
+    self.assertResourceCalled('Execute', format("/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/druid-middlemanager/extensions/mysql-metadata-storage/* org.apache.ambari.server.DBConnectionVerification 'jdbc:mysql://my-db-host:3306/druid?createDatabaseIfNotExist=true' druid diurd com.mysql.jdbc.Driver"),
                               user='druid',
                               tries=5,
                               try_sleep=10
