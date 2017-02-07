@@ -142,10 +142,22 @@ export default Ember.Object.create({
    */
   getAllTerminationCharacters() {
     let arr = Ember.copy(nonPrintableChars);
-    for(let i=33; i < 127; i++) {
+    for (let i = 33; i < 127; i++) {
       arr.pushObject({id: i.toString(), name: String.fromCodePoint(i)});
     }
     return arr;
+  },
+
+  /**
+   * returns file types supported for upload-table feature.
+   */
+  getUploadFileTypes() {
+    let arr = [
+      {id: "CSV", name: "CSV"},
+      {id: "JSON", name: "JSON"},
+      {id: "XML", name: "XML"}
+    ];
+    return Ember.copy(arr);
   }
 
 });

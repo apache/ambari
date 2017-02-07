@@ -38,6 +38,7 @@ Router.map(function() {
       this.route('tables', {path: '/tables'}, function() {
         this.route('new-database');
         this.route('new');
+        this.route('upload-table');
         this.route('table', {path: '/:name'}, function() {
           this.route('rename');
           this.route('columns');
@@ -62,7 +63,6 @@ Router.map(function() {
 
     });
   });
-
 });
 
 export default Router;

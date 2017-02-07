@@ -35,7 +35,7 @@ export default Ember.Service.extend({
       detailedInfo: detailedInfo,
       storageInfo: storageInfo
     });
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').createTable(tableInfo).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
@@ -46,7 +46,7 @@ export default Ember.Service.extend({
   },
 
   deleteTable(database, table) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').deleteTable(database, table).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
