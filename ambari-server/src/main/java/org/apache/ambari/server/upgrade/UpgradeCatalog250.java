@@ -649,16 +649,13 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
             updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
                 "1000000000"), true, true);
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                Collections.singletonMap("hive.llap.execution.mode", "only"),
-                true, true);
             String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
             if (StringUtils.isNotBlank(llapRpcPortString)) {
               try {
                 int llapRpcPort = Integer.parseInt(llapRpcPortString);
                 if (llapRpcPort == 15001) {
                   updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                      Collections.singletonMap("hive.llap.daemon.rpc.port", "only"),
+                      Collections.singletonMap("hive.llap.daemon.rpc.port", "0"),
                       true, true);
                 }
               } catch (NumberFormatException e) {
