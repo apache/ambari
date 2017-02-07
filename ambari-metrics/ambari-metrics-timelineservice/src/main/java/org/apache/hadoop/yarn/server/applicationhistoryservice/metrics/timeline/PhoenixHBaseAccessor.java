@@ -153,9 +153,9 @@ public class PhoenixHBaseAccessor {
   private static final int POINTS_PER_MINUTE = 6;
   public static int RESULTSET_LIMIT = (int)TimeUnit.HOURS.toMinutes(2) * METRICS_PER_MINUTE * POINTS_PER_MINUTE ;
 
-  private static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
-  private static ObjectMapper mapper = new ObjectMapper();
-  private static TypeReference<TreeMap<Long, Double>> metricValuesTypeRef = new TypeReference<TreeMap<Long, Double>>() {};
+  static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
+  static ObjectMapper mapper = new ObjectMapper();
+  static TypeReference<TreeMap<Long, Double>> metricValuesTypeRef = new TypeReference<TreeMap<Long, Double>>() {};
 
   private final Configuration hbaseConf;
   private final Configuration metricsConf;

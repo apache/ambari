@@ -17,19 +17,26 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
-import junit.framework.Assert;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
-import org.easymock.EasyMock;
-import org.junit.Test;
-import java.util.Date;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 public class TimelineMetricClusterAggregatorSecondTest {
 
@@ -41,7 +48,7 @@ public class TimelineMetricClusterAggregatorSecondTest {
     long metricInterval = 10000l;
 
     Configuration configuration = new Configuration();
-    TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
+    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
 
     TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
       METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null,
@@ -113,11 +120,11 @@ public class TimelineMetricClusterAggregatorSecondTest {
     long sliceInterval = 30000l;
 
     Configuration configuration = new Configuration();
-    TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
+    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
 
-    EasyMock.expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey)EasyMock.anyObject()))
+    expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey) anyObject()))
       .andReturn(null).anyTimes();
-    EasyMock.replay(metricMetadataManagerMock);
+    replay(metricMetadataManagerMock);
 
     TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
       METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null, configuration, null,
@@ -312,4 +319,87 @@ public class TimelineMetricClusterAggregatorSecondTest {
 
   }
 
+  @Test
+  public void testLiveHostCounterMetrics() throws Exception {
+    long aggregatorInterval = 120000;
+    long sliceInterval = 30000;
+
+    Configuration configuration = new Configuration();
+    TimelineMetricMetadataManager metricMetadataManagerMock = createNiceMock(TimelineMetricMetadataManager.class);
+
+    expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey) anyObject())).andReturn(null).anyTimes();
+    replay(metricMetadataManagerMock);
+
+    TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
+      METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null, configuration, null,
+      aggregatorInterval, 2, "false", "", "", aggregatorInterval,
+      sliceInterval, null);
+
+    long now = System.currentTimeMillis();
+    long startTime = now - 120000;
+    long seconds = 1000;
+    List<Long[]> slices = secondAggregator.getTimeSlices(startTime, now);
+    ResultSet rs = createNiceMock(ResultSet.class);
+
+    TreeMap<Long, Double> metricValues = new TreeMap<>();
+    metricValues.put(startTime + 15*seconds, 1.0);
+    metricValues.put(startTime + 45*seconds, 2.0);
+    metricValues.put(startTime + 75*seconds, 3.0);
+    metricValues.put(startTime + 105*seconds, 4.0);
+
+    expect(rs.next()).andReturn(true).times(6);
+    expect(rs.next()).andReturn(false);
+
+    /*
+    m1-h1-a1
+    m2-h1-a1
+    m2-h1-a2
+    m2-h2-a1
+    m2-h2-a2
+    m2-h3-a2
+
+    So live_hosts : a1 = 2
+       live_hosts : a2 = 3
+     */
+    expect(rs.getString("METRIC_NAME")).andReturn("m1").times(1);
+    expect(rs.getString("METRIC_NAME")).andReturn("m2").times(5);
+
+    expect(rs.getString("HOSTNAME")).andReturn("h1").times(3);
+    expect(rs.getString("HOSTNAME")).andReturn("h2").times(2);
+    expect(rs.getString("HOSTNAME")).andReturn("h3").times(1);
+
+    expect(rs.getString("APP_ID")).andReturn("a1").times(2);
+    expect(rs.getString("APP_ID")).andReturn("a2").times(1);
+    expect(rs.getString("APP_ID")).andReturn("a1").times(1);
+    expect(rs.getString("APP_ID")).andReturn("a2").times(2);
+
+    expect(rs.getLong("SERVER_TIME")).andReturn(now - 150000).times(6);
+    expect(rs.getLong("START_TIME")).andReturn(now - 150000).times(6);
+    expect(rs.getString("UNITS")).andReturn(null).times(6);
+
+    ObjectMapper mapper = new ObjectMapper();
+    expect(rs.getString("METRICS")).andReturn(mapper.writeValueAsString(metricValues)).times(6);
+
+    replay(rs);
+
+    Map<TimelineClusterMetric, MetricClusterAggregate> aggregates = secondAggregator.aggregateMetricsFromResultSet(rs, slices);
+
+    Assert.assertNotNull(aggregates);
+
+    MetricClusterAggregate a1 = null, a2 = null;
+
+    for (Map.Entry<TimelineClusterMetric, MetricClusterAggregate> m : aggregates.entrySet()) {
+      if (m.getKey().getMetricName().equals("live_hosts") && m.getKey().getAppId().equals("a1")) {
+        a1 = m.getValue();
+      }
+      if (m.getKey().getMetricName().equals("live_hosts") && m.getKey().getAppId().equals("a2")) {
+        a2 = m.getValue();
+      }
+    }
+
+    Assert.assertNotNull(a1);
+    Assert.assertNotNull(a2);
+    Assert.assertEquals(2d, a1.getSum());
+    Assert.assertEquals(3d, a2.getSum());
+  }
 }
