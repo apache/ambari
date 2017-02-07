@@ -228,7 +228,7 @@ def hive_interactive(name=None):
            mode=mode_identified,
            group=params.user_group,
            owner=params.hive_user,
-           content=params.llap_daemon_log4j)
+           content=InlineTemplate(params.llap_daemon_log4j))
 
       llap_cli_log4j2_filename = 'llap-cli-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{llap_cli_log4j2_filename}"),
