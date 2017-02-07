@@ -25,42 +25,23 @@ export default Ember.Component.extend({
   "isWorkflow": true,
   "sortProp": ['updatedAt:desc'],
   "filteredModels": Ember.computed("model", "search", "isBundle", "isCoordinator", "isWorkflow", function(){
-	Ember.run.later(()=>{
-      this.$('.actions').hide();
-    }, 10);
-  	var condition = "", condition1 = "", condition2 = "", searchTxt = this.get("search");
-  	if(searchTxt && searchTxt.length){
-  	  condition1 = "(role.get('name') && role.get('name').indexOf(searchTxt)>-1)";
-  	}
-  	if(this.get("isWorkflow")){
-  		if(condition2.length){
-  	  		condition2 = condition2 + " role.get('type') == 'WORKFLOW'";
-  	  	} else {
-  	  		condition2 = condition2 + " role.get('type') == 'WORKFLOW'";
-  	  	}
-  	}
-  	if(this.get("isCoordinator")){
-  		if(condition2.length){
-  			condition2 = condition2 + " || role.get('type') == 'COORDINATOR'";
-  		} else {
-  			condition2 = condition2 + "role.get('type') == 'COORDINATOR'";
-  		}
-  	}
-  	if(this.get("isBundle")){
-  		if(condition2.length) {
-  			condition2 = condition2 + " || role.get('type') == 'BUNDLE'";
-  		} else {
-  			condition2 = condition2 + " role.get('type') == 'BUNDLE'";
-  		}
-  	}
-  	if(condition1.length && condition2.length) {
-    	condition = condition1 + "&&(" + condition2+ ")";
-  	} else if(condition2.length) {
-    	condition = condition2;
-  	}
-	return this.get("model").filter( (role) => {
-	  return eval(condition);
-	});
+    var score = 0, condition = true, searchTxt = this.get("search").toLowerCase(), isWorkflow = this.get("isWorkflow"), isCoordinator = this.get("isCoordinator"), isBundle = this.get("isBundle");
+    return this.get("model").filter( (role) => {
+      score = 0
+      if(searchTxt && searchTxt.length) {
+        condition = role.get('name') && role.get('name').toLowerCase().indexOf(searchTxt)>-1;
+      }
+      if(isWorkflow && role.get('type') === 'WORKFLOW') {
+        score++;
+      }
+      if(isCoordinator && role.get('type') === 'COORDINATOR') {
+        score++;
+      }
+      if(isBundle && role.get('type') === 'BUNDLE') {
+        score++;
+      }
+      return condition && score > 0;
+    });
   }),
   modelSorted : Ember.computed.sort("filteredModels", "sortProp"),
   "isDeleteDraftConformation": false,
