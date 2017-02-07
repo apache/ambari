@@ -43,7 +43,6 @@
     <logsearch.portal.conf.mapping.path>/etc/${logsearch.portal.package.name}/conf</logsearch.portal.conf.mapping.path>
     <logsearch.logfeeder.conf.mapping.path>/etc/${logsearch.logfeeder.package.name}/conf
     </logsearch.logfeeder.conf.mapping.path>
-    <infra.solr.plugin.dir>${project.basedir}/../ambari-infra-solr-plugin</infra.solr.plugin.dir>
   </properties>
   <artifactId>ambari-logsearch-assembly</artifactId>
   <profiles>
@@ -70,8 +69,7 @@
               <description>Maven Recipe: RPM Package.</description>
               <autoRequires>false</autoRequires>
               <prefix>/</prefix>
-              <needarch>noarch</needarch>
-              <targetOS>linux</targetOS>
+              <needarch>x86_64</needarch>
 
               <version>${package-version}</version>
               <release>${package-release}</release>
@@ -110,8 +108,6 @@
                 <configuration>
                   <group>Development</group>
                   <name>${solr.client.package.name}</name>
-                  <needarch>noarch</needarch>
-                  <targetOS>linux</targetOS>
                   <mappings>
                     <mapping>
                       <directory>${solr.client.mapping.path}</directory>
@@ -240,8 +236,6 @@
                       <fileset dir="${project.build.directory}/solr-${solr.version}"/>
                     </move>
                     <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
-                    <copy file="${infra.solr.plugin.dir}/target/ambari-infra-solr-plugin-${project.version}.jar"
-                          toDir="${project.build.directory}/solr/server/solr-webapp/webapp/WEB-INF/lib/"/>
                     <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
                     <chmod file="${project.build.directory}/solr/server/scripts/**" perm="755"/>
                   </target>
@@ -501,8 +495,6 @@
                       <fileset dir="${project.build.directory}/solr-${solr.version}"/>
                     </move>
                     <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
-                    <copy file="${infra.solr.plugin.dir}/target/ambari-infra-solr-plugin-${project.version}.jar"
-                          toDir="${project.build.directory}/solr/server/solr-webapp/webapp/WEB-INF/lib/"/>
                     <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
                     <chmod file="${project.build.directory}/solr/server/scripts/**" perm="755"/>
                   </target>
@@ -529,11 +521,6 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-logsearch-solr-client</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-infra-solr-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

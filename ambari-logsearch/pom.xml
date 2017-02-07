@@ -35,7 +35,6 @@
     <module>ambari-logsearch-logfeeder</module>
     <module>ambari-logsearch-solr-client</module>
     <module>ambari-logsearch-it</module>
-    <module>ambari-infra-solr-plugin</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
