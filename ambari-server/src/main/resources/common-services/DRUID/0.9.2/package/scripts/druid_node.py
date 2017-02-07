@@ -55,7 +55,7 @@ class DruidBase(Script):
     # Verify Database connection on Druid start
     if params.metadata_storage_type == 'mysql':
       if not params.jdbc_driver_jar or not os.path.isfile(params.connector_download_dir + os.path.sep + params.jdbc_driver_jar):
-        path_to_jdbc =  params.druid_extensions_dir + os.path.sep + "*"
+        path_to_jdbc =  params.connector_download_dir + os.path.sep + "*"
         error_message = "Error! Sorry, but we can't find jdbc driver for mysql.So, db connection check can fail." + \
                         "Please run 'ambari-server setup --jdbc-db=mysql --jdbc-driver={path_to_jdbc} on server host.'"
         Logger.error(error_message)
