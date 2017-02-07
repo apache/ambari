@@ -18,9 +18,7 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
-import org.apache.ambari.logsearch.web.model.User;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,17 +40,10 @@ public class UserConfigRequestQueryConverterTest extends AbstractRequestConverte
     UserConfigRequest request = new UserConfigRequest();
     request.setRowType("myRowType"); // TODO: validate these 3 fields @Valid on UserConfigRequest object -> not null
     request.setFilterName("myFilterName");
-    
-    LogSearchContext context = new LogSearchContext();
-    User user = new User();
-    user.setUsername("myUserId");
-    context.setUser(user);
-    LogSearchContext.setContext(context);
     // WHEN
     SolrQuery queryResult = underTest.convert(request);
     // THEN
-    assertEquals("?q=*%3A*&fq=rowtype%3AmyRowType&fq=username%3AmyUserId+OR+share_username_list%3AmyUserId" +
-      "&fq=filtername%3A*myFilterName*&start=0&rows=10&sort=filtername+asc",
+    assertEquals("?q=*%3A*&fq=rowtype%3AmyRowType&fq=filtername%3A*myFilterName*&start=0&rows=10&sort=filtername+asc",
       queryResult.toQueryString());
   }
 }
