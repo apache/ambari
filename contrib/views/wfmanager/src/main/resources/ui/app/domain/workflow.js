@@ -70,10 +70,11 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
   },
 
   findJoinNode(node){
-    if (node.isDecisionNode()){
+    if (node.isDecisionNode() || node.isForkNode()){
       return this.findCommonTargetNode(this.startNode,node);
     }else if (node.isForkNode()) {
-      return node.getDefaultTransitionTarget();
+      //TODO find join node by id if it is efficient later..
+      return this.findCommonTargetNode(this.startNode,node);
     }else{
       return null;
     }

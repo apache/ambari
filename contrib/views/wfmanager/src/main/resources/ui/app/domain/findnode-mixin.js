@@ -20,9 +20,6 @@ var FindNodeMixin= Ember.Mixin.create({
   findNodeById(startNode,id){
     return this._findNodeById(startNode,id);
   },
-  findNodeByType(startNode,type){
-    return this._findNodeByAttr(startNode,type,"type");
-  },
   findTransition(startNode,sourceId,targetId){
     return this._findTransition(startNode,sourceId,targetId);
   },
@@ -66,18 +63,15 @@ var FindNodeMixin= Ember.Mixin.create({
     return res;
   },
   _findNodeById(node,id){
-    return this._findNodeByAttr(node,id,"id");
-  },
-  _findNodeByAttr(node,id,attrType){
     var self=this;
-    if (node.get(attrType)===id){
+    if (node.get("id")===id){
       return node;
     }else{
       if (node.transitions){
         var res;
         for (var i = 0; i < node.transitions.length; i++) {
           var transition=node.transitions[i];
-          res= self._findNodeByAttr(transition.getTargetNode(false),id,attrType);
+          res= self._findNodeById(transition.getTargetNode(false),id);
           if (res){
             break;
           }
