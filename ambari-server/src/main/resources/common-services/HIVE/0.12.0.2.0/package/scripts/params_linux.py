@@ -49,7 +49,8 @@ from resource_management.libraries.functions.get_architecture import get_archite
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import checked_call
 from resource_management.core.logger import Logger
-from ambari_commons.inet_utils import download_file
+from resource_management.core.resources.system import File
+from resource_management.core.source import DownloadSource
 
 # Default log4j version; put config files under /etc/hive/conf
 log4j_version = '1'
@@ -241,12 +242,10 @@ def getHiveMetastorePassword():
     credential_util_dir = cs_lib_path.split('*')[0] # Remove the trailing '*'
     credential_util_path = os.path.join(credential_util_dir, credential_util_jar)
     credential_util_url =  jdk_location + credential_util_jar
-    try:
-      download_file(credential_util_url, credential_util_path)
-    except Exception, e:
-      message = 'Error downloading {0} from Ambari Server resources. {1}'.format(credential_util_url, str(e))
-      Logger.error(message)
-      raise
+    File(credential_util_path,
+         content = DownloadSource(credential_util_url),
+         mode = 0644,
+    )
 
     # Execute a get command on the CredentialUtil CLI to get the password for the specified alias
     java_home = config['hostLevelParams']['java_home']
@@ -255,10 +254,6 @@ def getHiveMetastorePassword():
     provider_path = config['configurations']['hive-site']['hadoop.security.credential.provider.path']
     cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
     cmd_result, std_out_msg  = checked_call(cmd)
-    if cmd_result != 0:
-      message = 'The following error occurred while executing {0}: {1}'.format(' '.join(cmd), std_out_msg)
-      Logger.error(message)
-      raise
     std_out_lines = std_out_msg.split('\n')
     passwd = std_out_lines[-1] # Get the last line of the output, to skip warnings if any.
   return passwd

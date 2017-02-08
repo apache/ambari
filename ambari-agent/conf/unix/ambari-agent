@@ -111,6 +111,7 @@ change_files_permissions() {
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
+	ambari-sudo.sh chown  $current_user "/var/lib/ambari-agent/cred"
 }
 
 
