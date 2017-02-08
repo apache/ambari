@@ -193,7 +193,7 @@ def do_ams_collector_post(metric_collector_host, params):
     ams_metrics_post_url = "/ws/v1/timeline/metrics/"
     random_value1 = random.random()
     headers = {"Content-type": "application/json"}
-    ca_certs = os.path.join(params.ams_collector_conf_dir,
+    ca_certs = os.path.join(params.ams_grafana_conf_dir,
                             params.metric_truststore_ca_certs)
 
     current_time = int(time.time()) * 1000
@@ -217,7 +217,7 @@ def create_ams_datasource():
   results = execute_in_parallel(do_ams_collector_post, params.ams_collector_hosts.split(','), params)
   new_datasource_host = ""
 
-  for host in params.ams_collector_hosts:
+  for host in params.ams_collector_hosts.split(','):
     if host in results:
       if results[host].status == SUCCESS:
         new_datasource_host = host

@@ -60,6 +60,24 @@ embedded_mode_multiple_instances = False
 if not is_ams_distributed and len(ams_collector_list) > 1:
   embedded_mode_multiple_instances = True
 
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_vip_host' in config['configurations']['cluster-env']:
+  metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
+else:
+  metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
+
+random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
+
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_vip_port' in config['configurations']['cluster-env']:
+  metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+else:
+  metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
+  if metric_collector_web_address.find(':') != -1:
+    metric_collector_port = metric_collector_web_address.split(':')[1]
+  else:
+    metric_collector_port = '6188'
+
 failover_strategy_blacklisted_interval_seconds = default("/configurations/ams-env/failover_strategy_blacklisted_interval", "600")
 failover_strategy = default("/configurations/ams-site/failover.strategy", "round-robin")
 if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
@@ -73,7 +91,7 @@ metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.trust
 metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
 metric_truststore_alias = default("/configurations/ams-ssl-client/ssl.client.truststore.alias", None)
 if not metric_truststore_alias:
-  metric_truststore_alias = config["hostname"]
+  metric_truststore_alias = metric_collector_host
 metric_truststore_ca_certs='ca.pem'
 
 agent_cache_dir = config['hostLevelParams']['agentCacheDir']
@@ -121,24 +139,6 @@ def get_ambari_version():
     pass
   return ambari_version
 
-
-if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-  metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
-else:
-  metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
-
-random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
-
-if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-  metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
-else:
-  metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
-  if metric_collector_web_address.find(':') != -1:
-    metric_collector_port = metric_collector_web_address.split(':')[1]
-  else:
-    metric_collector_port = '6188'
 
 ams_collector_log_dir = config['configurations']['ams-env']['metrics_collector_log_dir']
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"

@@ -469,9 +469,12 @@ def export_ca_certs(dir_path):
   cmd = format("{sudo} openssl pkcs12 -in {truststore} -out {ca_certs_path} -cacerts -nokeys -passin pass:{metric_truststore_password}")
   Execute(cmd,
   )
-  Execute(('chown', params.ams_user, ca_certs_path),
+  Execute(('chown', format('{ams_user}:{user_group}'), ca_certs_path),
           sudo=True
   )
+  Execute(('chmod', '644', ca_certs_path),
+          sudo = True,
+          )
   Execute(format('{sudo} rm -rf {tmpdir}')
   )
 

@@ -60,13 +60,15 @@ class TestMetricsGrafana(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown', u'-R', u'ams', '/var/run/ambari-metrics-grafana'),
                               sudo = True
                               )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -srcalias c6401.ambari.apache.org -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -srcalias c6402.ambari.apache.org -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
                               )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh openssl pkcs12 -in /some_tmp_dir/truststore.p12 -out /etc/ambari-metrics-grafana/conf/ca.pem -cacerts -nokeys -passin pass:bigdata',
     )
-    self.assertResourceCalled('Execute', ('chown', u'ams', '/etc/ambari-metrics-grafana/conf/ca.pem'),
+    self.assertResourceCalled('Execute', ('chown', u'ams:hadoop', '/etc/ambari-metrics-grafana/conf/ca.pem'),
                               sudo = True
     )
+    self.assertResourceCalled('Execute', ('chmod', '644', '/etc/ambari-metrics-grafana/conf/ca.pem'),
+                              sudo=True)
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /some_tmp_dir',
                               )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-grafana start',

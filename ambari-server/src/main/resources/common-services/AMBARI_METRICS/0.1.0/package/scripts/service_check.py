@@ -66,7 +66,7 @@ class AMSServiceCheck(Script):
   def service_check_for_single_host(self, metric_collector_host, params):
     random_value1 = random.random()
     headers = {"Content-type": "application/json"}
-    ca_certs = os.path.join(params.ams_collector_conf_dir,
+    ca_certs = os.path.join(params.ams_monitor_conf_dir,
                             params.metric_truststore_ca_certs)
 
     current_time = int(time.time()) * 1000
