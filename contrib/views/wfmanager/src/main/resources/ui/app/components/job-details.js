@@ -18,6 +18,7 @@
 import Ember from 'ember';
 import {WorkflowImporter} from '../domain/workflow-importer';
 import {ActionTypeResolver} from "../domain/action-type-resolver";
+import Constants from '../utils/constants';
 
 export default Ember.Component.extend({
   workflowImporter: WorkflowImporter.create({}),
@@ -102,6 +103,13 @@ export default Ember.Component.extend({
     } else {
       return workflowActions;
     }
+  },
+
+  getActionNode(nodeName, nodeType) {
+    if (nodeType === 'start') {
+      nodeName = ':start:';
+    }
+    return this.getNodeActionByName(this.get('model.actions'), nodeName);
   },
 
   getActionStatus(nodeName, nodeType) {
@@ -201,14 +209,23 @@ export default Ember.Component.extend({
             if (tran.targetNode.type === 'kill') {
               return;
             }
+            var transitionBorderColor;
+            var actionNode = self.getActionNode(node.name, node.type);
+            if (actionNode && (actionNode.transition===tran.targetNode.name ||actionNode.transition==='*')){
+              transitionBorderColor = Constants.successfulFlowColor;//green
+            }else{
+              transitionBorderColor = Constants.defaultFlowColor;//grey
+            }
+            if (!actionNode){
+              transitionBorderColor = Constants.defaultFlowColor;//grey
+            }
             dataNodes.push(
               {
                 data: {
                   id: tran.sourceNodeId + '_to_' + tran.targetNode.id,
                   source:tran.sourceNodeId,
                   target: tran.targetNode.id,
-                  borderColor: (self.getActionStatus(tran.targetNode.name, tran.targetNode.type) === 'Not-Visited')
-                    ? '#808080' : self.getBorderColorBasedOnStatus(nodeActionStatus)
+                  borderColor: transitionBorderColor
                 }
               }
             );

@@ -89,5 +89,7 @@ export default Ember.Object.create({
   elConstants : [
     '${YEAR}', '${MONTH}', '${DAY}', '${HOUR}', '${MINUTE}'
   ],
-  customActionEnabled : true
+  customActionEnabled : true,
+  successfulFlowColor : '#5bb75b',
+  defaultFlowColor : '#808080'
 });
