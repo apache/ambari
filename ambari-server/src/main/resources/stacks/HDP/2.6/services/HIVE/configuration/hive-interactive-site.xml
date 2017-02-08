@@ -80,4 +80,20 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
 
+  <property>
+    <name>hive.server2.tez.sessions.custom.queue.allowed</name>
+    <value>ignore</value>
+    <description>Whether to allow the users of this HS2 to specify custom queues - yes, no (fail if specified), ignore (use the default queues even if a custom one is specified)</description>
+    <display-name>Allow custom queues</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.restricted.configs</name>
+    <value>hive.execution.mode,hive.execution.engine</value>
+    <description>The list of configuration settings that the users of the session pool of this HS2 are not allowed to override</description>
+    <display-name>Restricted session configs</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>
