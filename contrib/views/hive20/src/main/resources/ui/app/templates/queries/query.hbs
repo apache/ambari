@@ -30,6 +30,22 @@
       <div class="row query-editor-controls">
         <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
+
+
+        <div class="btn-group">
+          <button class="btn btn-default" type="button" data-toggle="dropdown">Insert UDF
+            <span class="caret"></span></button>
+
+
+            <ul class="dropdown-menu">
+              {{#each fileResourceList as |fileResource|}}
+                {{fileresource-item fileResource=fileResource createQuery='createQuery'}}
+              {{/each}}
+            </ul>
+
+        </div>
+
+
         {{#if worksheet.isQueryRunning}}
           {{fa-icon "spinner fa-1-5" spin=true}}
         {{/if}}

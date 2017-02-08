@@ -16,32 +16,17 @@
 * limitations under the License.
 }}
 
-<div class="pull-right">
-    {{#link-to 'udfs.new' class="btn btn-sm btn-success"}}{{fa-icon "plus"}} NEW UDF{{/link-to}}
-</div>
-<div class="row jobs-table">
-  <div class="col-md-12">
-    <table class="table table-striped">
-      <thead>
-      <tr>
-        <th width="20%">UDF Name</th>
-        <th width="20%">UDF Class Name</th>
-        <th width="40%">Owner</th>
-        <th width="20%" class="center">Action</th>
-      </tr>
-      </thead>
-      <tbody>
-        {{#each udflist as |udf| }}
-          {{udf-item
-          udf=udf
-          fileResourceList=fileResourceList
-          refreshUdfList='refreshUdfList'
-          }}
-        {{/each}}
-      </tbody>
-    </table>
-  </div>
-</div>
+<li class="dropdown">
+  <a tabindex="-1" {{action 'expandFileResource' fileResource.id bubbles=false }} href="javascript:void(0)">{{fileResource.name}}</a>
+  {{#if expanded}}
+    <ul  class="sub-menu">
+      {{#each selectedUdfList as |udf|}}
+        <li class="dropdown" >
+          <a tabindex="-1"  href="javascript:void(0)" {{action 'createQuery' udf.name udf.classname fileResource.name fileResource.path }} >{{udf.name}}</a>
+        </li>
+      {{/each}}
+    </ul>
+  {{/if}}
+</li>
 
-
-{{outlet}}
+{{yield}}
