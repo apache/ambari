@@ -164,8 +164,10 @@ var DecisionNodeHandler= NodeHandler.extend({
     return this.nodeFactory.createEmptyDecisionNode(node._name);
   },
   handleImportTransitions(node,json,nodeMap){
+    var self=this;
     var defaultPath=json.switch.default._to;
-    node.addTransitionTo(nodeMap.get(defaultPath).node,"default");
+    var placeholder=self.nodeFactory.createPlaceholderNode(nodeMap.get(defaultPath).node);
+    node.addTransitionTo(placeholder,"default");
     var cases=[];
     if (Ember.isArray(json.switch.case)){
       cases=json.switch.case;
@@ -173,7 +175,8 @@ var DecisionNodeHandler= NodeHandler.extend({
       cases.push(json.switch.case);
     }
     cases.forEach(function(caseExpr){
-      node.addTransitionTo(nodeMap.get(caseExpr._to).node,caseExpr.__text);
+      var placeholder=self.nodeFactory.createPlaceholderNode(nodeMap.get(caseExpr._to).node);
+      node.addTransitionTo(placeholder,caseExpr.__text);
     });
   }
 });
@@ -190,7 +193,8 @@ var ForkNodeHandler= NodeHandler.extend({
     return this.nodeFactory.createEmptyForkNode(node._name);
   },
   handleImportTransitions(node,json,nodeMap){
-    json.path.forEach(function(path){
+    var paths=Ember.isArray(json.path)?json.path:[json.path];
+    paths.forEach(function(path){
       node.addTransitionTo(nodeMap.get(path._start).node);
     });
   }
