@@ -1,6 +1,7 @@
 {
   "name": "ui",
   "dependencies": {
+    "d3": "~4.5.0",
     "ember": "~2.7.0",
     "ember-cli-shims": "~0.1.1",
     "ember-qunit-notifications": "0.1.0",

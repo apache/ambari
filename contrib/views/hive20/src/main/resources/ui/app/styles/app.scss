@@ -885,13 +885,82 @@ ul.dropdown-menu {
 }
 
 
+.step {
+  font-family: Roboto;
+  background-color:rgb(255, 255, 255);
+  padding: 8px 10px;
+  border: 1px solid rgb(223, 223, 223);
+  cursor: pointer;
+  &:hover {
+    background-color: rgb(223, 240, 247);
+  }
+
+  body {
+    font-family: Roboto;
+    background-color: rgba(0,0,0,0);
+  }
+}
+.step-sink {
+  body {
+    color: rgb(255, 255, 255);
+  }
+  background-color: rgb(42, 179, 119);
+  padding: 20px;
+}
+.step-sink .step-body {
+  font-weight: lighter;
+  margin-top: 10px;
+}
+
+.step-source {
+  body {
+    color: rgb(255, 255, 255);
+  }
+  background-color: rgb(85, 100, 105);
+}
+
+.step-job,
+.step-vectorization {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.step-job body,
+.step-vectorization body {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step__pill {
+  font-size: 12px;
+  border-radius: 25px;
+  padding: 5px 10px;
+  min-width: 60px;
+  color: rgb(255, 255, 255);
+  background-color: rgb(85, 100, 105);
+  text-align: center;
+}
 
 
+.step-caption {
+  font-size: 10px;
+}
+.step-body {
+  font-size: 12px;
+}
 
+.edge {
+  stroke: rgb(83, 100, 106);
+  stroke-width: 2px;
+  fill: none;
+}
 
-
-
-
-
-
-
+#explain-container {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}

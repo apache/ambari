@@ -126,6 +126,10 @@ export default Ember.Component.extend({
       console.log('downloadAsCsv with jobId == ', jobId );
       console.log('downloadAsCsv with pathName == ', pathName );
       this.sendAction('downloadAsCsv', jobId,  pathName);
+    },
+
+    showVisualExplain(){
+      this.sendAction('showVisualExplain');
     }
 
   }
