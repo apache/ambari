@@ -305,6 +305,7 @@
             </mapping>
            <mapping>
               <directory>/usr/lib/ambari-agent</directory>
+              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
@@ -315,6 +316,7 @@
             </mapping>
             <mapping>
               <directory>/usr/lib/python2.6/site-packages</directory>
+              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
@@ -325,6 +327,7 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-agent</directory>
+              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>

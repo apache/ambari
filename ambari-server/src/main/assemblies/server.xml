@@ -124,6 +124,7 @@
 	  </excludes>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/scripts</directory>
       <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
       <excludes>
@@ -131,6 +132,7 @@
       </excludes>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>${ambari-admin-dir}/target</directory>
       <outputDirectory>/var/lib/ambari-server/resources/views</outputDirectory>
       <includes>
@@ -138,10 +140,12 @@
       </includes>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/upgrade/ddl</directory>
       <outputDirectory>/var/lib/ambari-server/resources/upgrade/ddl</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/upgrade/dml</directory>
       <outputDirectory>/var/lib/ambari-server/resources/upgrade/dml</outputDirectory>
     </fileSet>
@@ -150,6 +154,7 @@
       <outputDirectory>/var/lib/ambari-server/resources/common-services</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/upgrade/catalog</directory>
       <outputDirectory>/var/lib/ambari-server/resources/upgrade/catalog</outputDirectory>
     </fileSet>
@@ -158,10 +163,12 @@
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/python/ambari_server</directory>
       <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/custom_action_definitions</directory>
       <outputDirectory>/var/lib/ambari-server/resources/custom_action_definitions</outputDirectory>
     </fileSet>
@@ -251,58 +258,72 @@
       <outputDirectory>/var/lib/ambari-server/keys</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-Postgres-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/Ambari-DDL-Postgres-DROP.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/Ambari-DDL-Postgres-EMBEDDED-DROP.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-Oracle-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-MySQL-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/Ambari-DDL-Oracle-DROP.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/Ambari-DDL-MySQL-DROP.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-SQLServer-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-SQLServer-CREATELOCAL.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/Ambari-DDL-SQLServer-DROP.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-SQLAnywhere-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/Ambari-DDL-SQLAnywhere-DROP.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>${project.build.directory}/DBConnectionVerification.jar</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
