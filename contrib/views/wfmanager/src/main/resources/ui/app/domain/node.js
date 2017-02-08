@@ -180,7 +180,7 @@ var Node = Ember.Object.extend(FindNodeMixin,{
   },
   getDefaultTransitionTarget(){
     if (this.isForkNode()){
-      return this.findNodeById(this,"join_"+this.get("id"));
+      return this.findNodeByType(this,"join");
     }
     var transitions=this.get("transitions");
     if (transitions.length===0){
