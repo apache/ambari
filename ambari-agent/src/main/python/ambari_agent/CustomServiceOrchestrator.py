@@ -149,9 +149,6 @@ class CustomServiceOrchestrator():
     # /etc/<service_name>/conf
 
     conf_dir = os.path.join(self.credential_conf_dir, service_name.lower())
-    if not os.path.exists(conf_dir):
-      os.makedirs(conf_dir, 0644)
-
     return conf_dir
 
   def getConfigTypeCredentials(self, commandJson):
