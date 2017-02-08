@@ -45,7 +45,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
     COMPARE: 'compare',
     REVERT: 'revert'
   },
-  
+
+  /**
+   * serviceVersion object that is currently being hovered in the dropdown menu
+   */
+  hoveredServiceVersion: null,
   /**
    * flag to check if sub-menu popup is currently being hovered
    */
@@ -583,7 +587,9 @@ App.ConfigHistoryDropdownRowView = Em.View.extend({
       var $el = $('#config_version_popup');
       var $currentTarget = $(event.currentTarget);
       var parentView = view.get('parentView');
+      parentView.set('hoveredServiceVersion', null);
       if (!serviceVersion.get("isDisplayed"))  {
+        parentView.set('hoveredServiceVersion', serviceVersion);
         parentView.set('isHovered', true);
         var elHeight = $el.outerHeight(),
           pagePosition = window.innerHeight + window.pageYOffset,
