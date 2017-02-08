@@ -41,6 +41,11 @@ export default ApplicationAdapter.extend({
     return this.ajax(url, 'GET')
   },
 
+  getVisualExplainJson(jobId){
+    let url = this.buildURL() + jobId + '/results?first=true';
+   return this.ajax(url, 'GET');
+  },
+
   retrieveQueryLog(logFile){
     let url = '';
     url = this.buildURL().replace('/jobs','') + '/files' + logFile;

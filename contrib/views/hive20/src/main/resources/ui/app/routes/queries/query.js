@@ -111,6 +111,9 @@ export default Ember.Route.extend({
     controller.set('showQueryEditorLog', false);
     controller.set('showQueryEditorResult', !controller.get('showQueryEditorLog'));
 
+    controller.set('isVisualExplainQuery', false);
+    controller.set('visualExplainJson', null);
+
 
   },
 
@@ -159,11 +162,22 @@ export default Ember.Route.extend({
       this.get('controller.model').set('selectedDb', db);
     },
 
+
+    visualExplainQuery(){
+      this.get('controller').set('isVisualExplainQuery', true );
+      this.send('executeQuery');
+    },
+
     executeQuery(isFirstCall){
 
       let self = this;
       this.get('controller').set('currentJobId', null);
-      let queryInput = this.get('controller').get('currentQuery');
+
+      //let queryInput = this.get('controller').get('currentQuery');
+      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
+      let queryInput =  (isVisualExplainQuery) ? 'explain formatted ' + this.get('controller').get('currentQuery') : this.get('controller').get('currentQuery') ;
+
+
       this.get('controller.model').set('query', queryInput);
 
       let dbid = this.get('controller.model').get('selectedDb');
@@ -209,6 +223,10 @@ export default Ember.Route.extend({
             Ember.run.later(() => {
               self.get('controller').set('isJobSuccess', true);
               self.send('getJob', data);
+
+              if(isVisualExplainQuery){
+                self.send('showVisualExplain');
+              }
 
               //Last log
               self.send('fetchLogs');
@@ -256,6 +274,19 @@ export default Ember.Route.extend({
       }, function(error){
         console.log('error', error);
       });
+    },
+
+    showVisualExplain(){
+       let self = this;
+       let jobId = this.get('controller').get('currentJobId');
+       this.get('query').getVisualExplainJson(jobId).then(function(data) {
+          console.log('Successful getVisualExplainJson', data);
+
+          self.get('controller').set('visualExplainJson', data.rows[0][0]);
+
+       }, function(error){
+          console.log('error getVisualExplainJson', error);
+        });
     },
 
     getJob(data){
