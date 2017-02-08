@@ -28,7 +28,12 @@ Router.map(function() {
   this.route('service-check');
 
   this.route('jobs');
-  this.route('udfs');
+  this.route('udfs', function() {
+    this.route('new');
+    this.route('udf', {path: '/:udfId'}, function() {
+    });
+  });
+
   this.route('settings');
   this.route('savedqueries');
 

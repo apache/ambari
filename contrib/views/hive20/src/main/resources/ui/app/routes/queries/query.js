@@ -34,6 +34,24 @@ export default Ember.Route.extend({
     if (dbmodel.get('length') > 0) {
       this.selectDatabase(dbmodel);
     }
+
+    this.store.findAll('file-resource').then((data) => {
+      let fileResourceList = [];
+      data.forEach(x => {
+        let localFileResource = {'id': x.get('id'),
+          'name': x.get('name'),
+          'path': x.get('path'),
+          'owner': x.get('owner')
+        };
+        fileResourceList.push(localFileResource);
+      });
+
+      this.controller.set('fileResourceList', fileResourceList);
+
+    });
+
+
+
   },
 
   model(params) {
@@ -98,6 +116,11 @@ export default Ember.Route.extend({
 
 
   actions: {
+    createQuery(udfName, udfClassname, fileResourceName, fileResourcePath){
+      let query = "add jar "+ fileResourcePath + ";\ncreate temporary function " + udfName + " as '"+ udfClassname+ "';";
+      this.get('controller').set('currentQuery', query);
+      this.get('controller.model').set('currentQuery', query );
+    },
 
     changeDbHandler(selectedDBs){
 
@@ -479,6 +502,8 @@ export default Ember.Route.extend({
 
   showQueryResultContainer(){
     this.get('controller.model').set('isQueryResultContainer', true);
-  }
+  },
+
+
 
 });

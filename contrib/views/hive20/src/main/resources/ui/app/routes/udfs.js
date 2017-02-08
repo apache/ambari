@@ -19,4 +19,54 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+  model() {
+    return this.store.findAll('udf').then(udfs => udfs.toArray());
+  },
+  store: Ember.inject.service(),
+
+  setupController(controller, model) {
+    this._super(...arguments);
+
+    controller.set('udflist', model);
+
+    this.store.findAll('file-resource').then((data) => {
+      let fileResourceList = [];
+      data.forEach(x => {
+        let localFileResource = {
+          'id': x.get('id'),
+          'name': x.get('name'),
+          'path': x.get('path'),
+          'owner': x.get('owner')
+        };
+        fileResourceList.push(localFileResource);
+      });
+      fileResourceList.push({'name':'Add New File Resource', 'action':'addNewFileResource'});
+      controller.set('fileResourceList', fileResourceList);
+    });
+  },
+
+  actions:{
+
+    refreshUdfList(){
+
+      this.get('store').findAll('udf').then((data) => {
+        let udfList = [];
+        data.forEach(x => {
+          let localUdf = {
+            'id': x.get('id'),
+            'name': x.get('name'),
+            'classname': x.get('classname'),
+            'fileResource': x.get('fileResource'),
+            'owner': x.get('owner')
+          };
+          udfList.pushObject(localUdf);
+        });
+
+        this.controllerFor('udfs').set('udflist',udfList);
+        this.transitionTo('udfs');
+      })
+
+    }
+
+  }
 });
