@@ -279,7 +279,7 @@ public class DDLProxy {
     if(alterQuery.isPresent()){
       return alterQuery.get();
     }else{
-      throw new ServiceException("Failed to generate alter table query for table " + oldTableMeta.getDatabase() + "." + oldTableMeta.getTable());
+      throw new ServiceException("Failed to generate alter table query for table " + oldTableMeta.getDatabase() + "." + oldTableMeta.getTable() + ". No difference was found.");
     }
   }
 

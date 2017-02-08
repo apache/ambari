@@ -270,6 +270,9 @@ pre {
 .create-table-controls {
   padding-top: 15px;
   padding-bottom: 15px;
+  .warning {
+    margin-top: 15px;
+  }
 }
 
 .column-precision {
