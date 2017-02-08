@@ -68,7 +68,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
               configGroup.id = App.ServiceConfigGroup.groupId(configGroup.service_name, configGroup.group_name);
             } else {
               configGroup.id = App.ServiceConfigGroup.groupId(configGroup.ConfigGroup.tag, configGroup.ConfigGroup.group_name);
-              configGroup.hosts = configGroup.ConfigGroup.hosts.mapProperty('host_name');
+              configGroup.hosts = configGroup.ConfigGroup.hosts.mapProperty('host_name').sort();
               configGroup.service_name = configGroup.ConfigGroup.tag;
             }
 
