@@ -28,7 +28,8 @@
         {{query-editor query=currentQuery }}
       </div>
       <div class="row query-editor-controls">
-        <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
+        <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "check"}} Execute</button>
+
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
         <div class="btn-group">
           <button class="btn btn-default" type="button" data-toggle="dropdown">Insert UDF

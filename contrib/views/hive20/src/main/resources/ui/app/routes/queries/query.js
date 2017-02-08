@@ -218,9 +218,8 @@ export default Ember.Route.extend({
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
 
-        self.get('jobs').waitForJobToComplete(data.job.id, 5 * 1000, false)
+        self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
-            Ember.run.later(() => {
               self.get('controller').set('isJobSuccess', true);
               self.send('getJob', data);
 
@@ -231,9 +230,6 @@ export default Ember.Route.extend({
               //Last log
               self.send('fetchLogs');
 
-              //Open result tab and hide log tab
-              //self.send('showQueryEditorResult');
-            }, 2 * 1000);
           }, (error) => {
             Ember.run.later(() => {
               // TODO: handle error
@@ -319,21 +315,6 @@ export default Ember.Route.extend({
       }, function(reason) {
         // on rejection
         console.log('reason' , reason);
-        if( reason.errors[0].status == 409 ){
-          setTimeout(function(){
-
-            //Put the code here for changing the log content.
-            let logFile = self.get('controller.model').get('logFile');
-            self.get('query').retrieveQueryLog(logFile).then(function(data) {
-              self.get('controller.model').set('logResults', data.file.fileContent);
-            }, function(error){
-              console.log('error', error);
-            });
-
-
-            self.send('getJob',data);
-          }, 2000);
-        }
       });
     },
 
@@ -372,12 +353,6 @@ export default Ember.Route.extend({
         }, function(reason) {
           // on rejection
           console.log('reason' , reason);
-
-          if( reason.errors[0].status == 409 ){
-            setTimeout(function(){
-              self.send('getJob',data);
-            }, 2000);
-          }
         });
       } else { //Pages from cache object
         this.get('controller.model').set('currentPage', currentPage+1);
@@ -533,8 +508,6 @@ export default Ember.Route.extend({
 
   showQueryResultContainer(){
     this.get('controller.model').set('isQueryResultContainer', true);
-  },
-
-
+  }
 
 });
