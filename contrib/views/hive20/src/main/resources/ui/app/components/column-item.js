@@ -23,6 +23,7 @@ export default Ember.Component.extend({
   tagName: 'tr',
   advancedOption: false,
   datatypes: Ember.copy(datatypes),
+  editMode: false,
 
 
 

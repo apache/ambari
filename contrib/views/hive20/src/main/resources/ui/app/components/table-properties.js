@@ -21,10 +21,11 @@ import TableProperty from '../models/table-property';
 
 export default Ember.Component.extend({
   properties: [],
+  editMode: false,
 
   actions: {
     addNewRow() {
-      let emptyProperty = TableProperty.create({editing: true});
+      let emptyProperty = TableProperty.create({editing: true, newProperty: true});
       this.get('properties').pushObject(emptyProperty);
     },
 

@@ -27,7 +27,7 @@
 </td>
 <td>
   {{#power-select
-    disabled=notEditing
+    disabled=(not column.editing)
     selected=column.type
     options=datatypes
     searchField="label"
@@ -114,10 +114,13 @@
 </td>
 <td>
   <div class="text-center">
-    {{#unless column.editing}}
-      <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
-    {{/unless}}
-    <button class="btn btn-danger" {{action "delete"}}>{{fa-icon "times"}} Delete</button>
+    {{#if (or column.newColumn (not editMode)) }}
+      {{#unless column.editing}}
+        <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
+      {{/unless}}
+      <button class="btn btn-danger" {{action "delete"}}>{{fa-icon "times"}} Delete</button>
+    {{/if}}
+
   </div>
 
 

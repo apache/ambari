@@ -17,37 +17,32 @@
  */
 
 import Ember from 'ember';
-import Column from '../models/column';
 
-export default Ember.Component.extend({
-  columns: [],
-  editMode: false,
-  shouldAddBuckets: null,
-
-  clusteredColumnObserver: Ember.observer('columns.@each.isClustered', function(sender, key, value, rev) {
-    let clusteredColumns = this.get('columns').filterBy('isClustered');
-    if (clusteredColumns.length > 0) {
-      this.set('shouldAddBuckets', true);
-    } else {
-      if(!Ember.isEmpty(this.get('shouldAddBuckets'))) {
-        this.set('shouldAddBuckets', false);
-      }
-
-    }
+let editTableTabs = [
+  Ember.Object.create({
+    name: 'columns',
+    label: 'COLUMNS',
+    transition: false,
+    link: 'edit.table.columns',
+    faIcon: 'list'
   }),
 
-  actions: {
-    addNewColumn() {
-      let newEmptyColumn = Column.create({editing: true, newColumn: true});
-      this.get('columns').pushObject(newEmptyColumn);
-    },
+  Ember.Object.create({
+    name: 'advanced',
+    label: 'ADVANCED',
+    transition: false,
+    link: 'edit.table.advanced',
+    faIcon: 'file-text-o'
+  }),
 
-    columnDeleted(column) {
-      this.get('columns').removeObject(column);
-    },
+  Ember.Object.create({
+    name: 'properties',
+    label: 'TABLE PROPERTIES',
+    transition: false,
+    link: 'edit.table.properties',
+    faIcon: 'file-text-o'
+  })
 
-    columnUpdated() {
+];
 
-    }
-  }
-});
+export default editTableTabs;

@@ -20,6 +20,7 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
   tagName: 'tr',
+  editMode: false,
 
   didInsertElement() {
     Ember.run.later( () => {

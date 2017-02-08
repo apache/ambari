@@ -86,6 +86,9 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
     String numFiles = tableInfo.getParameters().get(TableStats.NUM_FILES);
     tableInfo.getParameters().remove(TableStats.NUM_FILES);
 
+    String numRows = tableInfo.getParameters().get(TableStats.NUM_ROWS);
+    tableInfo.getParameters().remove(TableStats.NUM_ROWS);
+
     String columnStatsAccurate = tableInfo.getParameters().get(TableStats.COLUMN_STATS_ACCURATE);
     tableInfo.getParameters().remove(TableStats.COLUMN_STATS_ACCURATE);
 
@@ -98,6 +101,11 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
     if(!Strings.isNullOrEmpty(numFiles) && !Strings.isNullOrEmpty(numFiles.trim())){
       tableStats.setTableStatsEnabled(true);
       tableStats.setNumFiles(Integer.valueOf(numFiles.trim()));
+    }
+
+    if(!Strings.isNullOrEmpty(numRows) && !Strings.isNullOrEmpty(numRows.trim())){
+      tableStats.setTableStatsEnabled(true);
+      tableStats.setNumRows(Integer.valueOf(numRows.trim()));
     }
 
     if(!Strings.isNullOrEmpty(rawDataSize) && !Strings.isNullOrEmpty(rawDataSize.trim())){

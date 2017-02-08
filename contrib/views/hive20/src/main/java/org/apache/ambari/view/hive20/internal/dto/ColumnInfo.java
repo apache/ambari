@@ -20,6 +20,8 @@ package org.apache.ambari.view.hive20.internal.dto;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
+import java.util.Objects;
+
 /**
  *
  */
@@ -82,28 +84,20 @@ public class ColumnInfo {
   }
 
   @Override
-  public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + type.hashCode();
-    result = 31 * result + (precision != null ? precision.hashCode() : 0);
-    result = 31 * result + (scale != null ? scale.hashCode() : 0);
-    result = 31 * result + (comment != null ? comment.hashCode() : 0);
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ColumnInfo that = (ColumnInfo) o;
+    return ((name == that.name) || (name != null && name.equalsIgnoreCase(that.name))) &&
+        ((type == that.type) || (type != null && type.equalsIgnoreCase(that.type))) &&
+        Objects.equals(precision, that.precision) &&
+        Objects.equals(scale, that.scale) &&
+        Objects.equals(comment, that.comment);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ColumnInfo that = (ColumnInfo) o;
-
-    return new EqualsBuilder()
-        .append(getName(), that.getName())
-        .append(getType(), that.getType())
-        .append(getComment(), that.getComment())
-        .isEquals();
+  public int hashCode() {
+    return Objects.hash(name);
   }
 
   @Override

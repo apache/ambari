@@ -31,15 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.ambari.view.hive20.internal.query.generators.QueryGenerationUtils.isNullOrEmpty;
 
 public class AlterTableQueryGenerator implements QueryGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(AlterTableQueryGenerator.class);
+
+  public static List<String> SYSTEM_PROPERTY_LIST = Arrays.asList("last_modified_time", "transient_lastDdlTime", "last_modified_by", "numRows", "numFiles", "rawDataSize", "totalSize", "COLUMN_STATS_ACCURATE");
 
   private final TableMeta oldMeta;
   private final TableMeta newMeta;
@@ -65,11 +64,6 @@ public class AlterTableQueryGenerator implements QueryGenerator {
   public Optional<String> getQuery() {
     List<Optional<String>> queries = new LinkedList<>();
 
-    // TODO: rename of table name has to be handled separately as other queries depend on new name.
-//    Optional<String> tableRenameQuery = this.generateTableRenameQuery(this.getOldMeta().getDatabase(),
-//      this.getOldMeta().getTable(), this.getNewMeta().getDatabase(), this.getNewMeta().getTable());
-//    queries.add(tableRenameQuery);
-
     Optional<List<Optional<String>>> columnQuery = this.generateColumnQuery();
     if (columnQuery.isPresent()) {
       queries.addAll(columnQuery.get());
@@ -81,28 +75,30 @@ public class AlterTableQueryGenerator implements QueryGenerator {
       queries.add(tablePropertiesQuery);
     }
 
-    if (null != this.getOldMeta().getStorageInfo() && null != this.getNewMeta().getStorageInfo()) {
-      String oldSerde = this.getOldMeta().getStorageInfo().getSerdeLibrary();
-      String newSerde = this.getNewMeta().getStorageInfo().getSerdeLibrary();
-      Map<String, String> oldParameters = this.getOldMeta().getStorageInfo().getParameters();
-      Map<String, String> newParameters = this.getNewMeta().getStorageInfo().getParameters();
+    // storage change is not required to be handled.
+//    if (null != this.getOldMeta().getStorageInfo() && null != this.getNewMeta().getStorageInfo()) {
+//      String oldSerde = this.getOldMeta().getStorageInfo().getSerdeLibrary();
+//      String newSerde = this.getNewMeta().getStorageInfo().getSerdeLibrary();
+//      Map<String, String> oldParameters = this.getOldMeta().getStorageInfo().getParameters();
+//      Map<String, String> newParameters = this.getNewMeta().getStorageInfo().getParameters();
+//
+//      Optional<String> serdeProperties = this.generateSerdeQuery(oldSerde, oldParameters, newSerde, newParameters);
+//      queries.add(serdeProperties);
+//    }
 
-      Optional<String> serdeProperties = this.generateSerdeQuery(oldSerde, oldParameters, newSerde, newParameters);
-      queries.add(serdeProperties);
-    }
-
-    if (null != this.getOldMeta().getStorageInfo() && null != this.getNewMeta().getStorageInfo()) {
-      List<String> oldBucketCols = this.getOldMeta().getStorageInfo().getBucketCols();
-      List<ColumnOrder> oldSortCols = this.getOldMeta().getStorageInfo().getSortCols();
-      String oldNumBuckets = this.getOldMeta().getStorageInfo().getNumBuckets();
-
-      List<String> newBucketCols = this.getNewMeta().getStorageInfo().getBucketCols();
-      List<ColumnOrder> newSortCols = this.getNewMeta().getStorageInfo().getSortCols();
-      String newNumBuckets = this.getNewMeta().getStorageInfo().getNumBuckets();
-
-      Optional<String> storagePropertyQuery = this.generateStoragePropertyQuery(oldBucketCols, oldSortCols, oldNumBuckets, newBucketCols, newSortCols, newNumBuckets);
-      queries.add(storagePropertyQuery);
-    }
+    // change of bucketed columns is not required right now
+//    if (null != this.getOldMeta().getStorageInfo() && null != this.getNewMeta().getStorageInfo()) {
+//      List<String> oldBucketCols = this.getOldMeta().getStorageInfo().getBucketCols();
+//      List<ColumnOrder> oldSortCols = this.getOldMeta().getStorageInfo().getSortCols();
+//      String oldNumBuckets = this.getOldMeta().getStorageInfo().getNumBuckets();
+//
+//      List<String> newBucketCols = this.getNewMeta().getStorageInfo().getBucketCols();
+//      List<ColumnOrder> newSortCols = this.getNewMeta().getStorageInfo().getSortCols();
+//      String newNumBuckets = this.getNewMeta().getStorageInfo().getNumBuckets();
+//
+//      Optional<String> storagePropertyQuery = this.generateStoragePropertyQuery(oldBucketCols, oldSortCols, oldNumBuckets, newBucketCols, newSortCols, newNumBuckets);
+//      queries.add(storagePropertyQuery);
+//    }
 
 
     List<String> queryList = FluentIterable.from(queries).filter(new Predicate<Optional<String>>() {
@@ -322,19 +318,33 @@ public class AlterTableQueryGenerator implements QueryGenerator {
     return Optional.absent();
   }
 
-  Optional<String> generateTablePropertiesQuery(Map oldProps, Map newProps) {
+  Optional<String> generateTablePropertiesQuery(Map<String, String> oldProps, Map<String, String> newProps) {
     Optional<String> query = createTablePropertiesQuery(oldProps, newProps);
     if (query.isPresent()) return Optional.of(getQueryPerfix() + query.get());
     else return Optional.absent();
   }
 
 
-  static Optional<String> createTablePropertiesQuery(Map oldProps, Map newProps) {
-    if (null == newProps) {
-      newProps = new HashMap();
+  static Optional<String> createTablePropertiesQuery(Map<String, String> oldProps, Map<String, String> newProps) {
+    if( null == newProps && null == oldProps){
+      return Optional.absent();
     }
-// TODO ignore system generated table properties during comparison
-    if (!QueryGenerationUtils.isEqual(oldProps, newProps)) {
+
+    if (null == newProps) {
+      newProps = new HashMap<>();
+    }
+
+    if(null == oldProps){
+      oldProps = new HashMap<>();
+    }
+    // ignore system generated table properties during comparison
+
+   for(String prop : SYSTEM_PROPERTY_LIST){
+      newProps.remove(prop);
+      oldProps.remove(prop);
+   }
+
+    if (!QueryGenerationUtils.isEqual(oldProps, newProps) && !newProps.isEmpty()) {
       return Optional.of(" SET TBLPROPERTIES (" + QueryGenerationUtils.getPropertiesAsKeyValues(newProps) + ")");
     }
 
