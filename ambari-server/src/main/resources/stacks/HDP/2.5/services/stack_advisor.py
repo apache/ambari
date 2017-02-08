@@ -895,7 +895,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     yarn_min_container_size = float(self.get_yarn_min_container_size(services, configurations))
     tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_capacity))
     normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
-    min_memory_required = min_memory_required + normalized_tez_am_container_size
 
     if yarn_site and "yarn.nodemanager.resource.cpu-vcores" in yarn_site:
       cpu_per_nm_host = float(yarn_site["yarn.nodemanager.resource.cpu-vcores"])
@@ -908,7 +907,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Calculate the available memory for LLAP app
     yarn_nm_mem_in_mb_normalized = self._normalizeDown(yarn_nm_mem_in_mb, yarn_min_container_size)
-    mem_per_thread_for_llap = self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host)
+    mem_per_thread_for_llap = float(self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
     Logger.info("DBG: Calculated mem_per_thread_for_llap : {0}, using following: yarn_nm_mem_in_mb_normalized : {1}, "
                   "cpu_per_nm_host : {2}".format(mem_per_thread_for_llap, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
 
@@ -917,8 +916,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
 
+    # Get calculated value for Slider AM container Size
+    slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size),
+                                                 yarn_min_container_size)
+    Logger.info("DBG: Calculated 'slider_am_container_size' : {0}, using following: yarn_min_container_size : "
+                "{1}".format(slider_am_container_size, yarn_min_container_size))
+
+    min_memory_required = normalized_tez_am_container_size + slider_am_container_size + self._normalizeUp(mem_per_thread_for_llap, yarn_min_container_size)
+    Logger.info("DBG: Calculated 'min_memory_required': {0} using following : slider_am_container_size: {1}, "
+                "normalized_tez_am_container_size : {2}, mem_per_thread_for_llap : {3}, yarn_min_container_size : "
+                "{4}".format(min_memory_required, slider_am_container_size, normalized_tez_am_container_size, mem_per_thread_for_llap, yarn_min_container_size))
+
+    min_nodes_required = int(math.ceil( min_memory_required / yarn_nm_mem_in_mb_normalized))
+    Logger.info("DBG: Calculated 'min_node_required': {0}, using following : min_memory_required : {1}, yarn_nm_mem_in_mb_normalized "
+                ": {2}".format(min_nodes_required, min_memory_required, yarn_nm_mem_in_mb_normalized))
+    if min_nodes_required > node_manager_cnt:
+      Logger.warn("ERROR: Not enough memory/nodes to run LLAP");
+      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
+      return
+
     mem_per_thread_for_llap = float(mem_per_thread_for_llap)
-    min_memory_required = min_memory_required + self._normalizeUp(mem_per_thread_for_llap, yarn_min_container_size)
 
     Logger.info("DBG: selected_queue_is_ambari_managed_llap = {0}".format(selected_queue_is_ambari_managed_llap))
     if not selected_queue_is_ambari_managed_llap:
@@ -943,7 +960,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("DBG: Calculated 'hive_tez_am_cap_available' : {0}, using following: queue_am_fraction_perc : {1}, "
                     "total_llap_mem_normalized : {2}".format(hive_tez_am_cap_available, queue_am_fraction_perc, total_llap_mem_normalized))
     else:  # Ambari managed 'llap' named queue at root level.
-      num_llap_nodes_requested = self.get_num_llap_nodes(services, configurations) #Input
+      # Set 'num_llap_nodes_requested' for 1st invocation, as it gets passed as 1 otherwise, read from config.
+
+      # Check if its : 1. 1st invocation from UI ('enable_hive_interactive' in changed-configurations)
+      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case)
+      if (changed_configs_has_enable_hive_int or  0 == len(services['changed-configurations'])) \
+        and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
+        num_llap_nodes_requested = min_nodes_required
+      else:
+        num_llap_nodes_requested = self.get_num_llap_nodes(services, configurations) #Input
       total_llap_mem = num_llap_nodes_requested * yarn_nm_mem_in_mb_normalized
       Logger.info("DBG: Calculated 'total_llap_mem' : {0}, using following: num_llap_nodes_requested : {1}, "
                     "yarn_nm_mem_in_mb_normalized : {2}".format(total_llap_mem, num_llap_nodes_requested, yarn_nm_mem_in_mb_normalized))
@@ -967,23 +992,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Common calculations now, irrespective of the queue selected.
 
-    # Get calculated value for Slider AM container Size
-    slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size),
-                                                 yarn_min_container_size)
-    Logger.info("DBG: Calculated 'slider_am_container_size' : {0}, using following: yarn_min_container_size : "
-                  "{1}".format(slider_am_container_size, yarn_min_container_size))
-    min_memory_required = min_memory_required + slider_am_container_size
     llap_mem_for_tezAm_and_daemons = total_llap_mem_normalized - slider_am_container_size
     Logger.info("DBG: Calculated 'llap_mem_for_tezAm_and_daemons' : {0}, using following : total_llap_mem_normalized : {1}, "
                   "slider_am_container_size : {2}".format(llap_mem_for_tezAm_and_daemons, total_llap_mem_normalized, slider_am_container_size))
-
-    Logger.info("DBG: min_memory_required: {0}, yarn_nm_mem_in_mb_normalized: {1}".format(min_memory_required, yarn_nm_mem_in_mb_normalized))
-    min_nodes_required = int(ceil( min_memory_required / yarn_nm_mem_in_mb_normalized))
-    Logger.info("DBG: min_node_required: {0}".format(min_nodes_required))
-    if min_nodes_required > node_manager_cnt:
-      Logger.warn("ERROR: Not enough memory/nodes to run LLAP");
-      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
-      return
 
     if llap_mem_for_tezAm_and_daemons < 2 * yarn_min_container_size:
       Logger.warning("Not enough capacity available on the cluster to run LLAP")
@@ -1334,7 +1345,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     hsi_site = self.getServicesSiteProperties(services, self.HIVE_INTERACTIVE_SITE)
     if hsi_site and 'hive.tez.container.size' in hsi_site:
       hive_container_size = hsi_site['hive.tez.container.size']
-
     return hive_container_size
 
   def get_llap_headroom_space(self, services, configurations):
