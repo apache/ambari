@@ -37,6 +37,18 @@ App.componentConfigMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time('App.componentConfigMapper execution time');
     var staleConfigHostsMap = App.cache.staleConfigsComponentHosts;
+    var componentsNeedRestart = json.items.mapProperty('ServiceComponentInfo.component_name');
+    var components = App.MasterComponent.find().toArray()
+      .concat(App.ClientComponent.find().toArray())
+      .concat(App.SlaveComponent.find().toArray());
+
+    //clear stale config hosts of component after restart
+    components.forEach(function(component) {
+      if (!componentsNeedRestart.contains(component.get('componentName'))) {
+        staleConfigHostsMap[component.get('componentName')] = [];
+        component.set('staleConfigHosts', []);
+      }
+    });
 
     json.items.forEach(function(item) {
       var componentName = item.ServiceComponentInfo.component_name;
