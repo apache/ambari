@@ -71,6 +71,7 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.dao.ViewURLDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -86,6 +87,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
+import org.apache.ambari.server.orm.entities.ViewURLEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -125,6 +127,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -132,6 +136,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
+
 
 /**
  * Registry for view and view instance definitions.
@@ -153,6 +158,7 @@ public class ViewRegistry {
   private static final String LOG4J = "log4j.";
 
   public static final String API_PREFIX = "/api/v1/clusters/";
+  public static final String DEFAULT_AUTO_INSTANCE_URL = "auto_instance";
 
   /**
    * Thread pool
@@ -316,6 +322,9 @@ public class ViewRegistry {
    */
   @Inject
   RemoteAmbariClusterDAO remoteAmbariClusterDAO;
+
+  @Inject
+  ViewURLDAO viewURLDAO;
 
   // ----- Constructors -----------------------------------------------------
 
@@ -997,6 +1006,59 @@ public class ViewRegistry {
     viewInstanceEntity.setClusterHandle(clusterId);
     installViewInstance(viewInstanceEntity);
     setViewInstanceRoleAccess(viewInstanceEntity, roles);
+    try {
+      setViewUrl(viewInstanceEntity);
+    } catch (Exception urlCreateException) {
+      LOG.error("Error while creating an auto URL for the view instance {}, Url should be created in view instance settings", viewInstanceEntity.getViewName());
+      LOG.error("View URL creation error ", urlCreateException);
+    }
+
+  }
+
+  private String getUrlName(ViewInstanceEntity viewInstanceEntity) {
+    return viewInstanceEntity.getViewEntity().getCommonName().toLowerCase() + "_" + viewInstanceEntity.getInstanceName().toLowerCase();
+  }
+
+  private void setViewUrl(ViewInstanceEntity instanceEntity) {
+    ViewInstanceEntity viewInstanceEntity = instanceDAO.findByName(instanceEntity.getViewName(), instanceEntity.getInstanceName());
+    Preconditions.checkNotNull(viewInstanceEntity);
+    ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
+    // check if there is a URL attached
+    if (viewUrl != null) {
+      LOG.warn("Url exists for the auto instance {}, new url will not be created", viewInstanceEntity.getViewName());
+      return;
+    }
+
+    String urlName = getUrlName(viewInstanceEntity);
+    //Check if a URL exists with the same name
+    Optional<ViewURLEntity> existingUrl = viewURLDAO.findByName(urlName);
+    // remove any pre-existing URL's before creating new URL's
+    ViewURLEntity urlEntity = new ViewURLEntity();
+    urlEntity.setUrlName(urlName);
+
+    urlEntity.setUrlSuffix(viewInstanceEntity.getInstanceName().toLowerCase());
+
+    ViewURLEntity toSaveOrUpdate = existingUrl.or(urlEntity);
+    toSaveOrUpdate.setViewInstanceEntity(viewInstanceEntity);
+
+    if (existingUrl.isPresent()) {
+      LOG.info("Url already present for {}", viewInstanceEntity.getViewName());
+      viewURLDAO.update(toSaveOrUpdate);
+    } else {
+      LOG.info("Creating a new URL for auto instance {}", viewInstanceEntity.getViewName());
+      viewURLDAO.save(urlEntity);
+    }
+    // Update the view with the URL
+    viewInstanceEntity.setViewUrl(urlEntity);
+    try {
+      updateViewInstance(viewInstanceEntity);
+    } catch (Exception ex) {
+      LOG.error("Could not update the view instance with new URL, removing URL", ex);
+      // Clean up
+      Optional<ViewURLEntity> viewURLDAOByName = viewURLDAO.findByName(urlName);
+      if (viewURLDAOByName.isPresent())
+        viewURLDAO.delete(viewURLDAOByName.get());
+    }
   }
 
   @Subscribe
