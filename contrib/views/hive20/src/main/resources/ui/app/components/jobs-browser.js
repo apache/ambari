@@ -22,15 +22,33 @@ export default Ember.Component.extend({
   startTime: null,
   endTime: null,
   maxEndTime: null,
-  statusCounts: Ember.computed('jobs', function() {
-    return this.get('jobs').reduce((acc, item, index) => {
+  statusFilter: null,
+  titleFilter: null,
+
+  titleFilteredJobs: Ember.computed('jobs', 'titleFilter', function() {
+    if (!Ember.isEmpty(this.get('titleFilter'))) {
+      return (this.get('jobs').filter((entry) => entry.get('title').toLowerCase().indexOf(this.get('titleFilter').toLowerCase()) >= 0));
+    } else {
+      return this.get('jobs');
+    }
+  }),
+
+  filteredJobs: Ember.computed('titleFilteredJobs', 'statusFilter', function () {
+    if (this.get('statusFilter')) {
+      return  this.get('titleFilteredJobs').filter((entry) => entry.get('status').toLowerCase() === this.get('statusFilter'));
+    } else {
+      return this.get('titleFilteredJobs');
+    }
+  }),
+
+  statusCounts: Ember.computed('titleFilteredJobs', function () {
+    return this.get('titleFilteredJobs').reduce((acc, item, index) => {
       let status = item.get('status').toLowerCase();
-      if(Ember.isEmpty(acc[status])) {
+      if (Ember.isEmpty(acc[status])) {
         acc[status] = 1;
       } else {
         acc[status] = acc[status] + 1;
       }
-
       return acc;
     }, {});
   }),
@@ -39,6 +57,19 @@ export default Ember.Component.extend({
   actions: {
     setDateRange(startDate, endDate) {
       this.sendAction('filterChanged', startDate, endDate);
+    },
+
+    selectJobForStatus(status) {
+      let s = status.toLowerCase();
+      if (s === 'all') {
+        this.set('statusFilter');
+      } else {
+        this.set('statusFilter', s);
+      }
+    },
+
+    clearTitleFilter() {
+      this.set('titleFilter');
     }
   }
 });
