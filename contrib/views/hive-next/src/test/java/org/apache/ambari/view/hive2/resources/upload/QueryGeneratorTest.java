@@ -18,7 +18,7 @@
 
 package org.apache.ambari.view.hive2.resources.upload;
 
-import org.apache.ambari.view.hive.resources.uploads.query.RowFormat;
+import org.apache.ambari.view.hive2.resources.uploads.query.RowFormat;
 import org.apache.ambari.view.hive2.client.ColumnDescription;
 import org.apache.ambari.view.hive2.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive2.resources.uploads.HiveFileType;
