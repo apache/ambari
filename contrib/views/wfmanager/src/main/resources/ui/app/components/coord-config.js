@@ -558,6 +558,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     resetCoordinator(){
       this.get("errors").clear();
+      this.set('showingResetConfirmation', false);
       if(this.get('coordinatorFilePath')){
         this.importCoordinator(this.get('coordinatorFilePath'));
       }else{

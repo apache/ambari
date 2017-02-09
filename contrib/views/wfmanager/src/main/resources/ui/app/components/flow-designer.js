@@ -504,6 +504,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.get("workflow").resetWorfklow();
     this.set('globalConfig', {});
     this.set('parameters', {});
+    this.set("undoAvailable", false);
+    this.set("showingConfirmationNewWorkflow", false);
     if(this.get('workflow.parameters') !== null){
       this.set('workflow.parameters', {});
     }

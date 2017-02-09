@@ -80,7 +80,7 @@ export default Ember.Component.extend({
 	    this.sendAction("deleteWorkflow", this.get('currentDraft'));
     },
     closeProjects () {
-		  $('.modal-backdrop').remove();
+		  //this.$('.modal-backdrop').remove();
 		  this.$("#projectsList").modal("hide");
     },
     showActions (job) {

@@ -34,6 +34,7 @@ export default Ember.Component.extend({
   }),
   tabsObserver : Ember.observer('tabs.[]', 'tabs.@each.name', 'tabs.@each.filePath', function(){
     this.get('workspaceManager').saveTabs(this.get('tabs'));
+    this.tabManager();
   }),
   initialize : function(){
     if (Constants.isProjectManagerEnabled) {
@@ -66,20 +67,7 @@ export default Ember.Component.extend({
       });
   }.on('init'),
   elementsInserted : function(){
-    this.$('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      var id = this.$(e.target).attr('href').slice(1);
-      this.get('workspaceManager').setLastActiveTab(id);
-      var tab = this.get('tabs').findBy('id', id);
-      if(tab.type === 'dashboard'){
-        this.sendAction('showDashboard');
-      } else if (tab.type === 'Projects') {
-        this.createOrShowProjManager();
-      }
-      else{
-        this.sendAction('hideDashboard');
-      }
-    }.bind(this));
-
+    this.tabManager();
     if(this.get('tabs') && this.get('tabs').length > 0){
       var lastActiveTabId = this.get('workspaceManager').getLastActiveTab();
       var activeTab = this.get('tabs').findBy('id', lastActiveTabId);
@@ -98,6 +86,23 @@ export default Ember.Component.extend({
   onDestroy : function(){
     this.get('tabs').clear();
   }.on('willDestroyElement'),
+  tabManager(){
+    Ember.run.later(()=>{
+      this.$('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      var id = this.$(e.target).attr('href').slice(1);
+      this.get('workspaceManager').setLastActiveTab(id);
+      var tab = this.get('tabs').findBy('id', id);
+      if(tab.type === 'dashboard'){
+        this.sendAction('showDashboard');
+      } else if (tab.type === 'Projects') {
+        this.createOrShowProjManager();
+      }
+      else{
+        this.sendAction('hideDashboard');
+      }
+      }.bind(this));
+    }, 1000);
+  },
   createNewTab : function(type, path){
     var existingTab = this.get('tabs').findBy("filePath", path);
     if(existingTab && path){
@@ -116,6 +121,8 @@ export default Ember.Component.extend({
     this.$('.tab-content .tab-pane').removeClass('active');
     this.get('tabs').pushObject(tab);
     this.set('isNew', true);
+    this.sendAction("hideDashboard");
+    this.tabManager();
   },
   getDisplayName(type){
     if(type === 'wf'){
@@ -227,6 +234,7 @@ export default Ember.Component.extend({
       this.createOrShowProjManager();
     },
     showWarning(index){
+      this.$('#ConfirmDialog').remove();
       var tab = this.get('tabs').objectAt(index);
       this.set('indexToClose', index);
       if(tab && tab.type ==='dashboard'){
@@ -239,6 +247,7 @@ export default Ember.Component.extend({
       });
     },
     closeTab(){
+      this.set('showingWarning', false);
       var index = this.get('indexToClose');
       if(index < this.get('tabs').length - 1){
         var previousTab = this.get('tabs').objectAt(index + 1);

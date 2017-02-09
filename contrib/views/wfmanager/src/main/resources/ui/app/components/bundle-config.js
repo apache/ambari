@@ -304,6 +304,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     },
     resetBundle(){
       this.get('errors').clear();
+      this.set('showingResetConfirmation', false);
       if(this.get('bundleFilePath')){
         this.importBundle(this.get('bundleFilePath'));
       }else {
