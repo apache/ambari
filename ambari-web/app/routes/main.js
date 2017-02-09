@@ -229,7 +229,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             	    controller.connectOutlet('mainHostSummary');
             	  });
             	} else
-            	  controller.connectOutlet('mainHostSummary');  
+		  controller.connectOutlet('mainHostSummary');
               });
             } else if(App.Service.find().mapProperty('serviceName').contains('HIVE')) {
               App.router.get('configurationController').getConfigsByTags(tags).always(function () {
@@ -717,6 +717,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             //if service is not existed then route to default service
             if (item.get('isLoaded')) {
               if (router.get('mainServiceItemController.isConfigurable')) {
+                router.get('mainController').stopPolling();
                 router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
               }
               else {
@@ -729,13 +730,19 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             }
           });
         },
-        exitRoute: function (router, context, callback) {
+        exitRoute: function (router, nextRoute, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
+          var exitCallback = function() {
+            if (!/\/main\/services\/\w+\/configs$/.test(nextRoute)) {
+              router.get('mainController').startPolling();
+            }
+            callback();
+          };
           // If another user is running some wizard, current user can't save configs
           if (controller.hasUnsavedChanges() && !router.get('wizardWatcherController.isWizardRunning')) {
-            controller.showSavePopup(callback);
+            controller.showSavePopup(exitCallback);
           } else {
-            callback();
+            exitCallback();
           }
         }
       }),

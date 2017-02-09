@@ -38,6 +38,8 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   beforeEach(function () {
     sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
+    sinon.stub(App.router.get('mainController'), 'startPolling');
+    sinon.stub(App.router.get('mainController'), 'stopPolling');
     mainServiceInfoConfigsController = getController();
   });
 
@@ -45,6 +47,8 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   afterEach(function() {
     App.themesMapper.generateAdvancedTabs.restore();
+    App.router.get('mainController').startPolling.restore();
+    App.router.get('mainController').stopPolling.restore();
   });
 
   describe("#getHash", function () {
@@ -256,12 +260,14 @@ describe("App.MainServiceInfoConfigsController", function () {
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
         return "hash"
       });
+      sinon.stub(mainServiceInfoConfigsController, 'trackRequest');
     });
 
     afterEach(function () {
       mainServiceInfoConfigsController.get.restore();
       mainServiceInfoConfigsController.restartServicePopup.restore();
       mainServiceInfoConfigsController.getHash.restore();
+      mainServiceInfoConfigsController.trackRequest.restore();
     });
 
     tests.forEach(function (t) {
@@ -819,9 +825,86 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.get('requestsInProgress').clear();
     });
     it("should set requestsInProgress", function () {
+      var dfd = $.Deferred();
       mainServiceInfoConfigsController.get('requestsInProgress').clear();
-      mainServiceInfoConfigsController.trackRequest({'request': {}});
-      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({'request': {}});
+      mainServiceInfoConfigsController.trackRequest(dfd);
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql(
+        {
+          request: dfd,
+          id: 0,
+          status: 'pending',
+          completed: false
+        }
+      );
+    });
+    it('should update request status when it become resolved', function() {
+      var request = $.Deferred();
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
+      mainServiceInfoConfigsController.trackRequest(request);
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({
+        request: request,
+        id: 0,
+        status: 'pending',
+        completed: false
+      });
+      request.resolve();
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({
+        request: request,
+        id: 0,
+        status: 'resolved',
+        completed: true
+      });
+    });
+  });
+
+  describe('#trackRequestChain', function() {
+    beforeEach(function() {
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
+    });
+    it('should set 2 requests in to requestsInProgress list', function() {
+      mainServiceInfoConfigsController.trackRequestChain($.Deferred());
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')).to.have.length(2);
+    });
+    it('should update status for both requests when tracked requests become resolved', function() {
+      var request = $.Deferred(),
+          requests;
+      mainServiceInfoConfigsController.trackRequestChain(request);
+      requests = mainServiceInfoConfigsController.get('requestsInProgress');
+      assert.deepEqual(requests.mapProperty('status'), ['pending', 'pending'], 'initial statuses');
+      assert.deepEqual(requests.mapProperty('completed'), [false, false], 'initial completed');
+      request.reject();
+      assert.deepEqual(requests.mapProperty('status'), ['rejected', 'resolved'], 'update status when rejected');
+      assert.deepEqual(requests.mapProperty('completed'), [true, true], 'initial complete are false');
+    });
+  });
+
+  describe('#abortRequests', function() {
+    beforeEach(function() {
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
+    });
+    it('should clear requests when abort called', function() {
+      mainServiceInfoConfigsController.trackRequest($.Deferred());
+      mainServiceInfoConfigsController.abortRequests();
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')).to.have.length(0);
+    });
+    it('should abort requests which are not finished', function() {
+      var pendingRequest = {
+        abort: sinon.spy(),
+        readyState: 0,
+        state: sinon.spy(),
+        always: sinon.spy()
+      };
+      var finishedRequest = {
+        abort: sinon.spy(),
+        readyState: 4,
+        state: sinon.spy(),
+        always: sinon.spy()
+      };
+      mainServiceInfoConfigsController.trackRequest(pendingRequest);
+      mainServiceInfoConfigsController.trackRequest(finishedRequest);
+      mainServiceInfoConfigsController.abortRequests();
+      expect(pendingRequest.abort.calledOnce).to.be.true;
+      expect(finishedRequest.abort.calledOnce).to.be.false;
     });
   });
 

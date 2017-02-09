@@ -235,6 +235,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   clearStep: function () {
     this.abortRequests();
+    App.router.get('mainController').stopPolling();
     App.set('componentToBeAdded', {});
     App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
@@ -289,7 +290,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       acc.push(i);
       return Array.prototype.concat.apply(acc, App.StackService.find(i).get('dependentServiceNames').toArray()).without(serviceName).uniq();
     }, []));
-    this.trackRequest(this.loadConfigTheme(serviceName).always(function () {
+    this.trackRequestChain(this.loadConfigTheme(serviceName).always(function () {
       if (self.get('preSelectedConfigVersion')) {
         self.loadPreSelectedConfigVersion();
       } else {
@@ -298,6 +299,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       self.trackRequest(self.loadServiceConfigVersions());
     }));
   },
+
+  /**
+   * Turn on polling when all requests are finished
+   */
+  trackRequestsDidChange: function() {
+    var allCompleted = this.get('requestsInProgress').everyProperty('completed', true);
+    if (this.get('requestsInProgress').length && allCompleted) {
+      App.router.get('mainController').startPolling();
+    }
+  }.observes('requestsInProgress.@each.completed'),
 
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>
