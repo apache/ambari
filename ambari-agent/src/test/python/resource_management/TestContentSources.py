@@ -20,6 +20,13 @@ from unittest import TestCase
 from mock.mock import patch, MagicMock
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
+import os
+
+if get_platform() != PLATFORM_WINDOWS:
+  with patch.object(os, "geteuid", return_value=0):
+    from resource_management.core import sudo
+    reload(sudo)
+
 from ambari_commons.os_check import OSCheck
 
 from resource_management.core import Environment
@@ -29,12 +36,8 @@ from resource_management.core.source import DownloadSource
 from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
-if get_platform() != PLATFORM_WINDOWS:
-  from resource_management.core import sudo
-
 from ambari_jinja2 import UndefinedError, TemplateNotFound
 import urllib2
-import os
 
 
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
