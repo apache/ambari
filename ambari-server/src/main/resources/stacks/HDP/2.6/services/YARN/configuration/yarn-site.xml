@@ -19,7 +19,7 @@
 <configuration supports_final="true">
   <property>
     <name>yarn.client.failover-proxy-provider</name>
-    <value>org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider</value>
+    <value>org.apache.hadoop.yarn.client.RequestHedgingRMFailoverProxyProvider</value>
     <description>When HA is enabled, the class to be used by Clients, AMs and NMs to failover to the Active RM. It should extend org.apache.hadoop.yarn.client.RMFailoverProxyProvider</description>
     <on-ambari-upgrade add="false"/>
   </property>
