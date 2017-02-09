@@ -132,20 +132,20 @@
   <property>
     <name>database_name</name>
     <value>druid</value>
-    <display-name>Metadata storage database name</display-name>
-    <description>Metadata storage database name</description>
+    <display-name>Druid Metadata storage database name</display-name>
+    <description>Druid Metadata storage database name</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>metastore_hostname</name>
     <value>localhost</value>
-    <display-name>Metadata storage hostname name</display-name>
-    <description>Metadata storage hostname name</description>
+    <display-name>Metadata storage hostname</display-name>
+    <description>Metadata storage hostname</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>druid.metadata.storage.type</name>
-    <display-name>Metadata storage type</display-name>
+    <display-name>Druid Metadata storage type</display-name>
     <value>derby</value>
     <value-attributes>
       <overridable>false</overridable>
