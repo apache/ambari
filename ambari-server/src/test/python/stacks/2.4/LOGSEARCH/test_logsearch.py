@@ -70,20 +70,6 @@ class TestLogSearch(RMFTestCase):
                               mode = 0755
                               )
 
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ks_pass.txt',
-                              owner='logsearch',
-                              group='hadoop',
-                              mode=0600,
-                              content='bigdata'
-                              )
-
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ts_pass.txt',
-                              owner='logsearch',
-                              group='hadoop',
-                              mode=0600,
-                              content='bigdata'
-                              )
-
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',
                               group = 'hadoop',
@@ -91,7 +77,8 @@ class TestLogSearch(RMFTestCase):
                               content = ''
     )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
-                              properties = {'logsearch.audit.logs.split.interval.mins': '1',
+                              properties = {'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch-env.jceks',
+                                            'logsearch.audit.logs.split.interval.mins': '1',
                                             'logsearch.auth.external_auth.enabled': 'false',
                                             'logsearch.auth.external_auth.host_url': 'http://c6401.ambari.apache.org:8080',
                                             'logsearch.auth.external_auth.login_url': '/api/v1/users/$USERNAME/privileges?fields=*',
@@ -152,6 +139,8 @@ class TestLogSearch(RMFTestCase):
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo = True
     )
+    
+
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch.py",
