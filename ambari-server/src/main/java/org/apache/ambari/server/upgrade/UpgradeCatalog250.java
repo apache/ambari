@@ -681,6 +681,8 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    * @throws AmbariException
    */
   private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
+  private static final String HIVE_INTERACTIVE_ENV = "hive-interactive-env";
+  private static final String HIVE_ENV = "hive-env";
   protected void updateHIVEInteractiveConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -691,24 +693,36 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
           Config hiveInteractiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
           if (hiveInteractiveSite != null) {
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.tez.container.size",
-                "SET_ON_FIRST_INVOCATION"), true, true);
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("hive.auto.convert.join.noconditionaltask.size", "1000000000");
 
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
-                "1000000000"), true, true);
             String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
             if (StringUtils.isNotBlank(llapRpcPortString)) {
               try {
                 int llapRpcPort = Integer.parseInt(llapRpcPortString);
                 if (llapRpcPort == 15001) {
-                  updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                      Collections.singletonMap("hive.llap.daemon.rpc.port", "0"),
-                      true, true);
+                  newProperties.put("hive.llap.daemon.rpc.port", "0");
+                  LOG.info("Updating HSI hive.llap.daemon.rpc.port to: 0");
                 }
               } catch (NumberFormatException e) {
                 LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
               }
             }
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, newProperties, true, true);
+          }
+
+          Config hiveInteractiveEnv = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_ENV);
+          Config hiveEnv = cluster.getDesiredConfigByType(HIVE_ENV);
+          if (hiveInteractiveEnv != null) {
+            String hsiHeapSize = "512";
+            if (hiveEnv != null) {
+              if (hiveEnv.getProperties().containsKey("hive.heapsize")) {
+                hsiHeapSize = hiveEnv.getProperties().get("hive.heapsize");
+                LOG.info("Updating HSI heap size to: " + hsiHeapSize);
+              }
+            }
+            updateConfigurationProperties(HIVE_INTERACTIVE_ENV, Collections.singletonMap("hive_heapsize",
+                                                                                         hsiHeapSize), true, true);
           }
         }
       }

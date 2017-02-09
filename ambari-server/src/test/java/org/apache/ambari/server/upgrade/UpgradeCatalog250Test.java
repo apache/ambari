@@ -1428,6 +1428,75 @@ public class UpgradeCatalog250Test {
   }
   
   @Test
+  public void testUpdateHiveConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).anyTimes();
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] {})
+        .addMockedMethod("createConfig")
+        .withConstructor(actionManager, clusters, injector)
+        .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<String, String> oldHsiEnv = ImmutableMap.of(
+        "llap_app_name", "llap0");
+
+    Map<String, String> expectedHsiEnv = ImmutableMap.of(
+        "llap_app_name", "llap0",
+        "hive_heapsize", "1082");
+
+    Map<String, String> oldHiveEnv = ImmutableMap.of(
+        "hive.client.heapsize", "1024",
+        "hive.heapsize", "1082",
+        "hive.metastore.heapsize", "512",
+        "hive_ambari_database", "MySQL");
+
+    Map<String, String> oldHiveIntSite = ImmutableMap.of(
+        "hive.llap.daemon.rpc.port","15001");
+
+    Map<String, String> expectedHiveIntSite = ImmutableMap.of(
+        "hive.llap.daemon.rpc.port","0",
+        "hive.auto.convert.join.noconditionaltask.size", "1000000000");
+
+    Config mockHsiSite = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(mockHsiSite).atLeastOnce();
+    expect(mockHsiSite.getProperties()).andReturn(oldHiveIntSite).anyTimes();
+    Capture<Map<String, String>> hsiSiteCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiSiteCapture), anyString(),
+                                   EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockHiveEnv.getProperties()).andReturn(oldHiveEnv).anyTimes();
+
+    Config mockHsiEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("hive-interactive-env")).andReturn(mockHsiEnv).atLeastOnce();
+    expect(mockHsiEnv.getProperties()).andReturn(oldHsiEnv).anyTimes();
+    Capture<Map<String, String>> hsiEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiEnvCapture), anyString(),
+                                   EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockHsiEnv, mockHiveEnv, mockHsiSite);
+    new UpgradeCatalog250(injector2).updateHIVEInteractiveConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedHsiSite = hsiSiteCapture.getValue();
+    assertTrue(Maps.difference(expectedHiveIntSite, updatedHsiSite).areEqual());
+
+    Map<String, String> updatedHsiEnv = hsiEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedHsiEnv, updatedHsiEnv).areEqual());
+  }
+
+  @Test
   public void testUpdateAtlasConfigs() throws Exception {
 
     Map<String, String> oldHiveProperties = new HashMap<String, String>();
