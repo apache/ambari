@@ -38,6 +38,7 @@ describe('App.MainHostDetailsController', function () {
 
   beforeEach(function () {
     controller = getController();
+    sinon.stub(controller, 'trackRequest');
   });
 
   App.TestAliases.testAsComputedFilterBy(getController(), 'serviceNonClientActiveComponents', 'serviceActiveComponents', 'isClient', false);
