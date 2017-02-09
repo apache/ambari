@@ -61,7 +61,7 @@ class TestLogFeeder(RMFTestCase):
                               content=''
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
-                              properties={'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.jceks',
+                              properties={'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder.jceks',
                                           'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
                                           'logfeeder.config.files': 'output.config.json,input.config-ambari.json,global.config.json,input.config-logsearch.json,input.config-zookeeper.json',
                                           'logfeeder.metrics.collector.hosts': '',

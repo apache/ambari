@@ -77,7 +77,7 @@ class TestLogSearch(RMFTestCase):
                               content = ''
     )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
-                              properties = {'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch-env.jceks',
+                              properties = {'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch.jceks',
                                             'logsearch.audit.logs.split.interval.mins': '1',
                                             'logsearch.auth.external_auth.enabled': 'false',
                                             'logsearch.auth.external_auth.host_url': 'http://c6401.ambari.apache.org:8080',
