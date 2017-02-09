@@ -46,7 +46,9 @@ component_list = default("/localComponents", [])
 
 hdfs_tmp_dir = default("/configurations/hadoop-env/hdfs_tmp_dir", "/tmp")
 
-hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
+hadoop_metrics2_properties_content = None
+if 'hadoop-metrics2.properties' in config['configurations']:
+  hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"

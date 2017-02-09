@@ -21,6 +21,9 @@
     <service>
       <name>HDFS</name>
       <version>2.7.3.2.6</version>
+      <configuration-dependencies>
+        <config-type>hadoop-metrics2.properties</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
