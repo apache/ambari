@@ -29,7 +29,14 @@ function getView() {
         },
         updateHost: Em.K
       }),
-      name: 'ctrl1'
+      name: 'ctrl1',
+      startIndex: 1,
+      paginationProps: [
+        {
+          name: 'displayLength',
+          value: 100
+        }
+      ]
     })
   });
 }
@@ -344,11 +351,15 @@ describe('App.MainHostView', function () {
     beforeEach(function() {
       sinon.stub(view, 'clearFilterConditionsFromLocalStorage').returns(true);
       sinon.stub(view, 'addObserver');
+      sinon.stub(view, 'saveStartIndex');
+      sinon.stub(view, 'updatePaging');
     });
 
     afterEach(function() {
       view.clearFilterConditionsFromLocalStorage.restore();
       view.addObserver.restore();
+      view.saveStartIndex.restore();
+      view.updatePaging.restore();
     });
 
     it("filterChangeHappened should be true", function() {
@@ -361,6 +372,11 @@ describe('App.MainHostView', function () {
       view.set('controller.startIndex', 10);
       view.willInsertElement();
       expect(view.get('startIndex')).to.be.equal(10);
+    });
+
+    it("displayLength should be 10", function() {
+      view.willInsertElement();
+      expect(view.get('displayLength')).to.be.equal(100);
     });
 
     it("addObserver should be called", function() {
