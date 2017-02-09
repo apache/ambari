@@ -43,6 +43,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
@@ -70,6 +72,7 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.dao.ViewURLDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -85,6 +88,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
+import org.apache.ambari.server.orm.entities.ViewURLEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -151,6 +155,7 @@ public class ViewRegistry {
   private static final String LOG4J = "log4j.";
 
   public static final String API_PREFIX = "/api/v1/clusters/";
+  public static final String DEFAULT_AUTO_INSTANCE_URL = "auto_instance";
 
   /**
    * Thread pool
@@ -166,25 +171,25 @@ public class ViewRegistry {
    * Mapping of view instances to view definition and instance name.
    */
   private Map<ViewEntity, Map<String, ViewInstanceEntity>> viewInstanceDefinitions =
-      new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
+    new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
 
   /**
    * Mapping of view names to sub-resources.
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
-      new ConcurrentHashMap<String, Set<SubResourceDefinition>>();
+    new ConcurrentHashMap<String, Set<SubResourceDefinition>>();
 
   /**
    * Mapping of view types to resource providers.
    */
   private final Map<Resource.Type, ResourceProvider> resourceProviders =
-      new ConcurrentHashMap<Resource.Type, ResourceProvider>();
+    new ConcurrentHashMap<Resource.Type, ResourceProvider>();
 
   /**
    * Mapping of view names to registered listeners.
    */
   private final Map<String, Set<Listener>> listeners =
-      new ConcurrentHashMap<String, Set<Listener>>();
+    new ConcurrentHashMap<String, Set<Listener>>();
 
   /**
    * The singleton view registry instance.
@@ -315,6 +320,9 @@ public class ViewRegistry {
   @Inject
   RemoteAmbariClusterDAO remoteAmbariClusterDAO;
 
+  @Inject
+  ViewURLDAO viewURLDAO;
+
   // ----- Constructors -----------------------------------------------------
 
   /**
@@ -429,7 +437,7 @@ public class ViewRegistry {
    */
   public ViewInstanceEntity getInstanceDefinition(String viewName, String version, String instanceName) {
     Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
-        viewInstanceDefinitions.get(getDefinition(viewName, version));
+      viewInstanceDefinitions.get(getDefinition(viewName, version));
 
     return viewInstanceDefinitionMap == null ? null : viewInstanceDefinitionMap.get(instanceName);
   }
@@ -501,7 +509,7 @@ public class ViewRegistry {
    * @return the set of sub-resource definitions
    */
   public Set<SubResourceDefinition> getSubResourceDefinitions(
-      String viewName, String version) {
+    String viewName, String version) {
 
 
     viewName = ViewEntity.getViewName(viewName, version);
@@ -538,7 +546,7 @@ public class ViewRegistry {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     return viewEntity != null &&
-        (getInstanceDefinition(viewEntity.getCommonName(), viewEntity.getVersion(), instanceEntity.getName()) != null);
+      (getInstanceDefinition(viewEntity.getCommonName(), viewEntity.getVersion(), instanceEntity.getName()) != null);
   }
 
   /**
@@ -551,7 +559,7 @@ public class ViewRegistry {
    * @throws SystemException          if the instance can not be installed
    */
   public void installViewInstance(ViewInstanceEntity instanceEntity)
-      throws ValidationException, IllegalArgumentException, SystemException {
+    throws ValidationException, IllegalArgumentException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -562,7 +570,7 @@ public class ViewRegistry {
       if (getInstanceDefinition(viewName, version, instanceName) == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Creating view instance " + viewName + "/" +
-              version + "/" + instanceName);
+            version + "/" + instanceName);
         }
 
         instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
@@ -590,7 +598,7 @@ public class ViewRegistry {
 
     } else {
       String message = "Attempt to install an instance for an unknown view " +
-          instanceEntity.getViewName() + ".";
+        instanceEntity.getViewName() + ".";
 
       LOG.error(message);
       throw new IllegalArgumentException(message);
@@ -605,7 +613,7 @@ public class ViewRegistry {
    * @throws SystemException     if the instance can not be updated
    */
   public void updateViewInstance(ViewInstanceEntity instanceEntity)
-      throws ValidationException, SystemException {
+    throws ValidationException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -660,7 +668,7 @@ public class ViewRegistry {
         }
         if (LOG.isDebugEnabled()) {
           LOG.debug("Deleting view instance " + viewName + "/" +
-              version + "/" + instanceName);
+            version + "/" + instanceName);
         }
         List<PrivilegeEntity> instancePrivileges = privilegeDAO.findByResourceId(instanceEntity.getResource().getId());
         for (PrivilegeEntity privilegeEntity : instancePrivileges) {
@@ -702,7 +710,7 @@ public class ViewRegistry {
   public void copyPrivileges(ViewInstanceEntity sourceInstanceEntity,
                              ViewInstanceEntity targetInstanceEntity) {
     LOG.debug("Copy all privileges from " + sourceInstanceEntity.getName() + " to " +
-        targetInstanceEntity.getName());
+      targetInstanceEntity.getName());
     List<PrivilegeEntity> targetInstancePrivileges = privilegeDAO.findByResourceId(targetInstanceEntity.getResource().getId());
     if (targetInstancePrivileges.size() > 0) {
       LOG.warn("Target instance {} already has privileges assigned, these will not be deleted. Manual clean up may be needed", targetInstanceEntity.getName());
@@ -827,7 +835,7 @@ public class ViewRegistry {
   public boolean checkPermission(String viewName, String version, String instanceName, boolean readOnly) {
 
     ViewInstanceEntity instanceEntity =
-        instanceName == null ? null : getInstanceDefinition(viewName, version, instanceName);
+      instanceName == null ? null : getInstanceDefinition(viewName, version, instanceName);
 
     return checkPermission(instanceEntity, readOnly);
   }
@@ -995,6 +1003,62 @@ public class ViewRegistry {
     viewInstanceEntity.setClusterHandle(clusterId);
     installViewInstance(viewInstanceEntity);
     setViewInstanceRoleAccess(viewInstanceEntity, roles);
+
+    try {
+      setViewUrl(viewInstanceEntity);
+    } catch (Exception urlCreateException) {
+      LOG.error("Error while creating an auto URL for the view instance {}, Url should be created in view instance settings", viewInstanceEntity.getViewName());
+      LOG.error("View URL creation error ", urlCreateException);
+    }
+
+
+  }
+
+  private String getUrlName(ViewInstanceEntity viewInstanceEntity) {
+    return viewInstanceEntity.getViewEntity().getCommonName().toLowerCase() + "_" + viewInstanceEntity.getInstanceName().toLowerCase();
+  }
+
+  private void setViewUrl(ViewInstanceEntity instanceEntity) {
+    ViewInstanceEntity viewInstanceEntity = instanceDAO.findByName(instanceEntity.getViewName(), instanceEntity.getInstanceName());
+    Preconditions.checkNotNull(viewInstanceEntity);
+    ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
+    // check if there is a URL attached
+    if (viewUrl != null) {
+      LOG.warn("Url exists for the auto instance {}, new url will not be created", viewInstanceEntity.getViewName());
+      return;
+    }
+
+    String urlName = getUrlName(viewInstanceEntity);
+    //Check if a URL exists with the same name
+    Optional<ViewURLEntity> existingUrl = viewURLDAO.findByName(urlName);
+    // remove any pre-existing URL's before creating new URL's
+    ViewURLEntity urlEntity = new ViewURLEntity();
+    urlEntity.setUrlName(urlName);
+
+    urlEntity.setUrlSuffix(viewInstanceEntity.getInstanceName().toLowerCase());
+
+    ViewURLEntity toSaveOrUpdate = existingUrl.or(urlEntity);
+    toSaveOrUpdate.setViewInstanceEntity(viewInstanceEntity);
+
+    if (existingUrl.isPresent()) {
+      LOG.info("Url already present for {}",viewInstanceEntity.getViewName());
+      viewURLDAO.update(toSaveOrUpdate);
+    } else {
+      LOG.info("Creating a new URL for auto instance {}",viewInstanceEntity.getViewName());
+      viewURLDAO.save(urlEntity);
+    }
+    // Update the view with the URL
+    viewInstanceEntity.setViewUrl(urlEntity);
+    try {
+      updateViewInstance(viewInstanceEntity);
+    } catch (Exception ex) {
+      LOG.error("Could not update the view instance with new URL, removing URL", ex);
+      // Clean up
+      Optional<ViewURLEntity> viewURLDAOByName = viewURLDAO.findByName(urlName);
+      if(viewURLDAOByName.isPresent())
+        viewURLDAO.delete(viewURLDAOByName.get());
+    }
+
   }
 
   @Subscribe
@@ -1026,7 +1090,7 @@ public class ViewRegistry {
       List<String> autoCreateServices = autoConfig.getServices();
 
       if (autoCreateServices != null && autoCreateServices.contains(serviceName) &&
-          serviceNames.containsAll(autoCreateServices)) {
+        serviceNames.containsAll(autoCreateServices)) {
 
         String configStackId = autoConfig.getStackId();
 
@@ -1083,7 +1147,7 @@ public class ViewRegistry {
 
   // setup the given view definition
   protected ViewEntity setupViewDefinition(ViewEntity viewDefinition, ClassLoader cl)
-      throws ClassNotFoundException, IntrospectionException {
+    throws ClassNotFoundException, IntrospectionException {
 
     ViewConfig viewConfig = viewDefinition.getConfiguration();
 
@@ -1117,13 +1181,13 @@ public class ViewRegistry {
     Resource.Type externalResourceType = viewDefinition.getExternalResourceType();
 
     ViewExternalSubResourceProvider viewExternalSubResourceProvider =
-        new ViewExternalSubResourceProvider(externalResourceType, viewDefinition);
+      new ViewExternalSubResourceProvider(externalResourceType, viewDefinition);
     viewDefinition.addResourceProvider(externalResourceType, viewExternalSubResourceProvider);
 
     resourceProviders.put(externalResourceType, viewExternalSubResourceProvider);
 
     ResourceInstanceFactoryImpl.addResourceDefinition(externalResourceType,
-        new ViewExternalSubResourceDefinition(externalResourceType));
+      new ViewExternalSubResourceDefinition(externalResourceType));
 
     Collection<ViewResourceEntity> resources = new HashSet<ViewResourceEntity>();
     for (ResourceConfig resourceConfiguration : resourceConfigurations) {
@@ -1203,7 +1267,7 @@ public class ViewRegistry {
   // create a new view instance definition
   protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition,
                                                             InstanceConfig instanceConfig)
-      throws ValidationException, ClassNotFoundException, SystemException {
+    throws ValidationException, ClassNotFoundException, SystemException {
     ViewInstanceEntity viewInstanceDefinition = createViewInstanceEntity(viewDefinition, viewConfig, instanceConfig);
     viewInstanceDefinition.validate(viewDefinition, Validator.ValidationContext.PRE_CREATE);
 
@@ -1214,9 +1278,9 @@ public class ViewRegistry {
   // create a view instance from the given configuration
   private ViewInstanceEntity createViewInstanceEntity(ViewEntity viewDefinition, ViewConfig viewConfig,
                                                       InstanceConfig instanceConfig)
-      throws SystemException {
+    throws SystemException {
     ViewInstanceEntity viewInstanceDefinition =
-        new ViewInstanceEntity(viewDefinition, instanceConfig);
+      new ViewInstanceEntity(viewDefinition, instanceConfig);
 
     Map<String, String> properties = new HashMap<String, String>();
 
@@ -1233,13 +1297,13 @@ public class ViewRegistry {
   // bind a view instance definition to the given view definition
   protected void bindViewInstance(ViewEntity viewDefinition,
                                   ViewInstanceEntity viewInstanceDefinition)
-      throws ClassNotFoundException {
+    throws ClassNotFoundException {
     viewInstanceDefinition.setViewEntity(viewDefinition);
 
     ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition, this);
 
     ViewExternalSubResourceService externalSubResourceService =
-        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
+      new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
 
     viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
 
@@ -1260,7 +1324,7 @@ public class ViewRegistry {
       } else {
         viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(), service);
         viewInstanceDefinition.addResourceProvider(type,
-            getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
+          getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
       }
     }
     viewDefinition.addInstanceDefinition(viewInstanceDefinition);
@@ -1301,9 +1365,9 @@ public class ViewRegistry {
       @Override
       protected void configure() {
         bind(ViewResourceHandler.class)
-            .toInstance(viewResourceHandler);
+          .toInstance(viewResourceHandler);
         bind(ViewContext.class)
-            .toInstance(viewInstanceContext);
+          .toInstance(viewInstanceContext);
       }
     });
     return viewInstanceInjector.getInstance(clazz);
@@ -1311,13 +1375,13 @@ public class ViewRegistry {
 
   // get the given resource provider class from the given class loader; inject a context
   private static org.apache.ambari.view.ResourceProvider getProvider(
-      Class<? extends org.apache.ambari.view.ResourceProvider> clazz,
-      final ViewContext viewInstanceContext) {
+    Class<? extends org.apache.ambari.view.ResourceProvider> clazz,
+    final ViewContext viewInstanceContext) {
     Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
         bind(ViewContext.class)
-            .toInstance(viewInstanceContext);
+          .toInstance(viewInstanceContext);
       }
     });
     return viewInstanceInjector.getInstance(clazz);
@@ -1330,7 +1394,7 @@ public class ViewRegistry {
       @Override
       protected void configure() {
         bind(ViewContext.class)
-            .toInstance(viewContext);
+          .toInstance(viewContext);
       }
     });
     return viewInstanceInjector.getInstance(clazz);
@@ -1343,7 +1407,7 @@ public class ViewRegistry {
       @Override
       protected void configure() {
         bind(ViewContext.class)
-            .toInstance(viewContext);
+          .toInstance(viewContext);
       }
     });
     return viewInstanceInjector.getInstance(clazz);
@@ -1383,7 +1447,7 @@ public class ViewRegistry {
    */
   private void syncView(ViewEntity view,
                         Set<ViewInstanceEntity> instanceDefinitions)
-      throws Exception {
+    throws Exception {
 
     String viewName = view.getName();
     ViewEntity persistedView = viewDAO.findByName(viewName);
@@ -1500,8 +1564,8 @@ public class ViewRegistry {
     Long resourceId = (resourceEntity == null) ? null : resourceEntity.getId();
 
     return (resourceId == null)
-        ? AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_VIEWS)
-        : AuthorizationHelper.isAuthorized(ResourceType.VIEW, resourceId, RoleAuthorization.VIEW_USE);
+      ? AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_VIEWS)
+      : AuthorizationHelper.isAuthorized(ResourceType.VIEW, resourceId, RoleAuthorization.VIEW_USE);
   }
 
   // fire the onDeploy event.
@@ -1533,7 +1597,7 @@ public class ViewRegistry {
 
     File viewDir = configuration.getViewsDir();
     String extractedArchivesPath = viewDir.getAbsolutePath() +
-        File.separator + EXTRACTED_ARCHIVES_DIR;
+      File.separator + EXTRACTED_ARCHIVES_DIR;
 
     File archiveFile = path.toAbsolutePath().toFile();
     if (extractor.ensureExtractedArchiveDirectory(extractedArchivesPath)) {
@@ -1557,7 +1621,7 @@ public class ViewRegistry {
 
       File viewDir = configuration.getViewsDir();
       String extractedArchivesPath = viewDir.getAbsolutePath() +
-          File.separator + EXTRACTED_ARCHIVES_DIR;
+        File.separator + EXTRACTED_ARCHIVES_DIR;
 
       File[] files = viewDir.listFiles();
 
@@ -1614,7 +1678,7 @@ public class ViewRegistry {
 
       File viewDir = configuration.getViewsDir();
       String extractedArchivesPath = viewDir.getAbsolutePath() +
-          File.separator + EXTRACTED_ARCHIVES_DIR;
+        File.separator + EXTRACTED_ARCHIVES_DIR;
 
       if (extractor.ensureExtractedArchiveDirectory(extractedArchivesPath)) {
 
@@ -1720,7 +1784,7 @@ public class ViewRegistry {
       configureViewLogging(viewDefinition, cl);
 
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
-          configuration.isViewValidationEnabled());
+        configuration.isViewValidationEnabled());
 
       viewDefinition.setConfiguration(viewConfig);
 
@@ -1764,14 +1828,14 @@ public class ViewRegistry {
 
       for (ViewInstanceEntity instance : viewDefinition.getInstances()) {
         LOG.debug("Try to migrate the data from previous version of: " + viewDefinition.getName() + "/" +
-            instance.getInstanceName() + ".");
+          instance.getInstanceName() + ".");
         ViewInstanceEntity latestUnregisteredView = getLatestUnregisteredInstance(serverVersion, instance);
 
         if (latestUnregisteredView != null) {
           String instanceName = instance.getViewEntity().getName() + "/" + instance.getName();
           try {
             LOG.info("Found previous version of the view instance " + instanceName + ": " +
-                latestUnregisteredView.getViewEntity().getName() + "/" + latestUnregisteredView.getName());
+              latestUnregisteredView.getViewEntity().getName() + "/" + latestUnregisteredView.getName());
             getViewDataMigrationUtility().migrateData(instance, latestUnregisteredView, true);
             LOG.info("View data migrated: " + viewDefinition.getName() + ".");
           } catch (ViewDataMigrationException e) {
@@ -1871,7 +1935,7 @@ public class ViewRegistry {
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
-              ".  Caught exception :" + e.getMessage(), e);
+            ".  Caught exception :" + e.getMessage(), e);
         }
       }
     }
@@ -1894,25 +1958,25 @@ public class ViewRegistry {
       ResourceEntity resourceEntity = viewInstanceEntity.getResource();
       if (null == resourceEntity) {
         resourceEntity = instanceDAO.findResourceForViewInstance(viewInstanceEntity.getViewName(),
-            viewInstanceEntity.getInstanceName());
+          viewInstanceEntity.getInstanceName());
       }
 
       if (permissionViewUser == null) {
         LOG.error("Missing the {} role.  Access to view cannot be set.",
-            PermissionEntity.VIEW_USER_PERMISSION_NAME, viewInstanceEntity.getName());
+          PermissionEntity.VIEW_USER_PERMISSION_NAME, viewInstanceEntity.getName());
       } else {
         for (String role : roles) {
           PermissionEntity permissionRole = permissionDAO.findByName(role);
 
           if (permissionRole == null) {
             LOG.warn("Invalid role {} encountered while setting access to view {}, Ignoring.",
-                role, viewInstanceEntity.getName());
+              role, viewInstanceEntity.getName());
           } else {
             PrincipalEntity principalRole = permissionRole.getPrincipal();
 
             if (principalRole == null) {
               LOG.warn("Missing principal ID for role {} encountered while setting access to view {}. Ignoring.",
-                  role, viewInstanceEntity.getName());
+                role, viewInstanceEntity.getName());
             } else {
               PrivilegeEntity privilegeEntity = new PrivilegeEntity();
               privilegeEntity.setPermission(permissionViewUser);
@@ -1938,7 +2002,7 @@ public class ViewRegistry {
     ViewConfig config = view.getConfiguration();
 
     return checkViewVersion(view, config.getMinAmbariVersion(), serverVersion, "minimum", -1, "less than") &&
-        checkViewVersion(view, config.getMaxAmbariVersion(), serverVersion, "maximum", 1, "greater than");
+      checkViewVersion(view, config.getMaxAmbariVersion(), serverVersion, "maximum", 1, "greater than");
 
   }
 
@@ -1951,7 +2015,7 @@ public class ViewRegistry {
       // make sure that the given version is a valid version string
       if (!version.matches(VIEW_AMBARI_VERSION_REGEXP)) {
         String msg = "The configured " + label + " Ambari version " + version + " for view " +
-            view.getName() + " is not valid.";
+          view.getName() + " is not valid.";
 
         setViewStatus(view, ViewEntity.ViewStatus.ERROR, msg);
         LOG.error(msg);
@@ -1961,11 +2025,11 @@ public class ViewRegistry {
       int index = version.indexOf('*');
 
       int compVal = index == -1 ? VersionUtils.compareVersions(serverVersion, version) :
-          index > 0 ? VersionUtils.compareVersions(serverVersion, version.substring(0, index), index) : 0;
+        index > 0 ? VersionUtils.compareVersions(serverVersion, version.substring(0, index), index) : 0;
 
       if (compVal == errValue) {
         String msg = "The Ambari server version " + serverVersion + " is " + errMsg + " the configured " + label +
-            " Ambari version " + version + " for view " + view.getName();
+          " Ambari version " + version + " for view " + view.getName();
 
         setViewStatus(view, ViewEntity.ViewStatus.ERROR, msg);
         LOG.error(msg);
@@ -1992,7 +2056,7 @@ public class ViewRegistry {
 
   // extract the view archive for the given path.
   protected static boolean extractViewArchive(String archivePath, ViewModule viewModule, boolean systemOnly)
-      throws Exception {
+    throws Exception {
     Injector injector = Guice.createInjector(viewModule);
 
     ViewExtractor extractor = injector.getInstance(ViewExtractor.class);
@@ -2002,7 +2066,7 @@ public class ViewRegistry {
     File viewDir = configuration.getViewsDir();
 
     String extractedArchivesPath = viewDir.getAbsolutePath() +
-        File.separator + EXTRACTED_ARCHIVES_DIR;
+      File.separator + EXTRACTED_ARCHIVES_DIR;
 
     if (extractor.ensureExtractedArchiveDirectory(extractedArchivesPath)) {
 
@@ -2051,11 +2115,11 @@ public class ViewRegistry {
       LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 
       ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-          configuration.getViewExtractionThreadPoolCoreSize(),
-          configuration.getViewExtractionThreadPoolMaxSize(),
-          configuration.getViewExtractionThreadPoolTimeout(),
-          TimeUnit.MILLISECONDS,
-          queue);
+        configuration.getViewExtractionThreadPoolCoreSize(),
+        configuration.getViewExtractionThreadPoolMaxSize(),
+        configuration.getViewExtractionThreadPoolTimeout(),
+        TimeUnit.MILLISECONDS,
+        queue);
 
       threadPoolExecutor.allowCoreThreadTimeOut(true);
       executorService = threadPoolExecutor;
@@ -2072,12 +2136,12 @@ public class ViewRegistry {
   protected ViewURLStreamProvider createURLStreamProvider(ViewContext viewContext) {
     ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
     org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
-        new org.apache.ambari.server.controller.internal.URLStreamProvider(
-            configuration.getRequestConnectTimeout(),
-            configuration.getRequestReadTimeout(),
-            sslConfiguration.getTruststorePath(),
-            sslConfiguration.getTruststorePassword(),
-            sslConfiguration.getTruststoreType());
+      new org.apache.ambari.server.controller.internal.URLStreamProvider(
+        configuration.getRequestConnectTimeout(),
+        configuration.getRequestReadTimeout(),
+        sslConfiguration.getTruststorePath(),
+        sslConfiguration.getTruststorePassword(),
+        sslConfiguration.getTruststoreType());
     return new ViewURLStreamProvider(viewContext, streamProvider);
   }
 
@@ -2089,12 +2153,12 @@ public class ViewRegistry {
   protected ViewAmbariStreamProvider createAmbariStreamProvider() {
     ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
     org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
-        new org.apache.ambari.server.controller.internal.URLStreamProvider(
-            configuration.getViewAmbariRequestConnectTimeout(),
-            configuration.getViewAmbariRequestReadTimeout(),
-            sslConfiguration.getTruststorePath(),
-            sslConfiguration.getTruststorePassword(),
-            sslConfiguration.getTruststoreType());
+      new org.apache.ambari.server.controller.internal.URLStreamProvider(
+        configuration.getViewAmbariRequestConnectTimeout(),
+        configuration.getViewAmbariRequestReadTimeout(),
+        sslConfiguration.getTruststorePath(),
+        sslConfiguration.getTruststorePassword(),
+        sslConfiguration.getTruststoreType());
     return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
   }
 
@@ -2108,8 +2172,8 @@ public class ViewRegistry {
     RemoteAmbariClusterEntity clusterEntity = remoteAmbariClusterDAO.findById(clusterId);
     if (clusterEntity != null) {
       return new RemoteAmbariStreamProvider(getBaseurl(clusterEntity.getUrl()),
-          clusterEntity.getUsername(), clusterEntity.getPassword(),
-          configuration.getViewAmbariRequestConnectTimeout(), configuration.getViewAmbariRequestReadTimeout());
+        clusterEntity.getUsername(), clusterEntity.getPassword(),
+        configuration.getViewAmbariRequestConnectTimeout(), configuration.getViewAmbariRequestReadTimeout());
     }
     return null;
   }
@@ -2137,11 +2201,11 @@ public class ViewRegistry {
    * @return latest unregistered instance of same name of same view.
    */
   private ViewInstanceEntity getLatestUnregisteredInstance(String serverVersion, ViewInstanceEntity instance)
-      throws JAXBException, IOException, SAXException {
+    throws JAXBException, IOException, SAXException {
     File viewDir = configuration.getViewsDir();
 
     String extractedArchivesPath = viewDir.getAbsolutePath() +
-        File.separator + EXTRACTED_ARCHIVES_DIR;
+      File.separator + EXTRACTED_ARCHIVES_DIR;
 
     File extractedArchivesDir = new File(extractedArchivesPath);
     File[] extractedArchives = extractedArchivesDir.listFiles();
@@ -2192,7 +2256,7 @@ public class ViewRegistry {
     }
     if (latestPrevInstance != null) {
       LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " found: " +
-          latestPrevInstance.getViewEntity().getName() + "/" + latestPrevInstance.getName());
+        latestPrevInstance.getViewEntity().getName() + "/" + latestPrevInstance.getName());
     } else {
       LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " not found");
     }
