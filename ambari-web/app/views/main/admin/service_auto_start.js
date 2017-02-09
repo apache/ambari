@@ -30,6 +30,12 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
 
   savedRecoveryEnabled: false,
 
+  /**
+   * @type {boolean}
+   * @default false
+   */
+  isLoaded: false,
+
   isDisabled: false,
 
   didInsertElement: function () {
@@ -47,11 +53,13 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
         self.set('controller.clusterConfigs', data[0].properties);
         self.set('switcherValue', data[0].properties.recovery_enabled === 'true');
         self.set('savedRecoveryEnabled', self.get('switcherValue'));
-        // plugin should be initiated after applying binding for switcherValue
-        Em.run.later('sync', function() {
-          self.initSwitcher();
-        }.bind(self), 10);
-        self.get('controller').loadComponentsConfigs();
+        self.get('controller').loadComponentsConfigs().then(function () {
+          Em.run.later('sync', function() {
+            // plugin should be initiated after applying binding for switcherValue
+            self.initSwitcher();
+          }.bind(self), 10);
+          self.set('isLoaded', true);
+        });
       });
     });
   },
