@@ -116,6 +116,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     }else{
       generatedNode = this.nodeFactory.createActionNode(type);
       generatedNode.addTransitionTo(target);
+      generatedNode.addTransitionTo(this.get('killNodes').findBy('name',Constants.defaultKillNodeName), "error");
     }
     return generatedNode;
   },
