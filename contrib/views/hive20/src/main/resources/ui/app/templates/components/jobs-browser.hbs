@@ -18,13 +18,22 @@
 
 <div class="row jobs-status">
   <div class="col-md-12 ">
-    <div class="col-md-9">
+    <div class="col-md-7">
       <div class="strip">
-        <ul class="list-inline">
+        <ul class="nav nav-pills">
+          <li class="{{if (not statusFilter) "active"}}"><a href="#" {{action "selectJobForStatus" "all"}}>{{titleFilteredJobs.length}} <span class="text-uppercase">All</span></a></li>
           {{#each-in statusCounts as |status count|}}
-            <li>{{count}} <span class="text-uppercase">{{status}}</span></li>
+            <li class="{{if (eq statusFilter status) "active"}}"><a href="#" {{action "selectJobForStatus" status}}>{{count}} <span class="text-uppercase">{{status}}</span></a></li>
           {{/each-in}}
         </ul>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="row strip input-group">
+        {{input type="text" value=titleFilter placeholder="Search title" class="form-control"}}
+        <span class="input-group-btn">
+          <button class="btn btn-default" {{action "clearTitleFilter"}}>{{fa-icon "times"}} </button>
+        </span>
       </div>
     </div>
     <div class="col-md-3">
@@ -54,7 +63,7 @@
         </tr>
       </thead>
       <tbody>
-        {{#each jobs as |job| }}
+        {{#each filteredJobs as |job| }}
           {{job-item job=job}}
         {{/each}}
       </tbody>
