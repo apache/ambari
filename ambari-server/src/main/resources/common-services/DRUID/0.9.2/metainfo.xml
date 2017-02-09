@@ -158,10 +158,24 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-router</config-type>
+          </configuration-dependencies>
         </component>
-        <configuration-dependencies>
-          <config-type>druid-router</config-type>
-        </configuration-dependencies>
+        <component>
+          <name>DRUID_SUPERSET</name>
+          <displayName>Druid Superset</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <commandScript>
+            <script>scripts/superset.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <configuration-dependencies>
+            <config-type>druid-superset</config-type>
+          </configuration-dependencies>
+        </component>
       </components>
 
       <themes>
@@ -178,6 +192,9 @@
             <package>
               <name>druid_${stack_version}</name>
             </package>
+            <package>
+              <name>superset_${stack_version}</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -185,6 +202,9 @@
           <packages>
             <package>
               <name>druid-${stack_version}</name>
+            </package>
+            <package>
+              <name>superset-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

@@ -22,3 +22,5 @@ from resource_management.libraries.script.script import Script
 config = Script.get_config()
 
 druid_pid_dir = config['configurations']['druid-env']['druid_pid_dir']
+superset_pid_dir = config['configurations']['druid-superset-env']['superset_pid_dir']
+

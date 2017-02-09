@@ -459,6 +459,9 @@
     },
     "druid-logrotate" : {
       "content" : "<![CDATA[\n    {{druid_log_dir}}/*.log {\n        copytruncate\n        rotate 7\n        daily\n        nocompress\n        missingok\n        notifempty\n        create 660 druid users\n        dateext\n        dateformat -%Y-%m-%d-%s\n        }\n      ]]>\n"
+    },
+    "druid-superset" : {
+      "SUPERSET_DATABASE_TYPE" : "sqllite"
     }
   },
   "configuration_attributes": {
