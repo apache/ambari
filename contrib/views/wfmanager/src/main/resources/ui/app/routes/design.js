@@ -74,9 +74,6 @@ export default Ember.Route.extend(Ember.Evented, {
     editWorkflow(path, type){
       this.trigger('openNewTab', path, type);
     },
-    deleteWorkflow(job){
-      this.set("currentDraft", job);
-    },
     showDashboard(){
       this.controller.set('dashboardShown', true);
       this.transitionTo('design.dashboardtab');
@@ -89,10 +86,6 @@ export default Ember.Route.extend(Ember.Evented, {
       });
     },
     hideDashboard(){
-      this.controller.set('dashboardShown', false);
-      this.transitionTo('design');
-    },
-    hideProjManager(){
       this.controller.set('dashboardShown', false);
       this.transitionTo('design');
     }
