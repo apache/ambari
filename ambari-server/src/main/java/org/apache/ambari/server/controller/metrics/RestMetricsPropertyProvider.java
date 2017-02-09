@@ -102,15 +102,16 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
   private static final String DEFAULT_PORT_PROPERTY = "default_port";
   private static final String PORT_CONFIG_TYPE_PROPERTY = "port_config_type";
   private static final String PORT_PROPERTY_NAME_PROPERTY = "port_property_name";
+  private static final String HTTPS_PORT_PROPERTY_NAME_PROPERTY = "https_port_property_name";
 
   /**
    * Protocol to use when connecting
    */
   private static final String PROTOCOL_OVERRIDE_PROPERTY = "protocol";
+  private static final String HTTPS_PROTOCOL_PROPERTY = "https_property_name";
   private static final String HTTP_PROTOCOL = "http";
   private static final String HTTPS_PROTOCOL = "https";
   private static final String DEFAULT_PROTOCOL = HTTP_PROTOCOL;
-
 
   /**
    * String that separates JSON URL from path inside JSON in metrics path
@@ -208,7 +209,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       // If there are no metrics defined for the given component then there is nothing to do.
       return resource;
     }
-    String protocol = resolveProtocol();
+    String protocol = null;
     String port = "-1";
     String hostname = null;
     try {
@@ -221,7 +222,8 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
         LOG.warn(msg);
         return resource;
       }
-      port = resolvePort(cluster, hostname, resourceComponentName, metricsProperties);
+      protocol = resolveProtocol(cluster, hostname);
+      port = resolvePort(cluster, hostname, resourceComponentName, metricsProperties, protocol);
     } catch (Exception e) {
       rethrowSystemException(e);
     }
@@ -283,52 +285,24 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
   // ----- helper methods ----------------------------------------------------
 
   /**
-   * Uses port_config_type, port_property_name, default_port parameters from
+   * If protocol is equal to HTTPS_PROTOCOL than returns HTTPS_PORT_PROPERTY_NAME_PROPERTY value from PORT_CONFIG_TYPE_PROPERTY
+   * else uses port_config_type, port_property_name, default_port parameters from
    * metricsProperties to find out right port value for service
    *
    * @return determines REST port for service
    */
   protected String resolvePort(Cluster cluster, String hostname, String componentName,
-                          Map<String, String> metricsProperties)
+                          Map<String, String> metricsProperties, String protocol)
       throws AmbariException {
     String portConfigType = null;
+    String portPropertyNameInMetricsProperties = protocol.equalsIgnoreCase(HTTPS_PROTOCOL) ? HTTPS_PORT_PROPERTY_NAME_PROPERTY : PORT_PROPERTY_NAME_PROPERTY;
     String portPropertyName = null;
     if (metricsProperties.containsKey(PORT_CONFIG_TYPE_PROPERTY) &&
-        metricsProperties.containsKey(PORT_PROPERTY_NAME_PROPERTY)) {
+        metricsProperties.containsKey(portPropertyNameInMetricsProperties)) {
       portConfigType = metricsProperties.get(PORT_CONFIG_TYPE_PROPERTY);
-      portPropertyName = metricsProperties.get(PORT_PROPERTY_NAME_PROPERTY);
+      portPropertyName = metricsProperties.get(portPropertyNameInMetricsProperties);
     }
-    String portStr = null;
-    if (portConfigType != null && portPropertyName != null) {
-      try {
-        Map<String, Map<String, String>> configTags =
-            amc.findConfigurationTagsWithOverrides(cluster, hostname);
-        if (configTags.containsKey(portConfigType)) {
-          Map<String, Map<String, String>> properties = amc.getConfigHelper().getEffectiveConfigProperties(cluster,
-              Collections.singletonMap(portConfigType, configTags.get(portConfigType)));
-          Map<String, String> config = properties.get(portConfigType);
-          if (config != null && config.containsKey(portPropertyName)) {
-            portStr = config.get(portPropertyName);
-          }
-        }
-      } catch (AmbariException e) {
-        String message = String.format("Can not extract configs for " +
-            "component = %s, hostname = %s, config type = %s, property name = %s", componentName,
-            hostname, portConfigType, portPropertyName);
-        LOG.warn(message, e);
-      }
-      if (portStr == null) {
-        String message = String.format(
-            "Can not extract REST port for " +
-                "component %s from configurations. " +
-                "Config tag = %s, config key name = %s, " +
-                "hostname = %s. Probably metrics.json file for " +
-                "service is misspelled. Trying default port",
-            componentName, portConfigType,
-            portPropertyName, hostname);
-        LOG.debug(message);
-      }
-    }
+    String portStr = getPropertyValueByNameAndConfigType(portPropertyName, portConfigType, cluster, hostname);
     if (portStr == null && metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {
       if (metricsProperties.containsKey(DEFAULT_PORT_PROPERTY)) {
         portStr = metricsProperties.get(DEFAULT_PORT_PROPERTY);
@@ -345,13 +319,65 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       return portStr;
   }
 
+  /**
+   * Tries to get propertyName property from configType config for specified cluster and hostname
+   * @param propertyName
+   * @param configType
+   * @param cluster
+   * @param hostname
+     * @return
+     */
+  private String getPropertyValueByNameAndConfigType(String propertyName, String configType, Cluster cluster, String hostname){
+    String result = null;
+    if (configType != null && propertyName != null) {
+      try {
+        Map<String, Map<String, String>> configTags =
+                amc.findConfigurationTagsWithOverrides(cluster, hostname);
+        if (configTags.containsKey(configType)) {
+          Map<String, Map<String, String>> properties = amc.getConfigHelper().getEffectiveConfigProperties(cluster,
+                  Collections.singletonMap(configType, configTags.get(configType)));
+          Map<String, String> config = properties.get(configType);
+          if (config != null && config.containsKey(propertyName)) {
+            result = config.get(propertyName);
+          }
+        }
+      } catch (AmbariException e) {
+        String message = String.format("Can not extract configs for " +
+                        "component = %s, hostname = %s, config type = %s, property name = %s", componentName,
+                hostname, configType, propertyName);
+        LOG.warn(message, e);
+      }
+      if (result == null) {
+        String message = String.format(
+                "Can not extract property for " +
+                        "component %s from configurations. " +
+                        "Config tag = %s, config key name = %s, " +
+                        "hostname = %s. Probably metrics.json file for " +
+                        "service is misspelled.",
+                componentName, configType,
+                propertyName, hostname);
+        LOG.debug(message);
+      }
+    }
+    return result;
+  }
 
   /**
-   * Extracts protocol type from metrics properties. If no protocol is defined,
+   * if HTTPS_PROTOCOL_PROPERTY is present in metrics properties then checks if it is present in PORT_CONFIG_TYPE_PROPERTY and returns "https" if it is.
+   *
+   * Otherwise extracts protocol type from metrics properties. If no protocol is defined,
    * uses default protocol.
    */
-  private String resolveProtocol() {
+  private String resolveProtocol(Cluster cluster, String hostname) {
     String protocol = DEFAULT_PROTOCOL;
+    if (metricsProperties.containsKey(PORT_CONFIG_TYPE_PROPERTY) && metricsProperties.containsKey(HTTPS_PROTOCOL_PROPERTY)) {
+      String configType = metricsProperties.get(PORT_CONFIG_TYPE_PROPERTY);
+      String propertyName = metricsProperties.get(HTTPS_PROTOCOL_PROPERTY);
+      String value = getPropertyValueByNameAndConfigType(propertyName, configType, cluster, hostname);
+      if (value != null) {
+        return HTTPS_PROTOCOL;
+      }
+    }
     if (metricsProperties.containsKey(PROTOCOL_OVERRIDE_PROPERTY)) {
       protocol = metricsProperties.get(PROTOCOL_OVERRIDE_PROPERTY).toLowerCase();
       if (!protocol.equals(HTTP_PROTOCOL) && !protocol.equals(HTTPS_PROTOCOL)) {

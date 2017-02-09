@@ -256,7 +256,7 @@ public class RestMetricsPropertyProviderTest {
     Map<String, String> customMetricsProperties = new HashMap<>(metricsProperties);
     customMetricsProperties.put("port_property_name", "wrong_property");
     String resolvedPort = restMetricsPropertyProvider.resolvePort(c1, "domu-12-31-39-0e-34-e1.compute-1.internal",
-        "STORM_REST_API", customMetricsProperties);
+        "STORM_REST_API", customMetricsProperties, "http");
     Assert.assertEquals(DEFAULT_STORM_UI_PORT, resolvedPort);
 
     // a port property exists (8745). Should return it, not a default_port (8746)
@@ -264,7 +264,7 @@ public class RestMetricsPropertyProviderTest {
     // custom default
     customMetricsProperties.put("default_port", "8746");
     resolvedPort = restMetricsPropertyProvider.resolvePort(c1, "domu-12-31-39-0e-34-e1.compute-1.internal",
-        "STORM_REST_API", customMetricsProperties);
+        "STORM_REST_API", customMetricsProperties, "http");
     Assert.assertEquals(DEFAULT_STORM_UI_PORT, resolvedPort);
 
   }
