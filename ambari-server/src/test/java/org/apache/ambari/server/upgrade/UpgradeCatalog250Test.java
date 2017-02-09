@@ -21,6 +21,7 @@ package org.apache.ambari.server.upgrade;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -37,9 +38,11 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
@@ -285,6 +288,7 @@ public class UpgradeCatalog250Test {
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
+    Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
       .addMockedMethod(updateAmsConfigs)
@@ -301,6 +305,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(updateRangerUrlConfigs)
       .addMockedMethod(addManageServiceAutoStartPermissions)
       .addMockedMethod(updateYarnSite)
+      .addMockedMethod(updateAlerts)
       .createMock();
 
 
@@ -346,11 +351,100 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.updateYarnSite();
       expectLastCall().once();
 
+    upgradeCatalog250.updateStormAlerts();
+      expectLastCall().once();
+
     replay(upgradeCatalog250);
 
     upgradeCatalog250.executeDMLUpdates();
 
     verify(upgradeCatalog250);
+  }
+
+  @Test
+  public void testUpdateAlerts_StormUIWebAlert() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity stormWebUIAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("storm_webui")))
+            .andReturn(stormWebUIAlertMock).atLeastOnce();
+    expect(stormWebUIAlertMock.getSource()).andReturn("{\"uri\": {\n" +
+            "            \"http\": \"{{storm-site/ui.port}}\",\n" +
+            "            \"kerberos_keytab\": \"{{storm-env/storm_ui_keytab}}\",\n" +
+            "            \"kerberos_principal\": \"{{storm-env/storm_ui_principal_name}}\",\n" +
+            "            \"connection_timeout\": 5.0\n" +
+            "          } }");
+
+    stormWebUIAlertMock.setSource("{\"uri\":{\"http\":\"{{storm-site/ui.port}}\",\"kerberos_keytab\":\"{{storm-env/storm_ui_keytab}}\",\"kerberos_principal\":\"{{storm-env/storm_ui_principal_name}}\",\"connection_timeout\":5.0,\"https\":\"{{storm-site/ui.https.port}}\",\"https_property\":\"{{storm-site/ui.https.keystore.type}}\",\"https_property_value\":\"jks\"}}");
+
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog250.class).updateStormAlerts();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateAlerts_StormUIPortAlert() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity stormUIPortAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("storm_server_process")))
+            .andReturn(stormUIPortAlertMock).atLeastOnce();
+
+    mockAlertDefinitionDAO.remove(stormUIPortAlertMock);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+
+    mockInjector.getInstance(UpgradeCatalog250.class).updateStormAlerts();
+    easyMockSupport.verifyAll();
   }
 
   @Test
