@@ -21,6 +21,26 @@
         <service>
             <name>AMBARI_METRICS</name>
             <extends>common-services/AMBARI_METRICS/0.1.0</extends>
+            <components>
+                <component>
+                    <name>METRICS_MONITOR</name>
+                    <displayName>Metrics Monitor</displayName>
+                    <category>SLAVE</category>
+                    <cardinality>0+</cardinality>
+                    <versionAdvertised>false</versionAdvertised>
+                    <commandScript>
+                        <script>scripts/metrics_monitor.py</script>
+                        <scriptType>PYTHON</scriptType>
+                        <timeout>1200</timeout>
+                    </commandScript>
+                    <logs>
+                        <log>
+                            <logId>ams_monitor</logId>
+                            <primary>true</primary>
+                        </log>
+                    </logs>
+                </component>
+            </components>
         </service>
     </services>
 </metainfo>
