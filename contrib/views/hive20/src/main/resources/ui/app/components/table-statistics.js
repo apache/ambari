@@ -28,7 +28,7 @@ export default Ember.Component.extend({
 
   columnStatsAccurate: Ember.computed('table.tableStats.columnStatsAccurate', function () {
     let columnStatsJson = this.get('table.tableStats.columnStatsAccurate');
-    return JSON.parse(columnStatsJson.replace(/\\\"/g, '"'));
+    return Ember.isEmpty(columnStatsJson) ? {} : JSON.parse(columnStatsJson.replace(/\\\"/g, '"'));
   }),
 
   columnsWithStatistics: Ember.computed('columnStatsAccurate', function () {
