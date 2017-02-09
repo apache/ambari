@@ -25,6 +25,7 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
+from resource_management.core import sudo
 
 __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
@@ -197,12 +198,9 @@ class DownloadSource(Source):
       content = web_file.read()
       
       if self.cache:
-        with open(filepath, 'w') as fp:
-          fp.write(content)
+        sudo.create_file(filepath, content)
     else:
       Logger.info("Not downloading the file from {0}, because {1} already exists".format(self.url, filepath))
-        
-      with open(filepath) as fp:
-        content = fp.read()
+      content = sudo.read_file(filepath)
 
     return content
