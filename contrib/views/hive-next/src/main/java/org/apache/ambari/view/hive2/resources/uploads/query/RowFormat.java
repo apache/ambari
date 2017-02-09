@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads.query;
+package org.apache.ambari.view.hive2.resources.uploads.query;
 
 public class RowFormat {
   private Character fieldsTerminatedBy;
