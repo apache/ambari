@@ -463,7 +463,7 @@
       padding: 0;
       color: @green;
       &:focus {
-        border-color: none;
+        border-color: transparent;
         box-shadow: 0;
         outline: 0 none;
       }
@@ -479,6 +479,14 @@
   .text-field-wrapper {
     width: 70%;
     float: left;
+  }
+}
+
+.widget-config {
+  .text-field-wrapper {
+    input {
+      display: inline-block;
+    }
   }
 }
 
