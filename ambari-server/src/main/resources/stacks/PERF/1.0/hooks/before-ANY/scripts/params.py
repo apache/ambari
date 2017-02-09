@@ -39,4 +39,6 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_location = config['hostLevelParams']['jdk_location']
 java_version = expect("/hostLevelParams/java_version", int)
 
+service_name = config["serviceName"]
+component_name = config["role"]
 sudo = AMBARI_SUDO_BINARY

@@ -62,9 +62,9 @@ if not is_ams_distributed and len(ams_collector_list) > 1:
 
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-  metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
-else:
-  metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_vip_host']
+
+metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
 random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 

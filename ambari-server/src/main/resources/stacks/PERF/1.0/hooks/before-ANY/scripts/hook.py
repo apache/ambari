@@ -28,8 +28,10 @@ class BeforeAnyHook(Hook):
     env.set_params(params)
 
     #For AMS.
-    setup_users()
-    setup_java()
+    if params.service_name == 'AMBARI_METRICS':
+      setup_users()
+      if params.component_name == 'METRICS_COLLECTOR':
+        setup_java()
 
 if __name__ == "__main__":
   BeforeAnyHook().execute()

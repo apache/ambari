@@ -35,6 +35,7 @@ CONF_SELECT_DEST = "/usr/bin/conf-select"
 class BeforeInstallHook(Hook):
 
   def hook(self, env):
+    self.run_custom_hook('before-ANY')
     print "Before Install Hook"
     cache_dir = self.extrakt_var_from_pythonpath(AMBARI_AGENT_CACHE_DIR)
     conf_select = os.path.join(cache_dir, CONF_SELECT_PY)
