@@ -30,31 +30,6 @@
     ],
     "STORM_UI_SERVER": [
       {
-        "name": "storm_server_process",
-        "label": "Storm Server Process",
-        "interval": 1,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "PORT",
-          "uri": "{{storm-site/ui.port}}",
-          "default_port": 8744,
-          "reporting": {
-            "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
-            },
-            "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
-            },
-            "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
-            }
-          }
-        }
-      },
-      {
         "name": "storm_webui",
         "label": "Storm Web UI",
         "interval": 1,
@@ -64,9 +39,12 @@
           "type": "WEB",
           "uri": {
             "http": "{{storm-site/ui.port}}",
+            "https" : "{{storm-site/ui.https.port}}",
             "kerberos_keytab": "{{storm-env/storm_ui_keytab}}",
             "kerberos_principal": "{{storm-env/storm_ui_principal_name}}",
-            "connection_timeout": 5.0
+            "connection_timeout": 5.0,
+            "https_property": "{{storm-site/ui.https.keystore.type}}",
+            "https_property_value": "jks"
           },
           "reporting": {
             "ok": {

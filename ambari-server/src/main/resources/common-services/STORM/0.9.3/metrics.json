@@ -7,7 +7,9 @@
           "default_port": "8744",
           "port_config_type": "storm-site",
           "port_property_name": "ui.port",
-          "protocol": "http"
+          "protocol": "http",
+          "https_port_property_name" : "ui.https.port",
+          "https_property_name" : "ui.https.keystore.type"
         },
         "metrics": {
           "default": {
@@ -62,7 +64,9 @@
           "default_port": "8744",
           "port_config_type": "storm-site",
           "port_property_name": "ui.port",
-          "protocol": "http"
+          "protocol": "http",
+          "https_port_property_name" : "ui.https.port",
+          "https_property_name" : "ui.https.keystore.type"
         },
         "metrics": {
           "default": {
