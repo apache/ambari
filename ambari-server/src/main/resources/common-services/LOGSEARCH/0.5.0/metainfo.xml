@@ -24,6 +24,12 @@
       <comment>Log aggregation, analysis, and visualization for Ambari managed services. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
       <version>0.5.0</version>
 
+
+      <credential-store>
+        <supported>true</supported>
+        <enabled>true</enabled>
+      </credential-store>
+
       <components>
 
         <component>

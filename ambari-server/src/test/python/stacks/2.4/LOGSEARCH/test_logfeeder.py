@@ -55,33 +55,14 @@ class TestLogFeeder(RMFTestCase):
                               cd_access='a',
                               mode=0755
                               )
-    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf/keys',
-                              owner = 'logsearch',
-                              group = 'hadoop',
-                              cd_access = 'a',
-                              mode = 0755
-                              )
-
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/keys/ks_pass.txt',
-                              owner='logsearch',
-                              group='hadoop',
-                              mode=0600,
-                              content='bigdata'
-                              )
-
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/keys/ts_pass.txt',
-                              owner='logsearch',
-                              group='hadoop',
-                              mode=0600,
-                              content='bigdata'
-                              )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-logfeeder/logfeeder.out',
                               mode=0644,
                               content=''
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
-                              properties={'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
+                              properties={'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.jceks',
+                                          'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
                                           'logfeeder.config.files': 'output.config.json,input.config-ambari.json,global.config.json,input.config-logsearch.json,input.config-zookeeper.json',
                                           'logfeeder.metrics.collector.hosts': '',
                                           'logfeeder.metrics.collector.path': '/ws/v1/timeline/metrics',

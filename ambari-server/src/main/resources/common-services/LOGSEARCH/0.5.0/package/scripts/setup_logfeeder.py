@@ -22,6 +22,7 @@ from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.functions.security_commons import update_credential_provider_path, HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME
 
 def setup_logfeeder():
   import params
@@ -39,31 +40,18 @@ def setup_logfeeder():
             recursive_ownership=True
             )
 
-  Directory(params.logsearch_logfeeder_keys_folder,
-            cd_access='a',
-            mode=0755,
-            owner=params.logsearch_user,
-            group=params.user_group)
-
-  File(format("{logsearch_logfeeder_keys_folder}/ks_pass.txt"),
-       content=params.logfeeder_keystore_password,
-       mode=0600,
-       owner=params.logsearch_user,
-       group=params.user_group
-       )
-
-  File(format("{logsearch_logfeeder_keys_folder}/ts_pass.txt"),
-       content=params.logfeeder_truststore_password,
-       mode=0600,
-       owner=params.logsearch_user,
-       group=params.user_group
-       )
-
   File(params.logfeeder_log,
        mode=0644,
        content=''
        )
 
+  params.logfeeder_env_config = update_credential_provider_path(params.logfeeder_env_config,
+                                                                'logfeeder-env',
+                                                                params.logfeeder_env_jceks_file,
+                                                                params.logsearch_user,
+                                                                params.user_group
+                                                                )
+  params.logfeeder_properties[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file' + params.logfeeder_env_jceks_file
   PropertiesFile(format("{logsearch_logfeeder_conf}/logfeeder.properties"),
                  properties = params.logfeeder_properties
                  )
