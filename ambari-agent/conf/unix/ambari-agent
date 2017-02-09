@@ -175,7 +175,7 @@ case "${1:-}" in
         fi
         echo "Checking for previously running Ambari Agent..."
         if [ -f $PIDFILE ]; then
-          PID=`cat $PIDFILE`
+          PID=`ambari-sudo.sh cat $PIDFILE`
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$PIDFILE found with no process. Removing $PID..."
             ambari-sudo.sh rm -f $PIDFILE
@@ -223,7 +223,7 @@ case "${1:-}" in
         ;;
   status)
         if [ -f $PIDFILE ]; then
-          PID=`cat $PIDFILE`
+          PID=`ambari-sudo.sh cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
@@ -249,7 +249,7 @@ case "${1:-}" in
           exit -1
         fi
         if [ -f $PIDFILE ]; then
-          PID=`cat $PIDFILE`
+          PID=`ambari-sudo.sh cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             tput bold
