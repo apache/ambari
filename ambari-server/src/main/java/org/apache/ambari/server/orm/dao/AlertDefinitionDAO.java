@@ -321,16 +321,15 @@ public class AlertDefinitionDAO {
     EntityManager entityManager = entityManagerProvider.get();
     entityManager.persist(alertDefinition);
 
-    AlertGroupEntity group = dispatchDao.findDefaultServiceGroup(
-        alertDefinition.getClusterId(), alertDefinition.getServiceName());
+    AlertGroupEntity group = dispatchDao.findDefaultServiceGroup(alertDefinition.getClusterId(),
+        alertDefinition.getServiceName());
 
     if (null == group) {
       // create the default alert group for the new service; this MUST be done
       // before adding definitions so that they are properly added to the
       // default group
       String serviceName = alertDefinition.getServiceName();
-      group = dispatchDao.createDefaultGroup(alertDefinition.getClusterId(),
-          serviceName);
+      group = dispatchDao.createDefaultGroup(alertDefinition.getClusterId(), serviceName);
     }
 
     group.addAlertDefinition(alertDefinition);

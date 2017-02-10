@@ -158,7 +158,7 @@ public class AlertDispatchDAOTest {
     assertEquals(1, targets.size());
 
     // find by ids
-    List<Long> ids = new ArrayList<Long>();
+    List<Long> ids = new ArrayList<>();
     ids.add(targets.get(0).getTargetId());
     ids.add(99999L);
 
@@ -213,7 +213,7 @@ public class AlertDispatchDAOTest {
     assertEquals(group, actual);
 
     //find by id
-    List<Long> ids = new ArrayList<Long>();
+    List<Long> ids = new ArrayList<>();
     ids.add(groups.get(0).getGroupId());
     ids.add(groups.get(1).getGroupId());
     ids.add(99999L);
@@ -243,7 +243,7 @@ public class AlertDispatchDAOTest {
   public void testCreateUpdateRemoveGroup() throws Exception {
     // create group
     AlertTargetEntity target = m_helper.createAlertTarget();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
     targets.add(target);
 
     AlertGroupEntity group = m_helper.createAlertGroup(
@@ -299,7 +299,7 @@ public class AlertDispatchDAOTest {
     int targetCount = m_dao.findAllTargets().size();
 
     AlertTargetEntity target = m_helper.createAlertTarget();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
     targets.add(target);
 
     AlertGroupEntity group = m_helper.createAlertGroup(
@@ -430,7 +430,7 @@ public class AlertDispatchDAOTest {
   @Test
   public void testDeleteAssociatedTarget() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
     targets.add(target);
 
     AlertGroupEntity group = m_helper.createAlertGroup(
@@ -473,7 +473,7 @@ public class AlertDispatchDAOTest {
 
     m_dao.merge(group);
 
-    group = m_dao.findGroupByName(group.getGroupName());
+    group = m_dao.findGroupByName(m_cluster.getClusterId(), group.getGroupName());
     assertEquals(definitions.size(), group.getAlertDefinitions().size());
 
     // assert that the definition is now part of 2 groups (the default group
@@ -690,7 +690,7 @@ public class AlertDispatchDAOTest {
 
     m_alertHelper.populateData(m_cluster);
 
-    List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();
+    List<SortRequestProperty> sortProperties = new ArrayList<>();
     SortRequest sortRequest = new SortRequestImpl(sortProperties);
 
     AlertNoticeRequest request = new AlertNoticeRequest();
@@ -850,7 +850,7 @@ public class AlertDispatchDAOTest {
    * @throws Exception
    */
   private Set<AlertTargetEntity> createTargets(int numberOfTargets) throws Exception {
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
     for (int i = 0; i < numberOfTargets; i++) {
       AlertTargetEntity target = new AlertTargetEntity();
       target.setDescription("Target Description " + i);
@@ -883,7 +883,7 @@ public class AlertDispatchDAOTest {
 
     m_dao.merge(group);
 
-    group = m_dao.findGroupByName(group.getGroupName());
+    group = m_dao.findGroupByName(m_cluster.getClusterId(), group.getGroupName());
     assertEquals(definitions.size(), group.getAlertDefinitions().size());
 
     for (AlertDefinitionEntity definition : definitions) {
@@ -894,7 +894,7 @@ public class AlertDispatchDAOTest {
     m_definitionDao.remove(definitions.get(0));
     definitions.remove(0);
 
-    group = m_dao.findGroupByName(group.getGroupName());
+    group = m_dao.findGroupByName(m_cluster.getClusterId(), group.getGroupName());
     assertEquals(definitions.size(), group.getAlertDefinitions().size());
 
     for (AlertDefinitionEntity definition : definitions) {
