@@ -2279,7 +2279,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {
