@@ -1719,7 +1719,7 @@ describe('App.MainServiceItemController', function () {
       mainServiceItemController.deleteServiceCall.restore();
     });
 
-    it("window.location.reload should be called", function() {
+    it("saveConfigs should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {});
       expect(mainServiceItemController.deleteServiceCall.called).to.be.false;
       expect(mainServiceItemController.saveConfigs.calledOnce).to.be.true;
@@ -1877,5 +1877,49 @@ describe('App.MainServiceItemController', function () {
       })]);
       expect(mainServiceItemController.isRangerPluginEnabled()).to.be.true;
     });
+  });
+
+  describe('#dependentServiceNames', function () {
+
+    var controller,
+      serviceName = 's0',
+      dependentServiceNames = ['s1', 's2'],
+      testCases = [
+        {
+          isConfigsPropertiesLoaded: true,
+          dependentServiceNames: dependentServiceNames,
+          message: 'model is ready'
+        },
+        {
+          isConfigsPropertiesLoaded: false,
+          dependentServiceNames: [],
+          message: 'model is not ready'
+        }
+      ];
+
+    beforeEach(function () {
+      controller = App.MainServiceItemController.create({
+        content: {
+          serviceName: serviceName
+        }
+      });
+      sinon.stub(App.StackService, 'find').returns(Em.Object.create({
+        dependentServiceNames: dependentServiceNames
+      }));
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+    });
+
+    testCases.forEach(function (test) {
+
+      it(test.message, function () {
+        App.set('router.clusterController.isConfigsPropertiesLoaded', test.isConfigsPropertiesLoaded);
+        expect(controller.get('dependentServiceNames')).to.eql(test.dependentServiceNames);
+      });
+
+    });
+
   });
 });

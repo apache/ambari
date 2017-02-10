@@ -144,8 +144,9 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {String[]}
    */
   dependentServiceNames: function() {
-    return App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames');
-  }.property('content.serviceName'),
+    return App.get('router.clusterController.isConfigsPropertiesLoaded') ?
+      App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames') : [];
+  }.property('content.serviceName', 'App.router.clusterController.isConfigsPropertiesLoaded'),
 
   /**
    * List of service names that could be deleted
@@ -204,32 +205,35 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   onLoadConfigsTags: function (data) {
     var self = this;
-    var sitesToLoad = this.get('sitesToLoad'), allConfigs = [];
-    var loadedSites = data.Clusters.desired_configs;
-    var siteTagsToLoad = [];
-    for (var site in loadedSites) {
-      if (sitesToLoad.contains(site)) {
-        siteTagsToLoad.push({
-          siteName: site,
-          tagName: loadedSites[site].tag
-        });
+    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
+      var sitesToLoad = self.get('sitesToLoad'),
+        allConfigs = [],
+        loadedSites = data.Clusters.desired_configs,
+        siteTagsToLoad = [];
+      for (var site in loadedSites) {
+        if (sitesToLoad.contains(site)) {
+          siteTagsToLoad.push({
+            siteName: site,
+            tagName: loadedSites[site].tag
+          });
+        }
       }
-    }
-    App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
-      configs.forEach(function (site) {
-        self.get('configs')[site.type] = site.properties;
-        allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
-      });
-
-      self.get('dependentServiceNames').forEach(function(serviceName) {
-        var configTypes = App.StackService.find(serviceName).get('configTypeList');
-        var configsByService = allConfigs.filter(function (c) {
-          return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
+      App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
+        configs.forEach(function (site) {
+          self.get('configs')[site.type] = site.properties;
+          allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
         });
-        self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
-      });
 
-      self.set('isServiceConfigsLoaded', true);
+        self.get('dependentServiceNames').forEach(function(serviceName) {
+          var configTypes = App.StackService.find(serviceName).get('configTypeList');
+          var configsByService = allConfigs.filter(function (c) {
+            return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
+          });
+          self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+        });
+
+        self.set('isServiceConfigsLoaded', true);
+      });
     });
   },
 
@@ -1290,7 +1294,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
       popupPrimary = Em.I18n.t('common.delete'),
       warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
-        (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : '');
+        (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
+      callback = this.loadConfigRecommendations.bind(this, null, function () {
+        var serviceNames = self.get('changedProperties').mapProperty('serviceName').uniq();
+        self.loadConfigGroups(serviceNames).done(function () {
+          self.set('isRecommendationInProgress', false);
+        })
+      });
     this.clearRecommendations();
     this.setProperties({
       isRecommendationInProgress: true,
@@ -1298,12 +1308,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         isDefault: true
       })
     });
-    this.loadConfigRecommendations(null, function () {
-      var serviceNames = self.get('changedProperties').mapProperty('serviceName').uniq();
-      self.loadConfigGroups(serviceNames).done(function () {
-        self.set('isRecommendationInProgress', false);
-      })
-    });
+    App.get('router.mainController.isLoading').call(this, 'isServiceConfigsLoaded').done(callback);
     return App.ModalPopup.show({
       controller: self,
       header: popupHeader,
