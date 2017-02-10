@@ -3683,7 +3683,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.service_setup")
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
-  def test_setup(self, expand_jce_zip_file_mock, read_ambari_user_mock,
+  def test_setup_linux(self, expand_jce_zip_file_mock, read_ambari_user_mock,
                  service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
@@ -3695,8 +3695,10 @@ class TestAmbariServer(TestCase):
                  remove_file_mock, isfile_mock, exists_mock,
                  run_os_command_mock, get_pw_nam_mock):
     hostname = "localhost"
+    db_admin_user = 'postgres'
     db_name = "db_ambari"
     postgres_schema = "sc_ambari"
+    db_username = 'u_ambari'
     port = "1234"
     oracle_service = "1"
     oracle_service_name = "ambari"
@@ -3750,6 +3752,7 @@ class TestAmbariServer(TestCase):
       run_os_command_1_mock.reset_mock()
       get_YN_input_1_mock.reset_mock()
       update_properties_mock.reset_mock()
+      extract_views_mock.reset_mock()
 
       args = MagicMock()
 
@@ -3770,6 +3773,7 @@ class TestAmbariServer(TestCase):
       args.jdbc_db = None
 
       args.silent = False
+      args.skip_view_extraction = False
 
       return args
 
@@ -3778,11 +3782,8 @@ class TestAmbariServer(TestCase):
     is_root_mock.return_value = False
     try:
       setup(args)
-      self.fail("Should throw exception")
     except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
-      pass
+      self.fail("Should not throw exception, only print warning") # see AMBARI-15245
 
     args = reset_mocks()
 
@@ -3800,14 +3801,20 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, result)
     self.assertTrue(check_ambari_user_mock.called)
     self.assertEqual(1, run_os_command_mock.call_count)
+    self.assertTrue(extract_views_mock.called)
+
+    # test view extraction is skipped on-demand
+    args = reset_mocks()
+    args.skip_view_extraction = True
+    setup(args)
+    self.assertFalse(extract_views_mock.called)
 
     #Local case
     args = reset_mocks()
 
     # Input values
     db_selection_values = ["1"]
-    postgres_values = [db_name, postgres_schema, hostname]
-
+    postgres_values = [db_admin_user, db_name, postgres_schema, db_username]
     postgres_values = postgres_values[::-1]       # Reverse the list since the input will be popped
 
     def side_effect(*args, **kwargs):
@@ -3832,7 +3839,8 @@ class TestAmbariServer(TestCase):
     self.assertTrue(run_os_command_1_mock.called)
     self.assertFalse(remove_file_mock.called)
 
-    self.assertTrue("Ambari-DDL-Postgres-EMBEDDED-CREATE.sql" in run_os_command_1_mock.call_args[0][0][3])
+    self.assertTrue("Ambari-DDL-Postgres-CREATE.sql" in run_os_command_1_mock.call_args[0][0][3])
+    self.assertTrue("-U {0}".format(db_username) in run_os_command_1_mock.call_args[0][0][3])
 
     #if DB user name was changed
     args = reset_mocks()
@@ -3841,8 +3849,7 @@ class TestAmbariServer(TestCase):
     is_jdbc_user_changed_mock.return_value = True
 
     db_selection_values = ["1"]
-    postgres_values = [db_name, postgres_schema, hostname]
-
+    postgres_values = [db_admin_user, db_name, postgres_schema, db_username]
     postgres_values = postgres_values[::-1]       # Reverse the list since the input will be popped
 
     try:
@@ -3862,7 +3869,6 @@ class TestAmbariServer(TestCase):
     get_YN_input_1_mock.return_value = False
     db_selection_values = ["4"]
     postgres_values = [hostname, port, db_name, postgres_schema, user_name]
-
     postgres_values = postgres_values[::-1]       # Reverse the list since the input will be popped
 
     try:
@@ -3883,7 +3889,9 @@ class TestAmbariServer(TestCase):
     self.assertTrue(proceedJDBCProperties_mock.called)
     self.assertFalse(disable_security_enhancements_mock.called)
     self.assertFalse(check_ambari_user_mock.called)
+
     pass
+
 
   @only_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -3913,7 +3921,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.service_setup")
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
-  def test_setup(self, expand_jce_zip_file_mock, read_ambari_user_mock,
+  def test_setup_windows(self, expand_jce_zip_file_mock, read_ambari_user_mock,
                  service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock, check_firewall_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,

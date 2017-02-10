@@ -1145,11 +1145,12 @@ def setup(options):
 
   check_jdbc_drivers(options)
 
-  print 'Extracting system views...'
-  retcode = extract_views(options)
-  if not retcode == 0:
-    err = 'Error while extracting system views. Exiting'
-    raise FatalException(retcode, err)
+  if not options.skip_view_extraction:
+    print 'Extracting system views...'
+    retcode = extract_views(options)
+    if not retcode == 0:
+      err = 'Error while extracting system views. Exiting'
+      raise FatalException(retcode, err)
 
   # we've already done this, but new files were created so run it one time.
   adjust_directory_permissions(svc_user)
