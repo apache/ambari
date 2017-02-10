@@ -56,6 +56,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -236,6 +237,148 @@ public class ClusterBlueprintRendererTest {
     assertNotNull(propertyTree.getChild("Host/HostComponent"));
     assertEquals(1, propertyTree.getChild("Host/HostComponent").getObject().size());
     assertTrue(propertyTree.getChild("Host/HostComponent").getObject().contains("HostRoles/component_name"));
+  }
+
+  public TreeNode<Resource> createResultTreeSettingsObject(TreeNode<Resource> resultTree){
+    Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
+
+    clusterResource.setProperty("Clusters/cluster_name", "testCluster");
+    clusterResource.setProperty("Clusters/version", "HDP-1.3.3");
+
+    TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
+
+    TreeNode<Resource> servicesTree = clusterTree.addChild(null, "services");
+    servicesTree.setProperty("isCollection", "true");
+
+    //Scenario 1 : Service with Credential Store enabled, Recovery enabled for Component:1 and not for Component:2
+    Resource serviceResource1 = new ResourceImpl(Resource.Type.Service);
+    serviceResource1.setProperty("ServiceInfo/service_name","Service:1");
+    serviceResource1.setProperty("ServiceInfo/credential_store_supported","true");
+    serviceResource1.setProperty("ServiceInfo/credential_store_enabled","true");
+    TreeNode<Resource> serviceTree = servicesTree.addChild(serviceResource1, "Service:1");
+
+    Resource ttComponentResource = new ResourceImpl(Resource.Type.Component);
+    ttComponentResource.setProperty("ServiceComponentInfo/component_name", "Component:1");
+    ttComponentResource.setProperty("ServiceComponentInfo/cluster_name", "testCluster");
+    ttComponentResource.setProperty("ServiceComponentInfo/service_name", "Service:1");
+    ttComponentResource.setProperty("ServiceComponentInfo/recovery_enabled", "true");
+
+    Resource dnComponentResource = new ResourceImpl(Resource.Type.Component);
+    dnComponentResource.setProperty("ServiceComponentInfo/component_name", "Component:2");
+    dnComponentResource.setProperty("ServiceComponentInfo/cluster_name", "testCluster");
+    dnComponentResource.setProperty("ServiceComponentInfo/service_name", "Service:1");
+    dnComponentResource.setProperty("ServiceComponentInfo/recovery_enabled", "false");
+
+    TreeNode<Resource> componentsTree1 = serviceTree.addChild(null, "components");
+    componentsTree1.setProperty("isCollection", "true");
+
+    componentsTree1.addChild(ttComponentResource, "Component:1");
+    componentsTree1.addChild(dnComponentResource, "Component:2");
+
+    //Scenario 2 :Service with Credential Store disabled, Recovery enabled for Component:1
+    Resource serviceResource2 = new ResourceImpl(Resource.Type.Service);
+    serviceResource2.setProperty("ServiceInfo/service_name","Service:2");
+    serviceResource2.setProperty("ServiceInfo/credential_store_supported","true");
+    serviceResource2.setProperty("ServiceInfo/credential_store_enabled","false");
+    serviceTree = servicesTree.addChild(serviceResource2, "Service:2");
+
+    ttComponentResource = new ResourceImpl(Resource.Type.Component);
+    ttComponentResource.setProperty("ServiceComponentInfo/component_name", "Component:1");
+    ttComponentResource.setProperty("ServiceComponentInfo/cluster_name", "testCluster");
+    ttComponentResource.setProperty("ServiceComponentInfo/service_name", "Service:2");
+    ttComponentResource.setProperty("ServiceComponentInfo/recovery_enabled", "true");
+
+    TreeNode<Resource> componentsTree2 = serviceTree.addChild(null, "components");
+    componentsTree2.setProperty("isCollection", "true");
+
+    componentsTree2.addChild(ttComponentResource, "Component:1");
+
+    //Scenario 3 :Service with both Credential Store and Recovery enabled as false
+    Resource serviceResource3 = new ResourceImpl(Resource.Type.Service);
+    serviceResource3.setProperty("ServiceInfo/service_name","Service:3");
+    serviceResource3.setProperty("ServiceInfo/credential_store_supported","false");
+    serviceResource3.setProperty("ServiceInfo/credential_store_enabled","false");
+    serviceTree = servicesTree.addChild(serviceResource3, "Service:3");
+
+    ttComponentResource = new ResourceImpl(Resource.Type.Component);
+    ttComponentResource.setProperty("ServiceComponentInfo/component_name", "Component:1");
+    ttComponentResource.setProperty("ServiceComponentInfo/cluster_name", "testCluster");
+    ttComponentResource.setProperty("ServiceComponentInfo/service_name", "Service:3");
+    ttComponentResource.setProperty("ServiceComponentInfo/recovery_enabled", "false");
+
+    TreeNode<Resource> componentsTree3 = serviceTree.addChild(null, "components");
+    componentsTree3.setProperty("isCollection", "true");
+
+    componentsTree3.addChild(ttComponentResource, "Component:1");
+
+    //Add empty configurations
+    Resource configurationsResource = new ResourceImpl(Resource.Type.Configuration);
+    clusterTree.addChild(configurationsResource, "configurations");
+
+    //Add empty hosts
+    Resource hostResource = new ResourceImpl(Resource.Type.Host);
+    clusterTree.addChild(hostResource, "hosts");
+
+    return resultTree;
+  }
+
+  @Test
+  public void testGetSettings_instance(){
+    Result result = new ResultImpl(true);
+
+    TreeNode<Resource> resultTree = createResultTreeSettingsObject(result.getResultTree());
+
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
+    Result blueprintResult = renderer.finalizeResult(result);
+    TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
+    TreeNode<Resource> blueprintNode = blueprintTree.getChildren().iterator().next();
+    Resource blueprintResource = blueprintNode.getObject();
+    Map<String, Map<String, Object>> propertiesMap = blueprintResource.getPropertiesMap();
+    Map<String,Object> children = propertiesMap.get("");
+
+    //Verify if required information is present in actual result
+    assertTrue(children.containsKey("settings"));
+
+    List<Map<String,Object>> settingValues = (ArrayList)children.get("settings");
+    Boolean isRecoverySettings = false;
+    Boolean isComponentSettings = false;
+    Boolean isServiceSettings = false;
+
+    //Verify actual values
+    for(Map<String,Object> settingProp : settingValues){
+      if(settingProp.containsKey("recovery_settings")){
+        isRecoverySettings = true;
+        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("recovery_settings");
+        assertEquals(1,checkPropSize.size());
+        assertEquals("true",checkPropSize.iterator().next().get("recovery_enabled"));
+
+      }
+      if(settingProp.containsKey("component_settings")){
+        isComponentSettings = true;
+        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("component_settings");
+        assertEquals(1,checkPropSize.size());
+        Map<String, String> finalProp = checkPropSize.iterator().next();
+        assertEquals("Component:1",finalProp.get("name"));
+        assertEquals("true",finalProp.get("recovery_enabled"));
+      }
+      if(settingProp.containsKey("service_settings")){
+        isServiceSettings = true;
+        HashSet<Map<String,String>> checkPropSize = (HashSet)settingProp.get("service_settings");
+        assertEquals(2,checkPropSize.size());
+        for(Map<String,String> finalProp : checkPropSize){
+          if(finalProp.containsKey("credential_store_enabled")){
+            assertEquals("Service:1",finalProp.get("name"));
+            assertEquals("true",finalProp.get("recovery_enabled"));
+          }
+          assertFalse(finalProp.get("name").equals("Service:3"));
+        }
+      }
+    }
+    //Verify if required information is present in actual result
+    assertTrue(isRecoverySettings);
+    assertTrue(isComponentSettings);
+    assertTrue(isServiceSettings);
+
   }
 
   @Test

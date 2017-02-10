@@ -109,6 +109,20 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     if (resultTree.getChild(serviceType) == null) {
       resultTree.addChild(new HashSet<String>(), serviceType);
     }
+    TreeNode<Set<String>> serviceNode = resultTree.getChild(serviceType);
+    if (serviceNode == null) {
+      serviceNode = resultTree.addChild(new HashSet<String>(), serviceType);
+    }
+    String serviceComponentType = Resource.Type.Component.name();
+    TreeNode<Set<String>> serviceComponentNode = resultTree.getChild(
+      serviceType + "/" + serviceComponentType);
+    if (serviceComponentNode == null) {
+      serviceComponentNode = serviceNode.addChild(new HashSet<String>(), serviceComponentType);
+    }
+    serviceComponentNode.getObject().add("ServiceComponentInfo/cluster_name");
+    serviceComponentNode.getObject().add("ServiceComponentInfo/service_name");
+    serviceComponentNode.getObject().add("ServiceComponentInfo/component_name");
+    serviceComponentNode.getObject().add("ServiceComponentInfo/recovery_enabled");
 
     String hostType = Resource.Type.Host.name();
     String hostComponentType = Resource.Type.HostComponent.name();
@@ -214,7 +228,117 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     blueprintResource.setProperty("configurations", processConfigurations(topology));
 
+    //Fetch settings section for blueprint
+    blueprintResource.setProperty("settings", getSettings(clusterNode));
+
     return blueprintResource;
+  }
+
+  /***
+   * Constructs the Settings object of the following form:
+   * "settings": [   {
+   "recovery_settings": [
+   {
+   "recovery_enabled": "true"
+   }   ]   },
+   {
+   "service_settings": [   {
+   "name": "HDFS",
+   "recovery_enabled": "true",
+   "credential_store_enabled": "true"
+   },
+   {
+   "name": "TEZ",
+   "recovery_enabled": "false"
+   },
+   {
+   "name": "HIVE",
+   "recovery_enabled": "false"
+   }   ]   },
+   {
+   "component_settings": [   {
+   "name": "DATANODE",
+   "recovery_enabled": "true"
+   }   ]   }   ]
+   *
+   * @param clusterNode
+   * @return A Collection<Map<String, Object>> which represents the Setting Object
+   */
+  private Collection<Map<String, Object>> getSettings(TreeNode<Resource> clusterNode) {
+    LOG.info("ClusterBlueprintRenderer: getSettings()");
+
+    //Initialize collections to create appropriate json structure
+    Collection<Map<String, Object>> blueprintSetting = new ArrayList<Map<String, Object>>();
+
+    Set<Map<String, String>> recoverySettingValue = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> serviceSettingValue = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> componentSettingValue = new HashSet<Map<String, String>>();
+
+    HashMap<String, String> property = new HashMap<>();
+    HashMap<String, String> componentProperty = new HashMap<>();
+    Boolean globalRecoveryEnabled = false;
+
+    //Fetch the services, to obtain ServiceInfo and ServiceComponents
+    Collection<TreeNode<Resource>> serviceChildren = clusterNode.getChild("services").getChildren();
+    for (TreeNode serviceNode : serviceChildren) {
+      ResourceImpl service = (ResourceImpl) serviceNode.getObject();
+      Map<String, Object> ServiceInfoMap = service.getPropertiesMap().get("ServiceInfo");
+
+      //service_settings population
+      property = new HashMap<>();
+      if (ServiceInfoMap.get("credential_store_supported").equals("true")) {
+        if (ServiceInfoMap.get("credential_store_enabled").equals("true")) {
+          property.put("name", ServiceInfoMap.get("service_name").toString());
+          property.put("credential_store_enabled", "true");
+        }
+      }
+
+      //Fetch the service Components to obtain ServiceComponentInfo
+      Collection<TreeNode<Resource>> componentChildren = serviceNode.getChild("components").getChildren();
+      for (TreeNode componentNode : componentChildren) {
+        ResourceImpl component = (ResourceImpl) componentNode.getObject();
+        Map<String, Object> ServiceComponentInfoMap = component.getPropertiesMap().get("ServiceComponentInfo");
+
+        if (ServiceComponentInfoMap.get("recovery_enabled").equals("true")) {
+          globalRecoveryEnabled = true;
+          property.put("name", ServiceInfoMap.get("service_name").toString());
+          property.put("recovery_enabled", "true");
+
+          //component_settings population
+          componentProperty = new HashMap<>();
+          componentProperty.put("name", ServiceComponentInfoMap.get("component_name").toString());
+          componentProperty.put("recovery_enabled", "true");
+        }
+      }
+
+      if (!property.isEmpty())
+        serviceSettingValue.add(property);
+      if (!componentProperty.isEmpty())
+        componentSettingValue.add(componentProperty);
+    }
+    //recovery_settings population
+    property = new HashMap<>();
+    if (globalRecoveryEnabled) {
+      property.put("recovery_enabled", "true");
+    } else {
+      property.put("recovery_enabled", "false");
+    }
+    recoverySettingValue.add(property);
+
+    //Add all the different setting values.
+    Map<String, Object> settingMap = new HashMap<>();
+    settingMap.put("recovery_settings", recoverySettingValue);
+    blueprintSetting.add(settingMap);
+
+    settingMap = new HashMap<>();
+    settingMap.put("service_settings", serviceSettingValue);
+    blueprintSetting.add(settingMap);
+
+    settingMap = new HashMap<>();
+    settingMap.put("component_settings", componentSettingValue);
+    blueprintSetting.add(settingMap);
+
+    return blueprintSetting;
   }
 
   private Map<String, Object> getKerberosDescriptor(ClusterController clusterController, String clusterName) throws AmbariException {
