@@ -90,8 +90,10 @@ let Column = Ember.Object.extend(Ember.Copyable,{
       } else if(this.get('type.hasScale') && this.get('scale') && (this.get('precision') < this.get('scale'))) {
         this.get('errors').pushObject({type: 'precision', error: "Precision can only be greater than scale"});
       }
-
+    }else{
+      delete this.precision;
     }
+
 
     if(this.get('type.hasScale')) {
       if(Ember.isEmpty(this.get('scale'))) {
@@ -101,8 +103,10 @@ let Column = Ember.Object.extend(Ember.Copyable,{
       } else if(this.get('scale') <= 0) {
         this.get('errors').pushObject({type: 'scale', error: "Scale can only be greater than zero"});
       }
-
+    }else{
+      delete this.scale;
     }
+
     return this.get('errors.length') === 0;
   },
 

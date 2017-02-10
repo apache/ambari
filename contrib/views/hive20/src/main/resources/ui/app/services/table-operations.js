@@ -178,12 +178,12 @@ export default Ember.Service.extend({
       }
 
       if (!Ember.isEmpty(storageSettings.rowFormat.nullDefinedAs)) {
-        parameters['serialization.null.format'] = String.fromCharCode(storageSettings.rowFormat.fieldTerminatedBy.id);
+        parameters['serialization.null.format'] = String.fromCharCode(storageSettings.rowFormat.nullDefinedAs.id);
         addParameters = true;
       }
 
       if (!Ember.isEmpty(storageSettings.rowFormat.escapeDefinedAs)) {
-        parameters['escape.delim'] = String.fromCharCode(storageSettings.rowFormat.linesTerminatedBy.id);
+        parameters['escape.delim'] = String.fromCharCode(storageSettings.rowFormat.escapeDefinedAs.id);
         addParameters = true;
       }
 
