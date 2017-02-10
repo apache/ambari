@@ -31,6 +31,7 @@ export default Ember.Component.extend({
   errors: [],
   editMode: false,
   disableTransactionInput: false,
+  disableNumBucketsInput: false,
 
   settings: {},
 
@@ -71,6 +72,10 @@ export default Ember.Component.extend({
     }
     if(!Ember.isEmpty(this.get('settings.transactional')) && this.get('settings.transactional') && this.get('editMode')) {
       this.set('disableTransactionInput', true);
+    }
+
+    if(!Ember.isEmpty(this.get('settings.numBuckets')) && this.get('settings.numBuckets') && this.get('editMode')) {
+      this.set('disableNumBucketsInput', true);
     }
   },
 

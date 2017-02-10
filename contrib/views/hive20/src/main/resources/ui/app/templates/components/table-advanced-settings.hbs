@@ -39,7 +39,7 @@
           <label class="col-md-2 control-label">Number of buckets</label>
           <div class="col-md-6">
             <div class="{{if hasNumBucketError 'has-error'}}">
-              {{input type="number" class="form-control" value=settings.numBuckets}}
+              {{input type="number" class="form-control" value=settings.numBuckets disabled=disableNumBucketsInput}}
               {{#if hasNumBucketError}}
                 <span class="help-block">{{numBucketErrorText}}</span>
               {{/if}}
