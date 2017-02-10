@@ -30,7 +30,8 @@ var CytoscapeRenderer= Ember.Object.extend({
       container: this.get("context").$('#'+this.id),
       elements: [],
       style: CytoscapeStyles.style,
-      layout: this.get("layoutConfigs")
+      layout: this.get("layoutConfigs"),
+      pixelRatio : 1
     });
 
     // the default values of each option are outlined below:
@@ -98,6 +99,7 @@ var CytoscapeRenderer= Ember.Object.extend({
         data: {
           id: node.id, name: node.name, type: node.type,
           shape: self._getShape(node.type),
+          type : node.type,
           node: node
         },
         dataNodeName: Ember.computed.alias('data.node.name')
@@ -298,15 +300,44 @@ var CytoscapeRenderer= Ember.Object.extend({
 
     this.get("context").$('.overlay-settings-icon i').off('click');
     this.get("context").$('.overlay-settings-icon i').on('click',function(){
-      this.get("context").openWorkflowEditor(this.get("context").$(".overlay-settings-icon").data("node"));
+      let node = this.get("context").$(".overlay-settings-icon").data("node");
+      this.populateOkToandErrorTONodes(node);
+      this.get("context").openWorkflowEditor(node);
       this.get("context").$('.overlay-node-actions').hide();
     }.bind(this));
   },
-
+  populateOkToandErrorTONodes(node){
+    let alternatePathNodes = this.cy.$('#'+node.id).predecessors("node[name][type='decision']").union(this.cy.$('#'+node.id).predecessors("node[name][type='decision']"));
+    let descendantNodes = [];
+    if(alternatePathNodes.length > 0){
+      alternatePathNodes.forEach(childNode =>{
+        let childNodeData = childNode.data();
+        if(childNodeData.type === 'placeholder'){
+          return;
+        }
+        let successors = this.cy.$(`#${childNodeData.id}`).successors("node[name]").difference(this.cy.$('#'+node.id).incomers("node[name]"));
+        descendantNodes.pushObjects(successors.jsons().mapBy('data.node'));
+      });
+    }else{
+      descendantNodes.pushObjects(this.cy.$(`#${node.id}`).successors("node[name]").jsons().mapBy('data.node'));
+    }
+    let okToNodes = [];
+    let errorToNodes = [];
+    okToNodes = descendantNodes.reject((descendantNode)=>{
+      return descendantNode.get('type') === 'placeholder' || descendantNode.get('type') === 'kill' || descendantNode.id === node.id;
+    }, this);
+    errorToNodes = descendantNodes.reject((descendantNode)=>{
+      return descendantNode.get('type') === 'placeholder' || descendantNode.id === node.id;
+    }, this);
+    node.set('validOkToNodes', okToNodes);
+    node.set('validErrorToNodes', errorToNodes);
+  },
   renderWorkflow(workflow){
     this._getCyDataNodes(workflow);
+    this.cy.startBatch();
     this.cy.$('node').remove();
     this.cy.add(this.get('dataNodes'));
+    this.cy.endBatch();
     this.cy.layout(this.get("layoutConfigs"));
     this._setCyOverflow();
   },
@@ -315,6 +346,7 @@ var CytoscapeRenderer= Ember.Object.extend({
     this.context=settings.context;
     this.dataNodes=settings.dataNodes;
     this.cyOverflow=settings.cyOverflow;
+    this.id=settings.id;
     this._initCY(settings);
     callback();
   },
