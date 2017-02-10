@@ -44,7 +44,7 @@ def service(componentName, action='start', serviceName='yarn'):
   if serviceName == 'mapreduce' and componentName == 'historyserver':
     delete_pid_file = True
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
-    pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{componentName}.pid")
+    pid_file = format("{mapred_pid_dir}/hadoop-{mapred_user}-{componentName}.pid")
     usr = params.mapred_user
     log_dir = params.mapred_log_dir
   else:
@@ -52,7 +52,7 @@ def service(componentName, action='start', serviceName='yarn'):
     # may not work correctly when stopping the service
     delete_pid_file = False
     daemon = format("{yarn_bin}/yarn-daemon.sh")
-    pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{componentName}.pid")
+    pid_file = format("{yarn_pid_dir}/hadoop-{yarn_user}-{componentName}.pid")
     usr = params.yarn_user
     log_dir = params.yarn_log_dir
 
