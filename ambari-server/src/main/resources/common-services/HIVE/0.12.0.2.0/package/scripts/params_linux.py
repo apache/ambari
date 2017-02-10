@@ -684,6 +684,8 @@ if has_hive_interactive:
   num_retries_for_checking_llap_status = default('/configurations/hive-interactive-env/num_retries_for_checking_llap_status', 10)
   # Used in LLAP slider package creation
   yarn_nm_mem = config['configurations']['yarn-site']['yarn.nodemanager.resource.memory-mb']
+  if stack_supports_hive_interactive_ga:
+    num_llap_daemon_running_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes_for_llap_daemons']
   num_llap_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes']
   llap_daemon_container_size = config['configurations']['hive-interactive-site']['hive.llap.daemon.yarn.container.mb']
   llap_log_level = config['configurations']['hive-interactive-env']['llap_log_level']

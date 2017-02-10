@@ -1169,8 +1169,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '4'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
-
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '9216')
 
@@ -1369,6 +1369,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '3.0'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '9548')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
@@ -1561,7 +1563,9 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '48128')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
@@ -1762,7 +1766,9 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '38912')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '4')
@@ -1953,14 +1959,15 @@ class TestHDP25StackAdvisor(TestCase):
     configurations = {
     }
 
-
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
-
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '4'})
     self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=66.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=66.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=34.0\nyarn.scheduler.capacity.root.llap.capacity=34.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10571')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
@@ -1988,7 +1995,7 @@ class TestHDP25StackAdvisor(TestCase):
   #         Small configuration test with 3 nodes - 'yarn.nodemanager.resource.memory-mb' : 2046 and 'yarn.scheduler.minimum-allocation-mb' : 682, representing a small GCE cluster.
   #
   #         Expected : Configurations values recommended for llap related configs.
-  def test_recommendYARNConfigurations_three_node_manager_llap_configs_updated_2(self):
+  def test_recommendYARNConfigurations_three_node_manager_llap_configs_updated_3(self):
     # 3 node managers and yarn.nodemanager.resource.memory-mb": "12288"
     services = {
       "services": [{
@@ -2158,7 +2165,9 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '3.0'})
     self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=66.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=66.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=34.0\nyarn.scheduler.capacity.root.llap.capacity=34.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '682')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
@@ -2354,7 +2363,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '202752')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
@@ -2557,7 +2567,9 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1.0')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 5)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '36864')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '4')
@@ -2754,7 +2766,9 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '203918')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '10')
@@ -2947,7 +2961,9 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '202752')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
@@ -3139,6 +3155,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '202752')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
@@ -3361,6 +3379,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204288')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
@@ -3580,6 +3600,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '0')
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 0)
 
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '2048')
@@ -3962,6 +3983,8 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 1)
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 1)
+
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '200704')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
