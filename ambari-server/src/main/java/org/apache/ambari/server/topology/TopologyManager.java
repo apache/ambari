@@ -174,6 +174,12 @@ public class TopologyManager {
       synchronized (initializationLock) {
         if (!isInitialized) {
           replayRequests(persistedState.getAllRequests());
+          // ensure KERBEROS_CLIENT is present in each hostgroup even if it's not in original BP
+          for(ClusterTopology clusterTopology : clusterTopologyMap.values()) {
+            if (clusterTopology.isClusterKerberosEnabled()) {
+              addKerberosClient(clusterTopology);
+            }
+          }
           isInitialized = true;
         }
 
