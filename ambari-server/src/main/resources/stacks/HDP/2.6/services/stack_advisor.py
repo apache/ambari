@@ -138,6 +138,18 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         elif superset_database_type == "postgresql":
             putSupersetProperty("SUPERSET_DATABASE_PORT", "5432")
 
+  def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+
+    if "yarn-site" in services["configurations"] and \
+                    "yarn.resourcemanager.scheduler.monitor.enable" in services["configurations"]["yarn-site"]["properties"]:
+      scheduler_monitor_enabled = services["configurations"]["yarn-site"]["properties"]["yarn.resourcemanager.scheduler.monitor.enable"]
+      if scheduler_monitor_enabled.lower() == 'true':
+        putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "true")
+      else:
+        putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
+
   def getMetadataConnectionString(self, database_type):
       driverDict = {
           'mysql': 'jdbc:mysql://{0}:{2}/{1}?createDatabaseIfNotExist=true',
