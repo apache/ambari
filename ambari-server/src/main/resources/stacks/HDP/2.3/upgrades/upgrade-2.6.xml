@@ -35,6 +35,7 @@
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
+    <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
 
     <!-- Specific to HDP 2.5, Storm is not rolling -->
     <check>org.apache.ambari.server.checks.StormShutdownWarning</check>

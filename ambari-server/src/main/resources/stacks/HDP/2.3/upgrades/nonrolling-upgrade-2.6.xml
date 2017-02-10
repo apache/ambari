@@ -23,6 +23,7 @@
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
+    <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
