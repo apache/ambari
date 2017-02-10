@@ -360,7 +360,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   }.property('controller.selectedConfigGroup.name', 'controller.selectedConfigGroup.isDefault'),
 
   didInsertElement: function () {
-    App.tooltip(this.$('[data-toggle=tooltip]'), {placement: 'top'});
+    App.tooltip(this.$('[data-toggle=tooltip]'), {placement: 'in top'});
     App.tooltip($(this.get('element')).find('span'));
     var self = this;
     var element = this.$();

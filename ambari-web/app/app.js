@@ -19,6 +19,7 @@
 // Application bootstrapper
 require('utils/ember_reopen');
 require('utils/ember_computed');
+require('utils/bootstrap_reopen');
 var stringUtils = require('utils/string_utils');
 
 module.exports = Em.Application.create({

@@ -95,7 +95,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       }
       $('#serviceConfig').tooltip({
         selector: '[data-toggle=tooltip]',
-        placement: 'top'
+        placement: 'in top'
       });
       self.filteredCategoryConfigs();
       self.updateReadOnlyFlags();
