@@ -192,7 +192,7 @@ export default Ember.Component.extend({
     var dataNodes = [];
     var self=this;
     workflow.nodeVisitor.process(workflow.startNode, function(node) {
-      if (node.type === 'kill') {
+      if (node.type === 'kill' && !(node.forceRenderNode || self.getActionNode(node.name, node.type))) {
         return;
       }
       var nodeActionStatus = self.getActionStatus(node.name, node.type);
@@ -206,18 +206,28 @@ export default Ember.Component.extend({
       });
         if (node.transitions.length > 0) {
           node.transitions.forEach(function(tran){
-            if (tran.targetNode.type === 'kill') {
-              return;
-            }
             var transitionBorderColor;
             var actionNode = self.getActionNode(node.name, node.type);
-            if (actionNode && (actionNode.transition===tran.targetNode.name ||actionNode.transition==='*')){
-              transitionBorderColor = Constants.successfulFlowColor;//green
+            if (tran.targetNode.type === 'kill' &&
+              !((actionNode && actionNode.transition===tran.targetNode.name) || (node.isPlaceholder()))) {
+              return;
+            }
+             if (tran.getTargetNode(true).isKillNode()  && !tran.isOnError()){
+              tran.targetNode.forceRenderNode = true;
+             }
+            if (actionNode && (actionNode.transition===tran.targetNode.name ||actionNode.transition==='*' || (tran.targetNode.isPlaceholder() && actionNode.transition===tran.getTargetNode(true).name))) {
+              transitionBorderColor = Constants.successfulFlowColor;
+              if (tran.targetNode.isPlaceholder()) {
+                tran.targetNode.successfulFlow = true;
+              }
             }else{
-              transitionBorderColor = Constants.defaultFlowColor;//grey
+              transitionBorderColor = Constants.defaultFlowColor;
             }
             if (!actionNode){
-              transitionBorderColor = Constants.defaultFlowColor;//grey
+              transitionBorderColor = Constants.defaultFlowColor;
+              if (node.isPlaceholder() && node.successfulFlow) {
+                transitionBorderColor = Constants.successfulFlowColor;
+              }
             }
             dataNodes.push(
               {
@@ -225,6 +235,7 @@ export default Ember.Component.extend({
                   id: tran.sourceNodeId + '_to_' + tran.targetNode.id,
                   source:tran.sourceNodeId,
                   target: tran.targetNode.id,
+                  transition: tran,
                   borderColor: transitionBorderColor
                 }
               }
@@ -268,6 +279,14 @@ export default Ember.Component.extend({
             }
           },
           {
+            selector: 'node[type = "placeholder"]',
+            style: {
+              width: 1,
+              height: 1,
+              label: ''
+            }
+          },
+          {
             selector: 'node[shape = "roundrectangle"]',
             style: {
               width: 100,
@@ -294,7 +313,13 @@ export default Ember.Component.extend({
               width: 1,
               'line-color': 'data(borderColor)',
               'curve-style': 'bezier',
-      				'target-arrow-shape': 'triangle',
+              'target-arrow-shape': function(target){
+                if (target.data().transition && target.data().transition.getTargetNode(false) && !target.data().transition.getTargetNode(false).isPlaceholder()) {
+                  return "triangle";
+                }else{
+                  return "none";
+                }
+              },
               'target-arrow-color': 'data(borderColor)'
             }
           }
