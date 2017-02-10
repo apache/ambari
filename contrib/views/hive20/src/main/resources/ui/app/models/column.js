@@ -87,6 +87,8 @@ let Column = Ember.Object.extend(Ember.Copyable,{
         this.get('errors').pushObject({type: 'precision', error: "Precision can only be a number"});
       } else if(this.get('precision') <= 0) {
         this.get('errors').pushObject({type: 'precision', error: "Precision can only be greater than zero"});
+      } else if(this.get('type.hasScale') && this.get('scale') && (this.get('precision') < this.get('scale'))) {
+        this.get('errors').pushObject({type: 'precision', error: "Precision can only be greater than scale"});
       }
 
     }
