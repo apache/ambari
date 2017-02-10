@@ -951,10 +951,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("DBG: Calculated '{0}' queue available capacity : {1}, using following: llap_daemon_selected_queue_cap : {2}, "
                     "yarn_min_container_size : {3}".format(llap_daemon_selected_queue_name, total_llap_mem_normalized,
                                                            llap_daemon_selected_queue_cap, yarn_min_container_size))
-      '''Rounding up numNodes so that we run more daemons, and utilitze more CPUs. The rest of the calcaulkations will take care of cutting this down if required'''
+      '''Rounding up numNodes so that we run more daemons, and utilitze more CPUs. The rest of the calcaulations will take care of cutting this down if required'''
       num_llap_nodes_requested = math.ceil(total_llap_mem_normalized / yarn_nm_mem_in_mb_normalized)
       Logger.info("DBG: Calculated 'num_llap_nodes_requested' : {0}, using following: total_llap_mem_normalized : {1}, "
                     "yarn_nm_mem_in_mb_normalized : {2}".format(num_llap_nodes_requested, total_llap_mem_normalized, yarn_nm_mem_in_mb_normalized))
+      # Pouplate the 'num_llap_nodes_requested' in config 'num_llap_nodes', a read only config for non-Ambari managed queue case.
+      putHiveInteractiveEnvProperty('num_llap_nodes', num_llap_nodes_requested)
+      Logger.info("Setting config 'num_llap_nodes' as : {0}".format(num_llap_nodes_requested))
       queue_am_fraction_perc = float(self.__getQueueAmFractionFromCapacityScheduler(capacity_scheduler_properties, llap_daemon_selected_queue_name))
       hive_tez_am_cap_available = queue_am_fraction_perc * total_llap_mem_normalized
       Logger.info("DBG: Calculated 'hive_tez_am_cap_available' : {0}, using following: queue_am_fraction_perc : {1}, "
@@ -1182,7 +1185,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("User requested num_llap_nodes : {0}, but used/adjusted value for calculations is : {1}".format(num_llap_nodes_requested, num_llap_nodes))
     else:
       Logger.info("Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
-    putHiveInteractiveEnvProperty('num_llap_nodes', num_llap_nodes)
+    putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', num_llap_nodes)
+    Logger.info("Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
 
     llap_container_size = long(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
@@ -1243,6 +1247,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", 1)
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", 1)
     putHiveInteractiveEnvProperty('num_llap_nodes', 0)
+    putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', 0)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
