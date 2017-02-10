@@ -25,7 +25,6 @@ export default Ember.Component.extend({
   DEFAULT_CSV_QUOTE: '"',
   DEFAULT_CSV_ESCAPE: '\\',
   DEFAULT_FILE_TYPE: 'CSV',
-  isFirstRowHeader: false, // is first row  header
   csvParams: Ember.Object.create(),
   inputFileTypes: Ember.computed(function () {
     return Helpers.getUploadFileTypes();
