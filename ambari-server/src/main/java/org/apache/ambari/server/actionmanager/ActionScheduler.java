@@ -929,15 +929,16 @@ class ActionScheduler implements Runnable {
         ExecutionCommand c = wrapper.getExecutionCommand();
         transitionToFailedState(stage.getClusterName(), c.getServiceName(),
                 c.getRole(), hostName, now, true);
-        if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
-          String clusterName = c.getClusterName();
-          processActionDeath(clusterName,
-                  c.getHostname(),
-                  c.getRole());
-        }
       }
     }
-    db.abortOperation(stage.getRequestId());
+    Collection<HostRoleCommandEntity> abortedOperations = db.abortOperation(stage.getRequestId());
+
+    for (HostRoleCommandEntity command: abortedOperations) {
+      if (command.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
+        String clusterName = stage.getClusterName();
+        processActionDeath(clusterName, command.getHostName(), command.getRole().name());
+      }
+    }
   }
 
   /**

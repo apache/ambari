@@ -109,6 +109,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
@@ -508,10 +509,11 @@ public class TestActionScheduler {
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
-    doAnswer(new Answer<Void>() {
+    doAnswer(new Answer<Collection<HostRoleCommandEntity>>() {
       @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
+      public Collection<HostRoleCommandEntity> answer(InvocationOnMock invocation) throws Throwable {
         Long requestId = (Long) invocation.getArguments()[1];
+        List<HostRoleCommandEntity> abortedCommands = Lists.newArrayList();
         for (Stage stage : stages) {
           if (requestId.equals(stage.getRequestId())) {
             for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -519,12 +521,17 @@ public class TestActionScheduler {
                 command.getStatus() == HostRoleStatus.IN_PROGRESS ||
                 command.getStatus() == HostRoleStatus.PENDING) {
                 command.setStatus(HostRoleStatus.ABORTED);
+
+                HostRoleCommandEntity hostRoleCommandEntity = command.constructNewPersistenceEntity();
+                hostRoleCommandEntity.setStage(stage.constructNewPersistenceEntity());
+
+                abortedCommands.add(hostRoleCommandEntity);
               }
             }
           }
         }
 
-        return null;
+        return abortedCommands;
       }
     }).when(db).abortHostRole(anyString(), anyLong(), anyLong(), anyString(), anyString());
 
@@ -1390,10 +1397,12 @@ public class TestActionScheduler {
         return null;
       }
     });
-    doAnswer(new Answer<Void>() {
+    doAnswer(new Answer<Collection<HostRoleCommandEntity>>() {
       @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
+      public Collection<HostRoleCommandEntity> answer(InvocationOnMock invocation) throws Throwable {
         Long requestId = (Long) invocation.getArguments()[0];
+        List<HostRoleCommandEntity> abortedCommands = Lists.newArrayList();
+
         for (Stage stage : stages) {
           if (requestId.equals(stage.getRequestId())) {
             for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -1401,12 +1410,17 @@ public class TestActionScheduler {
                   command.getStatus() == HostRoleStatus.IN_PROGRESS ||
                   command.getStatus() == HostRoleStatus.PENDING) {
                 command.setStatus(HostRoleStatus.ABORTED);
+
+                HostRoleCommandEntity hostRoleCommandEntity = command.constructNewPersistenceEntity();
+                hostRoleCommandEntity.setStage(stage.constructNewPersistenceEntity());
+
+                abortedCommands.add(hostRoleCommandEntity);
               }
             }
           }
         }
 
-        return null;
+        return abortedCommands;
       }
     }).when(db).abortOperation(anyLong());
 
@@ -1570,10 +1584,12 @@ public class TestActionScheduler {
         return null;
       }
     });
-    doAnswer(new Answer<Void>() {
+    doAnswer(new Answer<Collection<HostRoleCommandEntity>>() {
       @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
+      public Collection<HostRoleCommandEntity> answer(InvocationOnMock invocation) throws Throwable {
         Long requestId = (Long) invocation.getArguments()[0];
+        List<HostRoleCommandEntity> abortedCommands = Lists.newArrayList();
+
         for (Stage stage : stages) {
           if (requestId.equals(stage.getRequestId())) {
             for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -1581,12 +1597,17 @@ public class TestActionScheduler {
                   command.getStatus() == HostRoleStatus.IN_PROGRESS ||
                   command.getStatus() == HostRoleStatus.PENDING) {
                 command.setStatus(HostRoleStatus.ABORTED);
+
+                HostRoleCommandEntity hostRoleCommandEntity = command.constructNewPersistenceEntity();
+                hostRoleCommandEntity.setStage(stage.constructNewPersistenceEntity());
+
+                abortedCommands.add(hostRoleCommandEntity);
               }
             }
           }
         }
 
-        return null;
+        return abortedCommands;
       }
     }).when(db).abortOperation(anyLong());
 
@@ -1755,10 +1776,12 @@ public class TestActionScheduler {
         return null;
       }
     });
-    doAnswer(new Answer<Void>() {
+    doAnswer(new Answer<Collection<HostRoleCommandEntity>>() {
       @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
+      public Collection<HostRoleCommandEntity> answer(InvocationOnMock invocation) throws Throwable {
         Long requestId = (Long) invocation.getArguments()[0];
+        List<HostRoleCommandEntity> abortedCommands = Lists.newArrayList();
+
         for (Stage stage : stages) {
           if (requestId.equals(stage.getRequestId())) {
             for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -1766,12 +1789,17 @@ public class TestActionScheduler {
                   command.getStatus() == HostRoleStatus.IN_PROGRESS ||
                   command.getStatus() == HostRoleStatus.PENDING) {
                 command.setStatus(HostRoleStatus.ABORTED);
+
+                HostRoleCommandEntity hostRoleCommandEntity = command.constructNewPersistenceEntity();
+                hostRoleCommandEntity.setStage(stage.constructNewPersistenceEntity());
+
+                abortedCommands.add(hostRoleCommandEntity);
               }
             }
           }
         }
 
-        return null;
+        return abortedCommands;
       }
     }).when(db).abortOperation(anyLong());
 
@@ -2316,10 +2344,12 @@ public class TestActionScheduler {
       }
     });
 
-    doAnswer(new Answer<Void>() {
+    doAnswer(new Answer<Collection<HostRoleCommandEntity>>() {
       @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
+      public Collection<HostRoleCommandEntity> answer(InvocationOnMock invocation) throws Throwable {
         Long requestId = (Long) invocation.getArguments()[0];
+        List<HostRoleCommandEntity> abortedCommands = Lists.newArrayList();
+
         for (Stage stage : stagesInProgress) {
           if (requestId.equals(stage.getRequestId())) {
             for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -2327,12 +2357,17 @@ public class TestActionScheduler {
                       command.getStatus() == HostRoleStatus.IN_PROGRESS ||
                       command.getStatus() == HostRoleStatus.PENDING) {
                 command.setStatus(HostRoleStatus.ABORTED);
+
+                HostRoleCommandEntity hostRoleCommandEntity = command.constructNewPersistenceEntity();
+                hostRoleCommandEntity.setStage(stage.constructNewPersistenceEntity());
+
+                abortedCommands.add(hostRoleCommandEntity);
               }
             }
           }
         }
 
-        return null;
+        return abortedCommands;
       }
     }).when(db).abortOperation(anyLong());
 

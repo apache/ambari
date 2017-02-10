@@ -202,7 +202,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * {@inheritDoc}
    */
   @Override
-  public void abortOperation(long requestId) {
+  public Collection<HostRoleCommandEntity> abortOperation(long requestId) {
     long now = System.currentTimeMillis();
 
     endRequest(requestId);
@@ -226,8 +226,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(commands);
+      return hostRoleCommandDAO.mergeAll(commands);
     }
+
+    return Collections.emptyList();
   }
 
   /* (non-Javadoc)
