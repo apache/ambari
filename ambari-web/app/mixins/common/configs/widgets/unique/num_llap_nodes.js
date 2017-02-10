@@ -45,9 +45,8 @@ App.NumLlapNodesWidgetMixin = Em.Mixin.create({
     var readOnly = this.get('readOnly');
     this.set('disabled', readOnly);
     this.set('supportSwitchToTextBox', !readOnly);
-    if (readOnly) {
-      this.toggleSlider('disable');
-    }
+    var action = readOnly ? 'disable' : 'enable';
+    this.toggleSlider(action);
   }.observes('readOnly'),
 
   toggleWidgetView: function() {
@@ -63,7 +62,7 @@ App.NumLlapNodesWidgetMixin = Em.Mixin.create({
   toggleSlider: function (action) {
     var self = this;
     Em.run.next(function () {
-      self.get('slider')[action]();
+      Em.tryInvoke(self.get('slider'), action);
     });
   }
 
