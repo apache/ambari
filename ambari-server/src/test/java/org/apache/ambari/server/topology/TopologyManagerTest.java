@@ -150,6 +150,9 @@ public class TopologyManagerTest {
   private ResourceProvider resourceProvider;
   @Mock(type = MockType.STRICT)
   private SettingDAO settingDAO;
+  @Mock(type = MockType.NICE)
+  private ClusterTopology clusterTopologyMock;
+
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
@@ -343,7 +346,6 @@ public class TopologyManagerTest {
     persistedState.persistLogicalRequest(logicalRequest, 1);
     expectLastCall().anyTimes();
 
-
     Class clazz = TopologyManager.class;
 
     Field f = clazz.getDeclaredField("executor");
@@ -365,18 +367,41 @@ public class TopologyManagerTest {
     PowerMock.verify(System.class);
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
 
     PowerMock.reset(System.class);
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState, mockFuture, settingDAO);
+        requestStatusResponse, executor, persistedState, clusterTopologyMock, mockFuture, settingDAO);
   }
 
   @Test
   public void testProvisionCluster() throws Exception {
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
             List<LogicalRequest>>emptyMap()).anyTimes();
+    replayAll();
+
+    topologyManager.provisionCluster(request);
+    //todo: assertions
+  }
+
+  @Test
+  public void testAddKerberosClientAtTopologyInit() throws Exception {
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>();
+    List<LogicalRequest> requestList = new ArrayList<>();
+    requestList.add(logicalRequest);
+    expect(logicalRequest.hasCompleted()).andReturn(true).anyTimes();
+    allRequests.put(clusterTopologyMock, requestList);
+    expect(requestStatusResponse.getTasks()).andReturn(Collections.<ShortTaskStatus>emptyList()).anyTimes();
+    expect(clusterTopologyMock.isClusterKerberosEnabled()).andReturn(true);
+    expect(clusterTopologyMock.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+    expect(clusterTopologyMock.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
+    expect(group1.addComponent("KERBEROS_CLIENT")).andReturn(true);
+    expect(group2.addComponent("KERBEROS_CLIENT")).andReturn(true);
+
     replayAll();
 
     topologyManager.provisionCluster(request);
@@ -499,8 +524,8 @@ public class TopologyManagerTest {
   private void replayAll() {
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
             configurationRequest, configurationRequest2, configurationRequest3, executor,
-            persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
-            mockFuture, requestStatusResponse, logicalRequest, settingDAO);
+            persistedState, clusterTopologyMock, securityConfigurationFactory, credentialStoreService,
+            clusterController, resourceProvider, mockFuture, requestStatusResponse, logicalRequest, settingDAO);
   }
 
   @Test(expected = InvalidTopologyException.class)
