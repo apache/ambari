@@ -297,6 +297,13 @@
             <type>yarn-env</type>
             <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption">
+            <type>yarn-site</type>
+            <transfer operation="copy"
+                      from-key="yarn.resourcemanager.scheduler.monitor.enable"
+                      to-key="yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled"
+                      default-value="false"/>
+          </definition>
         </changes>
       </component>
 
