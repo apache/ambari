@@ -223,6 +223,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   user_group = status_params.user_group
   livy_hdfs_user_dir = format("/user/{livy_user}")
   livy_server_pid_file = status_params.livy_server_pid_file
+  livy_recovery_dir = default("/configurations/livy-conf/livy.server.recovery.state-store.url", "/livy-recovery")
 
   livy_server_start = format("{livy_home}/bin/livy-server start")
   livy_server_stop = format("{livy_home}/bin/livy-server stop")

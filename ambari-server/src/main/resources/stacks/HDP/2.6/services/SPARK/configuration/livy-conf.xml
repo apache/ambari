@@ -70,4 +70,28 @@
      </description>
      <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>livy.server.recovery.mode</name>
+    <value>recovery</value>
+    <description>
+          Recovery mode for livy, either be "off" or "recovery".
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>livy.server.recovery.state-store</name>
+    <value>filesystem</value>
+    <description>
+          Where Livy should store state for recovery.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>livy.server.recovery.state-store.url</name>
+    <value>/livy-recovery</value>
+    <description>
+          Where Livy should store state for recovery.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
