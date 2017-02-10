@@ -28,7 +28,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_parallel, SUCCESS
 
 import httplib
-import network
+import ambari_commons.network as network
 import urllib
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os

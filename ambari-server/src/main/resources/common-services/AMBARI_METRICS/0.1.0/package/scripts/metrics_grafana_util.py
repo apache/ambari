@@ -31,7 +31,7 @@ import random
 import time
 import socket
 import ambari_simplejson as json
-import network
+import ambari_commons.network as network
 import os
 
 GRAFANA_CONNECT_TRIES = 15

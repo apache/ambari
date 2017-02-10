@@ -35,5 +35,5 @@ def check_ssl_certificate(host, port, ca_certs):
   try:
     ssl.get_server_certificate((host, port), ssl_version=ssl.PROTOCOL_SSLv23, ca_certs=ca_certs)
   except (ssl.SSLError) as ssl_error:
-    raise Fail("Failed to verify the SSL certificate for AMS Collector https://{0}:{1} with CA certificate in {2}"
+    raise Fail("Failed to verify the SSL certificate for https://{0}:{1} with CA certificate in {2}"
                .format(host, port, ca_certs))

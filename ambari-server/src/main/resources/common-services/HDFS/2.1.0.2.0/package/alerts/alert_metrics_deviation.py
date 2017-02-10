@@ -24,6 +24,8 @@ import logging
 import urllib
 import time
 import urllib2
+import os
+import ambari_commons.network as network
 
 from resource_management import Environment
 from ambari_commons.aggregate_functions import sample_standard_deviation, mean
@@ -55,6 +57,7 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
+AMS_HTTP_POLICY = '{{ams-site/timeline.metrics.service.http.policy}}'
 METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY = '{{ams-site/timeline.metrics.service.webapp.address}}'
 METRICS_COLLECTOR_VIP_HOST_KEY = '{{cluster-env/metrics_collector_vip_host}}'
 METRICS_COLLECTOR_VIP_PORT_KEY = '{{cluster-env/metrics_collector_vip_port}}'
@@ -105,7 +108,7 @@ def get_tokens():
           EXECUTABLE_SEARCH_PATHS, NN_HTTPS_ADDRESS_KEY, SMOKEUSER_KEY,
           KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY,
           METRICS_COLLECTOR_VIP_HOST_KEY, METRICS_COLLECTOR_VIP_PORT_KEY,
-          METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY)
+          METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, AMS_HTTP_POLICY)
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -310,9 +313,14 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   encoded_get_metrics_parameters = urllib.urlencode(get_metrics_parameters)
 
+  ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf"
+  metric_truststore_ca_certs='ca.pem'
+  ca_certs = os.path.join(ams_monitor_conf_dir,
+                          metric_truststore_ca_certs)
+  metric_collector_https_enabled = str(configurations[AMS_HTTP_POLICY]) == "HTTPS_ONLY"
+
   try:
-    conn = httplib.HTTPConnection(collector_host, int(collector_port),
-                                  timeout=connection_timeout)
+    conn = network.get_http_connection(collector_host, int(collector_port), metric_collector_https_enabled, ca_certs)
     conn.request("GET", AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
     data = response.read()
