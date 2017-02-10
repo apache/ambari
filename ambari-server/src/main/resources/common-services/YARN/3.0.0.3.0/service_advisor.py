@@ -130,6 +130,7 @@ class YARNServiceAdvisor(service_advisor.ServiceAdvisor):
     recommender.recommendYARNConfigurationsFromHDP22(configurations, clusterData, services, hosts)
     recommender.recommendYARNConfigurationsFromHDP23(configurations, clusterData, services, hosts)
     recommender.recommendYARNConfigurationsFromHDP25(configurations, clusterData, services, hosts)
+    recommender.recommendYARNConfigurationsFromHDP26(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """
@@ -434,6 +435,18 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
 
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
     putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
+
+
+  def recommendYARNConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+
+    if "yarn-site" in services["configurations"] and \
+                    "yarn.resourcemanager.scheduler.monitor.enable" in services["configurations"]["yarn-site"]["properties"]:
+      scheduler_monitor_enabled = services["configurations"]["yarn-site"]["properties"]["yarn.resourcemanager.scheduler.monitor.enable"]
+      if scheduler_monitor_enabled.lower() == 'true':
+        putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "true")
+      else:
+        putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
 
   #region LLAP
   def updateLlapConfigs(self, configurations, services, hosts, llap_queue_name):

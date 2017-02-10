@@ -23,4 +23,16 @@
     <description>When HA is enabled, the class to be used by Clients, AMs and NMs to failover to the Active RM. It should extend org.apache.hadoop.yarn.client.RMFailoverProxyProvider</description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled</name>
+    <value>false</value>
+    <description>This property need to be set to make preemption can happen under a fragmented cluster.</description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
