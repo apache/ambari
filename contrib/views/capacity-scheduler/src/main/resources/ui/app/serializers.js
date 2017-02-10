@@ -104,6 +104,7 @@ App.SerializerMixin = Em.Mixin.create({
           ordering_policy:               props[base_path + ".ordering-policy"] || null,
           enable_size_based_weight:      props[base_path + ".ordering-policy.fair.enable-size-based-weight"] || null,
           default_node_label_expression: props[base_path + ".default-node-label-expression"] || null,
+          priority:                      (props[base_path + ".priority"])? +props[base_path + ".priority"] : 0,
           labelsEnabled:                 props.hasOwnProperty(labelsPath),
           disable_preemption:            props[base_path + '.disable_preemption'] || '',
           isPreemptionInherited:         (props[base_path + '.disable_preemption'] !== undefined)?false:true
@@ -231,6 +232,10 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
 
     if (record.get('ordering_policy') == 'fair') {
       json[this.PREFIX + "." + record.get('path') + ".ordering-policy.fair.enable-size-based-weight"] = record.get('enable_size_based_weight');
+    }
+
+    if (this.get('store.isPriorityUtilizationSupported')) {
+      json[this.PREFIX + "." + record.get('path') + ".priority"] = record.get('priority') || 0;
     }
 
     // do not set property if not set

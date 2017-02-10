@@ -255,6 +255,7 @@ App.Queue = DS.Model.extend({
   minimum_user_limit_percent: DS.attr('number', { defaultValue: 100 }),
   maximum_applications: DS.attr('number', { defaultValue: null }),
   maximum_am_resource_percent: DS.attr('number', { defaultValue: null }),
+  priority: DS.attr('number', {defaultValue: 0}),
 
   disable_preemption: DS.attr('string', {defaultValue: ''}),
   isPreemptionInherited: DS.attr('boolean', {defaultValue: true}),
@@ -282,6 +283,16 @@ App.Queue = DS.Model.extend({
 
     return this.get('_overCapacity') || !Em.isEmpty(this.get('labels').filterBy('overCapacity'));
   }.property('_overCapacity','labels.@each.overCapacity'),
+
+  childrenQueues: function() {
+    var queuesArray = this.get('queuesArray');
+    return this.store.all('queue')
+      .filterBy('depth', this.get('depth') + 1)
+      .filterBy('parentPath', this.get('path'))
+      .filter(function(queue) {
+        return queuesArray.contains(queue.get('name'));
+      });
+  }.property('queues'),
 
   isInvalidMaxCapacity: false,
   isInvalidLabelMaxCapacity: false,
