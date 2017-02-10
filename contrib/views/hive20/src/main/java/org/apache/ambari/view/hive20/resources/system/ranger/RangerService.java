@@ -137,8 +137,9 @@ public class RangerService {
     JSONArray policyItems = (JSONArray) policyJson.get("policyItems");
     Policy policy = new Policy(name);
 
-    if (policyItems.size() > 0) {
-      JSONObject policyItem = (JSONObject) policyItems.get(0);
+    for(Object item: policyItems) {
+      PolicyCondition condition = new PolicyCondition();
+      JSONObject policyItem = (JSONObject) item;
       JSONArray usersJson = (JSONArray) policyItem.get("users");
       JSONArray groupsJson = (JSONArray) policyItem.get("groups");
       JSONArray accesses = (JSONArray) policyItem.get("accesses");
@@ -148,19 +149,20 @@ public class RangerService {
         JSONObject access = (JSONObject) accessJson;
         Boolean isAllowed = (Boolean) access.get("isAllowed");
         if (isAllowed) {
-          policy.addAccess((String) access.get("type"));
+          condition.addAccess((String) access.get("type"));
         }
       }
 
       for (Object user : usersJson) {
-        policy.addUser((String) user);
+        condition.addUser((String) user);
       }
 
       for (Object group : groupsJson) {
-        policy.addGroup((String) group);
+        condition.addGroup((String) group);
       }
-    }
 
+      policy.addCondition(condition);
+    }
 
     return policy;
   }
@@ -266,9 +268,7 @@ public class RangerService {
    */
   public static class Policy {
     private String name;
-    private List<String> users = new ArrayList<>();
-    private List<String> groups = new ArrayList<>();
-    private List<String> accesses = new ArrayList<>();
+    private List<PolicyCondition> conditions = new ArrayList<>();
 
     public Policy(String name) {
       this.name = name;
@@ -281,6 +281,20 @@ public class RangerService {
     public void setName(String name) {
       this.name = name;
     }
+
+    public List<PolicyCondition> getConditions() {
+      return conditions;
+    }
+
+    public void addCondition(PolicyCondition condition) {
+      this.conditions.add(condition);
+    }
+  }
+
+  public static class PolicyCondition {
+    private List<String> users = new ArrayList<>();
+    private List<String> groups = new ArrayList<>();
+    private List<String> accesses = new ArrayList<>();
 
     public List<String> getUsers() {
       return users;

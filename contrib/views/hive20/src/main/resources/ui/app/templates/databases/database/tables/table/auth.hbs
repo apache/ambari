@@ -25,7 +25,7 @@
   <table class="table table-bordered table-hover">
     <thead>
     <tr>
-      <th width="20%">POLICY NAME</th>
+      <th width="20%"></th>
       <th width="25%">USERS</th>
       <th width="25%">GROUPS</th>
       <th width="30%">ACCESS</th>
@@ -34,23 +34,30 @@
     <tbody>
     {{#each model.policies as |policy|}}
       <tr>
-        <td>{{policy.name}}</td>
-        <td>
-          {{#each policy.users as |user|}}
-            <span class="label label-success">{{user}}</span>
-          {{/each}}
-        </td>
-        <td>
-          {{#each policy.groups as |group|}}
-            <span class="label label-success">{{group}}</span>
-          {{/each}}
-        </td>
-        <td>
-          {{#each policy.accesses as |access|}}
-            <span class="label label-success">{{access}}</span>
-          {{/each}}
-        </td>
+        <td colspan="4">Policy Name: <span class="text-primary"><strong>{{policy.name}}</strong></span></td>
       </tr>
+      {{#each policy.conditions as |condition index|}}
+        <tr>
+          <td>{{#if (eq index 0)}}<strong>Conditions:</strong>{{/if}}</td>
+          <td>
+            {{#each condition.users as |user|}}
+              <span class="label label-success">{{user}}</span>
+            {{/each}}
+          </td>
+          <td>
+            {{#each condition.groups as |group|}}
+              <span class="label label-success">{{group}}</span>
+            {{/each}}
+          </td>
+          <td>
+            {{#each condition.accesses as |access|}}
+              <span class="label label-success">{{access}}</span>
+            {{/each}}
+          </td>
+        </tr>
+      {{/each}}
+
+
     {{/each}}
     </tbody>
   </table>
