@@ -38,7 +38,13 @@
       }
     }
 
+    .cluster-notifications {
+      margin-top: 12px;
+    }
     .navbar-text.brand-wrapper {
+      margin-top: 17px;
+    }
+    .navbar-text.brand-wrapper, .cluster-notifications {
       color: @top-nav-brand-color;
       font-size: 16px;
       font-weight: normal;
@@ -49,6 +55,11 @@
         line-height: 20px;
         vertical-align: middle;
         position: relative;
+      }
+
+      span.alerts-label {
+        line-height: 20px;
+        cursor: pointer;
       }
 
       .numberCircle {
@@ -94,9 +105,14 @@
     a:hover {
       text-decoration: none;
     }
+    .top-nav-user {
+      margin-top: 2px;
+    }
   }
 
-  .top-nav-user {
-    margin-top: 2px;
+  #notifications-dropdown.dropdown-menu {
+    .popup-arrow-up {
+      right: 75px;
+    }
   }
 }

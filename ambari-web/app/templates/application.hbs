@@ -127,16 +127,8 @@
         {{/if}}
         {{! user dropdown end }}
 
-        <div class="navbar-nav navbar-text navbar-right brand-wrapper">
+        <div class="navbar-nav navbar-right cluster-notifications">
           {{#if enableLinks}}
-
-            {{! cluster name }}
-            <a href="#" {{bindAttr title="clusterName"}} {{action "showPopup" target="App.router.backgroundOperationsController"}} class="cluster-name">
-              {{#unless App.isClusterUser}}
-                <span>{{clusterDisplayName}}</span>
-              {{/unless}}
-            </a>
-            {{! cluster name end }}
             {{! bg label }}
             <a href="#" class="bg-label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
               {{#with App.router.backgroundOperationsController}}
@@ -147,27 +139,44 @@
               {{/with}}
             </a>
             {{! bg label end }}
-            {{! alerts label }}
+
+            {{! new alerts label }}
             {{#if App.router.clusterController.isAlertsLoaded}}
-              <a href="#" class="alerts-label" {{action "showPopup" target="App.router.mainAlertInstancesController"}}>
-                {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
+              <span class="notifications-group">
+                <span class="alerts-label dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="glyphicon glyphicon-bell"></span>
-                {{! alerts exist }}
-                  <span {{bindAttr class=":numberCircle App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}}>
-                    {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                  </span>
-                {{else}}
-                {{! no alerts }}
-                  <span {{translateAttr title="titlebar.alerts.noAlerts"}} class="numberCircle alerts-none-count">
-                    {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
-                  </span>
-                {{/if}}
-              </a>
+                  {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
+                    {{! alerts exist }}
+                    <span {{bindAttr class=":numberCircle App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}}>
+                      {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
+                    </span>
+                  {{else}}
+                  {{! no alerts }}
+                    <span {{translateAttr title="titlebar.alerts.noAlerts"}} class="numberCircle alerts-none-count">
+                      {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
+                    </span>
+                  {{/if}}
+                </span>
+                <div id="notifications-dropdown" class="dropdown-menu row">
+                  {{view App.AlertInstancesPopupView}}
+                </div>
+              </span>
             {{/if}}
-          {{! alerts label end }}
+            {{! alerts label end }}
           {{/if}}
         </div>
 
+        <div class="navbar-nav navbar-text navbar-right brand-wrapper">
+          {{#if enableLinks}}
+            {{! cluster name }}
+            <a href="#" {{bindAttr title="clusterName"}} {{action "showPopup" target="App.router.backgroundOperationsController"}} class="cluster-name">
+              {{#unless App.isClusterUser}}
+                <span>{{clusterDisplayName}}</span>
+              {{/unless}}
+            </a>
+            {{! cluster name end }}
+          {{/if}}
+        </div>
       </div>
     </nav>
   </div>
