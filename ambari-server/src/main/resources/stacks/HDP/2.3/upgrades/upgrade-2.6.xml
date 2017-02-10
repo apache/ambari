@@ -762,6 +762,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db" />
           <task xsi:type="configure" id="yarn_log4j_parameterize" />
           <task xsi:type="configure" id="yarn_env_security_opts" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption" />
         </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
