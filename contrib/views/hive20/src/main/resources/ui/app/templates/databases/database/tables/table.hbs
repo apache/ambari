@@ -21,10 +21,10 @@
     <p class="text-uppercase">table<strong>&nbsp;&nbsp;>&nbsp;&nbsp;{{model.table}}</strong></p>
     <div class="hv-dropdown tables-dropdown">
       <div class="dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
           {{fa-icon "navicon"}}
         </button>
-        <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu1">
+        <ul class="dropdown-menu dropdown-menu-right">
           <li>{{#link-to "databases.database.tables.table.edit" class="text-uppercase"}}{{fa-icon "edit"}} Edit{{/link-to}}</li>
           <li>{{#link-to "databases.database.tables.table.rename" class="text-uppercase"}}{{fa-icon "edit"}} Rename{{/link-to}}</li>
           <li><a href="#" class="text-uppercase" {{action "deleteTable" model}}>{{fa-icon "trash"}} Delete</a></li>
