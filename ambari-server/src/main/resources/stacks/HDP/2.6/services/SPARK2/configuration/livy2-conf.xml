@@ -85,8 +85,8 @@
             Whether to enable HiveContext in livy interpreter
         </description>
         <on-ambari-upgrade add="false"/>
-    <property>
     </property>
+    <property>
         <name>livy.server.recovery.mode</name>
         <value>recovery</value>
         <description>
