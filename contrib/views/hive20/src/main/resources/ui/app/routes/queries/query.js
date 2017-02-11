@@ -24,6 +24,9 @@ export default Ember.Route.extend({
   jobs: Ember.inject.service(),
   savedQueries: Ember.inject.service(),
 
+  isQueryEdidorPaneExpanded: false,
+  isQueryResultPanelExpanded: false,
+
   beforeModel(){
     let existingWorksheets = this.store.peekAll('worksheet');
     existingWorksheets.setEach('selected', false);
@@ -160,7 +163,6 @@ export default Ember.Route.extend({
       $('#' + db).toggle();
       this.get('controller.model').set('selectedDb', db);
     },
-
 
     visualExplainQuery(){
       this.get('controller').set('isVisualExplainQuery', true );
@@ -389,15 +391,46 @@ export default Ember.Route.extend({
     },
 
     expandQueryEdidorPanel(){
+
+      if(!this.get('isQueryEdidorPaneExpanded')){
+        this.set('isQueryEdidorPaneExpanded', true);
+      } else {
+        this.set('isQueryEdidorPaneExpanded', false);
+      }
       Ember.$('.query-editor-panel').toggleClass('query-editor-full-width');
       Ember.$('.database-panel').toggleClass("hide");
+
     },
 
     expandQueryResultPanel(){
-      Ember.$('.query-editor-panel').toggleClass('query-editor-full-width');
-      Ember.$('.query-editor-container').toggleClass("hide");
-      Ember.$('.database-panel').toggleClass("hide");
-      this.send('adjustPanelSize');
+
+      if(!this.get('isQueryResultPanelExpanded')){
+
+        if(!this.get('isQueryEdidorPaneExpanded')){
+          Ember.$('.query-editor-container').addClass("hide");
+          Ember.$('.database-panel').addClass("hide");
+          Ember.$('.query-editor-panel').addClass('query-editor-full-width');
+        } else {
+
+          Ember.$('.query-editor-container').addClass("hide");
+        }
+        this.set('isQueryResultPanelExpanded', true);
+
+      } else {
+
+        if(!this.get('isQueryEdidorPaneExpanded')){
+          Ember.$('.query-editor-container').removeClass("hide");
+          Ember.$('.database-panel').removeClass("hide");
+          Ember.$('.query-editor-panel').removeClass('query-editor-full-width');
+        } else {
+
+          Ember.$('.query-editor-container').removeClass("hide");
+
+        }
+        this.set('isQueryResultPanelExpanded', false);
+
+      }
+
     },
 
     adjustPanelSize(){
