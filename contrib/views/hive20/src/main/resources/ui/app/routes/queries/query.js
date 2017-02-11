@@ -221,11 +221,8 @@ export default Ember.Route.extend({
           .then((status) => {
 
               self.get('controller').set('isJobSuccess', true);
-              self.send('getJob', data);
 
-              if(isVisualExplainQuery){
-                self.send('showVisualExplain');
-              }
+              self.send('getJob', data);
 
               //Last log
               self.send('fetchLogs');
@@ -290,6 +287,8 @@ export default Ember.Route.extend({
       var self = this;
       var data = data;
 
+      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
+
       let jobId = data.job.id;
       let dateSubmitted = data.job.dateSubmitted;
 
@@ -311,6 +310,12 @@ export default Ember.Route.extend({
         self.get('controller.model').set('currentPage', currentPage+1);
         self.get('controller.model').set('previousPage', previousPage + 1 );
         self.get('controller.model').set('nextPage', nextPage + 1);
+
+        if(isVisualExplainQuery){
+          Ember.run.later(() => {
+            self.send('showVisualExplain');
+          }, 500);
+        }
 
       }, function(reason) {
         // on rejection

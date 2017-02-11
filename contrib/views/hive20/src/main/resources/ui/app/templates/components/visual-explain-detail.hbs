@@ -16,27 +16,14 @@
 * limitations under the License.
 }}
 
-
-<div style="position: relative;">
-  <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }} style="position: absolute;top: 10px; right: 10px;">{{fa-icon "expand"}}</button>
-</div>
-
-{{#if isQueryRunning}}
-  <div style="position:relative">
-    <div style="margin: auto;position: absolute;top: 0;left: 0;bottom: 0;right: 0;text-align: center">
-      {{fa-icon "spinner fa-2" spin=true}}
-    </div>
+<div class="clearfix visual-explain-detail">
+  <div class="pull-right close">  <a href="javascript:void(0)" {{action "closeModal"}}>{{fa-icon "close"}}</a></div>
+  <div class="clearfix header" >
   </div>
-{{/if}}
-
-
-{{#unless isQueryRunning}}
-  <div id="explain-container" ></div>
-{{/unless}}
-
-{{#if showDetailsModal}}
-  {{visual-explain-detail closeModal='closeModal' explainDetailData=explainDetailData}}
-{{/if}}
-
+  <div class="col-md-12">
+    <div>&nbsp;</div>
+    <pre class="prettyprint">{{explainDetailData}}</pre>
+  </div>
+</div>
 
 {{yield}}

@@ -318,6 +318,7 @@ pre {
 
 .query-editor-results {
   padding-right: 15px;
+  position: relative;
 }
 
 .query-result-table {
@@ -980,3 +981,51 @@ ul.dropdown-menu {
 .break-word{
   word-break: break-all;
 }
+
+.visual-explain-detail-container {
+  width: 500px;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #FFF;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.visual-explain-detail{
+  border: 1px solid #DDD;
+  .close{
+    margin: 10px 15px;
+    z-index: 9999;
+  }
+
+  .header{
+    border-bottom: 1px solid #DDD; padding: 10px 0;
+    .icon{
+      padding:10px;
+    }
+    .join-type {
+      font-size: 20px; font-weight: bold
+    }
+  }
+
+  .vector-info{
+    border: 1px solid #DDD; padding:20px; background-color:#ED6265; color:#FFF; font-weight: bold; margin: 10px 0;
+  }
+  .block{
+    border: 1px solid #DDD; padding:20px; margin: 10px 0;
+
+    .block-header{
+      font-size: 20px; font-weight: bold;
+    }
+    .block-body{
+      padding: 10px 0;
+    }
+
+    .divider{
+      height: 1px; border-top:1px solid #DDD; margin: 10px 0;
+    }
+  }
+
+}
+
