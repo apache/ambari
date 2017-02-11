@@ -101,7 +101,7 @@ export default Ember.Component.extend({
       }
     }
 
-    this.sendAction('updateQuery');
+    this.sendAction('updateQuery', query);
 
 
   }.observes('query'),
