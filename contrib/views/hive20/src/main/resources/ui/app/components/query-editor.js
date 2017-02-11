@@ -74,6 +74,14 @@ export default Ember.Component.extend({
       });
     });
 
+    this.$('.CodeMirror').resizable({
+      handles: 's',
+
+      resize: function () {
+        Ember.run.debounce(this, updateSize, 150);
+      }
+    }).find('.ui-resizable-s').addClass('grip fa fa-reorder');
+
 
   }.on('didInsertElement'),
 
