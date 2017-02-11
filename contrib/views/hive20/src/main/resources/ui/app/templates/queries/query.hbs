@@ -25,7 +25,7 @@
         <span class="expand-button" {{action "expandQueryEdidorPanel" }} >
           {{fa-icon "expand"}}
         </span>
-        {{query-editor query=currentQuery }}
+        {{query-editor query=currentQuery updateQuery='updateQuery' }}
       </div>
       <div class="row query-editor-controls">
         <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "check"}} Execute</button>

@@ -17,10 +17,6 @@
  */
 
 import Ember from 'ember';
-import ApplicationAdapter from './application';
 
-export default ApplicationAdapter.extend({
-  buildURL(){
-    return this._super(...arguments).replace('/resources','');
-  }
+export default Ember.Controller.extend({
 });

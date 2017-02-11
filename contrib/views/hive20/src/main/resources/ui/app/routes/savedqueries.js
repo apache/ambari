@@ -23,11 +23,14 @@ export default Ember.Route.extend({
   savedQueries: Ember.inject.service(),
 
   model() {
-    return this.get('savedQueries').getAllQueries();
+    return this.store.findAll('savedQuery').then(savedQueries => savedQueries.toArray());
   },
 
   setupController(controller, model) {
     this._super(...arguments);
+
+    controller.set('savedQuerylist', model);
+
     controller.set('showDeleteSaveQueryModal', false);
     controller.set('selectedSavedQueryId', null);
   },
@@ -39,19 +42,40 @@ export default Ember.Route.extend({
 
     deleteSavedQuery(){
       let queryId = this.get('controller').get('selectedSavedQueryId');
+      let self = this;
 
       console.log('deleteSavedQuery', queryId);
-      this.get('savedQueries').deleteSaveQuery(queryId)
-        .then((data) => {
-          console.log('Deleted saved query.', data);
-          this.get('controller').set('showDeleteSaveQueryModal', false );
-          //$(window).reload();
-        }, (error) => {
-          console.log("Error encountered", error);
-        });
+
+      this.get('store').queryRecord('saved-query', { filter: { id: queryId } }, {reload: true}).then(function(record) {
+        record.destroyRecord().then(function(data) {
+          self.send('deleteSavedQueryDeclined');
+          self.send('refreshSavedQueryList');
+        })
+      }, (error) => {
+        console.log('error', error);
+      });
     },
 
-    deleteSavedQuerypDeclined(){
+    refreshSavedQueryList(){
+      this.get('store').findAll('saved-query').then(data => {
+        let savedQueryList = [];
+        data.forEach(x => {
+          let localSavedQuery = {
+            'id': x.get('id'),
+            'dataBase': x.get('dataBase'),
+            'title': x.get('title'),
+            'queryFile': x.get('queryFile'),
+            'owner': x.get('owner'),
+            'shortQuery': x.get('shortQuery')
+          };
+          savedQueryList.pushObject(localSavedQuery);
+        });
+
+        this.get('controller').set('savedQuerylist',savedQueryList);
+      })
+    },
+
+    deleteSavedQueryDeclined(){
       this.get('controller').set('selectedSavedQueryId', null);
       this.get('controller').set('showDeleteSaveQueryModal', false );
     },
@@ -85,10 +109,10 @@ export default Ember.Route.extend({
 
       let localWs = {
         id: worksheetId,
-        title: savedQuery.title,
-        query: savedQuery.shortQuery,
-        selectedDb : savedQuery.dataBase,
-        owner: savedQuery.owner,
+        title: savedQuery.get('title'),
+        query: savedQuery.get('shortQuery'),
+        selectedDb : savedQuery.get('dataBase'),
+        owner: savedQuery.get('owner'),
         selected: true
       };
 

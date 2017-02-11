@@ -114,7 +114,6 @@ export default Ember.Route.extend({
     controller.set('isVisualExplainQuery', false);
     controller.set('visualExplainJson', null);
 
-
   },
 
 
@@ -122,7 +121,7 @@ export default Ember.Route.extend({
     createQuery(udfName, udfClassname, fileResourceName, fileResourcePath){
       let query = "add jar "+ fileResourcePath + ";\ncreate temporary function " + udfName + " as '"+ udfClassname+ "';";
       this.get('controller').set('currentQuery', query);
-      this.get('controller.model').set('currentQuery', query );
+      this.get('controller.model').set('query', query );
     },
 
     changeDbHandler(selectedDBs){
@@ -220,6 +219,7 @@ export default Ember.Route.extend({
 
         self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
+
               self.get('controller').set('isJobSuccess', true);
               self.send('getJob', data);
 
@@ -318,8 +318,9 @@ export default Ember.Route.extend({
       });
     },
 
-    updateQuery(){
-      console.log('I am in update query.');
+    updateQuery(query){
+      this.get('controller').set('currentQuery', query);
+      this.get('controller.model').set('query', query);
     },
 
     goNextPage(){
@@ -411,7 +412,7 @@ export default Ember.Route.extend({
       console.log('I am in saveWorksheetModal');
       let newTitle = $('#worksheet-title').val();
 
-      let currentQuery = this.get('controller').get('currentQuery');
+      let currentQuery = this.get('controller.model').get('query');
       let selectedDb = this.get('controller.model').get('selectedDb');
       let owner = this.get('controller.model').get('owner');
       let queryFile = this.get('controller.model').get('queryFile');
