@@ -1565,13 +1565,18 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
               elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
                 updated_cap_sched_configs_str = updated_cap_sched_configs_str \
                                             + prop + "=" + adjusted_default_queue_cap + "\n"
+              elif prop == 'yarn.scheduler.capacity.root.ordering-policy':
+                # Don't put this in again. We're re-writing the llap section.
+                pass
               elif prop.startswith('yarn.') and '.llap.' not in prop:
                 updated_cap_sched_configs_str = updated_cap_sched_configs_str + prop + "=" + val + "\n"
 
           # Now, append the 'llap' queue related properties
-          updated_cap_sched_configs_str += """yarn.scheduler.capacity.root.{0}.user-limit-factor=1
+          updated_cap_sched_configs_str += """yarn.scheduler.capacity.root.ordering-policy=priority-utilization
+yarn.scheduler.capacity.root.{0}.user-limit-factor=1
 yarn.scheduler.capacity.root.{0}.state=RUNNING
 yarn.scheduler.capacity.root.{0}.ordering-policy=fifo
+yarn.scheduler.capacity.root.{0}.priority=10
 yarn.scheduler.capacity.root.{0}.minimum-user-limit-percent=100
 yarn.scheduler.capacity.root.{0}.maximum-capacity={1}
 yarn.scheduler.capacity.root.{0}.capacity={1}
@@ -1593,13 +1598,18 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                 putCapSchedProperty(prop, adjusted_default_queue_cap)
               elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
                 putCapSchedProperty(prop, adjusted_default_queue_cap)
+              elif prop == 'yarn.scheduler.capacity.root.ordering-policy':
+                # Don't put this in again. We're re-writing the llap section.
+                pass
               elif prop.startswith('yarn.') and '.llap.' not in prop:
                 putCapSchedProperty(prop, val)
 
           # Add new 'llap' queue related configs.
+          putCapSchedProperty("yarn.scheduler.capacity.root.ordering-policy", "priority-utilization")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".user-limit-factor", "1")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".state", "RUNNING")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".ordering-policy", "fifo")
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".priority", "10")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".minimum-user-limit-percent", "100")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-capacity", llap_queue_cap_perc)
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".capacity", llap_queue_cap_perc)
@@ -1667,6 +1677,9 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                 # Set 'default' max. capacity back to maximum val
                 updated_default_queue_configs = updated_default_queue_configs \
                                             + prop + "="+DEFAULT_MAX_CAPACITY + "\n"
+              elif prop == 'yarn.scheduler.capacity.root.ordering-policy':
+                # Don't set this property. The default will be picked up.
+                pass
               elif prop.startswith('yarn.'):
                 updated_default_queue_configs = updated_default_queue_configs + prop + "=" + val + "\n"
             else: # Update 'llap' related configs in 'updated_llap_queue_configs'
