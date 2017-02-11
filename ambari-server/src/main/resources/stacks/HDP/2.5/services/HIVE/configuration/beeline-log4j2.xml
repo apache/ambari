@@ -46,7 +46,7 @@ name = BeelineLog4j2
 packages = org.apache.hadoop.hive.ql.log
 
 # list of properties
-property.hive.log.level = WARN
+property.hive.log.level = {{hive_log_level}}
 property.hive.root.logger = console
 
 # list of all appenders

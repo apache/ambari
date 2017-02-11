@@ -19,14 +19,15 @@
 package org.apache.ambari.server.state.theme;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
@@ -90,8 +91,12 @@ public class TabLayout {
         if (childSection.isRemoved()) {
           mergedSections.remove(childSection.getName());
         } else {
-          Section parentSection = mergedSections.get(childSection.getName());
-          childSection.mergeWithParent(parentSection);
+          if(mergedSections.containsKey(childSection.getName())) {
+            Section parentSection = mergedSections.get(childSection.getName());
+            childSection.mergeWithParent(parentSection);
+          }else{
+            childSection.mergeWithParent(childSection);
+          }
           mergedSections.put(childSection.getName(), childSection);
         }
       }
