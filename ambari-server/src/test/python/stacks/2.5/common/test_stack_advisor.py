@@ -158,9 +158,11 @@ class TestHDP25StackAdvisor(TestCase):
                               'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                               'yarn.scheduler.capacity.node-locality-delay=40\n'
                               'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                              'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                               'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                               'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                               'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                              'yarn.scheduler.capacity.root.llap.priority=10\n'
                               'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
 
                               'yarn.scheduler.capacity.root.llap.maximum-capacity=20\n'
@@ -188,9 +190,11 @@ class TestHDP25StackAdvisor(TestCase):
                               'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                               'yarn.scheduler.capacity.node-locality-delay=40\n'
                               'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                              'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                               'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                               'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                               'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                              'yarn.scheduler.capacity.root.llap.priority=10\n'
                               'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                               'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                               'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -220,6 +224,7 @@ class TestHDP25StackAdvisor(TestCase):
                               'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                               'yarn.scheduler.capacity.root.llap.state=STOPPED\n'
                               'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                              'yarn.scheduler.capacity.root.llap.priority=10\n'
                               'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                               'yarn.scheduler.capacity.root.llap.maximum-capacity=0\n'
                               'yarn.scheduler.capacity.root.llap.capacity=0\n'
@@ -749,9 +754,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -922,6 +929,7 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=STOPPED\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -1092,9 +1100,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=20\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=20\n'
@@ -1292,9 +1302,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=0\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=0\n'
@@ -1486,9 +1498,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -1689,9 +1703,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -1887,9 +1903,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -1962,7 +1980,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '4'})
-    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=66.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=66.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=34.0\nyarn.scheduler.capacity.root.llap.capacity=34.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
+    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=66.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=66.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.ordering-policy=priority-utilization\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.priority=10\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=34.0\nyarn.scheduler.capacity.root.llap.capacity=34.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
     self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
@@ -2087,9 +2105,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -2360,7 +2380,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
+    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.ordering-policy=priority-utilization\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.priority=10\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
@@ -2488,9 +2508,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -2563,7 +2585,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=2.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=2.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=98.0\nyarn.scheduler.capacity.root.llap.capacity=98.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
+    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=2.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=2.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.ordering-policy=priority-utilization\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.priority=10\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=98.0\nyarn.scheduler.capacity.root.llap.capacity=98.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1.0')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
@@ -2688,9 +2710,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -2762,7 +2786,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=80.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=80.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=20.0\nyarn.scheduler.capacity.root.llap.capacity=20.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
+    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=80.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=80.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.ordering-policy=priority-utilization\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.priority=10\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=20.0\nyarn.scheduler.capacity.root.llap.capacity=20.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
@@ -2886,9 +2910,11 @@ class TestHDP25StackAdvisor(TestCase):
                                   'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                                   'yarn.scheduler.capacity.node-locality-delay=40\n'
                                   'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
+                                  'yarn.scheduler.capacity.root.ordering-policy=priority-utilization\n'
                                   'yarn.scheduler.capacity.root.llap.user-limit-factor=1\n'
                                   'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                                   'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
+                                  'yarn.scheduler.capacity.root.llap.priority=10\n'
                                   'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
                                   'yarn.scheduler.capacity.root.llap.maximum-capacity=40\n'
                                   'yarn.scheduler.capacity.root.llap.capacity=40\n'
@@ -2958,7 +2984,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
+    self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.ordering-policy=priority-utilization\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.priority=10\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
