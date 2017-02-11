@@ -498,6 +498,7 @@ webhcat_log_maxfilesize = default("/configurations/webhcat-log4j/webhcat_log_max
 webhcat_log_maxbackupindex = default("/configurations/webhcat-log4j/webhcat_log_maxbackupindex", 20)
 hive_log_maxfilesize = default("/configurations/hive-log4j/hive_log_maxfilesize", 256)
 hive_log_maxbackupindex = default("/configurations/hive-log4j/hive_log_maxbackupindex", 30)
+hive_log_level = default("/configurations/hive-env/hive.log.level", "INFO")
 
 #hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):

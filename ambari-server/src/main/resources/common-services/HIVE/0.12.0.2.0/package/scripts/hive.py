@@ -418,7 +418,7 @@ def fill_conf_dir(component_conf_dir):
            mode=mode_identified_for_file,
            group=params.user_group,
            owner=params.hive_user,
-           content=params.log4j_exec_props
+           content=InlineTemplate(params.log4j_exec_props)
       )
     elif (os.path.exists("{component_conf_dir}/{log4j_exec_filename}.template")):
       File(format("{component_conf_dir}/{log4j_exec_filename}"),

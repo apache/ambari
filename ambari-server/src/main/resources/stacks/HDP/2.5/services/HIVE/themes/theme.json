@@ -1,5 +1,43 @@
 {
+
   "configuration" : {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-rows": 6,
+              "tab-columns": 3,
+              "sections": [
+                {
+                  "name": "misc-settings",
+                  "display-name": "Miscellaneous Settings",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "3",
+                  "section-columns": "3",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "misc-row1-col1",
+                      "display-name": "Log Level",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+      ],
     "placement" : {
       "configs" : [
         {
@@ -161,6 +199,10 @@
               }
             }
           ]
+        },
+        {
+          "config": "hive-env/hive.log.level",
+          "subsection-name": "misc-row1-col1"
         }
       ]
     },
@@ -242,6 +284,12 @@
               "unit-name": "int"
             }
           ]
+        }
+      },
+      {
+        "config": "hive-env/hive.log.level",
+        "widget": {
+          "type": "combo"
         }
       }
     ]

@@ -249,14 +249,14 @@ def hive_interactive(name=None):
          mode=mode_identified,
          group=params.user_group,
          owner=params.hive_user,
-         content=params.hive_exec_log4j2)
+         content=InlineTemplate(params.hive_exec_log4j2))
 
       beeline_log4j2_filename = 'beeline-log4j2.properties'
       File(format("{hive_server_interactive_conf_dir}/{beeline_log4j2_filename}"),
          mode=mode_identified,
          group=params.user_group,
          owner=params.hive_user,
-         content=params.beeline_log4j2)
+         content=InlineTemplate(params.beeline_log4j2))
 
       File(os.path.join(hive_server_interactive_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
            owner=params.hive_user,
