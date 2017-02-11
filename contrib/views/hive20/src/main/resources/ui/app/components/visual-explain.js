@@ -20,7 +20,12 @@ import Ember from 'ember';
 import explain from '../utils/hive-explainer';
 
 export default Ember.Component.extend({
+
   visualExplainJson:'',
+
+  showDetailsModal: false,
+
+  explainDetailData: '',
 
   visualExplainInput: Ember.computed('visualExplainJson', function () {
     return this.get('visualExplainJson');
@@ -39,6 +44,7 @@ export default Ember.Component.extend({
       .attr('height', height);
 
     const container = svg.append('g');
+
     const zoom =
       d3.zoom()
         .scaleExtent([1 / 10, 4])
@@ -49,16 +55,34 @@ export default Ember.Component.extend({
       svg
         .call(zoom);
 
-    const onRequestDetail = data => this.sendAction('showStepDetail', data);
+    const onRequestDetail = data => this.set('explainDetailData', JSON.stringify( data, null, '  ') );
 
     explain(JSON.parse(this.get('visualExplainInput')), svg, container, zoom, onRequestDetail);
 
   },
 
+  click(event){
+
+    if(this.get('explainDetailData') === ''){
+      return;
+    }
+
+    Ember.run.later(() => {
+      this.set('showDetailsModal', true);
+    }, 100);
+  },
+
   actions:{
     expandQueryResultPanel(){
       this.sendAction('expandQueryResultPanel');
+    },
+
+    closeModal(){
+      this.set('showDetailsModal', false);
+      this.set('explainDetailData', '');
+      false;
     }
+
   }
 
 });
