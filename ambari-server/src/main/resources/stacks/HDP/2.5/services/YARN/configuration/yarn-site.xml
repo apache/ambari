@@ -47,6 +47,12 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>yarn.nodemanager.log-aggregation.num-log-files-per-app</name>
+    <value>336</value>
+    <description>The number of files to retain per container when continuous log aggregation is used</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>yarn.nodemanager.container-metrics.unregister-delay-ms</name>
     <value>60000</value>
     <description>The delay time ms to unregister container metrics after completion.</description>

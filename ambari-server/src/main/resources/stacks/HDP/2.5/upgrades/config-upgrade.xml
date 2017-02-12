@@ -139,6 +139,11 @@
                     to-key="yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled"
                     default-value="false"/>
         </definition>
+        <definition xsi:type="configure" id="yarn_site_retained_log_count" summary="Updating Yarn retained file count for continuous Log Aggregation">
+          <type>yarn-site</type>
+          <set key="yarn.nodemanager.log-aggregation.num-log-files-per-app"
+               value="336" />
+        </definition>
       </changes>
     </component>
   </service>
