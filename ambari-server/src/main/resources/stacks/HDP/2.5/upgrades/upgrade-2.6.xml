@@ -670,6 +670,7 @@
           <task xsi:type="configure" id="yarn_log4j_parameterize" />
           <task xsi:type="configure" id="yarn_env_security_opts" />
           <task xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption" />
+          <task xsi:type="configure" id="yarn_site_retained_log_count" />
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
