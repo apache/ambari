@@ -18,8 +18,9 @@
 
 import TableMetaRouter from './table-meta-router';
 import tabs from '../../../../../configs/edit-table-tabs';
+import UILoggerMixin from '../../../../../mixins/ui-logger';
 
-export default TableMetaRouter.extend({
+export default TableMetaRouter.extend(UILoggerMixin, {
 
   tableOperations: Ember.inject.service(),
 
@@ -51,12 +52,12 @@ export default TableMetaRouter.extend({
         this._modalStatus(true, 'Waiting for the table edit job to complete');
         return this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000);
       }).then((status) => {
-        this._modalStatus(true, 'Successfully edited the table');
+        this._modalStatus(true, 'Successfully altered table');
+        this.get('logger').success(`Successfully altered table '${settings.table}'`);
         this._transitionToTables();
       }).catch((err) => {
-        this._modalStatus(true, 'Failed to edit table');
-        this._alertMessage('Failed to edit table', err);
-        this._transitionToTables();
+        this._modalStatus(false, 'Failed to edit table');
+        this.get('logger').danger(`Failed to  altered table '${settings.table}'`, this.extractError(err));
       });
     }
 
@@ -75,11 +76,6 @@ export default TableMetaRouter.extend({
       this.send('refreshTableInfo');
       this.transitionTo('databases.database.tables.table');
     }, 2000);
-  },
-
-  _alertMessage(message, err) {
-    console.log(message, err);
-    // TODO: user alert message here
   }
 
 

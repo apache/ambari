@@ -17,8 +17,9 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../../../../mixins/ui-logger';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(UILoggerMixin, {
 
   tableOperations: Ember.inject.service(),
 
@@ -40,10 +41,10 @@ export default Ember.Route.extend({
     }).then((status) => {
       this._modalStatus(true, 'Successfully created database');
       this._transitionToDatabases(newDatabaseName);
+      this.get('logger').success(`Successfully created database '${newDatabaseName}'`);
     }).catch((err) => {
-      this._modalStatus(true, 'Failed to create database');
-      this._alertMessage('Failed to create database', err);
-      this._transitionToDatabases();
+      this._modalStatus(false);
+      this.get('logger').danger(`Failed to create database '${newDatabaseName}'`, this.extractError(err));
     });
   },
 
@@ -59,10 +60,6 @@ export default Ember.Route.extend({
       this._modalStatus(false);
       this.transitionTo('databases');
     }, 2000);
-  },
-
-  _alertMessage(message, err) {
-    console.log(message, err);
-    // TODO: user alert message here
   }
+
 });

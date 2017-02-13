@@ -17,8 +17,9 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../mixins/ui-logger';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(UILoggerMixin, {
   tableOperations: Ember.inject.service(),
 
   model() {
@@ -93,7 +94,8 @@ export default Ember.Route.extend({
           this.controller.set('deleteDatabaseMessage', 'Waiting for the database to be deleted');
           this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
             .then((status) => {
-              this.controller.set('deleteDatabaseMessage', "Successfully Deleted table");
+              this.controller.set('deleteDatabaseMessage', "Successfully deleted database");
+              this.get('logger').success(`Successfully deleted database '${databaseModel.get('name')}'`);
               Ember.run.later(() => {
                 this.store.unloadRecord(databaseModel);
                 this.controller.set('showDeleteDatabaseModal', false);
@@ -102,16 +104,16 @@ export default Ember.Route.extend({
                 this.refresh();
               }, 2 * 1000);
             }, (error) => {
-              // TODO: handle error
+              this.get('logger').danger(`Failed to delete database '${databaseModel.get('name')}'`, this.extractError(error));
               Ember.run.later(() => {
                 this.controller.set('showDeleteDatabaseModal', false);
                 this.controller.set('deleteDatabaseMessage');
                 this.replaceWith('databases');
                 this.refresh();
-              }, 2 * 1000);
+              }, 1 * 1000);
             });
         }, (error) => {
-          console.log("Error encountered", error);
+          this.get('logger').danger(`Failed to delete database '${databaseModel.get('name')}'`, this.extractError(error));
           this.controller.set('showDeleteDatabaseModal', false);
         });
     },
