@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -52,6 +51,7 @@ import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -83,10 +83,11 @@ public class AlertDispatchDAO {
   private Provider<Clusters> m_clusters;
 
   /**
-   * A lock that ensures that group writes are protected. This is useful since
-   * groups can be created through different events/threads in the system.
+   * Used for ensuring that the concurrent nature of the event handler methods
+   * don't collide when attempting to creation alert groups for the same
+   * service.
    */
-  private final Lock m_groupLock = new ReentrantLock();
+  private Striped<Lock> m_locksByService = Striped.lazyWeakLock(20);
 
   private static final Logger LOG = LoggerFactory.getLogger(AlertDispatchDAO.class);
 
@@ -192,24 +193,6 @@ public class AlertDispatchDAO {
 
     query.setParameter("notifyState", NotificationState.PENDING);
     return daoUtils.selectList(query);
-  }
-
-  /**
-   * Gets an alert group with the specified name across all clusters. Alert
-   * group names are unique within a cluster.
-   *
-   * @param groupName
-   *          the name of the group (not {@code null}).
-   * @return the alert group or {@code null} if none exists.
-   */
-  @RequiresSession
-  public AlertGroupEntity findGroupByName(String groupName) {
-    TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
-        "AlertGroupEntity.findByName", AlertGroupEntity.class);
-
-    query.setParameter("groupName", groupName);
-
-    return daoUtils.selectSingle(query);
   }
 
   /**
@@ -390,7 +373,7 @@ public class AlertDispatchDAO {
     }
 
     // sorting
-    JpaSortBuilder<AlertNoticeEntity> sortBuilder = new JpaSortBuilder<AlertNoticeEntity>();
+    JpaSortBuilder<AlertNoticeEntity> sortBuilder = new JpaSortBuilder<>();
     List<Order> sortOrders = sortBuilder.buildSortOrders(request.Sort, visitor);
     query.orderBy(sortOrders);
 
@@ -466,6 +449,7 @@ public class AlertDispatchDAO {
   @Transactional
   public AlertGroupEntity createDefaultGroup(long clusterId, String serviceName)
       throws AmbariException {
+
     // AMBARI is a special service that we let through, otherwise we need to
     // verify that the service exists before we create the default group
     String ambariServiceName = Services.AMBARI.name();
@@ -481,21 +465,26 @@ public class AlertDispatchDAO {
       }
     }
 
-    AlertGroupEntity group = new AlertGroupEntity();
+    Lock lock = m_locksByService.get(serviceName);
+    lock.lock();
 
-    m_groupLock.lock();
     try {
+      AlertGroupEntity group = findDefaultServiceGroup(clusterId, serviceName);
+      if (null != group) {
+        return group;
+      }
+
+      group = new AlertGroupEntity();
       group.setClusterId(clusterId);
       group.setDefault(true);
       group.setGroupName(serviceName);
       group.setServiceName(serviceName);
 
       create(group);
+      return group;
     } finally {
-      m_groupLock.unlock();
+      lock.unlock();
     }
-
-    return group;
   }
 
   /**

@@ -44,9 +44,24 @@ export default DDLAdapter.extend({
     return this.ajax(postURL, 'POST', { data: { tableInfo: tableMetaInfo } });
   },
 
+  editTable(tableMetaInfo) {
+    let postURL = this.buildURL('table', null, null, 'query',
+      { databaseId: tableMetaInfo.database, tableName: tableMetaInfo.table });
+    return this.ajax(postURL, 'PUT', { data: { tableInfo: tableMetaInfo } });
+  },
+
   deleteTable(database, tableName) {
     let deletURL = this.buildURL('table', null, null, 'query', { databaseId: database, tableName: tableName });
     return this.ajax(deletURL, 'DELETE');
+  },
+
+  renameTable(database, newTableName, oldTableName) {
+    let renameUrl = this.buildURL('table', null, null, 'query', { databaseId: database, tableName: oldTableName }) + '/rename';
+    let data = {
+      newDatabase: database,
+      newTable: newTableName
+    };
+    return this.ajax(renameUrl, 'PUT', {data: data});
   },
 
   analyseTable(databaseName, tableName, withColumns = false) {

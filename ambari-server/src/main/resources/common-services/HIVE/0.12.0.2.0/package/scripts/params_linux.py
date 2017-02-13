@@ -48,8 +48,7 @@ from resource_management.libraries.functions.get_architecture import get_archite
 
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import checked_call
-from resource_management.core.logger import Logger
-from ambari_commons.inet_utils import download_file
+from ambari_commons.credential_store_helper import get_password_from_credential_store
 
 # Default log4j version; put config files under /etc/hive/conf
 log4j_version = '1'
@@ -229,42 +228,15 @@ hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.opti
 
 jdk_location = config['hostLevelParams']['jdk_location']
 
-credential_util_cmd = 'org.apache.ambari.server.credentialapi.CredentialUtil'
-credential_util_jar = 'CredentialUtil.jar'
-
-# Gets the hive metastore password from its JCEKS provider, if available.
-def getHiveMetastorePassword():
-  passwd = ''
+if credential_store_enabled:
   if 'hadoop.security.credential.provider.path' in config['configurations']['hive-site']:
-    # Try to download CredentialUtil.jar from ambari-server resources
     cs_lib_path = config['configurations']['hive-site']['credentialStoreClassPath']
-    credential_util_dir = cs_lib_path.split('*')[0] # Remove the trailing '*'
-    credential_util_path = os.path.join(credential_util_dir, credential_util_jar)
-    credential_util_url =  jdk_location + credential_util_jar
-    try:
-      download_file(credential_util_url, credential_util_path)
-    except Exception, e:
-      message = 'Error downloading {0} from Ambari Server resources. {1}'.format(credential_util_url, str(e))
-      Logger.error(message)
-      raise
-
-    # Execute a get command on the CredentialUtil CLI to get the password for the specified alias
     java_home = config['hostLevelParams']['java_home']
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
     alias = 'javax.jdo.option.ConnectionPassword'
     provider_path = config['configurations']['hive-site']['hadoop.security.credential.provider.path']
-    cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
-    cmd_result, std_out_msg  = checked_call(cmd)
-    if cmd_result != 0:
-      message = 'The following error occurred while executing {0}: {1}'.format(' '.join(cmd), std_out_msg)
-      Logger.error(message)
-      raise
-    std_out_lines = std_out_msg.split('\n')
-    passwd = std_out_lines[-1] # Get the last line of the output, to skip warnings if any.
-  return passwd
-
-if credential_store_enabled:
-  hive_metastore_user_passwd = PasswordString(getHiveMetastorePassword())
+    hive_metastore_user_passwd = PasswordString(get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location))
+  else:
+    raise Exception("hadoop.security.credential.provider.path property should be set")
 else:
   hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_user_passwd = unicode(hive_metastore_user_passwd) if not is_empty(hive_metastore_user_passwd) else hive_metastore_user_passwd
@@ -502,6 +474,7 @@ webhcat_log_maxfilesize = default("/configurations/webhcat-log4j/webhcat_log_max
 webhcat_log_maxbackupindex = default("/configurations/webhcat-log4j/webhcat_log_maxbackupindex", 20)
 hive_log_maxfilesize = default("/configurations/hive-log4j/hive_log_maxfilesize", 256)
 hive_log_maxbackupindex = default("/configurations/hive-log4j/hive_log_maxbackupindex", 30)
+hive_log_level = default("/configurations/hive-env/hive.log.level", "INFO")
 
 #hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
@@ -690,6 +663,8 @@ if has_hive_interactive:
   num_retries_for_checking_llap_status = default('/configurations/hive-interactive-env/num_retries_for_checking_llap_status', 10)
   # Used in LLAP slider package creation
   yarn_nm_mem = config['configurations']['yarn-site']['yarn.nodemanager.resource.memory-mb']
+  if stack_supports_hive_interactive_ga:
+    num_llap_daemon_running_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes_for_llap_daemons']
   num_llap_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes']
   llap_daemon_container_size = config['configurations']['hive-interactive-site']['hive.llap.daemon.yarn.container.mb']
   llap_log_level = config['configurations']['hive-interactive-env']['llap_log_level']
@@ -705,7 +680,10 @@ if has_hive_interactive:
     hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
   pass
 
-hive_server2_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
+if len(hive_server_hosts) == 0 and len(hive_server_interactive_hosts) > 0:
+  hive_server2_zookeeper_namespace = config['configurations']['hive-interactive-site']['hive.server2.zookeeper.namespace']
+else:
+  hive_server2_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
 hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
 
 if security_enabled:

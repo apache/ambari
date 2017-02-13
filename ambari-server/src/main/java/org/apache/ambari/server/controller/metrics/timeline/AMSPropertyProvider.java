@@ -441,6 +441,14 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
                   } else {
                     propertyId = substituteArgument(propertyId, "$1", metric.getInstanceId());
                   }
+                }else {
+                  if(metric.getInstanceId() != null){
+                    //instanceId "CHANNEL.ch1"
+                    String instanceId = metric.getInstanceId();
+                    instanceId = instanceId.matches("^\\w+\\..+$") ? instanceId.split("\\.")[1]:"";
+                    //propertyId "metrics/flume/flume/CHANNEL/ch1/[ChannelCapacity]"
+                    if(!propertyId.contains(instanceId)) continue;
+                  }
                 }
                 Object value = getValue(metric, temporalInfo);
                 if (value != null && !containsArguments(propertyId)) {

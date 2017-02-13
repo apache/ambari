@@ -110,14 +110,6 @@ public interface Service {
   boolean isCredentialStoreSupported();
 
   /**
-   * Set a true or false value specifying if this
-   * service supports credential store.
-   *
-   * @param credentialStoreSupported - true or false
-   */
-  void setCredentialStoreSupported(boolean credentialStoreSupported);
-
-  /**
    * Get a true or false value specifying whether
    * credential store use is enabled for this service.
    *

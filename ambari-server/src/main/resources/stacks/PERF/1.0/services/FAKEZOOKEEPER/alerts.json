@@ -1,7 +1,7 @@
 {
-    "FAKEZOOKEEPER": {
+    "ZOOKEEPER": {
 
-        "FAKEZOOKEEPER_SERVER": [
+        "ZOOKEEPER_SERVER": [
             {
                 "name": "zookeeper_server_process",
                 "label": "Zookeeper server Process",

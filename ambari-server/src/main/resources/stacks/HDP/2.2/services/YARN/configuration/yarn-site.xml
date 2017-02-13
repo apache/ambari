@@ -127,13 +127,13 @@
   </property>
   <property>
     <name>yarn.resourcemanager.connect.retry-interval.ms</name>
-    <value>30000</value>
+    <value>15000</value>
     <description>How often to try connecting to the ResourceManager.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.resourcemanager.connect.max-wait.ms</name>
-    <value>900000</value>
+    <value>-1</value>
     <description>Maximum time to wait to establish connection to ResourceManager</description>
     <on-ambari-upgrade add="true"/>
   </property>

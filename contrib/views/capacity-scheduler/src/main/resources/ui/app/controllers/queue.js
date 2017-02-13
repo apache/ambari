@@ -23,9 +23,9 @@ var _stopState = 'STOPPED';
 
 App.QueueController = Ember.ObjectController.extend({
   needs:['queues','configs'],
+  isPriorityUtilizationSupported: Ember.computed.alias('store.isPriorityUtilizationSupported'),
   isRangerEnabledForYarn : function() {
     var isRanger = this.get('controllers.configs.isRangerEnabledForYarn');
-    console.log("controllers.queue : isRanger : ", isRanger);
     if (isRanger == null || typeof isRanger == 'undefined') {
       return false;
     }
@@ -158,6 +158,16 @@ App.QueueController = Ember.ObjectController.extend({
    * @type {Array}
    */
   orderingPolicyValues: [null,'fifo', 'fair'],
+
+  /**
+   * Possible array of options for ordering policy
+   * @type {Array}
+   */
+  orderingPolicyOptions: [
+    {label: '', value: null},
+    {label: 'FIFO', value: 'fifo'},
+    {label: 'Fair', value: 'fair'}
+  ],
 
 
   // COMPUTED PROPERTIES
@@ -344,6 +354,16 @@ App.QueueController = Ember.ObjectController.extend({
     return this.get('content.ordering_policy');
   }.property('content.ordering_policy'),
 
+  currentLeafQueueOP: function(key, val) {
+    if (arguments.length > 1 && this.get('content.isLeafQ')) {
+      if (!this.get('isFairOP')) {
+        this.send('rollbackProp', 'enable_size_based_weight', this.get('content'));
+      }
+      this.set('content.ordering_policy', val || null);
+    }
+    return this.get('content.ordering_policy');
+  }.property('content.ordering_policy'),
+
   /**
    * Does ordering policy is equal to 'fair'
    * @type {Boolean}
@@ -372,6 +392,87 @@ App.QueueController = Ember.ObjectController.extend({
     }.bind(this));
   }.observes('content'),
 
+  /**
+   * Add observer for queue priority.
+   * Sets ordering_policy=priority-utilization to parent queue if children queues have different priorities
+   * Also reset back t0 original ordering_policy if children have same zero priorities
+   * @method priorityObserver
+   */
+  priorityObserver: function() {
+    if (!this.get('isPriorityUtilizationSupported')) {
+      return;
+    }
+    var parentQueue = this.get('parentQueue');
+    if (parentQueue) {
+      var hasDifferent = this.isChildrenPrioritiesDifferent(parentQueue);
+      if (hasDifferent) {
+        this.setOrderingPolicyConfigs(parentQueue);
+      } else {
+        this.rollbackOrderingPolicyConfigs(parentQueue);
+      }
+    }
+  }.observes('content.priority'),
+
+  /**
+   * Returns boolean if children queues have different priorities for a given queue
+   * @method isChildrenPrioritiesDifferent
+   */
+  isChildrenPrioritiesDifferent: function(queue) {
+    var hasDifferent = false;
+    var children = queue.get('childrenQueues');
+    var priorities = children.map(function(que) {
+      return que.get('priority');
+    });
+    hasDifferent = priorities.some(function(prio) {
+      return prio > 0;
+    });
+    return hasDifferent;
+  },
+
+  /**
+   * Sets queue ordering_policy=priority-utilization when children queues have different priorities
+   * @method setOrderingPolicyConfigs
+   */
+  setOrderingPolicyConfigs: function(queue) {
+    queue.set('ordering_policy', 'priority-utilization');
+  },
+
+  /**
+   * Rollback queue ordering_policy
+   * @method rollbackOrderingPolicyConfigs
+   */
+  rollbackOrderingPolicyConfigs: function(queue) {
+    var changedAttrs = queue.changedAttributes();
+    if (changedAttrs.hasOwnProperty('ordering_policy') && changedAttrs['ordering_policy'][0] !== 'priority-utilization') {
+      this.send('rollbackProp', 'ordering_policy', queue);
+    } else {
+      queue.set('ordering_policy', null);
+    }
+  },
+
+  /**
+   * Add observer to watch queues ordering_policy
+   * In case, if leaf queue has ordering_policy=priority-utilization, set ordering_policy to default fifo, since leaf can not have priority-utilization ordering_policy
+   * Observed when all leaf queues are deleted and parent become leaf with ordering_policy=priority-utilization
+   * Deleting child queues would change parent ordering_policy based on the other children priorities
+   * @method watchQueueOrderingPolicy
+   */
+  watchQueueOrderingPolicy: function() {
+    if (!this.get('isPriorityUtilizationSupported')) {
+      return;
+    }
+    if (this.get('content.isLeafQ') && this.get('content.ordering_policy') == 'priority-utilization') {
+      this.set('content.ordering_policy', 'fifo');
+    }
+    if (!this.get('content.isLeafQ')) {
+      var queue = this.get('content');
+      if (this.isChildrenPrioritiesDifferent(queue)) {
+        this.setOrderingPolicyConfigs(queue);
+      } else {
+        this.rollbackOrderingPolicyConfigs(queue);
+      }
+    }
+  }.observes('content.isLeafQ', 'content', 'content.queuesArray.length'),
 
 
   // METHODS

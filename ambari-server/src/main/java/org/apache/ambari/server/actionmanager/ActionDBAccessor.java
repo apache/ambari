@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 
 public interface ActionDBAccessor {
@@ -58,8 +59,10 @@ public interface ActionDBAccessor {
    * Abort all outstanding operations associated with the given request. This
    * method uses the {@link HostRoleStatus#SCHEDULED_STATES} to determine which
    * {@link HostRoleCommand} instances to abort.
+   *
+   * Returns the list of the aborted operations.
    */
-  public void abortOperation(long requestId);
+  public Collection<HostRoleCommandEntity> abortOperation(long requestId);
 
   /**
    * Mark the task as to have timed out

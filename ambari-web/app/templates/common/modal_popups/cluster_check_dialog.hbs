@@ -30,8 +30,8 @@
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.fails}}
-        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
-        <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
+        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.check}}</span>
+        <pre>{{t popup.clusterCheck.reason}}{{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}</pre>
       {{/each}}
     </div>
   {{/if}}
@@ -48,8 +48,8 @@
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.bypass}}
-        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
-        <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
+        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.check}}</span>
+        <pre>{{t popup.clusterCheck.reason}}{{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}</pre>
       {{/each}}
     </div>
   {{/if}}
@@ -65,8 +65,8 @@
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.warnings}}
-        <i class="glyphicon glyphicon-warning-sign"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
-        <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
+        <i class="glyphicon glyphicon-warning-sign"></i>&nbsp;<span>{{item.check}}</span>
+        <pre>{{t popup.clusterCheck.reason}}{{item.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.failed_on}}</pre>
       {{/each}}
     </div>
   {{/if}}

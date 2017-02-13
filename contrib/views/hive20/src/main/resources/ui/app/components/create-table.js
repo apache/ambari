@@ -18,13 +18,17 @@
 
 import Ember from 'ember';
 import Helper from '../configs/helpers';
+import FileFormats from '../configs/file-format';
 
 export default Ember.Component.extend({
   init() {
     this._super(...arguments);
+    let defaultFileFormat = FileFormats.findBy('default', true);
     this.set('columns', Ember.A());
     this.set('properties', []);
-    this.set('settings', {});
+    this.set('settings', {
+      fileFormat: { type: defaultFileFormat.name}
+    });
     this.set('shouldAddBuckets', null);
     this.set('settingErrors', []);
   },

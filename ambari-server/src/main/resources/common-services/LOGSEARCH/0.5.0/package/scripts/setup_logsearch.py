@@ -21,6 +21,7 @@ from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.functions.security_commons import update_credential_provider_path, HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME
 
 
 def setup_logsearch():
@@ -49,20 +50,6 @@ def setup_logsearch():
             owner=params.logsearch_user,
             group=params.user_group)
 
-  File(format("{logsearch_server_keys_folder}/ks_pass.txt"),
-       content=params.logsearch_keystore_password,
-       mode=0600,
-       owner=params.logsearch_user,
-       group=params.user_group
-       )
-
-  File(format("{logsearch_server_keys_folder}/ts_pass.txt"),
-       content=params.logsearch_truststore_password,
-       mode=0600,
-       owner=params.logsearch_user,
-       group=params.user_group
-       )
-
   File(params.logsearch_log,
        mode=0644,
        owner=params.logsearch_user,
@@ -70,6 +57,13 @@ def setup_logsearch():
        content=''
        )
 
+  params.logsearch_env_config = update_credential_provider_path(params.logsearch_env_config,
+                                                                'logsearch-env',
+                                                                params.logsearch_env_jceks_file,
+                                                                params.logsearch_user,
+                                                                params.user_group
+                                                                )
+  params.logsearch_properties[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file' + params.logsearch_env_jceks_file
   PropertiesFile(format("{logsearch_server_conf}/logsearch.properties"),
                  properties=params.logsearch_properties
                  )

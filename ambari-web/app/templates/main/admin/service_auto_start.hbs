@@ -19,21 +19,21 @@
 <div class="admin-auto-start">
   <h4>{{t admin.serviceAutoStart.header}}</h4>
   <p>{{t admin.serviceAutoStart.header.text}}</p>
-  <div class="cluster-switcher row">
-    <div class="col-md-2">
-      <strong>{{t admin.serviceAutoStart.body.text}}</strong>
-    </div>
-    <div class="col-md-4">
-      {{view App.CheckboxView checkedBinding="controller.servicesAutoStart"}}
-    </div>
-    <div class="col-md-6">
-      <div class="pull-right operations-button">
-        <button class="btn btn-default" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
-        <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
+  {{#if view.isLoaded}}
+    <div class="cluster-switcher row">
+      <div class="col-md-2">
+        <strong>{{t admin.serviceAutoStart.body.text}}</strong>
+      </div>
+      <div class="col-md-4">
+        {{view App.CheckboxView checkedBinding="controller.servicesAutoStart"}}
+      </div>
+      <div class="col-md-6">
+        <div class="pull-right operations-button">
+          <button class="btn btn-default" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+          <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
+        </div>
       </div>
     </div>
-  </div>
-  {{#if view.isLoaded}}
     <hr>
     <div class="row">
       <div class="col-md-4 col-lg-3">
@@ -99,5 +99,7 @@
         </div>
       </div>
     </div>
+  {{else}}
+    {{view App.SpinnerView}}
   {{/if}}
 </div>

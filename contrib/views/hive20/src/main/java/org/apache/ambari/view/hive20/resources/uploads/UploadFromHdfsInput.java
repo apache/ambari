@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view.hive20.resources.uploads;
 
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class UploadFromHdfsInput implements Serializable{
   private String hdfsPath;
   private String tableName;
   private String databaseName;
-  private List<ColumnDescriptionImpl> header;
+  private List<ColumnInfo> header;
   private boolean containsEndlines;
 
   private String csvDelimiter;
@@ -41,11 +43,11 @@ public class UploadFromHdfsInput implements Serializable{
     return csvDelimiter;
   }
 
-  public List<ColumnDescriptionImpl> getHeader() {
+  public List<ColumnInfo> getHeader() {
     return header;
   }
 
-  public void setHeader(List<ColumnDescriptionImpl> header) {
+  public void setHeader(List<ColumnInfo> header) {
     this.header = header;
   }
 

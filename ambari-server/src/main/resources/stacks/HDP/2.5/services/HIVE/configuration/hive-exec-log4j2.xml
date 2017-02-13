@@ -46,7 +46,7 @@ name = HiveExecLog4j2
 packages = org.apache.hadoop.hive.ql.log
 
 # list of properties
-property.hive.log.level = INFO
+property.hive.log.level = {{hive_log_level}}
 property.hive.root.logger = FA
 property.hive.query.id = hadoop
 property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}

@@ -53,21 +53,22 @@ public class DataMigrator implements ViewDataMigrator {
   static
   {
     hive1EntitiesMapping = new HashMap<>();
-    hive1EntitiesMapping.put("org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl",
+
+    hive1EntitiesMapping.put("org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl",
         org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl.class);
-    hive1EntitiesMapping.put("org.apache.ambari.view.hive.resources.savedQueries.SavedQuery",
+    hive1EntitiesMapping.put("org.apache.ambari.view.hive2.resources.savedQueries.SavedQuery",
         org.apache.ambari.view.hive20.resources.savedQueries.SavedQuery.class);
-    hive1EntitiesMapping.put("org.apache.ambari.view.hive.resources.udfs.UDF",
+    hive1EntitiesMapping.put("org.apache.ambari.view.hive2.resources.udfs.UDF",
         org.apache.ambari.view.hive20.resources.udfs.UDF.class);
-    hive1EntitiesMapping.put("org.apache.ambari.view.hive.resources.resources.FileResourceItem",
+    hive1EntitiesMapping.put("org.apache.ambari.view.hive2.resources.resources.FileResourceItem",
         org.apache.ambari.view.hive20.resources.resources.FileResourceItem.class);
-    hive1EntitiesMapping.put("org.apache.ambari.view.hive.TestBean",
+    hive1EntitiesMapping.put("org.apache.ambari.view.hive2.TestBean",
         org.apache.ambari.view.hive20.TestBean.class);
   }
 
   @Override
   public boolean beforeMigration() throws ViewDataMigrationException {
-    return isHive1();
+    return isHive15();
   }
 
   @Override
@@ -76,7 +77,7 @@ public class DataMigrator implements ViewDataMigrator {
 
   @Override
   public void migrateEntity(Class originEntityClass, Class currentEntityClass) throws ViewDataMigrationException {
-    if (isHive1()) {
+    if (isHive15()) {
       currentEntityClass = hive1EntitiesMapping.get(originEntityClass.getCanonicalName());
       if (currentEntityClass == null) {
         LOG.debug("Mapping was not found for class " + originEntityClass.getCanonicalName());
@@ -95,7 +96,7 @@ public class DataMigrator implements ViewDataMigrator {
     migrationContext.copyAllInstanceData();
   }
 
-  private boolean isHive1() {
-    return migrationContext.getOriginDataVersion() < 1;
+  private boolean isHive15() {
+    return migrationContext.getOriginDataVersion() == 1;
   }
 }

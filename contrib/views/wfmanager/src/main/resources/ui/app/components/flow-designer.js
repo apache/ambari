@@ -60,7 +60,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   previewXml:"",
   supportedActionTypes:["java", "hive", "pig", "sqoop", "shell", "spark", "map-reduce", "hive2", "sub-workflow", "distcp", "ssh", "FS"],
   workflow:null,
-  hoveredWidget:null,/**/
+  flowRenderer:null,
+  hoveredWidget:null,
   showingConfirmationNewWorkflow:false,
   showingWorkflowConfigProps:false,
   workflowSubmitConfigs:{},
@@ -107,16 +108,12 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var id = 'cy-' + Math.ceil(Math.random() * 1000);
     this.set('cyId', id);
     this.sendAction('register', this.get('tabInfo'), this);
+    this.set('flowRenderer',CytoscapeRenderer.create());
+    this.set('workflow',Workflow.create({}));
     CommonUtils.setTestContext(this);
   }.on('init'),
   elementsInserted :function(){
-    if (this.useCytoscape){
-      this.flowRenderer=CytoscapeRenderer.create({id : this.get('cyId')});
-    }else{
-      this.flowRenderer=JSPlumbRenderer.create({});
-    }
     this.setConentWidth();
-    this.set('workflow',Workflow.create({}));
     if(this.get("xmlAppPath")){
       this.showExistingWorkflow();
       return;
@@ -241,14 +238,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   nodeRendered: function(){
     this.doValidation();
-    if(this.get('renderNodeTransitions')){
-      this.flowRenderer.onDidUpdate(this,this.get("workflow").startNode,this.get("workflow"));
-      this.layout();
-      this.set('renderNodeTransitions',false);
-    }
     this.resize();
     this.persistWorkInProgress();
   }.on('didUpdate'),
+  renderTransitions : function(){
+    this.flowRenderer.onDidUpdate(this,this.get("workflow").startNode,this.get("workflow"));
+    this.layout();
+  },
   resize(){
     this.flowRenderer.resize();
   },
@@ -261,12 +257,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var canvasHeight=Ember.$(window).height()-panelOffset.top-25;
     this.flowRenderer.initRenderer(function(){
       this.renderWorkflow();
-    }.bind(this),{context:this,flattenedNodes:this.get("flattenedNodes"),dataNodes:this.get("dataNodes"), cyOverflow:this.get("cyOverflow"),canvasHeight:canvasHeight});
+    }.bind(this),{context:this,id : this.get('cyId'),flattenedNodes:this.get("flattenedNodes"),dataNodes:this.get("dataNodes"), cyOverflow:this.get("cyOverflow"),canvasHeight:canvasHeight});
   },
   renderWorkflow(){
     this.set('renderNodeTransitions', true);
     this.flowRenderer.renderWorkflow(this.get("workflow"));
     this.doValidation();
+    this.renderTransitions();
   },
   rerender(){
     this.flowRenderer.cleanup();
@@ -504,6 +501,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.get("workflow").resetWorfklow();
     this.set('globalConfig', {});
     this.set('parameters', {});
+    this.set("undoAvailable", false);
+    this.set("showingConfirmationNewWorkflow", false);
     if(this.get('workflow.parameters') !== null){
       this.set('workflow.parameters', {});
     }
@@ -654,7 +653,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   openWorkflowEditor(node){
     this.createSnapshot();
-    var validOkToNodes = WorkflowPathUtil.findValidTransitionsTo(this.get('workflow'), node);
     this.set('showActionEditor', true);
     this.set('currentAction', node.actionType);
     var domain = node.getNodeDetail();
@@ -662,7 +660,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('clonedErrorNode', node.errorNode);
     this.set('clonedKillMessage',node.get('killMessage'));
     node.set("domain", domain);
-    node.set("validOkToNodes", validOkToNodes);
     this.set('currentNode', node);
   },
   openDecisionEditor(node) {

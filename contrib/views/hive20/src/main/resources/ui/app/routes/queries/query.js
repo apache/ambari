@@ -24,6 +24,9 @@ export default Ember.Route.extend({
   jobs: Ember.inject.service(),
   savedQueries: Ember.inject.service(),
 
+  isQueryEdidorPaneExpanded: false,
+  isQueryResultPanelExpanded: false,
+
   beforeModel(){
     let existingWorksheets = this.store.peekAll('worksheet');
     existingWorksheets.setEach('selected', false);
@@ -34,6 +37,24 @@ export default Ember.Route.extend({
     if (dbmodel.get('length') > 0) {
       this.selectDatabase(dbmodel);
     }
+
+    this.store.findAll('file-resource').then((data) => {
+      let fileResourceList = [];
+      data.forEach(x => {
+        let localFileResource = {'id': x.get('id'),
+          'name': x.get('name'),
+          'path': x.get('path'),
+          'owner': x.get('owner')
+        };
+        fileResourceList.push(localFileResource);
+      });
+
+      this.controller.set('fileResourceList', fileResourceList);
+
+    });
+
+
+
   },
 
   model(params) {
@@ -93,11 +114,18 @@ export default Ember.Route.extend({
     controller.set('showQueryEditorLog', false);
     controller.set('showQueryEditorResult', !controller.get('showQueryEditorLog'));
 
+    controller.set('isVisualExplainQuery', false);
+    controller.set('visualExplainJson', null);
 
   },
 
 
   actions: {
+    createQuery(udfName, udfClassname, fileResourceName, fileResourcePath){
+      let query = "add jar "+ fileResourcePath + ";\ncreate temporary function " + udfName + " as '"+ udfClassname+ "';";
+      this.get('controller').set('currentQuery', query);
+      this.get('controller.model').set('query', query );
+    },
 
     changeDbHandler(selectedDBs){
 
@@ -136,11 +164,21 @@ export default Ember.Route.extend({
       this.get('controller.model').set('selectedDb', db);
     },
 
+    visualExplainQuery(){
+      this.get('controller').set('isVisualExplainQuery', true );
+      this.send('executeQuery');
+    },
+
     executeQuery(isFirstCall){
 
       let self = this;
       this.get('controller').set('currentJobId', null);
-      let queryInput = this.get('controller').get('currentQuery');
+
+      //let queryInput = this.get('controller').get('currentQuery');
+      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
+      let queryInput =  (isVisualExplainQuery) ? 'explain formatted ' + this.get('controller').get('currentQuery') : this.get('controller').get('currentQuery') ;
+
+
       this.get('controller.model').set('query', queryInput);
 
       let dbid = this.get('controller.model').get('selectedDb');
@@ -181,18 +219,16 @@ export default Ember.Route.extend({
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
 
-        self.get('jobs').waitForJobToComplete(data.job.id, 5 * 1000, false)
+        self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
-            Ember.run.later(() => {
+
               self.get('controller').set('isJobSuccess', true);
+
               self.send('getJob', data);
 
               //Last log
               self.send('fetchLogs');
 
-              //Open result tab and hide log tab
-              //self.send('showQueryEditorResult');
-            }, 2 * 1000);
           }, (error) => {
             Ember.run.later(() => {
               // TODO: handle error
@@ -235,10 +271,25 @@ export default Ember.Route.extend({
       });
     },
 
+    showVisualExplain(){
+       let self = this;
+       let jobId = this.get('controller').get('currentJobId');
+       this.get('query').getVisualExplainJson(jobId).then(function(data) {
+          console.log('Successful getVisualExplainJson', data);
+
+          self.get('controller').set('visualExplainJson', data.rows[0][0]);
+
+       }, function(error){
+          console.log('error getVisualExplainJson', error);
+        });
+    },
+
     getJob(data){
 
       var self = this;
       var data = data;
+
+      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
 
       let jobId = data.job.id;
       let dateSubmitted = data.job.dateSubmitted;
@@ -262,29 +313,21 @@ export default Ember.Route.extend({
         self.get('controller.model').set('previousPage', previousPage + 1 );
         self.get('controller.model').set('nextPage', nextPage + 1);
 
+        if(isVisualExplainQuery){
+          Ember.run.later(() => {
+            self.send('showVisualExplain');
+          }, 500);
+        }
+
       }, function(reason) {
         // on rejection
         console.log('reason' , reason);
-        if( reason.errors[0].status == 409 ){
-          setTimeout(function(){
-
-            //Put the code here for changing the log content.
-            let logFile = self.get('controller.model').get('logFile');
-            self.get('query').retrieveQueryLog(logFile).then(function(data) {
-              self.get('controller.model').set('logResults', data.file.fileContent);
-            }, function(error){
-              console.log('error', error);
-            });
-
-
-            self.send('getJob',data);
-          }, 2000);
-        }
       });
     },
 
-    updateQuery(){
-      console.log('I am in update query.');
+    updateQuery(query){
+      this.get('controller').set('currentQuery', query);
+      this.get('controller.model').set('query', query);
     },
 
     goNextPage(){
@@ -318,12 +361,6 @@ export default Ember.Route.extend({
         }, function(reason) {
           // on rejection
           console.log('reason' , reason);
-
-          if( reason.errors[0].status == 409 ){
-            setTimeout(function(){
-              self.send('getJob',data);
-            }, 2000);
-          }
         });
       } else { //Pages from cache object
         this.get('controller.model').set('currentPage', currentPage+1);
@@ -354,15 +391,46 @@ export default Ember.Route.extend({
     },
 
     expandQueryEdidorPanel(){
+
+      if(!this.get('isQueryEdidorPaneExpanded')){
+        this.set('isQueryEdidorPaneExpanded', true);
+      } else {
+        this.set('isQueryEdidorPaneExpanded', false);
+      }
       Ember.$('.query-editor-panel').toggleClass('query-editor-full-width');
       Ember.$('.database-panel').toggleClass("hide");
+
     },
 
     expandQueryResultPanel(){
-      Ember.$('.query-editor-panel').toggleClass('query-editor-full-width');
-      Ember.$('.query-editor-container').toggleClass("hide");
-      Ember.$('.database-panel').toggleClass("hide");
-      this.send('adjustPanelSize');
+
+      if(!this.get('isQueryResultPanelExpanded')){
+
+        if(!this.get('isQueryEdidorPaneExpanded')){
+          Ember.$('.query-editor-container').addClass("hide");
+          Ember.$('.database-panel').addClass("hide");
+          Ember.$('.query-editor-panel').addClass('query-editor-full-width');
+        } else {
+
+          Ember.$('.query-editor-container').addClass("hide");
+        }
+        this.set('isQueryResultPanelExpanded', true);
+
+      } else {
+
+        if(!this.get('isQueryEdidorPaneExpanded')){
+          Ember.$('.query-editor-container').removeClass("hide");
+          Ember.$('.database-panel').removeClass("hide");
+          Ember.$('.query-editor-panel').removeClass('query-editor-full-width');
+        } else {
+
+          Ember.$('.query-editor-container').removeClass("hide");
+
+        }
+        this.set('isQueryResultPanelExpanded', false);
+
+      }
+
     },
 
     adjustPanelSize(){
@@ -382,7 +450,7 @@ export default Ember.Route.extend({
       console.log('I am in saveWorksheetModal');
       let newTitle = $('#worksheet-title').val();
 
-      let currentQuery = this.get('controller').get('currentQuery');
+      let currentQuery = this.get('controller.model').get('query');
       let selectedDb = this.get('controller.model').get('selectedDb');
       let owner = this.get('controller.model').get('owner');
       let queryFile = this.get('controller.model').get('queryFile');

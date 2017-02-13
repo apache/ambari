@@ -29,6 +29,9 @@ export default Ember.Component.extend({
   showRowFormatInput: false,
   shouldAddBuckets: false,
   errors: [],
+  editMode: false,
+  disableTransactionInput: false,
+  disableNumBucketsInput: false,
 
   settings: {},
 
@@ -66,6 +69,13 @@ export default Ember.Component.extend({
       this.set('selectedLinesTerminator', this.get('settings.rowFormat.linesTerminatedBy'));
       this.set('selectedNullDefinition', this.get('settings.rowFormat.nullDefinedAs'));
       this.set('selectedEscapeDefinition', this.get('settings.rowFormat.escapeDefinedAs'));
+    }
+    if(!Ember.isEmpty(this.get('settings.transactional')) && this.get('settings.transactional') && this.get('editMode')) {
+      this.set('disableTransactionInput', true);
+    }
+
+    if(!Ember.isEmpty(this.get('settings.numBuckets')) && this.get('settings.numBuckets') && this.get('editMode')) {
+      this.set('disableNumBucketsInput', true);
     }
   },
 

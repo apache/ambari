@@ -24,7 +24,7 @@
     <name>xasecure.policymgr.clientssl.keystore</name>
     <value>/usr/hdp/current/atlas-server/conf/ranger-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -35,14 +35,14 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
     <value>/usr/hdp/current/atlas-server/conf/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -53,21 +53,21 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
     <property>
     <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>java keystore credential file</description>
-      <on-ambari-upgrade add="true"/>
+      <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>java truststore credential file</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
 </configuration>

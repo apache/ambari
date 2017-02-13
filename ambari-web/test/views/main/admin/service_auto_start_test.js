@@ -34,6 +34,7 @@ describe('App.MainAdminServiceAutoStartView', function () {
 
     beforeEach(function() {
       sinon.stub(view, 'initSwitcher');
+      sinon.stub(Em.run, 'next', Em.clb);
       sinon.stub(view.get('controller'), 'load').returns({
         then: Em.clb
       })
@@ -42,6 +43,7 @@ describe('App.MainAdminServiceAutoStartView', function () {
     afterEach(function() {
       view.initSwitcher.restore();
       view.get('controller').load.restore();
+      Em.run.next.restore();
     });
 
     it('initSwitcher should be called', function() {

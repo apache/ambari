@@ -30,12 +30,10 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
   isDisabled: false,
 
   didInsertElement: function () {
-    var self = this;
-
     this.set('isDisabled', !App.isAuthorized('CLUSTER.MANAGE_AUTO_START'));
-    this.get('controller').load().then(function() {
-      self.set('isLoaded', true);
-      self.initSwitcher();
+    this.get('controller').load().then(() => {
+      this.set('isLoaded', true);
+      Em.run.next(() => this.initSwitcher());
     });
   },
 

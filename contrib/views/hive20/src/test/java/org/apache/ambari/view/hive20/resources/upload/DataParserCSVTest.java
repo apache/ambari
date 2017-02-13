@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive20.resources.upload;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.ColumnDescriptionShort;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.DataParser;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.ParseOptions;
@@ -54,8 +55,8 @@ public class DataParserCSVTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(2, pd.getPreviewRows().size()); // now it will not return the first row which is header
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("1", ColumnDescriptionShort.DataTypes.INT.toString(), 0),
-              new ColumnDescriptionImpl("a", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1)};
+      ColumnInfo[] cd = {new ColumnInfo("1", ColumnDescriptionShort.DataTypes.INT.toString()),
+              new ColumnInfo("a", ColumnDescriptionShort.DataTypes.CHAR.toString())};
 
       Object cols2[] = new Object[2];
       cols2[0] = "2";
@@ -102,15 +103,15 @@ public class DataParserCSVTest {
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(4, pd.getHeader().size());
-      ColumnDescription[] cd = {
+      ColumnInfo[] cd = {
         // as row 3 contains 2.2
-        new ColumnDescriptionImpl("1", ColumnDescriptionShort.DataTypes.DOUBLE.toString(), 0),
+        new ColumnInfo("1", ColumnDescriptionShort.DataTypes.DOUBLE.toString()),
         // as all are chars
-        new ColumnDescriptionImpl("a", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1),
+        new ColumnInfo("a", ColumnDescriptionShort.DataTypes.CHAR.toString()),
         // as row 4 contains abc
-        new ColumnDescriptionImpl("10", ColumnDescriptionShort.DataTypes.STRING.toString(), 2),
+        new ColumnInfo("10", ColumnDescriptionShort.DataTypes.STRING.toString()),
         // although row 1 contains k but it is in header and not counted in detecting datatype
-        new ColumnDescriptionImpl("k", ColumnDescriptionShort.DataTypes.INT.toString(), 3)};
+        new ColumnInfo("k", ColumnDescriptionShort.DataTypes.INT.toString())};
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
     }
@@ -146,16 +147,16 @@ public class DataParserCSVTest {
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(4, pd.getHeader().size());
-      ColumnDescription[] cd = {
+      ColumnInfo[] cd = {
         // as row 3 contains 2.2
-        new ColumnDescriptionImpl("1", ColumnDescriptionShort.DataTypes.DOUBLE.toString(), 0),
+        new ColumnInfo("1", ColumnDescriptionShort.DataTypes.DOUBLE.toString()),
         // as all are chars
-        new ColumnDescriptionImpl("a", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1),
+        new ColumnInfo("a", ColumnDescriptionShort.DataTypes.CHAR.toString()),
         // some are int, char and some double .. nothing other than 'string' satisfies all the rows
-        new ColumnDescriptionImpl("10", ColumnDescriptionShort.DataTypes.STRING.toString(), 2),
+        new ColumnInfo("10", ColumnDescriptionShort.DataTypes.STRING.toString()),
         // although row 1 contains k but it is in header and not counted in detecting datatype
         // but row 2 also has a char p which will be acconted for datatype detection
-        new ColumnDescriptionImpl("k", ColumnDescriptionShort.DataTypes.CHAR.toString(), 3)};
+        new ColumnInfo("k", ColumnDescriptionShort.DataTypes.CHAR.toString())};
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
     }
@@ -184,8 +185,8 @@ public class DataParserCSVTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("column1", ColumnDescriptionShort.DataTypes.INT.toString(), 0),
-        new ColumnDescriptionImpl("column2", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1)};
+      ColumnInfo[] cd = {new ColumnInfo("column1", ColumnDescriptionShort.DataTypes.INT.toString()),
+        new ColumnInfo("column2", ColumnDescriptionShort.DataTypes.CHAR.toString())};
 
       Object cols1[] = new Object[2];
       cols1[0] = "1";

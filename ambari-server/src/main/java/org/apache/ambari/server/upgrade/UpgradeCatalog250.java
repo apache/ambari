@@ -17,23 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.CommandExecutionType;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.support.JdbcUtils;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -47,6 +30,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.support.JdbcUtils;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -78,7 +83,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   public static final String COMPONENT_VERSION_FK_REPO_VERSION = "FK_scv_repo_version_id";
 
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
-  protected static final String CREDENTIAL_STORE_SUPPORTED_COL = "credential_store_supported";
   protected static final String CREDENTIAL_STORE_ENABLED_COL = "credential_store_enabled";
 
   protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
@@ -157,6 +161,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
+    updateStormAlerts();
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
@@ -169,6 +174,48 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateYarnSite();
     updateRangerUrlConfigs();
     addManageServiceAutoStartPermissions();
+  }
+
+  protected void updateStormAlerts() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+      LOG.info("Updating storm alert definitions on cluster : " + cluster.getClusterName());
+
+      final AlertDefinitionEntity stormServerProcessDefinitionEntity = alertDefinitionDAO.findByName(
+              clusterID, "storm_server_process");
+
+      final AlertDefinitionEntity stormWebAlert = alertDefinitionDAO.findByName(
+              clusterID, "storm_webui");
+
+      if (stormServerProcessDefinitionEntity != null) {
+        LOG.info("Removing alert definition : " + stormServerProcessDefinitionEntity.toString());
+        alertDefinitionDAO.remove(stormServerProcessDefinitionEntity);
+      }
+
+      if (stormWebAlert != null) {
+        LOG.info("Updating alert definition : " + stormWebAlert.getDefinitionName());
+        String source = stormWebAlert.getSource();
+        JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+        LOG.debug("Source before update : " + sourceJson);
+
+        JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+        uriJson.remove("https");
+        uriJson.remove("https_property");
+        uriJson.remove("https_property_value");
+        uriJson.addProperty("https", "{{storm-site/ui.https.port}}");
+        uriJson.addProperty("https_property", "{{storm-site/ui.https.keystore.type}}");
+        uriJson.addProperty("https_property_value", "jks");
+
+        LOG.debug("Source after update : " + sourceJson);
+        stormWebAlert.setSource(sourceJson.toString());
+        alertDefinitionDAO.merge(stormWebAlert);
+      }
+    }
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -499,11 +546,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   private void updateServiceDesiredStateTable() throws SQLException {
     // ALTER TABLE servicedesiredstate ADD COLUMN
-    // credential_store_supported SMALLINT DEFAULT 0 NOT NULL
     // credential_store_enabled SMALLINT DEFAULT 0 NOT NULL
-    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
-      new DBColumnInfo(CREDENTIAL_STORE_SUPPORTED_COL, Short.class, null, 0, false));
-
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
       new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
   }
@@ -638,6 +681,8 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    * @throws AmbariException
    */
   private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
+  private static final String HIVE_INTERACTIVE_ENV = "hive-interactive-env";
+  private static final String HIVE_ENV = "hive-env";
   protected void updateHIVEInteractiveConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -648,27 +693,36 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         for (final Cluster cluster : clusterMap.values()) {
           Config hiveInteractiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
           if (hiveInteractiveSite != null) {
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.tez.container.size",
-                "SET_ON_FIRST_INVOCATION"), true, true);
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("hive.auto.convert.join.noconditionaltask.size", "1000000000");
 
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections.singletonMap("hive.auto.convert.join.noconditionaltask.size",
-                "1000000000"), true, true);
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                Collections.singletonMap("hive.llap.execution.mode", "only"),
-                true, true);
             String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
             if (StringUtils.isNotBlank(llapRpcPortString)) {
               try {
                 int llapRpcPort = Integer.parseInt(llapRpcPortString);
                 if (llapRpcPort == 15001) {
-                  updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                      Collections.singletonMap("hive.llap.daemon.rpc.port", "only"),
-                      true, true);
+                  newProperties.put("hive.llap.daemon.rpc.port", "0");
+                  LOG.info("Updating HSI hive.llap.daemon.rpc.port to: 0");
                 }
               } catch (NumberFormatException e) {
                 LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
               }
             }
+            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, newProperties, true, true);
+          }
+
+          Config hiveInteractiveEnv = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_ENV);
+          Config hiveEnv = cluster.getDesiredConfigByType(HIVE_ENV);
+          if (hiveInteractiveEnv != null) {
+            String hsiHeapSize = "512";
+            if (hiveEnv != null) {
+              if (hiveEnv.getProperties().containsKey("hive.heapsize")) {
+                hsiHeapSize = hiveEnv.getProperties().get("hive.heapsize");
+                LOG.info("Updating HSI heap size to: " + hsiHeapSize);
+              }
+            }
+            updateConfigurationProperties(HIVE_INTERACTIVE_ENV, Collections.singletonMap("hive_heapsize",
+                                                                                         hsiHeapSize), true, true);
           }
         }
       }

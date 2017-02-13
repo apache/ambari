@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive20.resources.uploads.query;
 
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.resources.uploads.ColumnDescriptionImpl;
 
 import java.util.List;
@@ -27,13 +28,14 @@ public class InsertFromQueryInput {
   private String fromTable;
   private String toDatabase;
   private String toTable;
-  private List<ColumnDescriptionImpl> header;
+  private List<ColumnInfo> header;
   private Boolean unhexInsert = Boolean.FALSE;
 
   public InsertFromQueryInput() {
   }
 
-  public InsertFromQueryInput(String fromDatabase, String fromTable, String toDatabase, String toTable, List<ColumnDescriptionImpl> header, Boolean unhexInsert) {
+  public InsertFromQueryInput(String fromDatabase, String fromTable, String toDatabase, String toTable,
+                              List<ColumnInfo> header, Boolean unhexInsert) {
     this.fromDatabase = fromDatabase;
     this.fromTable = fromTable;
     this.toDatabase = toDatabase;
@@ -42,11 +44,11 @@ public class InsertFromQueryInput {
     this.unhexInsert = unhexInsert;
   }
 
-  public List<ColumnDescriptionImpl> getHeader() {
+  public List<ColumnInfo> getHeader() {
     return header;
   }
 
-  public void setHeader(List<ColumnDescriptionImpl> header) {
+  public void setHeader(List<ColumnInfo> header) {
     this.header = header;
   }
 

@@ -53,7 +53,10 @@ module.exports = function(defaults) {
    app.import('bower_components/codemirror/lib/codemirror.js');
    app.import('bower_components/codemirror/addon/hint/sql-hint.js');
    app.import('bower_components/codemirror/addon/hint/show-hint.js');
+   app.import('bower_components/d3/d3.js');
    app.import('bower_components/codemirror/lib/codemirror.css');
+   app.import('bower_components/jquery-ui/jquery-ui.js');
+   app.import('bower_components/jquery-ui/themes/base/jquery-ui.css');
    app.import('bower_components/codemirror/addon/hint/show-hint.css');
 
   /*

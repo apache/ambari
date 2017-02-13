@@ -289,13 +289,18 @@ class Master(Script):
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
-    if params.spark2_home:
+    if 'spark2-env' in params.config['configurations']:
       spark2_config = self.get_spark2_interpreter_config()
       config_id = spark2_config["id"]
       interpreter_settings[config_id] = spark2_config
 
-    for interpreter_setting in interpreter_settings:
-      interpreter = interpreter_settings[interpreter_setting]
+    if 'livy2-env' in params.config['configurations']:
+      livy2_config = self.get_livy2_interpreter_config()
+      config_id = livy2_config["id"]
+      interpreter_settings[config_id] = livy2_config
+
+    for setting_key in interpreter_settings.keys():
+      interpreter = interpreter_settings[setting_key]
       if interpreter['group'] == 'jdbc':
         interpreter['dependencies'] = []
         if params.hive_server_host:
@@ -328,23 +333,34 @@ class Master(Script):
                                                     params.zookeeper_znode_parent
             interpreter['dependencies'].append(
                 {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.7.0-HBase-1.1", "local": "false"})
-      elif interpreter['group'] == 'livy' and params.livy_livyserver_host:
-        interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
-                                                      ":" + params.livy_livyserver_port
+      elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
+        if params.livy_livyserver_host:
+          interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host + \
+                                                           ":" + params.livy_livyserver_port
+        else:
+          del interpreter_settings[setting_key]
+
+      elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy2':
+        if params.livy2_livyserver_host:
+          interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy2_livyserver_host + \
+                                                           ":" + params.livy2_livyserver_port
+        else:
+          del interpreter_settings[setting_key]
+
 
       elif interpreter['group'] == 'spark' and interpreter['name'] == 'spark':
-        if params.spark_home:
+        if 'spark-env' in params.config['configurations']:
           interpreter['properties']['master'] = "yarn-client"
           interpreter['properties']['SPARK_HOME'] = "/usr/hdp/current/spark-client/"
         else:
-          interpreter['properties']['master'] = "local[*]"
+          del interpreter_settings[setting_key]
 
       elif interpreter['group'] == 'spark' and interpreter['name'] == 'spark2':
-        if params.spark2_home:
+        if 'spark2-env' in params.config['configurations']:
           interpreter['properties']['master'] = "yarn-client"
           interpreter['properties']['SPARK_HOME'] = "/usr/hdp/current/spark2-client/"
         else:
-          interpreter['properties']['master'] = "local[*]"
+          del interpreter_settings[setting_key]
 
     self.set_interpreter_settings(config_data)
 
@@ -366,6 +382,12 @@ class Master(Script):
     import json
 
     return json.loads(spark2_config_template.template)
+
+  def get_livy2_interpreter_config(self):
+    import livy2_config_template
+    import json
+
+    return json.loads(livy2_config_template.template)
 
 if __name__ == "__main__":
   Master().execute()

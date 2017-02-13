@@ -18,15 +18,35 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import junit.framework.AssertionFailedError;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
@@ -35,9 +55,11 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
@@ -58,33 +80,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertTrue;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+
+import junit.framework.AssertionFailedError;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -182,9 +189,7 @@ public class UpgradeCatalog250Test {
       eq("repo_version"), eq("repo_version_id"), eq(false));
 
     // servicedesiredstate table
-    Capture<DBAccessor.DBColumnInfo> capturedCredentialStoreSupportedCol = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedCredentialStoreEnabledCol = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog250.SERVICE_DESIRED_STATE_TABLE), capture(capturedCredentialStoreSupportedCol));
     dbAccessor.addColumn(eq(UpgradeCatalog250.SERVICE_DESIRED_STATE_TABLE), capture(capturedCredentialStoreEnabledCol));
 
     expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();
@@ -246,16 +251,8 @@ public class UpgradeCatalog250Test {
     // did we get them all?
     Assert.assertEquals(0, expected.size());
 
-    // Verify if credential_store_supported & credential_store_enabled columns
+    // Verify if credential_store_enabled columns
     // were added to servicedesiredstate table
-    DBAccessor.DBColumnInfo capturedCredentialStoreSupportedColValues = capturedCredentialStoreSupportedCol.getValue();
-    Assert.assertNotNull(capturedCredentialStoreSupportedColValues);
-
-    Assert.assertEquals(UpgradeCatalog250.CREDENTIAL_STORE_SUPPORTED_COL, capturedCredentialStoreSupportedColValues.getName());
-    Assert.assertEquals(null, capturedCredentialStoreSupportedColValues.getLength());
-    Assert.assertEquals(Short.class, capturedCredentialStoreSupportedColValues.getType());
-    Assert.assertEquals(0, capturedCredentialStoreSupportedColValues.getDefaultValue());
-    Assert.assertEquals(false, capturedCredentialStoreSupportedColValues.isNullable());
 
     DBAccessor.DBColumnInfo capturedCredentialStoreEnabledColValues = capturedCredentialStoreEnabledCol.getValue();
     Assert.assertNotNull(capturedCredentialStoreEnabledColValues);
@@ -266,6 +263,92 @@ public class UpgradeCatalog250Test {
     Assert.assertEquals(0, capturedCredentialStoreEnabledColValues.getDefaultValue());
     Assert.assertEquals(false, capturedCredentialStoreEnabledColValues.isNullable());
   }
+
+    @Test
+    public void testUpdateAlerts_StormUIWebAlert() {
+        EasyMockSupport easyMockSupport = new EasyMockSupport();
+        final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+        final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+        final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+        final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+        final AlertDefinitionEntity stormWebUIAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+        final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+            @Override
+            protected void configure() {
+                bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+                bind(Clusters.class).toInstance(mockClusters);
+                bind(EntityManager.class).toInstance(entityManager);
+                bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+                bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+                bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+            }
+        });
+
+        long clusterId = 1;
+
+        expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+        expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+            put("normal", mockClusterExpected);
+        }}).atLeastOnce();
+        expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+        expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("storm_webui")))
+                .andReturn(stormWebUIAlertMock).atLeastOnce();
+        expect(stormWebUIAlertMock.getSource()).andReturn("{\"uri\": {\n" +
+                "            \"http\": \"{{storm-site/ui.port}}\",\n" +
+                "            \"kerberos_keytab\": \"{{storm-env/storm_ui_keytab}}\",\n" +
+                "            \"kerberos_principal\": \"{{storm-env/storm_ui_principal_name}}\",\n" +
+                "            \"connection_timeout\": 5.0\n" +
+                "          } }");
+
+        stormWebUIAlertMock.setSource("{\"uri\":{\"http\":\"{{storm-site/ui.port}}\",\"kerberos_keytab\":\"{{storm-env/storm_ui_keytab}}\",\"kerberos_principal\":\"{{storm-env/storm_ui_principal_name}}\",\"connection_timeout\":5.0,\"https\":\"{{storm-site/ui.https.port}}\",\"https_property\":\"{{storm-site/ui.https.keystore.type}}\",\"https_property_value\":\"jks\"}}");
+
+        expectLastCall().once();
+
+        easyMockSupport.replayAll();
+        mockInjector.getInstance(UpgradeCatalog250.class).updateStormAlerts();
+        easyMockSupport.verifyAll();
+    }
+
+    @Test
+    public void testUpdateAlerts_StormUIPortAlert() {
+        EasyMockSupport easyMockSupport = new EasyMockSupport();
+        final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+        final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+        final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+        final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+        final AlertDefinitionEntity stormUIPortAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+        final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+            @Override
+            protected void configure() {
+                bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+                bind(Clusters.class).toInstance(mockClusters);
+                bind(EntityManager.class).toInstance(entityManager);
+                bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+                bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+                bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+            }
+        });
+        long clusterId = 1;
+
+        expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+        expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+            put("normal", mockClusterExpected);
+        }}).atLeastOnce();
+        expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+        expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("storm_server_process")))
+                .andReturn(stormUIPortAlertMock).atLeastOnce();
+
+        mockAlertDefinitionDAO.remove(stormUIPortAlertMock);
+        expectLastCall().once();
+
+        easyMockSupport.replayAll();
+
+        mockInjector.getInstance(UpgradeCatalog250.class).updateStormAlerts();
+        easyMockSupport.verifyAll();
+    }
+
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
@@ -283,6 +366,7 @@ public class UpgradeCatalog250Test {
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
+    Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -299,6 +383,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateAmbariInfraConfigs)
         .addMockedMethod(updateRangerUrlConfigs)
         .addMockedMethod(updateYarnSite)
+        .addMockedMethod(updateAlerts)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -341,6 +426,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateYarnSite();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateStormAlerts();
     expectLastCall().once();
 
     replay(upgradeCatalog250);
@@ -988,9 +1076,9 @@ public class UpgradeCatalog250Test {
   public void testLogSearchUpdateConfigs() throws Exception {
     reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
-    
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    
+
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("createConfiguration")
@@ -1001,17 +1089,17 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    
+
     Map<String, String> oldLogSearchProperties = ImmutableMap.of(
         "logsearch.external.auth.enabled", "true",
         "logsearch.external.auth.host_url", "host_url",
         "logsearch.external.auth.login_url", "login_url");
-    
+
     Map<String, String> expectedLogSearchProperties = ImmutableMap.of(
         "logsearch.auth.external_auth.enabled", "true",
         "logsearch.auth.external_auth.host_url", "host_url",
         "logsearch.auth.external_auth.login_url", "login_url");
-    
+
     Config mockLogSearchProperties = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(mockLogSearchProperties).atLeastOnce();
     expect(mockLogSearchProperties.getProperties()).andReturn(oldLogSearchProperties).anyTimes();
@@ -1021,10 +1109,10 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> oldLogFeederEnv = ImmutableMap.of(
         "content", "infra_solr_ssl_enabled");
-    
+
     Map<String, String> expectedLogFeederEnv = ImmutableMap.of(
         "content", "logfeeder_use_ssl");
-    
+
     Config mockLogFeederEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
     expect(mockLogFeederEnv.getProperties()).andReturn(oldLogFeederEnv).anyTimes();
@@ -1037,10 +1125,10 @@ public class UpgradeCatalog250Test {
         "logsearch_solr_audit_logs_zk_node", "zk_node",
         "logsearch_solr_audit_logs_zk_quorum", "zk_quorum",
         "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
-    
+
     Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
         "content", "logsearch_use_ssl");
-    
+
     Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
     expect(mockLogSearchEnv.getProperties()).andReturn(oldLogSearchEnv).anyTimes();
@@ -1068,7 +1156,7 @@ public class UpgradeCatalog250Test {
         "    <param name=\"maxBackupIndex\" value=\"14\" />\n" +
         "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\" />\n" +
         "  </appender>");
-    
+
     Map<String, String> expectedLogFeederLog4j = ImmutableMap.of(
         "content",
         "    <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
@@ -1093,7 +1181,7 @@ public class UpgradeCatalog250Test {
         "logfeeder_log_maxbackupindex", "12",
         "logfeeder_json_log_maxfilesize", "13",
         "logfeeder_json_log_maxbackupindex", "14");
-    
+
     Config mockLogFeederLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
     expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
@@ -1151,7 +1239,7 @@ public class UpgradeCatalog250Test {
         "    <priority value=\"warn\"/>\n" +
         "    <appender-ref ref=\"rolling_file_json\"/>\n" +
         "  </category>");
-    
+
     Map<String, String> expectedLogSearchLog4j = new HashMap<>();
       expectedLogSearchLog4j.put("content",
         "  <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
@@ -1211,7 +1299,7 @@ public class UpgradeCatalog250Test {
       expectedLogSearchLog4j.put("logsearch_audit_log_maxbackupindex", "16");
       expectedLogSearchLog4j.put("logsearch_perf_log_maxfilesize", "17");
       expectedLogSearchLog4j.put("logsearch_perf_log_maxbackupindex", "18");
-      
+
     Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
     expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
@@ -1245,9 +1333,9 @@ public class UpgradeCatalog250Test {
   public void testAmbariInfraUpdateConfigs() throws Exception {
     reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
-    
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    
+
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("createConfiguration")
@@ -1264,13 +1352,13 @@ public class UpgradeCatalog250Test {
                    "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}\n" +
                    "SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}\n" +
                    "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST} -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}\"");
-    
+
     Map<String, String> expectedInfraSolrEnv = ImmutableMap.of(
         "content", "SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}\n" +
                    "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}\n" +
                    "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"\n" +
                    "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST}\"");
-    
+
     Config mockInfraSolrEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("infra-solr-env")).andReturn(mockInfraSolrEnv).atLeastOnce();
     expect(mockInfraSolrEnv.getProperties()).andReturn(oldInfraSolrEnv).anyTimes();
@@ -1281,13 +1369,13 @@ public class UpgradeCatalog250Test {
     Map<String, String> oldInfraSolrLog4j = ImmutableMap.of(
         "content", "log4j.appender.file.MaxFileSize=15MB\n" +
                    "log4j.appender.file.MaxBackupIndex=5\n");
-    
+
     Map<String, String> expectedInfraSolrLog4j = ImmutableMap.of(
         "content", "log4j.appender.file.MaxFileSize={{infra_log_maxfilesize}}MB\n" +
                    "log4j.appender.file.MaxBackupIndex={{infra_log_maxbackupindex}}\n",
         "infra_log_maxfilesize", "15",
         "infra_log_maxbackupindex", "5");
-    
+
     Config mockInfraSolrLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("infra-solr-log4j")).andReturn(mockInfraSolrLog4j).atLeastOnce();
     expect(mockInfraSolrLog4j.getProperties()).andReturn(oldInfraSolrLog4j).anyTimes();
@@ -1299,14 +1387,14 @@ public class UpgradeCatalog250Test {
         "content", "log4j.appender.file.File\u003d{{infra_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
                    "log4j.appender.file.MaxFileSize=55MB\n" +
                    "log4j.appender.file.MaxBackupIndex=10\n");
-    
+
     Map<String, String> expectedInfraSolrClientLog4j = ImmutableMap.of(
         "content", "log4j.appender.file.File\u003d{{solr_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
                    "log4j.appender.file.MaxFileSize={{solr_client_log_maxfilesize}}MB\n" +
                    "log4j.appender.file.MaxBackupIndex={{solr_client_log_maxbackupindex}}\n",
         "infra_client_log_maxfilesize", "55",
         "infra_client_log_maxbackupindex", "10");
-    
+
     Config mockInfraSolrClientLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("infra-solr-client-log4j")).andReturn(mockInfraSolrClientLog4j).atLeastOnce();
     expect(mockInfraSolrClientLog4j.getProperties()).andReturn(oldInfraSolrClientLog4j).anyTimes();
@@ -1328,6 +1416,75 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> updatedInfraSolrClientLog4j = infraSolrClientLog4jCapture.getValue();
     assertTrue(Maps.difference(expectedInfraSolrClientLog4j, updatedInfraSolrClientLog4j).areEqual());
+  }
+
+  @Test
+  public void testUpdateHiveConfigs() throws Exception {
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).anyTimes();
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] {})
+        .addMockedMethod("createConfig")
+        .withConstructor(actionManager, clusters, injector)
+        .createNiceMock();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+
+    Map<String, String> oldHsiEnv = ImmutableMap.of(
+        "llap_app_name", "llap0");
+
+    Map<String, String> expectedHsiEnv = ImmutableMap.of(
+        "llap_app_name", "llap0",
+        "hive_heapsize", "1082");
+
+    Map<String, String> oldHiveEnv = ImmutableMap.of(
+        "hive.client.heapsize", "1024",
+        "hive.heapsize", "1082",
+        "hive.metastore.heapsize", "512",
+        "hive_ambari_database", "MySQL");
+
+    Map<String, String> oldHiveIntSite = ImmutableMap.of(
+        "hive.llap.daemon.rpc.port","15001");
+
+    Map<String, String> expectedHiveIntSite = ImmutableMap.of(
+        "hive.llap.daemon.rpc.port","0",
+        "hive.auto.convert.join.noconditionaltask.size", "1000000000");
+
+    Config mockHsiSite = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(mockHsiSite).atLeastOnce();
+    expect(mockHsiSite.getProperties()).andReturn(oldHiveIntSite).anyTimes();
+    Capture<Map<String, String>> hsiSiteCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiSiteCapture), anyString(),
+                                   EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockHiveEnv.getProperties()).andReturn(oldHiveEnv).anyTimes();
+
+    Config mockHsiEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("hive-interactive-env")).andReturn(mockHsiEnv).atLeastOnce();
+    expect(mockHsiEnv.getProperties()).andReturn(oldHsiEnv).anyTimes();
+    Capture<Map<String, String>> hsiEnvCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiEnvCapture), anyString(),
+                                   EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(clusters, cluster);
+    replay(controller, injector2);
+    replay(mockHsiEnv, mockHiveEnv, mockHsiSite);
+    new UpgradeCatalog250(injector2).updateHIVEInteractiveConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedHsiSite = hsiSiteCapture.getValue();
+    assertTrue(Maps.difference(expectedHiveIntSite, updatedHsiSite).areEqual());
+
+    Map<String, String> updatedHsiEnv = hsiEnvCapture.getValue();
+    assertTrue(Maps.difference(expectedHsiEnv, updatedHsiEnv).areEqual());
   }
 
   @Test

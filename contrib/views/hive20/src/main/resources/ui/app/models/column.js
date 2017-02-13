@@ -19,8 +19,7 @@
 import Ember from 'ember';
 import datatypes from '../configs/datatypes';
 import Helper from '../configs/helpers';
-
-export default Ember.Object.extend({
+let Column = Ember.Object.extend(Ember.Copyable,{
   name: '',
   type: datatypes[0],
   precision: null,
@@ -88,9 +87,13 @@ export default Ember.Object.extend({
         this.get('errors').pushObject({type: 'precision', error: "Precision can only be a number"});
       } else if(this.get('precision') <= 0) {
         this.get('errors').pushObject({type: 'precision', error: "Precision can only be greater than zero"});
+      } else if(this.get('type.hasScale') && this.get('scale') && (this.get('precision') < this.get('scale'))) {
+        this.get('errors').pushObject({type: 'precision', error: "Precision can only be greater than scale"});
       }
-
+    }else{
+      delete this.precision;
     }
+
 
     if(this.get('type.hasScale')) {
       if(Ember.isEmpty(this.get('scale'))) {
@@ -100,8 +103,28 @@ export default Ember.Object.extend({
       } else if(this.get('scale') <= 0) {
         this.get('errors').pushObject({type: 'scale', error: "Scale can only be greater than zero"});
       }
-
+    }else{
+      delete this.scale;
     }
+
     return this.get('errors.length') === 0;
+  },
+
+  copy: function(){
+    return Column.create({
+      name: this.get("name"),
+      type: this.get("type"),
+      precision: this.get("percision"),
+      scale: this.get("scale"),
+      isPartitioned: this.get("isPartitioned"),
+      isClustered: this.get("isClustered"),
+      comment: this.get("comment"),
+
+      errors: this.get("errors").copy(),
+      editing: this.get("editing"),
+    });
   }
-})
+
+});
+
+export default Column;

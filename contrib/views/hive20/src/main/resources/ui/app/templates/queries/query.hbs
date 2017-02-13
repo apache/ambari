@@ -25,11 +25,24 @@
         <span class="expand-button" {{action "expandQueryEdidorPanel" }} >
           {{fa-icon "expand"}}
         </span>
-        {{query-editor query=currentQuery }}
+        {{query-editor query=currentQuery updateQuery='updateQuery' }}
       </div>
       <div class="row query-editor-controls">
-        <button class="btn btn-success" {{action "executeQuery" }}>{{fa-icon "check"}} Execute</button>
+        <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "check"}} Execute</button>
+
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
+        <div class="btn-group">
+          <button class="btn btn-default" type="button" data-toggle="dropdown">Insert UDF
+            <span class="caret"></span></button>
+
+
+            <ul class="dropdown-menu">
+              {{#each fileResourceList as |fileResource|}}
+                {{fileresource-item fileResource=fileResource createQuery='createQuery'}}
+              {{/each}}
+            </ul>
+        </div>
+        <button class="btn btn-default" {{action "visualExplainQuery" }}>{{fa-icon "link"}} Visual Explain</button>
         {{#if worksheet.isQueryRunning}}
           {{fa-icon "spinner fa-1-5" spin=true}}
         {{/if}}
@@ -41,12 +54,12 @@
         <div>
           <ul class="row nav nav-tabs inverse">
             <li class="editor-result-list active">
-              <a href="javascript:void(0)" class="editor-result-list-anchor" {{action 'showQueryEditorResult' }}>
+              <a href="javascript:void(0)" class="editor-result-list-anchor active" {{action 'showQueryEditorResult' }}>
                 {{fa-icon "file-text-o"}}&nbsp;&nbsp;RESULT
               </a>
             </li>
             <li class="log-list">
-              <a href="javascript:void(0)" class="log-list-anchor active" {{action 'showQueryEditorLog' }}>
+              <a href="javascript:void(0)" class="log-list-anchor" {{action 'showQueryEditorLog' }}>
                 {{fa-icon "list"}}&nbsp;&nbsp;LOG
               </a>
             </li>
@@ -60,22 +73,34 @@
         {{/if}}
         {{#if showQueryEditorResult}}
           <div class="clearfix row query-editor-results">
-            {{query-result-table
-            queryResult=queryResult
-            jobId=currentJobId
-            updateQuery='updateQuery'
-            previousPage=worksheet.previousPage
-            hidePreviousButton=hidePreviousButton
-            goNextPage='goNextPage'
-            goPrevPage='goPrevPage'
-            expandQueryResultPanel='expandQueryResultPanel'
-            saveToHDFS='saveToHDFS'
-            downloadAsCsv='downloadAsCsv'
-            isExportResultSuccessMessege=isExportResultSuccessMessege
-            isExportResultFailureMessege=isExportResultFailureMessege
-            showSaveHdfsModal=showSaveHdfsModal
-            isQueryRunning=worksheet.isQueryRunning
-            }}
+
+            {{#if isVisualExplainQuery}}
+                {{visual-explain
+                expandQueryResultPanel='expandQueryResultPanel'
+                isQueryRunning=worksheet.isQueryRunning
+                visualExplainJson=visualExplainJson
+                }}
+              {{else}}
+              {{query-result-table
+              queryResult=queryResult
+              jobId=currentJobId
+              updateQuery='updateQuery'
+              previousPage=worksheet.previousPage
+              hidePreviousButton=hidePreviousButton
+              goNextPage='goNextPage'
+              goPrevPage='goPrevPage'
+              expandQueryResultPanel='expandQueryResultPanel'
+              saveToHDFS='saveToHDFS'
+              downloadAsCsv='downloadAsCsv'
+              isExportResultSuccessMessege=isExportResultSuccessMessege
+              isExportResultFailureMessege=isExportResultFailureMessege
+              showSaveHdfsModal=showSaveHdfsModal
+              isQueryRunning=worksheet.isQueryRunning
+              }}
+            {{/if}}
+
+
+
           </div>
         {{/if}}
 
@@ -87,13 +112,13 @@
 <div class="col-md-3 database-panel">
   <div class="database-container">
     <div class="row">
-    <div class="panel-group database-panel" id="db_accordion" role="tablist" aria-multiselectable="true">
+    <div class="panel-group database-panel" id="db_accordion" role="tablist">
       {{#each selectedTablesModels as |tableModel|}}
         <div class="panel panel-default">
           <div class="panel-heading" role="tab" id={{concat 'db_heading_' tableModel.dbname}}>
             <h4 class="panel-title">
               <a role="button" data-i-toggle="collapse" data-i-parent="#db_accordion"
-                 href="javascript:void(0)" {{action 'showTables' tableModel.dbname }} aria-expanded="true"
+                 href="javascript:void(0)" {{action 'showTables' tableModel.dbname }}
                  aria-controls={{concat 'db_body_' tableModel.dbname}}>
                 {{ tableModel.dbname }} {{#if (eq tableModel.dbname worksheet.selectedDb)}} {{fa-icon "check"}}  {{/if}}
               </a>

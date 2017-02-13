@@ -299,10 +299,16 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
       </execute-stage>
-
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
       </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Updating Storm Worker Log4J Path">
+        <task xsi:type="configure" id="storm_worker_log4j_update_path">
+          <summary>Updating the Storm worker Log4J path</summary>
+        </task>
+      </execute-stage>
+
     </group>
 
     <!--

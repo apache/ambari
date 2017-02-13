@@ -21,6 +21,7 @@ import Column from '../models/column';
 
 export default Ember.Component.extend({
   columns: [],
+  editMode: false,
   shouldAddBuckets: null,
 
   clusteredColumnObserver: Ember.observer('columns.@each.isClustered', function(sender, key, value, rev) {
@@ -37,7 +38,7 @@ export default Ember.Component.extend({
 
   actions: {
     addNewColumn() {
-      let newEmptyColumn = Column.create({editing: true});
+      let newEmptyColumn = Column.create({editing: true, newColumn: true});
       this.get('columns').pushObject(newEmptyColumn);
     },
 

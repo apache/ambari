@@ -112,6 +112,8 @@ public class AlertDataManagerTest {
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.getInstance(UnitOfWork.class).begin();
 
@@ -310,7 +312,7 @@ public class AlertDataManagerTest {
     m_dao.create(currentAlert);
 
     AlertTargetEntity target = m_helper.createAlertTarget();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
     targets.add(target);
 
     AlertGroupEntity group = m_helper.createAlertGroup(
@@ -418,7 +420,7 @@ public class AlertDataManagerTest {
     AlertEventPublisher publisher = m_injector.getInstance(AlertEventPublisher.class);
     EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
 
-    final AtomicReference<Alert> ref = new AtomicReference<Alert>();
+    final AtomicReference<Alert> ref = new AtomicReference<>();
     publisher.register(new TestListener() {
       @Override
       @Subscribe

@@ -26,6 +26,7 @@ App.cache = {
   'previousHostStatuses': {},
   'previousComponentStatuses': {},
   'previousComponentPassiveStates': {},
+  'staleConfigsComponentHosts': {},
   'services': [],
   'currentConfigVersions': {}
 };

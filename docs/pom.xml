@@ -151,6 +151,18 @@
             </organization>
         </developer>
         <developer>
+            <id>adoroszlai</id>
+            <name>Attila Doroszlai</name>
+            <email>adoroszlai@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>ajit</id>
             <name>Ajit Kumar</name>
             <email>ajit@apache.org</email>
@@ -740,7 +752,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                Teraware
+                ITRenew Inc
             </organization>
         </developer>
         <developer>
@@ -1271,7 +1283,7 @@
         </contributor>
         <contributor>
           <name>Vivek Ratnavel Subramanian</name>
-          <organization>The Ohio State University</organization>
+          <organization>Hortonworks</organization>
         </contributor>
         <contributor>
           <name>Pramod Thangali</name>

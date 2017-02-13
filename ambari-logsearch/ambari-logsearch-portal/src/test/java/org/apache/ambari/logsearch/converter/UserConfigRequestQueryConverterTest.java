@@ -39,13 +39,11 @@ public class UserConfigRequestQueryConverterTest extends AbstractRequestConverte
     // GIVEN
     UserConfigRequest request = new UserConfigRequest();
     request.setRowType("myRowType"); // TODO: validate these 3 fields @Valid on UserConfigRequest object -> not null
-    request.setUserId("myUserId");
     request.setFilterName("myFilterName");
     // WHEN
     SolrQuery queryResult = underTest.convert(request);
     // THEN
-    assertEquals("?q=*%3A*&fq=rowtype%3AmyRowType&fq=username%3AmyUserId+OR+share_username_list%3AmyUserId" +
-      "&fq=filtername%3A*myFilterName*&start=0&rows=10&sort=filtername+asc",
+    assertEquals("?q=*%3A*&fq=rowtype%3AmyRowType&fq=filtername%3A*myFilterName*&start=0&rows=10&sort=filtername+asc",
       queryResult.toQueryString());
   }
 }

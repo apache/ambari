@@ -22,7 +22,7 @@
 
     <min-ambari-version>2.0.*</min-ambari-version>
 
-    <data-version>1</data-version>
+    <data-version>2</data-version>
     <data-migrator-class>org.apache.ambari.view.hive20.DataMigrator</data-migrator-class>
 
     <validator-class>org.apache.ambari.view.hive20.PropertyValidator</validator-class>

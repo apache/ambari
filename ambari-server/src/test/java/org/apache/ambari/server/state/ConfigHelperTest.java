@@ -58,9 +58,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -90,8 +88,8 @@ public class ConfigHelperTest {
     private static AmbariMetaInfo metaInfo;
     private static ConfigFactory configFactory;
 
-    @BeforeClass
-    public static void setup() throws Exception {
+    @Before
+    public void setup() throws Exception {
       // Set the authenticated user
       // TODO: remove this or replace the authenticated user to test authorization rules
       SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
@@ -222,8 +220,8 @@ public class ConfigHelperTest {
       }}, null);
     }
 
-    @AfterClass
-    public static void tearDown() throws AmbariException, SQLException {
+    @After
+    public void tearDown() throws AmbariException, SQLException {
       H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
 
       // Clear the authenticated user
@@ -536,7 +534,7 @@ public class ConfigHelperTest {
               configHelper.getEffectiveDesiredTags(cluster, "h3"));
 
       Assert.assertNotNull(effectiveAttributes);
-      Assert.assertEquals(10, effectiveAttributes.size());
+      Assert.assertEquals(7, effectiveAttributes.size());
 
       Assert.assertTrue(effectiveAttributes.containsKey("global3"));
       Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global3");
@@ -899,7 +897,7 @@ public class ConfigHelperTest {
       // set up expectations
       expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
       expect(sch.getHostName()).andReturn("h1").anyTimes();
-      expect(sch.getClusterId()).andReturn(1l).anyTimes();
+      expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
       expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
       expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
       replay(sch);

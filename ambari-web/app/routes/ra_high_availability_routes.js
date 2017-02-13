@@ -130,15 +130,13 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.setCurrentStep('3');
         controller.loadAllPriorSteps().done(function () {
+          var stepController = router.get('rAHighAvailabilityWizardStep3Controller');
+          stepController.set('wizardController', controller);
           controller.connectOutlet('rAHighAvailabilityWizardStep3', controller.get('content'));
         });
       });
     },
     next: function (router) {
-      var controller = router.get('rAHighAvailabilityWizardController'),
-        stepController = router.get('rAHighAvailabilityWizardStep3Controller');
-      stepController.updateConfigProperty();
-      controller.save('policymgrExternalURL');
       router.transitionTo('step4');
     },
     back: function (router) {
@@ -154,6 +152,8 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('4');
         controller.setLowerStepsDisable(4);
         controller.loadAllPriorSteps().done(function () {
+          var stepController = router.get('rAHighAvailabilityWizardStep4Controller');
+          stepController.set('wizardController', controller);
           controller.connectOutlet('rAHighAvailabilityWizardStep4', controller.get('content'));
         });
       });

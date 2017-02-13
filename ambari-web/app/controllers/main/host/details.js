@@ -1278,36 +1278,48 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param host
    */
   saveConfigsBatch: function (groups, componentName, host) {
-    groups.forEach(function (group) {
-      var desiredConfigs = [],
-        tag = 'version' + (new Date).getTime(),
-        properties = group.properties;
+    if (groups.length) {
+      groups.forEach(function (group) {
+        var desiredConfigs = [],
+          tag = 'version' + (new Date).getTime(),
+          properties = group.properties;
 
-      for (var site in properties) {
-        if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
-        desiredConfigs.push({
-          "type": site,
-          "tag": tag,
-          "properties": properties[site],
-          "properties_attributes": group.properties_attributes[site],
-          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))
-        });
-      }
-      if (desiredConfigs.length > 0) {
-        App.ajax.send({
-          name: 'common.service.configurations',
-          sender: this,
-          data: {
-            desired_config: desiredConfigs,
+        for (var site in properties) {
+          if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
+          desiredConfigs.push({
+            "type": site,
+            "tag": tag,
+            "properties": properties[site],
+            "properties_attributes": group.properties_attributes[site],
+            "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName, false))
+          });
+        }
+        if (desiredConfigs.length > 0) {
+          App.ajax.send({
+            name: 'common.service.configurations',
+            sender: this,
+            data: {
+              desired_config: desiredConfigs,
+              componentName: componentName,
+              host: host
+            },
+            success: 'installHostComponent'
+          });
+        } else {
+          this.installHostComponent(null, null, {
             componentName: componentName,
             host: host
-          },
-          success: 'installHostComponent'
-        });
-      }
-      //clear hive metastore host not to send second request to install component
-      host = null;
-    }, this);
+          });
+        }
+        //clear hive metastore host not to send second request to install component
+        host = null;
+      }, this);
+    } else {
+      this.installHostComponent(null, null, {
+        componentName: componentName,
+        host: host
+      });
+    }
   },
 
   /**
@@ -1608,6 +1620,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       this.trackRequest(request);
       return true;
     }
+    this.set('isConfigsLoadingInProgress', false);
     return false;
   },
 

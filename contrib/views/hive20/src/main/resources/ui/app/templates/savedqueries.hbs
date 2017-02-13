@@ -29,10 +29,10 @@
       </tr>
       </thead>
       <tbody>
-      {{#each model.savedQueries as |savedQuery| }}
+      {{#each savedQuerylist as |savedQuery| }}
         <tr>
           <td>{{savedQuery.shortQuery}}</td>
-          <td>{{savedQuery.title}}</td>
+          <td class="break-word">{{savedQuery.title}}</td>
           <td>{{savedQuery.dataBase}}</td>
           <td>{{savedQuery.owner}}</td>
           <td>
@@ -63,7 +63,7 @@
   closable=false
   confirmClass="success"
   confirm="deleteSavedQuery"
-  reject="deleteSavedQuerypDeclined"
+  reject="deleteSavedQueryDeclined"
   }}
 {{/if}}
 

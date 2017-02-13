@@ -59,13 +59,6 @@ public class UserConfigResource {
     return userConfigManager.saveUserConfig(userConfig);
   }
 
-  @PUT
-  @Produces({"application/json"})
-  @ApiOperation(UPDATE_USER_CONFIG_OD)
-  public String updateUserConfig(UserConfigData userConfig) {
-    return userConfigManager.updateUserConfig(userConfig);
-  }
-
   @DELETE
   @Path("/{id}")
   @ApiOperation(DELETE_USER_CONFIG_OD)
@@ -88,18 +81,10 @@ public class UserConfigResource {
     return userConfigManager.getUserFilter();
   }
 
-  @POST
-  @Path("/filters")
-  @Produces({"application/json"})
-  @ApiOperation(UPDATE_USER_FILTER_OD)
-  public LogFeederDataMap createUserFilter(LogFeederDataMap request) {
-    return userConfigManager.saveUserFiter(request);
-  }
-
   @PUT
   @Path("/filters/{id}")
   @Produces({"application/json"})
-  @ApiOperation(GET_USER_FILTER_BY_ID_OD)
+  @ApiOperation(UPDATE_USER_FILTER_OD)
   public LogFeederDataMap updateUserFilter(LogFeederDataMap request) {
     return userConfigManager.saveUserFiter(request);
   }

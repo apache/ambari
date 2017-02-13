@@ -41,7 +41,7 @@
               </auto-deploy>
             </dependency>
             <dependency>
-              <name>FAKEZOOKEEPER/FAKEZOOKEEPER_SERVER</name>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
               <scope>cluster</scope>
               <auto-deploy>
                 <enabled>true</enabled>

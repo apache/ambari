@@ -394,9 +394,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           };
 
           serviceDefinitions.forEach(function (definition) {
+            definition.set('isCollapsed', true);
             Object.keys(definitionTypes).forEach(function (type) {
               if (definition.get(type)) {
-                definition.set('isCollapsed', true);
                 definitionTypes[type].push(definition);
                 serviceDefinitions = serviceDefinitions.without(definition);
               }

@@ -845,6 +845,28 @@ class ActionScheduler implements Runnable {
             commandsToSchedule.add(c);
             LOG.trace("===> commandsToSchedule(reschedule)=" + commandsToSchedule.size());
           }
+        } else if (isHostStateUnknown(s, hostObj, roleStr)) {
+          String message = "Action was aborted due agent is not heartbeating or was restarted.";
+          LOG.warn("Host: {}, role: {}, actionId: {} . {}", host, roleStr,
+            s.getActionId(), message);
+
+          db.abortHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), message);
+
+          if (null != cluster) {
+            if (!RoleCommand.CUSTOM_COMMAND.equals(c.getRoleCommand())
+              && !RoleCommand.SERVICE_CHECK.equals(c.getRoleCommand())
+              && !RoleCommand.ACTIONEXECUTE.equals(c.getRoleCommand())) {
+              //commands above don't affect host component state (e.g. no in_progress state in process), transition will fail
+              transitionToFailedState(cluster.getClusterName(), c.getServiceName(), roleStr, host, now, false);
+            }
+            if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
+              processActionDeath(cluster.getClusterName(), c.getHostname(), roleStr);
+            }
+          }
+
+          // Dequeue command
+          LOG.info("Removing command from queue, host={}, commandId={} ", host, c.getCommandId());
+          actionQueue.dequeue(host, c.getCommandId());
         } else if (status.equals(HostRoleStatus.PENDING)) {
           // in case of DEPENDENCY_ORDERED stage command can be scheduled only if all of it's dependencies are
           // already finished
@@ -907,15 +929,16 @@ class ActionScheduler implements Runnable {
         ExecutionCommand c = wrapper.getExecutionCommand();
         transitionToFailedState(stage.getClusterName(), c.getServiceName(),
                 c.getRole(), hostName, now, true);
-        if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
-          String clusterName = c.getClusterName();
-          processActionDeath(clusterName,
-                  c.getHostname(),
-                  c.getRole());
-        }
       }
     }
-    db.abortOperation(stage.getRequestId());
+    Collection<HostRoleCommandEntity> abortedOperations = db.abortOperation(stage.getRequestId());
+
+    for (HostRoleCommandEntity command: abortedOperations) {
+      if (command.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
+        String clusterName = stage.getClusterName();
+        processActionDeath(clusterName, command.getHostName(), command.getRole().name());
+      }
+    }
   }
 
   /**
@@ -1030,13 +1053,6 @@ class ActionScheduler implements Runnable {
       return false;
     }
 
-    // Fast fail task if host state is unknown
-    if (null != host &&
-      (host.getState().equals(HostState.HEARTBEAT_LOST) || wasAgentRestartedDuringOperation(host, stage, role))) {
-      LOG.debug("Timing out action since agent is not heartbeating or agent was restarted.");
-      return true;
-    }
-
     // tasks are held in a variety of in-memory maps that require a hostname key
     // host being null is ok - that means it's a server-side task
     String hostName = (null == host) ? null : host.getHostName();
@@ -1048,6 +1064,15 @@ class ActionScheduler implements Runnable {
     }
     if (currentTime >= stage.getLastAttemptTime(hostName, role)
         + taskTimeout) {
+      return true;
+    }
+    return false;
+  }
+
+  private boolean isHostStateUnknown(Stage stage, Host host, String role) {
+    if (null != host &&
+      (host.getState().equals(HostState.HEARTBEAT_LOST) || wasAgentRestartedDuringOperation(host, stage, role))) {
+      LOG.debug("Abort action since agent is not heartbeating or agent was restarted.");
       return true;
     }
     return false;

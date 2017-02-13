@@ -223,14 +223,14 @@ describe('App.ConfigsLoader', function() {
   describe("#loadCurrentVersions()", function () {
 
     beforeEach(function() {
-      sinon.stub(mixin, 'trackRequest');
+      sinon.stub(mixin, 'trackRequestChain');
       mixin.set('currentDefaultVersion', {});
       mixin.set('servicesToLoad', ['S1', 'S2']);
       mixin.loadCurrentVersions();
     });
 
     afterEach(function() {
-      mixin.trackRequest.restore();
+      mixin.trackRequestChain.restore();
     });
 
     it("isCompareMode should be false", function() {
@@ -250,7 +250,7 @@ describe('App.ConfigsLoader', function() {
     });
 
     it("trackRequest should be called", function() {
-      expect(mixin.trackRequest.calledOnce).to.be.true;
+      expect(mixin.trackRequestChain.calledOnce).to.be.true;
     });
 
     it("App.ajax.send should be called", function() {
@@ -490,4 +490,3 @@ describe('App.ConfigsLoader', function() {
   });
 
 });
-

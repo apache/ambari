@@ -32,7 +32,7 @@ class ZookeeperClient(Dummy):
 
   def __init__(self):
     super(ZookeeperClient, self).__init__()
-    self.component_name = "FAKEZOOKEEPER_CLIENT"
+    self.component_name = "ZOOKEEPER_CLIENT"
 
 if __name__ == "__main__":
   ZookeeperClient().execute()

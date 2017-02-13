@@ -30,15 +30,16 @@ export default Ember.Service.extend({
   saveQuery(payload){
     return $.ajax({
       type: "POST",
-      url: this.get('store').adapterFor('saved-query').buildURL(),
+      url: this.get('store').adapterFor('saved-query').buildURL() + '/savedQueries/',
       data: JSON.stringify({savedQuery: payload}) ,
       contentType:"application/json; charset=utf-8",
       dataType:"json",
       headers: {'X-Requested-By': 'ambari'}
     })
   },
+
   deleteSaveQuery(id){
-    let deletURL = this.get('store').adapterFor('saved-query').buildURL() + id;
+    let deletURL = this.get('store').adapterFor('saved-query').buildURL()+ '/savedQueries/' + id;
 
     return $.ajax({
       type: "DELETE",

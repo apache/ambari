@@ -202,7 +202,7 @@ App.QueuesController = Ember.ArrayController.extend({
   },
 
   saveConfigError:function (operation, error) {
-    var response = error.responseJSON;
+    var response = error.responseJSON || {};
     response.simpleMessage = operation.capitalize() + ' failed!';
     this.set('alertMessage',response);
   },

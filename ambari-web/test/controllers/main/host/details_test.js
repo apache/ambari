@@ -38,6 +38,7 @@ describe('App.MainHostDetailsController', function () {
 
   beforeEach(function () {
     controller = getController();
+    sinon.stub(controller, 'trackRequest');
   });
 
   App.TestAliases.testAsComputedFilterBy(getController(), 'serviceNonClientActiveComponents', 'serviceActiveComponents', 'isClient', false);
@@ -962,6 +963,12 @@ describe('App.MainHostDetailsController', function () {
       mockUrlParams = ['param1'];
       var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
       expect(args).exists;
+    });
+    it('isConfigsLoadingInProgress is false', function () {
+      mockUrlParams = [];
+      controller.set('isConfigsLoadingInProgress', true);
+      controller.loadConfigsSuccessCallback(null, null, {});
+      expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
     });
   });
 

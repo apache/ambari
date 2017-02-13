@@ -81,8 +81,11 @@ public class QueryGenerationUtils {
     Map<Object, Object> modified = new HashMap<>();
     Map<Object, Object> deleted = new HashMap<>();
 
-    if(oldProps == null && newProps == null) return Optional.of(ret);
+    if(oldProps == null && newProps == null) return Optional.absent();
 
+    if(oldProps == null && newProps != null){
+      oldProps = new HashMap();
+    }
     if(oldProps != null && newProps != null){
       Set<Map.Entry> entrySet = oldProps.entrySet();
       for(Map.Entry e : entrySet){

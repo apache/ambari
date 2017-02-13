@@ -47,11 +47,11 @@
   <div class="dashboard-widgets-box">
     <div id="dashboard-widgets"  class="widgets-container">
       <div class="thumbnails" id="sortable">
-        {{#if view.visibleWidgets.length}}
-          {{#each widget in view.visibleWidgets}}
-             {{view widget.viewClass widgetBinding="widget"}}
-          {{/each}}
-        {{/if}}
+        {{#each widget in view.allWidgets}}
+          {{#if widget.isVisible}}
+            {{view widget.viewClass widgetBinding="widget"}}
+          {{/if}}
+        {{/each}}
       </div>
     </div>
   </div>

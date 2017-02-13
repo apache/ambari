@@ -40,6 +40,14 @@ def setup_livy(env, type, upgrade_type = None, action = None):
     )
     params.HdfsResource(None, action="execute")
 
+    params.HdfsResource(params.livy2_recovery_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.livy2_user,
+                        mode=0775
+       )
+    params.HdfsResource(None, action="execute")
+
   # create livy-env.sh in etc/conf dir
   File(os.path.join(params.livy2_conf, 'livy-env.sh'),
        owner=params.livy2_user,

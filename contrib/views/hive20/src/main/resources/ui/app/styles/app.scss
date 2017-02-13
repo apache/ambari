@@ -223,6 +223,15 @@ pre {
   overflow-y: scroll;
 }
 
+.grip {
+  height: 20px;
+  border: 0 1px 1px solid #ddd;
+  background-color: #f5f5f5;
+  color: #bbb;
+  text-align: center;
+  font-size: inherit;
+}
+
 .hv-dropdown {
   position: absolute;
   .dropdown-menu {
@@ -270,6 +279,9 @@ pre {
 .create-table-controls {
   padding-top: 15px;
   padding-bottom: 15px;
+  .warning {
+    margin-top: 15px;
+  }
 }
 
 .column-precision {
@@ -306,10 +318,10 @@ pre {
 
 .query-editor-results {
   padding-right: 15px;
+  position: relative;
 }
 
 .query-result-table {
-  border-top: 1px solid darken($database-search-background, 25%);
   padding-top:10px;
 }
 
@@ -784,7 +796,7 @@ pre {
   border-top: 1px solid darken($body-bg, 10%);
   border-bottom: 1px solid darken($body-bg, 10%);
   .strip {
-    margin-top: 25px;
+    margin-top: 20px;
   }
 }
 
@@ -820,13 +832,199 @@ pre {
   padding-top: 10px;
 }
 
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 3px 1.5rem;
+  clear: both;
+  font-weight: 400;
+  color: #292b2c;
+  text-align: inherit;
+  white-space: nowrap;
+  background: 0 0;
+  border: 0;
+}
+
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+}
+
+.hand {
+  cursor: pointer;
+}
+
+.udf-container {
+  background-color: #d9edf7; padding: 10px;
+}
+
+.center{
+  text-align: center;
+}
+
+ul.sub-menu {
+  margin: 0; padding: 0;
+  li.dropdown{
+    list-style: none;
+    a {
+      display: block;
+      padding: 2px 25px;
+      text-decoration:none;
+      border-bottom: 1px solid #DDD;
+      background-color: #000;
+      color:#FFF;
+      margin: 0 10px;
+      &:hover {
+        background-color: #d9edf7;
+        color:#000;
+      }
+    }
+  }
+}
+
+ul.dropdown-menu {
+  li.dropdown{
+    list-style: none;
+    a {
+      border-bottom: 1px solid #DDD;
+    }
+  }
+}
 
 
+.step {
+  font-family: Roboto;
+  background-color:rgb(255, 255, 255);
+  padding: 8px 10px;
+  border: 1px solid rgb(223, 223, 223);
+  cursor: pointer;
+  &:hover {
+    background-color: rgb(223, 240, 247);
+  }
+
+  body {
+    font-family: Roboto;
+    background-color: rgba(0,0,0,0);
+  }
+}
+.step-sink {
+  body {
+    color: rgb(255, 255, 255);
+  }
+  background-color: rgb(42, 179, 119);
+  padding: 20px;
+}
+.step-sink .step-body {
+  font-weight: lighter;
+  margin-top: 10px;
+}
+
+.step-source {
+  body {
+    color: rgb(255, 255, 255);
+  }
+  background-color: rgb(85, 100, 105);
+}
+
+.step-job,
+.step-vectorization {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.step-job body,
+.step-vectorization body {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step__pill {
+  font-size: 12px;
+  border-radius: 25px;
+  padding: 5px 10px;
+  min-width: 60px;
+  color: rgb(255, 255, 255);
+  background-color: rgb(85, 100, 105);
+  text-align: center;
+}
 
 
+.step-caption {
+  font-size: 10px;
+}
+.step-body {
+  font-size: 12px;
+}
 
+.edge {
+  stroke: rgb(83, 100, 106);
+  stroke-width: 2px;
+  fill: none;
+}
 
+#explain-container {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
 
+.break-word{
+  word-break: break-all;
+}
 
+.visual-explain-detail-container {
+  width: 500px;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #FFF;
+  max-height: 70vh;
+  overflow-y: auto;
+}
 
+.visual-explain-detail{
+  border: 1px solid #DDD;
+  .close{
+    margin: 10px 15px;
+    z-index: 9999;
+  }
+
+  .header{
+    border-bottom: 1px solid #DDD; padding: 10px 0;
+    .icon{
+      padding:10px;
+    }
+    .join-type {
+      font-size: 20px; font-weight: bold
+    }
+  }
+
+  .vector-info{
+    border: 1px solid #DDD; padding:20px; background-color:#ED6265; color:#FFF; font-weight: bold; margin: 10px 0;
+  }
+  .block{
+    border: 1px solid #DDD; padding:20px; margin: 10px 0;
+
+    .block-header{
+      font-size: 20px; font-weight: bold;
+    }
+    .block-body{
+      padding: 10px 0;
+    }
+
+    .divider{
+      height: 1px; border-top:1px solid #DDD; margin: 10px 0;
+    }
+  }
+
+}
 

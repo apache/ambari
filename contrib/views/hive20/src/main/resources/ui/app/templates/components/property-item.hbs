@@ -37,9 +37,11 @@
 
 <td>
   <div class="text-center">
-    {{#unless property.editing}}
-      <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
-    {{/unless}}
-    <button class="btn btn-danger" {{action "delete"}}>{{fa-icon "times"}} Delete</button>
+    {{#if (or property.newProperty (not editMode)) }}
+      {{#unless property.editing}}
+        <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
+      {{/unless}}
+      <button class="btn btn-danger" {{action "delete"}}>{{fa-icon "times"}} Delete</button>
+    {{/if}}
   </div>
 </td>

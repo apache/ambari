@@ -168,6 +168,15 @@ App.ApplicationStore = DS.Store.extend({
     return false;
   }.property('stackId'),
 
+  isPriorityUtilizationSupported: function() {
+    var stackId = this.get('stackId');
+    var stackVersion = stackId.substr(stackId.indexOf('-') + 1);
+    if (stackVersion >= 2.6) {
+      return true;
+    }
+    return false;
+  }.property('stackId'),
+
   hasDeletedQueues:Em.computed.notEmpty('deletedQueues.[]'),
 
   deletedQueues:[],

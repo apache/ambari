@@ -20,8 +20,10 @@ limitations under the License.
 # Python Imports
 import imp
 import os
+import random
 import re
 import socket
+import string
 import traceback
 from math import ceil, floor
 from urlparse import urlparse
@@ -2238,6 +2240,42 @@ class DefaultStackAdvisor(StackAdvisor):
   #endregion
 
   #region Generic
+  PROXYUSER_SPECIAL_RE = [r"\$\{(?:([\w\-\.]+)/)?([\w\-\.]+)(?:\s*\|\s*(.+?))?\}"]
+
+  @classmethod
+  def preserve_special_values(cls, value):
+    """
+    Replace matches of PROXYUSER_SPECIAL_RE with random strings.
+
+    :param value: input string
+    :return: result string and dictionary that contains mapping random string to original value
+    """
+    def gen_random_str():
+      return ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(20))
+
+    result = value
+    replacements_dict = {}
+    for regexp in cls.PROXYUSER_SPECIAL_RE:
+      for match in re.finditer(regexp, value):
+        matched_string = match.string[match.start():match.end()]
+        rand_str = gen_random_str()
+        result = result.replace(matched_string, rand_str)
+        replacements_dict[rand_str] = matched_string
+    return result, replacements_dict
+
+  @staticmethod
+  def restore_special_values(data, replacement_dict):
+    """
+    Replace random strings in data set to their original values using replacement_dict.
+
+    :param data:
+    :param replacement_dict:
+    :return:
+    """
+    for replacement, original in replacement_dict.iteritems():
+      data.remove(replacement)
+      data.add(original)
+
   def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, configurations=None, put_function=None):
     is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, configurations, is_groups)
     result_value = "*"
@@ -2256,8 +2294,10 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     Returns values of proxyuser properties for given user. Properties can be
     hadoop.proxyuser.username.groups or hadoop.proxyuser.username.hosts
+
     :param user_name:
     :param services:
+    :param configurations:
     :param groups: if true, will return values for group property, not hosts
     :return: tuple (wildcard_value, set[values]), where wildcard_value indicates if property value was *
     """
@@ -2274,11 +2314,16 @@ class DefaultStackAdvisor(StackAdvisor):
       if property_value == "*":
         return True, set()
       else:
-        result_values = set()
+        property_value, replacement_map = self.preserve_special_values(property_value)
+        result_values = set([v.strip() for v in property_value.split(",")])
         if "core-site" in configurations:
           if property_name in configurations["core-site"]['properties']:
-            result_values = result_values.union(configurations["core-site"]['properties'][property_name].split(","))
-        result_values = result_values.union(property_value.split(","))
+            additional_value, additional_replacement_map = self.preserve_special_values(
+                configurations["core-site"]['properties'][property_name]
+            )
+            replacement_map.update(additional_replacement_map)
+            result_values = result_values.union([v.strip() for v in additional_value.split(",")])
+        self.restore_special_values(result_values, replacement_map)
         return False, result_values
     return False, set()
 

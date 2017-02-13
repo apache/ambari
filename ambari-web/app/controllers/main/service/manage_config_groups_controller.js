@@ -565,7 +565,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       var newHostsForParentGroup = parentGroupHosts.filter(function(hostName) {
         return !selectedHosts.contains(hostName);
       });
-      group.get('hosts').pushObjects(selectedHosts);
+      group.set('hosts', group.get('hosts').pushObjects(selectedHosts).slice().sort());
       group.set('parentConfigGroup.hosts', newHostsForParentGroup);
     }
   },
@@ -580,13 +580,15 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     }
     var hosts = this.get('selectedHosts').slice();
     var newHosts = [];
-    this.get('selectedConfigGroup.parentConfigGroup.hosts').pushObjects(hosts);
-    this.get('selectedConfigGroup.hosts').forEach(function(host) {
+    var selectedGroup = this.get('selectedConfigGroup');
+    var parentGroup = this.get('selectedConfigGroup.parentConfigGroup');
+    selectedGroup.get('hosts').forEach(function(host) {
       if (!hosts.contains(host)) {
         newHosts.pushObject(host);
       }
     });
-    this.set('selectedConfigGroup.hosts', newHosts);
+    selectedGroup.set('hosts', newHosts);
+    parentGroup.set('hosts', parentGroup.get('hosts').pushObjects(hosts).slice().sort());
     this.set('selectedHosts', []);
   },
 

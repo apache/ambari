@@ -24,12 +24,14 @@ package org.apache.ambari.view.hive20.internal.dto;
  */
 public class TableStats {
   public static final String NUM_FILES = "numFiles";
+  public static final String NUM_ROWS = "numRows";
   public static final String COLUMN_STATS_ACCURATE = "COLUMN_STATS_ACCURATE";
   public static final String RAW_DATA_SIZE = "rawDataSize";
   public static final String TOTAL_SIZE = "totalSize";
 
   private Boolean isTableStatsEnabled;
   private Integer numFiles;
+  private Integer numRows;
   private String columnStatsAccurate;
   private Integer rawDataSize;
   private Integer totalSize;
@@ -74,11 +76,20 @@ public class TableStats {
     this.totalSize = totalSize;
   }
 
+  public Integer getNumRows() {
+    return numRows;
+  }
+
+  public void setNumRows(Integer numRows) {
+    this.numRows = numRows;
+  }
+
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("TableStats{");
     sb.append("isStatsEnabled='").append(isTableStatsEnabled).append('\'');
     sb.append(", numFiles='").append(numFiles).append('\'');
+    sb.append(", numRows='").append(numRows).append('\'');
     sb.append(", columnStatsAccurate='").append(columnStatsAccurate).append('\'');
     sb.append(", rawDataSize='").append(rawDataSize).append('\'');
     sb.append(", totalSize='").append(totalSize).append('\'');

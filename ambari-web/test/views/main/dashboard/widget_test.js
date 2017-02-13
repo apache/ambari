@@ -19,6 +19,7 @@
 var App = require('app');
 require('views/main/dashboard/widget');
 
+var dashboard = App.MainDashboardWidgetsView.create();
 describe('App.DashboardWidgetView', function () {
 
   var view;
@@ -28,7 +29,10 @@ describe('App.DashboardWidgetView', function () {
       widget: Em.Object.create(),
       parentView: Em.Object.create({
         userPreferences: {},
-        saveWidgetsSettings: Em.K,
+        setDBProperty: Em.K,
+        postUserPref: Em.K,
+        hideWidget: dashboard.hideWidget,
+        saveWidgetsSettings: dashboard.saveWidgetsSettings,
         renderWidgets: Em.K
       })
     });
@@ -223,8 +227,7 @@ describe('App.DashboardWidgetView', function () {
   describe('#deleteWidget()', function() {
 
     beforeEach(function() {
-      sinon.stub(view.get('parentView'), 'saveWidgetsSettings');
-      sinon.stub(view.get('parentView'), 'renderWidgets');
+      view.get('parentView').set('allWidgets', [Em.Object.create({id: 1, isVisible: true})]);
       view.set('widget.id', 1);
       view.set('parentView.userPreferences', {
         visible: [1],
@@ -234,22 +237,14 @@ describe('App.DashboardWidgetView', function () {
       view.deleteWidget();
     });
 
-    afterEach(function() {
-      view.get('parentView').saveWidgetsSettings.restore();
-      view.get('parentView').renderWidgets.restore();
-    });
-
-    it('saveWidgetsSettings should be called', function() {
-      expect(view.get('parentView').saveWidgetsSettings.getCall(0).args[0]).to.be.eql({
+    it('userPreferences are set correctly', function() {
+      expect(view.get('parentView.userPreferences')).to.be.eql({
         visible: [],
         hidden: [1],
         threshold: []
       });
     });
 
-    it('renderWidgets should be called', function() {
-      expect(view.get('parentView').renderWidgets).to.be.calledOnce;
-    });
   });
 
   describe('#editWidget()', function() {

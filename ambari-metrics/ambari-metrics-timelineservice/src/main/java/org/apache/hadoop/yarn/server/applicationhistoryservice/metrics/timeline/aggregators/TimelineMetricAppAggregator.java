@@ -48,7 +48,7 @@ public class TimelineMetricAppAggregator {
   // Lookup to check candidacy of an app
   private final List<String> appIdsToAggregate;
   private final Map<String, Set<String>> hostedAppsMap;
-  Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics;
+  Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics = new HashMap<>();
   TimelineMetricMetadataManager metadataManagerInstance;
 
   public TimelineMetricAppAggregator(TimelineMetricMetadataManager metadataManager,
@@ -64,7 +64,7 @@ public class TimelineMetricAppAggregator {
    */
   public void init() {
     LOG.debug("Initializing aggregation cycle.");
-    aggregateClusterMetrics = new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
+    aggregateClusterMetrics = new HashMap<>();
   }
 
   /**

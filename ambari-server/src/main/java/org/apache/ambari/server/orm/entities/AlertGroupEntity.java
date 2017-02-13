@@ -62,9 +62,6 @@ import javax.persistence.UniqueConstraint;
         name = "AlertGroupEntity.findAllInCluster",
         query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
     @NamedQuery(
-        name = "AlertGroupEntity.findByName",
-        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"),
-    @NamedQuery(
         name = "AlertGroupEntity.findByNameInCluster",
         query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"),
     @NamedQuery(
@@ -226,7 +223,7 @@ public class AlertGroupEntity {
    */
   public Set<AlertDefinitionEntity> getAlertDefinitions() {
     if (null == alertDefinitions) {
-      alertDefinitions = new HashSet<AlertDefinitionEntity>();
+      alertDefinitions = new HashSet<>();
     }
 
     return Collections.unmodifiableSet(alertDefinitions);
@@ -263,7 +260,7 @@ public class AlertGroupEntity {
    */
   public void addAlertDefinition(AlertDefinitionEntity definition) {
     if (null == alertDefinitions) {
-      alertDefinitions = new HashSet<AlertDefinitionEntity>();
+      alertDefinitions = new HashSet<>();
     }
 
     alertDefinitions.add(definition);
@@ -308,7 +305,7 @@ public class AlertGroupEntity {
    */
   public void addAlertTarget(AlertTargetEntity alertTarget) {
     if (null == alertTargets) {
-      alertTargets = new HashSet<AlertTargetEntity>();
+      alertTargets = new HashSet<>();
     }
 
     alertTargets.add(alertTarget);

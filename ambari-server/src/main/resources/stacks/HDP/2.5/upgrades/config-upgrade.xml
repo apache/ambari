@@ -41,6 +41,11 @@
                  if-type="storm-site"
                  if-value="15000" />
           </definition>
+          <definition xsi:type="configure" id="storm_worker_log4j_update_path" summary="Updating Storm Worker Log4J Path">
+            <type>storm-worker-log4j</type>
+            <regex-replace key="content" find="\$\{sys:storm.log.dir}/\$\{sys:logfile.name}"
+                           replace-with="${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}"/>
+          </definition>
           <definition xsi:type="configure" id="storm_worker_log4j_parameterize" summary="Parameterizing Storm Worker Log4J Properties">
             <type>storm-worker-log4j</type>
             <set key="storm_wrkr_a1_maxfilesize" value="100"/>
@@ -49,6 +54,8 @@
             <set key="storm_wrkr_out_maxbackupindex" value="4"/>
             <set key="storm_wrkr_err_maxfilesize" value="100"/>
             <set key="storm_wrkr_err_maxbackupindex" value="4"/>
+            <regex-replace key="content" find="\$\{sys:storm.log.dir}/\$\{sys:logfile.name}"
+                           replace-with="${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}"/>
             <regex-replace key="content" find="A1&quot;&#xA;&#009;&#009;fileName=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}&quot;&#xA;&#009;&#009;filePattern=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
                                          replace-with="A1&quot;&#xA;&#009;&#009;fileName=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}&quot;&#xA;&#009;&#009;filePattern=&quot;${sys:workers.artifacts}/${sys:storm.id}/${sys:worker.port}/${sys:logfile.name}.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;${pattern}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;{{storm_wrkr_a1_maxfilesize}} MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;{{storm_wrkr_a1_maxbackupindex}}"/>
             <regex-replace key="content" find="STDOUT&quot;&#xA;&#009;&#009;fileName=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.out&quot;&#xA;&#009;&#009;filePattern=&quot;\$\{sys:workers.artifacts}/\$\{sys:storm.id}/\$\{sys:worker.port}/\$\{sys:logfile.name}.out.%i.gz&quot;&gt;&#xA;        &lt;PatternLayout&gt;&#xA;            &lt;pattern&gt;\$\{patternNoTime}&lt;/pattern&gt;&#xA;        &lt;/PatternLayout&gt;&#xA;        &lt;Policies&gt;&#xA;            &lt;SizeBasedTriggeringPolicy size=&quot;(?:[0-9]+) MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;&#xA;        &lt;/Policies&gt;&#xA;        &lt;DefaultRolloverStrategy max=&quot;([0-9]+)"
@@ -128,6 +135,22 @@
           <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB"/>
           <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}"/>
         </definition>
+        <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
+          <type>yarn-env</type>
+          <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+        </definition>
+        <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption">
+          <type>yarn-site</type>
+          <transfer operation="copy"
+                    from-key="yarn.resourcemanager.scheduler.monitor.enable"
+                    to-key="yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled"
+                    default-value="false"/>
+        </definition>
+        <definition xsi:type="configure" id="yarn_site_retained_log_count" summary="Updating Yarn retained file count for continuous Log Aggregation">
+          <type>yarn-site</type>
+          <set key="yarn.nodemanager.log-aggregation.num-log-files-per-app"
+               value="336" />
+        </definition>
       </changes>
     </component>
   </service>
@@ -145,6 +168,10 @@
           <regex-replace  key="content" find="log4j.appender.RFA.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RFA.MaxBackupIndex={{hadoop_log_number_of_backup_files}}"/>
           <regex-replace  key="content" find="hadoop.security.log.maxfilesize=([0-9]+)MB" replace-with="hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB"/>
           <regex-replace  key="content" find="hadoop.security.log.maxbackupindex=([0-9]+)" replace-with="hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}"/>
+        </definition>
+        <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
+          <type>hadoop-env</type>
+          <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
         </definition>
       </changes>
     </component>

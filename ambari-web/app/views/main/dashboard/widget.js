@@ -186,16 +186,7 @@ App.DashboardWidgetView = Em.View.extend({
    * delete widget
    */
   deleteWidget: function () {
-    var parent = this.get('parentView');
-    var userPreferences = parent.get('userPreferences');
-    var deletedId = this.get('id');
-    var newValue = {
-      visible: userPreferences.visible.slice(0).without(deletedId),
-      hidden: userPreferences.hidden.concat([deletedId]),
-      threshold: userPreferences.threshold
-    };
-    parent.saveWidgetsSettings(newValue);
-    parent.renderWidgets();
+    this.get('parentView').hideWidget(this.get('id'));
   },
 
   /**

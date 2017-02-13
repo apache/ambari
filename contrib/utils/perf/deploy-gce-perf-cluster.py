@@ -338,7 +338,10 @@ def create_server_script(server_host_name):
   "sed -i -f /home/ambari/ambari-server/src/main/resources/stacks/PERF/install_packages.sed /var/lib/ambari-agent/cache/custom_actions/scripts/install_packages.py\n" + \
   "\n" + \
   "\n" + \
-  "yum install mysql-connector-java* -y\n" + \
+  "cd /; wget http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.40/mysql-connector-java-5.1.40.jar;\n" + \
+  "mkdir /usr/share/java; chmod 777 /usr/share/java;" + \
+  "cp mysql-connector-java-5.1.40.jar /usr/share/java/; chmod 777 /usr/share/java/mysql-connector-java-5.1.40.jar;\n" + \
+  "ln -s /usr/share/java/mysql-connector-java-5.1.40.jar /usr/share/java/mysql-connector-java.jar;\n" + \
   "cd /etc/yum.repos.d/; wget http://repo.mysql.com/mysql-community-release-el6-5.noarch.rpm; rpm -ivh mysql-community-release-el6-5.noarch.rpm;" + \
   "yum clean all; yum install mysql-server -y\n" + \
   "sed -i -e 's/mysqld]/mysqld]\\nmax_allowed_packet=1024M\\njoin_buffer_size=512M\\nsort_buffer_size=128M\\nread_rnd_buffer_size=128M\\ninnodb_buffer_pool_size=16G" \

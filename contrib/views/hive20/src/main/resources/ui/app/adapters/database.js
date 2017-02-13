@@ -22,5 +22,13 @@ export default DDLAdapter.extend({
   deleteDatabase(databaseName) {
     let deletURL = this.urlForFindRecord(databaseName, 'database');
     return this.ajax(deletURL, 'DELETE');
+  },
+
+  createDatabase(databaseName) {
+    let createUrl = this.urlForFindAll('database');
+    let data = {
+      database: { name: databaseName}
+    };
+    return this.ajax(createUrl, 'POST', {data: data});
   }
 });

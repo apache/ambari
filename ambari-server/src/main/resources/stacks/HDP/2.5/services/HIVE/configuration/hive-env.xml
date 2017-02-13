@@ -20,6 +20,35 @@
  */
 -->
 <configuration supports_adding_forbidden="false">
+  <property>
+    <name>hive.log.level</name>
+    <description>Hive Log level to control log4j - Options are INFO, DEBUG, WARN, ERROR</description>
+    <value>INFO</value>
+    <display-name>Hive Log Level</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>INFO</value>
+          <label>INFO (Recommended)</label>
+        </entry>
+        <entry>
+          <value>DEBUG</value>
+          <label>DEBUG (Most Verbose)</label>
+        </entry>
+        <entry>
+          <value>WARN</value>
+          <label>WARN</label>
+        </entry>
+        <entry>
+          <value>ERROR</value>
+          <label>ERROR (Least Verbose)</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
   <!-- hive-env.sh -->
   <property>
     <name>content</name>

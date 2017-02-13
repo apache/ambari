@@ -66,4 +66,7 @@ export default Ember.Service.extend({
     this.get('store').adapterFor('job').fetchResult(jobId);
   },
 
+  getJob: function (jobId) {
+    return this.get('store').findRecord('job', jobId, {reload: true})
+  }
 });

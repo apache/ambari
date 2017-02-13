@@ -112,6 +112,23 @@ public class DDLService extends BaseService {
     }
   }
 
+  @POST
+  @Path("databases")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response createDatabase(CreateDatabaseRequestWrapper wrapper) {
+    String databaseId = wrapper.database.name;
+    Job job = null;
+    try {
+      job = proxy.createDatabase(databaseId, getResourceManager());
+      JSONObject response = new JSONObject();
+      response.put("job", job);
+      return Response.status(Response.Status.ACCEPTED).entity(response).build();
+    } catch (ServiceException e) {
+      LOG.error("Exception occurred while delete database {}", databaseId, e);
+      throw new ServiceFormattedException(e);
+    }
+  }
+
   @GET
   @Path("databases/{database_id}/tables")
   @Produces(MediaType.APPLICATION_JSON)
@@ -141,18 +158,17 @@ public class DDLService extends BaseService {
   @PUT
   @Path("databases/{database_id}/tables/{table_id}/rename")
   @Produces(MediaType.APPLICATION_JSON)
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Consumes(MediaType.APPLICATION_JSON)
   public Response renameTable(@PathParam("database_id") String oldDatabaseName, @PathParam("table_id") String oldTableName,
-                              @FormParam("new_database_id") String newDatabaseName, @FormParam("new_table_id")
-                                  String newTableName) {
+                              TableRenameRequest request) {
     try {
-      Job job = proxy.renameTable(oldDatabaseName, oldTableName, newDatabaseName, newTableName, getResourceManager());
+      Job job = proxy.renameTable(oldDatabaseName, oldTableName, request.newDatabase, request.newTable, getResourceManager());
       JSONObject response = new JSONObject();
       response.put("job", job);
       return Response.status(Response.Status.ACCEPTED).entity(response).build();
     } catch (ServiceException e) {
       LOG.error("Exception occurred while renaming table for oldDatabaseName {}, oldTableName: {}, newDatabaseName : {}," +
-        " newTableName : {}", oldDatabaseName, oldTableName, newDatabaseName, newTableName, e);
+        " newTableName : {}", oldDatabaseName, oldTableName, request.newDatabase, request.newTable, e);
       throw new ServiceFormattedException(e);
     }
   }
@@ -314,5 +330,30 @@ public class DDLService extends BaseService {
    */
   public static class TableMetaRequest {
     public TableMeta tableInfo;
+  }
+
+  /**
+   * Wrapper class for create database request
+   */
+  public static class CreateDatabaseRequestWrapper {
+    public CreateDatabaseRequest database;
+  }
+
+  /**
+   * Request class for create database
+   */
+  public static class CreateDatabaseRequest {
+    public String name;
+  }
+
+  /**
+   * Wrapper class for table rename request
+   */
+  public static class TableRenameRequest {
+    /* New database name */
+    public String newDatabase;
+
+    /* New table name */
+    public String newTable;
   }
 }

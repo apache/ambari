@@ -18,6 +18,10 @@
 
 var App = require('app');
 
+function mapUpgradeChecks(items) {
+  return items.map(item => Em.getProperties(item.UpgradeChecks, ['failed_on', 'reason', 'check']));
+}
+
 /**
  * popup to display requirements that are not met
  * for current action
@@ -33,41 +37,49 @@ App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
     bypass = data.items.filterProperty('UpgradeChecks.status', 'BYPASS'),
     hasConfigsMergeConflicts = !!(configs && configs.length),
     primary,
-    secondary,
-    popupBody;
+    secondary;
   popup = popup || {};
-  primary = Em.isNone(popup.primary) ?
-    (fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway')) : popup.primary;
-  secondary = Em.isNone(popup.secondary) ? (fails.length ? false : Em.I18n.t('common.cancel')) : popup.secondary;
-  popupBody = {
-    failTitle: popup.failTitle,
-    failAlert: popup.failAlert,
-    warningTitle: popup.warningTitle,
-    warningAlert: popup.warningAlert,
-    templateName: require('templates/common/modal_popups/cluster_check_dialog'),
-    fails: fails,
-    bypass: bypass, // errors that can be bypassed
-    warnings: warnings,
-    hasConfigsMergeConflicts: hasConfigsMergeConflicts,
-    isAllPassed: !fails.length && !warnings.length && !bypass.length && !hasConfigsMergeConflicts
-  };
-  if (hasConfigsMergeConflicts) {
-    popupBody.configsMergeTable = Em.View.extend({
-      templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
-      configs: configs,
-      didInsertElement: function () {
-        App.tooltip($('.recommended-value'), {
-          title: upgradeVersion
-        });
-      }
-    });
+
+  if (Em.isNone(popup.primary)) {
+    primary = fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway');
   }
+  else {
+    primary = popup.primary;
+  }
+
+  if (Em.isNone(popup.secondary)) {
+    secondary = fails.length ? false : Em.I18n.t('common.cancel');
+  }
+  else {
+    secondary = popup.secondary;
+  }
+
   return App.ModalPopup.show({
     primary: primary,
     secondary: secondary,
     header: popup.header,
     classNames: ['cluster-check-popup'],
-    bodyClass: Em.View.extend(popupBody),
+    bodyClass: Em.View.extend({
+      failTitle: popup.failTitle,
+      failAlert: popup.failAlert,
+      warningTitle: popup.warningTitle,
+      warningAlert: popup.warningAlert,
+      templateName: require('templates/common/modal_popups/cluster_check_dialog'),
+      warnings: mapUpgradeChecks(warnings),
+      fails: mapUpgradeChecks(fails),
+      bypass: mapUpgradeChecks(bypass), // errors that can be bypassed
+      hasConfigsMergeConflicts: hasConfigsMergeConflicts,
+      isAllPassed: !fails.length && !warnings.length && !bypass.length && !hasConfigsMergeConflicts,
+      configsMergeTable: Em.View.extend({
+        templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
+        configs: configs,
+        didInsertElement: function () {
+          App.tooltip($('.recommended-value'), {
+            title: upgradeVersion
+          });
+        }
+      })
+    }),
     onPrimary: function () {
       this._super();
       if (!popup.noCallbackCondition && popup.callback) {

@@ -43,6 +43,8 @@ import org.apache.ambari.server.metrics.system.SingleMetric;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -99,6 +101,28 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
       Cluster c = kv.getValue();
       Resource.Type type = Resource.Type.ServiceConfigVersion;
 
+      //If Metrics Collector VIP settings are configured, use that.
+      boolean vipHostConfigPresent = false;
+      boolean vipPortConfigPresent = false;
+      Config clusterEnv = c.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
+      if (clusterEnv != null) {
+        Map<String, String> configs = clusterEnv.getProperties();
+
+        String metricsCollectorVipHost = configs.get("metrics_collector_vip_host");
+        if (StringUtils.isNotEmpty(metricsCollectorVipHost)) {
+          LOG.info("Setting Metrics Collector Vip Host : " + metricsCollectorVipHost);
+          collectorHosts.add(metricsCollectorVipHost);
+          vipHostConfigPresent = true;
+        }
+
+        String metricsCollectorVipPort = configs.get("metrics_collector_vip_port");
+        if (StringUtils.isNotEmpty(metricsCollectorVipPort)) {
+          LOG.info("Setting Metrics Collector Vip Port : " + metricsCollectorVipPort);
+          port = metricsCollectorVipPort;
+          vipPortConfigPresent = true;
+        }
+      }
+
       Set<String> propertyIds = new HashSet<String>();
       propertyIds.add(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID);
 
@@ -116,14 +140,16 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
         ambariManagementController);
 
       try {
-        //get collector host(s)
-        Service service = c.getService(ambariMetricsServiceName);
-        if (service != null) {
-          for (String component : service.getServiceComponents().keySet()) {
-            ServiceComponent sc = service.getServiceComponents().get(component);
-            for (ServiceComponentHost serviceComponentHost : sc.getServiceComponentHosts().values()) {
-              if (serviceComponentHost.getServiceComponentName().equals("METRICS_COLLECTOR")) {
-                collectorHosts.add(serviceComponentHost.getHostName());
+        if ( !vipHostConfigPresent ) {
+          //get collector host(s)
+          Service service = c.getService(ambariMetricsServiceName);
+          if (service != null) {
+            for (String component : service.getServiceComponents().keySet()) {
+              ServiceComponent sc = service.getServiceComponents().get(component);
+              for (ServiceComponentHost serviceComponentHost : sc.getServiceComponentHosts().values()) {
+                if (serviceComponentHost.getServiceComponentName().equals("METRICS_COLLECTOR")) {
+                  collectorHosts.add(serviceComponentHost.getHostName());
+                }
               }
             }
           }
@@ -140,7 +166,7 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
               if (config != null && config.get("type").equals("ams-site")) {
                 TreeMap<Object, Object> properties = (TreeMap<Object, Object>) config.get("properties");
                 String timelineWebappAddress = (String) properties.get("timeline.metrics.service.webapp.address");
-                if (StringUtils.isNotEmpty(timelineWebappAddress) && timelineWebappAddress.contains(":")) {
+                if (!vipPortConfigPresent && StringUtils.isNotEmpty(timelineWebappAddress) && timelineWebappAddress.contains(":")) {
                   port = timelineWebappAddress.split(":")[1];
                 }
                 String httpPolicy = (String) properties.get("timeline.metrics.service.http.policy");

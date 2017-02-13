@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive20.resources.upload;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
 import org.apache.ambari.view.hive20.client.ColumnDescriptionShort;
 import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.DataParser;
 import org.apache.ambari.view.hive20.resources.uploads.parsers.ParseOptions;
@@ -71,20 +72,20 @@ public class DataParserJSONTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(7, pd.getPreviewRows().size()); // header row + preview rows
       Assert.assertEquals(14, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("col1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
-              new ColumnDescriptionImpl("col2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1),
-              new ColumnDescriptionImpl("col3", ColumnDescriptionShort.DataTypes.STRING.toString(), 2),
-              new ColumnDescriptionImpl("col4", ColumnDescriptionShort.DataTypes.STRING.toString(), 3),
-              new ColumnDescriptionImpl("col5", ColumnDescriptionShort.DataTypes.STRING.toString(), 4),
-              new ColumnDescriptionImpl("col6", ColumnDescriptionShort.DataTypes.STRING.toString(), 5),
-              new ColumnDescriptionImpl("col7", ColumnDescriptionShort.DataTypes.STRING.toString(), 6),
-              new ColumnDescriptionImpl("col8", ColumnDescriptionShort.DataTypes.STRING.toString(), 7),
-              new ColumnDescriptionImpl("col9", ColumnDescriptionShort.DataTypes.STRING.toString(), 8),
-              new ColumnDescriptionImpl("col10", ColumnDescriptionShort.DataTypes.STRING.toString(), 9),
-              new ColumnDescriptionImpl("col11", ColumnDescriptionShort.DataTypes.STRING.toString(), 10),
-              new ColumnDescriptionImpl("col12", ColumnDescriptionShort.DataTypes.STRING.toString(), 11),
-              new ColumnDescriptionImpl("col13", ColumnDescriptionShort.DataTypes.STRING.toString(), 12),
-              new ColumnDescriptionImpl("col14", ColumnDescriptionShort.DataTypes.DOUBLE.toString(), 13)};
+      ColumnInfo[] cd = {new ColumnInfo("col1", ColumnDescriptionShort.DataTypes.CHAR.toString()),
+              new ColumnInfo("col2", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col3", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col4", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col5", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col6", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col7", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col8", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col9", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col10", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col11", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col12", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col13", ColumnDescriptionShort.DataTypes.STRING.toString()),
+              new ColumnInfo("col14", ColumnDescriptionShort.DataTypes.DOUBLE.toString())};
 
       Row row2 = new Row(new Object[]{"a", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "4.4"});
       Row row3 = new Row(new Object[]{"b", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "5.4"});
@@ -207,8 +208,8 @@ public class DataParserJSONTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("col1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
-        new ColumnDescriptionImpl("col2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1)};
+      ColumnInfo[] cd = {new ColumnInfo("col1", ColumnDescriptionShort.DataTypes.CHAR.toString()),
+        new ColumnInfo("col2", ColumnDescriptionShort.DataTypes.STRING.toString())};
 
       Object cols1[] = new Object[2];
       cols1[0] = "d";
@@ -246,8 +247,8 @@ public class DataParserJSONTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("column1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
-        new ColumnDescriptionImpl("column2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1)};
+      ColumnInfo[] cd = {new ColumnInfo("column1", ColumnDescriptionShort.DataTypes.CHAR.toString()),
+        new ColumnInfo("column2", ColumnDescriptionShort.DataTypes.STRING.toString())};
 
       Object cols1[] = new Object[2];
       cols1[0] = "d";

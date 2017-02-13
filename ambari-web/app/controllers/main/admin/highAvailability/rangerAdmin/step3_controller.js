@@ -30,12 +30,6 @@ App.RAHighAvailabilityWizardStep3Controller = Em.Controller.extend({
   stepConfigs: [
     App.ServiceConfig.create({
       serviceName: 'MISC',
-      configCategories: [
-        App.ServiceConfigCategory.create({
-          name: 'RANGER',
-          displayName: App.format.role('RANGER', true)
-        })
-      ],
       showConfig: true
     })
   ],
@@ -43,23 +37,40 @@ App.RAHighAvailabilityWizardStep3Controller = Em.Controller.extend({
   loadStep: function () {
     var self = this;
     App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
-      var property = App.configsCollection.getConfigByName('policymgr_external_url', 'admin-properties'),
-        stepConfig = self.get('stepConfigs.firstObject');
-      stepConfig.set('configs', [
-        App.ServiceConfigProperty.create(property, {
-          category: 'RANGER',
-          value: self.get('content.loadBalancerURL')
-        })
-      ]);
+      var stepConfig = self.get('stepConfigs.firstObject'),
+        configs = [],
+        configCategories = [],
+        installedServices = App.Service.find().mapProperty('serviceName');
+      self.get('wizardController.configs').forEach(function (config) {
+        var service = App.config.get('serviceByConfigTypeMap')[config.siteName];
+        if (service) {
+          var serviceName = service.get('serviceName'),
+            serviceDisplayName = service.get('displayName');
+          if (installedServices.contains(serviceName)) {
+            var property = App.configsCollection.getConfigByName(config.propertyName, config.siteName) || {};
+            if (!configCategories.someProperty('name'), serviceName) {
+              configCategories.push(App.ServiceConfigCategory.create({
+                name: serviceName,
+                displayName: serviceDisplayName
+              }));
+            }
+            configs.push(App.ServiceConfigProperty.create(property, {
+              category: serviceName,
+              value: self.get('content.loadBalancerURL'),
+              isEditable: false
+            }));
+          }
+        }
+      });
+      stepConfig.setProperties({
+        configs: configs,
+        configCategories: configCategories
+      });
       self.setProperties({
         isLoaded: true,
         selectedService: stepConfig
       });
     });
-  },
-
-  updateConfigProperty: function () {
-    this.set('content.policymgrExternalURL', this.get('selectedService.configs.firstObject.value'));
   }
 });
 

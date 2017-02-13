@@ -895,7 +895,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     yarn_min_container_size = float(self.get_yarn_min_container_size(services, configurations))
     tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_capacity))
     normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
-    min_memory_required = min_memory_required + normalized_tez_am_container_size
 
     if yarn_site and "yarn.nodemanager.resource.cpu-vcores" in yarn_site:
       cpu_per_nm_host = float(yarn_site["yarn.nodemanager.resource.cpu-vcores"])
@@ -908,7 +907,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Calculate the available memory for LLAP app
     yarn_nm_mem_in_mb_normalized = self._normalizeDown(yarn_nm_mem_in_mb, yarn_min_container_size)
-    mem_per_thread_for_llap = self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host)
+    mem_per_thread_for_llap = float(self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
     Logger.info("DBG: Calculated mem_per_thread_for_llap : {0}, using following: yarn_nm_mem_in_mb_normalized : {1}, "
                   "cpu_per_nm_host : {2}".format(mem_per_thread_for_llap, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
 
@@ -917,8 +916,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
 
+    # Get calculated value for Slider AM container Size
+    slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size),
+                                                 yarn_min_container_size)
+    Logger.info("DBG: Calculated 'slider_am_container_size' : {0}, using following: yarn_min_container_size : "
+                "{1}".format(slider_am_container_size, yarn_min_container_size))
+
+    min_memory_required = normalized_tez_am_container_size + slider_am_container_size + self._normalizeUp(mem_per_thread_for_llap, yarn_min_container_size)
+    Logger.info("DBG: Calculated 'min_memory_required': {0} using following : slider_am_container_size: {1}, "
+                "normalized_tez_am_container_size : {2}, mem_per_thread_for_llap : {3}, yarn_min_container_size : "
+                "{4}".format(min_memory_required, slider_am_container_size, normalized_tez_am_container_size, mem_per_thread_for_llap, yarn_min_container_size))
+
+    min_nodes_required = int(math.ceil( min_memory_required / yarn_nm_mem_in_mb_normalized))
+    Logger.info("DBG: Calculated 'min_node_required': {0}, using following : min_memory_required : {1}, yarn_nm_mem_in_mb_normalized "
+                ": {2}".format(min_nodes_required, min_memory_required, yarn_nm_mem_in_mb_normalized))
+    if min_nodes_required > node_manager_cnt:
+      Logger.warn("ERROR: Not enough memory/nodes to run LLAP");
+      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
+      return
+
     mem_per_thread_for_llap = float(mem_per_thread_for_llap)
-    min_memory_required = min_memory_required + self._normalizeUp(mem_per_thread_for_llap, yarn_min_container_size)
 
     Logger.info("DBG: selected_queue_is_ambari_managed_llap = {0}".format(selected_queue_is_ambari_managed_llap))
     if not selected_queue_is_ambari_managed_llap:
@@ -934,16 +951,27 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("DBG: Calculated '{0}' queue available capacity : {1}, using following: llap_daemon_selected_queue_cap : {2}, "
                     "yarn_min_container_size : {3}".format(llap_daemon_selected_queue_name, total_llap_mem_normalized,
                                                            llap_daemon_selected_queue_cap, yarn_min_container_size))
-      '''Rounding up numNodes so that we run more daemons, and utilitze more CPUs. The rest of the calcaulkations will take care of cutting this down if required'''
+      '''Rounding up numNodes so that we run more daemons, and utilitze more CPUs. The rest of the calcaulations will take care of cutting this down if required'''
       num_llap_nodes_requested = math.ceil(total_llap_mem_normalized / yarn_nm_mem_in_mb_normalized)
       Logger.info("DBG: Calculated 'num_llap_nodes_requested' : {0}, using following: total_llap_mem_normalized : {1}, "
                     "yarn_nm_mem_in_mb_normalized : {2}".format(num_llap_nodes_requested, total_llap_mem_normalized, yarn_nm_mem_in_mb_normalized))
+      # Pouplate the 'num_llap_nodes_requested' in config 'num_llap_nodes', a read only config for non-Ambari managed queue case.
+      putHiveInteractiveEnvProperty('num_llap_nodes', num_llap_nodes_requested)
+      Logger.info("Setting config 'num_llap_nodes' as : {0}".format(num_llap_nodes_requested))
       queue_am_fraction_perc = float(self.__getQueueAmFractionFromCapacityScheduler(capacity_scheduler_properties, llap_daemon_selected_queue_name))
       hive_tez_am_cap_available = queue_am_fraction_perc * total_llap_mem_normalized
       Logger.info("DBG: Calculated 'hive_tez_am_cap_available' : {0}, using following: queue_am_fraction_perc : {1}, "
                     "total_llap_mem_normalized : {2}".format(hive_tez_am_cap_available, queue_am_fraction_perc, total_llap_mem_normalized))
     else:  # Ambari managed 'llap' named queue at root level.
-      num_llap_nodes_requested = self.get_num_llap_nodes(services, configurations) #Input
+      # Set 'num_llap_nodes_requested' for 1st invocation, as it gets passed as 1 otherwise, read from config.
+
+      # Check if its : 1. 1st invocation from UI ('enable_hive_interactive' in changed-configurations)
+      # OR 2. 1st invocation from BP (services['changed-configurations'] should be empty in this case)
+      if (changed_configs_has_enable_hive_int or  0 == len(services['changed-configurations'])) \
+        and services['configurations']['hive-interactive-env']['properties']['enable_hive_interactive']:
+        num_llap_nodes_requested = min_nodes_required
+      else:
+        num_llap_nodes_requested = self.get_num_llap_nodes(services, configurations) #Input
       total_llap_mem = num_llap_nodes_requested * yarn_nm_mem_in_mb_normalized
       Logger.info("DBG: Calculated 'total_llap_mem' : {0}, using following: num_llap_nodes_requested : {1}, "
                     "yarn_nm_mem_in_mb_normalized : {2}".format(total_llap_mem, num_llap_nodes_requested, yarn_nm_mem_in_mb_normalized))
@@ -967,23 +995,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Common calculations now, irrespective of the queue selected.
 
-    # Get calculated value for Slider AM container Size
-    slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size),
-                                                 yarn_min_container_size)
-    Logger.info("DBG: Calculated 'slider_am_container_size' : {0}, using following: yarn_min_container_size : "
-                  "{1}".format(slider_am_container_size, yarn_min_container_size))
-    min_memory_required = min_memory_required + slider_am_container_size
     llap_mem_for_tezAm_and_daemons = total_llap_mem_normalized - slider_am_container_size
     Logger.info("DBG: Calculated 'llap_mem_for_tezAm_and_daemons' : {0}, using following : total_llap_mem_normalized : {1}, "
                   "slider_am_container_size : {2}".format(llap_mem_for_tezAm_and_daemons, total_llap_mem_normalized, slider_am_container_size))
-
-    Logger.info("DBG: min_memory_required: {0}, yarn_nm_mem_in_mb_normalized: {1}".format(min_memory_required, yarn_nm_mem_in_mb_normalized))
-    min_nodes_required = int(ceil( min_memory_required / yarn_nm_mem_in_mb_normalized))
-    Logger.info("DBG: min_node_required: {0}".format(min_nodes_required))
-    if min_nodes_required > node_manager_cnt:
-      Logger.warn("ERROR: Not enough memory/nodes to run LLAP");
-      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
-      return
 
     if llap_mem_for_tezAm_and_daemons < 2 * yarn_min_container_size:
       Logger.warning("Not enough capacity available on the cluster to run LLAP")
@@ -1171,7 +1185,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("User requested num_llap_nodes : {0}, but used/adjusted value for calculations is : {1}".format(num_llap_nodes_requested, num_llap_nodes))
     else:
       Logger.info("Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
-    putHiveInteractiveEnvProperty('num_llap_nodes', num_llap_nodes)
+    putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', num_llap_nodes)
+    Logger.info("Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
 
     llap_container_size = long(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
@@ -1232,6 +1247,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", 1)
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", 1)
     putHiveInteractiveEnvProperty('num_llap_nodes', 0)
+    putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', 0)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
@@ -1301,7 +1317,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     hsi_site = self.getServicesSiteProperties(services, self.HIVE_INTERACTIVE_SITE)
     if hsi_site and 'hive.tez.container.size' in hsi_site:
       hive_container_size = hsi_site['hive.tez.container.size']
-
     return hive_container_size
 
   def get_llap_headroom_space(self, services, configurations):
@@ -1517,13 +1532,18 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
               elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
                 updated_cap_sched_configs_str = updated_cap_sched_configs_str \
                                             + prop + "=" + adjusted_default_queue_cap + "\n"
+              elif prop == 'yarn.scheduler.capacity.root.ordering-policy':
+                # Don't put this in again. We're re-writing the llap section.
+                pass
               elif prop.startswith('yarn.') and '.llap.' not in prop:
                 updated_cap_sched_configs_str = updated_cap_sched_configs_str + prop + "=" + val + "\n"
 
           # Now, append the 'llap' queue related properties
-          updated_cap_sched_configs_str += """yarn.scheduler.capacity.root.{0}.user-limit-factor=1
+          updated_cap_sched_configs_str += """yarn.scheduler.capacity.root.ordering-policy=priority-utilization
+yarn.scheduler.capacity.root.{0}.user-limit-factor=1
 yarn.scheduler.capacity.root.{0}.state=RUNNING
 yarn.scheduler.capacity.root.{0}.ordering-policy=fifo
+yarn.scheduler.capacity.root.{0}.priority=10
 yarn.scheduler.capacity.root.{0}.minimum-user-limit-percent=100
 yarn.scheduler.capacity.root.{0}.maximum-capacity={1}
 yarn.scheduler.capacity.root.{0}.capacity={1}
@@ -1545,13 +1565,18 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                 putCapSchedProperty(prop, adjusted_default_queue_cap)
               elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
                 putCapSchedProperty(prop, adjusted_default_queue_cap)
+              elif prop == 'yarn.scheduler.capacity.root.ordering-policy':
+                # Don't put this in again. We're re-writing the llap section.
+                pass
               elif prop.startswith('yarn.') and '.llap.' not in prop:
                 putCapSchedProperty(prop, val)
 
           # Add new 'llap' queue related configs.
+          putCapSchedProperty("yarn.scheduler.capacity.root.ordering-policy", "priority-utilization")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".user-limit-factor", "1")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".state", "RUNNING")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".ordering-policy", "fifo")
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".priority", "10")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".minimum-user-limit-percent", "100")
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-capacity", llap_queue_cap_perc)
           putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".capacity", llap_queue_cap_perc)
@@ -1619,6 +1644,9 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
                 # Set 'default' max. capacity back to maximum val
                 updated_default_queue_configs = updated_default_queue_configs \
                                             + prop + "="+DEFAULT_MAX_CAPACITY + "\n"
+              elif prop == 'yarn.scheduler.capacity.root.ordering-policy':
+                # Don't set this property. The default will be picked up.
+                pass
               elif prop.startswith('yarn.'):
                 updated_default_queue_configs = updated_default_queue_configs + prop + "=" + val + "\n"
             else: # Update 'llap' related configs in 'updated_llap_queue_configs'

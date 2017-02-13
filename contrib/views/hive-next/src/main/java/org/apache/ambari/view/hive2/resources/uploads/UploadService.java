@@ -21,7 +21,7 @@ package org.apache.ambari.view.hive2.resources.uploads;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.resources.uploads.CSVParams;
+import org.apache.ambari.view.hive2.resources.uploads.CSVParams;
 import org.apache.ambari.view.hive2.BaseService;
 import org.apache.ambari.view.hive2.ConnectionFactory;
 import org.apache.ambari.view.hive2.ConnectionSystem;

@@ -90,10 +90,12 @@ describe('App.MainDashboardWidgetsView', function () {
 
   describe('#saveWidgetsSettings()', function() {
 
-    beforeEach(function() {
-      sinon.stub(view, 'setDBProperty');
-      sinon.stub(view, 'postUserPref');
-      view.saveWidgetsSettings({settings:{}});
+    var userPreferences = {visible: [], hidden: [], threshold: {}};
+
+    beforeEach(function () {
+      sinon.stub(view, 'setDBProperty', Em.K);
+      sinon.stub(view, 'postUserPref', Em.K);
+      view.set('userPreferences', userPreferences);
     });
 
     afterEach(function() {
@@ -101,17 +103,61 @@ describe('App.MainDashboardWidgetsView', function () {
       view.postUserPref.restore();
     });
 
-    it('setDBProperty should be called', function() {
-      expect(view.setDBProperty.calledWith('key', {settings:{}})).to.be.true;
+    describe('called with arg', function () {
+
+      beforeEach(function() {
+        view.saveWidgetsSettings({settings:{}});
+      });
+
+      it('setDBProperty should be called', function() {
+        expect(view.setDBProperty.calledWith('key', {settings:{}})).to.be.true;
+      });
+
+      it('postUserPref should be called', function() {
+        expect(view.postUserPref.calledWith('key', {settings:{}})).to.be.true;
+      });
+
+      it('userPreferences should be set', function() {
+        expect(view.get('userPreferences')).to.be.eql({settings:{}});
+      });
+
     });
 
-    it('postUserPref should be called', function() {
-      expect(view.postUserPref.calledWith('key', {settings:{}})).to.be.true;
+    describe('called without args', function () {
+
+      var allWidgets = [
+        Em.Object.create({id: 1, isVisible: true}),
+        Em.Object.create({id: 2, isVisible: true}),
+        Em.Object.create({id: 3, isVisible: false}),
+        Em.Object.create({id: 4, isVisible: false})
+      ];
+
+      var expectedUserSettings = {
+        visible: [1, 2],
+        hidden: [3, 4],
+        threshold: {}
+      };
+
+      beforeEach(function () {
+        view.set('userPreferences', userPreferences);
+        view.set('allWidgets', allWidgets);
+        view.saveWidgetsSettings();
+      });
+
+      it('setDBProperty should be called', function() {
+        expect(view.setDBProperty.calledWith('key', expectedUserSettings)).to.be.true;
+      });
+
+      it('postUserPref should be called', function() {
+        expect(view.postUserPref.calledWith('key', expectedUserSettings)).to.be.true;
+      });
+
+      it('userPreferences should be set', function() {
+        expect(view.get('userPreferences')).to.be.eql(expectedUserSettings);
+      });
+
     });
 
-    it('userPreferences should be set', function() {
-      expect(view.get('userPreferences')).to.be.eql({settings:{}});
-    });
   });
 
   describe('#getUserPrefSuccessCallback()', function() {
@@ -210,30 +256,77 @@ describe('App.MainDashboardWidgetsView', function () {
 
   describe('#renderWidgets()', function() {
 
-    it('should set visibleWidgets and hiddenWidgets', function() {
-      view.set('userPreferences', {
-        visible: [1],
-        hidden: [2],
-        threshold: {
-          1: [],
-          2: [1,2]
-        }
+    describe('should set visibleWidgets and hiddenWidgets', function() {
+
+      beforeEach(function () {
+        view.set('userPreferences', {
+          visible: [1],
+          hidden: [2],
+          threshold: {
+            1: [],
+            2: [1,2]
+          }
+        });
+        view.renderWidgets();
       });
-      view.renderWidgets();
-      expect(view.get('visibleWidgets')).to.be.eql([Em.Object.create({
-        id: 1,
-        threshold: [],
-        viewClass: App.NameNodeHeapPieChartView,
-        sourceName: 'HDFS',
-        title: Em.I18n.t('dashboard.widgets.NameNodeHeap')
-      })]);
-      expect(view.get('hiddenWidgets')).to.be.eql([
-        Em.Object.create({
-          id: 2,
-          title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
-          checked: false
-        })
-      ]);
+
+      describe('visibleWidgets', function () {
+        var widget;
+
+        beforeEach(function () {
+          widget = view.get('visibleWidgets')[0];
+        });
+
+        it('one visible widget', function () {
+          expect(view.get('visibleWidgets.length')).to.be.equal(1);
+        });
+
+        it('id', function () {
+          expect(widget.get('id')).to.be.equal(1);
+        });
+
+        it('threshold', function () {
+          expect(widget.get('threshold')).to.be.eql([]);
+        });
+
+        it('viewClass', function () {
+          expect(widget.get('viewClass')).to.be.eql(App.NameNodeHeapPieChartView);
+        });
+
+        it('sourceName', function () {
+          expect(widget.get('sourceName')).to.be.equal('HDFS');
+        });
+
+        it('title', function () {
+          expect(widget.get('title')).to.be.equal(Em.I18n.t('dashboard.widgets.NameNodeHeap'));
+        });
+
+      });
+
+      describe('hiddenWidgets', function () {
+        var widget;
+
+        beforeEach(function () {
+          widget = view.get('hiddenWidgets')[0];
+        });
+
+        it('one hidden widget', function () {
+          expect(view.get('hiddenWidgets.length')).to.be.equal(1);
+        });
+
+        it('id', function () {
+          expect(widget.get('id')).to.be.equal(2);
+        });
+
+        it('checked', function () {
+          expect(widget.get('checked')).to.be.equal(false);
+        });
+
+        it('title', function () {
+          expect(widget.get('title')).to.be.equal(Em.I18n.t('dashboard.widgets.HDFSDiskUsage'));
+        });
+
+      });
     });
   });
 

@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
+import os
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from logsearch_config_aggregator import get_logfeeder_metadata, get_logsearch_metadata, get_logsearch_meta_configs
 from resource_management.libraries.functions.default import default
@@ -54,7 +56,6 @@ security_enabled = status_params.security_enabled
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
 logsearch_server_keys_folder = logsearch_server_conf + "/keys"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
-logsearch_logfeeder_keys_folder = logsearch_logfeeder_conf + "/keys"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
 
@@ -167,6 +168,14 @@ logsearch_ui_port = config['configurations']['logsearch-env']["logsearch_ui_port
 logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
+
+logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
+logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
+logsearch_truststore_location = config['configurations']['logsearch-env']['logsearch_truststore_location']
+logsearch_truststore_type = config['configurations']['logsearch-env']['logsearch_truststore_type']
+
+logsearch_env_config = dict(config['configurations']['logsearch-env'])
+logsearch_env_jceks_file = os.path.join(logsearch_server_conf, 'logsearch.jceks')
 
 #Logsearch log4j properties
 logsearch_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_log_maxfilesize',10)
@@ -296,18 +305,13 @@ solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_a
 logfeeder_env_content = config['configurations']['logfeeder-env']['content']
 logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 
-logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
-logsearch_keystore_password = config['configurations']['logsearch-env']['logsearch_keystore_password']
-logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
-logsearch_truststore_location = config['configurations']['logsearch-env']['logsearch_truststore_location']
-logsearch_truststore_password = config['configurations']['logsearch-env']['logsearch_truststore_password']
-logsearch_truststore_type = config['configurations']['logsearch-env']['logsearch_truststore_type']
 logfeeder_keystore_location = config['configurations']['logfeeder-env']['logfeeder_keystore_location']
-logfeeder_keystore_password = config['configurations']['logfeeder-env']['logfeeder_keystore_password']
 logfeeder_keystore_type = config['configurations']['logfeeder-env']['logfeeder_keystore_type']
 logfeeder_truststore_location = config['configurations']['logfeeder-env']['logfeeder_truststore_location']
-logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
 logfeeder_truststore_type = config['configurations']['logfeeder-env']['logfeeder_truststore_type']
+
+logfeeder_env_config = dict(config['configurations']['logfeeder-env'])
+logfeeder_env_jceks_file = os.path.join(logsearch_logfeeder_conf, 'logfeeder.jceks')
 
 logfeeder_ambari_config_content = config['configurations']['logfeeder-ambari-config']['content']
 logfeeder_output_config_content = config['configurations']['logfeeder-output-config']['content']

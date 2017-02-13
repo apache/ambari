@@ -127,6 +127,29 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
               putComponentProperty('druid.processing.numThreads', processingThreads)
               putComponentProperty('druid.server.http.numThreads', max(10, (totalAvailableCpu * 17) / 16 + 2) + 30)
 
+      # superset is in list of services to be installed
+      if 'druid-superset' in services['configurations']:
+        # Recommendations for Superset
+        superset_database_type = services['configurations']["druid-superset"]["properties"]["SUPERSET_DATABASE_TYPE"]
+        putSupersetProperty = self.putProperty(configurations, "druid-superset", services)
+
+        if superset_database_type == "mysql":
+            putSupersetProperty("SUPERSET_DATABASE_PORT", "3306")
+        elif superset_database_type == "postgresql":
+            putSupersetProperty("SUPERSET_DATABASE_PORT", "5432")
+
+  def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+
+    if "yarn-site" in services["configurations"] and \
+                    "yarn.resourcemanager.scheduler.monitor.enable" in services["configurations"]["yarn-site"]["properties"]:
+      scheduler_monitor_enabled = services["configurations"]["yarn-site"]["properties"]["yarn.resourcemanager.scheduler.monitor.enable"]
+      if scheduler_monitor_enabled.lower() == 'true':
+        putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "true")
+      else:
+        putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
+
   def getMetadataConnectionString(self, database_type):
       driverDict = {
           'mysql': 'jdbc:mysql://{0}:{2}/{1}?createDatabaseIfNotExist=true',

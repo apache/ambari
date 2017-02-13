@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads;
+package org.apache.ambari.view.hive2.resources.uploads;
 
 import java.io.Serializable;
 

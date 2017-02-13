@@ -19,25 +19,20 @@ limitations under the License.
 '''
 
 import logging
-import subprocess
 import os
-import tempfile
 import signal
-import sys
+import subprocess
 import threading
-import time
-import traceback
-import pprint
-import platform
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+from ambari_commons.process_utils import get_flat_process_tree, kill_pids, wait_for_entire_process_tree_death, \
+  get_processes_running, get_command_by_pid
 
 logger = logging.getLogger()
 
 shellRunner = None
 threadLocal = threading.local()
-gracefull_kill_delay = 5  # seconds between SIGTERM and SIGKILL
 
 tempFiles = []
 
@@ -106,38 +101,31 @@ class shellRunnerWindows(shellRunner):
 #linux specific code
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def kill_process_with_children(parent_pid):
-  def kill_tree_function(pid, signal):
-    '''
-    Kills process tree starting from a given pid.
-    '''
-    # The command below starts 'ps' linux utility and then parses it's
-    # output using 'awk'. AWK recursively extracts PIDs of all children of
-    # a given PID and then passes list of "kill -<SIGNAL> PID" commands to 'sh'
-    # shell.
-    CMD = """ps xf | awk -v PID=""" + str(pid) + \
-          """ ' $1 == PID { P = $1; next } P && /_/ { P = P " " $1;""" + \
-          """K=P } P && !/_/ { P="" }  END { print "kill -""" \
-          + str(signal) + """ "K }' | sh """
-    process = subprocess.Popen(CMD, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, shell=True)
-    process.communicate()
+  """
+  Kills process tree starting from a given pid.
+  :param parent_pid: head of tree
+  :param graceful_kill_delays: map <command name, custom delay between SIGTERM and SIGKILL>
+  :return:
+  """
 
-  _run_kill_function(kill_tree_function, parent_pid)
-
-
-def _run_kill_function(kill_function, pid):
+  pids = get_flat_process_tree(parent_pid)
   try:
-    kill_function(pid, signal.SIGTERM)
+    kill_pids(pids, signal.SIGTERM)
   except Exception, e:
-    logger.warn("Failed to kill PID %d" % (pid))
+    logger.warn("Failed to kill PID %d" % parent_pid)
     logger.warn("Reported error: " + repr(e))
 
-  time.sleep(gracefull_kill_delay)
+  wait_for_entire_process_tree_death(pids)
 
   try:
-    kill_function(pid, signal.SIGKILL)
+    running_processes = get_processes_running(pids)
+    if running_processes:
+      process_names = map(lambda x: get_command_by_pid(x),  running_processes)
+      logger.warn("These PIDs %s did not die after SIGTERM, sending SIGKILL. Exact commands to be killed:\n %s" %
+                  (", ".join(running_processes), "\n".join(process_names)))
+      kill_pids(running_processes, signal.SIGKILL)
   except Exception, e:
-    logger.error("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
+    logger.error("Failed to send SIGKILL to PID %d. Process exited?" % parent_pid)
     logger.error("Reported error: " + repr(e))
 
 

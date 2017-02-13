@@ -25,6 +25,19 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
+  <property>
+    <name>yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled</name>
+    <value>false</value>
+    <description>This property need to be set to make preemption can happen under a fragmented cluster.</description>
+    <depends-on>
+       <property>
+          <type>yarn-site</type>
+          <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+       </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
   <!-- These configs were inherited from HDP 2.5 -->
   <property>
     <name>yarn.nodemanager.aux-services.spark2_shuffle.classpath</name>

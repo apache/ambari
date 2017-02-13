@@ -35,7 +35,7 @@ export default Ember.Service.extend({
       detailedInfo: detailedInfo,
       storageInfo: storageInfo
     });
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').createTable(tableInfo).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
@@ -45,9 +45,44 @@ export default Ember.Service.extend({
     });
   },
 
-  deleteTable(database, table) {
+  editTable(settings) {
+    let detailedInfo = this._getDetailedInfo(settings);
+    let storageInfo = this._getStorageInfo(settings);
+    let columns = this._getColumns(settings);
+    let partitionColumns = this._getPartitionColumns(settings);
+
+    let tableInfo = Ember.Object.create({
+      database: settings.database,
+      table: settings.table,
+      columns: columns,
+      partitionInfo: { columns: partitionColumns },
+      detailedInfo: detailedInfo,
+      storageInfo: storageInfo
+    });
     return new Promise((resolve, reject) => {
+      this.get('store').adapterFor('table').editTable(tableInfo).then((data) => {
+        this.get('store').pushPayload(data);
+        resolve(this.get('store').peekRecord('job', data.job.id));
+      }, (err) => {
+        reject(err);
+      });
+    });
+  },
+
+  deleteTable(database, table) {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').deleteTable(database, table).then((data) => {
+        this.get('store').pushPayload(data);
+        resolve(this.get('store').peekRecord('job', data.job.id));
+      }, (err) => {
+        reject(err);
+      });
+    })
+  },
+
+  renameTable(databaseName, newTableName, oldTableName ) {
+    return new Promise((resolve, reject) => {
+      this.get('store').adapterFor('table').renameTable(databaseName, newTableName, oldTableName).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
       }, (err) => {
@@ -59,6 +94,17 @@ export default Ember.Service.extend({
   deleteDatabase(database) {
     return new Promise((resolve, reject) => {
       this.get('store').adapterFor('database').deleteDatabase(database.get('name')).then((data) => {
+        this.get('store').pushPayload(data);
+        resolve(this.get('store').peekRecord('job', data.job.id));
+      }, (err) => {
+        reject(err);
+      });
+    })
+  },
+
+  createDatabase(database) {
+    return new Promise((resolve, reject) => {
+      this.get('store').adapterFor('database').createDatabase(database).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
       }, (err) => {
@@ -132,12 +178,12 @@ export default Ember.Service.extend({
       }
 
       if (!Ember.isEmpty(storageSettings.rowFormat.nullDefinedAs)) {
-        parameters['serialization.null.format'] = String.fromCharCode(storageSettings.rowFormat.fieldTerminatedBy.id);
+        parameters['serialization.null.format'] = String.fromCharCode(storageSettings.rowFormat.nullDefinedAs.id);
         addParameters = true;
       }
 
       if (!Ember.isEmpty(storageSettings.rowFormat.escapeDefinedAs)) {
-        parameters['escape.delim'] = String.fromCharCode(storageSettings.rowFormat.linesTerminatedBy.id);
+        parameters['escape.delim'] = String.fromCharCode(storageSettings.rowFormat.escapeDefinedAs.id);
         addParameters = true;
       }
 

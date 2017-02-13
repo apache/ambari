@@ -4,7 +4,13 @@
       "name": "DRUID",
       "identities": [
         {
-          "name": "/spnego"
+          "name": "/spnego",
+          "principal": {
+            "configuration": "druid-common/druid.hadoop.security.spnego.principal"
+          },
+          "keytab": {
+            "configuration": "druid-common/druid.hadoop.security.spnego.keytab"
+          }
         },
         {
           "name": "druid",
@@ -25,6 +31,27 @@
               "access": "r"
             },
             "configuration": "druid-common/druid.hadoop.security.kerberos.keytab"
+          }
+        },
+        {
+          "name": "superset",
+          "principal": {
+            "value": "${druid-env/druid_user}@${realm}",
+            "type": "user",
+            "configuration": "druid-superset/KERBEROS_PRINCIPAL",
+            "local_username": "${druid-env/druid_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/superset.headless.keytab",
+            "owner": {
+              "name": "${druid-env/druid_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "druid-superset/KERBEROS_KEYTAB"
           }
         },
         {
@@ -71,7 +98,30 @@
               "name": "/druid"
             }
           ]
+        },
+        {
+          "name": "DRUID_SUPERSET",
+          "identities": [
+            {
+              "name": "/druid"
+            }
+          ]
         }
+      ],
+      "configurations": [
+        {
+          "druid-common": {
+            "druid.hadoop.security.spnego.excludedPaths": "[\"/status\"]",
+            "druid.security.extensions.loadList" : "[\"druid-kerberos\"]"
+          },
+          "druid-superset": {
+            "ENABLE_KERBEROS_AUTHENTICATION" : "True",
+            "KERBEROS_REINIT_TIME_SEC" : 3600
+          }
+        }
+      ],
+      "auth_to_local_properties" : [
+        "druid-common/druid.hadoop.security.spnego.authToLocal|new_lines_escaped"
       ]
     }
   ]

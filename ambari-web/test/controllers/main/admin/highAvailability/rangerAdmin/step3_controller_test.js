@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('controllers/main/admin/highAvailability/rangerAdmin/step3_controller');
+require('controllers/main/admin/highAvailability/rangerAdmin/wizard_controller');
 require('controllers/main');
 
 describe('App.RAHighAvailabilityWizardStep3Controller', function () {
@@ -57,16 +58,27 @@ describe('App.RAHighAvailabilityWizardStep3Controller', function () {
           result: 'http://localhost:1111',
           message: 'property value'
         }
-      ];
+      ],
+      service = Em.Object.create({
+        serviceName: 'RANGER',
+        displayName: 'Ranger'
+      });
 
     beforeEach(function () {
       dfd = $.Deferred();
       sinon.stub(App.get('router.mainController'), 'isLoading').returns(dfd);
+      sinon.stub(App.Service, 'find').returns([service]);
+      sinon.stub(App.config, 'get').withArgs('serviceByConfigTypeMap').returns({
+        'admin-properties': service
+      });
       sinon.stub(App.configsCollection, 'getConfigByName').returns({
         name: 'policymgr_external_url'
       });
-      controller.set('content', {
-        loadBalancerURL: 'http://localhost:1111'
+      controller.setProperties({
+        wizardController: App.get('router.rAHighAvailabilityWizardController'),
+        content: {
+          loadBalancerURL: 'http://localhost:1111'
+        }
       });
       controller.loadStep();
       dfd.resolve();
@@ -74,6 +86,8 @@ describe('App.RAHighAvailabilityWizardStep3Controller', function () {
 
     afterEach(function () {
       App.get('router.mainController.isLoading').restore();
+      App.Service.find.restore();
+      App.config.get.restore();
       App.configsCollection.getConfigByName.restore();
     });
 
@@ -83,30 +97,6 @@ describe('App.RAHighAvailabilityWizardStep3Controller', function () {
         expect(controller.get(testCase.path)).to.equal(testCase.result);
       });
 
-    });
-
-  });
-
-  describe('#updateConfigProperty', function () {
-
-    beforeEach(function () {
-      controller.setProperties({
-        content: {
-          policymgrExternalURL: 'http://localhost:1111'
-        },
-        selectedService: {
-          configs: [
-            {
-              value: 'http://localhost:2222'
-            }
-          ]
-        }
-      });
-      controller.updateConfigProperty();
-    });
-
-    it('should update content.policymgrExternalURL', function () {
-      expect(controller.get('content.policymgrExternalURL')).to.equal('http://localhost:2222');
     });
 
   });

@@ -17,7 +17,16 @@
  */
 
 var App = require('app');
-var filters = require('views/common/filter_view');
+
+const WidgetObject = Em.Object.extend({
+  id: '',
+  threshold: '',
+  viewClass: null,
+  sourceName: '',
+  title: '',
+  checked: false,
+  isVisible: true
+});
 
 App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, App.TimeRangeMixin, {
   name: 'mainDashboardWidgetsView',
@@ -202,6 +211,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     }
   ],
 
+  widgetsDefinitionMap: function () {
+    return this.get('widgetsDefinition').toMapByProperty('id');
+  }.property('widgetsDefinition.[]'),
+
   /**
    * List of services
    * @type {Ember.Enumerable}
@@ -226,16 +239,23 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
   isMoving: false,
 
   /**
-   * List of visible widgets
-   * @type {Ember.Enumerable}
+   * @type {WidgetObject[]}
    */
-  visibleWidgets: [],
+  allWidgets: [],
+
+  /**
+   * List of visible widgets
+   *
+   * @type {WidgetObject[]}
+   */
+  visibleWidgets: Em.computed.filterBy('allWidgets', 'isVisible', true),
 
   /**
    * List of hidden widgets
-   * @type {Ember.Enumerable}
+   *
+   * @type {WidgetObject[]}
    */
-  hiddenWidgets: [], // widget child view will push object in this array if deleted
+  hiddenWidgets: Em.computed.filterBy('allWidgets', 'isVisible', false),
 
   timeRangeClassName: 'pull-left',
 
@@ -276,12 +296,30 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
 
   /**
    * make POST call to save settings
-   * @param {object} settings
+   * format settings if they are not provided
+   *
+   * @param {object} [settings]
    */
   saveWidgetsSettings: function (settings) {
-    this.set('userPreferences', settings);
-    this.setDBProperty(this.get('persistKey'), settings);
-    this.postUserPref(this.get('persistKey'), settings);
+    let userPreferences = this.get('userPreferences');
+    let newSettings = {
+      visible: [],
+      hidden: [],
+      threshold: {}
+    };
+    if (arguments.length === 1) {
+      newSettings = settings;
+    }
+    else {
+      newSettings.threshold = userPreferences.threshold;
+      this.get('allWidgets').forEach(widget => {
+        let key = widget.get('isVisible') ? 'visible' : 'hidden';
+        newSettings[key].push(widget.get('id'));
+      });
+    }
+    this.set('userPreferences', newSettings);
+    this.setDBProperty(this.get('persistKey'), newSettings);
+    this.postUserPref(this.get('persistKey'), newSettings);
   },
 
   getUserPrefSuccessCallback: function (response) {
@@ -301,7 +339,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     var clusterEnv = App.router.get('clusterController.clusterEnv').properties;
     var yarnMemoryWidget = widgetsDefinition.findProperty('id', 20);
 
-    if (clusterEnv['hide_yarn_memory_widget'] === 'true') {
+    if (clusterEnv.hide_yarn_memory_widget === 'true') {
       yarnMemoryWidget.isHiddenByDefault = true;
     }
   },
@@ -331,36 +369,42 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
   },
 
   /**
+   * Don't show widget on the Dashboard
+   *
+   * @param {number} id
+   */
+  hideWidget(id) {
+    this.get('allWidgets').findProperty('id', id).set('isVisible', false);
+    this.saveWidgetsSettings();
+  },
+
+  /**
+   *
+   * @param {number} id
+   * @param {boolean} isVisible
+   * @returns {WidgetObject}
+   * @private
+   */
+  _createWidgetObj(id, isVisible) {
+    var widget = this.get('widgetsDefinitionMap')[id];
+    return WidgetObject.create({
+      id,
+      threshold: this.get('userPreferences.threshold')[id],
+      viewClass: App[widget.viewName],
+      sourceName: widget.sourceName,
+      title: widget.title,
+      isVisible
+    });
+  },
+
+  /**
    * set widgets to view in order to render
    */
   renderWidgets: function () {
-    var widgetsDefinitionMap = this.get('widgetsDefinition').toMapByProperty('id');
     var userPreferences = this.get('userPreferences');
-    var visibleWidgets = [];
-    var hiddenWidgets = [];
-
-    userPreferences.visible.forEach(function(id) {
-      var widget = widgetsDefinitionMap[id];
-      visibleWidgets.push(Em.Object.create({
-        id: id,
-        threshold: userPreferences.threshold[id],
-        viewClass: App[widget.viewName],
-        sourceName: widget.sourceName,
-        title: widget.title
-      }));
-    });
-
-    userPreferences.hidden.forEach(function(id) {
-      var widget = widgetsDefinitionMap[id];
-      hiddenWidgets.push(Em.Object.create({
-        id: id,
-        title: widget.title,
-        checked: false
-      }));
-    });
-
-    this.set('visibleWidgets', visibleWidgets);
-    this.set('hiddenWidgets', hiddenWidgets);
+    var newVisibleWidgets = userPreferences.visible.map(id => this._createWidgetObj(id, true));
+    var newHiddenWidgets = userPreferences.hidden.map(id => this._createWidgetObj(id, false));
+    this.set('allWidgets', newVisibleWidgets.concat(newHiddenWidgets));
   },
 
   /**

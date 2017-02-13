@@ -107,11 +107,13 @@ describe('App.MainHostServiceConfigsController', function () {
       sinon.stub(controller, 'loadConfigTheme', function() {
         return { always: Em.K };
       });
+      sinon.stub(controller, 'trackRequest');
     });
     afterEach(function() {
       controller.loadCurrentVersions.restore();
       controller.loadConfigTheme.restore();
       App.themesMapper.generateAdvancedTabs.restore();
+      controller.trackRequest.restore();
     });
 		it("should set host", function () {
 			controller.set('content', {

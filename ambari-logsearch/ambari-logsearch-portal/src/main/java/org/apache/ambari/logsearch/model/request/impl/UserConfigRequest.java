@@ -25,24 +25,11 @@ import javax.ws.rs.QueryParam;
 
 public class UserConfigRequest extends CommonSearchRequest implements UserConfigParamDefinition {
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_USER_ID)
-  private String userId;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FILE_NAME)
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_FILTER_NAME)
   private String filterName;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_ROW_TYPE)
   private String rowType;
-
-  @Override
-  public String getUserId() {
-    return userId;
-  }
-
-  @Override
-  public void setUserId(String userId) {
-    this.userId = userId;
-  }
 
   @Override
   public String getFilterName() {
