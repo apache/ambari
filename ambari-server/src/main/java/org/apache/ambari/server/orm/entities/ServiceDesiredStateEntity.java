@@ -67,9 +67,6 @@ public class ServiceDesiredStateEntity {
   @Enumerated(value = EnumType.STRING)
   private SecurityState securityState = SecurityState.UNSECURED;
 
-  @Column(name = "credential_store_supported", nullable = false, insertable = true, updatable = true)
-  private short credentialStoreSupported = 0;
-
   @Column(name = "credential_store_enabled", nullable = false, insertable = true, updatable = true)
   private short credentialStoreEnabled = 0;
 
@@ -135,24 +132,6 @@ public class ServiceDesiredStateEntity {
 
   public void setSecurityState(SecurityState securityState) {
     this.securityState = securityState;
-  }
-
-  /**
-   * Gets a value indicating if credential store is supported or not.
-   *
-   * @return true or false
-   */
-  public boolean isCredentialStoreSupported() {
-    return credentialStoreSupported != 0;
-  }
-
-  /**
-   * Sets a value indicating if credential store is supported or not.
-   *
-   * @param credentialStoreSupported
-   */
-  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
-    this.credentialStoreSupported = (short)((credentialStoreSupported == false) ? 0 : 1);
   }
 
   /**

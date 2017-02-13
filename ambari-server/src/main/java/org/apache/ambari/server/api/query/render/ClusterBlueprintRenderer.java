@@ -286,11 +286,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       //service_settings population
       property = new HashMap<>();
-      if (ServiceInfoMap.get("credential_store_supported").equals("true")) {
-        if (ServiceInfoMap.get("credential_store_enabled").equals("true")) {
-          property.put("name", ServiceInfoMap.get("service_name").toString());
-          property.put("credential_store_enabled", "true");
-        }
+      if (ServiceInfoMap.get("credential_store_enabled").equals("true")) {
+        property.put("name", ServiceInfoMap.get("service_name").toString());
+        property.put("credential_store_enabled", "true");
       }
 
       //Fetch the service Components to obtain ServiceComponentInfo

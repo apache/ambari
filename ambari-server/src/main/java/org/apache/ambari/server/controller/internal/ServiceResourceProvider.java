@@ -368,7 +368,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), request.getServiceName());
-      s.setCredentialStoreSupported(serviceInfo.isCredentialStoreSupported());
       LOG.info("Service: {}, credential_store_supported from stack definition:{}", request.getServiceName(),
           serviceInfo.isCredentialStoreSupported());
 

@@ -48,9 +48,7 @@ from resource_management.libraries.functions.get_architecture import get_archite
 
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import checked_call
-from resource_management.core.logger import Logger
-from resource_management.core.resources.system import File
-from resource_management.core.source import DownloadSource
+from ambari_commons.credential_store_helper import get_password_from_credential_store
 
 # Default log4j version; put config files under /etc/hive/conf
 log4j_version = '1'
@@ -230,36 +228,15 @@ hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.opti
 
 jdk_location = config['hostLevelParams']['jdk_location']
 
-credential_util_cmd = 'org.apache.ambari.server.credentialapi.CredentialUtil'
-credential_util_jar = 'CredentialUtil.jar'
-
-# Gets the hive metastore password from its JCEKS provider, if available.
-def getHiveMetastorePassword():
-  passwd = ''
+if credential_store_enabled:
   if 'hadoop.security.credential.provider.path' in config['configurations']['hive-site']:
-    # Try to download CredentialUtil.jar from ambari-server resources
     cs_lib_path = config['configurations']['hive-site']['credentialStoreClassPath']
-    credential_util_dir = cs_lib_path.split('*')[0] # Remove the trailing '*'
-    credential_util_path = os.path.join(credential_util_dir, credential_util_jar)
-    credential_util_url =  jdk_location + credential_util_jar
-    File(credential_util_path,
-         content = DownloadSource(credential_util_url),
-         mode = 0644,
-    )
-
-    # Execute a get command on the CredentialUtil CLI to get the password for the specified alias
     java_home = config['hostLevelParams']['java_home']
-    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
     alias = 'javax.jdo.option.ConnectionPassword'
     provider_path = config['configurations']['hive-site']['hadoop.security.credential.provider.path']
-    cmd = (java_bin, '-cp', cs_lib_path, credential_util_cmd, 'get', alias, '-provider', provider_path)
-    cmd_result, std_out_msg  = checked_call(cmd)
-    std_out_lines = std_out_msg.split('\n')
-    passwd = std_out_lines[-1] # Get the last line of the output, to skip warnings if any.
-  return passwd
-
-if credential_store_enabled:
-  hive_metastore_user_passwd = PasswordString(getHiveMetastorePassword())
+    hive_metastore_user_passwd = PasswordString(get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location))
+  else:
+    raise Exception("hadoop.security.credential.provider.path property should be set")
 else:
   hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_user_passwd = unicode(hive_metastore_user_passwd) if not is_empty(hive_metastore_user_passwd) else hive_metastore_user_passwd

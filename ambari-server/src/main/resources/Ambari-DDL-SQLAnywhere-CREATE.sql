@@ -250,7 +250,6 @@ CREATE TABLE servicedesiredstate (
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  credential_store_supported SMALLINT NOT NULL DEFAULT 0,
   credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
   CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
