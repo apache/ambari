@@ -20,7 +20,9 @@
   {{view App.ClockView}}
 {{/if}}
 
-<div id="side-nav" class="navigation-bar-container">
+{{#if App.router.mainController.isClusterDataLoaded}}
+<div id="side-nav" class="navigation-bar">
+  <div class="navigation-bar-container">
   <ul class="side-nav-header nav nav-pills nav-stacked">
     <li class="navigation-header">
       {{#if enableLinks}}
@@ -53,11 +55,13 @@
   <ul class="side-nav-footer nav nav-pills nav-stacked">
     <li class="navigation-footer">
       <a>
-        <span class="navigation-icon icon-double-angle-left" data-toggle="collapseSideNav"></span>
+        <span class="navigation-icon icon-double-angle-left" data-toggle="collapse-side-nav"></span>
       </a>
     </li>
   </ul>
+  </div>
 </div>
+{{/if}}
 
 <div id="main">
   <div id="top-nav">

@@ -749,7 +749,7 @@ input.radio:checked + label:after {
   height: auto;
   width: 190px;
   background-color: #323544;
-  padding: 0px 0px;
+  padding: 0;
   overflow: hidden;
 }
 .navigation-bar-container ul.nav.side-nav-header {
@@ -761,7 +761,7 @@ input.radio:checked + label:after {
   height: 55px;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-logo {
-  padding: 0px;
+  padding: 0;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header > a.ambari-logo > img {
   height: 25px;
@@ -780,7 +780,7 @@ input.radio:checked + label:after {
   cursor: pointer;
   display: inline;
   color: #fff;
-  padding: 0px 8px 0px 10px;
+  padding: 0 8px 0 10px;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header .btn-group span.toggle-icon {
   margin-bottom: 5px;
@@ -832,8 +832,8 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu li,
 .navigation-bar-container ul.nav.side-nav-footer li {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
 .navigation-bar-container ul.nav.side-nav-menu li a,
 .navigation-bar-container ul.nav.side-nav-footer li a {
@@ -879,7 +879,7 @@ input.radio:checked + label:after {
   color: #3fae2a;
   font-size: 20px;
   position: relative;
-  padding: 0px 15px;
+  padding: 0 15px;
   left: calc(30%);
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer a .navigation-icon:hover,
@@ -967,7 +967,7 @@ input.radio:checked + label:after {
   width: 50px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header {
-  padding: 15px 0px 15px 17px;
+  padding: 15px 0 15px 17px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.ambari-header,
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.toggle-icon,
@@ -980,7 +980,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li a {
-  padding: 15px 0px 15px 17px;
+  padding: 15px 0 15px 17px;
   width: 50px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li a .navigation-menu-item,
@@ -991,23 +991,17 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.navigation-footer a .navigation-icon,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.navigation-footer a .navigation-icon {
-  padding: 0px 5px;
-  left: 0px;
+  padding: 0 5px;
+  left: 0;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.sub-menu,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
   display: none;
   width: 190px;
-  position: fixed;
+  position: absolute;
+  z-index: 100;
+  top: 0;
   left: 50px;
-}
-.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.admin-submenu,
-.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.admin-submenu {
-  top: 249px;
-}
-.navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.services-submenu,
-.navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.services-submenu {
-  top: 103px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li:hover ul.sub-menu,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li:hover ul.sub-menu {
@@ -1042,6 +1036,28 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li.active > a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li.active > a {
   padding-left: 19px;
+}
+.navigation-bar-fit-height {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 2079;
+}
+.navigation-bar-fit-height .side-nav-header {
+  position: absolute;
+  top: 0;
+}
+.navigation-bar-fit-height .side-nav-menu {
+  position: fixed;
+  top: 55px;
+  bottom: 50px;
+}
+.navigation-bar-fit-height .side-nav-footer {
+  position: fixed;
+  bottom: 0;
+}
+.navigation-bar-fit-height .navigation-bar-container:not(.collapsed) .side-nav-menu {
+  overflow-y: auto;
 }
 h1,
 h2,

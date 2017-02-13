@@ -146,32 +146,19 @@ App.ApplicationView = Em.View.extend({
       }
       return true;
     });
+  },
 
-    $('[data-toggle=collapseSideNav]').click(function() {
-      $('.navigation-bar-container').toggleClass('collapsed').promise().done(function(){
+  /**
+   * Navigation Bar should be initialized after cluster data is loaded
+   */
+  initNavigationBar: function () {
+    if (App.get('router.mainController.isClusterDataLoaded')) {
+      Em.run.next(() => $('.navigation-bar').navigationBar({
+        fitHeight: true,
+        collapseNavBarClass: 'icon-double-angle-left',
+        expandNavBarClass: 'icon-double-angle-right'
+      }));
+    }
+  }.observes('App.router.mainController.isClusterDataLoaded')
 
-        if ($('.navigation-bar-container').hasClass('collapsed')) {
-          // set submenu invisible when collapsed
-          $('.navigation-bar-container.collapsed ul.sub-menu').hide();
-          // set the hover effect when collapsed, should show sub-menu on hovering
-          $(".navigation-bar-container.collapsed .side-nav-menu>li").hover(function() {
-            $(this).children("ul.sub-menu").show();
-          }, function() {
-            $(this).children("ul.sub-menu").hide();
-          });
-        } else {
-          // keep showing all submenu
-          $('.navigation-bar-container ul.sub-menu').show();
-          $(".navigation-bar-container .side-nav-menu>li").unbind('mouseenter mouseleave');
-          $('[data-toggle=collapseSubMenu]').children('.toggle-icon').removeClass('glyphicon-menu-right');
-          $('[data-toggle=collapseSubMenu]').children('.toggle-icon').addClass('glyphicon-menu-down');
-        }
-
-        //set main content left margin based on the width of side-nav
-        $('#main').css('margin-left', $('.navigation-bar-container').width());
-        $('footer').css('margin-left', $('.navigation-bar-container').width());
-      });
-      $('[data-toggle=collapseSideNav]').toggleClass('icon-double-angle-right');//, 100, "easeOutSine");
-    });
-  }
 });

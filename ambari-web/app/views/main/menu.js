@@ -60,14 +60,6 @@ App.MainSideMenuView = Em.CollectionView.extend({
 
     classNames: ['mainmenu-li'],
 
-    didInsertElement: function () {
-      $('[data-toggle=collapseSubMenu]').off('click').on('click', function(event){
-        $(this).siblings('.sub-menu').slideToggle(600);
-        $(this).children('.toggle-icon').toggleClass('glyphicon-menu-right glyphicon-menu-down');
-        event.stopPropagation();
-      });
-    },
-
     active: function () {
       if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
         var lastUrl = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
