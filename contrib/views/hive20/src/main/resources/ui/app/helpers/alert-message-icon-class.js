@@ -16,13 +16,22 @@
  * limitations under the License.
  */
 
-let fileFormats = [
-  {name: "SEQUENCEFILE", default: false, custom: false},
-  {name: "TEXTFILE", default: false, custom: false},
-  {name: "RCFILE", default: false, custom: false},
-  {name: "ORC", default: true, custom: false},
-  {name: "AVRO", default: false, custom: false},
-  {name: "CUSTOM SerDe", default: false, custom: true},
-];
+import Ember from 'ember';
 
-export default fileFormats;
+export function alertMessageIconClass(params) {
+  let type = params[0];
+  switch (type) {
+    case 'success':
+      return 'check';
+    case 'info':
+      return 'info';
+    case 'warning':
+      return 'exclamation';
+    case 'danger':
+      return 'times';
+    default:
+      return 'check';
+  }
+}
+
+export default Ember.Helper.helper(alertMessageIconClass);

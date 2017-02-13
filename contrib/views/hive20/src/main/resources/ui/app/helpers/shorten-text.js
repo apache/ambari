@@ -16,13 +16,17 @@
  * limitations under the License.
  */
 
-let fileFormats = [
-  {name: "SEQUENCEFILE", default: false, custom: false},
-  {name: "TEXTFILE", default: false, custom: false},
-  {name: "RCFILE", default: false, custom: false},
-  {name: "ORC", default: true, custom: false},
-  {name: "AVRO", default: false, custom: false},
-  {name: "CUSTOM SerDe", default: false, custom: true},
-];
+import Ember from 'ember';
 
-export default fileFormats;
+export function shortenText(params) {
+  let text = params[0];
+  let length = params[1];
+  if (text.length < length) {
+    return text;
+  } else {
+    return text.substring(0, length - 3) + '...';
+  }
+
+}
+
+export default Ember.Helper.helper(shortenText);

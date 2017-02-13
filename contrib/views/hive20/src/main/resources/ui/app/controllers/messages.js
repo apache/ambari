@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-let fileFormats = [
-  {name: "SEQUENCEFILE", default: false, custom: false},
-  {name: "TEXTFILE", default: false, custom: false},
-  {name: "RCFILE", default: false, custom: false},
-  {name: "ORC", default: true, custom: false},
-  {name: "AVRO", default: false, custom: false},
-  {name: "CUSTOM SerDe", default: false, custom: true},
-];
+import Ember from 'ember';
 
-export default fileFormats;
+export default Ember.Controller.extend({
+  isExpanded: true,
+  shortenLength: Ember.computed('isExpanded', function() {
+    if(this.get('isExpanded') === true) {
+      return 200;
+    } else {
+      return 100;
+    }
+  })
+});

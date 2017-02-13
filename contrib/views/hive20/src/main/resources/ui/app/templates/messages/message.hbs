@@ -27,18 +27,18 @@
   {{#if displayBody}}
     <div class="panel-body">
       {{#if showStatus}}
-        <p><strong>Server status:</strong> {{model.status}}</p>
+        <p><strong>Status:</strong> {{model.status}}</p>
         <hr/>
       {{/if}}
       {{#if model.responseMessage}}
-        {{alert-message-display title="Server Message:"
+        {{alert-message-display title="Message:"
         value=model.responseMessage
         shorten=true
         length=200}}
         <hr/>
       {{/if}}
       {{#if model.trace}}
-        {{alert-message-display title="Error trace:"
+        {{alert-message-display title="Trace:"
         value=model.trace
         shorten=true
         length=500}}

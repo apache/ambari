@@ -16,13 +16,16 @@
  * limitations under the License.
  */
 
-let fileFormats = [
-  {name: "SEQUENCEFILE", default: false, custom: false},
-  {name: "TEXTFILE", default: false, custom: false},
-  {name: "RCFILE", default: false, custom: false},
-  {name: "ORC", default: true, custom: false},
-  {name: "AVRO", default: false, custom: false},
-  {name: "CUSTOM SerDe", default: false, custom: true},
-];
+import Ember from 'ember';
 
-export default fileFormats;
+export default Ember.Controller.extend({
+
+  showStatus: Ember.computed('model', function() {
+    return this.get('model.status') !== -1;
+  }),
+
+  displayBody: Ember.computed('model', function() {
+    return !(Ember.isBlank(this.get('model.responseMessage'))
+      && Ember.isBlank(this.get('model.trace')));
+  })
+});
