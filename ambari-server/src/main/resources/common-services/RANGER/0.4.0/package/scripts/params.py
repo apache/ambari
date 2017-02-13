@@ -309,6 +309,9 @@ if stack_supports_infra_client and is_solrCloud_enabled:
 solr_user = unix_user
 if has_infra_solr and not is_external_solrCloud_enabled:
   solr_user = default('/configurations/infra-solr-env/infra_solr_user', unix_user)
+  infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
+  infra_solr_role_ranger_audit = default('configurations/infra-solr-security-json/infra_solr_role_ranger_audit', 'ranger_audit_user')
+  infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 custom_log4j = has_infra_solr and not is_external_solrCloud_enabled
 
 ranger_audit_max_retention_days = config['configurations']['ranger-solr-configuration']['ranger_audit_max_retention_days']

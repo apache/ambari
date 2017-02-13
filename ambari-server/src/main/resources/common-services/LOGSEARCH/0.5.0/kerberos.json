@@ -11,26 +11,29 @@
         {
           "name": "LOGSEARCH_SERVER",
           "identities": [
-          {
-            "name": "logsearch",
-            "principal": {
-              "value": "logsearch/_HOST@${realm}",
-              "type": "service",
-              "configuration": "logsearch-env/logsearch_kerberos_principal"
+            {
+              "name": "logsearch",
+              "principal": {
+                "value": "logsearch/_HOST@${realm}",
+                "type": "service",
+                "configuration": "logsearch-env/logsearch_kerberos_principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/logsearch.service.keytab",
+                "owner": {
+                  "name": "${logsearch-env/logsearch_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "logsearch-env/logsearch_kerberos_keytab"
+              }
             },
-            "keytab": {
-              "file": "${keytab_dir}/logsearch.service.keytab",
-              "owner": {
-                "name": "${logsearch-env/logsearch_user}",
-                "access": "r"
-              },
-              "group": {
-                "name": "${cluster-env/user_group}",
-                "access": ""
-              },
-              "configuration": "logsearch-env/logsearch_kerberos_keytab"
+            {
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr"
             }
-          }
           ]
         },
         {

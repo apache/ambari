@@ -72,13 +72,12 @@ def setup_infra_solr(name = None):
          group=params.user_group
          )
 
-    security_json_file_location = format("{infra_solr_conf}/security.json")
-
-    File(security_json_file_location,
+    custom_security_json_location = format("{infra_solr_conf}/custom-security.json")
+    File(custom_security_json_location,
          content=InlineTemplate(params.infra_solr_security_json_content),
          owner=params.infra_solr_user,
          group=params.user_group,
-         mode=0644
+         mode=0640
          )
 
     jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
@@ -86,10 +85,20 @@ def setup_infra_solr(name = None):
 
     create_ambari_solr_znode()
 
+    security_json_file_location = custom_security_json_location \
+      if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
+      else format("{infra_solr_conf}/security.json") # security.json file to upload
+
     if params.security_enabled:
       File(format("{infra_solr_jaas_file}"),
            content=Template("infra_solr_jaas.conf.j2"),
            owner=params.infra_solr_user)
+
+      File(format("{infra_solr_conf}/security.json"),
+           content=Template("infra-solr-security.json.j2"),
+           owner=params.infra_solr_user,
+           group=params.user_group,
+           mode=0640)
 
     solr_cloud_util.set_cluster_prop(
       zookeeper_quorum=params.zookeeper_quorum,

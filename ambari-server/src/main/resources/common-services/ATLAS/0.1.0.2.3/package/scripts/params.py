@@ -203,6 +203,9 @@ infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
 infra_solr_replication_factor = 2 if len(infra_solr_hosts) > 1 else 1
 atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
 has_infra_solr = len(infra_solr_hosts) > 0
+infra_solr_role_atlas = default('configurations/infra-solr-security-json/infra_solr_role_atlas', 'atlas_user')
+infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
+infra_solr_role_ranger_audit = default('configurations/infra-solr-security-json/infra_solr_role_ranger_audit', 'ranger_audit_user')
 
 # zookeeper
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
