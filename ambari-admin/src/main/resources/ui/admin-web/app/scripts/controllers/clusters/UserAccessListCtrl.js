@@ -314,8 +314,6 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
 
   $scope.clearFilters = function() {
     $scope.currentNameFilter = '';
-    $scope.isUserActive = true;
-    $scope.currentTypeFilter = $scope.typeFilterOptions[0];
     $scope.currentRoleFilter = $scope.roleFilterOptions[0];
     $scope.resetPagination();
   };
@@ -325,8 +323,7 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
 
   $scope.$watch(
     function (scope) {
-      return Boolean(scope.currentNameFilter || (scope.currentTypeFilter && scope.currentTypeFilter.value)
-        || (scope.currentRoleFilter && scope.currentRoleFilter.value));
+      return Boolean(scope.currentNameFilter || (scope.currentRoleFilter && scope.currentRoleFilter.value));
     },
     function (newValue, oldValue, scope) {
       scope.isNotEmptyFilter = newValue;

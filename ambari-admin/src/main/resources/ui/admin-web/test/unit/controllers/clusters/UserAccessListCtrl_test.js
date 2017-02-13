@@ -77,10 +77,6 @@ describe('#Cluster', function () {
             value: 'CLUSTER.USER'
           }
         ];
-        scope.typeFilterOptions = [
-          {label: $t('common.user'), value: 'USER'},
-          {label: $t('common.group'), value: 'GROUP'}
-        ];
         scope.currentRoleFilter = scope.roleFilterOptions[1];
         scope.clearFilters();
         expect(scope.currentNameFilter).toEqual('');
@@ -98,16 +94,12 @@ describe('#Cluster', function () {
       var cases = [
         {
           currentNameFilter: '',
-          currentTypeFilter: null,
           currentRoleFilter: null,
           isNotEmptyFilter: false,
           title: 'no filters'
         },
         {
           currentNameFilter: '',
-          currentTypeFilter: {
-            value: ''
-          },
           currentRoleFilter: {
             value: ''
           },
@@ -116,9 +108,6 @@ describe('#Cluster', function () {
         },
         {
           currentNameFilter: 'a',
-          currentTypeFilter: {
-            value: ''
-          },
           currentRoleFilter: {
             value: ''
           },
@@ -127,9 +116,6 @@ describe('#Cluster', function () {
         },
         {
           currentNameFilter: '0',
-          currentTypeFilter: {
-            value: ''
-          },
           currentRoleFilter: {
             value: ''
           },
@@ -138,20 +124,6 @@ describe('#Cluster', function () {
         },
         {
           currentNameFilter: '',
-          currentTypeFilter: {
-            value: 'GROUP'
-          },
-          currentRoleFilter: {
-            value: ''
-          },
-          isNotEmptyFilter: true,
-          title: 'type filter'
-        },
-        {
-          currentNameFilter: '',
-          currentTypeFilter: {
-            value: ''
-          },
           currentRoleFilter: {
             value: 'CLUSTER.USER'
           },
@@ -160,64 +132,6 @@ describe('#Cluster', function () {
         },
         {
           currentNameFilter: 'a',
-          currentTypeFilter: {
-            value: 'GROUP'
-          },
-          currentRoleFilter: {
-            value: ''
-          },
-          isNotEmptyFilter: true,
-          title: 'name and type filters'
-        },
-        {
-          currentNameFilter: 'a',
-          currentTypeFilter: {
-            value: ''
-          },
-          currentRoleFilter: {
-            value: 'CLUSTER.USER'
-          },
-          isNotEmptyFilter: true,
-          title: 'name and role filters'
-        },
-        {
-          currentNameFilter: '0',
-          currentTypeFilter: {
-            value: 'GROUP'
-          },
-          currentRoleFilter: {
-            value: ''
-          },
-          isNotEmptyFilter: true,
-          title: 'name and type filters with "0" as string'
-        },
-        {
-          currentNameFilter: '0',
-          currentTypeFilter: {
-            value: ''
-          },
-          currentRoleFilter: {
-            value: 'CLUSTER.USER'
-          },
-          isNotEmptyFilter: true,
-          title: 'name and role filters with "0" as string'
-        },
-        {
-          currentNameFilter: '',
-          currentTypeFilter: {
-            value: 'GROUP'
-          },
-          currentRoleFilter: {
-            value: 'CLUSTER.USER'
-          },
-          isNotEmptyFilter: true,
-          title: 'type and role filters'
-        },
-        {
-          currentNameFilter: 'a',
-          currentTypeFilter: {
-            value: 'CLUSTER.USER'
-          },
           currentRoleFilter: {
             value: 'GROUP'
           },
@@ -226,9 +140,6 @@ describe('#Cluster', function () {
         },
         {
           currentNameFilter: '0',
-          currentTypeFilter: {
-            value: 'CLUSTER.USER'
-          },
           currentRoleFilter: {
             value: 'GROUP'
           },
@@ -241,7 +152,6 @@ describe('#Cluster', function () {
         it(item.title, function () {
           scope.currentNameFilter = item.currentNameFilter;
           scope.currentRoleFilter = item.currentRoleFilter;
-          scope.currentTypeFilter = item.currentTypeFilter;
           scope.$digest();
           expect(scope.isNotEmptyFilter).toEqual(item.isNotEmptyFilter);
         });
