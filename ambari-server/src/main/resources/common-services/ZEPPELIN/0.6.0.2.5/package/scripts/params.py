@@ -161,13 +161,21 @@ spark_client_version = get_stack_version('spark-client')
 
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+livy2_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
 
 livy_livyserver_host = None
 livy_livyserver_port = None
+livy2_livyserver_host = None
+livy2_livyserver_port = None
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and \
     len(livy_hosts) > 0:
   livy_livyserver_host = str(livy_hosts[0])
   livy_livyserver_port = config['configurations']['livy-conf']['livy.server.port']
+
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted) and \
+    len(livy2_hosts) > 0:
+  livy2_livyserver_host = str(livy2_hosts[0])
+  livy2_livyserver_port = config['configurations']['livy2-conf']['livy.server.port']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
