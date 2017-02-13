@@ -129,7 +129,7 @@ if security_enabled:
   ranger_audit_principals.append(default('configurations/ranger-hive-audit/' + ranger_audit_principal_conf_key, 'hive'))
   ranger_audit_principals.append(default('configurations/ranger-knox-audit/' + ranger_audit_principal_conf_key, 'knox'))
   ranger_audit_principals.append(default('configurations/ranger-kafka-audit/' + ranger_audit_principal_conf_key, 'kafka'))
-  ranger_audit_principals.append(default('configurations/ranger-kms-audit/' + ranger_audit_principal_conf_key, 'kms'))
+  ranger_audit_principals.append(default('configurations/ranger-kms-audit/' + ranger_audit_principal_conf_key, 'rangerkms'))
   ranger_audit_principals.append(default('configurations/ranger-storm-audit/' + ranger_audit_principal_conf_key, 'storm'))
   ranger_audit_principals.append(default('configurations/ranger-yarn-audit/' + ranger_audit_principal_conf_key, 'yarn'))
   ranger_audit_principals.append(default('configurations/ranger-nifi-audit/' + ranger_audit_principal_conf_key, 'nifi'))
@@ -159,4 +159,11 @@ atlas_kerberos_service_user = get_name_from_principal(default('configurations/ap
 logsearch_kerberos_service_user = get_name_from_principal(default('configurations/logsearch-env/logsearch_kerberos_principal', 'logsearch'))
 logfeeder_kerberos_service_user = get_name_from_principal(default('configurations/logfeeder-env/logfeeder_kerberos_principal', 'logfeeder'))
 infra_solr_kerberos_service_user = get_name_from_principal(default('configurations/infra-solr-env/infra_solr_kerberos_principal', 'infra-solr'))
+
+infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
+infra_solr_role_ranger_audit = default('configurations/infra-solr-security-json/infra_solr_role_ranger_audit', 'ranger_audit_user')
+infra_solr_role_atlas = default('configurations/infra-solr-security-json/infra_solr_role_atlas', 'atlas_user')
+infra_solr_role_logsearch = default('configurations/infra-solr-security-json/infra_solr_role_logsearch', 'logsearch_user')
+infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/infra_solr_role_logfeeder', 'logfeeder_user')
+infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 

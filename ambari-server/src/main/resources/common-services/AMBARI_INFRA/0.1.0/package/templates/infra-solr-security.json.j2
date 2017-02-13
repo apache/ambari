@@ -23,15 +23,15 @@
     "class": "org.apache.ambari.infra.security.InfraRuleBasedAuthorizationPlugin",
     "user-role": {
       "{{infra_solr_kerberos_service_user}}@{{kerberos_realm}}": "admin",
-      "{{logsearch_kerberos_service_user}}@{{kerberos_realm}}": ["logsearch_user", "ranger_user", "dev"],
-      "{{logfeeder_kerberos_service_user}}@{{kerberos_realm}}": ["logfeeder_user", "dev"],
-      "{{atlas_kerberos_service_user}}@{{kerberos_realm}}": ["atlas_user", "ranger_audit_user", "dev"],
+      "{{logsearch_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_logsearch}}", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_dev}}"],
+      "{{logfeeder_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_logfeeder}}", "{{infra_solr_role_dev}}"],
+      "{{atlas_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_atlas}}", "{{infra_solr_role_ranger_audit}}", "{{infra_solr_role_dev}}"],
 {% if infra_solr_ranger_audit_service_users %}
 {%   for ranger_audit_service_user in infra_solr_ranger_audit_service_users %}
-      "{{ranger_audit_service_user}}@{{kerberos_realm}}": ["ranger_audit_user", "dev"],
+      "{{ranger_audit_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_ranger_audit}}", "{{infra_solr_role_dev}}"],
 {%   endfor %}
 {% endif %}
-      "{{ranger_admin_kerberos_service_user}}@{{kerberos_realm}}": ["ranger_user", "ranger_audit_user", "dev"]
+      "{{ranger_admin_kerberos_service_user}}@{{kerberos_realm}}": ["{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}", "{{infra_solr_role_dev}}"]
     },
     "permissions": [
     {
@@ -40,27 +40,27 @@
     },
     {
       "name" : "collection-admin-edit",
-      "role" : ["admin", "logsearch_user", "logfeeder_user", "atlas_user", "ranger_user"]
+      "role" : ["admin", "{{infra_solr_role_logsearch}}", "{{infra_solr_role_logfeeder}}", "{{infra_solr_role_atlas}}", "{{infra_solr_role_ranger_admin}}"]
     },
     {
       "name":"read",
-      "role": "dev"
+      "role": "{{infra_solr_role_dev}}"
     },
     {
       "collection": ["{{logsearch_service_logs_collection}}", "{{logsearch_audit_logs_collection}}", "history"],
-      "role": ["admin", "logsearch_user", "logfeeder_user"],
+      "role": ["admin", "{{infra_solr_role_logsearch}}", "{{infra_solr_role_logfeeder}}"],
       "name": "logsearch-manager",
       "path": "/*"
     },
     {
        "collection": ["vertex_index", "edge_index", "fulltext_index"],
-       "role": ["admin", "atlas_user"],
+       "role": ["admin", "{{infra_solr_role_atlas}}"],
        "name": "atlas-manager",
        "path": "/*"
     },
     {
        "collection": "{{ranger_solr_collection_name}}",
-       "role": ["admin", "ranger_user", "ranger_audit_user"],
+       "role": ["admin", "{{infra_solr_role_ranger_admin}}", "{{infra_solr_role_ranger_audit}}"],
        "name": "ranger-manager",
        "path": "/*"
     }]

@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 import re
+from collections import OrderedDict
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
@@ -669,6 +670,20 @@ def setup_ranger_audit_solr():
       jaas_file=params.solr_jaas_file,
       retry=30, interval=5)
 
+  if params.security_enabled and params.has_infra_solr \
+    and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
+
+    solr_cloud_util.add_solr_roles(params.config,
+                                   roles = [params.infra_solr_role_ranger_admin, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
+                                   new_service_principals = [params.ranger_admin_jaas_principal])
+    service_default_principals_map = OrderedDict([('hdfs', 'nn'), ('hbase', 'hbase'), ('hive', 'hive'), ('kafka', 'kafka'), ('kms', 'rangerkms'),
+                                                  ('knox', 'knox'), ('nifi', 'nifi'), ('storm', 'storm'), ('yanr', 'yarn')])
+    service_principals = get_ranger_plugin_principals(service_default_principals_map)
+    solr_cloud_util.add_solr_roles(params.config,
+                                   roles = [params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
+                                   new_service_principals = service_principals)
+
+
   solr_cloud_util.create_collection(
     zookeeper_quorum = params.zookeeper_quorum,
     solr_znode = params.solr_znode,
@@ -678,6 +693,11 @@ def setup_ranger_audit_solr():
     shards = params.ranger_solr_shards,
     replication_factor = int(params.replication_factor),
     jaas_file = params.solr_jaas_file)
+
+  if params.security_enabled and params.has_infra_solr \
+    and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
+    secure_znode(format('{solr_znode}/configs/{ranger_solr_config_set}'), params.solr_jaas_file)
+    secure_znode(format('{solr_znode}/collections/{ranger_solr_collection_name}'), params.solr_jaas_file)
 
 def setup_ranger_admin_passwd_change():
   import params
@@ -694,6 +714,27 @@ def check_znode():
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.solr_znode,
     java64_home=params.java_home)
+
+def secure_znode(znode, jaasFile):
+  import params
+  solr_cloud_util.secure_znode(config=params.config, zookeeper_quorum=params.zookeeper_quorum,
+                               solr_znode=znode,
+                               jaas_file=jaasFile,
+                               java64_home=params.java_home, sasl_users=[params.ranger_admin_jaas_principal])
+
+def get_ranger_plugin_principals(services_defaults_map):
+  """
+  Get ranger plugin user principals from service-default value maps using ranger-*-audit configurations
+  """
+  import params
+  user_principals = []
+  if len(services_defaults_map) < 1:
+    raise Exception("Services - defaults map parameter is missing.")
+
+  for key, default_value in services_defaults_map.iteritems():
+    user_principal = default(format("configurations/ranger-{key}-audit/xasecure.audit.jaas.Client.option.principal"), default_value)
+    user_principals.append(user_principal)
+  return user_principals
 
 
 def setup_tagsync_ssl_configs():

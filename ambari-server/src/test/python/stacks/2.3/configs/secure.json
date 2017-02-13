@@ -169,7 +169,9 @@
       "infra_solr_znode": "/infra-solr",
       "infra_solr_user": "solr",
       "infra_solr_group": "solr",
-      "infra_solr_client_log_dir" :"/var/log/ambari-infra-solr-client"
+      "infra_solr_client_log_dir" :"/var/log/ambari-infra-solr-client",
+      "infra_solr_kerberos_principal" : "infra-solr/c6401.ambari.apache.org@EXAMPLE.COM",
+      "infra_solr_kerberos_keytab" : "/etc/security/keytabs/ambari-infra-solr.keytab"
     },
     "infra-solr-client-log4j" : {
       "infra_solr_client_log_dir" : "/var/log/ambari-infra-solr-client",
@@ -236,6 +238,9 @@
     },
     "ranger-env": {
       "xml_configurations_supported" : "true"
+    },
+    "kerberos-env" : {
+      "realm" : "EXAMPLE.COM"
     }
   },
   "configuration_attributes": {

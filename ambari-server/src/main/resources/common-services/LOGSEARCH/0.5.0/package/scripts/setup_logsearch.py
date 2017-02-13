@@ -17,9 +17,12 @@ limitations under the License.
 
 """
 
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions import solr_cloud_util
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.functions.security_commons import update_credential_provider_path, HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME
 
@@ -110,7 +113,24 @@ def setup_logsearch():
          content=Template("logsearch_jaas.conf.j2"),
          owner=params.logsearch_user
          )
-
   Execute(("chmod", "-R", "ugo+r", format("{logsearch_server_conf}/solr_configsets")),
           sudo=True
           )
+  check_znode()
+
+  if params.security_enabled and not params.logsearch_use_external_solr:
+    solr_cloud_util.add_solr_roles(params.config,
+                                   roles = [params.infra_solr_role_logsearch, params.infra_solr_role_ranger_admin, params.infra_solr_role_dev],
+                                   new_service_principals = [params.logsearch_kerberos_principal])
+    solr_cloud_util.add_solr_roles(params.config,
+                                   roles = [params.infra_solr_role_logfeeder, params.infra_solr_role_dev],
+                                   new_service_principals = [params.logfeeder_kerberos_principal])
+
+@retry(times=30, sleep_time=5, err_class=Fail)
+def check_znode():
+  import params
+  solr_cloud_util.check_znode(
+    zookeeper_quorum=params.logsearch_solr_zk_quorum,
+    solr_znode=params.logsearch_solr_zk_znode,
+    java64_home=params.java64_home,
+    retry=30, interval=5)

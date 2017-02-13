@@ -106,6 +106,11 @@ if 'infra-solr-env' in config['configurations']:
   infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
   infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
 
+infra_solr_role_logsearch = default('configurations/infra-solr-security-json/infra_solr_role_logsearch', 'logsearch_user')
+infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/infra_solr_role_logfeeder', 'logfeeder_user')
+infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
+infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
+
 _hostname_lowercase = config['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local

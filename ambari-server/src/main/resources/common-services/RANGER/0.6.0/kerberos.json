@@ -72,6 +72,9 @@
               "keytab": {
                 "configuration": "ranger-admin-site/xasecure.audit.jaas.Client.option.keyTab"
               }
+            },
+            {
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr"
             }
           ]
         },
