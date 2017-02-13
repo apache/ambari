@@ -187,9 +187,7 @@ public class UpgradeCatalog250Test {
       eq("repo_version"), eq("repo_version_id"), eq(false));
 
     // servicedesiredstate table
-    Capture<DBAccessor.DBColumnInfo> capturedCredentialStoreSupportedCol = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedCredentialStoreEnabledCol = newCapture();
-    dbAccessor.addColumn(eq(UpgradeCatalog250.SERVICE_DESIRED_STATE_TABLE), capture(capturedCredentialStoreSupportedCol));
     dbAccessor.addColumn(eq(UpgradeCatalog250.SERVICE_DESIRED_STATE_TABLE), capture(capturedCredentialStoreEnabledCol));
 
     expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();
@@ -251,16 +249,8 @@ public class UpgradeCatalog250Test {
     // did we get them all?
     Assert.assertEquals(0, expected.size());
 
-    // Verify if credential_store_supported & credential_store_enabled columns
+    // Verify if credential_store_enabled columns
     // were added to servicedesiredstate table
-    DBAccessor.DBColumnInfo capturedCredentialStoreSupportedColValues = capturedCredentialStoreSupportedCol.getValue();
-    Assert.assertNotNull(capturedCredentialStoreSupportedColValues);
-
-    Assert.assertEquals(UpgradeCatalog250.CREDENTIAL_STORE_SUPPORTED_COL, capturedCredentialStoreSupportedColValues.getName());
-    Assert.assertEquals(null, capturedCredentialStoreSupportedColValues.getLength());
-    Assert.assertEquals(Short.class, capturedCredentialStoreSupportedColValues.getType());
-    Assert.assertEquals(0, capturedCredentialStoreSupportedColValues.getDefaultValue());
-    Assert.assertEquals(false, capturedCredentialStoreSupportedColValues.isNullable());
 
     DBAccessor.DBColumnInfo capturedCredentialStoreEnabledColValues = capturedCredentialStoreEnabledCol.getValue();
     Assert.assertNotNull(capturedCredentialStoreEnabledColValues);

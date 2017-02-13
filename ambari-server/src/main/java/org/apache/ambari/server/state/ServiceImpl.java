@@ -70,6 +70,7 @@ public class ServiceImpl implements Service {
   private final Cluster cluster;
   private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
   private final boolean isClientOnlyService;
+  private final boolean isCredentialStoreSupported;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -130,6 +131,8 @@ public class ServiceImpl implements Service {
 
     isClientOnlyService = sInfo.isClientOnlyService();
 
+    isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
+
     persist(serviceEntity);
   }
 
@@ -174,6 +177,7 @@ public class ServiceImpl implements Service {
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), getName());
     isClientOnlyService = sInfo.isClientOnlyService();
+    isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
   }
 
   @Override
@@ -327,45 +331,11 @@ public class ServiceImpl implements Service {
    */
   @Override
   public boolean isCredentialStoreSupported() {
-    ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
-
-    if (desiredStateEntity != null) {
-      return desiredStateEntity.isCredentialStoreSupported();
-    } else {
-      LOG.warn("Trying to fetch a member from an entity object that may " +
-              "have been previously deleted, serviceName = " + getName());
-    }
-    return false;
+    return isCredentialStoreSupported;
   }
 
 
-  /**
-   * Set a true or false value specifying whether this
-   * service supports credential store.
-   *
-   * @param credentialStoreSupported - true or false
-   */
-  @Override
-  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting CredentialStoreEnabled of Service" + ", clusterName="
-              + cluster.getClusterName() + ", clusterId="
-              + cluster.getClusterId() + ", serviceName=" + getName()
-              + ", oldCredentialStoreSupported=" + isCredentialStoreSupported()
-              + ", newCredentialStoreSupported=" + credentialStoreSupported);
-    }
 
-    ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
-
-    if (desiredStateEntity != null) {
-      desiredStateEntity.setCredentialStoreSupported(credentialStoreSupported);
-      desiredStateEntity = serviceDesiredStateDAO.merge(desiredStateEntity);
-
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-              + "previously deleted, serviceName = " + getName());
-    }
-  }
 
   /**
    * Get a true or false value specifying whether

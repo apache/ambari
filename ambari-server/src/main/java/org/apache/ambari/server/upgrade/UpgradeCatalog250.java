@@ -83,7 +83,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   public static final String COMPONENT_VERSION_FK_REPO_VERSION = "FK_scv_repo_version_id";
 
   protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
-  protected static final String CREDENTIAL_STORE_SUPPORTED_COL = "credential_store_supported";
   protected static final String CREDENTIAL_STORE_ENABLED_COL = "credential_store_enabled";
 
   protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
@@ -542,11 +541,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   private void updateServiceDesiredStateTable() throws SQLException {
     // ALTER TABLE servicedesiredstate ADD COLUMN
-    // credential_store_supported SMALLINT DEFAULT 0 NOT NULL
     // credential_store_enabled SMALLINT DEFAULT 0 NOT NULL
-    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
-      new DBColumnInfo(CREDENTIAL_STORE_SUPPORTED_COL, Short.class, null, 0, false));
-
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
       new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
   }

@@ -36,6 +36,8 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 
+from resource_management.core.utils import PasswordString
+from ambari_commons.credential_store_helper import get_password_from_credential_store
 from urlparse import urlparse
 
 import status_params
@@ -164,6 +166,10 @@ zk_connection_string = default('/configurations/oozie-site/oozie.zookeeper.conne
 jaas_file = os.path.join(conf_dir, 'zkmigrator_jaas.conf')
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
+credential_store_enabled = False
+if 'credentialStoreEnabled' in config:
+  credential_store_enabled = config['credentialStoreEnabled']
+
 if security_enabled:
   oozie_site = dict(config['configurations']['oozie-site'])
   oozie_principal_with_host = oozie_principal.replace('_HOST', hostname)
@@ -193,7 +199,19 @@ oozie_env_sh_template = config['configurations']['oozie-env']['content']
 oracle_driver_jar_name = "ojdbc6.jar"
 
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
-oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
+
+if credential_store_enabled:
+  if 'hadoop.security.credential.provider.path' in config['configurations']['oozie-site']:
+    cs_lib_path = config['configurations']['oozie-site']['credentialStoreClassPath']
+    java_home = config['hostLevelParams']['java_home']
+    alias = 'oozie.service.JPAService.jdbc.password'
+    provider_path = config['configurations']['oozie-site']['hadoop.security.credential.provider.path']
+    oozie_metastore_user_passwd = PasswordString(get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location))
+  else:
+    raise Exception("hadoop.security.credential.provider.path property should be set")
+else:
+  oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
+
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")
 oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
 oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
