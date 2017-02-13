@@ -63,6 +63,9 @@ export default Ember.Route.extend({
       this.controller.set('startTime', this.get('moment').moment(startTime, 'YYYY-MM-DD').startOf('day').valueOf())
       this.controller.set('endTime', this.get('moment').moment(endTime, 'YYYY-MM-DD').endOf('day').valueOf())
       this.refresh();
+    },
+    hideDatePicker() {
+      console.log("Hiddennnnn");
     }
   }
 

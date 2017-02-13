@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-let fileFormats = [
+export default [
   {name: "SEQUENCEFILE", default: false, custom: false},
   {name: "TEXTFILE", default: false, custom: false},
   {name: "RCFILE", default: false, custom: false},
@@ -24,5 +24,3 @@ let fileFormats = [
   {name: "AVRO", default: false, custom: false},
   {name: "CUSTOM SerDe", default: false, custom: true},
 ];
-
-export default fileFormats;

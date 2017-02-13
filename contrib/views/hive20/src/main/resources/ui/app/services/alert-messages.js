@@ -69,10 +69,6 @@ export default Ember.Service.extend({
     this._processMessage('danger', message, options, alertOptions);
   },
 
-  error: function() {
-    this.danger(...arguments);
-  },
-
   clearMessages: function() {
     this.get('flashMessages').clearMessages();
   },
@@ -86,13 +82,13 @@ export default Ember.Service.extend({
     }
     switch (type) {
       case 'success':
-        this.get('flashMessages').success(message, this._getOptions(Ember.merge(alertOptions, {sticky: false})));
+        this.get('flashMessages').success(message, this._getOptions(alertOptions));
         break;
       case 'warn':
-        this.get('flashMessages').warning(message, this._getOptions(Ember.merge(alertOptions, {sticky: false})));
+        this.get('flashMessages').warning(message, this._getOptions(alertOptions));
         break;
       case 'info':
-        this.get('flashMessages').info(message, this._getOptions(Ember.merge(alertOptions, {sticky: false})));
+        this.get('flashMessages').info(message, this._getOptions(alertOptions));
         break;
       case 'danger':
         this.get('flashMessages').danger(message, this._getOptions(alertOptions));
@@ -130,8 +126,7 @@ export default Ember.Service.extend({
     var defaultOptions = {
       priority: 100,
       showProgress: true,
-      timeout: 6000,
-      sticky: true
+      timeout: 6000
     };
     return Ember.merge(defaultOptions, options);
   },
