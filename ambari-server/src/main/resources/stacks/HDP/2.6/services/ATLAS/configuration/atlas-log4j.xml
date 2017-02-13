@@ -77,13 +77,28 @@
   <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
     <param name="File" value="{{log_dir}}/application.log"/>
     <param name="Append" value="true"/>
-    <param name="Threshold" value="info"/>
     <param name="MaxFileSize" value="{{atlas_log_max_backup_size}}MB" />
     <param name="MaxBackupIndex" value="{{atlas_log_number_of_backup_files}}" />
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%d %-5p - [%t:%x] ~ %m (%c{1}:%L)%n"/>
     </layout>
   </appender>
+
+  <!-- uncomment this block to generate performance traces
+  <appender name="perf_appender" class="org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="{{log_dir}}/atlas_perf.log" />
+    <param name="datePattern" value="'.'yyyy-MM-dd" />
+    <param name="append" value="true" />
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d|%t|%m%n" />
+    </layout>
+  </appender>
+
+    <logger name="org.apache.atlas.perf" additivity="false">
+      <level value="debug" />
+         <appender-ref ref="perf_appender" />
+    </logger>
+  -->
 
   <appender name="AUDIT" class="org.apache.log4j.DailyRollingFileAppender">
     <param name="File" value="{{log_dir}}/audit.log"/>
