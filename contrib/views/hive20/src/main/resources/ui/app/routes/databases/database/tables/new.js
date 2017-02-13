@@ -18,9 +18,8 @@
 
 import Ember from 'ember';
 import tabs from '../../../../configs/create-table-tabs';
-import UILoggerMixin from '../../../../mixins/ui-logger';
 
-export default Ember.Route.extend(UILoggerMixin, {
+export default Ember.Route.extend({
   tableOperations: Ember.inject.service(),
 
   setupController(controller, model) {
@@ -45,7 +44,6 @@ export default Ember.Route.extend(UILoggerMixin, {
         return this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
           .then((status) => {
             this.controller.set('createTableMessage', "Successfully created table");
-            this.get('logger').success(`Successfully created table '${settings.name}'`);
             Ember.run.later(() => {
             this.controller.set('showCreateTableModal', false);
             this.controller.set('createTableMessage');
@@ -57,7 +55,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             }, 2 * 1000);
             return Ember.RSVP.Promise.resolve(job);
           }, (error) => {
-            this.get('logger').danger(`Failed to create table '${settings.name}'`, this.extractError(error));
+            // TODO: handle error
             Ember.run.later(() => {
               this.controller.set('showCreateTableModal', false);
               this.controller.set('createTableMessage');
@@ -69,7 +67,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             return Ember.RSVP.Promise.reject(error);
           });
       }, (error) => {
-        this.get('logger').danger(`Failed to create table '${settings.name}'`, this.extractError(error));
+        console.log("Error encountered", error);
         this.controller.set('showCreateTableModal', true);
         throw error;
       });

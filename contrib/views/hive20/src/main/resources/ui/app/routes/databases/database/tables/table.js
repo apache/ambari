@@ -18,9 +18,8 @@
 
 import Ember from 'ember';
 import tabs from '../../../../configs/table-level-tabs';
-import UILoggerMixin from '../../../../mixins/ui-logger';
 
-export default Ember.Route.extend(UILoggerMixin, {
+export default Ember.Route.extend({
   tableOperations: Ember.inject.service(),
   model(params) {
     let database = this.modelFor('databases.database').get('name');
@@ -66,7 +65,6 @@ export default Ember.Route.extend(UILoggerMixin, {
         this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000)
           .then((status) => {
             this.controller.set('deleteTableMessage', "Successfully Deleted table");
-            this.get('logger').success(`Successfully deleted table '${tableInfo.get('table')}'`);
             Ember.run.later(() => {
               this.controller.set('showDeleteTableModal', false);
               this.controller.set('deleteTableMessage');
@@ -75,7 +73,7 @@ export default Ember.Route.extend(UILoggerMixin, {
               this.transitionTo('databases.database', databaseModel.get('name'));
             }, 2 * 1000);
           }, (error) => {
-            this.get('logger').danger(`Failed to delete table '${tableInfo.get('table')}'`, this.extractError(error));
+            // TODO: handle error
             Ember.run.later(() => {
               this.controller.set('showDeleteTableModal', false);
               this.controller.set('deleteTableMessage');
@@ -83,7 +81,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             }, 2 * 1000);
           });
       }, (error) => {
-        this.get('logger').danger(`Failed to delete table '${tableInfo.get('table')}'`, this.extractError(error));
+        console.log("Error encountered", error);
         this.controller.set('showDeleteTableModal', true);
       });
   },

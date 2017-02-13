@@ -16,11 +16,9 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
 import TableMetaRouter from './table-meta-router';
-import UILoggerMixin from '../../../../../mixins/ui-logger';
 
-export default TableMetaRouter.extend(UILoggerMixin, {
+export default TableMetaRouter.extend({
 
   tableOperations: Ember.inject.service(),
 
@@ -54,11 +52,11 @@ export default TableMetaRouter.extend(UILoggerMixin, {
       return this.get('tableOperations').waitForJobToComplete(job.get('id'), 5 * 1000);
     }).then((status) => {
       this._modalStatus(true, 'Successfully renamed table');
-      this.get('logger').success(`Successfully renamed table '${oldTableName}' to '${newTableName}'`);
       this._transitionToTables();
     }).catch((err) => {
-      this._modalStatus(false, 'Failed to rename table');
-      this.get('logger').danger(`Failed to rename table '${oldTableName}' to '${newTableName}'`, this.extractError(err));
+      this._modalStatus(true, 'Failed to rename table');
+      this._alertMessage('Failed to rename table', err);
+      this._transitionToTables();
     });
   },
 
@@ -74,6 +72,11 @@ export default TableMetaRouter.extend(UILoggerMixin, {
       this._modalStatus(false);
       this.transitionTo('databases');
     }, 2000);
+  },
+
+  _alertMessage(message, err) {
+    console.log(message, err);
+    // TODO: user alert message here
   }
 
 
