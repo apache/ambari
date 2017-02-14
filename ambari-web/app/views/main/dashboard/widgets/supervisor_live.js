@@ -59,7 +59,6 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitW
   }.property('superVisorsLive', 'superVisorsTotal'),
 
   hintInfo: function () {
-    var maxTmp = parseFloat(parent.get('maxValue'));
-    return Em.I18n.t('dashboard.widgets.hintInfo.hint1').format(maxTmp);
+    return Em.I18n.t('dashboard.widgets.hintInfo.hint1').format(parseFloat(this.get('maxValue')));
   }.property('maxValue')
 });
