@@ -29,5 +29,8 @@ export default Ember.Object.create({
   },
   isSupportedAction(actionType){
     return Constants.actions.findBy('name', actionType)? true : false;
+  },
+  decodeXml(xml){
+    return xml && xml.length > 0 ? xml.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '\"').replace(/&apos;/g, '\'') : xml;
   }
 });
