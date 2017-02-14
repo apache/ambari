@@ -54,10 +54,12 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
         self.set('switcherValue', data[0].properties.recovery_enabled === 'true');
         self.set('savedRecoveryEnabled', self.get('switcherValue'));
         self.get('controller').loadComponentsConfigs().then(function () {
-          Em.run.later('sync', function() {
-            // plugin should be initiated after applying binding for switcherValue
-            self.initSwitcher();
-          }.bind(self), 10);
+          Em.run.next(function() {
+            Em.run.next(function() {
+              // plugin should be initiated after applying binding for switcherValue
+              self.initSwitcher();
+            });
+          });
           self.set('isLoaded', true);
         });
       });
