@@ -341,7 +341,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set("workflowFilePath", filePath);
     }.bind(this)).catch(function(data){
       console.error(data);
-      var stackTraceMsg = self.getStackTrace(data.responseText);
       self.set("errorMsg", "There is some problem while importing.Please try again.");
       self.showingErrorMsgInDesigner(data);
       self.set("isWorkflowImporting", false);
@@ -999,7 +998,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
           this.importActionSettingsFromString(data);
         }.bind(this)).catch(function(data){
           console.error(data);
-          var stackTraceMsg = self.getStackTrace(data.responseText);
           self.set("errorMsg", "There is some problem while importing asset.Please try again.");
           self.showingErrorMsgInDesigner(data);
         });
@@ -1018,7 +1016,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
           this.importActionNodeFromString(data);
         }.bind(this)).catch(function(data){
           console.error(data);
-          var stackTraceMsg = self.getStackTrace(data.responseText);
           self.set("errorMsg", "There is some problem while importing asset. Please try again.");
           self.showingErrorMsgInDesigner(data);
         });

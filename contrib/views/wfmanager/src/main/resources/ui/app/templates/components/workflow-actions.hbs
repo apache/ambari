@@ -35,8 +35,8 @@
            </span>
         </div>
       {{/if}}
-      <div {{action 'showAssetNodeList'}} class="btn btn-default margin3"> <i class="fa fa-download"></i> <span class="font10px">Import asset</span></div>
-      <div {{action 'showImportActionNodeFileBrowser'}} class="btn btn-default margin3"> <i class="fa fa-cloud-download"></i> <span class="font10px">Import asset from HDFS</span></div>
+      <div {{action 'showAssetNodeList'}} class="btn asset-import-btn margin3"> <i class="fa fa-download"></i> <span class="font10px">Import asset</span></div>
+      <div {{action 'showImportActionNodeFileBrowser'}} class="btn asset-import-btn margin3"> <i class="fa fa-cloud-download"></i> <span class="font10px">Import asset from HDFS</span></div>
       <div class="clearfix"></div>
       <ul class="actions_list_left actionNodes">
           <li {{action 'addAction' 'hive'}} class="dr_action enabled" data-name="Hive" data-type="hive"> <i class="fa fa-server"></i> Hive </li>

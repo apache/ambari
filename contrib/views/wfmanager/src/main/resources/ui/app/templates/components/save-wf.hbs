@@ -31,11 +31,11 @@
               <div>{{alertDetails}}</div>
               {{#if isStackTraceAvailable}}
                 {{#if isStackTraceVisible}}
-                  <a href="#" {{action "hideStackTrace"}}>Hide Log</a>
+                  <a href="#" class="action-link" {{action "hideStackTrace"}}>Hide Log</a>
                   <div id="stackTrace">{{{stackTrace}}}</div>
                 {{/if}}
-                {{#unless isStackTraceVisible}}  
-                  <a href="#" {{action "showStackTrace"}}>Show Log</a>
+                {{#unless isStackTraceVisible}}
+                  <a href="#" class="action-link" {{action "showStackTrace"}}>Show Log</a>
                 {{/unless}}
               {{/if}}
             </div>

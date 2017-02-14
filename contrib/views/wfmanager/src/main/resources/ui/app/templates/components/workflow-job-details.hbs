@@ -108,8 +108,8 @@
         </div>
         <div class="panel-body">
           <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation" class="active"><a href="#actionInfo" aria-controls="action-info" role="tab" data-toggle="tab">Info</a></li>
-            <li role="presentation"><a href="#actionConf" aria-controls="action-conf" role="tab" data-toggle="tab">Configuration</a></li>
+            <li role="presentation" class="active"><a href="#actionInfo" class="action-link" aria-controls="action-info" role="tab" data-toggle="tab">Info</a></li>
+            <li role="presentation"><a href="#actionConf" class="action-link" aria-controls="action-conf" role="tab" data-toggle="tab">Configuration</a></li>
           </ul>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="actionInfo">
@@ -196,8 +196,18 @@
     <div class="panel panel-default">
       <div class="panel-body">
         <!-- <img src={{dagUrl}} /> -->
+        {{#if model.inProgress}}
+          {{spin-spinner lines=8 length=5 width=3 radius=5 top=350}}
+        {{/if}}
         <div class="row">
           <div class="col-xs-8">
+            {{#if model.flowGraphMaxNodeCountReached}}
+              <div id="alert"class="alert alert-danger alert-dismissible workflow-error" role="alert">
+                Workflow is too large to be rendered.
+              </div>
+            {{else}}
+              <div class="cy-note pull-right">Click on node to get details</div>
+            {{/if}}
             <div id="cy" class="cy-panel"></div>
           </div>
           <div class="col-xs-4">

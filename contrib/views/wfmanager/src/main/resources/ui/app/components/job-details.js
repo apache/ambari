@@ -23,6 +23,7 @@ import Constants from '../utils/constants';
 export default Ember.Component.extend({
   workflowImporter: WorkflowImporter.create({}),
   actionTypeResolver: ActionTypeResolver.create({}),
+  layoutConfigs: { name: 'dagre', fit: false, edgeSep: 100 },
   error : {},
   errorMessage : Ember.computed('error', function() {
     if(this.get('error').status === 400){
@@ -261,6 +262,13 @@ export default Ember.Component.extend({
       var workflow = wfObject.workflow;
       console.log("Workflow Object..", workflow);
       var dataNodes=this.getCyDataNodes(workflow);
+      if (dataNodes.length > Constants.flowGraphMaxNodeCount) {
+        this.set("model.flowGraphMaxNodeCountReached", true);
+        this.set("model.inProgress", false);
+        return;
+      } else {
+        this.set("model.flowGraphMaxNodeCountReached", false);
+      }
       var cy = cytoscape({
         container: document.getElementById('cy'),
         elements: dataNodes,
@@ -324,9 +332,7 @@ export default Ember.Component.extend({
             }
           }
         ],
-        layout: {
-          name: 'dagre'
-        }
+        layout: this.get("layoutConfigs"),
       });
 
       // the default values of each option are outlined below:
@@ -343,11 +349,13 @@ export default Ember.Component.extend({
       };
 
       cy.panzoom( defaults );
+      cy.pan({x:200,y:50});
 
       cy.on('click', 'node', function(event) {
         var node = event.cyTarget;
         this.showActionNodeDetail(node, xmlString);
       }.bind(this));
+      this.set("model.inProgress", false);
     },
     importSampleWorkflow (){
       var self=this;
@@ -440,12 +448,14 @@ export default Ember.Component.extend({
         }.bind(this));
       },
       getJobDag : function (){
+        this.set("model.inProgress", true);
         //if (true) return this.importSampleWorkflow();
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=definition&timezone=GMT',function(response){
           var xmlString = (new XMLSerializer()).serializeToString(response).trim();
           this.renderDag(xmlString);
         }.bind(this)).fail(function(error){
           this.set('error',error);
+          this.set("model.inProgress", false);
         }.bind(this));
         // this.set('model.jobDag', Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=graph');
       },
