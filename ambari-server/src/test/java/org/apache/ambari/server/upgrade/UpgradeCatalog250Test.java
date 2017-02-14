@@ -367,6 +367,7 @@ public class UpgradeCatalog250Test {
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
+    Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -384,6 +385,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateRangerUrlConfigs)
         .addMockedMethod(updateYarnSite)
         .addMockedMethod(updateAlerts)
+        .addMockedMethod(removeAlertDuplicates)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -430,6 +432,9 @@ public class UpgradeCatalog250Test {
 
     upgradeCatalog250.updateStormAlerts();
     expectLastCall().once();
+
+    upgradeCatalog250.removeAlertDuplicates();
+      expectLastCall().once();
 
     replay(upgradeCatalog250);
 
