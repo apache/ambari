@@ -64,12 +64,12 @@
           <div class="notes">{{view.parentView.hoveredServiceVersion.fullNotes}}</div>
         </div>
         <div class="version-operations-buttons">
-          <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.view" class=":btn view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.view"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.SWITCH target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+          <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.view" class=":btn view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.view"}} {{action doAction undefined view.parentView.actionTypes.SWITCH target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
           {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
-            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.compare" class=":btn view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.compare"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.COMPARE target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.compare" class=":btn view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.compare"}} {{action doAction undefined view.parentView.actionTypes.COMPARE target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
           {{/isAuthorized}}
           {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.revert" class=":btn view.parentView.hoveredServiceVersion.isCurrent:not-allowed-cursor view.parentView.hoveredServiceVersion.isCompatible::hidden" title="view.parentView.hoveredServiceVersion.disabledActionMessages.revert"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.revert" class=":btn view.parentView.hoveredServiceVersion.isCurrent:not-allowed-cursor view.parentView.hoveredServiceVersion.isCompatible::hidden" title="view.parentView.hoveredServiceVersion.disabledActionMessages.revert"}} {{action doAction undefined view.parentView.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
           {{/isAuthorized}}
         </div>
       {{/if}}
