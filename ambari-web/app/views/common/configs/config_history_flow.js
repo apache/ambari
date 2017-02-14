@@ -274,11 +274,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var type = event.contexts[1],
         controller = this.get('controller'),
         self = this;
-
+    // action from right popup of pull down version list will have context[0] == undefined, and use 'hoveredServiceVersion'.
+    // refer to AMBARI-19871 for more info
+    var configVersion = event.contexts[0] || this.get('hoveredServiceVersion');
     if (type === 'switchVersion') {
-      if (event.context.get("isDisplayed"))  return;
+      if (configVersion && configVersion.get("isDisplayed"))  return;
     } else {
-      var isDisabled = event.context ? event.context.get('isDisabled') : false;
+      var isDisabled = configVersion ? configVersion.get('isDisabled') : false;
       if (isDisabled) return;
     }
 
@@ -302,7 +304,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * switch configs view version to chosen
    */
   switchVersion: function (event) {
-    var version = event.context.get('version');
+    var configVersion = event.contexts[0] || this.get('hoveredServiceVersion');
+    var version = configVersion.get('version');
     var versionIndex = 0;
     this.set('compareServiceVersion', null);
     this.get('serviceVersions').forEach(function (serviceVersion, index) {
@@ -322,7 +325,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
-    var serviceConfigVersion = event.context;
+    var serviceConfigVersion = event.contexts[0] || this.get('hoveredServiceVersion');
     this.set('controller.compareServiceVersion', serviceConfigVersion);
     this.set('compareServiceVersion', serviceConfigVersion);
 
@@ -359,7 +362,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   revert: function (event) {
     var self = this;
-    var serviceConfigVersion = event.context || Em.Object.create({
+    var serviceConfigVersion = event.contexts[0] || this.get('hoveredServiceVersion') || Em.Object.create({
       version: this.get('displayedServiceVersion.version'),
       serviceName: this.get('displayedServiceVersion.serviceName'),
       notes:''
