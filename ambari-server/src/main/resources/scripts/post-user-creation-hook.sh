@@ -97,7 +97,7 @@ do
     "type":"directory",
     "action":"create",
     "owner":"$USR_NAME",
-    "group":"hdfs",
+    "group":"hadoop",
     "manageIfExists": "true"
   },
 EOF
