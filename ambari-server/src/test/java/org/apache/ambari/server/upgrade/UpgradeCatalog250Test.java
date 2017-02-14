@@ -279,6 +279,7 @@ public class UpgradeCatalog250Test {
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
+    Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
       .addMockedMethod(updateAmsConfigs)
@@ -296,6 +297,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(addManageServiceAutoStartPermissions)
       .addMockedMethod(updateYarnSite)
       .addMockedMethod(updateAlerts)
+      .addMockedMethod(removeAlertDuplicates)
       .createMock();
 
 
@@ -343,6 +345,9 @@ public class UpgradeCatalog250Test {
 
     upgradeCatalog250.updateStormAlerts();
       expectLastCall().once();
+
+    upgradeCatalog250.removeAlertDuplicates();
+    expectLastCall().once();
 
     replay(upgradeCatalog250);
 
