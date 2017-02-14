@@ -26,7 +26,7 @@
 @defaultBorderRadius: 5px;
 @nodeActionBgColor: #E5E5E5;
 @defaultPropertiesEditorHeight: 350px;
-@actionLinkColor: #49aebf;
+@actionLinkColor: #0f96c6;
 @navTabAnchorColor: #777;
 @navTabAnchorHighlightedColor: #555;
 @modalDialogWidth: 60%;
@@ -628,12 +628,18 @@ height: 100vh;
 #asset_manager_dialog .panel-default > .panel-heading,
 #asset_config_dialog .panel-default > .panel-heading,
 #asset_list_dialog .panel-default > .panel-heading {
+
+}
+.panel-default > .panel-heading {
   background-color: #f8f8f8;
   color: @actionLinkColor;
 }
 
 .whiteLabel, .whiteLabel:hover, .whiteLabel:focus, .whiteLabel:visited, .whiteLabel:active {
     color: #fff;
+}
+.btn-default, .btn-default:hover, .btn-default:visited, .btn-default:focus, .btn-default:active, .btn-default.active {
+  color: @actionLinkColor !important;
 }
 .btn-primary, .btn-primary:visited, .btn-primary:focus, .btn-primary:active, .btn-primary.active {
     background-color: @bgGreenActive !important;
@@ -764,6 +770,7 @@ height: 100vh;
 #search-bar .search-icon {
   display: inline-block;
   border: 1px solid #ccc;
+  border-radius: 0px;
   padding: 4px 10px;
   border-left: 0px;
   border-bottom-right-radius: 3px;
@@ -969,14 +976,14 @@ height: 100vh;
   }
 
   .actions-col .btn {
-      color: gray;
+      color: @actionLinkColor;
       cursor: not-allowed;
       opacity: .5;
       font-size: 10px;
   }
 
   .actions-col .btn.isOn {
-      color: #000;
+      color: @actionLinkColor;
       cursor: pointer;
       opacity: 1;
   }
@@ -1197,7 +1204,7 @@ height: 100vh;
     right: 5px;
 }
 .actionNodes li{
-    padding: 10px 0px !important;
+    padding: 8px 0px !important;
     height: auto;
 }
 .dr_action_fork{
@@ -1314,6 +1321,11 @@ height: 100vh;
 .cy-panzoom {
   left: 90%;
   z-index: 999;
+}
+
+.cy-note {
+  color: #777;
+  padding-right: 10px;
 }
 
 .overlay_node_editor {
@@ -1459,7 +1471,7 @@ height: 100vh;
   font-size: 10px;
 }
 
-.paste-action-btn {
+.paste-action-btn, .asset-import-btn {
   border: 1px solid silver;
   border-radius: 6px;
   margin-left: 5px;
@@ -1672,6 +1684,9 @@ height: 100vh;
   top: 60px;
 }
 .action-link, .action-link:hover, .action-link:focus {
+  color: @actionLinkColor !important;
+}
+.dropdown-menu > li > a, .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
   color: @actionLinkColor !important;
 }
 .table-striped > tbody > tr:nth-of-type(odd) {
