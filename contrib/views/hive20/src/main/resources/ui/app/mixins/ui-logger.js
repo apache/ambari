@@ -16,13 +16,18 @@
  * limitations under the License.
  */
 
-let fileFormats = [
-  {name: "SEQUENCEFILE", default: false, custom: false},
-  {name: "TEXTFILE", default: false, custom: false},
-  {name: "RCFILE", default: false, custom: false},
-  {name: "ORC", default: true, custom: false},
-  {name: "AVRO", default: false, custom: false},
-  {name: "CUSTOM SerDe", default: false, custom: true},
-];
+import Ember from 'ember';
 
-export default fileFormats;
+export default Ember.Mixin.create({
+  logger: Ember.inject.service('alert-messages'),
+
+  extractError(error) {
+    if (Ember.isArray(error.errors) && (error.errors.length >= 0)) {
+      return error.errors[0];
+    } else if(!Ember.isEmpty(error.errors)) {
+      return error.errors;
+    } else {
+      return error;
+    }
+  }
+});

@@ -17,12 +17,9 @@
 }}
 
 <div class="row">
-  <div class="col-md-12 messages-header">
-    <div class="col-md-1">
-      {{!--#link-to "files" (query-params path=currentBrowserPath) class="btn btn-primary"}}{{fa-icon "arrow-left"}} Browser{{/link-to--}}
-    </div>
-    <div class="col-md-2 col-md-offset-4 text-center">
-      <span class="messages-title">{{fa-icon "comment"}} Messages</span>
+  <div class="col-md-12 messages-header text-center">
+    <div class="alert alert-info">
+      <p class="lead">{{fa-icon "comment" size="lg" }} Notification Messages</p>
     </div>
   </div>
 </div>
@@ -30,7 +27,8 @@
   <div class={{if isExpanded "col-md-12" "col-md-4"}}>
     <div class="list-group">
       {{#each model as |message|}}
-        {{#link-to 'messages.message' message class=(alert-message-context-class message.type "list-group-item list-group-item-")}}
+        {{#link-to 'messages.message' message
+                   class=(alert-message-context-class message.type "list-group-item list-group-item-")}}
           <h4 class="list-group-item-heading wrap-message">
             {{#fa-stack}}
               {{fa-icon "circle-thin" stack=2}}
@@ -39,8 +37,6 @@
             {{{message.message}}}</h4>
           <p class="list-group-item-text wrap-message">{{shorten-text message.responseMessage shortenLength}}</p>
         {{/link-to}}
-      {{else}}
-        No messages present
       {{/each}}
     </div>
 
