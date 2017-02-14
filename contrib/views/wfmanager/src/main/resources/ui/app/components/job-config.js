@@ -17,6 +17,7 @@
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
+import CommonUtils from '../utils/common-utils';
 import { validator, buildValidations } from 'ember-cp-validations';
 
 const Validations = buildValidations({
@@ -36,7 +37,6 @@ const Validations = buildValidations({
 export default Ember.Component.extend(Validations, {
   systemConfigs : Ember.A([]),
   showingFileBrowser : false,
-  jobXml : "",
   overwritePath : false,
   configMap : Ember.A([]),
   configPropsExists : false,
@@ -74,13 +74,15 @@ export default Ember.Component.extend(Validations, {
   }),
   initialize :function(){
     this.configureExecutionSettings();
-    this.set("jobXml", this.get("jobConfigs").xml);
     this.set('filePath', Ember.copy(this.get('jobFilePath')));
     Object.keys(this.get('validations.attrs')).forEach((attr)=>{
       var field = 'validations.attrs.'+ attr +'.isDirty';
       this.set(field, false);
     }, this);
   }.on('init'),
+  jobXml : Ember.computed('jobConfigs.xml', function(){
+    return CommonUtils.decodeXml(this.get('jobConfigs.xml'));
+  }),
   rendered : function(){
     this.$("#configureJob").on('hidden.bs.modal', function () {
       this.sendAction('closeJobConfigs');
