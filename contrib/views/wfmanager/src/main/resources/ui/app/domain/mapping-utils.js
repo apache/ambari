@@ -71,7 +71,7 @@ var MappingMixin= Ember.Mixin.create({
     }
     actionNode.set("domain",domain);
     Object.keys(json).forEach((propKey)=>{
-       if(!mappings.findBy('xml', propKey) && propKey !=='_xmlns'){
+      if(!mappings.findBy('xml', propKey) && propKey !=='_xmlns'  && propKey !=='@id' && propKey !== '__jsogObjectId'){
          domain.unsupportedProperties[propKey] = json[propKey];
          domain[propKey] = json[propKey];
        }

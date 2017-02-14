@@ -127,6 +127,7 @@ module.exports = function(defaults) {
 
 	// Fuse js
 	app.import('bower_components/fuse.js/src/fuse.min.js');
+  app.import('bower_components/jsog/lib/JSOG.js');
 
     return app.toTree();
 };

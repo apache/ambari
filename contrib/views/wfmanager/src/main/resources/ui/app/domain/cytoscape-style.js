@@ -18,6 +18,15 @@
 import Ember from 'ember';
 var defaultNodeColor = '#fff';
 var actionNodeColor = '#f5f5f5';
+var labelFunction=function(target) {
+  if (!target.data().node.name) {
+    return "";
+  } else if (target.data().node.name.length>12){
+    return target.data().node.name.slice(0, 12)+"...";
+  } else{
+    return target.data().node.name;
+  }
+};
 export default Ember.Object.create({
   style: [
     {
@@ -28,15 +37,7 @@ export default Ember.Object.create({
         'border-width': 1,
         'border-color': '#ABABAB',
         //'text-margin-x': 10,
-        label: function(target) {
-          if (!target.data().node.name) {
-            return "";
-          } else if (target.data().node.name.length>12){
-            return target.data().node.name.slice(0, 12)+"...";
-          } else{
-            return target.data().node.name;
-          }
-        },
+        label: labelFunction,
         'text-valign': 'center',
         'font-size': 14,
         height: 40,
@@ -50,13 +51,14 @@ export default Ember.Object.create({
         'background-position-x': 10,
         width: 150
       }
+
     },
     {
       selector: 'node[type = "join"]',
       style: {
         'background-image': 'assets/join.png',
-        label: '',
-        width: 80
+        'background-position-x': 10,
+        width: 150
       }
     },
     {

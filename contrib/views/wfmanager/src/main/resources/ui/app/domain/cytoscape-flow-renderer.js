@@ -230,6 +230,8 @@ var CytoscapeRenderer= Ember.Object.extend({
       }else{
           this.get("context").$(".overlay-trash-transition-icon").hide();
       }
+      this.get("context").$(".overlay-transition-content").data("sourceNode",event.cyTarget.source().data("node"));
+      this.get("context").$(".overlay-transition-content").data("targetNode",event.cyTarget.target().data("node"));
       this.get("context").$(".overlay-transition-content").data("transition",event.cyTarget.data().transition);
 
       if (event.cyTarget.data().transition && event.cyTarget.data().transition.condition) {
@@ -246,7 +248,11 @@ var CytoscapeRenderer= Ember.Object.extend({
     this.get("context").$('.overlay-plus-icon').on('click',function(){
       this.get("context").$(".overlay-transition-content").popover("show");
       this.get("context").set('popOverElement', this.get("context").$('.overlay-transition-content'));
-      this.get("context").setCurrentTransition(this.get("context").$(".overlay-transition-content").data("transition"));
+      this.get("context").setCurrentTransition({
+        transition : this.get("context").$(".overlay-transition-content").data("transition"),
+        source : this.get("context").$(".overlay-transition-content").data("sourceNode"),
+        target : this.get("context").$(".overlay-transition-content").data("targetNode")
+      });
       Ember.run.later(this, function() {
         this.get("context").$('.overlay-transition-content').hide();
       }, 1000);
@@ -254,13 +260,26 @@ var CytoscapeRenderer= Ember.Object.extend({
 
     this.get("context").$('.overlay-trash-transition-icon').off('click');
     this.get("context").$('.overlay-trash-transition-icon').on('click',function(){
-      this.get("context").deleteTransition(this.get("context").$(".overlay-transition-content").data("transition"));
+      var tran=this.get("context").$(".overlay-transition-content").data("transition");
+      tran.sourceNode= this.get("context").$(".overlay-transition-content").data("sourceNode");
+      this.get("context").deleteTransition(tran);
       this.get("context").$('.overlay-transition-content').hide();
     }.bind(this));
 
     this.get("context").$('.overlay-trash-icon i').off('click');
     this.get("context").$('.overlay-trash-icon i').on('click',function(){
-      this.get("context").deleteWorkflowNode(this.get("context").$(".overlay-trash-icon").data("node"));
+      var incomingNodes=this.get("currentCyNode").incomers("node").jsons().mapBy("data.node");
+      var transitionList=[];
+      var currentNodeId=this.get("currentCyNode").json().data.id;
+      for (var incomingNode of incomingNodes) {
+        for (var incomingTran of incomingNode.transitions ){
+          if (incomingTran.targetNode.id===currentNodeId){
+            incomingTran.sourceNode=incomingNode;
+            transitionList=transitionList.concat(incomingTran);
+           }
+        }
+      }
+      this.get("context").deleteWorkflowNode(this.get("context").$(".overlay-trash-icon").data("node"),transitionList);
       this.get("context").$('.overlay-node-actions').hide();
     }.bind(this));
 
