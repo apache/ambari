@@ -24,7 +24,7 @@ var WorkflowJsonImporter= Ember.Object.extend({
         return null;
       }
       try{
-        var workflowJson=JSON.parse(workflowJsonStr);
+        var workflowJson=  JSOG.parse(workflowJsonStr);
         var workflow=Workflow.create({});
         workflow.initialize();
         workflow.set("name",workflowJson.name);

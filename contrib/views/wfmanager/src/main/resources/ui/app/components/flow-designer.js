@@ -110,6 +110,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.sendAction('register', this.get('tabInfo'), this);
     this.set('flowRenderer',CytoscapeRenderer.create());
     this.set('workflow',Workflow.create({}));
+    this.set("isNew",true);
     CommonUtils.setTestContext(this);
   }.on('init'),
   elementsInserted :function(){
@@ -237,6 +238,10 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       link.click();
   },
   nodeRendered: function(){
+    if (this.get("isNew")){
+      this.set("isNew",false);
+      return;
+    }
     this.doValidation();
     this.resize();
     this.persistWorkInProgress();
@@ -269,13 +274,17 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.flowRenderer.cleanup();
     this.renderWorkflow(this.get("workflow"));
   },
-  setCurrentTransition(transition){
-    this.set("currentTransition",transition);
+  setCurrentTransition(transitionInfo){
+    this.set("currentTransition", {
+      transition : transitionInfo.transition,
+      source : transitionInfo.source,
+      target : transitionInfo.target
+    });
   },
   actionInfo(node){
     this.send("showNotification", node);
   },
-  deleteTransition(transition){
+  deleteTransition(transition,sourceNode){
     this.createSnapshot();
     this.get("workflow").deleteTransition(transition);
     this.showUndo('transition');
@@ -442,7 +451,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var x2js = new X2JS();
     var actionNodeXml = x2js.xml_str2json(actionNodeXmlString);
     var actionNodeType = Object.keys(actionNodeXml)[0];
-    var currentTransition = this.get("currentTransition");
+    var currentTransition = this.get("currentTransition.transition");
     this.createSnapshot();
     var actionNode = this.get("workflow").addNode(this.findTransition(this.get("workflow").startNode, currentTransition.sourceNodeId, currentTransition.targetNode.id),actionNodeType);
     this.rerender();
@@ -558,18 +567,32 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
    this.get('workspaceManager').saveWorkInProgress(this.get('tabInfo.id'), json);
   },
   getWorkflowAsJson(){
+    return this.getWorkflowAsJsonJsoGImpl();
+  },
+  getWorkflowAsNativeJsonImpl(){
     try{
      var json=JSON.stringify(this.get("workflow")), self = this;
      var actionVersions = JSON.stringify([...this.get("workflow").schemaVersions.actionVersions]);
      var workflow = JSON.parse(json);
      workflow.schemaVersions.actionVersions = actionVersions
-     //this.get('workspaceManager').saveWorkInProgress(this.get('tabInfo.id'), json);
      return JSON.stringify(workflow);
    }catch(err){
     console.error(err);
      this.isCyclic(this.get("workflow"));
    }
   },
+  getWorkflowAsJsonJsoGImpl(){
+   try{
+    var json=JSOG.stringify(this.get("workflow")), self = this;
+    var actionVersions = JSOG.stringify([...this.get("workflow").schemaVersions.actionVersions]);
+    var workflow = JSOG.parse(json);
+    workflow.schemaVersions.actionVersions = actionVersions
+    return JSOG.stringify(workflow);
+  }catch(err){
+   console.error(err);
+    this.isCyclic(this.get("workflow"));
+  }
+},
   isCyclic (obj) {
     var seenObjects = [];
     function detect (obj) {
@@ -631,7 +654,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('undoAvailable', true);
     this.set('undoType', type);
   },
-  deleteWorkflowNode(node){
+  deleteWorkflowNode(node,transitionslist){
     this.createSnapshot();
     if(node.isKillNode()){
       var result=this.get("workflow").deleteKillNode(node);
@@ -639,7 +662,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.get('validationErrors').pushObject({node : node ,message :result.message});
       }
     } else {
-      this.get("workflow").deleteNode(node);
+      this.get("workflow").deleteNode(node,transitionslist);
     }
     this.rerender();
     this.doValidation();
@@ -858,8 +881,10 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     addAction(type){
       this.createSnapshot();
-      var currentTransition=this.get("currentTransition");
-      this.get("workflow").addNode(this.findTransition(this.get("workflow").startNode, currentTransition.sourceNodeId, currentTransition.targetNode.id),type);
+      var currentTransition=this.get("currentTransition.transition");
+      var transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
+      transition.source=this.get("currentTransition").source;
+      this.get("workflow").addNode(transition, type);
       this.rerender();
       this.doValidation();
       this.scrollToNewPosition();
@@ -873,7 +898,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     pasteNode(){
       var clipboardContent = this.get('clipboardService').getContent();
-      var currentTransition = this.get("currentTransition");
+      var currentTransition = this.get("currentTransition.transition");
       var node = this.get("workflow").addNode(currentTransition, clipboardContent.actionType);
       if(clipboardContent.operation === 'cut'){
         node.name = clipboardContent.name;
@@ -894,10 +919,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     },
     showNotification(node){
       this.set("showNotificationPanel", true);
-      if(node.actionType){
-        //this.set("hoveredWidget", node.actionType+"-action-info");
-        //this.set("hoveredAction", node.getNodeDetail());
-      }
     },
     hideNotification(){
       this.set("showNotificationPanel", false);
