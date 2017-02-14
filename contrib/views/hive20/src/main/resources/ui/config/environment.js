@@ -48,7 +48,7 @@ module.exports = function(environment) {
 
     // Change the value to false to prevent the service checks. This is required in development mode
     // as service checks take up time and hence increase the overall development time.
-    ENV.APP.SHOULD_PERFORM_SERVICE_CHECK = true;
+    ENV.APP.SHOULD_PERFORM_SERVICE_CHECK = false;
   }
 
   if (environment === 'test') {

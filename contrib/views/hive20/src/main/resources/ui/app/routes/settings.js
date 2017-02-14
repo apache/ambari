@@ -17,9 +17,10 @@
  */
 
 import Ember from 'ember';
-import hiveParams from '../configs/hive-parameters'
+import hiveParams from '../configs/hive-parameters';
+import UILoggerMixin from '../mixins/ui-logger';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(UILoggerMixin, {
   model() {
     return this.store.findAll('setting').then(settings => settings.toArray());
   },
@@ -63,16 +64,15 @@ export default Ember.Route.extend({
         let model = this.get('controller.model');
         model.removeObject(data);
       }, err => {
-        console.log('error in deletion');
+        this.get('logger').danger(`Failed to delete setting with key: '${setting.get('key')}`, this.extractError(err));
       })
     },
 
     updateAction(newSetting) {
       newSetting.save().then(data => {
-        console.log('saved', data);
         data.set('editMode', false);
       }, error => {
-        console.log('error', err);
+        this.get('logger').danger(`Failed to update setting with key: '${setting.get('key')}`, this.extractError(error));
       })
     },
 
