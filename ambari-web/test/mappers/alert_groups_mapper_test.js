@@ -87,7 +87,7 @@ describe('App.alertGroupsMapper', function () {
 
     beforeEach(function () {
 
-      sinon.stub(App.store, 'commit', Em.K);
+      sinon.stub(App.store, 'fastCommit', Em.K);
       sinon.stub(App.store, 'loadMany', function (type, content) {
         type.content = content;
       });
@@ -99,7 +99,7 @@ describe('App.alertGroupsMapper', function () {
 
     afterEach(function () {
 
-      App.store.commit.restore();
+      App.store.fastCommit.restore();
       App.store.loadMany.restore();
       App.alertGroupsMapper.set('model', App.AlertGroup);
       App.cache.previousAlertGroupsMap = {};

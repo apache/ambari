@@ -214,9 +214,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         }
       }, this);
     }
-    App.store.loadMany(this.clientModel, clients);
-    App.store.loadMany(this.slaveModel, slaves);
-    App.store.loadMany(this.masterModel, masters);
+    App.store.safeLoadMany(this.clientModel, clients);
+    App.store.safeLoadMany(this.slaveModel, slaves);
+    App.store.safeLoadMany(this.masterModel, masters);
 
     if (hasNewComponents) {
       App.get('router.clusterController').triggerQuickLinksUpdate();

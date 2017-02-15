@@ -46,6 +46,11 @@ App.MainController = Em.Controller.extend({
    * run all processes and cluster's data loading
    */
   initialize: function(){
+    // Since we use only defaultTransaction, we can stub <code>removeCleanRecords</code> method,
+    // because it would remove from and add records to the same (default) transaction
+    App.store.defaultTransaction.reopen({
+      removeCleanRecords: Em.K
+    });
     App.router.get('clusterController').loadClusterData();
   },
 

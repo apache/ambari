@@ -43,6 +43,42 @@ App.cache.clear = function () {
   App.cache.clear = clear;
 };
 
+App.store.reopen({
+  safeLoadMany: function(model, records) {
+    try {
+      this.loadMany(model, records);
+    } catch (e) {
+      console.debug('Resolve uncommitted records before load');
+      this.fastCommit();
+      this.loadMany(model, records);
+    }
+  },
+
+  safeLoad: function(model, record) {
+    try {
+      this.load(model, record);
+    } catch (e) {
+      console.debug('Resolve uncommitted record before load');
+      this.fastCommit();
+      this.load(model, record);
+    }
+  },
+
+  /**
+   * App.store.commit() - creates new transaction,
+   * and them move all records from old to new transactions which is expensive
+   *
+   * We should use only defaultTransaction,
+   * and then we can stub <code>removeCleanRecords</code> method,
+   * because it would remove from and add records to the same (default) transaction
+   */
+  fastCommit: function() {
+    console.time('store commit');
+    App.store.defaultTransaction.commit();
+    console.timeEnd('store commit');
+  }
+});
+
 App.ServerDataMapper = Em.Object.extend({
   jsonKey: false,
   map: function (json) {
@@ -77,7 +113,7 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
         result.push(this.parseIt(item, this.config));
       }, this);
 
-      App.store.loadMany(this.get('model'), result);
+      App.store.safeLoadMany(this.get('model'), result);
     }
   },
 
@@ -144,7 +180,7 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
    */
   deleteRecord: function (item) {
     item.deleteRecord();
-    App.store.commit();
+    App.store.fastCommit();
     item.get('stateManager').transitionTo('loading');
   },
   /**

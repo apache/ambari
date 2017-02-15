@@ -122,8 +122,8 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       }
       result.push(this.parseIt(stackService, this.get('config')));
     }, this);
-    App.store.loadMany(this.get('component_model'), stackServiceComponents);
-    App.store.loadMany(model, result);
+    App.store.safeLoadMany(this.get('component_model'), stackServiceComponents);
+    App.store.safeLoadMany(model, result);
   },
 
   /**
@@ -136,7 +136,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       records.forEach(function (rec) {
         Ember.run(this, function () {
           rec.deleteRecord();
-          App.store.commit();
+          App.store.fastCommit();
         });
       }, this);
     }, this);

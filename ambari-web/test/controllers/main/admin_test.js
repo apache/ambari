@@ -35,7 +35,7 @@ describe('MainAdminController', function () {
 
     it('Services do not match dependencies', function () {
       App.Service.find().clear();
-      App.store.load(App.Service, {
+      App.store.safeLoad(App.Service, {
         id: 'HDFS',
         service_name: 'HDFS'
       });
@@ -47,21 +47,21 @@ describe('MainAdminController', function () {
       expect(controller.get("isAccessAvailable")).to.be.false;
     });
     it('Only one YARN service installed', function () {
-      App.store.load(App.Service, {
+      App.store.safeLoad(App.Service, {
         id: 'YARN',
         service_name: 'YARN'
       });
       expect(controller.get("isAccessAvailable")).to.be.false;
     });
     it('TEZ and YARN services installed', function () {
-      App.store.load(App.Service, {
+      App.store.safeLoad(App.Service, {
         id: 'TEZ',
         service_name: 'TEZ'
       });
       expect(controller.get("isAccessAvailable")).to.be.false;
     });
     it('TEZ and YARN services, APP_TIMELINE_SERVER component installed', function () {
-      App.store.load(App.HostComponent, {
+      App.store.safeLoad(App.HostComponent, {
         id: 'APP_TIMELINE_SERVER_host1',
         component_name: 'APP_TIMELINE_SERVER'
       });

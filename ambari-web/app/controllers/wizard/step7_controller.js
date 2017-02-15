@@ -670,7 +670,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         console.time('loadConfigGroups execution time: ');
         this.loadConfigGroups(this.get('allSelectedServiceNames')).done(this.loadOverrides.bind(this));
       } else {
-        App.store.commit();
+        App.store.fastCommit();
         App.configGroupsMapper.map(null, false, this.get('allSelectedServiceNames'));
         this.onLoadOverrides();
       }
@@ -1132,9 +1132,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (service.get('serviceName') === 'MISC') return;
       var serviceRawGroups = serviceConfigGroups.filterProperty('service_name', service.serviceName);
       if (serviceRawGroups.length) {
-        App.store.commit();
-        App.store.loadMany(App.ServiceConfigGroup, serviceRawGroups);
-        App.store.commit();
+        App.store.safeLoadMany(App.ServiceConfigGroup, serviceRawGroups);
         serviceRawGroups.forEach(function(item){
           var modelGroup = App.ServiceConfigGroup.find(item.id);
           modelGroup.set('properties', []);

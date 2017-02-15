@@ -213,15 +213,15 @@ App.hostsMapper = App.QuickDataMapper.create({
         if (componentsIdMap[key]) componentsIdMap[key].display_name_advanced = App.HostComponent.find(key).get('displayNameAdvanced');
       }
 
-      App.store.commit();
-      App.store.loadMany(App.HostStackVersion, stackVersions);
-      App.store.loadMany(App.HostComponentLog, hostComponentLogs);
-      App.store.loadMany(App.HostComponent, components);
       //"itemTotal" present only for Hosts page request
       if (!Em.isNone(json.itemTotal)) {
         App.Host.find().clear();
+        App.HostComponent.find().clear();
       }
-      App.store.loadMany(App.Host, hostsWithFullInfo);
+      App.store.safeLoadMany(App.HostStackVersion, stackVersions);
+      App.store.safeLoadMany(App.HostComponentLog, hostComponentLogs);
+      App.store.safeLoadMany(App.HostComponent, components);
+      App.store.safeLoadMany(App.Host, hostsWithFullInfo);
       var itemTotal = parseInt(json.itemTotal);
       if (!isNaN(itemTotal)) {
         App.router.set('mainHostController.filteredCount', itemTotal);

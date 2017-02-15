@@ -22,7 +22,7 @@ require('models/stack_service');
 
 describe('App.StackService', function () {
 
-  App.store.load(App.StackService, {
+  App.store.safeLoad(App.StackService, {
     id: 'S1'
   });
 
