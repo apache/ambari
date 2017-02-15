@@ -438,20 +438,20 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "yarn.NodeManagerMetrics.ContainersFailed._rate",
-              "metric_path": "metrics/yarn/ContainersFailed._rate",
+              "name": "yarn.NodeManagerMetrics.ContainersFailed",
+              "metric_path": "metrics/yarn/ContainersFailed",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersCompleted._rate",
-              "metric_path": "metrics/yarn/ContainersCompleted._rate",
+              "name": "yarn.NodeManagerMetrics.ContainersCompleted",
+              "metric_path": "metrics/yarn/ContainersCompleted",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersLaunched._rate",
-              "metric_path": "metrics/yarn/ContainersLaunched._rate",
+              "name": "yarn.NodeManagerMetrics.ContainersLaunched",
+              "metric_path": "metrics/yarn/ContainersLaunched",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
@@ -462,8 +462,8 @@
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "yarn.NodeManagerMetrics.ContainersKilled._rate",
-              "metric_path": "metrics/yarn/ContainersKilled._rate",
+              "name": "yarn.NodeManagerMetrics.ContainersKilled",
+              "metric_path": "metrics/yarn/ContainersKilled",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
@@ -477,7 +477,7 @@
           "values": [
             {
               "name": "Container Failures",
-              "value": "${(yarn.NodeManagerMetrics.ContainersFailed._rate/(yarn.NodeManagerMetrics.ContainersFailed._rate + yarn.NodeManagerMetrics.ContainersCompleted._rate + yarn.NodeManagerMetrics.ContainersLaunched._rate + yarn.NodeManagerMetrics.ContainersIniting + yarn.NodeManagerMetrics.ContainersKilled._rate + yarn.NodeManagerMetrics.ContainersRunning)) * 100}"
+              "value": "${(yarn.NodeManagerMetrics.ContainersFailed/(yarn.NodeManagerMetrics.ContainersFailed + yarn.NodeManagerMetrics.ContainersCompleted + yarn.NodeManagerMetrics.ContainersLaunched + yarn.NodeManagerMetrics.ContainersIniting + yarn.NodeManagerMetrics.ContainersKilled + yarn.NodeManagerMetrics.ContainersRunning)) * 100}"
             }
           ],
           "properties": {
