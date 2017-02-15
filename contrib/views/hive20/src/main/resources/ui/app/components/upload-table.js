@@ -23,6 +23,7 @@ export default Ember.Component.extend({
   fileFormatInfo: Ember.Object.create({
     csvParams: Ember.Object.create(),
     inputFileType: null,
+    containsEndlines: false,
   }),
   fileInfo: Ember.Object.create({
     files: Ember.A(),
@@ -33,9 +34,6 @@ export default Ember.Component.extend({
   actions: {
     onFileChanged: function () {
       console.log("inside files changed");
-      console.log("fileFormatInfo : ", this.get("fileFormatInfo"));
-      console.log("fileInfo : ", this.get("fileInfo"));
-      console.log("tableInfo : ", this.get("tableInfo"));
       this.send("preview");
     },
     preview: function () {

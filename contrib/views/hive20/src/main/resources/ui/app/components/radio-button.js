@@ -28,7 +28,6 @@ export default Ember.Component.extend({
   }.property('value', 'checked'),
 
   change: function() {
-    console.log("value changed : ", this.get('value'));
     this.set('checked', this.get('value'));
   },
 
