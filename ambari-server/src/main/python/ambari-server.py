@@ -167,15 +167,18 @@ def stop(args):
     try:
       os.kill(pid, signal.SIGTERM)
     except OSError, e:
-      print_info_msg("Unable to stop Ambari Server - " + str(e))
-      return
+      err = "Unable to stop Ambari Server - " + str(e)
+      print_info_msg(err)
+      raise FatalException(1, err)
 
     print "Waiting for server stop..."
     logger.info("Waiting for server stop...")
 
     if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
-      print "Ambari-server failed to stop"
-      logger.info("Ambari-server failed to stop")
+      err = "Ambari-server failed to stop"
+      print err
+      logger.error(err)
+      raise FatalException(1, err)
 
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
