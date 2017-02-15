@@ -15,9 +15,12 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
+import {SLAMapper} from "../../domain/mapping-utils";
+
 var CoordinatorGenerator= Ember.Object.extend({
   x2js : new X2JS({useDoubleQuotes:true}),
   coordinator: null,
+  slaMapper: SLAMapper.create({}),
   init(){
   },
   process(){
@@ -34,6 +37,8 @@ var CoordinatorGenerator= Ember.Object.extend({
     coordinatorApp._end = this.coordinator.end.value;
     coordinatorApp._timezone = this.coordinator.timezone;
     coordinatorApp._xmlns = "uri:oozie:coordinator:"+this.coordinator.schemaVersions.coordinatorVersion;
+    this.generateParameters(coordinatorApp);
+    this.generateControls(coordinatorApp);
     this.generateDataSets(coordinatorApp);
     if(this.coordinator.dataInputType === 'simple'){
       this.generateInputEvents(coordinatorApp);
@@ -45,8 +50,10 @@ var CoordinatorGenerator= Ember.Object.extend({
     }
     this.generateOutputEvents(coordinatorApp);
     this.generateAction(coordinatorApp);
-    this.generateParameters(coordinatorApp);
-    this.generateControls(coordinatorApp);
+    if(this.coordinator.slaEnabled){
+      coordinatorApp["_xmlns:sla"] = "uri:oozie:sla:0.2";
+      this.get("slaMapper").hanldeGeneration(this.coordinator.slaInfo, coordinatorApp.action);
+    }
     var xmlAsStr = this.get("x2js").json2xml_str(xmlJson);
     return xmlAsStr;
   },
@@ -116,7 +123,6 @@ var CoordinatorGenerator= Ember.Object.extend({
     if(!condition) {
       return;
     }
-    conditionJson._name = condition.name;
     if(condition.min){
       conditionJson._min = condition.min;
     }
