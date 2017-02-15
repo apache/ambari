@@ -41,11 +41,6 @@ export default NewTable.extend({
   getCharOptionByCharCode: function(charCode){
     return Helpers.getAllTerminationCharacters().findBy("id", charCode + "");
   },
-  // onChangeSelectedFileType: function(){
-  //   if(this.get('selectedFileType') === this.get('fileTypes')[1] && this.get('containsEndlines') === true){
-  //     this.set('containsEndlines', false);
-  //   }
-  // }.observes("selectedFileType", "containsEndlines"),
   getUploader(){
     return this.get('store').adapterFor('upload-table');
   },
@@ -102,7 +97,6 @@ export default NewTable.extend({
     var self = this;
     var fetchJobPromise = this.get('jobService').getJob(jobId);
     fetchJobPromise.then(function (data) {
-      console.log("waitForJobStatus : data : ", data);
       var job = JSON.parse(JSON.stringify(data));
       var status = job.status;
       if (status == constants.statuses.succeeded ) {
@@ -262,27 +256,24 @@ export default NewTable.extend({
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.failedToCreateActualTable'));
     this.setError(error);
   },
+  copyTableMeta: function(tableMeta){
+    let colArray = Ember.copy(tableMeta.columns, true);
+    let tableMetaCopy = JSON.parse(JSON.stringify(tableMeta));
+    tableMetaCopy.columns = colArray;
+    return tableMetaCopy;
+  },
   createTempTable: function (tableData) {
-    let tableMeta = JSON.parse(JSON.stringify(tableData.get("tableMeta")));
-    // manually copy the columns as they are missing members when copying
-    let columns = tableData.get("tableMeta").columns.map(function(col){
-      return col.copy();
-    });
-    tableMeta.columns = columns;
-
-    console.log("tableMeta : ", tableMeta);
-
-    var self = this;
     console.log("createTempTable");
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.startingToCreateTemporaryTable'));
+    let tableMeta = this.copyTableMeta(tableData.get("tableMeta")); // deep copy or otherwise it does make separate
     var tempTableName = this.generateTempTableName();
     tableMeta.name = tempTableName;
 
     var headers = tableMeta.columns.map(function(column){
       if(tableData.fileFormatInfo.containsEndlines){
-        column.type.label = "STRING";
-        delete column.scale;
-        delete column.precision;
+        column.set("type", datatypes.findBy("label","STRING"));
+        column.set("scale");
+        column.set("precision");
       }
       return column;
     });
@@ -714,54 +705,21 @@ export default NewTable.extend({
       this.set("showMoreOrLess", "Show Less");
     }
   },
-
-  displayOption: "display:none",
-  actions: {
-  toggleCSVFormat: function() {
-    console.log("inside toggleCSVFormat");
-    this.toggleProperty('showCSVFormatInput');
+  validateInputs: function(tableData){
+    let tableMeta = tableData.get("tableMeta");
+    let containsEndlines = tableData.get("fileFormatInfo.containsEndlines");
+    if(containsEndlines == true && tableMeta.settings && tableMeta.settings.fileFormat
+      && tableMeta.settings.fileFormat.type && tableMeta.settings.fileFormat.type === "TEXTFILE"){
+      throw new Error(`Cannot support endlines in fields when the  File Format is TEXTFILE. Please uncheck '${this.translate('hive.ui.csvFormatParams.containsEndlines')}'`);
+    }
   },
-  hideInputParamModal : function(){
-      Ember.$("#inputParamsModal").modal("hide");
-    },
-    showInputParamModal : function(){
-      if(this.get('inputFileTypeCSV')){
-        Ember.$("#inputParamsModal").modal("show");
-      }
-    },
-    hideRowFormatModal : function(){
-      Ember.$("#rowFormatModal").modal("hide");
-    },
-    showRowFormatModal : function(){
-      if(this.get('storedAsTextFile')) {
-        Ember.$("#rowFormatModal").modal("show");
-      }
-    },
-    toggleErrors: function () {
-      this.toggleProperty('showErrors');
-    },
-    // filesUploaded: function (files) {
-    //   console.log("upload-table.js : uploaded new files : ", files);
-    //   this.clearFields();
-    //
-    //   this.set('files', files);
-    //   var name = files[0].name;
-    //   var i = name.indexOf(".");
-    //   var tableName = name.substr(0, i);
-    //   this.set('tableName', tableName);
-    //   var self = this;
-    //   return this.generatePreview(sourceObject)
-    // },
+
+  actions: {
     preview: function (previewObject) {
       console.log("upload-table.js : uploaded new files : ", previewObject);
       this.clearFields();
 
       this.set('previewObject', previewObject);
-      // var name = previewObject.get("fileInfo").get("files")[0].name;
-      // var i = name.indexOf(".");
-      // var tableName = name.substr(0, i);
-      // this.set('tableName', tableName);
-      // var self = this;
       return this.generatePreview(previewObject)
     },
     previewFromHdfs: function () {
@@ -770,6 +728,7 @@ export default NewTable.extend({
     uploadTable: function (tableData) {
       console.log("tableData", tableData);
       try {
+        this.validateInputs(tableData);
         this.createTableAndUploadFile(tableData);
       } catch (e) {
         console.log("exception occured : ", e);

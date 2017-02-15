@@ -111,10 +111,10 @@ let Column = Ember.Object.extend(Ember.Copyable,{
   },
 
   copy: function(){
-    return Column.create({
+    let col = Column.create({
       name: this.get("name"),
-      type: this.get("type"),
-      precision: this.get("percision"),
+      type: datatypes.findBy("label", this.get("type.label")),
+      precision: this.get("precision"),
       scale: this.get("scale"),
       isPartitioned: this.get("isPartitioned"),
       isClustered: this.get("isClustered"),
@@ -123,6 +123,7 @@ let Column = Ember.Object.extend(Ember.Copyable,{
       errors: this.get("errors").copy(),
       editing: this.get("editing"),
     });
+    return col;
   }
 
 });
