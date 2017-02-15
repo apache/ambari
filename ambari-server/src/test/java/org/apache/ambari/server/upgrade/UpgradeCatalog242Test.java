@@ -37,7 +37,6 @@ import static org.easymock.EasyMock.verify;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -386,18 +385,10 @@ public class UpgradeCatalog242Test {
 
     ResourceTypeEntity clusterResourceTypeEntity = easyMockSupport.createMock(ResourceTypeEntity.class);
 
-    Collection<RoleAuthorizationEntity> ambariAdministratorAuthorizations = new ArrayList<RoleAuthorizationEntity>();
-    Collection<RoleAuthorizationEntity> clusterAdministratorAuthorizations = new ArrayList<RoleAuthorizationEntity>();
-
-    PermissionEntity clusterAdministratorPermissionEntity = easyMockSupport.createMock(PermissionEntity.class);
-    expect(clusterAdministratorPermissionEntity.getAuthorizations())
-        .andReturn(clusterAdministratorAuthorizations)
-        .times(1);
-
-    PermissionEntity ambariAdministratorPermissionEntity = easyMockSupport.createMock(PermissionEntity.class);
-    expect(ambariAdministratorPermissionEntity.getAuthorizations())
-        .andReturn(ambariAdministratorAuthorizations)
-        .times(2);
+    PermissionEntity clusterAdministratorPermissionEntity = new PermissionEntity();
+    clusterAdministratorPermissionEntity.setId(1);
+    PermissionEntity ambariAdministratorPermissionEntity = new PermissionEntity();
+    ambariAdministratorPermissionEntity.setId(2);
 
     PermissionDAO permissionDAO = easyMockSupport.createMock(PermissionDAO.class);
     expect(permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR", ambariResourceTypeEntity))
@@ -447,11 +438,11 @@ public class UpgradeCatalog242Test {
     Assert.assertEquals("CLUSTER.RUN_CUSTOM_COMMAND", clusterRunCustomCommandEntity.getAuthorizationId());
     Assert.assertEquals("Perform custom cluster-level actions", clusterRunCustomCommandEntity.getAuthorizationName());
 
-    Assert.assertEquals(2, ambariAdministratorAuthorizations.size());
-    Assert.assertTrue(ambariAdministratorAuthorizations.contains(clusterRunCustomCommandEntity));
-    Assert.assertTrue(ambariAdministratorAuthorizations.contains(ambariRunCustomCommandEntity));
+    Assert.assertEquals(2, ambariAdministratorPermissionEntity.getAuthorizations().size());
+    Assert.assertTrue(ambariAdministratorPermissionEntity.getAuthorizations().contains(clusterRunCustomCommandEntity));
+    Assert.assertTrue(ambariAdministratorPermissionEntity.getAuthorizations().contains(ambariRunCustomCommandEntity));
 
-    Assert.assertEquals(1, clusterAdministratorAuthorizations.size());
-    Assert.assertTrue(clusterAdministratorAuthorizations.contains(clusterRunCustomCommandEntity));
+    Assert.assertEquals(1, clusterAdministratorPermissionEntity.getAuthorizations().size());
+    Assert.assertTrue(clusterAdministratorPermissionEntity.getAuthorizations().contains(clusterRunCustomCommandEntity));
   }
 }

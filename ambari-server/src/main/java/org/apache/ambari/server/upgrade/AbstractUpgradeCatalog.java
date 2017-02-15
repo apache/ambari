@@ -883,7 +883,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
       PermissionEntity role = permissionDAO.findPermissionByNameAndType(roleName, resourceTypeDAO.findByName(resourceType));
       if (role != null) {
-        role.getAuthorizations().add(roleAuthorization);
+        role.addAuthorization(roleAuthorization);
         permissionDAO.merge(role);
       }
     }
