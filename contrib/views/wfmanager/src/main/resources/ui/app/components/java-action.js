@@ -24,29 +24,24 @@ const Validations = buildValidations({
   }),
   'actionModel.jobTracker': validator('presence', {
     presence : true
-  })  
+  })
 });
 
 export default Ember.Component.extend(Validations, {
   fileBrowser : Ember.inject.service('file-browser'),
-  javaOptsObserver : Ember.observer('isSingle',function(){
-    if(this.get('isSingle')){
-      this.set("actionModel.javaOpt", undefined);
-    }else{
-      this.set("actionModel.javaOpts", undefined);
-    }
-  }),
+  isSingle : false,
   setUp : function(){
     if(this.get('actionModel.args') === undefined){
       this.set("actionModel.args", Ember.A([]));
     }
-    if(this.get('actionModel.javaOpt') === undefined && !this.get('actionModel.javaOpts')){
+    if(this.get('actionModel.javaOpt') === undefined){
       this.set("actionModel.javaOpt", Ember.A([]));
+    }else if(this.get('actionModel.javaOpt').length > 0){
       this.set('isSingle', false);
-    }else if(this.get('actionModel.javaOpt') === undefined && this.get('actionModel.javaOpts')){
-      this.set('isSingle', true);
+    }else if(Ember.isBlank(this.get('actionModel.javaOpts')) && this.get('actionModel.javaOpt').length == 0){
+      this.set('isSingle', false);
     }else{
-      this.set('isSingle', false);
+      this.set('isSingle', true);
     }
     if(this.get('actionModel.files') === undefined){
       this.set("actionModel.files", Ember.A([]));
@@ -90,8 +85,10 @@ export default Ember.Component.extend(Validations, {
     onJavaOptChange(value){
       if(value === "single"){
         this.set('isSingle',true);
+        this.set("actionModel.javaOpt", Ember.A([]));
       }else{
         this.set('isSingle',false);
+        this.set("actionModel.javaOpts", undefined);
       }
     }
   }
