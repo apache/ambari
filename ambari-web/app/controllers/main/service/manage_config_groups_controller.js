@@ -679,7 +679,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           name: this.get('configGroupName'),
           description: this.get('configGroupDesc')
         });
-        App.store.commit();
+        App.store.fastCommit();
         this.hide();
       }
     });
@@ -745,7 +745,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           });
         }
 
-        App.store.load(App.ServiceConfigGroup, {
+        App.store.safeLoad(App.ServiceConfigGroup, {
           id: newGroupId,
           name: groupName,
           description: this.get('configGroupDesc'),
@@ -758,11 +758,11 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           properties: duplicated ? properties : [],
           is_temporary: true
         });
-        App.store.commit();
+        App.store.fastCommit();
         var childConfigGroups = defaultConfigGroup.get('childConfigGroups').mapProperty('id');
         childConfigGroups.push(newGroupId);
-        App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
-        App.store.commit();
+        App.store.safeLoad(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
+        App.store.fastCommit();
         self.get('configGroups').pushObject(App.ServiceConfigGroup.find(newGroupId));
         this.hide();
       }
@@ -852,9 +852,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       resetGroupChanges: function (originalGroups) {
         if (this.get('subViewController.isHostsModified')) {
           App.ServiceConfigGroup.find().clear();
-          App.store.commit();
-          App.store.loadMany(App.ServiceConfigGroup, originalGroups);
-          App.store.commit();
+          App.store.safeLoadMany(App.ServiceConfigGroup, originalGroups);
         }
       },
 

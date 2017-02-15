@@ -58,7 +58,6 @@ App.GroupsMappingMixin = Em.Mixin.create({
    * @method saveConfigGroupsToModel
    */
   saveConfigGroupsToModel: function (data, opt, params) {
-    App.store.commit();
     App.configGroupsMapper.map(data, false, params.serviceNames.split(','));
     this.set('configGroupsAreLoaded', true);
     params.dfd.resolve();

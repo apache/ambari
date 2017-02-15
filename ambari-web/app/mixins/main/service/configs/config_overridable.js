@@ -149,8 +149,8 @@ App.ConfigOverridable = Em.Mixin.create({
             });
           } else {
             newConfigGroup.is_temporary = true;
-            App.store.load(App.ServiceConfigGroup, newConfigGroup);
-            App.store.commit();
+            App.store.safeLoad(App.ServiceConfigGroup, newConfigGroup);
+            App.store.fastCommit();
             newConfigGroup = App.ServiceConfigGroup.find(newConfigGroup.id);
             configGroups.pushObject(newConfigGroup);
             self.persistConfigGroups();
@@ -265,8 +265,8 @@ App.ConfigOverridable = Em.Mixin.create({
       successFunction: function (response, opt, params) {
         var modelData = params.modelData;
         modelData.id = response.resources[0].ConfigGroup.id;
-        App.store.load(App.ServiceConfigGroup, modelData);
-        App.store.commit();
+        App.store.safeLoad(App.ServiceConfigGroup, modelData);
+        App.store.fastCommit();
         App.ServiceConfigGroup.deleteTemporaryRecords();
         if (callback) {
           callback();

@@ -47,7 +47,7 @@ App.targetClusterMapper = App.QuickDataMapper.create({
       clustersToDelete.forEach(function (name) {
         this.deleteRecord(model.find().findProperty('name', name));
       }, this);
-      App.store.loadMany(model, result);
+      App.store.safeLoadMany(model, result);
     }
   }
 });

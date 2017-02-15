@@ -85,11 +85,6 @@ App.HttpClient = Em.Object.create({
     var timeout = setTimeout(function () {
       if (xhr.readyState == 4) {
         if (xhr.status == 200) {
-          try {
-            App.store.commit();
-          } catch (err) {
-            console.warn('App.store.commit error:', err);
-          }
           var response = $.parseJSON(xhr.responseText);
           if (tmp_val.beforeMap) {
             tmp_val.beforeMap.call(self, response);

@@ -47,8 +47,7 @@ App.stackUpgradeHistoryMapper = App.QuickDataMapper.create({
       result.push(parseResult);
     }, this);
 
-    App.store.loadMany(this.get('model'), result);
-    App.store.commit();
+    App.store.safeLoadMany(this.get('model'), result);
     App.set('isStackUpgradeHistoryLoaded',true);
   }
 });

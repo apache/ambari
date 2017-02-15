@@ -106,7 +106,7 @@ App.CreateUserForm = App.Form.extend({
     });
 
     if (this.get('className')) {
-      App.store.load(this.get('className'), App.dateTime(), formValues);
+      App.store.safeLoad(this.get('className'), App.dateTime(), formValues);
     }
 
     this.set('result', 1);

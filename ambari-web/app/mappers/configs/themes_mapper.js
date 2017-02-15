@@ -85,8 +85,7 @@ App.themesMapper = App.QuickDataMapper.create({
       this.mapThemeWidgets(item);
     }, this);
 
-    App.store.commit();
-    App.store.loadMany(this.get("tabModel"), tabs);
+    App.store.safeLoadMany(this.get("tabModel"), tabs);
     this.generateAdvancedTabs(serviceNames);
     console.timeEnd('App.themesMapper execution time');
   },
@@ -136,9 +135,7 @@ App.themesMapper = App.QuickDataMapper.create({
                       var type = 'subsectionTab';
                       this.mapThemeConditions(subSectionTabConditions, type);
                     }
-                    App.store.commit();
-                    App.store.loadMany(this.get("subSectionTabModel"), subSectionTabs);
-                    App.store.commit();
+                    App.store.safeLoadMany(this.get("subSectionTabModel"), subSectionTabs);
                     parsedSubSection.sub_section_tabs = subSectionTabs.mapProperty("id");
                   }
                   if (parsedSubSection['depends_on']) {
@@ -150,18 +147,14 @@ App.themesMapper = App.QuickDataMapper.create({
                   var type = 'subsection';
                   this.mapThemeConditions(subSectionConditions, type);
                 }
-                App.store.commit();
-                App.store.loadMany(this.get("subSectionModel"), subSections);
-                App.store.commit();
+                App.store.safeLoadMany(this.get("subSectionModel"), subSections);
                 parsedSection.sub_sections = subSections.mapProperty("id");
               }
 
               sections.push(parsedSection);
             }, this);
 
-            App.store.commit();
-            App.store.loadMany(this.get("sectionModel"), sections);
-            App.store.commit();
+            App.store.safeLoadMany(this.get("sectionModel"), sections);
             parsedTab.sections = sections.mapProperty("id");
           }
 
@@ -283,8 +276,7 @@ App.themesMapper = App.QuickDataMapper.create({
       configConditionsCopy.pushObject(configCondition);
     }, this);
 
-    App.store.loadMany(this.get("themeConditionModel"), configConditionsCopy);
-    App.store.commit();
+    App.store.safeLoadMany(this.get("themeConditionModel"), configConditionsCopy);
   },
 
   /**
@@ -314,8 +306,7 @@ App.themesMapper = App.QuickDataMapper.create({
         subSectionConditionsCopy.pushObject(subSectionCondition);
       }, this);
     }, this);
-    App.store.loadMany(this.get("themeConditionModel"), subSectionConditionsCopy);
-    App.store.commit();
+    App.store.safeLoadMany(this.get("themeConditionModel"), subSectionConditionsCopy);
   },
 
   /**
@@ -374,8 +365,6 @@ App.themesMapper = App.QuickDataMapper.create({
         service_name: serviceName
       });
     });
-    App.store.commit();
-    App.store.loadMany(this.get("tabModel"), advancedTabs);
-    App.store.commit();
+    App.store.safeLoadMany(this.get("tabModel"), advancedTabs);
   }
 });

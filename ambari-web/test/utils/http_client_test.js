@@ -274,7 +274,6 @@ describe('App.HttpClient', function () {
 
         beforeEach(function () {
           clock = sinon.useFakeTimers();
-          sinon.stub(App.store, 'commit');
           sinon.spy(xhr, 'abort');
           sinon.spy(mapper, 'map');
           sinon.spy(mock, 'errorHandler');
@@ -282,9 +281,6 @@ describe('App.HttpClient', function () {
           sinon.spy(App.HttpClient, 'onReady');
           xhr.readyState = item.readyState;
           xhr.status = item.status;
-          if (item.isCommitError) {
-            App.store.commit.throws();
-          }
           App.HttpClient.onReady(xhr, null, ajaxOptions, mapper, mock.errorHandler, 'url');
           clock.tick(10);
           xhr.readyState = 4;
@@ -293,16 +289,11 @@ describe('App.HttpClient', function () {
 
         afterEach(function () {
           clock.restore();
-          App.store.commit.restore();
           xhr.abort.restore();
           mapper.map.restore();
           mock.errorHandler.restore();
           ajaxOptions.complete.restore();
           App.HttpClient.onReady.restore();
-        });
-
-        it('App.store.commit call', function () {
-          expect(App.store.commit.callCount).to.equal(item.commitCallCount);
         });
 
         it('mapping data', function () {

@@ -903,7 +903,7 @@ describe('App.MainHostDetailsController', function () {
   describe('#constructConfigUrlParams()', function () {
 
     function loadService(serviceName) {
-      App.store.load(App.Service, {
+      App.store.safeLoad(App.Service, {
         id: serviceName,
         service_name: serviceName
       });
@@ -958,7 +958,7 @@ describe('App.MainHostDetailsController', function () {
       App.HostComponent.find().clear();
       App.propertyDidChange('isHaEnabled');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=core-site&tag=1)']);
-      App.store.load(App.HostComponent, {
+      App.store.safeLoad(App.HostComponent, {
         id: 'SECONDARY_NAMENODE_host1',
         component_name: 'SECONDARY_NAMENODE'
       });

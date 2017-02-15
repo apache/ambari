@@ -236,16 +236,15 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       });
 
       // load all mapped data to model
-      App.store.loadMany(this.get('reportModel'), alertReportDefinitions);
-      App.store.loadMany(this.get('parameterModel'), parameters);
-      App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
+      App.store.safeLoadMany(this.get('reportModel'), alertReportDefinitions);
+      App.store.safeLoadMany(this.get('parameterModel'), parameters);
+      App.store.safeLoadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
-      App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
-      App.store.loadMany(this.get('metricsAmsModel'), alertMetricsAmsDefinitions);
-      // this loadMany takes too much time
-      App.store.loadMany(this.get('model'), alertDefinitions);
+      App.store.safeLoadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
+      App.store.safeLoadMany(this.get('metricsAmsModel'), alertMetricsAmsDefinitions);
+      // this safeLoadMany takes too much time
+      App.store.safeLoadMany(this.get('model'), alertDefinitions);
       this.setAlertDefinitionsRawSourceData(rawSourceData);
-      App.store.commit();
     }
     console.timeEnd('App.alertDefinitionsMapper execution time');
   },
