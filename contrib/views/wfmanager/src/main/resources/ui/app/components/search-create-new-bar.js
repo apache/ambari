@@ -88,17 +88,16 @@ export default Ember.Component.extend(Ember.Evented,{
                     'Status:SUSPENDED',
                     'Status:SUCCEEDED',
                     'Status:KILLED',
-                    'Status:FAILED'];
+                    'Status:FAILED',
+                    'Status:PREP'];
       var substringMatcher = function(strs) {
         return function findMatches(q, cb) {
           var searchTerm =  self.$('#search-field').tagsinput('input').val();
           var originalLength = strs.length;
-          if(self.get('jobType') === 'wf'){
-            strs.push('Status:PREP');
+          if(self.get('jobType') && self.get('jobType') !== 'wf'){
+            strs.pushObjects(['Status:PREPSUSPENDED','Status:PREPPAUSED','Status:DONEWITHERROR']);
           }
-          strs.push('Name:'+ searchTerm);
-          strs.push('User:'+ searchTerm);
-          strs.push('Job id:'+ searchTerm);
+          strs.pushObjects(['Name:'+ searchTerm, 'User:'+ searchTerm, 'Job id:'+ searchTerm]);
           var newLength = strs.length;
           var matches, substrRegex;
           matches = [];

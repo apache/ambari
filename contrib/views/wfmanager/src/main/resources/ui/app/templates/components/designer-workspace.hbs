@@ -26,13 +26,13 @@
         </div>
         <div class="col-sm-8">
           <div class="text-right pull-right paddingtop7">
-              <button {{action 'showDashboard'}} class="backto-dashboard btn btn-default" title="Workflow Dashboard">
+              <button id="dashboard-btn" {{action 'showDashboard'}} class="backto-dashboard btn btn-default" title="Workflow Dashboard">
                 <i class="fa fa-th marginright5"></i>Dashboard
               </button>
             <div class="btn-group">
             <div class="btn-group">
             <div class="dropdown create-wf-menu">
-              <button class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown">Create
+              <button id="create-workflows-btn" class="btn btn-default dropdown-toggle borderRightRadiusNone" type="button" data-toggle="dropdown">Create
                 <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                   <li>
@@ -70,7 +70,7 @@
             </div>
             <div class="btn-group">
             <div class="dropdown create-wf-menu">
-              <button class="btn btn-default dropdown-toggle borderRadiusNone" {{action "showTopRecentList"}} type="button" data-toggle="dropdown">Recent
+              <button id="recent-workflows-btn" class="btn btn-default dropdown-toggle borderRadiusNone" {{action "showTopRecentList"}} type="button" data-toggle="dropdown">Recent
                 <span class="caret"></span></button>
                 <ul class="dropdown-menu proj-menu">
                  {{#if projList}}
@@ -88,7 +88,7 @@
                     </li>
                    {{/each}}
                   <li>
-                      <a {{action "showProjectManagerList"}} title="My Workflows" class="pointer">
+                      <a id="more-workflows-btn" {{action "showProjectManagerList"}} title="My Workflows" class="pointer">
                       More...
                       </a>
                   </li>
@@ -100,7 +100,7 @@
                 </ul>
              </div>
              </div>
-              <button {{action "showAssetManager" true}} class="btn btn-default" title="Manage Assets">
+              <button id="manage-assets-btn" {{action "showAssetManager" true}} class="btn btn-default" title="Manage Assets">
                   Manage Assets
               </button>
             </div>

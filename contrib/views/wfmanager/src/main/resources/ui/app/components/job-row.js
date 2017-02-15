@@ -38,16 +38,33 @@ export default Ember.Component.extend({
     });
     return deferred.promise;
   },
+  jobType : Ember.computed('job', function(){
+    if(this.get('job').bundleJobId){
+      return 'bundle';
+    }else if(this.get('job').coordJobId){
+      return 'coord';
+    }else{
+      return 'wf';
+    }
+
+  }),
   actions : {
     doAction(action, id) {
+      this.set('showError', false);
+      this.set('showLoader', true);
       var deferred = Ember.RSVP.defer();
       deferred.promise.then(function(){
+        this.set('showLoader', false);
         if(action === 'start'){
           this.set('job.status','RUNNING');
-        }else if(action === 'suspend'){
+        }else if(action === 'suspend' && this.get('job.status') === 'RUNNING'){
           this.set('job.status','SUSPENDED');
-        }else if(action === 'resume'){
+        }else if(action === 'suspend' && this.get('job.status') === 'PREP'){
+          this.set('job.status','PREPSUSPENDED');
+        }else if(action === 'resume' && this.get('job.status') === 'SUSPENDED'){
           this.set('job.status','RUNNING');
+        }else if(action === 'resume' && this.get('job.status') === 'PREPSUSPENDED'){
+          this.set('job.status','PREP');
         }else if(action === 'stop'){
           this.set('job.status','STOPPED');
         }else if(action === 'rerun'){
@@ -55,7 +72,10 @@ export default Ember.Component.extend({
         }else if(action === 'kill'){
           this.set('job.status','KILLED');
         }
-      }.bind(this),function(){
+      }.bind(this)).catch(function(e){
+        this.set('showError', true);
+        this.set('showLoader', false);
+        console.error(e);
       }.bind(this));
       if(action === 'rerun' && this.get('job').bundleJobId){
         action = 'bundle-'+action;

@@ -15,7 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
+{{#if showActionError}}
+<div id="alert"class="alert alert-danger alert-dismissible fade in workflow-error" role="alert">
+  <span>Action could not be completed.</span>
+</div>
+{{/if}}
 <table id="search-table" class="table search-table listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
   <thead>
     <tr>
@@ -49,9 +53,9 @@
   </thead>
   <tbody>
     {{#if jobs.jobs}}
-    {{#each jobs.jobs as |job idx|}}
-    {{#job-row job=job onAction="onAction" showJobDetails="showJobDetails" rowSelected="rowSelected"}}{{/job-row}}
-    {{/each}}
+      {{#each jobs.jobs as |job idx|}}
+        {{#job-row job=job onAction="onAction" showJobDetails="showJobDetails" rowSelected="rowSelected" userName=userName showError=showActionError}}{{/job-row}}
+      {{/each}}
     {{/if}}
   </tbody>
 </table>

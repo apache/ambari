@@ -20,6 +20,7 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   showBulkAction : false,
   history: Ember.inject.service(),
+  userInfo : Ember.inject.service('user-info'),
   currentPage : Ember.computed('jobs.start',function(){
     if(Ember.isBlank(this.get('jobs.start'))){
       return 1;
@@ -30,6 +31,13 @@ export default Ember.Component.extend({
   rendered : function(){
     this.sendAction('onSearch', this.get('history').getSearchParams());
   }.on('didInsertElement'),
+  isUpdated : function(){
+    if(this.get('showActionError')){
+      this.$('#alert').fadeOut(2500, ()=>{
+        this.set("showActionError", false);
+      });
+    }
+  }.on('didUpdate'),
   actions: {
     selectAll() {
       this.$(".cbox").click();
