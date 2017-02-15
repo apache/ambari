@@ -254,7 +254,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     """
     def _llap_start(self, env, cleanup=False):
       import params
-      Logger.info("Entered _llap_start()")
       env.set_params(params)
 
       if params.hive_server_interactive_ha:
@@ -329,8 +328,8 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       run_file_path = None
       try:
-        Logger.info(format("Command: {cmd}"))
-        code, output, error = shell.checked_call(cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
+        Logger.info(format("LLAP start command: {cmd}"))
+        code, output, error = shell.checked_call(cmd, user=params.hive_user, quiet = True, stderr=subprocess.PIPE, logoutput=True)
 
         if code != 0 or output is None:
           raise Fail("Command failed with either non-zero return code or no output.")
@@ -442,7 +441,13 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
                                                logoutput=False)
       Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
-      return self._make_valid_json(output)
+      if code == 0:
+        return self._make_valid_json(output)
+      else:
+        Logger.info("'LLAP status command' output : ", output)
+        Logger.info("'LLAP status command' error : ", error)
+        Logger.info("'LLAP status command' exit code : ", code)
+        raise Fail("Error getting LLAP app status. ")
 
     """
     Get llap app status data for LLAP GA code base.
@@ -462,10 +467,20 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       #
       #            example : llapstatus -w -r 0.8 -i 2 -t 150
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus -w -r {percent_desired_instances_to_be_up} -i {refresh_rate} -t {total_timeout}")
-      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
-                                               logoutput=False)
-      Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
-      return self._make_valid_json(output)
+      Logger.info("\n\n\n\n\n");
+      Logger.info("LLAP status command : {0}".format(llap_status_cmd))
+      code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, quiet=True, stderr=subprocess.PIPE,
+                                               logoutput=True)
+
+      if code == 0:
+        return self._make_valid_json(output)
+      else:
+        Logger.info("'LLAP status command' output : ", output)
+        Logger.info("'LLAP status command' error : ", error)
+        Logger.info("'LLAP status command' exit code : ", code)
+        raise Fail("Error getting LLAP app status. ")
+
+
 
 
     """
@@ -527,7 +542,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
               marker_idx = idx
               break;
 
-      Logger.info("Marker index for start of JSON data for 'llapsrtatus' comamnd : {0}".format(marker_idx))
 
       # Remove extra logging from possible JSON output
       if marker_idx is None:
@@ -535,7 +549,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       else:
         if marker_idx != 0:
           del splits[0:marker_idx]
-          Logger.info("Removed lines: '1-{0}' from the received 'llapstatus' output to make it valid for JSON parsing.".format(marker_idx))
 
       scanned_output = '\n'.join(splits)
       llap_app_info = json.loads(scanned_output)
@@ -555,7 +568,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                 num_retries :   Number of retries to check the LLAP app status.
     """
     def check_llap_app_status_in_llap_tp(self, llap_app_name, num_retries, return_immediately_if_stopped=False):
-      Logger.info("Entered check_llap_app_status_in_hdp_tp")
       curr_time = time.time()
       num_retries = int(num_retries)
       if num_retries <= 0:
@@ -580,10 +592,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         return False
 
     def check_llap_app_status_in_llap_ga(self, llap_app_name, num_retries, return_immediately_if_stopped=False):
-      Logger.info("Entered check_llap_app_status_in_llap_ga()")
       curr_time = time.time()
       total_timeout = int(num_retries) * 20; # Total wait time while checking the status via llapstatus command
-      Logger.info("Calculated 'total_timeout' : {0} using config 'num_retries_for_checking_llap_status' : {1}".format(total_timeout, num_retries))
+      Logger.debug("Calculated 'total_timeout' : {0} using config 'num_retries_for_checking_llap_status' : {1}".format(total_timeout, num_retries))
       refresh_rate = 2 # Frequency of checking the llapstatus
       percent_desired_instances_to_be_up = 80 # Out of 100.
       llap_app_info = self._get_llap_app_status_info_in_llap_ga(percent_desired_instances_to_be_up/100.0, total_timeout, refresh_rate)
