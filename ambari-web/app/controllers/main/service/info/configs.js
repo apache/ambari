@@ -235,7 +235,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   clearStep: function () {
     this.abortRequests();
-    App.router.get('mainController').stopPolling();
     App.set('componentToBeAdded', {});
     App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
@@ -285,6 +284,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   loadStep: function () {
     var serviceName = this.get('content.serviceName'), self = this;
+    App.router.get('mainController').stopPolling();
     this.clearStep();
     this.set('dependentServiceNames', (App.StackService.find(serviceName).get('dependentServiceNames') || []).reduce(function(acc, i) {
       acc.push(i);

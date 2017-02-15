@@ -43,7 +43,9 @@ App.ConfigCategoryContainerView = Em.ContainerView.extend({
   pushViews: function () {
     var self = this;
     var categoriesViews = [];
-    this.get('categories').forEach(function (category) {
+    var categories = this.get('categories');
+    if (!categories) return false;
+    categories.forEach(function (category) {
       var viewClass = category.isCustomView ? category.customView : App.ServiceConfigsByCategoryView;
       categoriesViews.push(viewClass.create({
         category: category,

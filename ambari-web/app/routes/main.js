@@ -248,6 +248,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           router.get('mainController').isLoading.call(router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
             router.get('mainHostDetailsController').connectOutlet('mainHostConfigs');
           });
+        },
+        exitRoute: function (router, context, callback) {
+          router.get('mainController').startPolling();
+          callback();
         }
       }),
 
