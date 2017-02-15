@@ -18,24 +18,44 @@
 
 describe('#Cluster', function () {
   describe('StackVersionsListCtrl', function() {
-    var scope, ctrl, $httpBackend;
+    var scope, ctrl, Stack;
 
     beforeEach(module('ambariAdminConsole', function($provide) {
 
     }));
 
-    beforeEach(inject(function($rootScope, $controller, _$httpBackend_) {
-      scope = $rootScope.$new();
-      ctrl = $controller('StackVersionsListCtrl', {$scope: scope});
-      $httpBackend = _$httpBackend_;
-    }));
+    beforeEach(function () {
+      module('ambariAdminConsole');
+      inject(function($rootScope, $controller) {
+        scope = $rootScope.$new();
+        ctrl = $controller('StackVersionsListCtrl', {$scope: scope});
+      });
+    });
 
     describe('#fetchRepos()', function () {
 
-      it('saves list of stacks', function() {
-        scope.fetchRepos().then(function() {
-          expect(Array.isArray(scope.repos)).toBe(true);
+      var repos;
+
+      beforeEach(inject(function(_Stack_) {
+        Stack = _Stack_;
+        spyOn(Stack, 'allRepos').andReturn({
+          then: function (callback) {
+            repos = callback({
+              items: [{}, {}]
+            });
+          }
         });
+        repos = [];
+        scope.isLoading = true;
+        scope.fetchRepos();
+      }));
+
+      it('saves list of stacks', function() {
+        expect(repos.length).toEqual(2);
+      });
+
+      it('isLoading should be set to false', function() {
+        expect(scope.isLoading).toBe(false);
       });
 
     });

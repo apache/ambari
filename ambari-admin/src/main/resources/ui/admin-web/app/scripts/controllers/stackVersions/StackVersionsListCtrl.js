@@ -77,29 +77,47 @@ angular.module('ambariAdminConsole')
       $scope.resetPagination();
     };
 
-    $scope.fetchRepoClusterStatus = function () {
-      var clusterName = ($scope.clusters && $scope.clusters.length > 0) ? $scope.clusters[0].Clusters.cluster_name : null; // only support one cluster at the moment
-      if (clusterName) {
-        angular.forEach($scope.repos, function (repo) {
-          Cluster.getRepoVersionStatus(clusterName, repo.id).then(function (response) {
-            repo.status = response.status;
-            repo.totalHosts = response.totalHosts;
-            repo.currentHosts = response.currentHosts;
-            repo.installedHosts = response.installedHosts;
-            repo.stackVersionId = response.stackVersionId;
-            repo.cluster = (repo.status == 'current' || repo.status == 'installed') ? clusterName : '';
+    $scope.fetchRepoClusterStatus = function (allRepos) {
+      if (allRepos && allRepos.length) {
+        var clusterName = ($scope.clusters && $scope.clusters.length > 0) ? $scope.clusters[0].Clusters.cluster_name : null, // only support one cluster at the moment
+          repos = [],
+          processedRepos = 0;
+        if (clusterName) {
+          angular.forEach(allRepos, function (repo) {
+            Cluster.getRepoVersionStatus(clusterName, repo.id).then(function (response) {
+              repo.cluster = (response.status == 'current' || response.status == 'installed') ? clusterName : '';
+              if (!$scope.filter.cluster.current.value || repo.cluster) {
+                repo.status = response.status;
+                repo.totalHosts = response.totalHosts;
+                repo.currentHosts = response.currentHosts;
+                repo.installedHosts = response.installedHosts;
+                repo.stackVersionId = response.stackVersionId;
+                repos.push(repo);
+              }
+              processedRepos++;
+              if (processedRepos === allRepos.length) {
+                var from = ($scope.pagination.currentPage - 1) * $scope.pagination.itemsPerPage;
+                var to = (repos.length - from > $scope.pagination.itemsPerPage) ? from + $scope.pagination.itemsPerPage : repos.length;
+                $scope.repos = repos.slice(from, to);
+                $scope.tableInfo.total = repos.length;
+                $scope.pagination.totalRepos = repos.length;
+                $scope.tableInfo.showed = to - from;
+              }
+            });
           });
-        });
+        }
+      } else {
+        $scope.repos = [];
+        $scope.tableInfo.total = 0;
+        $scope.pagination.totalRepos = 0;
+        $scope.tableInfo.showed = 0;
       }
     };
 
     $scope.fetchRepos = function () {
-      return Stack.allRepos($scope.filter, $scope.pagination).then(function (repos) {
+      return Stack.allRepos($scope.filter).then(function (repos) {
         $scope.isLoading = false;
-        $scope.pagination.totalRepos = repos.itemTotal;
-        $scope.repos = repos.items;
-        $scope.tableInfo.total = repos.itemTotal;
-        $scope.tableInfo.showed = repos.showed;
+        return repos.items;
       });
     };
 
@@ -161,8 +179,8 @@ angular.module('ambariAdminConsole')
         .then(function () {
           return $scope.fetchRepos();
         })
-        .then(function () {
-          $scope.fetchRepoClusterStatus();
+        .then(function (repos) {
+          $scope.fetchRepoClusterStatus(repos);
         });
     };
 
