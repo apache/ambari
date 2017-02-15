@@ -37,7 +37,8 @@ App.TrackRequestMixin = Em.Mixin.create({
       completed: ['resolved', 'rejected'].contains(request.state())
     });
     request.always(function() {
-      Em.setProperties(self.get('requestsInProgress').findProperty('id', requestId), {
+      var requestInProgress = self.get('requestsInProgress').findProperty('id', requestId) || {};
+      Em.setProperties(requestInProgress, {
         completed: true,
         status: request.state()
       });
