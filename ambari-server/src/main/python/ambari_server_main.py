@@ -32,7 +32,7 @@ from ambari_server.ambariPath import AmbariPath
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
-  get_is_active_instance, update_properties, \
+  get_is_active_instance, update_properties, get_ambari_server_ui_port, \
   PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
   SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file, get_missing_properties
 from ambari_server.serverUtils import refresh_stack_hash
@@ -40,7 +40,7 @@ from ambari_server.setupHttps import get_fqdn
 from ambari_server.setupSecurity import generate_env, \
   ensure_can_start_under_current_user
 from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, \
-  save_main_pid_ex, check_exitcode, get_live_pids_count
+  save_main_pid_ex, check_exitcode, get_live_pids_count, wait_for_ui_start
 from ambari_server.serverClassPath import ServerClassPath
 
 logger = logging.getLogger(__name__)
@@ -102,8 +102,9 @@ SERVER_START_CMD_DEBUG_WINDOWS = "{0} " \
     "-cp {3} " \
     "org.apache.ambari.server.controller.AmbariServer"
 
-SERVER_START_TIMEOUT = 5
+SERVER_START_TIMEOUT = 5  #seconds
 SERVER_START_RETRIES = 4
+WEB_UI_INIT_TIME = 50     #seconds
 
 SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
@@ -203,6 +204,11 @@ def wait_for_server_start(pidFile, scmStatus):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def wait_for_server_start(pidFile, scmStatus):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err ="Error getting ambari properties"
+    raise FatalException(-1, err)
+
   #wait for server process for SERVER_START_TIMEOUT seconds
   sys.stdout.write('Waiting for server start...')
   sys.stdout.flush()
@@ -211,42 +217,44 @@ def wait_for_server_start(pidFile, scmStatus):
   # looking_for_pid() might return partrial pid list on slow hardware
   for i in range(1, SERVER_START_RETRIES):
     pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_START_TIMEOUT)
-
-    sys.stdout.write('\n')
-    sys.stdout.flush()
-
     if save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
                         locate_all_file_paths('bash', '/bin') +
                         locate_all_file_paths('dash', '/bin'), IS_FOREGROUND):
       server_started = True
-      sys.stdout.write("Server PID determined "+AMBARI_SERVER_STARTED_SUCCESS_MSG+"\n")
       break
     else:
       sys.stdout.write("Unable to determine server PID. Retrying...\n")
       sys.stdout.flush()
 
-  if os.path.isfile(configDefaults.SERVER_OUT_FILE):
-    if 'Database consistency check: failed' in open(configDefaults.SERVER_OUT_FILE).read():
-        print "DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
-        "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
-        "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
-        "or perform a cluster upgrade until you correct the database consistency issues. See " + \
-              configDefaults.DB_CHECK_LOG + "for more details on the consistency issues."
-    elif 'Database consistency check: warning' in open(configDefaults.SERVER_OUT_FILE).read():
-        print "DB configs consistency check found warnings. See " + \
-              configDefaults.DB_CHECK_LOG + " for more details."
-    else:
-        print "DB configs consistency check: no errors and warnings were found."
-  else:
-        sys.stdout.write(configDefaults.SERVER_OUT_FILE + " does not exist")
-
+  exception = None
   if server_started:
-    return
+    ambari_server_ui_port = get_ambari_server_ui_port(properties)
+    if not wait_for_ui_start(int(ambari_server_ui_port), WEB_UI_INIT_TIME):
+      exception = FatalException(1, "Server not yet listening on http port " + ambari_server_ui_port + \
+                                 " after " + str(WEB_UI_INIT_TIME) + " seconds. Exiting.")
   elif get_live_pids_count(pids) <= 0:
     exitcode = check_exitcode(os.path.join(configDefaults.PID_DIR, EXITCODE_NAME))
-    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
+    exception = FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
-    raise FatalException(-1, AMBARI_SERVER_NOT_STARTED_MSG)
+    exception = FatalException(-1, AMBARI_SERVER_NOT_STARTED_MSG)
+
+  if os.path.isfile(configDefaults.SERVER_OUT_FILE):
+    if 'Database consistency check: failed' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+            "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
+            "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
+            "or perform a cluster upgrade until you correct the database consistency issues. See " + \
+            configDefaults.DB_CHECK_LOG + " for more details on the consistency issues."
+    elif 'Database consistency check: warning' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "DB configs consistency check found warnings. See " + configDefaults.DB_CHECK_LOG + " for more details."
+    else:
+      print "DB configs consistency check: no errors and warnings were found."
+  else:
+    sys.stdout.write(configDefaults.SERVER_OUT_FILE + " does not exist")
+
+  if exception:
+    raise exception
+
 
 def server_process_main(options, scmStatus=None):
   properties = get_ambari_properties()

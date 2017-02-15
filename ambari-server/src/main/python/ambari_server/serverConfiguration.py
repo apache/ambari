@@ -694,6 +694,19 @@ def get_master_key_location(properties):
     keyLocation = properties[SECURITY_KEYS_DIR]
   return keyLocation
 
+def get_ambari_server_ui_port(properties):
+  ambari_server_ui_port = CLIENT_API_PORT
+  client_api_port = properties.get_property(CLIENT_API_PORT_PROPERTY)
+  if client_api_port:
+    ambari_server_ui_port = client_api_port
+  api_ssl = properties.get_property(SSL_API)
+  if api_ssl and str(api_ssl).lower() == "true":
+    ambari_server_ui_port = DEFAULT_SSL_API_PORT
+    ssl_api_port = properties.get_property(SSL_API_PORT)
+    if ssl_api_port:
+      ambari_server_ui_port = ssl_api_port
+  return ambari_server_ui_port
+
 # Copy file to /tmp and save with file.# (largest # is latest file)
 def backup_file_in_temp(filePath):
   if filePath is not None:

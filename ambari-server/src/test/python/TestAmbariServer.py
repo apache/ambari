@@ -4392,6 +4392,7 @@ class TestAmbariServer(TestCase):
   @patch("sys.stdout.flush")
   @patch("sys.stdout.write")
   @patch("ambari_server_main.looking_for_pid")
+  @patch("ambari_server_main.wait_for_ui_start")
   @patch("ambari_server_main.save_main_pid_ex")
   @patch("ambari_server_main.check_exitcode")
   @patch("os.makedirs")
@@ -4441,7 +4442,7 @@ class TestAmbariServer(TestCase):
                  save_master_key_method, get_master_key_location_method,
                  os_chown_mock, is_server_running_mock, locate_file_mock,
                  os_makedirs_mock, check_exitcode_mock, save_main_pid_ex_mock,
-                 looking_for_pid_mock, stdout_write_mock, stdout_flush_mock,
+                 wait_for_ui_start_mock, looking_for_pid_mock, stdout_write_mock, stdout_flush_mock,
                  get_is_active_instance_mock):
 
     def reset_mocks():
@@ -4478,6 +4479,7 @@ class TestAmbariServer(TestCase):
         "exe": "/test",
         "cmd": "test arg"
     }]
+    wait_for_ui_start_mock.return_value = True
     check_exitcode_mock.return_value = 0
 
     p = Properties()

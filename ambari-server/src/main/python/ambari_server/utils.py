@@ -28,6 +28,8 @@ import subprocess
 import logging
 import platform
 from ambari_commons import OSConst,OSCheck
+from ambari_commons.logging_utils import print_error_msg
+from ambari_commons.exceptions import FatalException
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +157,25 @@ def get_live_pids_count(pids):
   """
   return len([pid for pid in pids if pid_exists(pid)])
 
+def wait_for_ui_start(ambari_server_ui_port, timeout=1):
+
+  tstart = time.time()
+  while int(time.time()-tstart) <= timeout:
+    try:
+      sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      sock.settimeout(1)
+      sock.connect(('localhost', ambari_server_ui_port))
+      print "\nServer started listening on " + str(ambari_server_ui_port)
+      return True
+    except Exception as e:
+      #print str(e)
+      pass
+
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    time.sleep(1)
+
+  return False
 
 def get_symlink_path(path_to_link):
   """
