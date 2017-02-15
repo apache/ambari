@@ -217,15 +217,10 @@ def wait_for_server_start(pidFile, scmStatus):
   # looking_for_pid() might return partrial pid list on slow hardware
   for i in range(1, SERVER_START_RETRIES):
     pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_START_TIMEOUT)
-
-    sys.stdout.write('\n')
-    sys.stdout.flush()
-
     if save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
                         locate_all_file_paths('bash', '/bin') +
                         locate_all_file_paths('dash', '/bin'), IS_FOREGROUND):
       server_started = True
-      sys.stdout.write("Server PID determined " + AMBARI_SERVER_STARTED_SUCCESS_MSG + "\n")
       break
     else:
       sys.stdout.write("Unable to determine server PID. Retrying...\n")
