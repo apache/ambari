@@ -185,13 +185,13 @@ var SqoopActionJobHandler=ActionJobHandler.extend({
       {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
       {xml:"configuration",customHandler:this.configurationMapper},
       {xml:"command",domain:"command"},
-      {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
+      {xml:"arg",domain:"arg",occurs:"many",domainProperty:"value"},
       {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
       {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
     ];
   },
   validate(nodeDomain){
-    if (Ember.isBlank(nodeDomain.command) && nodeDomain.args.length<1){
+    if (Ember.isBlank(nodeDomain.command) && nodeDomain.arg.length < 1){
       return [{message : "Either command or arguments have to be set."}];
     }
   }
