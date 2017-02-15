@@ -1030,7 +1030,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       recommendedMaxShards = 100
       
       putLogsearchCommonEnvProperty('logsearch_use_external_solr', 'true')
-      putLogsearchCommonEnvAttribute('logsearch_use_external_solr', 'visible', 'false')
 
     # recommend number of shard
     putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
