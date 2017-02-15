@@ -166,7 +166,7 @@ The following are the properties which can be used to configure Ambari.
 | repo.validation.suffixes.ubuntu | The suffixes to use when validating Ubuntu repositories. |`/dists/%s/Release` | 
 | resources.dir | The location on the Ambari Server where all resources exist, including common services, stacks, and scripts. |`/var/lib/ambari-server/resources/` | 
 | rolling.upgrade.skip.packages.prefixes | A comma-separated list of packages which will be skipped during a stack upgrade. | | 
-| security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed. |`true` | 
+| security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information.|`true` | 
 | security.master.key.location | The location on the Ambari Server of the master key file. This is the key to the master keystore. | | 
 | security.master.keystore.location | The location on the Ambari Server of the master keystore file. | | 
 | security.server.cert_name | The name of the file located in the `security.server.keys_dir` directory where certificates will be generated when Ambari uses the `openssl ca` command. |`ca.crt` | 

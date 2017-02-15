@@ -506,7 +506,7 @@ public class Configuration {
    * Determines whether the Ambari Agent host names should be validated against
    * a regular expression to ensure that they are well-formed.
    */
-  @Markdown(description = "Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.")
+  @Markdown(description = "Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information.")
   public static final ConfigurationProperty<String> SRVR_AGENT_HOSTNAME_VALIDATE = new ConfigurationProperty<>(
       "security.agent.hostname.validate", "true");
 
