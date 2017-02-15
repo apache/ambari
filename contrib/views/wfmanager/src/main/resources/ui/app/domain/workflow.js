@@ -51,7 +51,9 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     this.set("killNodes",Ember.A([]));
     this.set("globalSetting",null);
     this.set("name","");
-    this.set("draftFormat","jsog");
+    this.set("draftVersion", "v1");
+    this.set("parameters", null);
+    this.set("credentials", Ember.A([]));
     this.appendDefaultKillNode();
     src.addTransitionTo(dest);
   },
