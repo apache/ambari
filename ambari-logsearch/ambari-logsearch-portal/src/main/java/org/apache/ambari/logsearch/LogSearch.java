@@ -18,18 +18,16 @@
  */
 package org.apache.ambari.logsearch;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.EnumSet;
 
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.ApplicationConfig;
 import org.apache.ambari.logsearch.util.SSLUtil;
+import org.apache.ambari.logsearch.util.WebUtil;
 import org.apache.ambari.logsearch.web.listener.LogSearchSessionListener;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Connector;
@@ -68,7 +66,6 @@ public class LogSearch {
   private static final String HTTPS_PORT = "61889";
   private static final String HTTP_PORT = "61888";
 
-  private static final String WEB_RESOURCE_FOLDER = "webapps/app";
   private static final String ROOT_CONTEXT = "/";
   private static final Integer SESSION_TIMEOUT = 60 * 30;
 
@@ -112,7 +109,7 @@ public class LogSearch {
     if (HTTPS_PROTOCOL.equals(protcolProperty) && SSLUtil.isKeyStoreSpecified()) {
       LOG.info("Building https server...........");
       port = portSpecified ? argv[0] : HTTPS_PORT;
-      checkPort(Integer.parseInt(port));
+      WebUtil.checkPort(Integer.parseInt(port));
       httpConfiguration.addCustomizer(new SecureRequestCustomizer());
       SslContextFactory sslContextFactory = SSLUtil.getSslContextFactory();
       ServerConnector sslConnector = new ServerConnector(server,
@@ -123,7 +120,7 @@ public class LogSearch {
     } else {
       LOG.info("Building http server...........");
       port = portSpecified ? argv[0] : HTTP_PORT;
-      checkPort(Integer.parseInt(port));
+      WebUtil.checkPort(Integer.parseInt(port));
       ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfiguration));
       connector.setPort(Integer.parseInt(port));
       server.setConnectors(new Connector[] { connector });
@@ -134,7 +131,7 @@ public class LogSearch {
   }
 
   private WebAppContext createBaseWebappContext() throws MalformedURLException {
-    URI webResourceBase = findWebResourceBase();
+    URI webResourceBase = WebUtil.findWebResourceBase();
     WebAppContext context = new WebAppContext();
     context.setBaseResource(Resource.newResource(webResourceBase));
     context.setContextPath(ROOT_CONTEXT);
@@ -175,45 +172,5 @@ public class LogSearch {
     context.setContextPath("/docs/");
     context.setHandler(resourceHandler);
     return context;
-  }
-
-  private URI findWebResourceBase() {
-    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader()
-        .getResource(WEB_RESOURCE_FOLDER);
-    String errorMessage = "Web Resource Folder " + WEB_RESOURCE_FOLDER + " not found in classpath";
-    if (fileCompleteUrl != null) {
-      try {
-        return fileCompleteUrl.toURI().normalize();
-      } catch (URISyntaxException e) {
-        LOG.error(errorMessage, e);
-        System.exit(1);
-      }
-    } else {
-      LOG.error(errorMessage);
-      System.exit(1);
-    }
-    throw new IllegalStateException(errorMessage);
-  }
-
-  private void checkPort(int port) {
-    ServerSocket serverSocket = null;
-    boolean portBusy = false;
-    try {
-      serverSocket = new ServerSocket(port);
-    } catch (IOException ex) {
-      portBusy = true;
-      LOG.error(ex.getLocalizedMessage() + " PORT :" + port);
-    } finally {
-      if (serverSocket != null) {
-        try {
-          serverSocket.close();
-        } catch (Exception exception) {
-          // ignore
-        }
-      }
-      if (portBusy) {
-        System.exit(1);
-      }
-    }
   }
 }

@@ -246,8 +246,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   private Authentication getGrantedAuthority(Authentication authentication) {
     UsernamePasswordAuthenticationToken result = null;
     if (authentication != null && authentication.isAuthenticated()) {
-      final List<GrantedAuthority> grantedAuths = getAuthorities(authentication
-          .getName().toString());
+      final List<GrantedAuthority> grantedAuths = getAuthorities();
       final UserDetails userDetails = new User(authentication.getName()
           .toString(), authentication.getCredentials().toString(), grantedAuths);
       result = new UsernamePasswordAuthenticationToken(userDetails,
@@ -258,7 +257,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
     return authentication;
   }
 
-  private List<GrantedAuthority> getAuthorities(String username) {
+  private List<GrantedAuthority> getAuthorities() {
     final List<GrantedAuthority> grantedAuths = new ArrayList<>();
     grantedAuths.add(new SimpleGrantedAuthority(DEFAULT_USER_ROLE));
     return grantedAuths;
@@ -275,7 +274,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
     org.apache.ambari.logsearch.web.model.User user = new org.apache.ambari.logsearch.web.model.User();
     user.setUsername(username);
     authentication = new UsernamePasswordAuthenticationToken(username,
-        password, getAuthorities(username));
+        password, getAuthorities());
     return authentication;
   }
   
