@@ -18,47 +18,52 @@ import Ember from 'ember';
 import { Coordinator } from '../coordinator/coordinator';
 import SchemaVersions from '../schema-versions';
 import CommonUtils from "../../utils/common-utils";
+import {SLAMapper} from "../../domain/mapping-utils";
+import {SlaInfo} from '../../domain/sla-info';
 
 var CoordinatorXmlImporter= Ember.Object.extend({
   x2js : new X2JS(),
   schemaVersions: SchemaVersions.create({}),
+  slaMapper: SLAMapper.create({}),
   importCoordinator (xml){
     var coordinatorJson = this.get("x2js").xml_str2json(xml);
     return this.processCoordinatorXML(coordinatorJson);
   },
   createNewCoordinator(){
     return Coordinator.create({
-      workflow : {
-        appPath : '',
-        configuration :{
-          property : Ember.A([])
-        }
-      },
-      frequency : {
-        type : '',
-        value : ''
-      },
-      start : {
-        value : '',
-        displayValue : '',
-        type : 'date'
-      },
-      end : {
-        value : '',
-        displayValue : '',
-        type : 'date'
-      },
-      timezone : '',
-      datasets : Ember.A([]),
-      dataInputs : Ember.A([]),
-      dataOutputs : Ember.A([]),
-      dataInputType : 'simple',
       parameters : {
         configuration :{
           property : Ember.A([])
         }
       },
       controls : Ember.A([]),
+      datasets : Ember.A([]),
+      dataInputs : Ember.A([]),
+      inputLogic : null,
+      dataOutputs : Ember.A([]),
+      workflow : {
+        appPath : undefined,
+        configuration :{
+          property : Ember.A([])
+        }
+      },
+      frequency : {
+        type : undefined,
+        value : undefined
+      },
+      start : {
+        value : undefined,
+        displayValue : undefined,
+        type : 'date'
+      },
+      end : {
+        value : undefined,
+        displayValue : undefined,
+        type : 'date'
+      },
+      timezone : 'UTC',
+      dataInputType : 'simple',
+      slainfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
       }
@@ -102,6 +107,10 @@ var CoordinatorXmlImporter= Ember.Object.extend({
     this.extractAction(coordinatorApp, coordinator);
     this.extractParameters(coordinatorApp, coordinator);
     this.extractControls(coordinatorApp, coordinator);
+    if (coordinatorApp.action.info && coordinatorApp.action.info.__prefix==="sla") {
+      coordinator.slaEnabled=true;
+      this.get("slaMapper").handleImport(coordinator, coordinatorApp.action.info, "slaInfo");
+    }
     return {coordinator: coordinator, errors: errors};
   },
   extractDateField(value){

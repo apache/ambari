@@ -89,7 +89,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
-
+    this.set('childComponents', new Map());
   }.on('init'),
   conditionalDataInExists :false,
   elementsInserted : function(){
@@ -123,7 +123,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
   }),
   loadCoordinator(draftCoordinator){
     if(draftCoordinator){
-      this.set('coordinator', JSON.parse(draftCoordinator));
+      this.set('coordinator', JSOG.parse(draftCoordinator));
     }else{
       this.set('coordinator', this.createNewCoordinator());
     }
@@ -162,7 +162,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     if(!this.get('coordinator')){
       return;
     }
-    var json = JSON.stringify(this.get("coordinator"));
+    var json = JSOG.stringify(this.get("coordinator"));
     this.get('workspaceManager').saveWorkInProgress(this.get('tabInfo.id'), json);
   },
   showExistingWorkflow  : function(){
@@ -188,6 +188,16 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
   }.on('didInsertElement'),
   createNewCoordinator(){
     return Coordinator.create({
+      parameters : {
+        configuration :{
+          property : Ember.A([])
+        }
+      },
+      controls : Ember.A([]),
+      datasets : Ember.A([]),
+      dataInputs : Ember.A([]),
+      inputLogic : null,
+      dataOutputs : Ember.A([]),
       workflow : {
         appPath : undefined,
         configuration :{
@@ -209,16 +219,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         type : 'date'
       },
       timezone : 'UTC',
-      datasets : Ember.A([]),
-      dataInputs : Ember.A([]),
-      dataOutputs : Ember.A([]),
       dataInputType : 'simple',
-      parameters : {
-        configuration :{
-          property : Ember.A([])
-        }
-      },
-      controls : Ember.A([]),
       slainfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
@@ -278,7 +279,15 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     }.bind(this));
   },
   getCoordinatorFromJSON(draftCoordinator){
-    this.set('coordinator', JSON.parse(draftCoordinator));
+    this.set('coordinator', JSOG.parse(draftCoordinator));
+    this.$('input[name="dataInputType"][value="'+ this.get('coordinator.dataInputType')+'"]').prop('checked', true);
+    if(this.get('coordinator.dataInputType') === 'logical'){
+      this.set('conditionalDataInExists', true);
+    }
+    if(this.get('coordinator.inputLogic')){
+      this.set('inputLogicExists', true);
+      this.set('inputLogicEnabled', true);
+    }
   },
   readCoordinatorFromHdfs(filePath){
     var url =  Ember.ENV.API_URL + "/readWorkflow?workflowPath="+filePath+"&jobType=COORDINATOR";
@@ -649,7 +658,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         var coordGenerator = CoordinatorGenerator.create({coordinator:this.get("coordinator")});
         coordinatorXml = coordGenerator.process();
       }
-      var coordinatorJson = JSON.stringify(this.get("coordinator"));
+      var coordinatorJson = JSOG.stringify(this.get("coordinator"));
       this.set("configForSave",{json:coordinatorJson, xml:coordinatorXml,isDraft: isDraft});
       this.set("showingSaveWorkflow", true);
     },

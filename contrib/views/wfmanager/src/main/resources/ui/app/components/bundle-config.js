@@ -90,7 +90,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   }),
   loadBundle(draftBundle){
     if(draftBundle){
-      this.set('bundle', JSON.parse(draftBundle));
+      this.set('bundle', JSOG.parse(draftBundle));
     }else{
       this.set('bundle', this.createBundle());
     }
@@ -109,7 +109,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     if(!this.get('bundle')){
       return;
     }
-    var json = JSON.stringify(this.get("bundle"));
+    var json = JSOG.stringify(this.get("bundle"));
     this.get('workspaceManager').saveWorkInProgress(this.get('tabInfo.id'), json);
   },
   createBundle (){
@@ -161,7 +161,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     }.bind(this));
   },
   getBundleFromJSON(draftBundle){
-    this.set('bundle', JSON.parse(draftBundle));
+    this.set('bundle', JSOG.parse(draftBundle));
   },
   getBundleFromHdfs(filePath){
     var url =  Ember.ENV.API_URL + "/readWorkflow?workflowPath="+filePath+"&jobType=BUNDLE";
@@ -401,7 +401,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
         var bundleGenerator = BundleGenerator.create({bundle:this.get("bundle")});
         bundleXml = bundleGenerator.process();
       }
-      var bundleJson = JSON.stringify(this.get("bundle"));
+      var bundleJson = JSOG.stringify(this.get("bundle"));
       this.set("configForSave",{json:bundleJson, xml:bundleXml, isDraft: isDraft});
       this.set("showingSaveWorkflow", true);
     },
