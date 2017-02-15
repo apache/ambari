@@ -44,7 +44,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
                        type="directory",
                        action="create_on_execute",
                        owner=params.livy_user,
-                       mode=0775
+                       mode=0700
     )
     params.HdfsResource(None, action="execute")
 
