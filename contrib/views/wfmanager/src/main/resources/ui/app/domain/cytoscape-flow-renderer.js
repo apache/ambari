@@ -75,26 +75,28 @@ var CytoscapeRenderer= Ember.Object.extend({
       case 'end' :
       case 'kill' :
       case 'placeholder' :
-        return 'ellipse';
+      return 'ellipse';
       case 'action' :
-        return 'roundrectangle';
+      return 'roundrectangle';
       case 'fork' :
       case 'join' :
-        return 'roundrectangle';
+      return 'roundrectangle';
       case 'decision' :
-        return 'diamond';
+      return 'diamond';
       default :
-        return 'star';
+      return 'star';
     }
   },
 
   _getCyDataNodes(workflow){
     this.get('dataNodes').clear();
     var self=this;
+    var errorNodeCounter=1;
     workflow.nodeVisitor.process(workflow.startNode, function(node) {
       if (node.type === 'kill') {
         return;
       }
+
       self.get('dataNodes').pushObject({
         data: {
           id: node.id, name: node.name, type: node.type,
@@ -106,20 +108,37 @@ var CytoscapeRenderer= Ember.Object.extend({
       });
       if (node.transitions.length > 0) {
         node.transitions.forEach(function(transition){
-          if (transition.isOnError()|| transition.targetNode.isKillNode()){
+          //if (transition.isOnError()|| transition.targetNode.isKillNode()){
+          if ((transition.isOnError() && transition.getTargetNode().isKillNode())){
             return;
+          }
+          var targetNodeId=transition.targetNode.id;
+          if (transition.targetNode.isKillNode()){
+            errorNodeCounter++;
+            var errorNode=transition.targetNode;
+            targetNodeId=errorNode.id+errorNodeCounter;
+            self.get('dataNodes').pushObject({
+              data: {
+                id: targetNodeId, name: errorNode.name, type: errorNode.type,
+                shape: self._getShape(errorNode.type),
+                type : errorNode.type,
+                node: errorNode
+              },
+              dataNodeName: Ember.computed.alias('errorNode.node.name')
+            });
           }
           self.get('dataNodes').pushObject(
             {
               data: {
-                id: transition.sourceNodeId + '_to_' + transition.targetNode.id,
+                id: transition.sourceNodeId + '_to_' + targetNodeId,
                 source:transition.sourceNodeId,
-                target: transition.targetNode.id,
+                target: targetNodeId,
                 transition: transition,
                 transitionCount: node.getOkTransitionCount()
               }
             }
           );
+
         });
       }
     });
@@ -192,7 +211,7 @@ var CytoscapeRenderer= Ember.Object.extend({
       var node = event.cyTarget;
       var nodeObj = cy.$('#' + node.id());
       this._showNodeEditor(node, nodeObj);
-      if (!(node.data().type === 'start' || node.data().type === 'end' || node.data().type === 'placeholder')) {
+      if (!(node.data().type === 'start' || node.data().type === 'end' || node.data().type === 'placeholder' ||  node.data().type === 'kill')) {
         this.get("context").$(".overlay-node-actions, .overlay-trash-icon").show();
       }
       if (node.data().type === 'action' || node.data().type === 'decision') {
@@ -226,9 +245,9 @@ var CytoscapeRenderer= Ember.Object.extend({
         left: event.originalEvent.offsetX + 15
       });
       if (event.cyTarget.data().transitionCount>1){
-            this.get("context").$(".overlay-trash-transition-icon").show();
+        this.get("context").$(".overlay-trash-transition-icon").show();
       }else{
-          this.get("context").$(".overlay-trash-transition-icon").hide();
+        this.get("context").$(".overlay-trash-transition-icon").hide();
       }
       this.get("context").$(".overlay-transition-content").data("sourceNode",event.cyTarget.source().data("node"));
       this.get("context").$(".overlay-transition-content").data("targetNode",event.cyTarget.target().data("node"));
@@ -276,7 +295,7 @@ var CytoscapeRenderer= Ember.Object.extend({
           if (incomingTran.targetNode.id===currentNodeId){
             incomingTran.sourceNode=incomingNode;
             transitionList=transitionList.concat(incomingTran);
-           }
+          }
         }
       }
       this.get("context").deleteWorkflowNode(this.get("context").$(".overlay-trash-icon").data("node"),transitionList);
