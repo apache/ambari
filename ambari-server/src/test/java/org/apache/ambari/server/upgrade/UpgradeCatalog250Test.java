@@ -356,6 +356,7 @@ public class UpgradeCatalog250Test {
     Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
     Method updateHIVEInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHIVEInteractiveConfigs");
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
+    Method addManageAlertNotificationsPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageAlertNotificationsPermissions");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method updateZeppelinConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateZeppelinConfigs");
@@ -374,6 +375,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateHiveLlapConfigs)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(addManageServiceAutoStartPermissions)
+        .addMockedMethod(addManageAlertNotificationsPermissions)
         .addMockedMethod(updateHIVEInteractiveConfigs)
         .addMockedMethod(updateTablesForZeppelinViewRemoval)
         .addMockedMethod(updateZeppelinConfigs)
@@ -423,6 +425,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.addManageServiceAutoStartPermissions();
+    expectLastCall().once();
+
+    upgradeCatalog250.addManageAlertNotificationsPermissions();
     expectLastCall().once();
 
     upgradeCatalog250.updateYarnSite();
