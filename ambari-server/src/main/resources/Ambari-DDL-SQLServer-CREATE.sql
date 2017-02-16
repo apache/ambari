@@ -85,9 +85,11 @@ CREATE TABLE clusterconfig (
   type_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   stack_id BIGINT NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
   config_data VARCHAR(MAX) NOT NULL,
   config_attributes VARCHAR(MAX),
   create_timestamp BIGINT NOT NULL,
+  selected_timestamp BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY CLUSTERED (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
@@ -141,16 +143,6 @@ CREATE TABLE serviceconfigmapping (
   CONSTRAINT PK_serviceconfigmapping PRIMARY KEY CLUSTERED (service_config_id, config_id),
   CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id),
   CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id));
-
-CREATE TABLE clusterconfigmapping (
-  cluster_id BIGINT NOT NULL,
-  type_name VARCHAR(255) NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  create_timestamp BIGINT NOT NULL,
-  selected INT NOT NULL DEFAULT 0,
-  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  CONSTRAINT PK_clusterconfigmapping PRIMARY KEY CLUSTERED (cluster_id, type_name, create_timestamp ),
-  CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE clusterservices (
   service_name VARCHAR(255) NOT NULL,

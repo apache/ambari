@@ -167,7 +167,6 @@ public class DatabaseConsistencyCheckHelper {
       checkSchemaName();
       checkMySQLEngine();
       checkForConfigsNotMappedToService();
-      checkForNotMappedConfigsToCluster();
       checkForConfigsSelectedMoreThanOnce();
       checkForHostsWithoutState();
       checkHostComponentStates();
@@ -221,62 +220,21 @@ public class DatabaseConsistencyCheckHelper {
     LOG.info("DB store version is compatible");
   }
 
-  static void checkForNotMappedConfigsToCluster() {
-    LOG.info("Checking for configs not mapped to any cluster");
-
-    String GET_NOT_MAPPED_CONFIGS_QUERY = "select type_name from clusterconfig where type_name not in (select type_name from clusterconfigmapping)";
-    Set<String> nonSelectedConfigs = new HashSet<>();
-    ResultSet rs = null;
-    Statement statement = null;
-
-    ensureConnection();
-
-    try {
-      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-      rs = statement.executeQuery(GET_NOT_MAPPED_CONFIGS_QUERY);
-      if (rs != null) {
-        while (rs.next()) {
-          nonSelectedConfigs.add(rs.getString("type_name"));
-        }
-      }
-      if (!nonSelectedConfigs.isEmpty()) {
-        warning("You have config(s): {} that is(are) not mapped (in clusterconfigmapping table) to any cluster!",
-            nonSelectedConfigs);
-      }
-    } catch (SQLException e) {
-      LOG.error("Exception occurred during check for not mapped configs to cluster procedure: ", e);
-    } finally {
-      if (rs != null) {
-        try {
-          rs.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during result set closing procedure: ", e);
-        }
-      }
-
-      if (statement != null) {
-        try {
-          statement.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during statement closing procedure: ", e);
-        }
-      }
-    }
-  }
-
   /**
-  * This method checks if any config type in clusterconfigmapping table, has
-  * more than one versions selected. If config version is selected(in selected column = 1),
-  * it means that this version of config is actual. So, if any config type has more
-  * than one selected version it's a bug and we are showing error message for user.
-  * */
+   * This method checks if any config type in clusterconfig table, has more than
+   * one versions selected. If config version is selected(in selected column =
+   * 1), it means that this version of config is actual. So, if any config type
+   * has more than one selected version it's a bug and we are showing error
+   * message for user.
+   */
   static void checkForConfigsSelectedMoreThanOnce() {
-    LOG.info("Checking for configs selected more than once");
+    LOG.info("Checking for more than 1 configuration of the same type being enabled.");
 
-    String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select c.cluster_name, ccm.type_name from clusterconfigmapping ccm " +
-            "join clusters c on ccm.cluster_id=c.cluster_id " +
-            "group by c.cluster_name, ccm.type_name " +
+    String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select c.cluster_name, cc.type_name from clusterconfig cc "
+        + "join clusters c on cc.cluster_id=c.cluster_id "
+        + "group by c.cluster_name, cc.type_name " +
             "having sum(selected) > 1";
+
     Multimap<String, String> clusterConfigTypeMap = HashMultimap.create();
     ResultSet rs = null;
     Statement statement = null;
@@ -292,7 +250,7 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         for (String clusterName : clusterConfigTypeMap.keySet()) {
-          error("You have config(s), in cluster {}, that is(are) selected more than once in clusterconfigmapping table: {}",
+          error("You have config(s), in cluster {}, that is(are) selected more than once in clusterconfig table: {}",
                   clusterName ,StringUtils.join(clusterConfigTypeMap.get(clusterName), ","));
         }
       }
@@ -544,8 +502,6 @@ public class DatabaseConsistencyCheckHelper {
       List<String> types = new ArrayList<>();
       String type = clusterConfigEntity.getType();
       types.add(type);
-      LOG.error("Removing cluster config mapping of type {} that is not mapped to any service", type);
-      clusterDAO.removeClusterConfigMappingEntityByTypes(clusterConfigEntity.getClusterId(),types);
       LOG.error("Removing config that is not mapped to any service", clusterConfigEntity);
       clusterDAO.removeConfig(clusterConfigEntity);
     }
@@ -761,7 +717,7 @@ public class DatabaseConsistencyCheckHelper {
   * 1) Check if we have services in cluster which doesn't have service config id(not available in serviceconfig table).
   * 2) Check if service has no mapped configs to it's service config id.
   * 3) Check if service has all required configs mapped to it.
-  * 4) Check if service has config which is not selected(has no actual config version) in clusterconfigmapping table.
+  * 4) Check if service has config which is not selected(has no actual config version)
   * If any issue was discovered, we are showing error message for user.
   * */
   static void checkServiceConfigs()  {
@@ -786,11 +742,10 @@ public class DatabaseConsistencyCheckHelper {
             "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
             "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
             "join clusterconfig cc on scm.config_id=cc.config_id and cc.cluster_id=sc.cluster_id " +
-            "join clusterconfigmapping ccm on cc.type_name=ccm.type_name and cc.version_tag=ccm.version_tag and cc.cluster_id=ccm.cluster_id " +
-            "join clusters c on ccm.cluster_id=c.cluster_id " +
+            "join clusters c on cc.cluster_id=c.cluster_id " +
             "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
             "group by c.cluster_name, cs.service_name, cc.type_name " +
-            "having sum(ccm.selected) < 1";
+            "having sum(cc.selected) < 1";
     Multimap<String, String> clusterServiceMap = HashMultimap.create();
     Map<String, Map<String, String>>  clusterStackInfo = new HashMap<>();
     Map<String, Multimap<String, String>> clusterServiceVersionMap = new HashMap<>();
@@ -945,8 +900,8 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
 
-      //getting services which has mapped configs which are not selected in clusterconfigmapping
-      LOG.info("Getting services which has mapped configs which are not selected in clusterconfigmapping");
+      // getting services which has mapped configs which are not selected in clusterconfig
+      LOG.info("Getting services which has mapped configs which are not selected in clusterconfig");
       rs = statement.executeQuery(GET_NOT_SELECTED_SERVICE_CONFIGS_QUERY);
       if (rs != null) {
         String serviceName = null, configType = null, clusterName = null;

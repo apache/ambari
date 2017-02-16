@@ -72,24 +72,16 @@ CREATE TABLE clusterconfig (
   type_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   stack_id BIGINT NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
   config_data VARCHAR(3000) NOT NULL,
   config_attributes VARCHAR(3000),
   create_timestamp BIGINT NOT NULL,
+  selected_timestamp BIGINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT UQ_config_type_tag UNIQUE (version_tag, type_name, cluster_id),
   CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version));
-
-CREATE TABLE clusterconfigmapping (
-  cluster_id BIGINT NOT NULL,
-  type_name VARCHAR(255) NOT NULL,
-  version_tag VARCHAR(255) NOT NULL,
-  create_timestamp BIGINT NOT NULL,
-  selected INTEGER NOT NULL DEFAULT 0,
-  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  CONSTRAINT PK_clusterconfigmapping PRIMARY KEY (cluster_id, type_name, create_timestamp),
-  CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE serviceconfig (
   service_config_id BIGINT NOT NULL,

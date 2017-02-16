@@ -96,12 +96,12 @@ public class ServiceConfigEntity {
    * the contract of configs being associated with only the cluster and the
    * same config can technically belong to multiple serviceConfig versions.
    */
+  @ManyToMany
   @JoinTable(
     name = "serviceconfigmapping",
     joinColumns = {@JoinColumn(name = "service_config_id", referencedColumnName = "service_config_id")},
     inverseJoinColumns = {@JoinColumn(name = "config_id", referencedColumnName = "config_id")}
   )
-  @ManyToMany
   private List<ClusterConfigEntity> clusterConfigEntities;
 
   @ManyToOne

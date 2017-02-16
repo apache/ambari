@@ -71,9 +71,11 @@ CREATE TABLE clusterconfig (
   type_name VARCHAR(255) NOT NULL,
   cluster_id NUMERIC(19) NOT NULL,
   stack_id NUMERIC(19) NOT NULL,
+  selected SMALLINT NOT NULL DEFAULT 0,
   config_data TEXT NOT NULL,
   config_attributes TEXT,
   create_timestamp NUMERIC(19) NOT NULL,
+  selected_timestamp NUMERIC(19) NOT NULL DEFAULT 0,  
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
@@ -418,16 +420,6 @@ CREATE TABLE requestoperationlevel (
 CREATE TABLE key_value_store ("key" VARCHAR(255),
   "value" TEXT,
   CONSTRAINT PK_key_value_store PRIMARY KEY ("key"));
-
-CREATE TABLE clusterconfigmapping (
-  type_name VARCHAR(255) NOT NULL,
-  create_timestamp NUMERIC(19) NOT NULL,
-  cluster_id NUMERIC(19) NOT NULL,
-  selected INTEGER NOT NULL DEFAULT 0,
-  version_tag VARCHAR(255) NOT NULL,
-  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  CONSTRAINT PK_clusterconfigmapping PRIMARY KEY (type_name, create_timestamp, cluster_id),
-  CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
 
 CREATE TABLE hostconfigmapping (
   create_timestamp NUMERIC(19) NOT NULL,
