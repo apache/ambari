@@ -231,6 +231,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         App.router.get('mainHostController.labelValueMap')[displayName] = component.get('componentName');
       }
     });
+    hostComponentList = hostComponentList.sortProperty('label');
     return hostComponentList;
   },
 
