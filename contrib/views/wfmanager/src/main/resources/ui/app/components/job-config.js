@@ -112,7 +112,7 @@ export default Ember.Component.extend(Validations, {
 
   extractJobProperties(){
     var jobProperties = [];
-    var jobParams = this.get("jobConfigs").params;
+    var jobParams = this.get("jobConfigs").params, self = this;
     this.get("jobProps").forEach(function(value) {
       if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue){
         var propName = value.trim().substring(2, value.length-1);
@@ -125,9 +125,16 @@ export default Ember.Component.extend(Validations, {
             isRequired = true;
           }
         }
+        let val = null, tabData = self.get("tabInfo");
+        if(tabData && tabData.isImportedFromDesigner && tabData.configuration && tabData.configuration.settings && tabData.configuration.settings.configuration && tabData.configuration.settings.configuration.property) {
+          let propVal = tabData.configuration.settings.configuration.property.findBy('name', propName);
+          if(propVal) {
+            val = propVal.value
+          }
+        }
         var prop= Ember.Object.create({
           name: propName,
-          value: null,
+          value: val,
           isRequired : isRequired
         });
         jobProperties.push(prop);

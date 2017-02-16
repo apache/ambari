@@ -53,13 +53,13 @@ export default Ember.Component.extend({
         this.get('tabs').forEach((tab)=>{
           this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
         }, this);
-        Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path, type){
+        Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path, type, isImportedFromDesigner, configuration){
           if(type === 'COORDINATOR'){
             this.createNewTab('coord', path);
           }else if(type === 'BUNDLE'){
             this.createNewTab('bundle', path);
           }else{
-            this.createNewTab('wf', path);
+            this.createNewTab('wf', path, isImportedFromDesigner, configuration);
           }
         }.bind(this));
 
@@ -103,9 +103,17 @@ export default Ember.Component.extend({
       }.bind(this));
     }, 1000);
   },
-  createNewTab : function(type, path){
+  setWFConfigProperties(tab ,isImportedFromDesigner, configuration){
+    if(isImportedFromDesigner) {
+      tab.isImportedFromDesigner = true;
+      tab.configuration = configuration;
+    }
+    return tab;
+  },
+  createNewTab : function(type, path, isImportedFromDesigner, configuration){
     var existingTab = this.get('tabs').findBy("filePath", path);
     if(existingTab && path){
+      existingTab = this.setWFConfigProperties(existingTab, isImportedFromDesigner, configuration);
       this.$('.nav-tabs a[href="#' + existingTab.id + '"]').tab("show");
       return;
     }
@@ -117,6 +125,7 @@ export default Ember.Component.extend({
     if(path){
       tab.path = path;
     }
+    tab = this.setWFConfigProperties(tab, isImportedFromDesigner, configuration);
     this.$('.nav-tabs li').removeClass('active');
     this.$('.tab-content .tab-pane').removeClass('active');
     this.get('tabs').pushObject(tab);
