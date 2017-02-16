@@ -22,6 +22,11 @@ App.TrackRequestMixin = Em.Mixin.create({
 
   requestsInProgress: [],
 
+  init: function() {
+    this.set('requestsInProgress', []);
+    this._super([].slice.call(arguments));
+  },
+
   /**
    * register request to view to track his progress
    * @param {$.ajax} request

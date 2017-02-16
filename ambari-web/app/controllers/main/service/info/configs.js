@@ -279,6 +279,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   isInit: true,
 
   /**
+   * Returns dependencies at all levels for service including dependencies for its childs, children dependencies
+   * and so on.
+   *
+   * @param  {String} serviceName name of services to get dependencies
+   * @returns {String[]}
+   */
+  getServicesDependencies: function(serviceName) {
+    var dependencies = Em.getWithDefault(App.StackService.find(serviceName), 'dependentServiceNames', []);
+    var loop = function(dependentServices, allDependencies) {
+      return dependentServices.reduce(function(all, name) {
+        var service = App.StackService.find(name);
+        if (!service) {
+          return all;
+        }
+        var serviceDependencies = service.get('dependentServiceNames');
+        if (!serviceDependencies.length) {
+          return all.concat(name);
+        }
+        var missed = _.intersection(_.difference(serviceDependencies, all), serviceDependencies);
+        if (missed.length) {
+          return loop(missed, all.concat(missed));
+        }
+        return all;
+      }, allDependencies || dependentServices);
+    };
+
+    return loop(dependencies).uniq().without(serviceName).toArray();
+  },
+
+  /**
    * On load function
    * @method loadStep
    */
@@ -286,10 +316,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var serviceName = this.get('content.serviceName'), self = this;
     App.router.get('mainController').stopPolling();
     this.clearStep();
-    this.set('dependentServiceNames', (App.StackService.find(serviceName).get('dependentServiceNames') || []).reduce(function(acc, i) {
-      acc.push(i);
-      return Array.prototype.concat.apply(acc, App.StackService.find(i).get('dependentServiceNames').toArray()).without(serviceName).uniq();
-    }, []));
+    this.set('dependentServiceNames', this.getServicesDependencies(serviceName));
     this.trackRequestChain(this.loadConfigTheme(serviceName).always(function () {
       if (self.get('preSelectedConfigVersion')) {
         self.loadPreSelectedConfigVersion();
