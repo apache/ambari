@@ -25,8 +25,7 @@
       var $subMenuToggler = $(this).find('[data-toggle=' + settings.subMenuNavToggleDataAttr + ']');
       var firstLvlMenuItemsSelector = '.side-nav-menu>li';
       var secondLvlMenuItemsSelector = '.side-nav-menu>li>ul>li';
-      var $servicesMenuItem = $(this).find('.side-nav-services-menu-item');
-      var $allServicesAction = $(this).find('.all-services-actions');
+      var $moreActions = $(this).find('.more-actions');
 
       $subMenuToggler.each(function (index, toggler) {
         return $(toggler).parent().addClass('has-sub-menu');
@@ -34,9 +33,6 @@
 
       if (settings.fitHeight) {
         $(this).addClass('navigation-bar-fit-height');
-        $allServicesAction.children('.dropdown-menu').css('position', 'fixed');
-        $allServicesAction.children('.dropdown-menu').css('top', '140px');
-        $allServicesAction.children('.dropdown-menu').css('left', '130px');
       }
 
       function popStateHandler() {
@@ -99,19 +95,36 @@
       });
 
       /**
-       * hover effects for all services actions icon
+       * Hovering effects for "more actions icon": "..."
        */
-      $servicesMenuItem.hover(function () {
-        if (!$navigationContainer.hasClass('collapsed')) {
-          $allServicesAction.css('display', 'inline-block');
+      $(this).find('.mainmenu-li>a').hover(function () {
+        var $moreIcon = $(this).siblings('.more-actions');
+        if ($moreIcon.length && !$navigationContainer.hasClass('collapsed')) {
+          $moreIcon.css('display', 'inline-block');
         }
       }, function () {
-        if (!$navigationContainer.hasClass('collapsed')) {
-          $allServicesAction.css('display', 'none');
+        var $moreIcon = $(this).siblings('.more-actions');
+        if ($moreIcon.length && !$navigationContainer.hasClass('collapsed')) {
+          $moreIcon.hide();
         }
       });
-      $allServicesAction.hover(function () {
-        $allServicesAction.css('display', 'inline-block');
+      $moreActions.hover(function () {
+        $(this).css('display', 'inline-block');
+      });
+      $moreActions.on('click', function () {
+        if (settings.fitHeight) {
+          var $moreIcon = $(this);
+          $moreIcon.children('.dropdown-menu').css('position', 'fixed');
+          var offset = $(this).offset();
+          $moreIcon.children('.dropdown-menu').css('top', offset.top + 20 + 'px');
+          $moreIcon.children('.dropdown-menu').css('left', offset.left);
+        }
+      });
+      $moreActions.children('.dropdown-menu').mouseleave(function () {
+        $(this).parent().removeClass('open');
+      });
+      $navigationContainer.children('.side-nav-menu').scroll(function() {
+        $moreActions.removeClass('open');
       });
 
       /**
@@ -126,6 +139,7 @@
           if ($navigationContainer.hasClass('collapsed')) {
             // set sub menu invisible when collapsed
             $subMenus.hide();
+            $moreActions.hide();
             // set the hover effect when collapsed, should show sub-menu on hovering
             $subMenuItems.hover(function () {
               $(this).find(subMenuSelector).show();

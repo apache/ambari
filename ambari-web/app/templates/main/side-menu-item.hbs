@@ -18,7 +18,7 @@
 
 <!--dropdown menu for the items had dropdowns-->
 {{#if view.isServicesItem}}
-  <a {{bindAttr href="view.content.href" class="view.content.isView:views-button-container :side-nav-services-menu-item"}} data-toggle="collapse-sub-menu">
+  <a {{bindAttr href="view.content.href" class="view.content.isView:views-button-container"}} data-toggle="collapse-sub-menu">
     <span {{bindAttr class=":navigation-icon view.content.iconClass"}}></span>
     <span class="navigation-menu-item">{{{unbound view.content.label}}}</span>
     <span class="toggle-icon glyphicon glyphicon-menu-down pull-right"></span>
