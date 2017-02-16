@@ -86,6 +86,14 @@ limitations under the License.
     </div>
     <div class="row">
       <div class="col-sm-9">
+        {{#if error}}
+          <h3>Error Occured during migration</h3>
+          <p><span class="alert-danger">{{error}}</span></p>
+        {{/if}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-9">
         {{#if completionStatus}}
           <h2>Migration Report
           </h2>

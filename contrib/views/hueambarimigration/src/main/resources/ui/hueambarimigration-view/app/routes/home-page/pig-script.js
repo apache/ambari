@@ -94,9 +94,15 @@ export default Ember.Route.extend({
         var progressPercentage = progress.get('progressPercentage');
         var numberOfQueryTransfered = progress.get('numberOfQueryTransfered');
         var flagForCompletion = parseInt(progress.get('flag'));
+        var error = progress.get('error');
         console.log("the progress percentage is="+progressPercentage);
+        console.log("flag status is "+flagForCompletion);
+        console.log("error is "+error);
+        if(error) {
+          control.set('error', error);
+          control.set('jobstatus', null);
 
-        if (flagForCompletion === 1) {
+        } else if (flagForCompletion === 1) {
           var totalNoQuery = progress.get('totalNoQuery');
           var intanceName = progress.get('intanceName');
           var userNameofhue = progress.get('userNameofhue');

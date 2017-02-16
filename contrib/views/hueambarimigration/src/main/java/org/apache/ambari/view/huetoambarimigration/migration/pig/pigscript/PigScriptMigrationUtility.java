@@ -110,7 +110,7 @@ public class PigScriptMigrationUtility {
     try {
       String[] usernames = username.split(",");
       int totalQueries = 0;
-      for(int k=0; k<usernames.length; k++) {
+      for (int k = 0; k < usernames.length; k++) {
         connectionHuedb = DataSourceHueDatabase.getInstance(view.getProperties().get("huedrivername"), view.getProperties().get("huejdbcurl"), view.getProperties().get("huedbusername"), view.getProperties().get("huedbpassword")).getConnection();//connection to Hue DB
         username = usernames[k];
         migrationresult.setProgressPercentage(0);
@@ -128,7 +128,7 @@ public class PigScriptMigrationUtility {
         /* If No pig Script has been fetched from Hue db according to our search criteria*/
         if (dbpojoPigSavedscript.size() == 0) {
 
-          logger.info("No queries has been selected for the user " + username + " between dates: " + startDate +" - "+endDate);
+          logger.info("No queries has been selected for the user " + username + " between dates: " + startDate + " - " + endDate);
         } else {
 
           connectionAmbaridb = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();// connecting to ambari db
@@ -148,7 +148,7 @@ public class PigScriptMigrationUtility {
             float calc = ((float) (i + 1)) / dbpojoPigSavedscript.size() * 100;
             int progressPercentage = Math.round(calc);
             migrationresult.setProgressPercentage(progressPercentage);
-            migrationresult.setNumberOfQueryTransfered(i+1);
+            migrationresult.setNumberOfQueryTransfered(i + 1);
             getResourceManager(view).update(migrationresult, jobid);
 
             logger.info("Loop No." + (i + 1));
@@ -163,7 +163,7 @@ public class PigScriptMigrationUtility {
 
             maxcountforpigsavedscript = i + sequence + 1;
 
-            if(usernames[k].equals("all")) {
+            if (usernames[k].equals("all")) {
               username = dbpojoPigSavedscript.get(i).getUserName();
             }
 
@@ -200,7 +200,7 @@ public class PigScriptMigrationUtility {
       }
       logger.info("Migration Completed");
       migrationresult.setFlag(1);
-      if(totalQueries==0) {
+      if (totalQueries == 0) {
         migrationresult.setNumberOfQueryTransfered(0);
         migrationresult.setTotalNoQuery(0);
       } else {
@@ -211,34 +211,44 @@ public class PigScriptMigrationUtility {
       getResourceManager(view).update(migrationresult, jobid);
     } catch (SQLException e) {
       logger.error("Sql exception in ambari database", e);
+      migrationresult.setError("SQL Exception: " + e.getMessage());
       try {
         connectionAmbaridb.rollback();
         logger.info("rollback done");
       } catch (SQLException e1) {
-        logger.error("Sql exception while doing roll back", e);
+        logger.error("Sql exception while doing roll back", e1);
       }
     } catch (ClassNotFoundException e2) {
       logger.error("class not found exception", e2);
+      migrationresult.setError("Class Not Found Exception: " + e2.getMessage());
     } catch (ParseException e) {
       logger.error("ParseException: ", e);
+      migrationresult.setError("Parse Exception: " + e.getMessage());
     } catch (PropertyVetoException e) {
       logger.error("PropertyVetoException: ", e);
+      migrationresult.setError("Property Veto Exception: " + e.getMessage());
     } catch (URISyntaxException e) {
       e.printStackTrace();
+      migrationresult.setError("URISyntaxException: " + e.getMessage());
+    } catch (Exception e) {
+      logger.error("Generic Exception: ", e);
+      migrationresult.setError("Exception: " + e.getMessage());
     } finally {
       if (null != connectionAmbaridb)
         try {
           connectionAmbaridb.close();
         } catch (SQLException e) {
           logger.error("connection close exception: ", e);
+          migrationresult.setError("Error Closing Connection: " + e.getMessage());
         }
+      getResourceManager(view).update(migrationresult, jobid);
     }
 
     long stopTime = System.currentTimeMillis();
     long elapsedTime = stopTime - startTime;
 
 
-    migrationresult.setJobtype("hivehistoryquerymigration");
+    migrationresult.setJobtype("pigsavedscriptmigration");
     migrationresult.setTotalTimeTaken(String.valueOf(elapsedTime));
     getResourceManager(view).update(migrationresult, jobid);
 
@@ -248,6 +258,5 @@ public class PigScriptMigrationUtility {
     logger.info("----------------------------------");
 
   }
-
 
 }

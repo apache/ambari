@@ -73,7 +73,7 @@ public class HiveSavedQueryMigrationUtility {
     Connection connectionAmbaridb = null;
     Connection connectionHuedb = null;
 
-    int i = 0, j=0;
+    int i = 0, j = 0;
     String sequenceName = "";
 
     logger.info("-------------------------------------");
@@ -117,7 +117,7 @@ public class HiveSavedQueryMigrationUtility {
       logger.info("Ambari database is Oracle");
     }
 
-    int maxCountforFileResourceAmbaridb=0, maxCountforUdfAmbaridb=0, maxCountforSavequeryAmbaridb = 0;
+    int maxCountforFileResourceAmbaridb = 0, maxCountforUdfAmbaridb = 0, maxCountforSavequeryAmbaridb = 0;
     String time = null;
     Long epochtime = null;
     String dirNameforHiveSavedquery;
@@ -128,7 +128,7 @@ public class HiveSavedQueryMigrationUtility {
     try {
       String[] usernames = username.split(",");
       int totalQueries = 0;
-      for(int l=0; l<usernames.length; l++) {
+      for (int l = 0; l < usernames.length; l++) {
         connectionHuedb = DataSourceHueDatabase.getInstance(view.getProperties().get("huedrivername"), view.getProperties().get("huejdbcurl"), view.getProperties().get("huedbusername"), view.getProperties().get("huedbpassword")).getConnection(); /* fetching connection to hue DB */
         logger.info("Hue database connection successful");
 
@@ -148,7 +148,7 @@ public class HiveSavedQueryMigrationUtility {
 
         if (dbpojoHiveSavedQuery.size() == 0) /* if no data has been fetched from hue db according to search criteria */ {
 
-          logger.info("No queries has been selected for the user " + username + " between dates: " + startDate +" - "+endDate);
+          logger.info("No queries has been selected for the user " + username + " between dates: " + startDate + " - " + endDate);
         } else {
 
           connectionAmbaridb = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();/* connecting to ambari DB */
@@ -191,7 +191,7 @@ public class HiveSavedQueryMigrationUtility {
 
             time = hivesavedqueryimpl.getTime();/* getting system time */
 
-            if(usernames[l].equals("all")) {
+            if (usernames[l].equals("all")) {
               username = dbpojoHiveSavedQuery.get(i).getOwnerName();
             }
 
@@ -251,7 +251,7 @@ public class HiveSavedQueryMigrationUtility {
       }
       logger.info("Migration Completed");
       migrationresult.setFlag(1);
-      if(totalQueries==0) {
+      if (totalQueries == 0) {
         migrationresult.setNumberOfQueryTransfered(0);
         migrationresult.setTotalNoQuery(0);
       } else {
@@ -261,8 +261,8 @@ public class HiveSavedQueryMigrationUtility {
       }
       getResourceManager(view).update(migrationresult, jobid);
     } catch (SQLException e) {
-
       logger.error("SQL exception: ", e);
+      migrationresult.setError("SQL Exception: " + e.getMessage());
       try {
         connectionAmbaridb.rollback();
         logger.info("roll back done");
@@ -272,19 +272,28 @@ public class HiveSavedQueryMigrationUtility {
       }
     } catch (ClassNotFoundException e1) {
       logger.error("Class not found : ", e1);
+      migrationresult.setError("Class not found Exception: " + e1.getMessage());
     } catch (ParseException e) {
       logger.error("ParseException: ", e);
+      migrationresult.setError("Parse Exception: " + e.getMessage());
     } catch (URISyntaxException e) {
       logger.error("URISyntaxException: ", e);
+      migrationresult.setError("URI Syntax Exception: " + e.getMessage());
     } catch (PropertyVetoException e) {
       logger.error("PropertyVetoException:", e);
+      migrationresult.setError("Property Veto Exception: " + e.getMessage());
+    } catch (Exception e) {
+      logger.error("Generic Exception: ", e);
+      migrationresult.setError("Exception: " + e.getMessage());
     } finally {
       if (null != connectionAmbaridb)
         try {
           connectionAmbaridb.close();
         } catch (SQLException e) {
           logger.error("Error in connection close", e);
+          migrationresult.setError("Error in closing connection: " + e.getMessage());
         }
+      getResourceManager(view).update(migrationresult, jobid);
     }
 
 
@@ -309,7 +318,3 @@ public class HiveSavedQueryMigrationUtility {
 
   }
 }
-
-
-
-

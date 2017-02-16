@@ -287,7 +287,7 @@ public class PigScriptMigrationImplementation {
   }
 
 
-  public ArrayList<PigModel> fetchFromHueDatabase(String username, String startdate, String endtime, Connection connection, QuerySetHueDb huedatabase) throws ClassNotFoundException, IOException {
+  public ArrayList<PigModel> fetchFromHueDatabase(String username, String startdate, String endtime, Connection connection, QuerySetHueDb huedatabase) throws ClassNotFoundException, SQLException, IOException {
     int id = 0;
     int i = 0;
     ResultSet rs1 = null;
@@ -370,10 +370,11 @@ public class PigScriptMigrationImplementation {
         pigArrayList.add(pojopig);
         i++;
       }
-
+      connection.commit();
 
     } catch (SQLException e) {
       logger.error("SQLException", e);
+      connection.rollback();
     } finally {
       try {
         if (connection != null)

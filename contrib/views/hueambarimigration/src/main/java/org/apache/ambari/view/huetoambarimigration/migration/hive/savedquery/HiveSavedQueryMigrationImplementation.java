@@ -351,7 +351,7 @@ public class HiveSavedQueryMigrationImplementation {
   }
 
   public ArrayList<HiveModel> fetchFromHuedb(String username, String startdate, String endtime, Connection connection, QuerySetHueDb huedatabase)
-    throws ClassNotFoundException, IOException {
+    throws ClassNotFoundException, SQLException, IOException {
     int id = 0;
     int i = 0;
     String[] query = new String[100];
@@ -474,9 +474,11 @@ public class HiveSavedQueryMigrationImplementation {
         hiveArrayList.add(hivepojo);
         i++;
       }
+      connection.commit();
 
     } catch (SQLException e2) {
       e2.printStackTrace();
+      connection.rollback();
     } finally
 
     {

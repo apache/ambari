@@ -45,191 +45,199 @@ import java.util.ArrayList;
 
 public class PigUdfMigrationUtility {
 
-    protected MigrationResourceManager resourceManager = null;
+  protected MigrationResourceManager resourceManager = null;
 
-    public synchronized PersonalCRUDResourceManager<MigrationResponse> getResourceManager(ViewContext view) {
-        if (resourceManager == null) {
-            resourceManager = new MigrationResourceManager(view);
-        }
-        return resourceManager;
+  public synchronized PersonalCRUDResourceManager<MigrationResponse> getResourceManager(ViewContext view) {
+    if (resourceManager == null) {
+      resourceManager = new MigrationResourceManager(view);
+    }
+    return resourceManager;
+  }
+
+
+  public void pigUdfMigration(String username, String instance, ViewContext view, MigrationResponse migrationresult, String jobid) throws IOException, ItemNotFound {
+
+    long startTime = System.currentTimeMillis();
+
+    final Logger logger = Logger.getLogger(PigUdfMigrationUtility.class);
+    Connection connectionHuedb = null;
+    Connection connectionAmbaridb = null;
+
+    logger.info("-------------------------------------");
+    logger.info("pig udf Migration started");
+    logger.info("-------------------------------------");
+
+
+    int i = 0;
+
+    logger.info("instance is: " + username);
+    logger.info("hue username is : " + instance);
+
+    //Reading the configuration file
+    PigUdfMigrationImplementation pigudfmigration = new PigUdfMigrationImplementation();
+
+    QuerySet huedatabase = null;
+
+    if (view.getProperties().get("huedrivername").contains("mysql")) {
+      huedatabase = new MysqlQuerySet();
+    } else if (view.getProperties().get("huedrivername").contains("postgresql")) {
+      huedatabase = new PostgressQuerySet();
+    } else if (view.getProperties().get("huedrivername").contains("sqlite")) {
+
+      huedatabase = new SqliteQuerySet();
+    } else if (view.getProperties().get("huedrivername").contains("oracle")) {
+      huedatabase = new OracleQuerySet();
     }
 
-
-    public void pigUdfMigration(String username, String instance, ViewContext view, MigrationResponse migrationresult, String jobid) throws IOException, ItemNotFound {
-
-        long startTime = System.currentTimeMillis();
-
-        final Logger logger = Logger.getLogger(PigUdfMigrationUtility.class);
-        Connection connectionHuedb = null;
-        Connection connectionAmbaridb = null;
-
-        logger.info("-------------------------------------");
-        logger.info("pig udf Migration started");
-        logger.info("-------------------------------------");
+    QuerySetAmbariDB ambaridatabase = null;
 
 
-        int i = 0;
-        
-        logger.info("instance is: " + username);
-        logger.info("hue username is : " + instance);
+    if (view.getProperties().get("ambaridrivername").contains("mysql")) {
+      ambaridatabase = new MysqlQuerySetAmbariDB();
+    } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
+      ambaridatabase = new PostgressQuerySetAmbariDB();
+    } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
+      ambaridatabase = new OracleQuerySetAmbariDB();
+    }
 
-        //Reading the configuration file
-        PigUdfMigrationImplementation pigudfmigration = new PigUdfMigrationImplementation();
+    int maxcountforpigudf = 0;
+    String dirNameForPigUdf = "";
+    int pigInstanceTableId, sequence;
 
-        QuerySet huedatabase = null;
+    ArrayList<PigModel> dbpojoPigUdf = new ArrayList<PigModel>();
 
-        if (view.getProperties().get("huedrivername").contains("mysql")) {
-            huedatabase = new MysqlQuerySet();
-        } else if (view.getProperties().get("huedrivername").contains("postgresql")) {
-            huedatabase = new PostgressQuerySet();
-        } else if (view.getProperties().get("huedrivername").contains("sqlite")) {
+    try {
+      String[] usernames = username.split(",");
+      int totalQueries = 0;
+      for (int k = 0; k < usernames.length; k++) {
+        connectionHuedb = DataSourceHueDatabase.getInstance(view.getProperties().get("huedrivername"), view.getProperties().get("huejdbcurl"), view.getProperties().get("huedbusername"), view.getProperties().get("huedbpassword")).getConnection();//connection to Hue DB
+        username = usernames[k];
+        migrationresult.setProgressPercentage(0);
+        logger.info("Migration started for user " + username);
+        dbpojoPigUdf = pigudfmigration.fetchFromHueDatabase(username, connectionHuedb, huedatabase);// Fetching pig script details from Hue DB
+        totalQueries += dbpojoPigUdf.size();
 
-            huedatabase = new SqliteQuerySet();
-        } else if (view.getProperties().get("huedrivername").contains("oracle")) {
-            huedatabase = new OracleQuerySet();
+        for (int j = 0; j < dbpojoPigUdf.size(); j++) {
+          logger.info("jar fetched from hue=" + dbpojoPigUdf.get(j).getFileName());
+
         }
-
-        QuerySetAmbariDB ambaridatabase = null;
-
-
-        if (view.getProperties().get("ambaridrivername").contains("mysql")) {
-            ambaridatabase = new MysqlQuerySetAmbariDB();
-        } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
-            ambaridatabase = new PostgressQuerySetAmbariDB();
-        } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
-            ambaridatabase = new OracleQuerySetAmbariDB();
-        }
-
-        int maxcountforpigudf = 0;
-        String dirNameForPigUdf = "";
-        int pigInstanceTableId, sequence;
-
-        ArrayList<PigModel> dbpojoPigUdf = new ArrayList<PigModel>();
-
-        try {
-            String[] usernames = username.split(",");
-            int totalQueries = 0;
-            for(int k=0; k<usernames.length; k++) {
-                connectionHuedb = DataSourceHueDatabase.getInstance(view.getProperties().get("huedrivername"), view.getProperties().get("huejdbcurl"), view.getProperties().get("huedbusername"), view.getProperties().get("huedbpassword")).getConnection();//connection to Hue DB
-                username = usernames[k];
-                migrationresult.setProgressPercentage(0);
-                logger.info("Migration started for user " + username);
-                dbpojoPigUdf = pigudfmigration.fetchFromHueDatabase(username, connectionHuedb, huedatabase);// Fetching pig script details from Hue DB
-                totalQueries += dbpojoPigUdf.size();
-
-                for (int j = 0; j < dbpojoPigUdf.size(); j++) {
-                    logger.info("jar fetched from hue=" + dbpojoPigUdf.get(j).getFileName());
-
-                }
 
 
           /* If No pig Script has been fetched from Hue db according to our search criteria*/
-                if (dbpojoPigUdf.size() == 0) {
+        if (dbpojoPigUdf.size() == 0) {
 
-                    logger.info("No queries has been selected for the user " + username);
-                } else {
+          logger.info("No queries has been selected for the user " + username);
+        } else {
 
-                    connectionAmbaridb = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();// connecting to ambari db
-                    connectionAmbaridb.setAutoCommit(false);
+          connectionAmbaridb = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();// connecting to ambari db
+          connectionAmbaridb.setAutoCommit(false);
 
-                    logger.info("loop will continue for " + dbpojoPigUdf.size() + "times");
+          logger.info("loop will continue for " + dbpojoPigUdf.size() + "times");
 
-                    //for each pig udf found in Hue Database
+          //for each pig udf found in Hue Database
 
-                    pigInstanceTableId = pigudfmigration.fetchInstanceTablenamePigUdf(connectionAmbaridb, instance, ambaridatabase);// finding the table name in ambari from the given instance
+          pigInstanceTableId = pigudfmigration.fetchInstanceTablenamePigUdf(connectionAmbaridb, instance, ambaridatabase);// finding the table name in ambari from the given instance
 
-                    sequence = pigudfmigration.fetchSequenceno(connectionAmbaridb, pigInstanceTableId, ambaridatabase);
+          sequence = pigudfmigration.fetchSequenceno(connectionAmbaridb, pigInstanceTableId, ambaridatabase);
 
-                    for (i = 0; i < dbpojoPigUdf.size(); i++) {
-
-
-                        float calc = ((float) (i + 1)) / dbpojoPigUdf.size() * 100;
-                        int progressPercentage = Math.round(calc);
-                        migrationresult.setProgressPercentage(progressPercentage);
-                        migrationresult.setNumberOfQueryTransfered(i + 1);
-                        getResourceManager(view).update(migrationresult, jobid);
-
-                        logger.info("Loop No." + (i + 1));
-                        logger.info("________________");
-                        logger.info("jar name:  " + dbpojoPigUdf.get(i).getFileName());
-
-                        maxcountforpigudf = i + sequence + 1;
+          for (i = 0; i < dbpojoPigUdf.size(); i++) {
 
 
-                        String ownerName = dbpojoPigUdf.get(i).getUserName();
-                        String filePath = dbpojoPigUdf.get(i).getUrl();
-                        String fileName = dbpojoPigUdf.get(i).getFileName();
-                        if(usernames[k].equals("all")) {
-                            username = dbpojoPigUdf.get(i).getUserName();
-                        }
-                        dirNameForPigUdf = "/user/" + username + "/pig/udf/";
-                        String ambariNameNodeUri = view.getProperties().get("namenode_URI_Ambari");
-                        String dirAndFileName = ambariNameNodeUri + dirNameForPigUdf + fileName;
-
-                        if (view.getProperties().get("KerberoseEnabled").equals("y")) {
-                            pigudfmigration.createDirPigUdfSecured(dirNameForPigUdf, ambariNameNodeUri, ownerName, view.getProperties().get("PrincipalUserName"));
-                            pigudfmigration.copyFileBetweenHdfsSecured(filePath, dirNameForPigUdf, ambariNameNodeUri, ownerName, view.getProperties().get("PrincipalUserName"));
-                        } else {
-                            pigudfmigration.createDirPigUdf(dirNameForPigUdf, ambariNameNodeUri, ownerName);
-                            pigudfmigration.copyFileBetweenHdfs(filePath, dirNameForPigUdf, ambariNameNodeUri, ownerName);
-                        }
-
-                        pigudfmigration.insertRowForPigUdf(maxcountforpigudf, dirAndFileName, fileName, connectionAmbaridb, pigInstanceTableId, ambaridatabase, ownerName);
-                        logger.info(dbpojoPigUdf.get(i).getFileName() + "Migrated to Ambari");
-
-                    }
-                    pigudfmigration.updateSequenceno(connectionAmbaridb, maxcountforpigudf, pigInstanceTableId, ambaridatabase);
-                    connectionAmbaridb.commit();
-                }
-                logger.info("Migration completed for user " + username);
-            }
-            migrationresult.setFlag(1);
-            if(totalQueries==0) {
-                migrationresult.setNumberOfQueryTransfered(0);
-                migrationresult.setTotalNoQuery(0);
-            } else {
-                migrationresult.setNumberOfQueryTransfered(totalQueries);
-                migrationresult.setTotalNoQuery(totalQueries);
-                migrationresult.setProgressPercentage(100);
-            }
+            float calc = ((float) (i + 1)) / dbpojoPigUdf.size() * 100;
+            int progressPercentage = Math.round(calc);
+            migrationresult.setProgressPercentage(progressPercentage);
+            migrationresult.setNumberOfQueryTransfered(i + 1);
             getResourceManager(view).update(migrationresult, jobid);
-        } catch (SQLException e) {
-            logger.error("Sql exception in ambari database", e);
-            try {
-                connectionAmbaridb.rollback();
-                logger.info("rollback done");
-            } catch (SQLException e1) {
-                logger.error("Sql exception while doing roll back", e);
+
+            logger.info("Loop No." + (i + 1));
+            logger.info("________________");
+            logger.info("jar name:  " + dbpojoPigUdf.get(i).getFileName());
+
+            maxcountforpigudf = i + sequence + 1;
+
+
+            String ownerName = dbpojoPigUdf.get(i).getUserName();
+            String filePath = dbpojoPigUdf.get(i).getUrl();
+            String fileName = dbpojoPigUdf.get(i).getFileName();
+            if (usernames[k].equals("all")) {
+              username = dbpojoPigUdf.get(i).getUserName();
             }
-        } catch (ClassNotFoundException e2) {
-            logger.error("class not found exception", e2);
+            dirNameForPigUdf = "/user/" + username + "/pig/udf/";
+            String ambariNameNodeUri = view.getProperties().get("namenode_URI_Ambari");
+            String dirAndFileName = ambariNameNodeUri + dirNameForPigUdf + fileName;
 
-        } catch (PropertyVetoException e) {
-            logger.error("PropertyVetoException: ", e);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } finally {
-            if (null != connectionAmbaridb)
-                try {
-                    connectionAmbaridb.close();
-                } catch (SQLException e) {
-                    logger.error("connection close exception: ", e);
-                }
+            if (view.getProperties().get("KerberoseEnabled").equals("y")) {
+              pigudfmigration.createDirPigUdfSecured(dirNameForPigUdf, ambariNameNodeUri, ownerName, view.getProperties().get("PrincipalUserName"));
+              pigudfmigration.copyFileBetweenHdfsSecured(filePath, dirNameForPigUdf, ambariNameNodeUri, ownerName, view.getProperties().get("PrincipalUserName"));
+            } else {
+              pigudfmigration.createDirPigUdf(dirNameForPigUdf, ambariNameNodeUri, ownerName);
+              pigudfmigration.copyFileBetweenHdfs(filePath, dirNameForPigUdf, ambariNameNodeUri, ownerName);
+            }
+
+            pigudfmigration.insertRowForPigUdf(maxcountforpigudf, dirAndFileName, fileName, connectionAmbaridb, pigInstanceTableId, ambaridatabase, ownerName);
+            logger.info(dbpojoPigUdf.get(i).getFileName() + "Migrated to Ambari");
+
+          }
+          pigudfmigration.updateSequenceno(connectionAmbaridb, maxcountforpigudf, pigInstanceTableId, ambaridatabase);
+          connectionAmbaridb.commit();
         }
-
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = stopTime - startTime;
-
-
-        migrationresult.setJobtype("hivehistoryquerymigration");
-        migrationresult.setTotalTimeTaken(String.valueOf(elapsedTime));
-        getResourceManager(view).update(migrationresult, jobid);
-
-
-        logger.info("----------------------------------");
-        logger.info("pig udf Migration ends");
-        logger.info("----------------------------------");
-
+        logger.info("Migration completed for user " + username);
+      }
+      migrationresult.setFlag(1);
+      if (totalQueries == 0) {
+        migrationresult.setNumberOfQueryTransfered(0);
+        migrationresult.setTotalNoQuery(0);
+      } else {
+        migrationresult.setNumberOfQueryTransfered(totalQueries);
+        migrationresult.setTotalNoQuery(totalQueries);
+        migrationresult.setProgressPercentage(100);
+      }
+      getResourceManager(view).update(migrationresult, jobid);
+    } catch (SQLException e) {
+      logger.error("Sql exception in ambari database", e);
+      migrationresult.setError("SQL Exception: " + e.getMessage());
+      try {
+        connectionAmbaridb.rollback();
+        logger.info("rollback done");
+      } catch (SQLException e1) {
+        logger.error("Sql exception while doing roll back", e1);
+      }
+    } catch (ClassNotFoundException e2) {
+      logger.error("class not found exception", e2);
+      migrationresult.setError("Class Not Found Exception: " + e2.getMessage());
+    } catch (PropertyVetoException e) {
+      logger.error("PropertyVetoException: ", e);
+      migrationresult.setError("Property Veto Exception: " + e.getMessage());
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
+      migrationresult.setError("URI Syntax Exception: " + e.getMessage());
+    } catch (Exception e) {
+      logger.error("Generic Exception: ", e);
+      migrationresult.setError("Exception: " + e.getMessage());
+    } finally {
+      if (null != connectionAmbaridb)
+        try {
+          connectionAmbaridb.close();
+        } catch (SQLException e) {
+          logger.error("connection close exception: ", e);
+          migrationresult.setError("Error in closing connection: " + e.getMessage());
+        }
+      getResourceManager(view).update(migrationresult, jobid);
     }
+
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+
+
+    migrationresult.setJobtype("pigudfmigration");
+    migrationresult.setTotalTimeTaken(String.valueOf(elapsedTime));
+    getResourceManager(view).update(migrationresult, jobid);
+
+
+    logger.info("----------------------------------");
+    logger.info("pig udf Migration ends");
+    logger.info("----------------------------------");
+
+  }
 
 }
