@@ -234,7 +234,7 @@ export default Ember.Component.extend({
       this.createOrShowProjManager();
     },
     showWarning(index){
-      this.$('#ConfirmDialog').remove();
+      this.set('showingWarning', false);
       var tab = this.get('tabs').objectAt(index);
       this.set('indexToClose', index);
       if(tab && tab.type ==='dashboard'){
