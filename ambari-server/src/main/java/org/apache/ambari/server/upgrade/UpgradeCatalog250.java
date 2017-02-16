@@ -178,6 +178,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateYarnSite();
     updateRangerUrlConfigs();
     addManageServiceAutoStartPermissions();
+    addManageAlertNotificationsPermissions();
   }
 
   /**
@@ -1002,6 +1003,21 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         "CLUSTER.ADMINISTRATOR:CLUSTER",
         "CLUSTER.OPERATOR:CLUSTER");
     addRoleAuthorization("CLUSTER.MANAGE_AUTO_START", "Manage service auto-start configuration", roles);
+  }
+
+  /**
+   * Add permissions for managing alert notifications configuration.
+   * <p>
+   * <ul>
+   * <li>CLUSTER.MANAGE_ALERT_NOTIFICATIONS permissions for AMBARI.ADMINISTRATOR, CLUSTER.ADMINISTRATOR</li>
+   * </ul>
+   */
+  protected void addManageAlertNotificationsPermissions() throws SQLException {
+    Collection<String> roles;
+    roles = Arrays.asList(
+        "AMBARI.ADMINISTRATOR:AMBARI",
+        "CLUSTER.ADMINISTRATOR:CLUSTER");
+    addRoleAuthorization("CLUSTER.MANAGE_ALERT_NOTIFICATIONS", "Manage alert notifications configuration", roles);
   }
 
   /**

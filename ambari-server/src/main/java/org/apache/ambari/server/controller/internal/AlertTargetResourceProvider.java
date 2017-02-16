@@ -48,7 +48,6 @@ import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
-import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertGroup;
@@ -128,10 +127,7 @@ public class AlertTargetResourceProvider extends
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
 
-    // For now only allow an Ambari administrator to create, update, and manage Alert Targets.
-    // If an alert target can associated with a particular cluster, than a cluster administrator
-    // should be able to do this as well.
-    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERTS);
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERT_NOTIFICATIONS);
     setRequiredCreateAuthorizations(requiredAuthorizations);
     setRequiredUpdateAuthorizations(requiredAuthorizations);
     setRequiredDeleteAuthorizations(requiredAuthorizations);
@@ -250,11 +246,6 @@ public class AlertTargetResourceProvider extends
   @Override
   protected Set<String> getPKPropertyIds() {
     return PK_PROPERTY_IDS;
-  }
-
-  @Override
-  protected ResourceType getResourceType(Request request, Predicate predicate) {
-    return ResourceType.AMBARI;
   }
 
   /**

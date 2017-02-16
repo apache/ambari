@@ -275,6 +275,7 @@ public class UpgradeCatalog250Test {
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
+    Method addManageAlertNotificationsPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageAlertNotificationsPermissions");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
     Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
@@ -293,6 +294,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(updateRangerUrlConfigs)
       .addMockedMethod(addManageServiceAutoStartPermissions)
+      .addMockedMethod(addManageAlertNotificationsPermissions)
       .addMockedMethod(updateYarnSite)
       .addMockedMethod(updateAlerts)
       .addMockedMethod(removeAlertDuplicates)
@@ -336,6 +338,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.addManageServiceAutoStartPermissions();
+    expectLastCall().once();
+
+    upgradeCatalog250.addManageAlertNotificationsPermissions();
     expectLastCall().once();
 
     upgradeCatalog250.updateYarnSite();
