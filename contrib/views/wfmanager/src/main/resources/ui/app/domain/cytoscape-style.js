@@ -83,6 +83,12 @@ export default Ember.Object.create({
       }
     },
     {
+      selector: 'node[type = "kill"]',
+      style: {
+        'color': '#a52a2a'
+      }
+    },
+    {
       selector: 'node[type = "placeholder"]',
       style: {
         width: 1,

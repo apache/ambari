@@ -25,7 +25,7 @@ const DuplicateDataNodeName = BaseValidator.extend({
       model.get('dataNodes').forEach((item)=>{
         if (item.data.node && item.data.node.name) {
           Ember.set(item.data.node, "errors", false);
-          if(nodeNames.get(item.data.node.name)){
+          if(nodeNames.get(item.data.node.name) && item.data.node.type!=='kill'){
             Ember.set(item.data.node, "errors", true);
             model.get("validationErrors").pushObject({node:item.data,message:"Node name should be unique"});
           }else{
