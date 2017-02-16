@@ -284,7 +284,7 @@
   {{save-wf type='wf' close="closeSaveWorkflow" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
 {{/if}}
 {{#if showingWorkflowConfigProps}}
-  {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
+  {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath tabInfo=tabInfo openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
 {{/if}}
 {{#if showGlobalConfig}}
   {{#global-config closeGlobalConfig="closeWorkflowGlobalProps" saveGlobalConfig="saveGlobalConfig" actionModel=globalConfig}}{{/global-config}}

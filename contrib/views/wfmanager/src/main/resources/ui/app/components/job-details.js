@@ -480,7 +480,9 @@ export default Ember.Component.extend({
         this.sendAction('showCoord', coordId);
       },
       editWorkflow(path){
-        this.sendAction('editWorkflow', path);
+        var x2js = new X2JS();
+        var configurationObj  = x2js.xml_str2json(this.get('model.conf'));
+        this.sendAction('editWorkflow', path, null, true, {"settings":configurationObj});
       }
     }
   });

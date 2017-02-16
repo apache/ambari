@@ -71,8 +71,8 @@ export default Ember.Route.extend(Ember.Evented, {
       this.set('failedSchemaVersions', true);
       transition.retry();
     },
-    editWorkflow(path, type){
-      this.trigger('openNewTab', path, type);
+    editWorkflow(path, type, isImportedFromDesigner, configuration){
+      this.trigger('openNewTab', path, type, isImportedFromDesigner, configuration);
     },
     showDashboard(){
       this.controller.set('dashboardShown', true);
