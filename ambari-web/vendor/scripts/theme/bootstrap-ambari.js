@@ -23,10 +23,61 @@
       var $navigationContainer = $(this).find(containerSelector);
       var $sideNavToggler = $(this).find('[data-toggle=' + settings.navBarToggleDataAttr + ']');
       var $subMenuToggler = $(this).find('[data-toggle=' + settings.subMenuNavToggleDataAttr + ']');
+      var firstLvlMenuItemsSelector = '.side-nav-menu>li';
+      var secondLvlMenuItemsSelector = '.side-nav-menu>li>ul>li';
+      var $servicesMenuItem = $(this).find('.side-nav-services-menu-item');
+      var $allServicesAction = $(this).find('.all-services-actions');
 
       if (settings.fitHeight) {
         $(this).addClass('navigation-bar-fit-height');
+        $allServicesAction.children('.dropdown-menu').css('position', 'fixed');
+        $allServicesAction.children('.dropdown-menu').css('top', '140px');
+        $allServicesAction.children('.dropdown-menu').css('left', '130px');
       }
+
+      function popStateHandler() {
+        var path = window.location.pathname + window.location.hash;
+        $navigationContainer.find('li a').each(function (index, link) {
+          var $link = $(link);
+          var href = $link.attr('data-href') || $link.attr('href');
+          if (path.indexOf(href) !== -1 && !['', '#'].includes(href)) {
+            $link.parent().addClass('active');
+          } else {
+            $link.parent().removeClass('active');
+          }
+        });
+      }
+
+      if (settings.handlePopState) {
+        popStateHandler();
+        $(window).bind('popstate', popStateHandler);
+      }
+
+      function clickHandler(el) {
+        var $li = $(el).parent();
+        var activeClass = settings.activeClass;
+
+        var activeMenuItems = firstLvlMenuItemsSelector + '.' + activeClass;
+        var activeSubMenuItems = secondLvlMenuItemsSelector + '.' + activeClass;
+        $navigationContainer.find(activeMenuItems).removeClass(activeClass);
+        $navigationContainer.find(activeSubMenuItems).removeClass(activeClass);
+        $li.addClass(activeClass);
+      }
+
+      /**
+       * Click on menu item
+       */
+      $(firstLvlMenuItemsSelector + '>a').on('click', function () {
+        clickHandler(this);
+      });
+
+      /**
+       * Click on sub menu item
+       */
+      $(secondLvlMenuItemsSelector + '>a').on('click', function () {
+        clickHandler(this);
+        $(this).parent().parent().parent().addClass(settings.activeClass);
+      });
 
       /**
        * Slider for sub menu
@@ -41,6 +92,22 @@
         $this.children('.toggle-icon').toggleClass(settings.menuLeftClass + ' ' + settings.menuDownClass);
         event.stopPropagation();
         return false;
+      });
+
+      /**
+       * hover effects for all services actions icon
+       */
+      $servicesMenuItem.hover(function () {
+        if (!$navigationContainer.hasClass('collapsed')) {
+          $allServicesAction.css('display', 'inline-block');
+        }
+      }, function () {
+        if (!$navigationContainer.hasClass('collapsed')) {
+          $allServicesAction.css('display', 'none');
+        }
+      });
+      $allServicesAction.hover(function () {
+        $allServicesAction.css('display', 'inline-block');
       });
 
       /**
@@ -76,7 +143,7 @@
           if (settings.moveLeftFooter) {
             $(settings.footer).css('margin-left', containerWidth);
           }
-          $sideNavToggler.toggleClass(settings.collapseNavBarClass + ' ' + settings.expandNavBarClass);
+          $sideNavToggler.find('span').toggleClass(settings.collapseNavBarClass + ' ' + settings.expandNavBarClass);
         });
         return false;
       });
@@ -84,6 +151,7 @@
   };
 
   $.fn.navigationBar.defaults = {
+    handlePopState: true,
     fitHeight: false,
     content: '#main',
     footer: 'footer',
@@ -93,6 +161,7 @@
     menuDownClass: 'glyphicon-menu-down',
     collapseNavBarClass: 'fa-angle-double-left',
     expandNavBarClass: 'fa-angle-double-right',
+    activeClass: 'active',
     navBarToggleDataAttr: 'collapse-side-nav',
     subMenuNavToggleDataAttr: 'collapse-sub-menu'
   };

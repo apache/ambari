@@ -750,7 +750,6 @@ input.radio:checked + label:after {
   width: 190px;
   background-color: #323544;
   padding: 0;
-  overflow: hidden;
 }
 .navigation-bar-container ul.nav.side-nav-header {
   width: 190px;
@@ -835,8 +834,12 @@ input.radio:checked + label:after {
   padding: 0;
   margin: 0;
 }
-.navigation-bar-container ul.nav.side-nav-menu li a,
-.navigation-bar-container ul.nav.side-nav-footer li a {
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer > a,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer > a,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a {
   padding: 15px 5px 15px 25px;
   display: table-cell;
   vertical-align: middle;
@@ -845,8 +848,12 @@ input.radio:checked + label:after {
   -moz-border-radius: 0;
   -webkit-border-radius: 0;
 }
-.navigation-bar-container ul.nav.side-nav-menu li a .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-footer li a .navigation-menu-item {
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a .navigation-menu-item {
   font-family: 'Roboto', sans-serif;
   font-weight: normal;
   font-style: normal;
@@ -856,14 +863,22 @@ input.radio:checked + label:after {
   color: #b8bec4;
   padding-left: 8px;
 }
-.navigation-bar-container ul.nav.side-nav-menu li a .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-footer li a .navigation-icon {
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a .navigation-icon {
   line-height: 18px;
   font-size: 18px;
   color: #b8bec4;
 }
-.navigation-bar-container ul.nav.side-nav-menu li a .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-footer li a .toggle-icon {
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a .toggle-icon {
   line-height: 14px;
   font-size: 14px;
   color: #b8bec4;
@@ -886,12 +901,12 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer a .navigation-icon:hover {
   color: #fff;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li {
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li {
   background-color: #323544;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li a,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li a {
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li a,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li a {
   font-family: 'Roboto', sans-serif;
   font-weight: normal;
   font-style: normal;
@@ -900,35 +915,35 @@ input.radio:checked + label:after {
   font-size: 13px;
   color: #999;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li a .submenu-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li a .submenu-icon {
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li a .submenu-icon,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li a .submenu-icon {
   line-height: 14px;
   font-size: 14px;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover,
-.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover,
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover {
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li > a:hover,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li > a:hover,
+.navigation-bar-container ul.nav.side-nav-menu li > a:hover,
+.navigation-bar-container ul.nav.side-nav-footer li > a:hover {
   background: #404351;
   cursor: pointer;
   color: #fff;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a:hover .submenu-item,
-.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a:hover .submenu-item,
-.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a:hover .submenu-item,
-.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a:hover .submenu-item {
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li > a:hover .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li > a:hover .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li > a:hover .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li > ul > li > a:hover .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li > ul > li > a:hover .submenu-item,
+.navigation-bar-container ul.nav.side-nav-menu li > a:hover .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li > a:hover .submenu-item {
   color: #fff;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect),
@@ -952,6 +967,30 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .toggle-icon {
   color: #fff;
 }
+.navigation-bar-container ul.nav.side-nav-menu .all-services-actions,
+.navigation-bar-container ul.nav.side-nav-footer .all-services-actions {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  line-height: 14px;
+  font-size: 14px;
+  cursor: pointer;
+  vertical-align: middle;
+  color: #fff;
+}
+.navigation-bar-container ul.nav.side-nav-menu .all-services-actions .dropdown-menu > li > a,
+.navigation-bar-container ul.nav.side-nav-footer .all-services-actions .dropdown-menu > li > a {
+  color: #666;
+}
+.navigation-bar-container ul.nav.side-nav-menu .all-services-actions .dropdown-menu > li > a i,
+.navigation-bar-container ul.nav.side-nav-footer .all-services-actions .dropdown-menu > li > a i {
+  color: #666;
+}
+.navigation-bar-container ul.nav.side-nav-menu .all-services-actions .dropdown-menu > li > a:hover,
+.navigation-bar-container ul.nav.side-nav-footer .all-services-actions .dropdown-menu > li > a:hover {
+  background: #f5f5f5;
+}
 .navigation-bar-container .nav-pills > li.active > a,
 .navigation-bar-container .nav-pills > li.active > a:focus,
 .navigation-bar-container .nav-pills > li.active > a:hover,
@@ -961,7 +1000,6 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container.collapsed {
   width: 50px;
-  overflow: visible;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-header {
   width: 50px;
@@ -1037,7 +1075,10 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li.active > a {
   padding-left: 19px;
 }
-
+.navigation-bar-container.collapsed ul.nav.side-nav-menu .all-services-actions,
+.navigation-bar-container.collapsed ul.nav.side-nav-footer .all-services-actions {
+  display: none;
+}
 .navigation-bar-fit-height {
   position: fixed;
   top: 0;
@@ -1060,7 +1101,6 @@ input.radio:checked + label:after {
 .navigation-bar-fit-height .navigation-bar-container:not(.collapsed) .side-nav-menu {
   overflow-y: auto;
 }
-
 .notifications-group {
   position: relative;
   top: 1px;
