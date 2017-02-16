@@ -89,97 +89,6 @@ describe('App.DashboardWidgetView', function () {
     });
   });
 
-  describe('#widgetConfig', function () {
-    var widgetConfig;
-
-    beforeEach(function() {
-      widgetConfig = view.get('widgetConfig').create();
-    });
-
-    describe('#validateThreshold()', function () {
-
-      beforeEach(function () {
-        sinon.stub(widgetConfig, 'updateSlider');
-      });
-
-      afterEach(function () {
-        widgetConfig.updateSlider.restore();
-      });
-
-      it('updateSlider should be called', function () {
-        widgetConfig.validateThreshold('thresholdMin');
-        expect(widgetConfig.updateSlider).to.be.called;
-      });
-
-      it('thresholdMin is empty', function () {
-        widgetConfig.set('thresholdMin', '');
-        widgetConfig.validateThreshold('thresholdMin');
-        expect(widgetConfig.get('thresholdMinError')).to.be.true;
-        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('admin.users.editError.requiredField'));
-      });
-
-      it('thresholdMin is NaN', function () {
-        widgetConfig.set('thresholdMin', 'a');
-        widgetConfig.validateThreshold('thresholdMin');
-        expect(widgetConfig.get('thresholdMinError')).to.be.true;
-        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.invalid').format(0));
-      });
-
-      it('thresholdMin bigger than maxValue', function () {
-        widgetConfig.set('thresholdMin', '1');
-        widgetConfig.validateThreshold('thresholdMin');
-        expect(widgetConfig.get('thresholdMinError')).to.be.true;
-        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.invalid').format(0));
-      });
-
-      it('thresholdMin less than 0', function () {
-        widgetConfig.set('thresholdMin', '-1');
-        widgetConfig.validateThreshold('thresholdMin');
-        expect(widgetConfig.get('thresholdMinError')).to.be.true;
-        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.invalid').format(0));
-      });
-
-      it('thresholdMin bigger than thresholdMax', function () {
-        widgetConfig.set('thresholdMin', '2');
-        widgetConfig.set('thresholdMax', '1');
-        widgetConfig.set('maxValue', 100);
-        widgetConfig.validateThreshold('thresholdMin');
-        expect(widgetConfig.get('thresholdMinError')).to.be.true;
-        expect(widgetConfig.get('thresholdMinErrorMessage')).to.be.equal(Em.I18n.t('dashboard.widgets.error.smaller'));
-      });
-    });
-
-    describe('#observeThreshMinValue()', function() {
-
-      beforeEach(function() {
-        sinon.stub(widgetConfig, 'validateThreshold');
-      });
-      afterEach(function() {
-        widgetConfig.validateThreshold.restore();
-      });
-
-      it('validateThreshold should be called', function() {
-        widgetConfig.observeThreshMinValue();
-        expect(widgetConfig.validateThreshold.calledWith('thresholdMin')).to.be.true;
-      });
-    });
-
-    describe('#observeThreshMaxValue()', function() {
-
-      beforeEach(function() {
-        sinon.stub(widgetConfig, 'validateThreshold');
-      });
-      afterEach(function() {
-        widgetConfig.validateThreshold.restore();
-      });
-
-      it('validateThreshold should be called', function() {
-        widgetConfig.observeThreshMaxValue();
-        expect(widgetConfig.validateThreshold.calledWith('thresholdMax')).to.be.true;
-      });
-    });
-  });
-
   describe('#didInsertElement()', function() {
 
     beforeEach(function() {
@@ -250,25 +159,6 @@ describe('App.DashboardWidgetView', function () {
   describe('#editWidget()', function() {
 
     beforeEach(function() {
-      sinon.stub(view, 'showEditDialog');
-    });
-
-    afterEach(function() {
-      view.showEditDialog.restore();
-    });
-
-    it('showEditDialog should be called', function() {
-      view.reopen({
-        widgetConfig: Em.Object.extend()
-      });
-      view.editWidget();
-      expect(view.showEditDialog).to.be.calledOnce;
-    });
-  });
-
-  describe('#showEditDialog()', function() {
-
-    beforeEach(function() {
       sinon.stub(App.ModalPopup, 'show');
     });
 
@@ -277,7 +167,7 @@ describe('App.DashboardWidgetView', function () {
     });
 
     it('App.ModalPopup.show should be called', function() {
-      view.showEditDialog();
+      view.editWidget();
       expect(App.ModalPopup.show).to.be.calledOnce;
     });
   });

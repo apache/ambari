@@ -426,15 +426,7 @@ describe('App.MainDashboardWidgetsView', function () {
       });
 
       it('saveWidgetsSettings should be called', function() {
-        expect(plusButtonFilterView.get('parentView').saveWidgetsSettings.getCall(0).args[0]).to.be.eql({
-          visible: [2, 1],
-          hidden: [3],
-          threshold: {}
-        });
-      });
-
-      it('renderWidgets should be called', function() {
-        expect(plusButtonFilterView.get('parentView').renderWidgets).to.be.calledOnce;
+        expect(plusButtonFilterView.get('parentView').saveWidgetsSettings.calledOnce).to.be.true;
       });
     });
   });
