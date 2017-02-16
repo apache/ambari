@@ -239,16 +239,19 @@ def wait_for_server_start(pidFile, scmStatus):
     exception = FatalException(-1, AMBARI_SERVER_NOT_STARTED_MSG)
 
   if os.path.isfile(configDefaults.SERVER_OUT_FILE):
-    if 'Database consistency check: failed' in open(configDefaults.SERVER_OUT_FILE).read():
-      print "DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
-            "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
-            "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
-            "or perform a cluster upgrade until you correct the database consistency issues. See " + \
-            configDefaults.DB_CHECK_LOG + " for more details on the consistency issues."
-    elif 'Database consistency check: warning' in open(configDefaults.SERVER_OUT_FILE).read():
-      print "DB configs consistency check found warnings. See " + configDefaults.DB_CHECK_LOG + " for more details."
-    else:
-      print "DB configs consistency check: no errors and warnings were found."
+    if 'DB_CHECK_ERROR' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+        "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
+        "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
+        "or perform a cluster upgrade until you correct the database consistency issues. See " + \
+        configDefaults.DB_CHECK_LOG + " for more details on the consistency issues."
+    elif 'DB_CHECK_WARNING' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "\nDB configs consistency check found warnings. See " + configDefaults.DB_CHECK_LOG + " for more details."
+    # Only presume that DB check was successful if it explicitly appears in the log. An unexpected error may prevent
+    # the consistency check from running at all, so missing error/warning message in the log cannot imply the check was
+    # successful
+    elif 'DB_CHECK_SUCCESS' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "\nDB configs consistency check: no errors and warnings were found."
   else:
     sys.stdout.write(configDefaults.SERVER_OUT_FILE + " does not exist")
 

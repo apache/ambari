@@ -18,28 +18,43 @@
 package org.apache.ambari.server.checks;
 
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 
 public class DatabaseConsistencyCheckHelperTest {
 
@@ -172,13 +187,13 @@ public class DatabaseConsistencyCheckHelperTest {
   @Test
   public void testCheckTopologyTablesAreConsistent() throws Exception {
     testCheckTopologyTablesConsistent(2);
-    Assert.assertTrue(!DatabaseConsistencyCheckHelper.ifErrorsFound());
+    Assert.assertFalse(DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
   }
 
   @Test
   public void testCheckTopologyTablesAreNotConsistent() throws Exception {
     testCheckTopologyTablesConsistent(1);
-    Assert.assertTrue(DatabaseConsistencyCheckHelper.ifErrorsFound());
+    Assert.assertTrue(DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
   }
 
   private void testCheckTopologyTablesConsistent(int resultCount) throws Exception {
@@ -353,6 +368,123 @@ public class DatabaseConsistencyCheckHelperTest {
   }
 
   @Test
+  public void testSchemaName_NoIssues() throws Exception {
+    setupMocksForTestSchemaName("ambari", "ambari, public", newArrayList("ambari", "public"), newArrayList("ambari"));
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertFalse("No warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+  @Test
+  public void testSchemaName_WrongSearchPathOrder() throws Exception {
+    setupMocksForTestSchemaName("ambari", "public, ambari", newArrayList("ambari", "public"), newArrayList("ambari"));
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+  @Test
+  public void testSchemaName_NoSearchPath() throws Exception {
+    setupMocksForTestSchemaName("ambari", null, newArrayList("ambari", "public"), newArrayList("ambari"));
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+
+  @Test
+  public void testSchemaName_NoAmbariSchema() throws Exception {
+    setupMocksForTestSchemaName("ambari", null, newArrayList("public"), Lists.<String>newArrayList());
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+  @Test
+  public void testSchemaName_NoTablesInAmbariSchema() throws Exception {
+    setupMocksForTestSchemaName("ambari", "ambari", newArrayList("ambari", "public"), newArrayList("public"));
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+  @Test
+  public void testSchemaName_AmbariTablesInMultipleSchemas() throws Exception {
+    setupMocksForTestSchemaName("ambari", "ambari", newArrayList("ambari", "public"), newArrayList("ambari", "public"));
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+  @Test
+  public void testSchemaName_NullsAreTolerated() throws Exception {
+    setupMocksForTestSchemaName(null, null, null, null);
+    DatabaseConsistencyCheckHelper.checkSchemaName();
+    assertTrue("Warnings were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult() ==
+        DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    assertFalse("No errors were expected.", DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
+  }
+
+  private void setupMocksForTestSchemaName(String configuredSchema, String searchPath, List<String> schemas,
+                                           List<String> schemasWithAmbariTables) throws Exception {
+    final Configuration config = createNiceMock(Configuration.class);
+    final OsFamily osFamily = createNiceMock(OsFamily.class);
+    final Connection connection = createNiceMock(Connection.class);
+    final DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
+    final Statement searchPathStatement = createStrictMock(Statement.class);
+    final Statement getTablesStatement = createStrictMock(Statement.class);
+    final DatabaseMetaData dbMetaData = createStrictMock(DatabaseMetaData.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(DBAccessor.class).toInstance(dbAccessor);
+        bind(OsFamily.class).toInstance(osFamily);
+        bind(Configuration.class).toInstance(config);
+      }
+    });
+    expect(config.getDatabaseSchema()).andReturn(configuredSchema).anyTimes();
+    expect(config.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES);
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.getMetaData()).andReturn(dbMetaData);
+    expect(connection.createStatement()).andReturn(searchPathStatement);
+    expect(connection.createStatement()).andReturn(getTablesStatement);
+    expect(dbMetaData.getSchemas()).andReturn(resultSet("TABLE_SCHEM", schemas));
+    expect(searchPathStatement.executeQuery(anyString())).andReturn(
+        resultSet("search_path", newArrayList(searchPath)));
+    expect(getTablesStatement.executeQuery(anyString())).andReturn(
+        resultSet("table_schema", schemasWithAmbariTables));
+    replay(config, connection, dbAccessor, dbMetaData, getTablesStatement, osFamily, searchPathStatement);
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(null);
+    DatabaseConsistencyCheckHelper.resetCheckResult();
+  }
+
+  private ResultSet resultSet(final String columnName, final List<? extends Object> columnData) throws SQLException {
+    if (null == columnData) {
+      return null;
+    }
+    else {
+      ResultSet rs = createNiceMock(ResultSet.class);
+      if ( !columnData.isEmpty() ) {
+        expect(rs.next()).andReturn(true).times(columnData.size());
+      }
+      expect(rs.next()).andReturn(false);
+      for(Object item: columnData) {
+        expect(rs.getObject(columnName)).andReturn(item);
+      }
+      replay(rs);
+      return rs;
+    }
+  }
+
+
+  @Test
   public void testCheckServiceConfigs_missingServiceConfigGeneratesWarning() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
@@ -431,16 +563,16 @@ public class DatabaseConsistencyCheckHelperTest {
 
     mockAmbariMetainfo.init();
 
-    DatabaseConsistencyCheckHelper.resetErrorWarningFlags();
+    DatabaseConsistencyCheckHelper.resetCheckResult();
     DatabaseConsistencyCheckHelper.checkServiceConfigs();
 
     easyMockSupport.verifyAll();
 
     Assert.assertTrue("Missing service config for OPENSOFT R should have triggered a warning.",
-        DatabaseConsistencyCheckHelper.ifWarningsFound());
-    Assert.assertFalse("No errors should have been triggered.", DatabaseConsistencyCheckHelper.ifErrorsFound());
+        DatabaseConsistencyCheckHelper.getLastCheckResult() == DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+    Assert.assertFalse("No errors should have been triggered.",
+        DatabaseConsistencyCheckHelper.getLastCheckResult().isError());
   }
 
 
 }
-

@@ -57,6 +57,7 @@ import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
+import org.apache.ambari.server.checks.DatabaseConsistencyCheckResult;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
@@ -670,35 +671,19 @@ public class AmbariServer {
    */
   protected void runDatabaseConsistencyCheck() throws Exception {
     if (System.getProperty("skipDatabaseConsistencyCheck") == null) {
-      System.out.println("Database consistency check started");
-      Logger DB_CHECK_LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
-      try{
-        if (System.getProperty("fixDatabaseConsistency") != null ){
-          DatabaseConsistencyCheckHelper.fixDatabaseConsistency();
-        }
-        DatabaseConsistencyCheckHelper.runAllDBChecks();
-      } catch(Throwable e) {
-        System.out.println("Database consistency check: failed");
-        if (e instanceof AmbariException) {
-          DB_CHECK_LOG.error("Exception occurred during database check:", e);
-          System.out.println("Exception occurred during database check: " + e.getMessage());
-          e.printStackTrace();
-          throw (AmbariException)e;
-        } else {
-          DB_CHECK_LOG.error("Unexpected error, database check failed", e);
-          System.out.println("Unexpected error, database check failed: " + e.getMessage());
-          e.printStackTrace();
-          throw new Exception("Unexpected error, database check failed", e);
-        }
-      } finally {
-        if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
-          System.out.println("Database consistency check: failed");
+      boolean fixIssues = (System.getProperty("fixDatabaseConsistency") != null);
+      try {
+        DatabaseConsistencyCheckResult checkResult = DatabaseConsistencyCheckHelper.runAllDBChecks(fixIssues);
+        // Writing explicitly to the console is necessary as the python start script expects it.
+        System.out.println("Database consistency check result: " + checkResult);
+        if (checkResult.isError()) {
           System.exit(1);
-        } else if (DatabaseConsistencyCheckHelper.ifWarningsFound()) {
-          System.out.println("Database consistency check: warning");
-        } else {
-          System.out.println("Database consistency check: successful");
         }
+      }
+      catch (Throwable ex) {
+        // Writing explicitly to the console is necessary as the python start script expects it.
+        System.out.println("Database consistency check result: " + DatabaseConsistencyCheckResult.DB_CHECK_ERROR);
+        throw new Exception(ex);
       }
     }
   }
@@ -1007,7 +992,9 @@ public class AmbariServer {
       setupProxyAuth();
 
       injector.getInstance(GuiceJpaInitializer.class);
+
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
+
       server = injector.getInstance(AmbariServer.class);
       injector.getInstance(UpdateActiveRepoVersionOnStartup.class).process();
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
@@ -1024,4 +1011,6 @@ public class AmbariServer {
       System.exit(-1);
     }
   }
+
+
 }

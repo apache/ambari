@@ -103,7 +103,7 @@ public class DatabaseConsistencyChecker {
 
       databaseConsistencyChecker.startPersistenceService();
 
-      DatabaseConsistencyCheckHelper.runAllDBChecks();
+      DatabaseConsistencyCheckHelper.runAllDBChecks(false);
 
       databaseConsistencyChecker.stopPersistenceService();
 
@@ -117,7 +117,7 @@ public class DatabaseConsistencyChecker {
       }
     } finally {
         DatabaseConsistencyCheckHelper.closeConnection();
-        if (DatabaseConsistencyCheckHelper.ifErrorsFound() || DatabaseConsistencyCheckHelper.ifWarningsFound()) {
+        if (DatabaseConsistencyCheckHelper.getLastCheckResult().isErrorOrWarning()) {
           String ambariDBConsistencyCheckLog = "ambari-server-check-database.log";
           if (LOG instanceof Log4jLoggerAdapter) {
             org.apache.log4j.Logger dbConsistencyCheckHelperLogger = org.apache.log4j.Logger.getLogger(DatabaseConsistencyCheckHelper.class);
@@ -132,7 +132,7 @@ public class DatabaseConsistencyChecker {
           }
           ambariDBConsistencyCheckLog = ambariDBConsistencyCheckLog.replace("//", "/");
 
-          if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
+          if (DatabaseConsistencyCheckHelper.getLastCheckResult().isError()) {
             System.out.print(String.format("DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " +
                   "You may try --auto-fix-database flag to attempt to fix issues automatically. " +
                   "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " +
