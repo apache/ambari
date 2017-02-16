@@ -55,18 +55,11 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
         'Server require two-way SSL authentication. Use it instead of one-way...')
 
     if not self.two_way_ssl_required:
-      try:
-        sock = self.create_connection()
-        self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
-        logger.info('SSL connection established. Two-way SSL authentication is '
-                    'turned off on the server.')
-      except (ssl.SSLError, AttributeError):
-        self.two_way_ssl_required = True
-        logger.info(
-          'Insecure connection to https://' + self.host + ':' + self.port +
-          '/ failed. Reconnecting using two-way SSL authentication..')
-
-    if self.two_way_ssl_required:
+      sock = self.create_connection()
+      self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
+      logger.info('SSL connection established. Two-way SSL authentication is '
+                  'turned off on the server.')
+    else:
       self.certMan = CertificateManager(self.config, self.host)
       self.certMan.initSecurity()
       agent_key = self.certMan.getAgentKeyName()
