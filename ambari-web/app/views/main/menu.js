@@ -28,20 +28,21 @@ App.MainSideMenuView = Em.CollectionView.extend({
 
   content: function () {
     var result = [];
-    if (App.router.get('loggedIn')) {
+    let {router} = App;
+    if (router.get('loggedIn')) {
 
-      if (App.router.get('clusterController.isLoaded') && App.get('router.clusterInstallCompleted')) {
+      if (router.get('clusterController.isLoaded') && App.get('router.clusterInstallCompleted')) {
         if (!App.get('isOnlyViewUser')) {
           result.push(
-              {label: Em.I18n.t('menu.item.dashboard'), iconClass: 'glyphicon glyphicon-home', routing: 'dashboard', active: 'active'},
-              {label: Em.I18n.t('menu.item.services'), iconClass: 'glyphicon glyphicon-briefcase', routing: 'services'},
-              {label: Em.I18n.t('menu.item.hosts'), iconClass: 'icon-tasks', routing: 'hosts'},
-              {label: Em.I18n.t('menu.item.alerts'), iconClass: 'glyphicon glyphicon-bell', routing: 'alerts'}
+              {label: Em.I18n.t('menu.item.dashboard'), iconClass: 'glyphicon glyphicon-home', routing: 'dashboard', active: 'active', href: router.urlFor('main.dashboard')},
+              {label: Em.I18n.t('menu.item.services'), iconClass: 'glyphicon glyphicon-briefcase', routing: 'services', href: router.urlFor('main.services')},
+              {label: Em.I18n.t('menu.item.hosts'), iconClass: 'icon-tasks', routing: 'hosts', href: router.urlFor('main.hosts')},
+              {label: Em.I18n.t('menu.item.alerts'), iconClass: 'glyphicon glyphicon-bell', routing: 'alerts', href: router.urlFor('main.alerts')}
           );
         }
         if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, SERVICE.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
             || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
-          result.push({ label: Em.I18n.t('menu.item.admin'), iconClass: 'glyphicon glyphicon-wrench', routing: 'admin'});
+          result.push({ label: Em.I18n.t('menu.item.admin'), iconClass: 'glyphicon glyphicon-wrench', routing: 'admin', href: router.urlFor('main.admin')});
         }
       }
     }
@@ -56,23 +57,9 @@ App.MainSideMenuView = Em.CollectionView.extend({
 
   itemViewClass: Em.View.extend({
 
-    classNameBindings: ['active', 'dropdownMenu:dropdown', 'dropdownMenu:no-active-effect'],
+    classNameBindings: ['dropdownMenu:dropdown'],
 
     classNames: ['mainmenu-li'],
-
-    active: function () {
-      if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
-        var lastUrl = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
-        if (lastUrl.substr(1, 4) !== 'main' || !this._childViews) {
-          return '';
-        }
-        var reg = /^\/main\/([a-z]+)/g;
-        var subUrl = reg.exec(lastUrl);
-        var chunk = null !== subUrl ? subUrl[1] : 'dashboard';
-        return this.get('content.routing').indexOf(chunk) === 0 ? "active" : "";
-      }
-      return '';
-    }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
     templateName: require('templates/main/side-menu-item'),
 
@@ -101,12 +88,14 @@ App.MainSideMenuView = Em.CollectionView.extend({
       var categories = [];
       var upg = App.get('upgradeInProgress') || App.get('upgradeHolding');
       // create dropdown categories for each menu item
+      let {router} = App;
       if (itemName === 'admin') {
         if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || upg) {
           categories.push({
             name: 'stackAndUpgrade',
             url: 'stack',
-            label: Em.I18n.t('admin.stackUpgrade.title')
+            label: Em.I18n.t('admin.stackUpgrade.title'),
+            href: router.urlFor('main.admin.stackAndUpgrade')
           });
         }
         if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') || upg) {
@@ -114,7 +103,8 @@ App.MainSideMenuView = Em.CollectionView.extend({
             name: 'adminServiceAccounts',
             url: 'serviceAccounts',
             label: Em.I18n.t('common.serviceAccounts'),
-            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
+            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding'),
+            href: router.urlFor('main.admin.adminServiceAccounts')
           });
         }
         if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || upg) {
@@ -122,7 +112,8 @@ App.MainSideMenuView = Em.CollectionView.extend({
             name: 'kerberos',
             url: 'kerberos/',
             label: Em.I18n.t('common.kerberos'),
-            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
+            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding'),
+            href: router.urlFor('main.admin.adminKerberos')
           });
         }
         if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || upg) {
@@ -130,7 +121,8 @@ App.MainSideMenuView = Em.CollectionView.extend({
             categories.push({
               name: 'serviceAutoStart',
               url: 'serviceAutoStart',
-              label: Em.I18n.t('admin.serviceAutoStart.title')
+              label: Em.I18n.t('admin.serviceAutoStart.title'),
+              href: router.urlFor('main.admin.adminServiceAutoStart')
             });
           }
         }
@@ -183,14 +175,14 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
    *    Syncs navigation menu with requested URL
    */
   renderOnRoute:function () {
-    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
-    if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
+    var lastUrl = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+    if (lastUrl.substr(1, 4) !== 'main' || !this._childViews) {
       return;
     }
     var reg = /^\/main\/services\/(\S+)\//g;
-    var sub_url = reg.exec(last_url);
-    var service_id = (null != sub_url) ? sub_url[1] : 1;
-    this.set('activeServiceId', service_id);
+    var subUrl = reg.exec(lastUrl);
+    var serviceId = (null != subUrl) ? subUrl[1] : 1;
+    this.set('activeServiceId', serviceId);
   },
 
   tagName:'ul',
@@ -198,16 +190,12 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
 
   itemViewClass:Em.View.extend({
 
-    classNameBindings:["active", "clients"],
+    classNameBindings:["clients"],
     classNames: ["submenu-li"],
     templateName:require('templates/main/service/menu_item'),
     restartRequiredMessage: null,
 
     shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
-
-    active:function () {
-      return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
-    }.property('parentView.activeServiceId'),
 
     alertsCount: function () {
       return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount') ;
@@ -219,9 +207,18 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
     }.property('App.services.noConfigTypes','content.serviceName'),
 
+    /**
+     * '#/main/services/SERVICE_ID'
+     *
+     * @type {string}
+     */
+    dataHref: function () {
+      return App.router.urlFor('main.services.service', {service_id: this.get('content.id')});
+    }.property('content.id'),
+
     link: function() {
       var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
-          ? this.get('isConfigurable') ?  App.router.get('currentState.name') : 'summary'
+          ? this.get('isConfigurable') ? App.router.get('currentState.name') : 'summary'
           : 'summary';
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
     }.property('App.router.currentState.name', 'parentView.activeServiceId','isConfigurable'),

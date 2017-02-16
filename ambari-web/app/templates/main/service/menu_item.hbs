@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<a class="services-menu-blocks" {{bindAttr href="view.link"}}>
+<a class="services-menu-blocks" {{bindAttr href="view.link" data-href="view.dataHref"}}>
   {{#if view.alertsCount}}
     <span {{bindAttr class=":label :alerts-count view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count :pull-right"}}>
       {{view.alertsCount}}

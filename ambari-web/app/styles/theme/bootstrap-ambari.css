@@ -946,25 +946,25 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer li > a:hover .submenu-item {
   color: #fff;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect),
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) {
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu),
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) {
   background: #404351;
   cursor: pointer;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a {
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a {
   border-left: 6px solid #3fae2a;
   padding-left: 19px;
   color: #fff;
 }
-.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .navigation-menu-item,
-.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .submenu-item,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .submenu-item,
-.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .navigation-icon,
-.navigation-bar-container ul.nav.side-nav-menu li.active:not(.no-active-effect) > a .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.no-active-effect) > a .toggle-icon {
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .submenu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .toggle-icon {
   color: #fff;
 }
 .navigation-bar-container ul.nav.side-nav-menu .all-services-actions,

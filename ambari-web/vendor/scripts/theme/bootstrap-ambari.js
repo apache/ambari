@@ -28,6 +28,10 @@
       var $servicesMenuItem = $(this).find('.side-nav-services-menu-item');
       var $allServicesAction = $(this).find('.all-services-actions');
 
+      $subMenuToggler.each(function (index, toggler) {
+        return $(toggler).parent().addClass('has-sub-menu');
+      });
+
       if (settings.fitHeight) {
         $(this).addClass('navigation-bar-fit-height');
         $allServicesAction.children('.dropdown-menu').css('position', 'fixed');
