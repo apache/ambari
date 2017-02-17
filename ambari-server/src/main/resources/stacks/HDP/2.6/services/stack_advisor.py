@@ -270,8 +270,10 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     # Append 'jvmGCParams' and 'Heap Dump related option' (({{heap_dump_opts}}) Expanded while writing the
     # configurations at start/restart time).
     tez_jvm_updated_opts = tez_jvm_opts + jvmGCParams + "{{heap_dump_opts}}"
+    putTezProperty('tez.am.launch.cmd-opts', tez_jvm_updated_opts)
     putTezProperty('tez.task.launch.cmd-opts', tez_jvm_updated_opts)
-    Logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' as : {0}".format(tez_jvm_updated_opts))
+    Logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' and 'tez.am.launch.cmd-opts' as "
+                ": {0}".format(tez_jvm_updated_opts))
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
