@@ -336,7 +336,8 @@ CREATE TABLE request (
   request_context VARCHAR(255),
   request_type VARCHAR(255),
   start_time NUMBER(19) NOT NULL,
-  status VARCHAR(255),
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -352,6 +353,8 @@ CREATE TABLE stage (
   command_params BLOB,
   host_params BLOB,
   command_execution_type VARCHAR2(32) DEFAULT 'STAGE' NOT NULL,
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   CONSTRAINT PK_stage PRIMARY KEY (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 
@@ -370,7 +373,7 @@ CREATE TABLE host_role_command (
   start_time NUMBER(19) NOT NULL,
   original_start_time NUMBER(19) NOT NULL,
   end_time NUMBER(19),
-  status VARCHAR2(255) NULL,
+  status VARCHAR2(255) NOT NULL DEFAULT 'PENDING',
   auto_skip_on_failure NUMBER(1) DEFAULT 0 NOT NULL,
   std_error BLOB NULL,
   std_out BLOB NULL,

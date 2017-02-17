@@ -105,9 +105,9 @@ public class HostRoleCommandEntity {
   @Basic
   private Integer exitcode = 0;
 
-  @Column(name = "status")
+  @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
-  private HostRoleStatus status;
+  private HostRoleStatus status = HostRoleStatus.PENDING;
 
   @Column(name = "std_error")
   @Lob

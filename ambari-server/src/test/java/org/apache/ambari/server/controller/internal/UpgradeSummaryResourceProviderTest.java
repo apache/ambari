@@ -205,7 +205,6 @@ public class UpgradeSummaryResourceProviderTest {
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setRequestId(upgradeRequestId);
     requestEntity.setClusterId(cluster.getClusterId());
-    requestEntity.setStatus(HostRoleStatus.PENDING);
     requestDAO.create(requestEntity);
 
     // Create the stage and add it to the request

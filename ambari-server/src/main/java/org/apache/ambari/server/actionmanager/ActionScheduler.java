@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
@@ -49,6 +50,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
+import org.apache.ambari.server.events.listeners.tasks.TaskStatusListener;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -75,10 +77,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.reflect.TypeToken;
@@ -179,6 +184,9 @@ class ActionScheduler implements Runnable {
    * we receive awake() request during running a scheduler iteration.
    */
   private boolean activeAwakeRequest = false;
+
+  private AtomicBoolean taskStatusLoaded = new AtomicBoolean();
+
   //Cache for clusterHostinfo, key - stageId-requestId
   private Cache<String, Map<String, Set<String>>> clusterHostInfoCache;
   private Cache<String, Map<String, String>> commandParamsStageCache;
@@ -352,6 +360,8 @@ class ActionScheduler implements Runnable {
         LOG.debug("Scheduler wakes up");
         LOG.debug("Processing {} in progress stages ", stages.size());
       }
+
+      publishInProgressTasks(stages);
 
       if (stages.isEmpty()) {
         // Nothing to do
@@ -532,6 +542,27 @@ class ActionScheduler implements Runnable {
     }
   }
 
+  /**
+   * publish event to load {@link TaskStatusListener#activeTasksMap} {@link TaskStatusListener#activeStageMap}
+   * and {@link TaskStatusListener#activeRequestMap} for all running request once during server startup.
+   * This is required as some tasks may have been in progress when server was last stopped
+   * @param stages list of stages
+   */
+  private void publishInProgressTasks(List<Stage> stages) {
+    if (taskStatusLoaded.compareAndSet(false, true)) {
+      if (!stages.isEmpty()) {
+        Function<Stage, Long> transform = new Function<Stage, Long>() {
+          @Override
+          public Long apply(Stage stage) {
+            return stage.getRequestId();
+          }
+        };
+        Set<Long> runningRequestID = ImmutableSet.copyOf(Lists.transform(stages, transform));
+        List<HostRoleCommand> hostRoleCommands = db.getAllTasksByRequestIds(runningRequestID);
+        hostRoleCommandDAO.publishTaskCreateEvent(hostRoleCommands);
+      }
+    }
+  }
 
   /**
    * Returns the list of hosts that have a task assigned

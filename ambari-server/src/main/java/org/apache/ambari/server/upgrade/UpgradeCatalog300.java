@@ -19,11 +19,25 @@ package org.apache.ambari.server.upgrade;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -40,6 +54,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog300.class);
+
+  private static final String STAGE_TABLE = "stage";
+  private static final String STAGE_STATUS_COLUMN = "status";
+  private static final String STAGE_DISPLAY_STATUS_COLUMN = "display_status";
+  private static final String REQUEST_TABLE = "request";
+  private static final String REQUEST_DISPLAY_STATUS_COLUMN = "display_status";
 
   @Inject
   DaoUtils daoUtils;
@@ -83,6 +103,16 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    updateStageTable();
+  }
+
+  protected void updateStageTable() throws SQLException {
+    dbAccessor.addColumn(STAGE_TABLE,
+        new DBAccessor.DBColumnInfo(STAGE_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+    dbAccessor.addColumn(STAGE_TABLE,
+        new DBAccessor.DBColumnInfo(STAGE_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
+    dbAccessor.addColumn(REQUEST_TABLE,
+        new DBAccessor.DBColumnInfo(REQUEST_DISPLAY_STATUS_COLUMN, String.class, 255, HostRoleStatus.PENDING, false));
   }
 
   /**
@@ -99,6 +129,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     showHcatDeletedUserMessage();
+    setStatusOfStagesAndRequests();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -119,6 +150,45 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
         }
       }
     }
+
+  }
+
+  protected void setStatusOfStagesAndRequests() {
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
+          StageFactory stageFactory = injector.getInstance(StageFactory.class);
+          EntityManager em = getEntityManagerProvider().get();
+          List<RequestEntity> requestEntities= requestDAO.findAll();
+          for (RequestEntity requestEntity: requestEntities) {
+            Collection<StageEntity> stageEntities= requestEntity.getStages();
+            List <HostRoleStatus> stageDisplayStatuses = new ArrayList<>();
+            List <HostRoleStatus> stageStatuses = new ArrayList<>();
+            for (StageEntity stageEntity: stageEntities) {
+              Stage stage = stageFactory.createExisting(stageEntity);
+              List<HostRoleCommand> hostRoleCommands = stage.getOrderedHostRoleCommands();
+              Map<HostRoleStatus, Integer> statusCount = CalculatedStatus.calculateStatusCountsForTasks(hostRoleCommands);
+              HostRoleStatus stageDisplayStatus = CalculatedStatus.calculateSummaryDisplayStatus(statusCount, hostRoleCommands.size(), stage.isSkippable());
+              HostRoleStatus stageStatus = CalculatedStatus.calculateStageStatus(hostRoleCommands, statusCount, stage.getSuccessFactors(), stage.isSkippable());
+              stageEntity.setStatus(stageStatus);
+              stageStatuses.add(stageStatus);
+              stageEntity.setDisplayStatus(stageDisplayStatus);
+              stageDisplayStatuses.add(stageDisplayStatus);
+              em.merge(stageEntity);
+            }
+            HostRoleStatus requestStatus = CalculatedStatus.getOverallStatusForRequest(stageStatuses);
+            requestEntity.setStatus(requestStatus);
+            HostRoleStatus requestDisplayStatus = CalculatedStatus.getOverallDisplayStatusForRequest(stageDisplayStatuses);
+            requestEntity.setDisplayStatus(requestDisplayStatus);
+            em.merge(requestEntity);
+          }
+        } catch (Exception e) {
+          LOG.warn("Setting status for stages and Requests threw exception. ", e);
+        }
+      }
+    });
 
   }
 

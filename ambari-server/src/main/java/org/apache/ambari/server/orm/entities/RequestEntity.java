@@ -69,9 +69,28 @@ public class RequestEntity {
   @Enumerated(value = EnumType.STRING)
   private RequestType requestType;
 
-  @Column(name = "status")
+  /**
+   * This is the logical status of the request and
+   * represents if the intent of the request has been accomplished or not
+   *
+   *  Status calculated by calculating {@link StageEntity#status} of all belonging stages
+   *
+   */
+  @Column(name = "status", nullable = false)
   @Enumerated(value = EnumType.STRING)
-  private HostRoleStatus status;
+  private HostRoleStatus status = HostRoleStatus.PENDING;
+
+  /**
+   * This status informs if any of the underlying tasks
+   * have faced any type of failures {@link HostRoleStatus#isFailedState()}
+   *
+   * Status calculated by only taking into account
+   * all belonging {@link HostRoleCommandEntity#status} (or {@link StageEntity#status})
+   *
+   */
+  @Column(name = "display_status", nullable = false)
+  @Enumerated(value = EnumType.STRING)
+  private HostRoleStatus displayStatus = HostRoleStatus.PENDING;
 
   @Basic
   @Column(name = "create_time", nullable = false)
@@ -89,7 +108,7 @@ public class RequestEntity {
   @Column(name = "exclusive_execution", insertable = true, updatable = true, nullable = false)
   private Integer exclusive = 0;
 
-  @OneToMany(mappedBy = "request")
+  @OneToMany(mappedBy = "request", cascade = CascadeType.REMOVE)
   private Collection<StageEntity> stages;
 
   @OneToMany(mappedBy = "requestEntity", cascade = CascadeType.ALL)
@@ -207,12 +226,36 @@ public class RequestEntity {
     this.commandName = commandName;
   }
 
+  /**
+   *  get status for the request
+   * @return {@link HostRoleStatus}
+   */
   public HostRoleStatus getStatus() {
     return status;
   }
 
+  /**
+   * sets status for the request
+   * @param status {@link HostRoleStatus}
+   */
   public void setStatus(HostRoleStatus status) {
     this.status = status;
+  }
+
+  /**
+   * get display status for the request
+   * @return  {@link HostRoleStatus}
+   */
+  public HostRoleStatus getDisplayStatus() {
+    return displayStatus;
+  }
+
+  /**
+   * sets display status for the request
+   * @param displayStatus {@link HostRoleStatus}
+   */
+  public void setDisplayStatus(HostRoleStatus displayStatus) {
+    this.displayStatus = displayStatus;
   }
 
   public RequestScheduleEntity getRequestScheduleEntity() {

@@ -71,7 +71,8 @@ public class Request {
    * As of now, this field is not used. Request status is
    * calculated at RequestResourceProvider on the fly.
    */
-  private HostRoleStatus status; // not persisted yet
+  private HostRoleStatus status = HostRoleStatus.PENDING;
+  private HostRoleStatus displayStatus = HostRoleStatus.PENDING;
   private String inputs;
   private List<RequestResourceFilter> resourceFilters;
   private RequestOperationLevel operationLevel;
@@ -186,6 +187,7 @@ public class Request {
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
     this.status = entity.getStatus();
+    this.displayStatus = entity.getDisplayStatus();
     if (entity.getRequestScheduleEntity() != null) {
       this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
     }
@@ -241,6 +243,8 @@ public class Request {
     requestEntity.setInputs(inputs);
     requestEntity.setRequestType(requestType);
     requestEntity.setRequestScheduleId(requestScheduleId);
+    requestEntity.setStatus(status);
+    requestEntity.setDisplayStatus(displayStatus);
     //TODO set all fields
 
     if (resourceFilters != null) {
@@ -381,6 +385,8 @@ public class Request {
         ", startTime=" + startTime +
         ", endTime=" + endTime +
         ", inputs='" + inputs + '\'' +
+        ", status='" + status + '\'' +
+        ", displayStatus='" + displayStatus + '\'' +
         ", resourceFilters='" + resourceFilters + '\'' +
         ", operationLevel='" + operationLevel + '\'' +
         ", requestType=" + requestType +

@@ -24,6 +24,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -68,6 +69,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.eclipse.jetty.server.SessionManager;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,8 +84,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-
-import junit.framework.Assert;
 
 /**
  * Tests that cluster effective version is calcualted correctly during upgrades.
@@ -256,6 +256,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
       binder.bind(EntityManager.class).toInstance(EasyMock.createNiceMock(EntityManager.class));
       binder.bind(ActionManager.class).toInstance(EasyMock.createNiceMock(ActionManager.class));
+      binder.bind(HostRoleCommandFactory.class).toInstance(EasyMock.createNiceMock(HostRoleCommandFactory.class));
       binder.bind(HostRoleCommandDAO.class).toInstance(EasyMock.createNiceMock(HostRoleCommandDAO.class));
       binder.bind(AmbariManagementController.class).toInstance(EasyMock.createNiceMock(AmbariManagementController.class));
       binder.bind(ClusterController.class).toInstance(EasyMock.createNiceMock(ClusterController.class));
