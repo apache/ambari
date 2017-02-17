@@ -191,9 +191,17 @@ def setup_ranger_admin(upgrade_type=None):
     only_if=format("ls {ranger_home}/ews/ranger-admin-services.sh"),
     sudo=True)
 
+  # remove plain-text password from xml configs
+
+  ranger_admin_site_copy = {}
+  ranger_admin_site_copy.update(params.config['configurations']['ranger-admin-site'])
+  for prop in params.ranger_admin_password_properties:
+    if prop in ranger_admin_site_copy:
+      ranger_admin_site_copy[prop] = "_"
+
   XmlConfig("ranger-admin-site.xml",
     conf_dir=ranger_conf,
-    configurations=params.config['configurations']['ranger-admin-site'],
+    configurations=ranger_admin_site_copy,
     configuration_attributes=params.config['configuration_attributes']['ranger-admin-site'],
     owner=params.unix_user,
     group=params.unix_group,
@@ -314,6 +322,36 @@ def do_keystore_setup(upgrade_type=None):
 
   if not is_empty(params.ranger_credential_provider_path) and (params.ranger_audit_source_type).lower() == 'db' and not is_empty(params.ranger_ambari_audit_db_password):
     ranger_credential_helper(cred_lib_path, params.ranger_jpa_audit_jdbc_credential_alias, params.ranger_ambari_audit_db_password, params.ranger_credential_provider_path)
+
+    File(params.ranger_credential_provider_path,
+      owner = params.unix_user,
+      group = params.unix_group,
+      mode = 0640
+    )
+
+  if params.ranger_auth_method.upper() == "LDAP":
+    ranger_credential_helper(params.cred_lib_path, params.ranger_ldap_password_alias, params.ranger_usersync_ldap_ldapbindpassword, params.ranger_credential_provider_path)
+
+    File(params.ranger_credential_provider_path,
+      owner = params.unix_user,
+      group = params.unix_group,
+      mode = 0640
+    )
+
+  if params.ranger_auth_method.upper() == "ACTIVE_DIRECTORY":
+    ranger_credential_helper(params.cred_lib_path, params.ranger_ad_password_alias, params.ranger_usersync_ldap_ldapbindpassword, params.ranger_credential_provider_path)
+
+    File(params.ranger_credential_provider_path,
+      owner = params.unix_user,
+      group = params.unix_group,
+      mode = 0640
+    )
+
+  if params.stack_supports_secure_ssl_password:
+    ranger_credential_helper(params.cred_lib_path, params.ranger_truststore_alias, params.truststore_password, params.ranger_credential_provider_path)
+
+    if params.https_enabled and not params.http_enabled:
+      ranger_credential_helper(params.cred_lib_path, params.ranger_https_keystore_alias, params.https_keystore_password, params.ranger_credential_provider_path)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -453,9 +491,16 @@ def setup_usersync(upgrade_type=None):
     dst_file = format('{usersync_home}/conf/log4j.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
+  # remove plain-text password from xml configs
+  ranger_ugsync_site_copy = {}
+  ranger_ugsync_site_copy.update(params.config['configurations']['ranger-ugsync-site'])
+  for prop in params.ranger_usersync_password_properties:
+    if prop in ranger_ugsync_site_copy:
+      ranger_ugsync_site_copy[prop] = "_"
+
   XmlConfig("ranger-ugsync-site.xml",
     conf_dir=ranger_ugsync_conf,
-    configurations=params.config['configurations']['ranger-ugsync-site'],
+    configurations=ranger_ugsync_site_copy,
     configuration_attributes=params.config['configuration_attributes']['ranger-ugsync-site'],
     owner=params.unix_user,
     group=params.unix_group,
@@ -750,9 +795,16 @@ def setup_tagsync_ssl_configs():
             mode=0775,
             create_parents=True)
 
+  # remove plain-text password from xml configs
+  ranger_tagsync_policymgr_ssl_copy = {}
+  ranger_tagsync_policymgr_ssl_copy.update(params.config['configurations']['ranger-tagsync-policymgr-ssl'])
+  for prop in params.ranger_tagsync_password_properties:
+    if prop in ranger_tagsync_policymgr_ssl_copy:
+      ranger_tagsync_policymgr_ssl_copy[prop] = "_"
+
   XmlConfig("ranger-policymgr-ssl.xml",
             conf_dir=params.ranger_tagsync_conf,
-            configurations=params.config['configurations']['ranger-tagsync-policymgr-ssl'],
+            configurations=ranger_tagsync_policymgr_ssl_copy,
             configuration_attributes=params.config['configuration_attributes']['ranger-tagsync-policymgr-ssl'],
             owner=params.unix_user,
             group=params.unix_group,
@@ -767,9 +819,16 @@ def setup_tagsync_ssl_configs():
        mode = 0640
        )
 
+  # remove plain-text password from xml configs
+  atlas_tagsync_ssl_copy = {}
+  atlas_tagsync_ssl_copy.update(params.config['configurations']['atlas-tagsync-ssl'])
+  for prop in params.ranger_tagsync_password_properties:
+    if prop in atlas_tagsync_ssl_copy:
+      atlas_tagsync_ssl_copy[prop] = "_"
+
   XmlConfig("atlas-tagsync-ssl.xml",
             conf_dir=params.ranger_tagsync_conf,
-            configurations=params.config['configurations']['atlas-tagsync-ssl'],
+            configurations=atlas_tagsync_ssl_copy,
             configuration_attributes=params.config['configuration_attributes']['atlas-tagsync-ssl'],
             owner=params.unix_user,
             group=params.unix_group,
