@@ -48,6 +48,7 @@ stack_support_kms_hsm = check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT,
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kms_ssl = check_stack_feature(StackFeature.RANGER_KMS_SSL, version_for_stack_feature_checks)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -280,3 +281,8 @@ if security_enabled:
 plugin_audit_password_property = 'xasecure.audit.destination.db.password'
 kms_plugin_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
 dbks_site_password_properties = ['ranger.db.encrypt.key.password', 'ranger.ks.jpa.jdbc.password', 'ranger.ks.hsm.partition.password']
+ranger_kms_site_password_properties = ['ranger.service.https.attrib.keystore.pass']
+ranger_kms_cred_ssl_path = config['configurations']['ranger-kms-site']['ranger.credential.provider.path']
+ranger_kms_ssl_keystore_alias = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.keystore.credential.alias']
+ranger_kms_ssl_passwd = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.keystore.pass']
+ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.ssl.enabled']

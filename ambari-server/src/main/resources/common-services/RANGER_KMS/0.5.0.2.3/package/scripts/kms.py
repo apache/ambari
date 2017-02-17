@@ -140,6 +140,16 @@ def kms(upgrade_type=None):
       create_parents = True
     )
 
+    Directory("/etc/security/serverKeys",
+      create_parents = True,
+      cd_access = "a"
+    )
+
+    Directory("/etc/ranger/kms",
+      create_parents = True,
+      cd_access = "a"
+    )
+
     copy_jdbc_connector()
 
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
@@ -270,6 +280,8 @@ def kms(upgrade_type=None):
     do_keystore_setup(params.credential_provider_path, params.masterkey_alias, params.kms_master_key_password)
     if params.stack_support_kms_hsm and params.enable_kms_hsm:
       do_keystore_setup(params.credential_provider_path, params.hms_partition_alias, unicode(params.hms_partition_passwd))
+    if params.stack_supports_ranger_kms_ssl and params.ranger_kms_ssl_enabled:
+      do_keystore_setup(params.ranger_kms_cred_ssl_path, params.ranger_kms_ssl_keystore_alias, params.ranger_kms_ssl_passwd)
 
     # remove plain-text password from xml configs
     dbks_site_copy = {}
@@ -288,9 +300,17 @@ def kms(upgrade_type=None):
       mode=0644
     )
 
+    ranger_kms_site_copy = {}
+    ranger_kms_site_copy.update(params.config['configurations']['ranger-kms-site'])
+    if params.stack_supports_ranger_kms_ssl:
+      # remove plain-text password from xml configs
+      for prop in params.ranger_kms_site_password_properties:
+        if prop in ranger_kms_site_copy:
+          ranger_kms_site_copy[prop] = "_"
+
     XmlConfig("ranger-kms-site.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['ranger-kms-site'],
+      configurations=ranger_kms_site_copy,
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-site'],
       owner=params.kms_user,
       group=params.kms_group,

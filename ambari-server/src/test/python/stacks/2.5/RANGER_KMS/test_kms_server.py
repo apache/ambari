@@ -208,6 +208,16 @@ class TestRangerKMS(RMFTestCase):
       create_parents = True
     )
 
+    self.assertResourceCalled('Directory', '/etc/security/serverKeys',
+      create_parents = True,
+      cd_access = "a",
+    )
+
+    self.assertResourceCalled('Directory', '/etc/ranger/kms',
+      create_parents = True,
+      cd_access = "a",
+    )
+
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java-old.jar',
         action = ['delete'],
     )
@@ -557,6 +567,16 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       create_parents = True
+    )
+
+    self.assertResourceCalled('Directory', '/etc/security/serverKeys',
+      create_parents = True,
+      cd_access = "a",
+    )
+
+    self.assertResourceCalled('Directory', '/etc/ranger/kms',
+      create_parents = True,
+      cd_access = "a",
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java-old.jar',
