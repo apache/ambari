@@ -556,6 +556,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl"/>
+      </execute-stage>
+
       <!-- KNOX -->
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Knox Gateway">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_knox_audit_db"/>

@@ -780,6 +780,75 @@ class TestHDP26StackAdvisor(TestCase):
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
 
+  def test_recommendRangerKMSConfigurations(self):
+    clusterData = {}
+    services = {
+      "ambari-server-properties": {
+        "ambari-server.user": "root"
+        },
+      "Versions": {
+        "stack_version" : "2.6",
+        },
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "RANGER_KMS",
+            "service_version": "0.7.0.2.6"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_KMS_SERVER",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": {
+        'ranger-kms-site': {
+          'properties': {
+            "ranger.service.https.attrib.ssl.enabled": "true",
+            "ranger.service.https.port": "9393"
+          }
+        }
+      }
+    }
+
+    expected = {
+      'kms-site': {
+        'properties': {},
+        'property_attributes': {
+          'hadoop.kms.proxyuser.HTTP.users': {'delete': 'true'},
+          'hadoop.kms.proxyuser.root.hosts': {'delete': 'true'},
+          'hadoop.kms.proxyuser.root.users': {'delete': 'true'},
+          'hadoop.kms.proxyuser.HTTP.hosts': {'delete': 'true'}
+        }
+      },
+      'core-site': {
+        'properties': {}
+      },
+      'kms-properties': {
+        'properties': {}
+      },
+      'ranger-kms-audit': {
+        'properties': {}
+      },
+      'kms-env': {
+        'properties': {
+          'kms_port': '9393'
+        }
+      },
+      'dbks-site': {
+        'properties': {}
+      }
+    }
+
+    recommendedConfigurations = {}
+
+    self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
 def load_json(self, filename):
   file = os.path.join(self.testDirectory, filename)
   with open(file, 'rb') as f:

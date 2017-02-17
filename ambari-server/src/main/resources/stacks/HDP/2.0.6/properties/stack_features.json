@@ -387,6 +387,11 @@
       "name": "secure_ranger_ssl_password",
       "description": "Securing Ranger Admin and Usersync SSL and Trustore related passwords in jceks",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "ranger_kms_ssl",
+      "description": "Ranger KMS SSL properties in ambari stack",
+      "min_version": "2.6.0.0"
     }
   ]
 }
