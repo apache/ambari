@@ -220,6 +220,10 @@ public class ClusterTest {
   }
 
   private void createDefaultCluster() throws Exception {
+    createDefaultCluster(Sets.newHashSet("h1", "h2"));
+  }
+
+  private void createDefaultCluster(Set<String> hostNames) throws Exception {
     // TODO, use common function
     StackId stackId = new StackId("HDP", "0.1");
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
@@ -229,11 +233,10 @@ public class ClusterTest {
 
     clusters.addCluster(clusterName, stackId);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
 
-    Set<String> hostNames = new HashSet<String>() {{ add("h1"); add("h2"); }};
     for (String hostName : hostNames) {
       clusters.addHost(hostName);
 
@@ -278,7 +281,7 @@ public class ClusterTest {
     host2.setIpv4("192.168.0.2");
     host3.setIpv4("192.168.0.3");
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    List<HostEntity> hostEntities = new ArrayList<>();
     hostEntities.add(host1);
     hostEntities.add(host2);
 
@@ -308,7 +311,7 @@ public class ClusterTest {
     when(stateEntity.getDesiredStack()).thenReturn(stackEntity);
 
     clusterServiceEntity.setServiceDesiredStateEntity(stateEntity);
-    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<ClusterServiceEntity>();
+    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<>();
     clusterServiceEntities.add(clusterServiceEntity);
     clusterEntity.setClusterServiceEntities(clusterServiceEntities);
     return clusterEntity;
@@ -443,8 +446,8 @@ public class ClusterTest {
     For some reason this still uses the metainfo.xml files for these services
     from HDP-2.0.5 stack instead of the provided Stack Id
     */
-    HashMap<String, Set<String>> componentsThatAdvertiseVersion = new HashMap<String, Set<String>>();
-    HashMap<String, Set<String>> componentsThatDontAdvertiseVersion = new HashMap<String, Set<String>>();
+    HashMap<String, Set<String>> componentsThatAdvertiseVersion = new HashMap<>();
+    HashMap<String, Set<String>> componentsThatDontAdvertiseVersion = new HashMap<>();
 
     Set<String> hdfsComponents = new HashSet<String>() {{ add("NAMENODE"); add("DATANODE"); add("HDFS_CLIENT"); }};
     Set<String> zkComponents = new HashSet<String>() {{ add("ZOOKEEPER_SERVER"); add("ZOOKEEPER_CLIENT"); }};
@@ -566,7 +569,7 @@ public class ClusterTest {
     hostInfo.setMemoryTotal(10);
     hostInfo.setMemorySize(100);
     hostInfo.setProcessorCount(10);
-    List<DiskInfo> mounts = new ArrayList<DiskInfo>();
+    List<DiskInfo> mounts = new ArrayList<>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
         "5000000", "4000000", "10%", "size", "fstype"));
     hostInfo.setMounts(mounts);
@@ -838,7 +841,7 @@ public class ClusterTest {
     Assert.assertEquals(1, componentHostMap.get("JOBTRACKER").size());
     Assert.assertTrue(componentHostMap.get("JOBTRACKER").contains("h1"));
 
-    componentHostMap = c1.getServiceComponentHostMap(null, new HashSet<String>(Arrays.asList("HDFS", "MAPREDUCE")));
+    componentHostMap = c1.getServiceComponentHostMap(null, new HashSet<>(Arrays.asList("HDFS", "MAPREDUCE")));
     Assert.assertEquals(3, componentHostMap.size());
     Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
     Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
@@ -895,7 +898,7 @@ public class ClusterTest {
     Assert.assertEquals(1, componentHostMap.get("DATANODE").size());
     Assert.assertTrue(componentHostMap.get("DATANODE").contains("h2"));
 
-    componentHostMap = c1.getServiceComponentHostMap(new HashSet<String>(Arrays.asList("h1", "h2", "h3")), null);
+    componentHostMap = c1.getServiceComponentHostMap(new HashSet<>(Arrays.asList("h1", "h2", "h3")), null);
     Assert.assertEquals(3, componentHostMap.size());
     Assert.assertEquals(1, componentHostMap.get("NAMENODE").size());
     Assert.assertTrue(componentHostMap.get("NAMENODE").contains("h1"));
@@ -958,10 +961,10 @@ public class ClusterTest {
   public void testGetAndSetConfigs() throws Exception {
     createDefaultCluster();
 
-    Map<String, Map<String, String>> c1PropAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> c1PropAttributes = new HashMap<>();
     c1PropAttributes.put("final", new HashMap<String, String>());
     c1PropAttributes.get("final").put("a", "true");
-    Map<String, Map<String, String>> c2PropAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> c2PropAttributes = new HashMap<>();
     c2PropAttributes.put("final", new HashMap<String, String>());
     c2PropAttributes.get("final").put("x", "true");
     Config config1 = configFactory.createNew(c1, "global", "version1",
@@ -1067,7 +1070,7 @@ public class ClusterTest {
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     host.setHostAttributes(hostAttributes);
@@ -1128,7 +1131,7 @@ public class ClusterTest {
     Config config2 = configFactory.createNew(c1, "core-site", "version2",
       new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
 
-    Set<Config> configs = new HashSet<Config>();
+    Set<Config> configs = new HashSet<>();
     configs.add(config1);
     configs.add(config2);
 
@@ -1189,7 +1192,7 @@ public class ClusterTest {
     Host host1 = clusters.getHost("h1");
     HostEntity hostEntity1 = hostDAO.findByName("h1");
 
-    Map<String, Map<String, String>> propAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> propAttributes = new HashMap<>();
     propAttributes.put("final", new HashMap<String, String>());
     propAttributes.get("final").put("test", "true");
     Config config = configFactory.createNew(c1, "hdfs-site", "1", new HashMap<String, String>(){{
@@ -1203,7 +1206,7 @@ public class ClusterTest {
     assertTrue(configs.containsKey(hostEntity1.getHostId()));
     assertEquals(1, configs.get(hostEntity1.getHostId()).size());
 
-    List<Long> hostIds = new ArrayList<Long>();
+    List<Long> hostIds = new ArrayList<>();
     hostIds.add(hostEntity1.getHostId());
 
     configs = c1.getHostsDesiredConfigs(hostIds);
@@ -1293,7 +1296,7 @@ public class ClusterTest {
     Config config2 = configFactory.createNew(c1, "core-site", "version2",
       new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
 
-    Set<Config> configs = new HashSet<Config>();
+    Set<Config> configs = new HashSet<>();
     configs.add(config1);
     configs.add(config2);
 
@@ -1852,13 +1855,16 @@ public class ClusterTest {
 
   @Test
   public void testRecalculateClusterVersionStateWithNotRequired() throws Exception {
-    createDefaultCluster();
+    createDefaultCluster(Sets.newHashSet("h1", "h2", "h3"));
 
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
 
     Host h2 = clusters.getHost("h2");
     h2.setState(HostState.HEALTHY);
+
+    Host h3 = clusters.getHost("h3");
+    h3.setState(HostState.HEALTHY);
 
     // Phase 1: Install bits during distribution
     StackId stackId = new StackId("HDP-0.1");
@@ -1871,13 +1877,29 @@ public class ClusterTest {
         RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
 
-    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
-    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.NOT_REQUIRED);
+    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.NOT_REQUIRED);
+    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
+    HostVersionEntity hv3 = helper.createHostVersion("h3", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
 
     c1.recalculateClusterVersionState(repositoryVersionEntity);
-    //Should remain in its current state
-    checkStackVersionState(stackId, stackVersion,
-        RepositoryVersionState.INSTALLED);
+    ClusterVersionEntity cv = clusterVersionDAO.findByClusterAndStackAndVersion(c1.getClusterName(), stackId, stackVersion);
+    assertEquals(RepositoryVersionState.INSTALLING, cv.getState());
+
+    // 1 in NOT_REQUIRED, 1 in INSTALLED, 1 in CURRENT so should be INSTALLED
+    hv2.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv2);
+
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    cv = clusterVersionDAO.findByClusterAndStackAndVersion(c1.getClusterName(), stackId, stackVersion);
+    assertEquals(RepositoryVersionState.INSTALLED, cv.getState());
+
+    // 1 in NOT_REQUIRED, and 2 in CURRENT, so cluster version should be CURRENT
+    hv3.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv3);
+
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    cv = clusterVersionDAO.findByClusterAndStackAndVersion(c1.getClusterName(), stackId, stackVersion);
+    assertEquals(RepositoryVersionState.CURRENT, cv.getState());
   }
 
 
@@ -1948,7 +1970,7 @@ public class ClusterTest {
 
     RepositoryVersionEntity rv1 = helper.getOrCreateRepositoryVersion(stackId, v1);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
 
@@ -2105,7 +2127,7 @@ public class ClusterTest {
 
     RepositoryVersionEntity rv1 = helper.getOrCreateRepositoryVersion(stackId, v1);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
 
@@ -2179,7 +2201,7 @@ public class ClusterTest {
       h.setIPv4("ipv4");
       h.setIPv6("ipv6");
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "5.9");
       h.setHostAttributes(hostAttributes);
@@ -2248,7 +2270,7 @@ public class ClusterTest {
       h.setIPv4("ipv4");
       h.setIPv6("ipv6");
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "5.9");
       h.setHostAttributes(hostAttributes);
@@ -2581,8 +2603,8 @@ public class ClusterTest {
     // make sure the stacks are different
     Assert.assertFalse(stackId.equals(newStackId));
 
-    Map<String, String> properties = new HashMap<String, String>();
-    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String, String>>();
+    Map<String, String> properties = new HashMap<>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
 
     // foo-type for v1 on current stack
     properties.put("foo-property-1", "foo-value-1");

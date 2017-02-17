@@ -1313,7 +1313,7 @@ public class ClusterImpl implements Cluster {
    * @return Return the effective Cluster Version State
    */
   private RepositoryVersionState getEffectiveState(Map<RepositoryVersionState, Set<String>> stateToHosts) {
-    if (stateToHosts == null || stateToHosts.keySet().size() < 1) {
+    if (stateToHosts == null || stateToHosts.size() < 1) {
       return null;
     }
 
@@ -1350,18 +1350,51 @@ public class ClusterImpl implements Cluster {
     }
 
     if (totalNotRequired > 0) {
-      if (totalInstalled + totalNotRequired == totalHosts) {
+
+      // !!! if all we have is NOT_REQUIRED and something else, the return should be the something else
+      if (2 == stateToHosts.size()) {
+
+        Map<RepositoryVersionState, Set<String>> map = Maps.filterKeys(stateToHosts,
+            new com.google.common.base.Predicate<RepositoryVersionState>() {
+              @Override
+              public boolean apply(RepositoryVersionState repoState) {
+                return repoState != RepositoryVersionState.NOT_REQUIRED;
+              }
+            });
+
+        // !!! better be true
+        if (1 == map.size()) {
+          return map.keySet().iterator().next();
+        } else {
+          LOG.warn("The mix of NON_REQUIRED hosts is unexpected: {}", stateToHosts);
+          return RepositoryVersionState.OUT_OF_SYNC;
+        }
+      }
+
+      // if any hosts are still installing, then cluster is INSTALLING
+      if (totalInstalling > 0) {
+        return RepositoryVersionState.INSTALLING;
+      }
+
+      // if any hosts are install_failed, then cluster is INSTALL_FAILED
+      if (totalInstallFailed > 0) {
+        return RepositoryVersionState.INSTALL_FAILED;
+      }
+
+      // should be covered by the 2-state check above
+      if (totalInstalled > 0) {
         return RepositoryVersionState.INSTALLED;
       }
 
-      if (totalInstalling + totalInstalled + totalNotRequired == totalHosts) {
-        return RepositoryVersionState.INSTALLING;
+      // rare
+      if (totalNotRequired == totalHosts) {
+        return RepositoryVersionState.NOT_REQUIRED;
       }
 
     }
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED
-    LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED host versions, " +
+    LOG.warn("Have a mix of CURRENT and INSTALLING|INSTALLED host versions, " +
       "returning OUT_OF_SYNC as cluster version. Host version states: {}", stateToHosts);
     return RepositoryVersionState.OUT_OF_SYNC;
   }
