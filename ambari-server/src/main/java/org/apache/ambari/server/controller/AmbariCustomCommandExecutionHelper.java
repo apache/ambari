@@ -142,6 +142,8 @@ public class AmbariCustomCommandExecutionHelper {
 
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
+  public final static int MIN_STRICT_SERVICE_CHECK_TIMEOUT = 120;
+  
   @Inject
   private ActionMetadata actionMetadata;
 
@@ -766,6 +768,12 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+    String checkType = configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.CLUSTER_ENV, ConfigHelper.SERVICE_CHECK_TYPE);
+    if (ConfigHelper.SERVICE_CHECK_MINIMAL.equals(checkType)) {
+      int actualTimeout = Integer.parseInt(commandParams.get(COMMAND_TIMEOUT)) / 2;
+      actualTimeout = actualTimeout < MIN_STRICT_SERVICE_CHECK_TIMEOUT ? MIN_STRICT_SERVICE_CHECK_TIMEOUT : actualTimeout;
+      commandParams.put(COMMAND_TIMEOUT, Integer.toString(actualTimeout));
+    }
     commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 

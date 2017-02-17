@@ -313,7 +313,7 @@ public class HostRequest implements Comparable<HostRequest> {
     for (HostRoleCommand logicalTask : logicalTasks.values()) {
       // set host on command detail if it is set to null
       String commandDetail = logicalTask.getCommandDetail();
-      if (commandDetail != null && commandDetail.contains("null")) {
+      if (commandDetail != null && commandDetail.contains("null") && hostname != null) {
         logicalTask.setCommandDetail(commandDetail.replace("null", hostname));
       }
       Long physicalTaskId = physicalTasks.get(logicalTask.getTaskId());

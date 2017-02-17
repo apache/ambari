@@ -19,7 +19,7 @@
 <form class="form-horizontal" autocomplete="off">
   <div class="each-row">
     <div class="alert alert-info">
-      {{{view.configPropertyObj.hintInfo}}}
+      {{{view.parentView.widgetView.hintInfo}}}
     </div>
   </div>
 
@@ -33,14 +33,14 @@
     <div id="slider-value1" class="value-on-slider col-md-2">
       <input type="text" value="0" disabled="disabled" class="form-control" />
     </div>
-      <div id="slider-value2" {{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 :col-md-offset-2 :col-sm-offset-2 view.configPropertyObj.isThresh1Error:has-error"}}>
-        {{view Ember.TextField valueBinding="view.configPropertyObj.thresholdMin" class="form-control"}}
-        {{#if view.configPropertyObj.errorMessage1}}
-          <span class="help-block validation-block">{{view.configPropertyObj.errorMessage1}}</span>
+      <div id="slider-value2" {{bindAttr class="view.parentView.sliderHandlersManager.thresholdMinError:slider-error :value-on-slider :col-md-4 :col-md-offset-2 :col-sm-offset-2 view.parentView.sliderHandlersManager.thresholdMinError:has-error"}}>
+        {{view Ember.TextField valueBinding="view.parentView.sliderHandlersManager.thresholdMin" class="form-control"}}
+        {{#if view.parentView.sliderHandlersManager.thresholdMinErrorMessage}}
+          <span class="help-block validation-block">{{view.parentView.sliderHandlersManager.thresholdMinErrorMessage}}</span>
         {{/if}}
       </div>
     <div id="slider-value3" class="value-on-slider col-md-2 col-md-offset-2 col-sm-offset-2">
-      {{view Em.TextField valueBinding="view.configPropertyObj.maxValue" classNames="form-control" disabled="disabled"}}
+      {{view Em.TextField valueBinding="view.parentView.sliderHandlersManager.maxValue" classNames="form-control" disabled="disabled"}}
     </div>
   </div>
 

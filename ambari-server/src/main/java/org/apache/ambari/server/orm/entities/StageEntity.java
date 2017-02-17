@@ -39,17 +39,21 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 
 @Entity
 @Table(name = "stage")
 @IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
 @NamedQueries({
     @NamedQuery(
-        name = "StageEntity.findByCommandStatuses",
-        query = "SELECT stage from StageEntity stage WHERE stage.stageId IN (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER BY stage.requestId, stage.stageId"),
+        name = "StageEntity.findByStatuses",
+        query = "SELECT stage from StageEntity stage WHERE stage.status IN :statuses ORDER BY stage.requestId, stage.stageId"),
+    @NamedQuery(
+        name = "StageEntity.findByPK",
+        query = "SELECT stage from StageEntity stage WHERE stage.requestId = :requestId AND stage.stageId = :stageId"),
     @NamedQuery(
         name = "StageEntity.findByRequestIdAndCommandStatuses",
-        query = "SELECT stage from StageEntity stage WHERE stage.stageId IN (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.requestId = :requestId AND roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER BY stage.stageId"),
+        query = "SELECT stage from StageEntity stage WHERE stage.status IN :statuses AND stage.requestId = :requestId ORDER BY stage.stageId"),
     @NamedQuery(
         name = "StageEntity.findIdsByRequestId",
         query = "SELECT stage.stageId FROM StageEntity stage WHERE stage.requestId = :requestId ORDER BY stage.stageId ASC") })
@@ -109,6 +113,32 @@ public class StageEntity {
   @Column(name = "host_params")
   @Basic
   private byte[] hostParamsStage;
+
+  /**
+   * This status informs if the advanced criteria for the stage success
+   * as established at the time of stage creation has been accomplished or not
+   *
+   *  Status calculated by taking into account following
+   *  a) {@link #roleSuccessCriterias}
+   *  b) {@link #skippable}
+   *  c) {@link HostRoleCommandEntity#autoSkipOnFailure}
+   *  d) {@link HostRoleCommandEntity#status}
+   *
+   */
+  @Column(name = "status",  nullable = false)
+  @Enumerated(EnumType.STRING)
+  private HostRoleStatus status = HostRoleStatus.PENDING;
+
+  /**
+   * This status informs if any of the underlying tasks
+   * have faced any type of failures {@link HostRoleStatus#isFailedState()}
+   *
+   * Status calculated by only taking into account {@link HostRoleCommandEntity#status}
+   *
+   */
+  @Column(name = "display_status", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private HostRoleStatus displayStatus = HostRoleStatus.PENDING;
 
   @ManyToOne
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
@@ -194,6 +224,40 @@ public class StageEntity {
   public void setCommandExecutionType(CommandExecutionType commandExecutionType) {
     this.commandExecutionType = commandExecutionType;
   }
+
+  /**
+   * get status for the stage
+   * @return {@link HostRoleStatus}
+   */
+  public HostRoleStatus getStatus() {
+    return status;
+  }
+
+  /**
+   * sets status for the stage
+   * @param status {@link HostRoleStatus}
+   */
+  public void setStatus(HostRoleStatus status) {
+    this.status = status;
+  }
+
+  /**
+   * get display status for the stage
+   * @return  {@link HostRoleStatus}
+   */
+  public HostRoleStatus getDisplayStatus() {
+    return displayStatus;
+  }
+
+
+  /**
+   * sets display status for the stage
+   * @param displayStatus {@link HostRoleStatus}
+   */
+  public void setDisplayStatus(HostRoleStatus displayStatus) {
+    this.displayStatus = displayStatus;
+  }
+
 
   @Override
   public boolean equals(Object o) {

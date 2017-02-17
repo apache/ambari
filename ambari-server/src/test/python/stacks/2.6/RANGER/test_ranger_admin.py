@@ -336,11 +336,17 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
+    ranger_admin_site_copy = {}
+    ranger_admin_site_copy.update(self.getConfig()['configurations']['ranger-admin-site'])
+    for prop in ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password', 'ranger.service.https.attrib.keystore.pass', 'ranger.truststore.password']:
+      if prop in ranger_admin_site_copy:
+        ranger_admin_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-admin-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
-      configurations = self.getConfig()['configurations']['ranger-admin-site'],
+      configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
       mode = 0644
     )
@@ -359,6 +365,18 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
+      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      logoutput=True,
+      sudo = True
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/admin/rangeradmin.jceks',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'trustStoreAlias', '-value', 'changeit', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True
@@ -496,11 +514,17 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
+    ranger_admin_site_copy = {}
+    ranger_admin_site_copy.update(self.getConfig()['configurations']['ranger-admin-site'])
+    for prop in ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password', 'ranger.service.https.attrib.keystore.pass', 'ranger.truststore.password']:
+      if prop in ranger_admin_site_copy:
+        ranger_admin_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-admin-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
-      configurations = self.getConfig()['configurations']['ranger-admin-site'],
+      configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
       mode = 0644
     )
@@ -519,6 +543,18 @@ class TestRangerAdmin(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
+      environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+      logoutput=True,
+      sudo = True
+    )
+
+    self.assertResourceCalled('File', '/etc/ranger/admin/rangeradmin.jceks',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0640
+    )
+
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'trustStoreAlias', '-value', 'changeit', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True

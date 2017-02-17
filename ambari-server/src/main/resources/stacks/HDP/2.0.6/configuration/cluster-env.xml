@@ -296,4 +296,15 @@ gpgcheck=0</value>
     <description>Flag to turn on when external setup of External Ranger is done.</description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>service_check_type</name>
+    <display-name>Service Check Type</display-name>
+    <value>full</value>
+    <description>Indicates the complexity of the service check.  Valid values are 'minimal' or 'full'.</description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <visible>true</visible>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
 </configuration>

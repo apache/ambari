@@ -74,6 +74,8 @@ public class Stage {
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
+  private HostRoleStatus status = HostRoleStatus.PENDING;
+  private HostRoleStatus displayStatus = HostRoleStatus.PENDING;
   private String clusterHostInfo;
   private String commandParamsStage;
   private String hostParamsStage;
@@ -157,6 +159,8 @@ public class Stage {
     commandParamsStage = stageEntity.getCommandParamsStage();
     hostParamsStage = stageEntity.getHostParamsStage();
     commandExecutionType = stageEntity.getCommandExecutionType();
+    status = stageEntity.getStatus();
+    displayStatus = stageEntity.getDisplayStatus();
 
     List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
     Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);
@@ -197,6 +201,8 @@ public class Stage {
     stageEntity.setCommandParamsStage(commandParamsStage);
     stageEntity.setHostParamsStage(hostParamsStage);
     stageEntity.setCommandExecutionType(commandExecutionType);
+    stageEntity.setStatus(status);
+    stageEntity.setDisplayStatus(displayStatus);
 
     for (Role role : successFactors.keySet()) {
       RoleSuccessCriteriaEntity roleSuccessCriteriaEntity = new RoleSuccessCriteriaEntity();
@@ -289,6 +295,23 @@ public class Stage {
   public void setCommandExecutionType(CommandExecutionType commandExecutionType) {
     this.commandExecutionType = commandExecutionType;
   }
+
+  /**
+   * get current status of the stage
+   * @return {@link HostRoleStatus}
+   */
+  public HostRoleStatus getStatus() {
+    return status;
+  }
+
+  /**
+   * sets status of the stage
+   * @param status {@link HostRoleStatus}
+   */
+  public void setStatus(HostRoleStatus status) {
+    this.status = status;
+  }
+
 
   public synchronized void setStageId(long stageId) {
     if (this.stageId != -1) {
@@ -915,6 +938,8 @@ public class Stage {
     builder.append("clusterHostInfo="+clusterHostInfo+"\n");
     builder.append("commandParamsStage="+commandParamsStage+"\n");
     builder.append("hostParamsStage="+hostParamsStage+"\n");
+    builder.append("status="+status+"\n");
+    builder.append("displayStatus="+displayStatus+"\n");
     builder.append("Success Factors:\n");
     for (Role r : successFactors.keySet()) {
       builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");

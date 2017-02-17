@@ -563,6 +563,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl"/>
+      </execute-stage>
+
       <!--ATLAS-->
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Parameterizing Atlas Log4J Properties">
         <task xsi:type="configure" id="atlas_log4j_parameterize">

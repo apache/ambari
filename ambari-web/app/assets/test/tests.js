@@ -253,6 +253,7 @@ var files = [
   'test/views/common/widget/template_widget_view_test',
   'test/views/common/widget/heatmap_widget_view_test',
   'test/views/common/modal_popups/cluster_check_popup_test',
+  'test/views/common/modal_popups/edit_dashboard_widget_popup_test',
   'test/views/common/modal_popups/hosts_table_list_popup_test',
   'test/views/common/modal_popups/dependent_configs_list_popup_test',
   'test/views/main/admin_test',

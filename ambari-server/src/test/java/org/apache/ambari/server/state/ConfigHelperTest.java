@@ -38,6 +38,7 @@ import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
@@ -980,6 +981,7 @@ public class ConfigHelperTest {
           bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
           bind(ClusterController.class).toInstance(clusterController);
           bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+          bind(HostRoleCommandFactory.class).toInstance(createNiceMock(HostRoleCommandFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
         }
       });

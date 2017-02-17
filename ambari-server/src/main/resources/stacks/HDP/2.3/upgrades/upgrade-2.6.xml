@@ -654,6 +654,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db" />
           <task xsi:type="configure" id="kms_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl" />
           <task xsi:type="execute" hosts="any" sequential="true">
             <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
