@@ -144,6 +144,14 @@ public class RequestDAO {
   }
 
   @Transactional
+  public void updateStatus(long requestId, HostRoleStatus status, HostRoleStatus displayStatus) {
+    RequestEntity requestEntity = findByPK(requestId);
+    requestEntity.setStatus(status);
+    requestEntity.setDisplayStatus(displayStatus);
+    merge(requestEntity);
+  }
+
+  @Transactional
   public void create(RequestEntity requestEntity) {
     entityManagerProvider.get().persist(requestEntity);
   }

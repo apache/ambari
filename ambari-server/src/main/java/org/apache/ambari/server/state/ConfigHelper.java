@@ -86,6 +86,7 @@ public class ConfigHelper {
   public static final String CLUSTER_ENV = "cluster-env";
   public static final String CLUSTER_ENV_ALERT_REPEAT_TOLERANCE = "alerts_repeat_tolerance";
   public static final String CLUSTER_ENV_RETRY_ENABLED = "command_retry_enabled";
+  public static final String SERVICE_CHECK_TYPE = "service_check_type";
   public static final String CLUSTER_ENV_RETRY_COMMANDS = "commands_to_retry";
   public static final String CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";
   public static final String COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT = "600";
@@ -94,6 +95,7 @@ public class ConfigHelper {
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
+  public static final String SERVICE_CHECK_MINIMAL = "minimal";
 
   /**
    * The tag given to newly created versions.

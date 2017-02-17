@@ -46,7 +46,7 @@
       <button title="Start" {{action 'doAction' 'start' job.id}} type="button" class="btn btn-default isOn" data-status="{{job.status}}">
         <i class="fa fa-play">  </i>
       </button>
-      {{else if (eq job.status "SUSPENDED")}}
+      {{else if (or (eq job.status "SUSPENDED")(eq job.status "PREPSUSPENDED"))}}
       <button title="Resume" {{action 'doAction' 'resume' job.id}} type="button" class="btn btn-default isOn" data-status="{{job.status}}">
         <i class="fa fa-play">  </i>
       </button>
@@ -55,38 +55,38 @@
         <i class="fa fa-play">  </i>
       </button>
       {{/if}}
-      {{#if (eq job.status "RUNNING")}}
-      <button {{action 'doAction' 'suspend' job.id}} type="button" class="btn btn-default isOn" data-status="{{job.status}}">
+      {{#if (or (eq job.status "RUNNING")(and (eq job.status "PREP") (eq jobType "coord")))}}
+      <button title="Suspend" {{action 'doAction' 'suspend' job.id}} type="button" class="btn btn-default isOn" data-status="{{job.status}}">
         <i class="fa fa-pause">  </i>
       </button>
       {{else}}
-      <button type="button" class="btn btn-default" data-status="{{job.status}}">
+      <button title="Suspend" type="button" class="btn btn-default" data-status="{{job.status}}">
         <i class="fa fa-pause">  </i>
       </button>
       {{/if}}
-      {{#if (or (eq job.status "FAILED") (eq job.status "KILLED"))}}
-      <button {{action 'doAction' 'rerun' job.id}} type="button" class="btn btn-default isOn">
+      {{#if (or (eq job.status "FAILED") (eq job.status "KILLED") (eq job.status "SUCCEEDED")(eq job.status "DONEWITHERROR"))}}
+      <button title="Rerun" {{action 'doAction' 'rerun' job.id}} type="button" class="btn btn-default isOn">
         <i class="fa fa-repeat">  </i>
       </button>
       {{else}}
-      <button {{action 'doAction' 'rerun' job.id}} type="button" class="btn btn-default">
+      <button title="Rerun" type="button" class="btn btn-default">
         <i class="fa fa-repeat">  </i>
       </button>
       {{/if}}
     </div>
-    {{#if (eq job.status "RUNNING")}}
-    <button {{action 'doAction' 'kill' job.id}} type="button" class="isOn btn btn-default btn-sm btn-kill">
+    {{#if (not (or (eq job.status "SUCCEEDED")(eq job.status "FAILED")(eq job.status "KILLED")))}}
+    <button title="Kill" {{action 'doAction' 'kill' job.id}} type="button" class="isOn btn btn-default btn-sm btn-kill">
       <i class="fa fa-close">  </i> Kill
     </button>
     {{else}}
-    <button {{action 'doAction' 'kill' job.id}} type="button" class="btn btn-default btn-sm btn-kill">
+    <button title="Kill" type="button" class="btn btn-default btn-sm btn-kill">
       <i class="fa fa-close">  </i> Kill
     </button>
     {{/if}}
-    {{#if showLoader}}
-    <div class='loading-container'>
-      {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
-    </div>
-    {{/if}}
   </div>
+  {{#if showLoader}}
+    <div class='loading-container'>
+      {{spin-spinner lines=7 length=3 width=3 radius=3 top=10 left=150}}
+    </div>
+  {{/if}}
 </td>

@@ -220,7 +220,7 @@ describe('App.serviceMetricsMapper', function () {
         message: 'Storm mapper, stack version 2.1',
         expectedValues: {
           total_executors: 2,
-          nimbus_uptime: "3.96 hours",
+          nimbus_uptime: "3h 57m 30s",
           free_slots: 2,
           used_slots: 0,
           total_slots: 2,

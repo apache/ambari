@@ -31,5 +31,7 @@ const Validations = buildValidations({
 export default Ember.Component.extend(Validations,{
   initialize : function(){
     this.sendAction('register','decision',this);
+    this.set('targetNodes', Ember.A([]));
+    this.get('targetNodes').pushObjects(this.get('killNodes'));
   }.on('init')
 });

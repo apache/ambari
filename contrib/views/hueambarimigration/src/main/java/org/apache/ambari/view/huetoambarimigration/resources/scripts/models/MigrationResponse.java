@@ -45,6 +45,7 @@ public class MigrationResponse implements Serializable,PersonalResource{
   private String jobtype="";
   private String isNoQuerySelected="";
   private int flag;
+  private String error;
 
   public String getTotalTimeTaken() {
     return totalTimeTaken;
@@ -144,4 +145,9 @@ public class MigrationResponse implements Serializable,PersonalResource{
   public int getFlag() { return flag; }
 
   public void setFlag(int flag) { this.flag = flag; }
+
+  public String getError() { return error; }
+
+  public void setError(String error) { this.error = error; }
+
 }

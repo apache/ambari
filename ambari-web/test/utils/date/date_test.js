@@ -90,23 +90,23 @@ describe('date', function () {
       {i: '30', e:'30 ms'},
       {i: '300', e:'300 ms'},
       {i: '999', e:'999 ms'},
-      {i: '1000', e:'1.00 secs'},
-      {i: '3000', e:'3.00 secs'},
-      {i: '35000', e:'35.00 secs'},
-      {i: '350000', e:'350.00 secs'},
-      {i: '999999', e:'1000.00 secs'},
-      {i: '1000000', e:'16.67 mins'},
-      {i: '3500000', e:'58.33 mins'},
-      {i: '35000000', e:'9.72 hours'},
-      {i: '350000000', e:'4.05 days'},
-      {i: '3500000000', e:'40.51 days'},
-      {i: '35000000000', e:'405.09 days'}
+      {i: '1000', e:'1 secs'},
+      {i: '3000', e:'3 secs'},
+      {i: '35000', e:'35 secs'},
+      {i: '350000', e:'350 secs'},
+      {i: '999999', e:'1000 secs'},
+      {i: '1000000', e:'17 mins'},
+      {i: '3500000', e:'58 mins'},
+      {i: '35000000', e:'9h 43m 20s'},
+      {i: '350000000', e:'4d 1h 13m'},
+      {i: '3500000000', e:'40d 12h 13m'},
+      {i: '35000000000', e:'405d 2h 13m'}
     ]);
 
     describe('Correct data', function(){
       tests.forEach(function(test) {
         it(test.i, function() {
-          expect(date.timingFormat(test.i)).to.equal(test.e);
+          expect(date.timingFormat(test.i)).to.be.equal(test.e);
         });
       });
     });
@@ -148,12 +148,12 @@ describe('date', function () {
       {
         startTimestamp: 1349752195000,
         endTimestamp: 1349752199000,
-        e: '4.00 secs'
+        e: '4 secs'
       },
       {
         startTimestamp: 1349752195000,
         endTimestamp: 1367752195000,
-        e: '208.33 days'
+        e: '213d 8h 0m'
       },
       {
         startTimestamp: -10000000,
@@ -170,7 +170,7 @@ describe('date', function () {
         startTimestamp: 100000000,
         endTimestamp: -1,
         stubbed: true,
-        e: '19.00 secs'
+        e: '19 secs'
       }
     ];
 

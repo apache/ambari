@@ -17,12 +17,17 @@ limitations under the License.
 
 """
 import random
+import json
+from random import randrange
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_jinja2 import Environment as JinjaEnvironment
+from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import StaticFile
+from resource_management.core.shell import as_sudo
+from resource_management.core.logger import Logger
 
 __all__ = ["upload_configuration_to_zk", "create_collection", "setup_kerberos", "set_cluster_prop",
            "setup_kerberos_plugin", "create_znode", "check_znode", "secure_solr_znode", "secure_znode"]
@@ -163,13 +168,16 @@ def set_cluster_prop(zookeeper_quorum, solr_znode, prop_name, prop_value, java64
     set_cluster_prop_cmd+=format(' --jaas-file {jaas_file}')
   Execute(set_cluster_prop_cmd)
 
-def secure_znode(zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[]):
+def secure_znode(config, zookeeper_quorum, solr_znode, jaas_file, java64_home, sasl_users=[], retry = 5 , interval = 10):
   """
-  Secure znode, set a list of sasl users acl to 'cdrwa', and set acl to 'r' only for the world. 
+  Secure znode, set a list of sasl users acl to 'cdrwa', and set acl to 'r' only for the world.
+  Add infra-solr user by default if its available.
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
-  sasl_users_str = ",".join(str(x) for x in sasl_users)
-  secure_znode_cmd = format('{solr_cli_prefix} --secure-znode --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
+  if "infra-solr-env" in config['configurations']:
+    sasl_users.append(__get_name_from_principal(config['configurations']['infra-solr-env']['infra_solr_kerberos_principal']))
+  sasl_users_str = ",".join(str(__get_name_from_principal(x)) for x in sasl_users)
+  secure_znode_cmd = format('{solr_cli_prefix} --secure-znode --jaas-file {jaas_file} --sasl-users {sasl_users_str} --retry {retry} --interval {interval}')
   Execute(secure_znode_cmd)
 
 
@@ -243,3 +251,97 @@ def setup_solr_client(config, custom_log4j = True, custom_log_location = None, l
          mode=0664,
          content=''
          )
+
+def __get_name_from_principal(principal):
+  if not principal:  # return if empty
+    return principal
+  slash_split = principal.split('/')
+  if len(slash_split) == 2:
+    return slash_split[0]
+  else:
+    at_split = principal.split('@')
+    return at_split[0]
+
+def __remove_host_from_principal(principal, realm):
+  if not realm:
+    raise Exception("Realm parameter is missing.")
+  if not principal:
+    raise Exception("Principal parameter is missing.")
+  username=__get_name_from_principal(principal)
+  at_split = principal.split('@')
+  if len(at_split) == 2:
+    realm = at_split[1]
+  return format('{username}@{realm}')
+
+def __get_random_solr_host(actual_host, solr_hosts = []):
+  """
+  Get a random solr host, use the actual one, if there is an installed infra solr there (helps blueprint installs)
+  If there is only one solr host on the cluster, use that.
+  """
+  if not solr_hosts:
+    raise Exception("Solr hosts parameter is empty.")
+  if len(solr_hosts) == 1:
+    return solr_hosts[0]
+  if actual_host in solr_hosts:
+    return actual_host
+  else:
+    random_index = randrange(0, len(solr_hosts))
+    return solr_hosts[random_index]
+
+def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, try_sleep = 10):
+  """
+  Set user-role mappings based on roles and principal users for secured cluster. Use solr REST API to check is there any authoirzation enabled,
+  if it is then update the user-roles mapping for Solr (this will upgrade the solr_znode/security.json file).
+  In case of custom security.json is used for infra-solr, this step will be skipped.
+  """
+  sudo = AMBARI_SUDO_BINARY
+  solr_hosts = default_config(config, "/clusterHostInfo/infra_solr_hosts", [])
+  security_enabled = config['configurations']['cluster-env']['security_enabled']
+  solr_ssl_enabled = default_config(config, 'configurations/infra-solr-env/infra_solr_ssl_enabled', False)
+  solr_port = default_config(config, 'configurations/infra-solr-env/infra_solr_port', '8886')
+  kinit_path_local = get_kinit_path(default_config(config, '/configurations/kerberos-env/executable_search_paths', None))
+  infra_solr_custom_security_json_content = None
+
+  if 'infra-solr-security-json' in config['configurations']:
+    infra_solr_custom_security_json_content = config['configurations']['infra-solr-security-json']['content']
+
+  Logger.info(format("Adding {roles} roles to {new_service_principals} if infra-solr is installed."))
+  if infra_solr_custom_security_json_content and str(infra_solr_custom_security_json_content).strip():
+    Logger.info("Custom security.json is not empty for infra-solr, skip adding roles...")
+  elif security_enabled \
+    and "infra-solr-env" in config['configurations'] \
+    and solr_hosts is not None \
+    and len(solr_hosts) > 0:
+    solr_protocol = "https" if solr_ssl_enabled else "http"
+    hostname = config['hostname'].lower()
+    solr_host = __get_random_solr_host(hostname, solr_hosts)
+    solr_url = format("{solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization")
+    solr_user_keytab = config['configurations']['infra-solr-env']['infra_solr_kerberos_keytab']
+    solr_user_principal = config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'].replace('_HOST', hostname)
+    solr_user_kinit_cmd = format("{kinit_path_local} -kt {solr_user_keytab} {solr_user_principal};")
+    solr_authorization_enabled_cmd=format("{sudo} {solr_user_kinit_cmd} {sudo} curl -k -s --negotiate -u : {solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization | grep authorization.enabled")
+
+    if len(new_service_principals) > 0:
+      new_service_users = []
+
+      kerberos_realm = config['configurations']['kerberos-env']['realm']
+      for new_service_user in new_service_principals:
+        new_service_users.append(__remove_host_from_principal(new_service_user, kerberos_realm))
+      user_role_map = {}
+
+      for new_service_user in new_service_users:
+        user_role_map[new_service_user] = roles
+
+      Logger.info(format("New service users after removing fully qualified names: {new_service_users}"))
+
+      set_user_role_map = {}
+      set_user_role_map['set-user-role'] = user_role_map
+      set_user_role_json = json.dumps(set_user_role_map)
+
+      add_solr_role_cmd = format("{sudo} {solr_user_kinit_cmd} {sudo} curl -H 'Content-type:application/json' -d '{set_user_role_json}' -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {solr_url} | grep 200")
+
+      Logger.info(format("Check authorization enabled command: {solr_authorization_enabled_cmd} \nSet user-role settings command: {add_solr_role_cmd}"))
+      Execute(solr_authorization_enabled_cmd + " && "+ add_solr_role_cmd,
+              tries=tries,
+              try_sleep=try_sleep,
+              logoutput=True)

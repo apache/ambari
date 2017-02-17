@@ -317,7 +317,7 @@ describe('App.AddServiceController', function() {
         mock.db = value;
       });
       sinon.stub(this.controller, 'hasDependentSlaveComponent');
-      sinon.stub(App.store, 'commit', Em.K);
+      sinon.stub(App.store, 'fastCommit', Em.K);
       this.mockStackService = sinon.stub(App.StackService, 'find');
       this.mockService = sinon.stub(App.Service, 'find');
     });
@@ -328,7 +328,7 @@ describe('App.AddServiceController', function() {
       this.controller.hasDependentSlaveComponent.restore();
       this.mockStackService.restore();
       this.mockService.restore();
-      App.store.commit.restore();
+      App.store.fastCommit.restore();
     });
 
     var tests = [

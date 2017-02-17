@@ -593,6 +593,8 @@
         <service>HIVE</service>
         <service>SPARK</service>
         <service>SLIDER</service>
+        <service>ATLAS</service>
+        <service>ZEPPELIN</service>
         <service>OOZIE</service>
       </priority>
     </group>

@@ -32,7 +32,7 @@
         <div>
             <form class="form-horizontal" id="action_properties">
               {{#if (eq nodeType 'decision')}}
-                {{#decision-config actionModel=actionModel register="registerChild"}}{{/decision-config}}
+                {{#decision-config actionModel=actionModel killNodes=killNodes register="registerChild"}}{{/decision-config}}
               {{/if}}
               {{#if (eq nodeType 'action')}}
                 {{#if containsUnsupportedProperties}}

@@ -19,6 +19,7 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
   history: Ember.inject.service(),
+  userInfo : Ember.inject.service('user-info'),
   errorMessage : "Error",
   queryParams: {
     jobType: { refreshModel: true },
@@ -85,10 +86,16 @@ export default Ember.Route.extend({
       "&filter=", filter
     ].join(""),
     page = (start - 1) / len + 1;
-    return this.fetchJobs(url).catch(function(){
+    return Ember.RSVP.hash({
+      jobs : this.fetchJobs(url),
+      userName:this.get("userInfo").getUserData()
+    }).catch(function(e){
+      console.error(e);
       this.controllerFor('design.dashboardtab').set('model',{error : "Remote API Failed"});
       Ember.$("#loading").css("display", "none");
-    }.bind(this)).then(function (res) {
+    }.bind(this)).then(function (response) {
+      var res = response.jobs;
+      this.controllerFor('design.dashboardtab').set('userName', response.userName);
       if(!res){
         return;
       }
@@ -145,10 +152,10 @@ export default Ember.Route.extend({
       return res;
     }.bind(this));
   },
-  afterModel: function (model) {
+  afterModel: function () {
     Ember.$("#loading").css("display", "none");
   },
-  model: function (params) {
+  model: function () {
 
   }
 });

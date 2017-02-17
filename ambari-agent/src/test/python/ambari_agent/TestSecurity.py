@@ -102,6 +102,8 @@ class TestSecurity(unittest.TestCase):
     wrap_socket_mock.side_effect=ssl.SSLError()
     connection = security.VerifiedHTTPSConnection("example.com",
       self.config.get('server', 'secured_url_port'), self.config)
+    self.config.isTwoWaySSLConnection = MagicMock(return_value=True)
+
     connection._tunnel_host = False
     connection.sock = None
     try:

@@ -16,8 +16,12 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
+import CommonUtils from '../utils/common-utils';
 
 export default Ember.Component.extend({
+  decodedXml : Ember.computed('previewXml', function(){
+    return CommonUtils.decodeXml(this.get('previewXml'));
+  }),
   elementsInserted :function(){
     this.$('#previewModal').modal({
       backdrop: 'static',

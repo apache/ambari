@@ -135,13 +135,13 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       event = {
         context: Em.Object.create({
           isSelected: false,
-          value: 'ALL',
+          value: 'ALL'
         })
       };
       view.set('categories', [
         Em.Object.create({
           isSelected: true,
-          value: 'UPGRADE_COMPLETED',
+          value: 'UPGRADE_COMPLETED'
         }),
         event.context
       ]);
@@ -192,12 +192,12 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       Em.Object.create({
         directionLabel: Em.I18n.t('common.upgrade'),
         upgradeTypeLabel: Em.I18n.t('common.rolling'),
-        duration: '1.00 hours'
+        duration: '1h 0m 0s'
       }),
       Em.Object.create({
         directionLabel: Em.I18n.t('common.downgrade'),
         upgradeTypeLabel: Em.I18n.t('common.hostOrdered'),
-        duration: '2.00 hours'
+        duration: '2h 0m 0s'
       })
     ];
 

@@ -1031,12 +1031,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                                  mem_per_thread_for_llap, normalized_tez_am_container_size))
       if llap_concurrency == 0:
         llap_concurrency = 1
+        Logger.info("DBG: Readjusted 'llap_concurrency' to : 1. Earlier calculated value : 0")
 
       if llap_concurrency * normalized_tez_am_container_size > hive_tez_am_cap_available:
-        llap_concurrency = math.floor(hive_tez_am_cap_available / normalized_tez_am_container_size)
+        llap_concurrency = long(math.floor(hive_tez_am_cap_available / normalized_tez_am_container_size))
+        Logger.info("DBG: Readjusted 'llap_concurrency' to : {0}, as llap_concurrency({1}) * normalized_tez_am_container_size({2}) > hive_tez_am_cap_available({3}))"
+                    .format(llap_concurrency, llap_concurrency, normalized_tez_am_container_size, hive_tez_am_cap_available))
 
         if llap_concurrency <= 0:
-          Logger.warning("Calculated 'LLAP Concurrent Queries' = {0}. Expected value >= 1.".format(llap_concurrency))
+          Logger.warning("DBG: Calculated 'LLAP Concurrent Queries' = {0}. Expected value >= 1.".format(llap_concurrency))
           self.recommendDefaultLlapConfiguration(configurations, services, hosts)
           return
         Logger.info("DBG: Adjusted 'llap_concurrency' : {0}, using following: hive_tez_am_cap_available : {1}, normalized_tez_am_container_size: "
@@ -1062,8 +1065,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                   ": {2}, MIN_EXECUTOR_TO_AM_RATIO : {3}, MAX_CONCURRENT_QUERIES : {4}".format(max_llap_concurreny_limit, max_executors_per_node,
                                                                                                num_llap_nodes_requested, MIN_EXECUTOR_TO_AM_RATIO,
                                                                                                MAX_CONCURRENT_QUERIES))
-    max_llap_concurreny = min(max_llap_concurreny_limit, math.floor(llap_mem_for_tezAm_and_daemons / (MIN_EXECUTOR_TO_AM_RATIO *
-                                                                                                      mem_per_thread_for_llap + normalized_tez_am_container_size)))
+    max_llap_concurreny = long(min(max_llap_concurreny_limit, math.floor(llap_mem_for_tezAm_and_daemons / (MIN_EXECUTOR_TO_AM_RATIO *
+                                                                                                      mem_per_thread_for_llap + normalized_tez_am_container_size))))
     Logger.info("DBG: Calculated 'max_llap_concurreny' : {0}, using following : max_llap_concurreny_limit : {1}, llap_mem_for_tezAm_and_daemons : "
                   "{2}, MIN_EXECUTOR_TO_AM_RATIO : {3}, mem_per_thread_for_llap : {4}, normalized_tez_am_container_size : "
                   "{5}".format(max_llap_concurreny, max_llap_concurreny_limit, llap_mem_for_tezAm_and_daemons, MIN_EXECUTOR_TO_AM_RATIO,
@@ -1209,7 +1212,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     Logger.info("DBG: Putting num_executors_per_node as {0}".format(num_executors_per_node))
     putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', num_executors_per_node)
     putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 1)
-    putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "maximum", float(num_executors_per_node_max))
+    putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "maximum", long(num_executors_per_node_max))
 
     # 'hive.llap.io.threadpool.size' config value is to be set same as value calculated for
     # 'hive.llap.daemon.num.executors' at all times.

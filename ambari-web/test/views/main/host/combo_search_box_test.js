@@ -663,11 +663,11 @@ describe('App.MainHostComboSearchBoxView', function () {
       App.router.get.restore();
     });
 
-    it("should return host-component list", function() {
+    it("should return sorted host-component list", function() {
       expect(view.getHostComponentList()).to.be.eql([
+        {label: 'cc1', category: 'Component'},
         {label: 'mc1', category: 'Component'},
-        {label: 'sc1', category: 'Component'},
-        {label: 'cc1', category: 'Component'}
+        {label: 'sc1', category: 'Component'}
       ]);
       expect(labelValueMap).to.be.eql({
         mc1: 'MC1',

@@ -882,27 +882,31 @@ describe("App.MainServiceInfoConfigsController", function () {
   });
 
   describe('#abortRequests', function() {
+    var pendingRequest, finishedRequest;
+
     beforeEach(function() {
       mainServiceInfoConfigsController.get('requestsInProgress').clear();
-    });
-    it('should clear requests when abort called', function() {
-      mainServiceInfoConfigsController.trackRequest($.Deferred());
-      mainServiceInfoConfigsController.abortRequests();
-      expect(mainServiceInfoConfigsController.get('requestsInProgress')).to.have.length(0);
-    });
-    it('should abort requests which are not finished', function() {
-      var pendingRequest = {
-        abort: sinon.spy(),
-        readyState: 0,
-        state: sinon.spy(),
-        always: sinon.spy()
-      };
-      var finishedRequest = {
+      finishedRequest = {
         abort: sinon.spy(),
         readyState: 4,
         state: sinon.spy(),
         always: sinon.spy()
       };
+      pendingRequest = {
+        abort: sinon.spy(),
+        readyState: 0,
+        state: sinon.spy(),
+        always: sinon.spy()
+      };
+    });
+
+    it('should clear requests when abort called', function() {
+      mainServiceInfoConfigsController.trackRequest($.Deferred());
+      mainServiceInfoConfigsController.abortRequests();
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')).to.have.length(0);
+    });
+
+    it('should abort requests which are not finished', function() {
       mainServiceInfoConfigsController.trackRequest(pendingRequest);
       mainServiceInfoConfigsController.trackRequest(finishedRequest);
       mainServiceInfoConfigsController.abortRequests();
@@ -1048,4 +1052,49 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   });
 
+  describe('#getServicesDependencies', function() {
+    var createService = function(serviceName, dependencies) {
+      return Em.Object.create({
+        serviceName: serviceName,
+        dependentServiceNames: dependencies || []
+      });
+    };
+    var stackServices = [
+      createService('STORM', ['RANGER', 'ATLAS', 'ZOOKEEPER']),
+      createService('RANGER', ['HIVE', 'HDFS']),
+      createService('HIVE', ['YARN']),
+      createService('ZOOKEEPER', ['HDFS']),
+      createService('ATLAS'),
+      createService('HDFS', ['ZOOKEEPER']),
+      createService('YARN', ['HIVE'])
+    ];
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find', function(serviceName) {
+        return stackServices.findProperty('serviceName', serviceName);
+      });
+    });
+    afterEach(function() {
+      App.StackService.find.restore();
+    });
+
+    it('should returns all service dependencies STORM service', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('STORM');
+      expect(result).to.be.eql(['RANGER', 'ATLAS', 'ZOOKEEPER', 'HIVE', 'HDFS', 'YARN']);
+    });
+
+    it('should returns all service dependencies for ATLAS', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('ATLAS');
+      expect(result).to.be.eql([]);
+    });
+
+    it('should returns all service dependencies for RANGER', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('RANGER');
+      expect(result).to.be.eql(['HIVE', 'HDFS', 'YARN', 'ZOOKEEPER']);
+    });
+
+    it('should returns all service dependencies for YARN', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('YARN');
+      expect(result).to.be.eql(['HIVE']);
+    });
+  });
 });

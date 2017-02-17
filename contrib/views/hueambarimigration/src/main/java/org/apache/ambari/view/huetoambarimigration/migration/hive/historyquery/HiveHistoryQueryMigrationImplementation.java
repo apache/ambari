@@ -260,7 +260,7 @@ public class HiveHistoryQueryMigrationImplementation {
 
   }
 
-  public ArrayList<HiveModel> fetchFromHue(String username, String startdate, String endtime, Connection connection, QuerySetHueDB huedatabase) throws ClassNotFoundException, SQLException {
+  public ArrayList<HiveModel> fetchFromHue(String username, String startdate, String endtime, Connection connection, QuerySetHueDB huedatabase) throws ClassNotFoundException, SQLException, IOException {
     int id = 0;
     int i = 0;
     ArrayList<HiveModel> hiveArrayList = new ArrayList<HiveModel>();

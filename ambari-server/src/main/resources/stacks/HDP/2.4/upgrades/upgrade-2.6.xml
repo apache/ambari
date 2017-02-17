@@ -36,6 +36,7 @@
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
+    <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
 
     <!-- Specific to HDP 2.5, Storm is not rolling -->
     <check>org.apache.ambari.server.checks.StormShutdownWarning</check>
@@ -642,6 +643,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db" />
           <task xsi:type="configure" id="kms_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl" />
           <task xsi:type="execute" hosts="any" sequential="true">
             <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>

@@ -122,7 +122,7 @@ class TestFlumeHandler(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(glob_mock.called)
-    await_flume_process_termination_mock.assert_called_with('/var/run/flume/a1.pid')
+    await_flume_process_termination_mock.assert_called_with('/var/run/flume/a1.pid', try_count=10)
 
     self.assertTrue(set_desired_mock.called)
     self.assertTrue(set_desired_mock.call_args[0][0] == 'INSTALLED')
@@ -421,7 +421,7 @@ class TestFlumeHandler(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(glob_mock.called)
-    await_flume_process_termination_mock.assert_called_with('/var/run/flume/b1.pid')
+    await_flume_process_termination_mock.assert_called_with('/var/run/flume/b1.pid', try_count=10)
 
     self.assertResourceCalled('File', '/var/run/flume/b1.pid', action = ['delete'])
 

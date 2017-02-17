@@ -179,11 +179,16 @@ angular.module('ambariAdminConsole')
         // prepare response data with client side pagination
         var response = {};
         response.itemTotal = repos.length;
-        var from = (pagination.currentPage - 1) * pagination.itemsPerPage;
-        var to = (repos.length - from > pagination.itemsPerPage)? from + pagination.itemsPerPage : repos.length;
-        response.items = repos.slice(from, to);
-        response.showed = to - from;
-        deferred.resolve(response)
+        if (pagination) {
+          var from = (pagination.currentPage - 1) * pagination.itemsPerPage;
+          var to = (repos.length - from > pagination.itemsPerPage)? from + pagination.itemsPerPage : repos.length;
+          response.items = repos.slice(from, to);
+          response.showed = to - from;
+        } else {
+          response.items = repos;
+          response.showed = repos.length;
+        }
+        deferred.resolve(response);
       })
       .error(function (data) {
         deferred.reject(data);

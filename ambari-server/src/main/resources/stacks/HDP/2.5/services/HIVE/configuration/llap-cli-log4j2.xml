@@ -67,13 +67,14 @@ name = LlapCliLog4j2
 packages = org.apache.hadoop.hive.ql.log
 
 # list of properties
-property.hive.log.level = {{hive_log_level}}
+property.hive.log.level = WARN
 property.hive.root.logger = console
 property.hive.log.dir = ${sys:java.io.tmpdir}/${sys:user.name}
 property.hive.log.file = llap-cli.log
+property.hive.llapstatus.consolelogger.level = INFO
 
 # list of all appenders
-appenders = console, DRFA
+appenders = console, DRFA, llapstatusconsole
 
 # console appender
 appender.console.type = Console
@@ -81,6 +82,13 @@ appender.console.name = console
 appender.console.target = SYSTEM_ERR
 appender.console.layout.type = PatternLayout
 appender.console.layout.pattern = %p %c{2}: %m%n
+
+# llapstatusconsole appender
+appender.llapstatusconsole.type = Console
+appender.llapstatusconsole.name = llapstatusconsole
+appender.llapstatusconsole.target = SYSTEM_OUT
+appender.llapstatusconsole.layout.type = PatternLayout
+appender.llapstatusconsole.layout.pattern = %m%n
 
 # daily rolling file appender
 appender.DRFA.type = RollingRandomAccessFile
@@ -100,7 +108,7 @@ appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy
 appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB
 
 # list of all loggers
-loggers = ZooKeeper, DataNucleus, Datastore, JPOX, HadoopConf
+loggers = ZooKeeper, DataNucleus, Datastore, JPOX, HadoopConf, LlapStatusServiceDriverConsole
 
 logger.ZooKeeper.name = org.apache.zookeeper
 logger.ZooKeeper.level = WARN
@@ -117,11 +125,19 @@ logger.JPOX.level = ERROR
 logger.HadoopConf.name = org.apache.hadoop.conf.Configuration
 logger.HadoopConf.level = ERROR
 
+logger.LlapStatusServiceDriverConsole.name = LlapStatusServiceDriverConsole
+logger.LlapStatusServiceDriverConsole.additivity = false
+logger.LlapStatusServiceDriverConsole.level = ${sys:hive.llapstatus.consolelogger.level}
+
+
 # root logger
 rootLogger.level = ${sys:hive.log.level}
 rootLogger.appenderRefs = root, DRFA
 rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}
 rootLogger.appenderRef.DRFA.ref = DRFA
+logger.LlapStatusServiceDriverConsole.appenderRefs = llapstatusconsole, DRFA
+logger.LlapStatusServiceDriverConsole.appenderRef.llapstatusconsole.ref = llapstatusconsole
+logger.LlapStatusServiceDriverConsole.appenderRef.DRFA.ref = DRFA
   </value>
     <value-attributes>
       <type>content</type>

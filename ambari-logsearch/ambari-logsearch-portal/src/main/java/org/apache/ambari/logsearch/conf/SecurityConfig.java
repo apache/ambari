@@ -47,7 +47,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.Filter;
 import java.util.List;
 
 import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;

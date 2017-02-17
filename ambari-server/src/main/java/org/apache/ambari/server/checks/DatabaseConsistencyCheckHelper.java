@@ -20,7 +20,6 @@ package org.apache.ambari.server.checks;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -31,9 +30,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
 import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -59,7 +62,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -77,21 +82,54 @@ public class DatabaseConsistencyCheckHelper {
   private static AmbariMetaInfo ambariMetaInfo;
   private static DBAccessor dbAccessor;
 
+  private static DatabaseConsistencyCheckResult checkResult = DatabaseConsistencyCheckResult.DB_CHECK_SUCCESS;
 
-  private static boolean errorsFound = false;
-  private static boolean warningsFound = false;
-
-  public static boolean ifErrorsFound() {
-    return errorsFound;
+  /**
+   * @return The result of the DB cheks run so far.
+   */
+  public static DatabaseConsistencyCheckResult getLastCheckResult() {
+    return checkResult;
   }
 
-  public static boolean ifWarningsFound() {
-    return warningsFound;
+  /**
+   * Reset check result to {@link DatabaseConsistencyCheckResult#DB_CHECK_SUCCESS}.
+   */
+  public static void resetCheckResult() {
+    checkResult = DatabaseConsistencyCheckResult.DB_CHECK_SUCCESS;
   }
 
-  public static void resetErrorWarningFlags() {
-    errorsFound = false;
-    warningsFound = false;
+  /**
+   * Called internally to set the result of the DB checks. The new result is only recorded if it is more severe than
+   * the existing result.
+   *
+    * @param newResult the new result
+   */
+  private static void setCheckResult(DatabaseConsistencyCheckResult newResult) {
+    if (newResult.ordinal() > checkResult.ordinal()) {
+      checkResult = newResult;
+    }
+  }
+
+  /**
+   * Called to indicate a warning during checks
+   *
+   * @param messageTemplate Message template (log4j format)
+   * @param messageParams Message params
+   */
+  private static void warning(String messageTemplate, Object... messageParams) {
+    LOG.warn(messageTemplate, messageParams);
+    setCheckResult(DatabaseConsistencyCheckResult.DB_CHECK_WARNING);
+  }
+
+  /**
+   * Called to indicate an error during checks
+   *
+   * @param messageTemplate Message template (log4j format)
+   * @param messageParams Message params
+   */
+  private static void error(String messageTemplate, Object... messageParams) {
+    LOG.error(messageTemplate, messageParams);
+    setCheckResult(DatabaseConsistencyCheckResult.DB_CHECK_ERROR);
   }
 
   public static void setInjector(Injector injector) {
@@ -120,25 +158,30 @@ public class DatabaseConsistencyCheckHelper {
       LOG.error("Exception occurred during connection close procedure: ", e);
     }
   }
-
-
-  public static void fixDatabaseConsistency() {
-    fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
-    fixClusterConfigsNotMappedToAnyService();
-  }
-
-  public static void runAllDBChecks() {
+  
+  public static DatabaseConsistencyCheckResult runAllDBChecks(boolean fixIssues) throws Throwable {
     LOG.info("******************************* Check database started *******************************");
-    checkSchemaName();
-    checkMySQLEngine();
-    checkForConfigsNotMappedToService();
-    checkForNotMappedConfigsToCluster();
-    checkForConfigsSelectedMoreThanOnce();
-    checkForHostsWithoutState();
-    checkHostComponentStates();
-    checkServiceConfigs();
-    checkTopologyTables();
-    LOG.info("******************************* Check database completed *******************************");
+    try {
+      if (fixIssues) {
+        fixHostComponentStatesCountEqualsHostComponentsDesiredStates();
+        fixClusterConfigsNotMappedToAnyService();
+      }
+      checkSchemaName();
+      checkMySQLEngine();
+      checkForConfigsNotMappedToService();
+      checkForNotMappedConfigsToCluster();
+      checkForConfigsSelectedMoreThanOnce();
+      checkForHostsWithoutState();
+      checkHostComponentStates();
+      checkServiceConfigs();
+      checkTopologyTables();
+      LOG.info("******************************* Check database completed *******************************");
+      return checkResult;
+    }
+    catch (Throwable ex) {
+      LOG.error("An error occurred during database consistency check.", ex);
+      throw ex;
+    }
   }
 
   public static void checkDBVersionCompatible() throws AmbariException {
@@ -180,7 +223,7 @@ public class DatabaseConsistencyCheckHelper {
     LOG.info("DB store version is compatible");
   }
 
-  public static void checkForNotMappedConfigsToCluster() {
+  static void checkForNotMappedConfigsToCluster() {
     LOG.info("Checking for configs not mapped to any cluster");
 
     String GET_NOT_MAPPED_CONFIGS_QUERY = "select type_name from clusterconfig where type_name not in (select type_name from clusterconfigmapping)";
@@ -188,12 +231,7 @@ public class DatabaseConsistencyCheckHelper {
     ResultSet rs = null;
     Statement statement = null;
 
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
+    ensureConnection();
 
     try {
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -204,8 +242,8 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
       if (!nonSelectedConfigs.isEmpty()) {
-        LOG.warn("You have config(s): {} that is(are) not mapped (in clusterconfigmapping table) to any cluster!", StringUtils.join(nonSelectedConfigs, ","));
-        warningsFound = true;
+        warning("You have config(s): {} that is(are) not mapped (in clusterconfigmapping table) to any cluster!",
+            nonSelectedConfigs);
       }
     } catch (SQLException e) {
       LOG.error("Exception occurred during check for not mapped configs to cluster procedure: ", e);
@@ -234,7 +272,7 @@ public class DatabaseConsistencyCheckHelper {
   * it means that this version of config is actual. So, if any config type has more
   * than one selected version it's a bug and we are showing error message for user.
   * */
-  public static void checkForConfigsSelectedMoreThanOnce() {
+  static void checkForConfigsSelectedMoreThanOnce() {
     LOG.info("Checking for configs selected more than once");
 
     String GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY = "select c.cluster_name, ccm.type_name from clusterconfigmapping ccm " +
@@ -245,12 +283,7 @@ public class DatabaseConsistencyCheckHelper {
     ResultSet rs = null;
     Statement statement = null;
 
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
+    ensureConnection();
 
     try {
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -261,9 +294,8 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         for (String clusterName : clusterConfigTypeMap.keySet()) {
-          LOG.error("You have config(s), in cluster {}, that is(are) selected more than once in clusterconfigmapping table: {}",
+          error("You have config(s), in cluster {}, that is(are) selected more than once in clusterconfigmapping table: {}",
                   clusterName ,StringUtils.join(clusterConfigTypeMap.get(clusterName), ","));
-          errorsFound = true;
         }
       }
 
@@ -293,7 +325,7 @@ public class DatabaseConsistencyCheckHelper {
   * has related host state info in hoststate table.
   * If not then we are showing error.
   * */
-  public static void checkForHostsWithoutState() {
+  static void checkForHostsWithoutState() {
     LOG.info("Checking for hosts without state");
 
     String GET_HOSTS_WITHOUT_STATUS_QUERY = "select host_name from hosts where host_id not in (select host_id from hoststate)";
@@ -301,12 +333,7 @@ public class DatabaseConsistencyCheckHelper {
     ResultSet rs = null;
     Statement statement = null;
 
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
+    ensureConnection();
 
     try {
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -317,8 +344,7 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         if (!hostsWithoutStatus.isEmpty()) {
-          LOG.error("You have host(s) without state (in hoststate table): " + StringUtils.join(hostsWithoutStatus, ","));
-          errorsFound = true;
+          error("You have host(s) without state (in hoststate table): " + StringUtils.join(hostsWithoutStatus, ","));
         }
       }
 
@@ -348,7 +374,7 @@ public class DatabaseConsistencyCheckHelper {
    * This method checks that for each row in topology_request there is at least one row in topology_logical_request,
    * topology_host_request, topology_host_task, topology_logical_task.
    * */
-  public static void checkTopologyTables() {
+  static void checkTopologyTables() {
     LOG.info("Checking Topology tables");
 
     String SELECT_REQUEST_COUNT_QUERY = "select count(tpr.id) from topology_request tpr";
@@ -389,10 +415,9 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       if (topologyRequestCount != topologyRequestTablesJoinedCount) {
-        LOG.error("Your topology request hierarchy is not complete for each row in topology_request should exist " +
+        error("Your topology request hierarchy is not complete for each row in topology_request should exist " +
           "at least one raw in topology_logical_request, topology_host_request, topology_host_task, " +
           "topology_logical_task.");
-        errorsFound = true;
       }
 
 
@@ -429,7 +454,7 @@ public class DatabaseConsistencyCheckHelper {
   * One more, we are checking if all components has only one host
   * component state. If some component has more, it can cause issues
   * */
-  public static void checkHostComponentStates() {
+  static void checkHostComponentStates() {
     LOG.info("Checking host component states count equals host component desired states count");
 
     String GET_HOST_COMPONENT_STATE_COUNT_QUERY = "select count(*) from hostcomponentstate";
@@ -444,12 +469,7 @@ public class DatabaseConsistencyCheckHelper {
     ResultSet rs = null;
     Statement statement = null;
 
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
+    ensureConnection();
 
     try {
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -476,8 +496,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       if (hostComponentStateCount != hostComponentDesiredStateCount || hostComponentStateCount != mergedCount) {
-        LOG.error("Your host component states (hostcomponentstate table) count not equals host component desired states (hostcomponentdesiredstate table) count!");
-        errorsFound = true;
+        error("Your host component states (hostcomponentstate table) count not equals host component desired states (hostcomponentdesiredstate table) count!");
       }
 
 
@@ -489,8 +508,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       for (Map.Entry<String, String> component : hostComponentStateDuplicates.entrySet()) {
-        LOG.error("Component {} on host with id {}, has more than one host component state (hostcomponentstate table)!", component.getKey(), component.getValue());
-        errorsFound = true;
+        error("Component {} on host with id {}, has more than one host component state (hostcomponentstate table)!", component.getKey(), component.getValue());
       }
 
     } catch (SQLException e) {
@@ -519,7 +537,7 @@ public class DatabaseConsistencyCheckHelper {
   * Remove configs that are not mapped to any service.
   */
   @Transactional
-  public static void fixClusterConfigsNotMappedToAnyService() {
+  static void fixClusterConfigsNotMappedToAnyService() {
     LOG.info("Checking for configs not mapped to any Service");
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
@@ -553,7 +571,7 @@ public class DatabaseConsistencyCheckHelper {
   /**
    * Look for configs that are not mapped to any service.
    */
-  public static void checkForConfigsNotMappedToService() {
+  static void checkForConfigsNotMappedToService() {
     LOG.info("Checking for configs that are not mapped to any service");
     List<ClusterConfigEntity> notMappedClasterConfigs = getNotMappedClusterConfigsToService();
 
@@ -562,8 +580,7 @@ public class DatabaseConsistencyCheckHelper {
       nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
     }
     if (!notMappedClasterConfigs.isEmpty()){
-      LOG.warn("You have config(s): {} that is(are) not mapped (in serviceconfigmapping table) to any service!", StringUtils.join(nonMappedConfigs, ","));
-      warningsFound = true;
+      warning("You have config(s): {} that is(are) not mapped (in serviceconfigmapping table) to any service!", StringUtils.join(nonMappedConfigs, ","));
     }
   }
 
@@ -574,7 +591,7 @@ public class DatabaseConsistencyCheckHelper {
   * adding missed host components.
   */
   @Transactional
-  public static void fixHostComponentStatesCountEqualsHostComponentsDesiredStates() {
+  static void fixHostComponentStatesCountEqualsHostComponentsDesiredStates() {
     LOG.info("Checking that there are the same number of actual and desired host components");
 
     HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
@@ -636,69 +653,80 @@ public class DatabaseConsistencyCheckHelper {
   }
 
   /**
-  * This method checks db schema name for Postgres.
-  * */
-  public static void checkSchemaName () {
+   * This makes the following checks for Postgres:
+   * <ol>
+   *   <li>Check if the connection's schema (first item on search path) is the one set in ambari.properties</li>
+   *   <li>Check if the connection's schema is present in the DB</li>
+   *   <li>Check if the ambari tables exist in the schema configured in ambari.properties</li>
+   *   <li>Check if ambari tables don't exist in other shemas</li>
+   * </ol>
+   * The purpose of these checks is to avoid that tables and constraints in ambari's schema get confused with tables
+   * and constraints in other schemas on the DB user's search path. This can happen after an improperly made DB restore
+   * operation and can cause issues during upgrade.
+  **/
+  static void checkSchemaName () {
     Configuration conf = injector.getInstance(Configuration.class);
-    if(conf.getDatabaseType()!=Configuration.DatabaseType.POSTGRES) {
-      return;
-    }
-    LOG.info("Ensuring that the schema set for Postgres is correct");
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
-    ResultSet rs = null;
-    try {
-      DatabaseMetaData databaseMetaData = connection.getMetaData();
+    if(conf.getDatabaseType() == Configuration.DatabaseType.POSTGRES) {
+      LOG.info("Ensuring that the schema set for Postgres is correct");
 
-      rs = databaseMetaData.getSchemas();
+      ensureConnection();
 
-      boolean ambariSchemaPresent = false;
-      if (rs != null) {
-        while (rs.next()) {
-          if(StringUtils.equals(rs.getString("TABLE_SCHEM"),conf.getDatabaseSchema())){
-            ambariSchemaPresent = true;
-            break;
-          }
+      try (ResultSet schemaRs = connection.getMetaData().getSchemas();
+           ResultSet searchPathRs = connection.createStatement().executeQuery("show search_path");
+           ResultSet ambariTablesRs = connection.createStatement().executeQuery(
+               "select table_schema from information_schema.tables where table_name = 'hostcomponentdesiredstate'")) {
+        // Check if ambari's schema exists
+        final boolean ambariSchemaExists = getResultSetColumn(schemaRs, "TABLE_SCHEM").contains(conf.getDatabaseSchema());
+        if ( !ambariSchemaExists ) {
+          warning("The schema [{}] defined for Ambari from ambari.properties has not been found in the database. " +
+              "Storing Ambari tables under a different schema can lead to problems.", conf.getDatabaseSchema());
+        }
+        // Check if the right schema is first on the search path
+        List<Object> searchPathResultColumn = getResultSetColumn(searchPathRs, "search_path");
+        List<String> searchPath = searchPathResultColumn.isEmpty() ? ImmutableList.<String>of() :
+            ImmutableList.copyOf(Splitter.on(",").trimResults().split(String.valueOf(searchPathResultColumn.get(0))));
+        String firstSearchPathItem = searchPath.isEmpty() ? null : searchPath.get(0);
+        if (!Objects.equals(firstSearchPathItem, conf.getDatabaseSchema())) {
+          warning("The schema [{}] defined for Ambari in ambari.properties is not first on the search path:" +
+              " {}. This can lead to problems.", conf.getDatabaseSchema(), searchPath);
+        }
+        // Check schemas with Ambari tables.
+        ArrayList<Object> schemasWithAmbariTables = getResultSetColumn(ambariTablesRs, "table_schema");
+        if ( ambariSchemaExists && !schemasWithAmbariTables.contains(conf.getDatabaseSchema()) ) {
+          warning("The schema [{}] defined for Ambari from ambari.properties does not contain the Ambari tables. " +
+              "Storing Ambari tables under a different schema can lead to problems.", conf.getDatabaseSchema());
+        }
+        if ( schemasWithAmbariTables.size() > 1 ) {
+          warning("Multiple schemas contain the Ambari tables: {}. This can lead to problems.", schemasWithAmbariTables);
         }
       }
-      if (!ambariSchemaPresent){
-        LOG.error("The schema %s defined for Ambari from ambari.properties has not been found in the database. " +
-          "This means that the Ambari tables are stored under the public schema which can lead to problems.", conf.getDatabaseSchema());
-        warningsFound = true;
-      }
-
-    } catch (SQLException e) {
-      LOG.error("Exception occurred during checking db schema name.: ", e);
-    } finally {
-      if (rs != null) {
-        try {
-          rs.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during result set closing procedure: ", e);
-        }
+      catch (SQLException e) {
+        warning("Exception occurred during checking db schema name: ", e);
       }
     }
+  }
+
+  private static ArrayList<Object> getResultSetColumn(@Nullable ResultSet rs, String columnName) throws SQLException {
+    ArrayList<Object> values = new ArrayList<>();
+    if (null != rs) {
+      while (rs.next()) {
+        values.add(rs.getObject(columnName));
+      }
+    }
+    return values;
   }
 
   /**
   * This method checks tables engine type to be innodb for MySQL.
   * */
-  public static void checkMySQLEngine () {
+  static void checkMySQLEngine () {
     Configuration conf = injector.getInstance(Configuration.class);
     if(conf.getDatabaseType()!=Configuration.DatabaseType.MYSQL) {
       return;
     }
     LOG.info("Checking to ensure that the MySQL DB engine type is set to InnoDB");
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
+
+    ensureConnection();
 
     String GET_INNODB_ENGINE_SUPPORT = "select TABLE_NAME, ENGINE from information_schema.tables where TABLE_SCHEMA = '%s' and LOWER(ENGINE) != 'innodb';";
 
@@ -711,11 +739,10 @@ public class DatabaseConsistencyCheckHelper {
       if (rs != null) {
         List<String> tablesInfo = new ArrayList<>();
         while (rs.next()) {
-          errorsFound = true;
           tablesInfo.add(rs.getString("TABLE_NAME"));
         }
         if (!tablesInfo.isEmpty()){
-          LOG.error("Found tables with engine type that is not InnoDB : %s", StringUtils.join(tablesInfo, ','));
+          error("Found tables with engine type that is not InnoDB : {}", tablesInfo);
         }
       }
     } catch (SQLException e) {
@@ -739,7 +766,7 @@ public class DatabaseConsistencyCheckHelper {
   * 4) Check if service has config which is not selected(has no actual config version) in clusterconfigmapping table.
   * If any issue was discovered, we are showing error message for user.
   * */
-  public static void checkServiceConfigs()  {
+  static void checkServiceConfigs()  {
     LOG.info("Checking services and their configs");
 
     String GET_SERVICES_WITHOUT_CONFIGS_QUERY = "select c.cluster_name, service_name from clusterservices cs " +
@@ -773,12 +800,7 @@ public class DatabaseConsistencyCheckHelper {
     ResultSet rs = null;
     Statement statement = null;
 
-    if (connection == null) {
-      if (dbAccessor == null) {
-        dbAccessor = injector.getInstance(DBAccessor.class);
-      }
-      connection = dbAccessor.getConnection();
-    }
+    ensureConnection();
 
     LOG.info("Getting ambari metainfo instance");
     if (ambariMetaInfo == null) {
@@ -796,8 +818,7 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         for (String clusterName : clusterServiceMap.keySet()) {
-          LOG.warn("Service(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
-          warningsFound = true;
+          warning("Service(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
         }
 
       }
@@ -823,8 +844,7 @@ public class DatabaseConsistencyCheckHelper {
         for (String clName : clusterServiceVersionMap.keySet()) {
           Multimap<String, String> serviceVersion = clusterServiceVersionMap.get(clName);
           for (String servName : serviceVersion.keySet()) {
-            LOG.error("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servName, StringUtils.join(serviceVersion.get(servName), ","));
-            errorsFound = true;
+            error("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servName, StringUtils.join(serviceVersion.get(servName), ","));
           }
         }
 
@@ -899,9 +919,8 @@ public class DatabaseConsistencyCheckHelper {
               stackServiceConfigs.put(serviceName, configType);
             }
           } else {
-            LOG.warn("Service {} is not available for stack {} in cluster {}",
+            warning("Service {} is not available for stack {} in cluster {}",
                     serviceName, stackName + "-" + stackVersion, clusterName);
-            warningsFound = true;
           }
         }
 
@@ -917,10 +936,15 @@ public class DatabaseConsistencyCheckHelper {
                 Collection<String> serviceConfigsFromDB = dbServiceConfigs.get(serviceName);
                 if (serviceConfigsFromDB != null && serviceConfigsFromStack != null) {
                   serviceConfigsFromStack.removeAll(serviceConfigsFromDB);
+
+                  // skip ranger-{service_name}-* from being checked, unless ranger is installed
+                  if(!dbServiceConfigs.containsKey("RANGER")) {
+                    removeStringsByRegexp(serviceConfigsFromStack, "^ranger-"+ serviceName.toLowerCase() + "-" + "*");
+                  }
+
                   if (!serviceConfigsFromStack.isEmpty()) {
-                    LOG.error("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
+                    error("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
                             StringUtils.join(serviceConfigsFromStack, ","), serviceName, Integer.toString(serviceVersion), clusterName);
-                    errorsFound = true;
                   }
                 }
               }
@@ -957,8 +981,7 @@ public class DatabaseConsistencyCheckHelper {
       for (String clusterName : clusterServiceConfigType.keySet()) {
         Multimap<String, String> serviceConfig = clusterServiceConfigType.get(clusterName);
         for (String serviceName : serviceConfig.keySet()) {
-          LOG.error("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
-          errorsFound = true;
+          error("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
         }
       }
     } catch (SQLException e) {
@@ -985,5 +1008,24 @@ public class DatabaseConsistencyCheckHelper {
 
   }
 
+  private static void ensureConnection() {
+    if (connection == null) {
+      if (dbAccessor == null) {
+        dbAccessor = injector.getInstance(DBAccessor.class);
+      }
+      connection = dbAccessor.getConnection();
+    }
+  }
 
+  private static void removeStringsByRegexp(Collection<String> stringItems, String regexp) {
+      Pattern pattern = Pattern.compile(regexp);
+
+      for (Iterator<String> iterator = stringItems.iterator(); iterator.hasNext();) {
+        String stringItem = iterator.next();
+        Matcher matcher = pattern.matcher(stringItem);
+        if (matcher.find()) {
+          iterator.remove();
+        }
+      }
+  }
 }

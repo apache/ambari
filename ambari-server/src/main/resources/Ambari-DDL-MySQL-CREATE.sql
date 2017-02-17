@@ -357,7 +357,8 @@ CREATE TABLE request (
   request_context VARCHAR(255),
   request_type VARCHAR(255),
   start_time BIGINT NOT NULL,
-  status VARCHAR(255),
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -373,6 +374,8 @@ CREATE TABLE stage (
   command_params LONGBLOB,
   host_params LONGBLOB,
   command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
+  status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   CONSTRAINT PK_stage PRIMARY KEY (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 
@@ -391,7 +394,7 @@ CREATE TABLE host_role_command (
   start_time BIGINT NOT NULL,
   original_start_time BIGINT NOT NULL,
   end_time BIGINT,
-  status VARCHAR(100),
+  status VARCHAR(100) NOT NULL DEFAULT 'PENDING',
   auto_skip_on_failure SMALLINT DEFAULT 0 NOT NULL,
   std_error LONGBLOB,
   std_out LONGBLOB,
@@ -1207,6 +1210,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'CLUSTER.UPGRADE_DOWNGRADE_STACK', 'Upgrade/downgrade stack' UNION ALL
   SELECT 'CLUSTER.RUN_CUSTOM_COMMAND', 'Perform custom cluster-level actions' UNION ALL
   SELECT 'CLUSTER.MANAGE_AUTO_START', 'Manage service auto-start configuration' UNION ALL
+  SELECT 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS', 'Manage alert notifications configuration' UNION ALL
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
   SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
   SELECT 'AMBARI.MANAGE_SETTINGS', 'Manage administrative settings' UNION ALL
@@ -1364,6 +1368,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
 
 -- Set authorizations for Administrator role
@@ -1409,6 +1414,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

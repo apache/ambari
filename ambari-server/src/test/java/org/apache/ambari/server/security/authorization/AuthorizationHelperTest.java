@@ -260,16 +260,16 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
     cluster2ResourceEntity.setId(2L);
 
     PermissionEntity readOnlyPermissionEntity = new PermissionEntity();
-    readOnlyPermissionEntity.setAuthorizations(Collections.singleton(readOnlyRoleAuthorizationEntity));
+    readOnlyPermissionEntity.addAuthorization(readOnlyRoleAuthorizationEntity);
 
     PermissionEntity privilegedPermissionEntity = new PermissionEntity();
-    privilegedPermissionEntity.setAuthorizations(Arrays.asList(readOnlyRoleAuthorizationEntity,
-        privilegedRoleAuthorizationEntity));
+    privilegedPermissionEntity.addAuthorization(readOnlyRoleAuthorizationEntity);
+    privilegedPermissionEntity.addAuthorization(privilegedRoleAuthorizationEntity);
 
     PermissionEntity administratorPermissionEntity = new PermissionEntity();
-    administratorPermissionEntity.setAuthorizations(Arrays.asList(readOnlyRoleAuthorizationEntity,
-        privilegedRoleAuthorizationEntity,
-        administratorRoleAuthorizationEntity));
+    administratorPermissionEntity.addAuthorization(readOnlyRoleAuthorizationEntity);
+    administratorPermissionEntity.addAuthorization(privilegedRoleAuthorizationEntity);
+    administratorPermissionEntity.addAuthorization(administratorRoleAuthorizationEntity);
 
     PrivilegeEntity readOnlyPrivilegeEntity = new PrivilegeEntity();
     readOnlyPrivilegeEntity.setPermission(readOnlyPermissionEntity);
@@ -395,16 +395,16 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
     viewResourceEntity.setId(53L);
 
     PermissionEntity readOnlyPermissionEntity = new PermissionEntity();
-    readOnlyPermissionEntity.setAuthorizations(Collections.singleton(readOnlyRoleAuthorizationEntity));
+    readOnlyPermissionEntity.addAuthorization(readOnlyRoleAuthorizationEntity);
 
     PermissionEntity viewUsePermissionEntity = new PermissionEntity();
-    viewUsePermissionEntity.setAuthorizations(Arrays.asList(readOnlyRoleAuthorizationEntity,
-        viewUseRoleAuthorizationEntity));
+    viewUsePermissionEntity.addAuthorization(readOnlyRoleAuthorizationEntity);
+    viewUsePermissionEntity.addAuthorization(viewUseRoleAuthorizationEntity);
 
     PermissionEntity administratorPermissionEntity = new PermissionEntity();
-    administratorPermissionEntity.setAuthorizations(Arrays.asList(readOnlyRoleAuthorizationEntity,
-        viewUseRoleAuthorizationEntity,
-        administratorRoleAuthorizationEntity));
+    administratorPermissionEntity.addAuthorization(readOnlyRoleAuthorizationEntity);
+    administratorPermissionEntity.addAuthorization(viewUseRoleAuthorizationEntity);
+    administratorPermissionEntity.addAuthorization(administratorRoleAuthorizationEntity);
 
     PrivilegeEntity readOnlyPrivilegeEntity = new PrivilegeEntity();
     readOnlyPrivilegeEntity.setPermission(readOnlyPermissionEntity);

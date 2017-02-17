@@ -17,6 +17,7 @@
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
+import CommonUtils from '../utils/common-utils';
 import { validator, buildValidations } from 'ember-cp-validations';
 
 const Validations = buildValidations({
@@ -36,7 +37,6 @@ const Validations = buildValidations({
 export default Ember.Component.extend(Validations, {
   systemConfigs : Ember.A([]),
   showingFileBrowser : false,
-  jobXml : "",
   overwritePath : false,
   configMap : Ember.A([]),
   configPropsExists : false,
@@ -74,13 +74,15 @@ export default Ember.Component.extend(Validations, {
   }),
   initialize :function(){
     this.configureExecutionSettings();
-    this.set("jobXml", this.get("jobConfigs").xml);
     this.set('filePath', Ember.copy(this.get('jobFilePath')));
     Object.keys(this.get('validations.attrs')).forEach((attr)=>{
       var field = 'validations.attrs.'+ attr +'.isDirty';
       this.set(field, false);
     }, this);
   }.on('init'),
+  jobXml : Ember.computed('jobConfigs.xml', function(){
+    return CommonUtils.decodeXml(this.get('jobConfigs.xml'));
+  }),
   rendered : function(){
     this.$("#configureJob").on('hidden.bs.modal', function () {
       this.sendAction('closeJobConfigs');
@@ -110,7 +112,7 @@ export default Ember.Component.extend(Validations, {
 
   extractJobProperties(){
     var jobProperties = [];
-    var jobParams = this.get("jobConfigs").params;
+    var jobParams = this.get("jobConfigs").params, self = this;
     this.get("jobProps").forEach(function(value) {
       if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue){
         var propName = value.trim().substring(2, value.length-1);
@@ -123,9 +125,16 @@ export default Ember.Component.extend(Validations, {
             isRequired = true;
           }
         }
+        let val = null, tabData = self.get("tabInfo");
+        if(tabData && tabData.isImportedFromDesigner && tabData.configuration && tabData.configuration.settings && tabData.configuration.settings.configuration && tabData.configuration.settings.configuration.property) {
+          let propVal = tabData.configuration.settings.configuration.property.findBy('name', propName);
+          if(propVal) {
+            val = propVal.value
+          }
+        }
         var prop= Ember.Object.create({
           name: propName,
-          value: null,
+          value: val,
           isRequired : isRequired
         });
         jobProperties.push(prop);

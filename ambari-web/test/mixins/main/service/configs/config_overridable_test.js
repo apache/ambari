@@ -195,8 +195,8 @@ describe('App.ConfigOverridable', function () {
   describe("#postNewConfigurationGroupSuccess()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.store, 'load');
-      sinon.stub(App.store, 'commit');
+      sinon.stub(App.store, 'safeLoad');
+      sinon.stub(App.store, 'fastCommit');
       sinon.stub(App.ServiceConfigGroup, 'deleteTemporaryRecords');
       configOverridable.postNewConfigurationGroupSuccess({
         resources: [
@@ -211,16 +211,16 @@ describe('App.ConfigOverridable', function () {
 
     afterEach(function() {
       App.ServiceConfigGroup.deleteTemporaryRecords.restore();
-      App.store.commit.restore();
-      App.store.load.restore();
+      App.store.fastCommit.restore();
+      App.store.safeLoad.restore();
     });
 
     it("App.store.load should be called", function() {
-      expect(App.store.load.calledWith(App.ServiceConfigGroup, {id: 'cg1'})).to.be.true;
+      expect(App.store.safeLoad.calledWith(App.ServiceConfigGroup, {id: 'cg1'})).to.be.true;
     });
 
     it("App.store.commit should be called", function() {
-      expect(App.store.commit.calledOnce).to.be.true;
+      expect(App.store.fastCommit.calledOnce).to.be.true;
     });
 
     it("App.ServiceConfigGroup.deleteTemporaryRecords should be called", function() {

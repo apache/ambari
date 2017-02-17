@@ -33,6 +33,7 @@ require('views/common/chart/linear');
 require('views/common/chart/linear_time');
 require('views/common/modal_popup');
 require('views/common/modal_popups/alert_popup');
+require('views/common/modal_popups/edit_dashboard_widget_popup');
 require('views/common/modal_popups/manage_kdc_credentials_popup');
 require('views/common/modal_popups/confirmation_feedback_popup');
 require('views/common/modal_popups/confirmation_popup');

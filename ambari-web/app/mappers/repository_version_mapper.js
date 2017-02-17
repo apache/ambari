@@ -152,11 +152,10 @@ App.repoVersionMapper = App.QuickDataMapper.create({
         }
       }, this);
     }
-    App.store.commit();
-    App.store.loadMany(modelRepositories, resultRepo);
-    App.store.loadMany(modelOperatingSystems, resultOS);
-    App.store.loadMany(modelServices, resultService);
-    App.store.loadMany(modelRepoVersions, resultRepoVersion);
+    App.store.safeLoadMany(modelRepositories, resultRepo);
+    App.store.safeLoadMany(modelOperatingSystems, resultOS);
+    App.store.safeLoadMany(modelServices, resultService);
+    App.store.safeLoadMany(modelRepoVersions, resultRepoVersion);
   },
 
   /**

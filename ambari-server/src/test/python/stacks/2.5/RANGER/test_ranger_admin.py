@@ -80,6 +80,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_ranger_audits_0.[0-9]*',
                                     action=['delete'],
                                     create_parents=True)
+
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
 
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
@@ -165,7 +166,17 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_ranger_audits_0.[0-9]*',
                                     action=['delete'],
                                     create_parents=True)
+
+    self.assertResourceCalled('Execute', "ambari-sudo.sh /usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; ambari-sudo.sh curl -k -s --negotiate -u : http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep authorization.enabled && ambari-sudo.sh /usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; ambari-sudo.sh curl -H 'Content-type:application/json' -d '{\"set-user-role\": {\"rangeradmin@EXAMPLE.COM\": [\"ranger_user\", \"ranger_audit_user\", \"dev\"]}}' -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
+                              logoutput = True, tries = 30, try_sleep = 10)
+    self.assertResourceCalled('Execute', "ambari-sudo.sh /usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; ambari-sudo.sh curl -k -s --negotiate -u : http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep authorization.enabled && ambari-sudo.sh /usr/bin/kinit -kt /etc/security/keytabs/infra-solr.service.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; ambari-sudo.sh curl -H \'Content-type:application/json\' -d "
+                                         "\'{\"set-user-role\": {\"hbase@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"knox@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"rangerkms@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"kafka@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"hive@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"nifi@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"storm@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"], \"yarn@EXAMPLE.COM\": [\"ranger_audit_user\", \"dev\"]}}\' -s -o /dev/null -w\'%{http_code}\' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
+                              logoutput = True, tries = 30, try_sleep = 10)
+
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/ambari-solr --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
+
+    self.assertResourceCalled('Execute','ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /ambari-solr/configs/ranger_audits --secure-znode --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /ambari-solr/collections/ranger_audits --secure-znode --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
 
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -282,11 +293,17 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
+    ranger_admin_site_copy = {}
+    ranger_admin_site_copy.update(self.getConfig()['configurations']['ranger-admin-site'])
+    for prop in ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password']:
+      if prop in ranger_admin_site_copy:
+        ranger_admin_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-admin-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
-      configurations = self.getConfig()['configurations']['ranger-admin-site'],
+      configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
       mode = 0644
     )
@@ -432,11 +449,17 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
+    ranger_admin_site_copy = {}
+    ranger_admin_site_copy.update(self.getConfig()['configurations']['ranger-admin-site'])
+    for prop in ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password']:
+      if prop in ranger_admin_site_copy:
+        ranger_admin_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-admin-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
-      configurations = self.getConfig()['configurations']['ranger-admin-site'],
+      configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
       mode = 0644
     )

@@ -320,6 +320,13 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
         "Auto-Start must be disabled before performing an Upgrade").build());
 
+  public static CheckDescription RANGER_SSL_CONFIG_CHECK = new CheckDescription("RANGER_SSL_CONFIG_CHECK",
+    PrereqCheckType.SERVICE,
+    "Change Ranger SSL configuration path for Keystore and Truststore.",
+    new ImmutableMap.Builder<String, String>()
+            .put(AbstractCheckDescriptor.DEFAULT,
+              "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
+              "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
 
   private String m_name;
   private PrereqCheckType m_type;

@@ -57,8 +57,7 @@ App.serviceMapper = App.QuickDataMapper.create({
         return self.parseIt(item, self.get('config'));
       });
       parsedCacheServices = misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), parsedCacheServices);
-      App.store.loadMany(this.get('model'), parsedCacheServices);
-      App.store.commit();
+      App.store.safeLoadMany(this.get('model'), parsedCacheServices);
       this.set('initialAppLoad', true);
     }
     this.servicesLoading().done(function setMaintenanceState() {

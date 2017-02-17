@@ -25,7 +25,6 @@ import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @Configuration

@@ -38,8 +38,11 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -162,6 +165,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
     updateStormAlerts();
+    removeAlertDuplicates();
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
@@ -174,6 +178,40 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateYarnSite();
     updateRangerUrlConfigs();
     addManageServiceAutoStartPermissions();
+    addManageAlertNotificationsPermissions();
+  }
+
+  /**
+   * Removes all {@link AlertCurrentEntity} duplicates from database.
+   * Alerts are considered as duplicates if their definition, host and alert instance are the same.
+   * Duplicates could be created in earlier versions of Ambari up till 2.4.1.
+   */
+  protected void removeAlertDuplicates() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertsDAO alertsDao = injector.getInstance(AlertsDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+      LOG.info("Removing alert duplicates on cluster {}", cluster.getClusterName());
+      List<AlertCurrentEntity> alertCurrentEntities = alertsDao.findCurrentByCluster(clusterID);
+      Set<AlertHistoryEntity> uniqueAlerts = new HashSet<>();
+      for (AlertCurrentEntity alertCurrentEntity : alertCurrentEntities) {
+
+        AlertHistoryEntity currentAlert = new AlertHistoryEntity();
+        currentAlert.setAlertDefinition(alertCurrentEntity.getAlertHistory().getAlertDefinition());
+        currentAlert.setHostName(alertCurrentEntity.getAlertHistory().getHostName());
+        currentAlert.setAlertInstance(alertCurrentEntity.getAlertHistory().getAlertInstance());
+
+        if (uniqueAlerts.contains(currentAlert)) {
+          LOG.info("Alert entity duplicate {} will be removed",alertCurrentEntity.getAlertHistory());
+          alertsDao.remove(alertCurrentEntity);
+        } else {
+          uniqueAlerts.add(currentAlert);
+        }
+      }
+    }
   }
 
   protected void updateStormAlerts() {
@@ -971,6 +1009,21 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         "CLUSTER.ADMINISTRATOR:CLUSTER",
         "CLUSTER.OPERATOR:CLUSTER");
     addRoleAuthorization("CLUSTER.MANAGE_AUTO_START", "Manage service auto-start configuration", roles);
+  }
+
+  /**
+   * Add permissions for managing alert notifications configuration.
+   * <p>
+   * <ul>
+   * <li>CLUSTER.MANAGE_ALERT_NOTIFICATIONS permissions for AMBARI.ADMINISTRATOR, CLUSTER.ADMINISTRATOR</li>
+   * </ul>
+   */
+  protected void addManageAlertNotificationsPermissions() throws SQLException {
+    Collection<String> roles;
+    roles = Arrays.asList(
+        "AMBARI.ADMINISTRATOR:AMBARI",
+        "CLUSTER.ADMINISTRATOR:CLUSTER");
+    addRoleAuthorization("CLUSTER.MANAGE_ALERT_NOTIFICATIONS", "Manage alert notifications configuration", roles);
   }
 
   /**

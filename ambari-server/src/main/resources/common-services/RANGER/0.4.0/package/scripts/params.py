@@ -73,6 +73,7 @@ stack_supports_ranger_admin_password_change = check_stack_feature(StackFeature.R
 stack_supports_ranger_setup_db_on_start = check_stack_feature(StackFeature.RANGER_SETUP_DB_ON_START, version_for_stack_feature_checks)
 stack_supports_ranger_tagsync_ssl_xml_support = check_stack_feature(StackFeature.RANGER_TAGSYNC_SSL_XML_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_solr_configs = check_stack_feature(StackFeature.RANGER_SOLR_CONFIG_SUPPORT, version_for_stack_feature_checks)
+stack_supports_secure_ssl_password = check_stack_feature(StackFeature.SECURE_RANGER_SSL_PASSWORD, version_for_stack_feature_checks)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -309,6 +310,9 @@ if stack_supports_infra_client and is_solrCloud_enabled:
 solr_user = unix_user
 if has_infra_solr and not is_external_solrCloud_enabled:
   solr_user = default('/configurations/infra-solr-env/infra_solr_user', unix_user)
+  infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
+  infra_solr_role_ranger_audit = default('configurations/infra-solr-security-json/infra_solr_role_ranger_audit', 'ranger_audit_user')
+  infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
 custom_log4j = has_infra_solr and not is_external_solrCloud_enabled
 
 ranger_audit_max_retention_days = config['configurations']['ranger-solr-configuration']['ranger_audit_max_retention_days']
@@ -422,3 +426,20 @@ if is_hbase_ha_enabled:
 if is_namenode_ha_enabled:
   if not is_empty(config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled']):
     ranger_hdfs_plugin_enabled = config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes'
+
+ranger_admin_password_properties = ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password']
+ranger_usersync_password_properties = ['ranger.usersync.ldap.ldapbindpassword']
+ranger_tagsync_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
+if stack_supports_secure_ssl_password:
+  ranger_admin_password_properties.extend(['ranger.service.https.attrib.keystore.pass', 'ranger.truststore.password'])
+  ranger_usersync_password_properties.extend(['ranger.usersync.keystore.password', 'ranger.usersync.truststore.password'])
+
+ranger_auth_method = config['configurations']['ranger-admin-site']['ranger.authentication.method']
+ranger_ldap_password_alias = default('/configurations/ranger-admin-site/ranger.ldap.binddn.credential.alias', 'ranger.ldap.bind.password')
+ranger_ad_password_alias = default('/configurations/ranger-admin-site/ranger.ldap.ad.binddn.credential.alias', 'ranger.ldap.ad.bind.password')
+ranger_https_keystore_alias = default('/configurations/ranger-admin-site/ranger.service.https.attrib.keystore.credential.alias', 'keyStoreCredentialAlias')
+ranger_truststore_alias = default('/configurations/ranger-admin-site/ranger.truststore.alias', 'trustStoreAlias')
+https_enabled = config['configurations']['ranger-admin-site']['ranger.service.https.attrib.ssl.enabled']
+http_enabled = config['configurations']['ranger-admin-site']['ranger.service.http.enabled']
+https_keystore_password = config['configurations']['ranger-admin-site']['ranger.service.https.attrib.keystore.pass']
+truststore_password = config['configurations']['ranger-admin-site']['ranger.truststore.password']

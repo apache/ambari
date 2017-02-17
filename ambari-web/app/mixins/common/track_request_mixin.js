@@ -22,6 +22,11 @@ App.TrackRequestMixin = Em.Mixin.create({
 
   requestsInProgress: [],
 
+  init: function() {
+    this.set('requestsInProgress', []);
+    this._super([].slice.call(arguments));
+  },
+
   /**
    * register request to view to track his progress
    * @param {$.ajax} request
@@ -33,13 +38,14 @@ App.TrackRequestMixin = Em.Mixin.create({
     this.get('requestsInProgress').pushObject({
       request: request,
       id: requestId,
-      status: request.state(),
-      completed: ['resolved', 'rejected'].contains(request.state())
+      status: Em.tryInvoke(request, 'state'),
+      completed: ['resolved', 'rejected'].contains(Em.tryInvoke(request, 'state'))
     });
     request.always(function() {
-      Em.setProperties(self.get('requestsInProgress').findProperty('id', requestId), {
+      var requestInProgress = self.get('requestsInProgress').findProperty('id', requestId) || {};
+      Em.setProperties(requestInProgress, {
         completed: true,
-        status: request.state()
+        status: Em.tryInvoke(request, 'state')
       });
     });
   },

@@ -40,6 +40,8 @@ import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
@@ -49,6 +51,9 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.events.TaskCreateEvent;
+import org.apache.ambari.server.events.TaskUpdateEvent;
+import org.apache.ambari.server.events.publishers.TaskEventPublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.TransactionalLocks;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -58,9 +63,11 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -143,6 +150,13 @@ public class HostRoleCommandDAO {
 
   @Inject
   private Configuration configuration;
+
+
+  @Inject
+  HostRoleCommandFactory hostRoleCommandFactory;
+
+  @Inject
+  private TaskEventPublisher taskEventPublisher;
 
   /**
    * Used to ensure that methods which rely on the completion of
@@ -629,11 +643,17 @@ public class HostRoleCommandDAO {
   @Transactional
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public HostRoleCommandEntity merge(HostRoleCommandEntity entity) {
+    entity = mergeWithoutPublishEvent(entity);
+    publishTaskUpdateEvent(Collections.singletonList(hostRoleCommandFactory.createExisting(entity)));
+    return entity;
+  }
+
+  @Transactional
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public HostRoleCommandEntity mergeWithoutPublishEvent(HostRoleCommandEntity entity) {
     EntityManager entityManager = entityManagerProvider.get();
     entity = entityManager.merge(entity);
-
     invalidateHostRoleCommandStatusSummaryCache(entity);
-
     return entity;
   }
 
@@ -667,9 +687,50 @@ public class HostRoleCommandDAO {
     }
 
     invalidateHostRoleCommandStatusSummaryCache(requestsToInvalidate);
-
+    publishTaskUpdateEvent(getHostRoleCommands(entities));
     return managedList;
   }
+
+  /**
+   *
+   * @param entities
+   */
+  public List<HostRoleCommand> getHostRoleCommands(Collection<HostRoleCommandEntity> entities) {
+    Function<HostRoleCommandEntity, HostRoleCommand> transform = new Function<HostRoleCommandEntity, HostRoleCommand> () {
+      @Override
+      public HostRoleCommand apply(HostRoleCommandEntity entity) {
+        return hostRoleCommandFactory.createExisting(entity);
+      }
+    };
+    return FluentIterable.from(entities)
+        .transform(transform)
+        .toList();
+
+  }
+
+  /**
+   *
+   * @param hostRoleCommands
+   */
+  public void publishTaskUpdateEvent(List<HostRoleCommand> hostRoleCommands) {
+    if (!hostRoleCommands.isEmpty()) {
+      TaskUpdateEvent taskUpdateEvent = new TaskUpdateEvent(hostRoleCommands);
+      taskEventPublisher.publish(taskUpdateEvent);
+    }
+  }
+
+  /**
+   *
+   * @param hostRoleCommands
+   */
+  public void publishTaskCreateEvent(List<HostRoleCommand> hostRoleCommands) {
+    if (!hostRoleCommands.isEmpty()) {
+      TaskCreateEvent taskCreateEvent = new TaskCreateEvent(hostRoleCommands);
+      taskEventPublisher.publish(taskCreateEvent);
+    }
+  }
+
+
 
   @Transactional
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)

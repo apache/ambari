@@ -125,7 +125,7 @@ public class PigUdfMigrationImplementation {
     }
 
 
-    public ArrayList<PigModel> fetchFromHueDatabase(String username, Connection connection, QuerySet huedatabase) throws ClassNotFoundException, IOException {
+    public ArrayList<PigModel> fetchFromHueDatabase(String username, Connection connection, QuerySet huedatabase) throws ClassNotFoundException, SQLException, IOException {
         int id = 0;
         int i = 0;
         ResultSet rs1;
@@ -178,10 +178,11 @@ public class PigUdfMigrationImplementation {
                 pigArrayList.add(pojopig);
                 i++;
             }
-
+            connection.commit();
 
         } catch (SQLException e) {
             logger.error("SQLException", e);
+            connection.rollback();
         } finally {
             try {
                 if (connection != null)

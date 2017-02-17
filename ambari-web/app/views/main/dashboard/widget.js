@@ -30,7 +30,17 @@ App.DashboardWidgetView = Em.View.extend({
 
   sourceName: Em.computed.alias('widget.sourceName'),
 
+  /**
+   * Bound from template
+   *
+   * @type {object}
+   */
   widget: null,
+
+  /**
+   * @type {Em.View}
+   */
+  widgetsView: Em.computed.alias('parentView'),
 
   /**
    * @type {object} - record from model that serve as data source
@@ -79,6 +89,11 @@ App.DashboardWidgetView = Em.View.extend({
   hiddenInfoClass: "hidden-info-two-line",
 
   /**
+   * @type {string}
+   */
+  hintInfo: Em.computed.i18nFormat('dashboard.widgets.hintInfo.common', 'maxValue'),
+
+  /**
    * @type {number}
    * @default 0
    */
@@ -99,61 +114,6 @@ App.DashboardWidgetView = Em.View.extend({
    * @default false
    */
   isDataLoadedBinding: 'App.router.clusterController.isServiceContentFullyLoaded',
-
-  /**
-   * @type {Em.Object}
-   * @class
-   */
-  widgetConfig: Ember.Object.extend({
-    thresholdMin: '',
-    thresholdMax: '',
-    hintInfo: Em.computed.i18nFormat('dashboard.widgets.hintInfo.common', 'maxValue'),
-    thresholdMinError: false,
-    thresholdMaxError: false,
-    thresholdMinErrorMessage: "",
-    thresholdMaxErrorMessage: "",
-    maxValue: 0,
-    validateThreshold: function(thresholdName) {
-      var thresholdMin = this.get('thresholdMin'),
-       thresholdMax = this.get('thresholdMax'),
-       maxValue = this.get('maxValue'),
-       currentThreshold = this.get(thresholdName),
-       isError = false,
-       errorMessage = '';
-
-      if (currentThreshold.trim() !== "") {
-        if (isNaN(currentThreshold) || currentThreshold > maxValue || currentThreshold < 0) {
-          isError = true;
-          errorMessage = Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue);
-        } else if (parseFloat(thresholdMax) <= parseFloat(thresholdMin)) {
-          isError = true;
-          errorMessage = Em.I18n.t('dashboard.widgets.error.smaller');
-        } else {
-          isError = false;
-          errorMessage = '';
-        }
-      } else {
-        isError = true;
-        errorMessage = Em.I18n.t('admin.users.editError.requiredField');
-      }
-      this.set(thresholdName + 'ErrorMessage', errorMessage);
-      this.set(thresholdName + 'Error', isError);
-      this.updateSlider();
-    },
-    observeThreshMinValue: function () {
-      this.validateThreshold('thresholdMin');
-    }.observes('thresholdMin', 'maxValue'),
-    observeThreshMaxValue: function () {
-      this.validateThreshold('thresholdMax');
-    }.observes('thresholdMax', 'maxValue'),
-    updateSlider: function () {
-      if (this.get('thresholdMinError') === false && this.get('thresholdMaxError') === false) {
-        $("#slider-range")
-          .slider('values', 0, parseFloat(this.get('thresholdMin')))
-          .slider('values', 1, parseFloat(this.get('thresholdMax')));
-      }
-    }
-  }),
 
   didInsertElement: function () {
     App.tooltip(this.$("[rel='ZoomInTooltip']"), {
@@ -190,97 +150,36 @@ App.DashboardWidgetView = Em.View.extend({
   },
 
   /**
-   * edit widget
+   * Update thresholds for widget and save this them to persist
+   *
+   * @param {number[]} preparedThresholds
    */
-  editWidget: function () {
-    var configObj = this.get('widgetConfig').create({
-      thresholdMin: this.get('thresholdMin') + '',
-      thresholdMax: this.get('thresholdMax') + '',
-      maxValue: parseFloat(this.get('maxValue'))
-    });
-    this.showEditDialog(configObj);
+  saveWidgetThresholds(preparedThresholds) {
+    const widgetsView = this.get('widgetsView');
+    const userPreferences = widgetsView.get('userPreferences');
+    const widgetId = Number(this.get('id'));
+    userPreferences.threshold[widgetId] = preparedThresholds;
+    this.set('widget.threshold', userPreferences.threshold[widgetId]);
+    widgetsView.saveWidgetsSettings(userPreferences);
   },
 
   /**
-   *  show edit dialog
-   * @param {Em.Object} configObj
-   * @returns {App.ModalPopup}
+   * edit widget
    */
-  showEditDialog: function (configObj) {
-    var self = this;
-    var maxValue = this.get('maxValue');
+  editWidget: function () {
+    return App.EditDashboardWidgetPopup.show({
 
-    return App.ModalPopup.show({
-      header: Em.I18n.t('dashboard.widgets.popupHeader'),
-      classNames: ['modal-edit-widget'],
-      modalDialogClasses: ['modal-lg'],
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/main/dashboard/edit_widget_popup'),
-        configPropertyObj: configObj
+      widgetView: this,
+
+      sliderHandlersManager: App.EditDashboardWidgetPopup.DoubleHandlers.create({
+        thresholdMin: this.get('thresholdMin'),
+        thresholdMax: this.get('thresholdMax'),
+        maxValue: parseFloat(this.get('maxValue'))
       }),
-      configObj: configObj,
-      disablePrimary: Em.computed.or('configObj.thresholdMinError', 'configObj.thresholdMaxError'),
-      primary: Em.I18n.t('common.apply'),
-      onPrimary: function () {
-        configObj.observeThreshMinValue();
-        configObj.observeThreshMaxValue();
-        if (!configObj.thresholdMinError && !configObj.thresholdMaxError) {
-          self.set('thresholdMin', parseFloat(configObj.get('thresholdMin')));
-          self.set('thresholdMax', parseFloat(configObj.get('thresholdMax')));
 
-          var parent = self.get('parentView');
-          var userPreferences = parent.get('userPreferences');
-          userPreferences.threshold[Number(self.get('id'))] = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
-          parent.saveWidgetsSettings(userPreferences);
-          parent.renderWidgets();
+      sliderColors: [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]
 
-          this.hide();
-        }
-      },
-
-      didInsertElement: function () {
-        this._super();
-        var _this = this;
-        var handlers = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
-
-        $("#slider-range").slider({
-          range: true,
-          min: 0,
-          max: maxValue,
-          values: handlers,
-          create: function () {
-            _this.updateColors(handlers);
-          },
-          slide: function (event, ui) {
-            _this.updateColors(ui.values);
-            configObj.set('thresholdMin', ui.values[0] + '');
-            configObj.set('thresholdMax', ui.values[1] + '');
-          },
-          change: function (event, ui) {
-            _this.updateColors(ui.values);
-          }
-        });
-      },
-      updateColors: function (handlers) {
-        var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed];
-        var colorStops = colors[0] + ", ";
-
-        for (var i = 0; i < handlers.length; i++) {
-          colorStops += colors[i] + " " + handlers[i] * 100 / maxValue + "%,";
-          colorStops += colors[i + 1] + " " + handlers[i] * 100 / maxValue + "%,";
-        }
-        colorStops += colors[colors.length - 1];
-        var sliderElement = $('#slider-range');
-        var gradient = 'linear-gradient(left,' + colorStops + ')';
-
-        sliderElement.css('background-image', '-webkit-' + gradient);
-        sliderElement.css('background-image', '-ms-' + gradient);
-        sliderElement.css('background-image', '-moz-' + gradient);
-        sliderElement.find('.ui-widget-header').css({
-          'background-color': '#FF8E00',
-          'background-image': 'none'
-        });
-      }
     });
   }
+
 });

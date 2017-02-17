@@ -167,15 +167,18 @@ def stop(args):
     try:
       os.kill(pid, signal.SIGTERM)
     except OSError, e:
-      print_info_msg("Unable to stop Ambari Server - " + str(e))
-      return
+      err = "Unable to stop Ambari Server - " + str(e)
+      print_info_msg(err)
+      raise FatalException(1, err)
 
     print "Waiting for server stop..."
     logger.info("Waiting for server stop...")
 
     if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
-      print "Ambari-server failed to stop"
-      logger.info("Ambari-server failed to stop")
+      err = "Ambari-server failed to stop"
+      print err
+      logger.error(err)
+      raise FatalException(1, err)
 
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
@@ -401,6 +404,7 @@ def init_parser_options(parser):
                     help="Specifies the path to the JDBC driver JAR file")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
   parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
+  parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
   parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
   add_parser_options('--mpack',
       default=None,
@@ -503,6 +507,7 @@ def init_parser_options(parser):
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
   parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
+  parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
   parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",

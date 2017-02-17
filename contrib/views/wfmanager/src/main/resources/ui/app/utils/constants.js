@@ -91,5 +91,6 @@ export default Ember.Object.create({
   ],
   customActionEnabled : true,
   successfulFlowColor : '#5bb75b',
-  defaultFlowColor : '#808080'
+  defaultFlowColor : '#808080',
+  flowGraphMaxNodeCount : 400
 });

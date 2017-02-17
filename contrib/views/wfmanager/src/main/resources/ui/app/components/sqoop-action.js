@@ -22,7 +22,7 @@ export default Ember.Component.extend({
     if(this.get('isArg')){
       this.set("actionModel.command", undefined);
     }else{
-      this.set("actionModel.args",  Ember.A([]));
+      this.set("actionModel.arg",  Ember.A([]));
     }
   }),
   initialize : function(){
@@ -33,10 +33,10 @@ export default Ember.Component.extend({
     if(this.get('actionModel.jobXml') === undefined){
       this.set("actionModel.jobXml", Ember.A([]));
     }
-    if(this.get('actionModel.args') === undefined && !this.get('actionModel.command')){
-      this.set("actionModel.args", Ember.A([]));
+    if(this.get('actionModel.arg') === undefined && !this.get('actionModel.command')){
+      this.set("actionModel.arg", Ember.A([]));
       this.set('isArg', false);
-    }else if(this.get('actionModel.args') && this.get('actionModel.args').length > 0){
+    }else if(this.get('actionModel.arg') && this.get('actionModel.arg').length > 0){
       this.set('isArg', true);
     }else{
       this.set('isArg', false);

@@ -46,10 +46,10 @@ export default Ember.Controller.extend({
       if(params.action.indexOf('rerun') > -1){
         jobActionParams.data = params.conf;
       }
-      Ember.$.ajax(jobActionParams).done(function(){
-        deferred.resolve();
-      }).fail(function(){
-        deferred.reject();
+      Ember.$.ajax(jobActionParams).done(function(response){
+        deferred.resolve(response);
+      }).fail(function(error){
+        deferred.reject(error);
       });
     },
     onBulkAction : function(params, deferred){

@@ -33,7 +33,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           "DRUID": self.recommendDruidConfigurations,
           "ATLAS": self.recommendAtlasConfigurations,
           "TEZ": self.recommendTezConfigurations,
-          "RANGER": self.recommendRangerConfigurations
+          "RANGER": self.recommendRangerConfigurations,
+          "RANGER_KMS": self.recommendRangerKMSConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
@@ -301,3 +302,20 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
                             "Need to set ranger.usersync.group.searchenabled as true, as ranger.usersync.ldap.deltasync is enabled")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-ugsync-site")
+
+  def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendRangerKMSConfigurations(configurations, clusterData, services, hosts)
+    putRangerKmsEnvProperty = self.putProperty(configurations, "kms-env", services)
+
+    ranger_kms_ssl_enabled = False
+    ranger_kms_ssl_port = "9393"
+    if 'ranger-kms-site' in services['configurations'] and 'ranger.service.https.attrib.ssl.enabled' in services['configurations']['ranger-kms-site']['properties']:
+      ranger_kms_ssl_enabled = services['configurations']['ranger-kms-site']['properties']['ranger.service.https.attrib.ssl.enabled'].lower() == "true"
+
+    if 'ranger-kms-site' in services['configurations'] and 'ranger.service.https.port' in services['configurations']['ranger-kms-site']['properties']:
+      ranger_kms_ssl_port = services['configurations']['ranger-kms-site']['properties']['ranger.service.https.port']
+
+    if ranger_kms_ssl_enabled:
+      putRangerKmsEnvProperty("kms_port", ranger_kms_ssl_port)
+    else:
+      putRangerKmsEnvProperty("kms_port", "9292")

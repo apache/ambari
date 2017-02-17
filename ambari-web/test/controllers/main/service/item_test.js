@@ -347,7 +347,7 @@ describe('App.MainServiceItemController', function () {
       });
       it(test.m, function () {
         if (!test.default) {
-          App.store.load(App.Service, test.content);
+          App.store.safeLoad(App.Service, test.content);
         }
         mainServiceItemController.runSmokeTest({}).onPrimary();
         expect(mainServiceItemController.runSmokeTestPrimary.calledOnce).to.equal(test.startSmoke);

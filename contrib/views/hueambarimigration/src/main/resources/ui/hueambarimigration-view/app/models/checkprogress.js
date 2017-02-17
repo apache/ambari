@@ -27,5 +27,6 @@ export default Model.extend({
   totalTimeTaken: DS.attr('string'),
   jobtype: DS.attr('string'),
   isNoQuerySelected: DS.attr('string'),
-  flag: DS.attr('string')
+  flag: DS.attr('string'),
+  error: DS.attr('string')
 });

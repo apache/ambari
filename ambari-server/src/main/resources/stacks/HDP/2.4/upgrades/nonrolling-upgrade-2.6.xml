@@ -23,6 +23,7 @@
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
     <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
+    <check>org.apache.ambari.server.checks.RangerSSLConfigCheck</check>
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
@@ -560,6 +561,10 @@
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKmsProxyConfig">
           <summary>Adding Ranger proxy user properties</summary>
         </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS">
+        <task xsi:type="configure" id="hdp_2_6_0_0_remove_ranger_kms_duplicate_ssl"/>
       </execute-stage>
 
       <!--ATLAS-->

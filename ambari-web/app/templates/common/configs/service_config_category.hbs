@@ -73,9 +73,7 @@
                         &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
                     {{/if}}
                   {{/if}}
-                  {{#if controller.canEdit}}
-                    {{view App.ControlsView serviceConfigPropertyBinding="this"}}
-                  {{/if}}
+                  {{view App.ControlsView serviceConfigPropertyBinding="this"}}
                   {{#if errorMessage}}
                     <span class="help-block validation-block">{{errorMessage}}</span>
                   {{/if}}

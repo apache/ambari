@@ -45,7 +45,7 @@ export default Ember.Component.extend(Validations, {
     }
   }),
   jobXml : Ember.computed('jobConfigs', function(){
-    return this.get('jobConfigs.xml');
+    return CommonUtils.decodeXml(this.get('jobConfigs.xml'));
   }),
   jobJson : Ember.computed('jobConfigs', function(){
     return this.get('jobConfigs.json');

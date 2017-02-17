@@ -26,9 +26,12 @@
     <display-name>Ranger audit service users</display-name>
     <value>{default_ranger_audit_users}</value>
     <description>
-      List of comma separated kerberos service users who can write into ranger audit collections if the cluster is secure. (atlas and rangeradmin supported by default)
-      Change values in that case of custom values are used for kerberos principals. (default_ranger_audit_users is resolved ranger-*-audit/xasecure.audit.jaas.Client.option.principal,
-      by default namenode, hbase, hive knox, kafka, ranger kms and nifi are supported, to change it you can edit the security content,
+      List of comma separated kerberos service users who can write into ranger audit collections if the cluster is
+      secure. (atlas and rangeradmin supported by default)
+      Change values in that case of custom values are used for kerberos principals. (default_ranger_audit_users is
+      resolved ranger-*-audit/xasecure.audit.jaas.Client.option.principal,
+      by default namenode, hbase, hive knox, kafka, ranger kms and nifi are supported, to change it you can edit the
+      security content,
       or add a new username next to the default value, e.g.: {default_ranger_audit_users},customuser)
     </description>
     <depends-on>
@@ -68,20 +71,6 @@
         <type>ranger-nifi-audit</type>
         <name>xasecure.audit.jaas.Client.option.principal</name>
       </property>
-    </depends-on>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>content</name>
-    <display-name>security.json template</display-name>
-    <description>This is the jinja template for security.json file on the solr znode (only used if the cluster is secure)</description>
-    <value/>
-    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
-    <value-attributes>
-      <property-file-name>infra-solr-security.json.j2</property-file-name>
-      <property-file-type>text</property-file-type>
-    </value-attributes>
-    <depends-on>
       <property>
         <type>application-properties</type>
         <name>atlas.authentication.principal</name>
@@ -91,6 +80,65 @@
         <name>ranger.admin.kerberos.principal</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_role_ranger_admin</name>
+    <display-name>Ranger admin role</display-name>
+    <value>ranger_admin_user</value>
+    <description>Ranger admin role, it allows users to create collection, and perform any action on ranger audit collection.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_role_ranger_audit</name>
+    <display-name>Ranger audit role</display-name>
+    <value>ranger_audit_user</value>
+    <description>Ranger audit role, it allows users to perform any action on ranger audit collection.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_role_atlas</name>
+    <display-name>Atlas role</display-name>
+    <value>atlas_user</value>
+    <description>Atlas role, it allows users to create collection, and perform any action on atlas collections.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_role_logsearch</name>
+    <display-name>Log Search role</display-name>
+    <value>logsearch_user</value>
+    <description>Log Search role, it allows users to create collection, and perform any action on Log Search collections.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_role_logfeeder</name>
+    <display-name>Log Feeder role</display-name>
+    <value>logfeeder_user</value>
+    <description>Log Feeder role, it allows users to perform any action on Log Search collections.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>infra_solr_role_dev</name>
+    <display-name>Dev role</display-name>
+    <value>dev</value>
+    <description>Dev role, it allows to perform any read action on any collection.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>Custom security.json template</display-name>
+    <description>
+      This is the jinja template for custom security.json file on the solr znode
+      (only used if the cluster is secure and this property overrides the security.json which generated during solr
+      start).
+    </description>
+    <value>
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

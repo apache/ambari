@@ -99,7 +99,7 @@ class TestSparkClient(RMFTestCase):
                                   type = 'directory',
                                   action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                                   dfs_type = '',
-                                  mode = 0775,
+                                  mode = 0700,
                                   )
         self.assertResourceCalled('HdfsResource', None,
                                   immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

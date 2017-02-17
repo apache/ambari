@@ -31,15 +31,18 @@ public class UpgradeCatalog300Test {
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method showHcatDeletedUserMessage = UpgradeCatalog300.class.getDeclaredMethod("showHcatDeletedUserMessage");
+    Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
 
    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
             .addMockedMethod(showHcatDeletedUserMessage)
             .addMockedMethod(addNewConfigurationsFromXml)
+            .addMockedMethod(setStatusOfStagesAndRequests)
             .createMock();
 
 
     upgradeCatalog300.addNewConfigurationsFromXml();
     upgradeCatalog300.showHcatDeletedUserMessage();
+    upgradeCatalog300.setStatusOfStagesAndRequests();
 
     replay(upgradeCatalog300);
 
@@ -51,14 +54,18 @@ public class UpgradeCatalog300Test {
   @Test
   public void testExecuteDDLUpdates() throws Exception {
 
+    Method updateStageTable = UpgradeCatalog300.class.getDeclaredMethod("updateStageTable");
     Method addServiceComponentColumn = UpgradeCatalog300.class
         .getDeclaredMethod("addServiceComponentColumn");
 
     UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
         .addMockedMethod(addServiceComponentColumn)
+        .addMockedMethod(updateStageTable)
         .createMock();
 
     upgradeCatalog300.addServiceComponentColumn();
+
+    upgradeCatalog300.updateStageTable();
 
     replay(upgradeCatalog300);
 

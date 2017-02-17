@@ -62,7 +62,7 @@ describe('App.HostStackVersion', function () {
     });
     testCases.forEach(function (test) {
       it('status is ' + test.status, function () {
-        App.store.load(App.HostStackVersion, {
+        App.store.safeLoad(App.HostStackVersion, {
           id: 1,
           status: test.status
         });
@@ -99,7 +99,7 @@ describe('App.HostStackVersion', function () {
     });
     testCases.forEach(function (test) {
       it('status is ' + test.status, function () {
-        App.store.load(App.HostStackVersion, {
+        App.store.safeLoad(App.HostStackVersion, {
           id: 1,
           status: test.status
         });
@@ -113,14 +113,14 @@ describe('App.HostStackVersion', function () {
       App.HostStackVersion.find().clear();
     });
     it("status is CURRENT", function () {
-      App.store.load(App.HostStackVersion, {
+      App.store.safeLoad(App.HostStackVersion, {
         id: 1,
         status: 'CURRENT'
       });
       expect(App.HostStackVersion.find(1).get('isCurrent')).to.be.true;
     });
     it("status is not CURRENT", function () {
-      App.store.load(App.HostStackVersion, {
+      App.store.safeLoad(App.HostStackVersion, {
         id: 1,
         status: 'INSTALLED'
       });
@@ -133,14 +133,14 @@ describe('App.HostStackVersion', function () {
       App.HostStackVersion.find().clear();
     });
     it("status is INSTALLING", function () {
-      App.store.load(App.HostStackVersion, {
+      App.store.safeLoad(App.HostStackVersion, {
         id: 1,
         status: 'INSTALLING'
       });
       expect(App.HostStackVersion.find(1).get('isInstalling')).to.be.true;
     });
     it("status is not INSTALLING", function () {
-      App.store.load(App.HostStackVersion, {
+      App.store.safeLoad(App.HostStackVersion, {
         id: 1,
         status: 'INSTALLED'
       });

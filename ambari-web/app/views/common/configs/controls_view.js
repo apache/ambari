@@ -35,7 +35,7 @@ App.ControlsView = Ember.View.extend({
 
 	showRemove: Em.computed.and('showActions', 'serviceConfigProperty.isEditable', 'serviceConfigProperty.isRemovable'),
 
-	showOverride: Em.computed.and('showActions', 'serviceConfigProperty.isPropertyOverridable'),
+	showOverride: Em.computed.and('showActions', 'serviceConfigProperty.isPropertyOverridable', 'controller.canEdit'),
 
 	showUndo: Em.computed.and('showActions', 'serviceConfigProperty.isEditable', '!serviceConfigProperty.cantBeUndone', 'serviceConfigProperty.isNotDefaultValue'),
 

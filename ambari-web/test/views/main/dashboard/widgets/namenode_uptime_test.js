@@ -35,8 +35,8 @@ describe('App.NameNodeUptimeView', function() {
         isOrange: false,
         isGreen: true,
         isNA: false,
-        content: '192.1 d',
-        data: 192.1
+        content: '197.0 d',
+        data: 197
       }
     },
     {

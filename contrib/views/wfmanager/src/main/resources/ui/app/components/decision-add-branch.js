@@ -55,12 +55,7 @@ export default Ember.Component.extend(Validations, FindNodeMixin,{
         self.set("isInsertAction",false);
         this.set("newNodeType",null);
         this.get('flowRenderer').populateOkToandErrorTONodes(node);
-        var commonTarget=this.findCommonTargetNode(this.workflow.startNode,this.get('node'));
         var descendantNodes= this.get('node.validOkToNodes');
-        if (commonTarget){
-          descendantNodes.removeObject(commonTarget);
-          descendantNodes.unshiftObject(commonTarget);
-        }
         this.set('descendantNodes',descendantNodes);
         self.$("#selector-content").show();
       }

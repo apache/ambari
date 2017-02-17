@@ -36,19 +36,17 @@
     <div class="form-group">
       <label class="control-label col-xs-2 visibility-hidden">Args</label>
       <div class="col-xs-2">
-        <input type="radio" name="Args" checked={{if (eq isSingle false) 'checked'}}  {{action "onJavaOptChange" "multiple" preventDefault=false on="change"}}> Args
+        <input type="radio" name="args" checked={{if (eq useArg false) 'checked'}}  {{action "argTypeChanged" false on="change"}}> Args
       </div>
       <div class="col-xs-2">
-        <input type="radio" name="Arg" checked={{if (eq isSingle true) 'checked'}}  {{action "onJavaOptChange" "single" preventDefault=false on="change"}}> Arg
+        <input type="radio" name="arg" checked={{if (eq useArg true) 'checked'}}  {{action "argTypeChanged" true on="change"}}> Arg
       </div>
     </div>
-
-    {{#if isSingle}}
-    {{#arg-config args=actionModel.arg register="register" title="Arg"}}{{/arg-config}}
+    {{#if useArg}}
+      {{#arg-config args=actionModel.arg register="register" title="Arg"}}{{/arg-config}}
     {{else}}
-    {{#arg-config args=actionModel.args register="register" title="Args"}}{{/arg-config}}
+      {{#arg-config args=actionModel.args register="register" title="Args"}}{{/arg-config}}
     {{/if}}
-
     <div class="form-group">
       <label class="control-label col-xs-2">Capture output</label>
       <div class="col-xs-8">
