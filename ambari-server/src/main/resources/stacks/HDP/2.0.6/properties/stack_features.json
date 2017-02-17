@@ -382,6 +382,11 @@
       "name": "hive_interactive_ga",
       "description": "Hive Interactive GA support",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "secure_ranger_ssl_password",
+      "description": "Securing Ranger Admin and Usersync SSL and Trustore related passwords in jceks",
+      "min_version": "2.6.0.0"
     }
   ]
 }

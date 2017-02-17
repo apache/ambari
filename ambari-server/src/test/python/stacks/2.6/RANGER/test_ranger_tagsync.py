@@ -143,11 +143,18 @@ class TestRangerTagsync(RMFTestCase):
       cd_access = 'a',
     )
 
+    ranger_tagsync_policymgr_ssl_copy = {}
+    ranger_tagsync_policymgr_ssl_copy.update(self.getConfig()['configurations']['ranger-tagsync-policymgr-ssl'])
+    ranger_tagsync_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
+    for prop in ranger_tagsync_password_properties:
+      if prop in ranger_tagsync_policymgr_ssl_copy:
+        ranger_tagsync_policymgr_ssl_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-policymgr-ssl.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-tagsync/conf',
-      configurations = self.getConfig()['configurations']['ranger-tagsync-policymgr-ssl'],
+      configurations = ranger_tagsync_policymgr_ssl_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-tagsync-policymgr-ssl'],
       mode = 0644,
     )
@@ -188,16 +195,20 @@ class TestRangerTagsync(RMFTestCase):
       mode = 0640,
     )
 
+    atlas_tagsync_ssl_copy = {}
+    atlas_tagsync_ssl_copy.update(self.getConfig()['configurations']['atlas-tagsync-ssl'])
+    for prop in ranger_tagsync_password_properties:
+      if prop in atlas_tagsync_ssl_copy:
+        atlas_tagsync_ssl_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'atlas-tagsync-ssl.xml',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-tagsync/conf',
       mode = 0644,
       configuration_attributes = UnknownConfigurationMock(),
       owner = 'ranger',
-      configurations = self.getConfig()['configurations']['atlas-tagsync-ssl']
+      configurations = atlas_tagsync_ssl_copy
     )
-
-
 
     self.assertResourceCalled('Execute', (u'/usr/jdk64/jdk1.7.0_45/bin/java',
       '-cp',

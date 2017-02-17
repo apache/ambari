@@ -293,11 +293,17 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
+    ranger_admin_site_copy = {}
+    ranger_admin_site_copy.update(self.getConfig()['configurations']['ranger-admin-site'])
+    for prop in ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password']:
+      if prop in ranger_admin_site_copy:
+        ranger_admin_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-admin-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
-      configurations = self.getConfig()['configurations']['ranger-admin-site'],
+      configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
       mode = 0644
     )
@@ -443,11 +449,17 @@ class TestRangerAdmin(RMFTestCase):
       sudo = True
     )
 
+    ranger_admin_site_copy = {}
+    ranger_admin_site_copy.update(self.getConfig()['configurations']['ranger-admin-site'])
+    for prop in ['ranger.jpa.jdbc.password', 'ranger.jpa.audit.jdbc.password', 'ranger.ldap.bind.password', 'ranger.ldap.ad.bind.password']:
+      if prop in ranger_admin_site_copy:
+        ranger_admin_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-admin-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-admin/conf',
-      configurations = self.getConfig()['configurations']['ranger-admin-site'],
+      configurations = ranger_admin_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-admin-site'],
       mode = 0644
     )

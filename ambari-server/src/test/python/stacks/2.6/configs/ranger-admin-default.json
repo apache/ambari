@@ -326,7 +326,8 @@
             "ranger.service.http.port": "6080", 
             "ranger.ldap.user.searchfilter": "(uid={0})", 
             "ranger.plugins.atlas.serviceuser": "atlas", 
-            "ranger.truststore.password": "changeit", 
+            "ranger.truststore.password": "changeit",
+            "ranger.truststore.alias": "trustStoreAlias",
             "ranger.ldap.bind.password": "{{ranger_usersync_ldap_ldapbindpassword}}", 
             "ranger.audit.solr.password": "NONE", 
             "ranger.audit.solr.zookeepers": "c6401.ambari.apache.org:2181/infra-solr",
@@ -364,7 +365,8 @@
             "ranger.admin.kerberos.keytab": "", 
             "ranger.admin.kerberos.token.valid.seconds": "30", 
             "ranger.jpa.jdbc.driver": "com.mysql.jdbc.Driver", 
-            "ranger.unixauth.service.port": "5151"
+            "ranger.unixauth.service.port": "5151",
+            "ranger.service.https.attrib.keystore.credential.alias": "keyStoreCredentialAlias"
         }, 
         "ranger-hdfs-policymgr-ssl": {
             "xasecure.policymgr.clientssl.keystore": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks", 

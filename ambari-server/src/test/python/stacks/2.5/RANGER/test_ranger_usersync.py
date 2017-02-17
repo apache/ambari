@@ -132,11 +132,17 @@ class TestRangerUsersync(RMFTestCase):
       mode = 0644
     )
 
+    ranger_ugsync_site_copy = {}
+    ranger_ugsync_site_copy.update(self.getConfig()['configurations']['ranger-ugsync-site'])
+    for prop in ['ranger.usersync.ldap.ldapbindpassword']:
+      if prop in ranger_ugsync_site_copy:
+        ranger_ugsync_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'ranger-ugsync-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-usersync/conf',
-      configurations = self.getConfig()['configurations']['ranger-ugsync-site'],
+      configurations = ranger_ugsync_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-ugsync-site'],
       mode = 0644
     )

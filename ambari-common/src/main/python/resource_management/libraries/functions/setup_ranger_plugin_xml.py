@@ -131,9 +131,17 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
         mode = 0644
       )
 
+    # remove plain-text password from xml configs
+    plugin_audit_password_property = 'xasecure.audit.destination.db.password'
+    plugin_audit_properties_copy = {}
+    plugin_audit_properties_copy.update(plugin_audit_properties)
+
+    if plugin_audit_password_property in plugin_audit_properties_copy:
+      plugin_audit_properties_copy[plugin_audit_password_property] = "crypted"
+
     XmlConfig(format('ranger-{service_name}-audit.xml'),
       conf_dir=component_conf_dir,
-      configurations=plugin_audit_properties,
+      configurations=plugin_audit_properties_copy,
       configuration_attributes=plugin_audit_attributes,
       owner = component_user,
       group = component_group,
@@ -147,10 +155,19 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
       group = component_group,
       mode=0744)
 
+    # remove plain-text password from xml configs
+    plugin_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
+    plugin_policymgr_ssl_properties_copy = {}
+    plugin_policymgr_ssl_properties_copy.update(plugin_policymgr_ssl_properties)
+
+    for prop in plugin_password_properties:
+      if prop in plugin_policymgr_ssl_properties_copy:
+        plugin_policymgr_ssl_properties_copy[prop] = "crypted"
+
     if str(service_name).lower() == 'yarn' :
       XmlConfig("ranger-policymgr-ssl-yarn.xml",
         conf_dir=component_conf_dir,
-        configurations=plugin_policymgr_ssl_properties,
+        configurations=plugin_policymgr_ssl_properties_copy,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
@@ -158,7 +175,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
     else:
       XmlConfig("ranger-policymgr-ssl.xml",
         conf_dir=component_conf_dir,
-        configurations=plugin_policymgr_ssl_properties,
+        configurations=plugin_policymgr_ssl_properties_copy,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,

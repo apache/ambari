@@ -276,3 +276,7 @@ if security_enabled:
   spengo_keytab = config['configurations']['kms-site']['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab']
   spnego_principal = config['configurations']['kms-site']['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal']
   spnego_principal = spnego_principal.replace('_HOST', current_host.lower())
+
+plugin_audit_password_property = 'xasecure.audit.destination.db.password'
+kms_plugin_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
+dbks_site_password_properties = ['ranger.db.encrypt.key.password', 'ranger.ks.jpa.jdbc.password', 'ranger.ks.hsm.partition.password']

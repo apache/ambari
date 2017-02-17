@@ -271,9 +271,17 @@ def kms(upgrade_type=None):
     if params.stack_support_kms_hsm and params.enable_kms_hsm:
       do_keystore_setup(params.credential_provider_path, params.hms_partition_alias, unicode(params.hms_partition_passwd))
 
+    # remove plain-text password from xml configs
+    dbks_site_copy = {}
+    dbks_site_copy.update(params.config['configurations']['dbks-site'])
+
+    for prop in params.dbks_site_password_properties:
+      if prop in dbks_site_copy:
+        dbks_site_copy[prop] = "_"
+
     XmlConfig("dbks-site.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['dbks-site'],
+      configurations=dbks_site_copy,
       configuration_attributes=params.config['configuration_attributes']['dbks-site'],
       owner=params.kms_user,
       group=params.kms_group,
@@ -421,9 +429,16 @@ def enable_kms_plugin():
       mode = 0644        
     )
 
+    # remove plain-text password from xml configs
+    plugin_audit_properties_copy = {}
+    plugin_audit_properties_copy.update(params.config['configurations']['ranger-kms-audit'])
+
+    if params.plugin_audit_password_property in plugin_audit_properties_copy:
+      plugin_audit_properties_copy[params.plugin_audit_password_property] = "crypted"
+
     XmlConfig("ranger-kms-audit.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['ranger-kms-audit'],
+      configurations=plugin_audit_properties_copy,
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-audit'],
       owner=params.kms_user,
       group=params.kms_group,
@@ -437,9 +452,17 @@ def enable_kms_plugin():
       group=params.kms_group,
       mode=0744)
 
+    # remove plain-text password from xml configs
+    ranger_kms_policymgr_ssl_copy = {}
+    ranger_kms_policymgr_ssl_copy.update(params.config['configurations']['ranger-kms-policymgr-ssl'])
+
+    for prop in params.kms_plugin_password_properties:
+      if prop in ranger_kms_policymgr_ssl_copy:
+        ranger_kms_policymgr_ssl_copy[prop] = "crypted"
+
     XmlConfig("ranger-policymgr-ssl.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['ranger-kms-policymgr-ssl'],
+      configurations=ranger_kms_policymgr_ssl_copy,
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-policymgr-ssl'],
       owner=params.kms_user,
       group=params.kms_group,
