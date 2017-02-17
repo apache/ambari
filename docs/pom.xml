@@ -386,18 +386,6 @@
             </organization>
         </developer>
         <developer>
-            <id>eyang</id>
-            <name>Eric Yang</name>
-            <email>eyang@apache.org</email>
-            <timezone>-8</timezone>
-            <roles>
-                <role>PMC</role>
-            </roles>
-            <organization>
-                IBM            
-            </organization>            
-        </developer>
-        <developer>
             <id>eboyd</id>
             <name>Erin A. Boyd</name>
             <email>eboyd@apache.org</email>
@@ -407,6 +395,30 @@
             </roles>
             <organization>
                  Red Hat
+            </organization>
+        </developer>
+        <developer>
+            <id>echekanskiy</id>
+            <name>Eugene Chekanskiy</name>
+            <email>echekanskiy@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                 Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>eyang</id>
+            <name>Eric Yang</name>
+            <email>eyang@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                IBM
             </organization>
         </developer>
         <developer>
