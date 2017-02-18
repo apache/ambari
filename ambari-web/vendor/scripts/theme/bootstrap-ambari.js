@@ -115,7 +115,7 @@
         if (settings.fitHeight) {
           var $moreIcon = $(this);
           $moreIcon.children('.dropdown-menu').css('position', 'fixed');
-          var offset = $(this).offset();
+          var offset = $moreIcon.offset();
           $moreIcon.children('.dropdown-menu').css('top', offset.top + 20 + 'px');
           $moreIcon.children('.dropdown-menu').css('left', offset.left);
         }

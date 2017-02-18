@@ -333,17 +333,22 @@ footer {
 }
 
 ::-webkit-scrollbar:vertical {
-  width: 11px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar:horizontal {
-  height: 11px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  border: 2px solid white;
-  background-color: rgba(0, 0, 0, .5);
+  -webkit-border-radius: 8px;
+  background: rgba(233,233,233,0.5);
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
+}
+
+::-webkit-scrollbar-thumb:window-inactive {
+  background: rgba(233,233,233,0.3);
 }
 
 #content {
