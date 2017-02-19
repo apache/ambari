@@ -379,6 +379,12 @@
             <regex-replace key="content" find="appender.DRFA.strategy.max = ([0-9]+)" replace-with="appender.DRFA.strategy.max = {{llap_cli_log_maxbackupindex}}"/>
             <replace key="content" find="appender.DRFA.strategy.type = DefaultRolloverStrategy" replace-with="appender.DRFA.strategy.type = DefaultRolloverStrategy&#xA;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#xA;appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB"/>
           </definition>
+
+          <definition xsi:type="configure" id="llap_update_headroom" summary="Update headroom for LLAP">
+            <type>hive-interactive-env</type>
+            <set key="llap_headroom_space" value="12288"/>
+          </definition>
+
         </changes>
 
       </component>

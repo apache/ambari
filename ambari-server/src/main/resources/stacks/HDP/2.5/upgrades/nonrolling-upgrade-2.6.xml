@@ -598,6 +598,12 @@
           <function>wait_for_safemode_off</function>
         </task>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update headroom for LLAP">
+        <task xsi:type="configure" id="llap_update_headroom">
+          <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">

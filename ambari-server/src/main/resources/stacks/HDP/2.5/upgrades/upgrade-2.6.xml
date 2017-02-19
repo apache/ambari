@@ -797,6 +797,7 @@
           <task xsi:type="configure" id="webhcat_log4j_parameterize" />
           <task xsi:type="configure" id="hive_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
+          <task xsi:type="configure" id="llap_update_headroom"/>
         </pre-upgrade>
         
         <pre-downgrade />
