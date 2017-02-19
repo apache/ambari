@@ -221,7 +221,7 @@ druid_coordinator_hosts = default("/clusterHostInfo/druid_coordinator_hosts", []
 druid_coordinator_host = ""
 if not len(druid_coordinator_hosts) == 0:
   druid_coordinator_host = druid_coordinator_hosts[0]
-druid_router_hosts = default("/clusterHostInfo/druid_coordinator_hosts", [])
+druid_router_hosts = default("/clusterHostInfo/druid_router_hosts", [])
 druid_router_host = ""
 if not len(druid_router_hosts) == 0:
   druid_router_host = druid_router_hosts[0]
