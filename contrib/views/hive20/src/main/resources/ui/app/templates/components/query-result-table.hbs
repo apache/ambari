@@ -16,17 +16,6 @@
 * limitations under the License.
 }}
 
-
-
-{{#if isQueryRunning}}
-   <div style="position:relative">
-       <div style="margin: auto;position: absolute;top: 0;left: 0;bottom: 0;right: 0;text-align: center">
-         {{fa-icon "spinner fa-2" spin=true}}
-       </div>
-    </div>
-{{/if}}
-
-{{#unless isQueryRunning}}
   <div class="clearfix" style="text-align: right; padding-right:5px">
     <span class="dropdown">
       <button class="btn btn-default dropdown-toggle" title="Actions" data-toggle="dropdown">{{fa-icon "bars"}} </button>
@@ -36,9 +25,10 @@
       </ul>
     </span>&nbsp;
 
-    <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" }}  >{{fa-icon "arrow-left"}} </button>
-    <button class="btn btn-default" title="Next Page" {{action "goNextPage" }}>{{fa-icon "arrow-right"}} </button> &nbsp;
+    <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" payloadTitle }} disabled={{not hasPrevious}} >{{fa-icon "arrow-left"}} </button>
+    <button class="btn btn-default" title="Next Page" {{action "goNextPage" payloadTitle}} disabled={{not hasNext}} >{{fa-icon "arrow-right"}} </button> &nbsp;
     <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
+
   </div>
 
   <div class="clearfix">
@@ -65,10 +55,6 @@
       {{/if}}
     {{/light-table}}
   </div>
-
-
-{{/unless}}
-
 
 {{#if showSaveHdfsModal}}
   {{export-result

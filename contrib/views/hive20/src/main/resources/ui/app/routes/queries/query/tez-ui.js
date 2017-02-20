@@ -17,39 +17,29 @@
  */
 
 import Ember from 'ember';
-import ApplicationAdapter from './application';
 
-export default ApplicationAdapter.extend({
+export default Ember.Route.extend({
 
-  buildURL(){
-    return this._super(...arguments) + '/jobs/';
+  jobs: Ember.inject.service(),
+  query: Ember.inject.service(),
+
+  beforeModel() {
   },
 
-  createJob(payload) {
-    let postURL = this.buildURL();
-    return this.ajax(postURL , 'POST', { data: {job: payload} });
-  },
-  getJob(jobId, firstCall){
-
-    let url = '';
-    if(firstCall){
-      url = this.buildURL() + jobId + '/results?first=true';
-    }else {
-      url = this.buildURL() + jobId + '/results';
-    }
-
-    return this.ajax(url, 'GET')
+  model(){
+    return this.modelFor('queries.query');
   },
 
-  getVisualExplainJson(jobId){
-    let url = this.buildURL() + jobId + '/results?first=true';
-   return this.ajax(url, 'GET');
+  setupController(controller, model){
+    this._super(...arguments);
+
+    model.set('lastResultRoute', ".tez-ui");
+
+
   },
 
-  retrieveQueryLog(logFile){
-    let url = '';
-    url = this.buildURL().replace('/jobs','') + '/files' + logFile;
-    return this.ajax(url, 'GET')
+  actions:{
+
   }
 
 });

@@ -66,7 +66,11 @@ Router.map(function() {
   this.route('queries', function() {
     this.route('new');
     this.route('query', {path: '/:worksheetId'}, function() {
-
+      this.route('results');
+      this.route('log');
+      this.route('visual-explain');
+      this.route('tez-ui');
+      this.route('loading');
     });
   });
 });

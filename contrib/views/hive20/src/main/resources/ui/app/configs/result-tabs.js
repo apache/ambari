@@ -17,39 +17,32 @@
  */
 
 import Ember from 'ember';
-import ApplicationAdapter from './application';
 
-export default ApplicationAdapter.extend({
+let resultsTabs = [
+  Ember.Object.create({
+    name: 'results',
+    label: 'RESULTS',
+    link: 'queries.query.results',
+    faIcon: 'paper-plane'
+  }),
+  Ember.Object.create({
+    name: 'log',
+    label: 'LOG',
+    link: 'queries.query.log',
+    faIcon: 'paper-plane'
+  }),
+  Ember.Object.create({
+    name: 'visual-explain',
+    label: 'VISUAL EXPLAIN',
+    link: 'queries.query.visual-explain',
+    faIcon: 'paper-plane'
+  }),
+  Ember.Object.create({
+    name: 'tez-ui',
+    label: 'TEZ UI',
+    link: 'queries.query.tez-ui',
+    faIcon: 'paper-plane'
+  })
+];
 
-  buildURL(){
-    return this._super(...arguments) + '/jobs/';
-  },
-
-  createJob(payload) {
-    let postURL = this.buildURL();
-    return this.ajax(postURL , 'POST', { data: {job: payload} });
-  },
-  getJob(jobId, firstCall){
-
-    let url = '';
-    if(firstCall){
-      url = this.buildURL() + jobId + '/results?first=true';
-    }else {
-      url = this.buildURL() + jobId + '/results';
-    }
-
-    return this.ajax(url, 'GET')
-  },
-
-  getVisualExplainJson(jobId){
-    let url = this.buildURL() + jobId + '/results?first=true';
-   return this.ajax(url, 'GET');
-  },
-
-  retrieveQueryLog(logFile){
-    let url = '';
-    url = this.buildURL().replace('/jobs','') + '/files' + logFile;
-    return this.ajax(url, 'GET')
-  }
-
-});
+export default resultsTabs;

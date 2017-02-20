@@ -43,69 +43,19 @@
             </ul>
         </div>
         <button class="btn btn-default" {{action "visualExplainQuery" }}>{{fa-icon "link"}} Visual Explain</button>
+
         {{#if worksheet.isQueryRunning}}
           {{fa-icon "spinner fa-1-5" spin=true}}
         {{/if}}
+
       </div>
     </div>
 
-    {{#if worksheet.isQueryResultContainer}}
-      <div class="query-result-container">
-        <div>
-          <ul class="row nav nav-tabs inverse">
-            <li class="editor-result-list active">
-              <a href="javascript:void(0)" class="editor-result-list-anchor active" {{action 'showQueryEditorResult' }}>
-                {{fa-icon "file-text-o"}}&nbsp;&nbsp;RESULT
-              </a>
-            </li>
-            <li class="log-list">
-              <a href="javascript:void(0)" class="log-list-anchor" {{action 'showQueryEditorLog' }}>
-                {{fa-icon "list"}}&nbsp;&nbsp;LOG
-              </a>
-            </li>
-          </ul>
-        </div>
+    {{#tabs-pane tabs=tabs inverse=true as |tab|}}
+      {{tabs-item tab=tab tabs=tabs}}
+    {{/tabs-pane}}
 
-        {{#if showQueryEditorLog}}
-          <div class="clearfix row query-editor-log">
-            {{query-result-log logResults=worksheet.logResults }}
-          </div>
-        {{/if}}
-        {{#if showQueryEditorResult}}
-          <div class="clearfix row query-editor-results">
-
-            {{#if isVisualExplainQuery}}
-                {{visual-explain
-                expandQueryResultPanel='expandQueryResultPanel'
-                isQueryRunning=worksheet.isQueryRunning
-                visualExplainJson=visualExplainJson
-                }}
-              {{else}}
-              {{query-result-table
-              queryResult=queryResult
-              jobId=currentJobId
-              updateQuery='updateQuery'
-              previousPage=worksheet.previousPage
-              hidePreviousButton=hidePreviousButton
-              goNextPage='goNextPage'
-              goPrevPage='goPrevPage'
-              expandQueryResultPanel='expandQueryResultPanel'
-              saveToHDFS='saveToHDFS'
-              downloadAsCsv='downloadAsCsv'
-              isExportResultSuccessMessege=isExportResultSuccessMessege
-              isExportResultFailureMessege=isExportResultFailureMessege
-              showSaveHdfsModal=showSaveHdfsModal
-              isQueryRunning=worksheet.isQueryRunning
-              }}
-            {{/if}}
-
-
-
-          </div>
-        {{/if}}
-
-      </div>
-    {{/if}}
+    {{outlet}}
   </div>
 </div>
 
@@ -181,4 +131,4 @@
   {{/modal-dialog}}
 {{/if}}
 
-{{outlet}}
+

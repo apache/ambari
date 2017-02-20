@@ -82,11 +82,11 @@ export default Ember.Component.extend({
     onColumnClick(column) {
       //console.log('I am in onColumnClick');
     },
-    goNextPage(){
-      this.sendAction('goNextPage');
+    goNextPage(payloadTitle){
+      this.sendAction('goNextPage', payloadTitle);
     },
-    goPrevPage(){
-      this.sendAction('goPrevPage');
+    goPrevPage(payloadTitle){
+      this.sendAction('goPrevPage', payloadTitle);
     },
     expandQueryResultPanel(){
       this.sendAction('expandQueryResultPanel');
