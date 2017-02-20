@@ -88,6 +88,9 @@
             },
             {
               "name": "/KAFKA/KAFKA_BROKER/kafka_broker"
+            },
+            {
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr"
             }
           ]
         }
