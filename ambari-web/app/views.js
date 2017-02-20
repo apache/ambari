@@ -60,6 +60,7 @@ require('views/common/form/field');
 require('views/common/form/datepicker_view');
 require('views/common/form/spinner_input_view');
 require('views/common/form/manage_credentials_form_view');
+require('views/common/form/dropdown');
 require('views/common/quick_view_link_view');
 require('views/common/configs/services_config');
 require('views/common/configs/service_config_container_view');
