@@ -16,26 +16,14 @@
 * limitations under the License.
 }}
 
-
-<div style="position: relative;">
-  <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }} style="position: absolute;top: 10px; right: 10px;">{{fa-icon "expand"}}</button>
-</div>
-
-{{#if isQueryRunning}}
-  <div style="position:relative">
-    <div style="margin: auto;position: absolute;top: 0;left: 0;bottom: 0;right: 0;text-align: center">
-      {{fa-icon "spinner fa-2" spin=true}}
-    </div>
-  </div>
-{{/if}}
-
-{{#unless isQueryRunning}}
-  <div id="explain-container" ></div>
+{{#unless hasJobAssociated}}
+  <div>No Log avaiable.</div>
 {{/unless}}
 
-{{#if showDetailsModal}}
-  {{visual-explain-detail closeModal='closeModal' explainDetailData=explainDetailData}}
+{{#if hasJobAssociated}}
+  <div>
+    <pre class="prettyprint">{{logResults}}</pre>
+  </div>
+
 {{/if}}
 
-
-{{yield}}

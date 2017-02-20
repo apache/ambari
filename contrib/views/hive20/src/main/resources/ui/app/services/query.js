@@ -31,10 +31,10 @@ export default Ember.Service.extend({
       });
     });
   },
-  getJob(jobId, dateSubmitted, firstCall){
+  getJob(jobId, firstCall){
     let self = this;
     return new Promise( (resolve, reject) => {
-      this.get('store').adapterFor('query').getJob(jobId, dateSubmitted, firstCall).then(function(data) {
+      this.get('store').adapterFor('query').getJob(jobId, firstCall).then(function(data) {
         resolve(data);
       }, function(err) {
           reject(err);

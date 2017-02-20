@@ -17,39 +17,40 @@
  */
 
 import Ember from 'ember';
-import ApplicationAdapter from './application';
 
-export default ApplicationAdapter.extend({
+export default Ember.Route.extend({
 
-  buildURL(){
-    return this._super(...arguments) + '/jobs/';
+  jobs: Ember.inject.service(),
+  query: Ember.inject.service(),
+
+  beforeModel() {
   },
 
-  createJob(payload) {
-    let postURL = this.buildURL();
-    return this.ajax(postURL , 'POST', { data: {job: payload} });
+  model(){
+    return this.modelFor('queries.query');
   },
-  getJob(jobId, firstCall){
 
-    let url = '';
-    if(firstCall){
-      url = this.buildURL() + jobId + '/results?first=true';
-    }else {
-      url = this.buildURL() + jobId + '/results';
+  setupController(controller, model){
+    this._super(...arguments);
+
+    model.set('lastResultRoute', ".visual-explain");
+
+    if(!Ember.isEmpty(model.get('currentJobData'))){
+
+      let jobId = model.get('currentJobData').job.id;
+      this.controller.set('jobId', jobId);
+      this.controller.set('payloadTitle',  model.get('currentJobData').job.title);
+      this.controller.set('isQueryRunning', model.get('isQueryRunning'));
+      this.controller.set('visualExplainJson', model.get('visualExplainJson'));
+
+      this.controller.set('hasJobAssociated', true);
+    } else {
+      this.controller.set('hasJobAssociated', false);
     }
-
-    return this.ajax(url, 'GET')
   },
 
-  getVisualExplainJson(jobId){
-    let url = this.buildURL() + jobId + '/results?first=true';
-   return this.ajax(url, 'GET');
-  },
+  actions:{
 
-  retrieveQueryLog(logFile){
-    let url = '';
-    url = this.buildURL().replace('/jobs','') + '/files' + logFile;
-    return this.ajax(url, 'GET')
   }
 
 });
