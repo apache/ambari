@@ -48,6 +48,9 @@
               "keytab": {
                 "configuration": "application-properties/atlas.http.authentication.kerberos.keytab"
               }
+            },
+            {
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr"
             }
           ]
         }
