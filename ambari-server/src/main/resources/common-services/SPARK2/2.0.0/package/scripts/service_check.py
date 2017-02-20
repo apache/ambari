@@ -32,7 +32,7 @@ class SparkServiceCheck(Script):
     if params.security_enabled:
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
-      if (params.has_livyserver):
+      if params.has_livyserver:
         livy_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
         Execute(livy_kinit_cmd, user=params.livy2_user)
 
@@ -42,7 +42,7 @@ class SparkServiceCheck(Script):
             logoutput=True
             )
     if params.has_livyserver:
-      live_livyserver_host = "";
+      live_livyserver_host = ""
       for livyserver_host in params.livy2_livyserver_hosts:
         try:
           Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{livyserver_host}:{livy2_livyserver_port}/sessions | grep 200"),

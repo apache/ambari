@@ -135,6 +135,8 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 spark_kerberos_keytab =  config['configurations']['spark2-defaults']['spark.history.kerberos.keytab']
 spark_kerberos_principal =  config['configurations']['spark2-defaults']['spark.history.kerberos.principal']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 
 spark_thriftserver_hosts = default("/clusterHostInfo/spark2_thriftserver_hosts", [])
 has_spark_thriftserver = not len(spark_thriftserver_hosts) == 0
