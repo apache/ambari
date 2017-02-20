@@ -22,8 +22,9 @@ import constants from '../../../../utils/constants';
 import Column from '../../../../models/column';
 import datatypes from '../../../../configs/datatypes';
 import Helpers from '../../../../configs/helpers';
+import UILoggerMixin from '../../../../mixins/ui-logger';
 
-export default NewTable.extend({
+export default NewTable.extend(UILoggerMixin, {
   COLUMN_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
   TABLE_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
   HDFS_PATH_REGEX: "^[/]{1}.+",  // unix path allows everything but here we have to mention full path so starts with /
@@ -630,26 +631,19 @@ export default NewTable.extend({
     if(error){
       console.log(" error : ", error);
       this.set('error', JSON.stringify(error));
-      // this.get('notifyService').warn(error);
-      // TODO : add notifyService warn message.
-      console.log("TODO : add notifyService warn message.");
+      this.get('notifyService').error( this.extractMessage(error), this.extractError(error));
     }else{
       this.set("error");
     }
   },
-  previewError: function (error) {
-    this.setError(error);
-  },
   uploadTableFromHdfs : function(tableData){
     console.log("uploadTableFromHdfs called.");
-    // if(!(this.get("inputFileTypeCSV") == true && this.get("isFirstRowHeader") == false) ){
-      this.pushUploadProgressInfos(this.formatMessage('uploadingFromHdfs'));
-    // }
+    this.pushUploadProgressInfos(this.formatMessage('uploadingFromHdfs'));
     var csvParams = tableData.get("fileFormatInfo.csvParams");
-    let columns = tableData.get("tableMeta").columns.map(function(column){
+    let columns = tableData.get("tableMeta").columns.map(function (column) {
       return {"name": column.get("name"), "type": column.get("type.label")};
     });
-    let header = columns; //JSON.stringify(columns);
+    let header = columns;
 
     return this.getUploader().uploadFromHDFS({
       "databaseName": tableData.get("database"),
@@ -687,24 +681,11 @@ export default NewTable.extend({
     console.log("onUploadSuccessfull : ", data);
     this._transitionToCreatedTable(this.get("tableData").get('database'), this.get("tableData").get('tableMeta').name);
 
-    // this.get('notifyService').success(this.translate('hive.messages.successfullyUploadedTableHeader'),
-    //   this.translate('hive.messages.successfullyUploadedTableMessage' ,{tableName:this.get("tableData").get("tableMeta").name ,databaseName:this.get("tableData").get("database")}));
+    this.get('notifyService').success(this.translate('hive.messages.successfullyUploadedTableHeader'),
+      this.translate('hive.messages.successfullyUploadedTableMessage' ,{tableName:this.get("tableData").get("tableMeta").name ,databaseName:this.get("tableData").get("database")}));
     this.clearFields();
   },
 
-  onUploadError: function (error) {
-    console.log("onUploadError : ", error);
-    this.setError(error);
-  },
-  showOrHide: function () {
-    if (this.get('show') == false) {
-      this.set("displayOption", "display:none");
-      this.set("showMoreOrLess", "Show More");
-    } else {
-      this.set("displayOption", "display:table-row");
-      this.set("showMoreOrLess", "Show Less");
-    }
-  },
   validateInputs: function(tableData){
     let tableMeta = tableData.get("tableMeta");
     let containsEndlines = tableData.get("fileFormatInfo.containsEndlines");
@@ -722,9 +703,6 @@ export default NewTable.extend({
       this.set('previewObject', previewObject);
       return this.generatePreview(previewObject)
     },
-    previewFromHdfs: function () {
-      return this.generatePreview();
-    },
     uploadTable: function (tableData) {
       console.log("tableData", tableData);
       try {
@@ -736,8 +714,5 @@ export default NewTable.extend({
         this.hideUploadModal();
       }
     },
-    uploadFromHDFS: function () {
-      this.set("isLocalUpload", false);
-    }
   }
 });
