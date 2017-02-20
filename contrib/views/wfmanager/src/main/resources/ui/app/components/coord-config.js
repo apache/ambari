@@ -223,7 +223,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       slainfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
-      }
+      },
+      xmlns : "uri:oozie:coordinator:" +this.get('schemaVersions').getDefaultVersion('coordinator'),
+      draftVersion: 'v1'
     });
   },
   importSampleCoordinator (){

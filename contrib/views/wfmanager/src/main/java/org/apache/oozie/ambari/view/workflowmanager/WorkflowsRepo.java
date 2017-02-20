@@ -24,7 +24,9 @@ import org.apache.oozie.ambari.view.workflowmanager.model.Workflow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class WorkflowsRepo extends BaseRepo<Workflow> {
   private final static Logger LOGGER = LoggerFactory
@@ -33,21 +35,47 @@ public class WorkflowsRepo extends BaseRepo<Workflow> {
     super(Workflow.class, dataStore);
 
   }
-
-  public Workflow getWorkflowByPath(String path) {
+  public Collection<Workflow> getWorkflows(String userName){
     try {
       Collection<Workflow> workflows = this.dataStore.findAll(Workflow.class,
-              "workflowDefinitionPath='" + path + "'");
+        "owner='" + userName + "'");
+      return  workflows;
+    } catch (PersistenceException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public Workflow getWorkflowByPath(String path, String userName) {
+    try {
+      Collection<Workflow> workflows = this.dataStore.findAll(Workflow.class,
+        "workflowDefinitionPath='" + path + "'");
       if (workflows == null || workflows.isEmpty()) {
         return null;
-      } else if (workflows.size() > 1) {
-        LOGGER.error("Duplicate workflows found having same path");
-        throw new RuntimeException("Duplicate workflows");
       } else {
-        return workflows.iterator().next();
+        List<Workflow> myWorkflows = filterWorkflows(workflows, userName, true);
+        if (myWorkflows.isEmpty()) {
+          return null;
+        } else if (myWorkflows.size() == 1) {
+          return myWorkflows.get(0);
+        } else {
+          LOGGER.error("Duplicate workflows found having same path");
+          throw new RuntimeException("Duplicate workflows. Remove one in Recent Workflows Manager");
+        }
       }
     } catch (PersistenceException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private List<Workflow> filterWorkflows(Collection<Workflow> workflows,String userName,boolean matches ) {
+    List<Workflow> filteredWorkflows = new ArrayList<>();
+    for (Workflow wf : workflows) {
+      if (matches && userName.equals(wf.getOwner())) {
+        filteredWorkflows.add(wf);
+      } else if (!matches && !userName.equals(wf.getOwner())) {
+        filteredWorkflows.add(wf);
+      }
+    }
+    return filteredWorkflows;
   }
 }
