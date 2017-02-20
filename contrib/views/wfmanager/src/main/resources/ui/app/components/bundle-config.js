@@ -123,7 +123,9 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       coordinators : null,
       schemaVersions : {
         bundleVersion : this.get('schemaVersions').getDefaultVersion('bundle')
-      }
+      },
+      xmlns : "uri:oozie:bundle:" +this.get('schemaVersions').getDefaultVersion('bundle'),
+      draftVersion: 'v1'
     });
   },
   importSampleBundle (){

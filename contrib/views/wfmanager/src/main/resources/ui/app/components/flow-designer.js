@@ -145,31 +145,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
 
   importWorkflowFromProjManager(path){
-      var self = this;
-      this.set("showingFileBrowser",false);
-      if(path){
-        self.set("isWorkflowImporting", true);
-        this.isDraftExists(path).promise.then(function(data){
-          var draftData = JSON.parse(data);
-          if(draftData.draftExists && draftData.isDraftCurrent) {
-              self.set("workflowFilePath", path);
-              self.getDraftWorkflowData(path).promise.then(function(data){
-                var workflowImporter = WorkflowJsonImporter.create({});
-                var workflow = workflowImporter.importWorkflow(data);
-                self.resetDesigner();
-                self.set("workflow", workflow);
-                self.initAndRenderWorkflow();
-                self.set("isWorkflowImporting", false);
-                self.doValidation();
-              }.bind(this)).catch(function(data){
-              });
-          } else {
-            self.importWorkflow(path);
-          }
-        }.bind(this)).catch(function(e){
-          console.error(e);
-        });
-      }
+    this.importWorkflow(path);
   },
 
   observeXmlAppPath : Ember.observer('xmlAppPath', function(){
@@ -376,6 +352,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var workflow=workflowImporter.importWorkflow(data);
     this.resetDesigner();
     this.set("workflow", workflow);
+    this.initAndRenderWorkflow();
     this.rerender();
     this.doValidation();
   },
@@ -453,7 +430,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     var actionNodeType = Object.keys(actionNodeXml)[0];
     var currentTransition = this.get("currentTransition.transition");
     this.createSnapshot();
-    var actionNode = this.get("workflow").addNode(this.findTransition(this.get("workflow").startNode, currentTransition.sourceNodeId, currentTransition.targetNode.id),actionNodeType);
+    var transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
+    transition.source=this.get("currentTransition").source;
+    var actionNode = this.get("workflow").addNode(transition,actionNodeType);
     this.rerender();
     this.doValidation();
     this.scrollToNewPosition();
@@ -714,6 +693,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }, 1000);
   },
   openSaveWorkflow() {
+    this.get('workflowContext').clearErrors();
     if(Ember.isBlank(this.$('[name=wf_title]').val())) {
       this.set('errors',[{"message":"Workflow name is mandatory"}]);
       return;

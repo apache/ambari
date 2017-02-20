@@ -52,8 +52,9 @@ public class Utils {
 	private static final String XML_INDENT_AMT_PROP_NAME = "{http://xml.apache.org/xslt}indent-amount";
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(Utils.class);
+	private final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	public String formatXml(String xml) {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
 		try {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			StreamResult result = new StreamResult(new StringWriter());
@@ -151,4 +152,15 @@ public class Utils {
 	}
 
 
+  public boolean isXml(String postBody) {
+		try {
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			InputSource is = new InputSource();
+			is.setCharacterStream(new StringReader(postBody));
+			Document doc = db.parse(is);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+  }
 }

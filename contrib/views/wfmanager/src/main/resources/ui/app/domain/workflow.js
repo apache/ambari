@@ -38,6 +38,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     var schemaVersions=SchemaVersions.create({});
     this.schemaVersions = {};
     this.schemaVersions.workflowVersion = schemaVersions.getDefaultVersion('workflow');
+    this.set("xmlns","uri:oozie:workflow:"+this.schemaVersions.workflowVersion);
     var actionsMap = new Map();
     Constants.actions.forEach((action)=>{
       if(action.supportsSchema){
