@@ -33,31 +33,14 @@ export default Ember.Component.extend({
 
   isQueryRunning:false,
 
-  didInsertElement(){
+  didInsertElement() {
     this._super(...arguments);
 
-    const width = '100vw', height = '100vh';
-
-    d3.select('#explain-container').select('svg').remove();
-    const svg = d3.select('#explain-container').append('svg')
-      .attr('width', width)
-      .attr('height', height);
-
-    const container = svg.append('g');
-
-    const zoom =
-      d3.zoom()
-        .scaleExtent([1 / 10, 4])
-        .on('zoom', () => {
-          container.attr('transform', d3.event.transform);
-        });
-
-      svg
-        .call(zoom);
-
     const onRequestDetail = data => this.set('explainDetailData', JSON.stringify( data, null, '  ') );
-
-    explain(JSON.parse(this.get('visualExplainInput')), svg, container, zoom, onRequestDetail);
+    const explainData = JSON.parse(this.get('visualExplainInput'));
+    // if(explainData) {
+      explain(explainData, '#explain-container', onRequestDetail);
+    // }
 
   },
 
@@ -80,7 +63,7 @@ export default Ember.Component.extend({
     closeModal(){
       this.set('showDetailsModal', false);
       this.set('explainDetailData', '');
-      false;
+      return false;
     }
 
   }
