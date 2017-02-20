@@ -1,20 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 @font-face {
   font-family: 'Roboto';
   font-weight: normal;
@@ -334,15 +317,15 @@ input.form-control:focus {
 }
 .has-warning input.form-control {
   color: #666;
-  border: 1px solid #E98A41;
+  border: 1px solid #E98A40;
 }
 .has-warning input.form-control:focus {
-  border-color: #E98A41;
+  border-color: #E98A40;
   box-shadow: none;
 }
 .has-warning .help-block.validation-block::before {
   content: '\e101';
-  color: #E98A41;
+  color: #E98A40;
 }
 .form-control[disabled],
 .form-control[readonly],
@@ -948,26 +931,40 @@ input.radio:checked + label:after {
   color: #fff;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu),
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) {
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu),
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed {
   background: #404351;
   cursor: pointer;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a {
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a,
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed > a,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed > a {
   color: #fff;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .navigation-menu-item,
 .navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed > a .navigation-menu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed > a .navigation-menu-item,
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .submenu-item,
 .navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .submenu-item,
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed > a .submenu-item,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed > a .submenu-item,
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .navigation-icon,
 .navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed > a .navigation-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed > a .navigation-icon,
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a .toggle-icon,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .toggle-icon {
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed > a .toggle-icon,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed > a .toggle-icon {
   color: #fff;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.active:not(.has-sub-menu) > a:after,
-.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a:after {
+.navigation-bar-container ul.nav.side-nav-footer li.active:not(.has-sub-menu) > a:after,
+.navigation-bar-container ul.nav.side-nav-menu li.active.collapsed > a:after,
+.navigation-bar-container ul.nav.side-nav-footer li.active.collapsed > a:after {
   left: 0;
   top: 50%;
   border: solid transparent;
@@ -1235,7 +1232,7 @@ input.radio:checked + label:after {
   color: #EF6162;
 }
 #notifications-dropdown.dropdown-menu .notifications-body .table.alerts-table tbody td.status .alert-state-WARNING {
-  color: #E98A41;
+  color: #E98A40;
 }
 #notifications-dropdown.dropdown-menu .notifications-body .table.alerts-table tbody td.content {
   width: 90%;
@@ -1283,6 +1280,38 @@ input.radio:checked + label:after {
 #notifications-dropdown.dropdown-menu .notifications-footer {
   border-top: 1px solid #eee;
   padding: 15px;
+}
+.modal-backdrop {
+  background-color: #808080;
+}
+.modal .modal-content {
+  border-radius: 2px;
+}
+.modal .modal-content .modal-header,
+.modal .modal-content .modal-body,
+.modal .modal-content .modal-footer {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.modal .modal-content .modal-header {
+  border-bottom: none;
+  padding-top: 20px;
+}
+.modal .modal-content .modal-header h4 {
+  margin: 0;
+  color: #666;
+  font-size: 20px;
+}
+.modal .modal-content .modal-body {
+  color: #666;
+  font-size: 12px;
+}
+.modal .modal-content .modal-footer {
+  border-top: none;
+  padding-bottom: 20px;
+}
+.modal .modal-content .modal-footer .btn ~ .btn {
+  margin-left: 10px;
 }
 h1,
 h2,
