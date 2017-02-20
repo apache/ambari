@@ -116,10 +116,15 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       String preferredCollectorHost = findPreferredCollectHost();
       collectorUri = constructTimelineMetricUri(protocol, preferredCollectorHost, port);
       containerMetricsUri = constructContainerMetricUri(protocol, preferredCollectorHost, port);
+
+      if (StringUtils.isNotEmpty(preferredCollectorHost)) {
+        LOG.info("Collector Uri: " + collectorUri);
+        LOG.info("Container Metrics Uri: " + containerMetricsUri);
+      } else {
+        LOG.info("No suitable collector found.");
+      }
     }
 
-    LOG.info("Collector Uri: " + collectorUri);
-    LOG.info("Container Metrics Uri: " + containerMetricsUri);
 
     timeoutSeconds = conf.getInt(METRICS_POST_TIMEOUT_SECONDS, DEFAULT_POST_TIMEOUT_SECONDS);
 
@@ -463,7 +468,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     executorService.submit(new Runnable() {
       @Override
       public void run() {
-        LOG.info("Closing HadoopTimelineMetricSink. Flushing metrics to collector...");
+        LOG.debug("Closing HadoopTimelineMetricSink. Flushing metrics to collector...");
         TimelineMetrics metrics = metricsCache.getAllMetrics();
         if (metrics != null) {
           emitMetrics(metrics);
