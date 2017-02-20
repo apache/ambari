@@ -112,7 +112,12 @@ export default Ember.Service.extend({
     data.id = this._getNextAlertId();
     data.type = type;
     data.status = options.status || -1;
-    data.trace = this._getDetailedError(options.trace);
+    if(options.trace){
+      data.trace = this._getDetailedError(options.trace);
+    }
+    else{
+      data.trace = this._getDetailedError(options.stack);
+    }
     delete options.status;
     delete options.error;
 
