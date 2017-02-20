@@ -42,6 +42,29 @@ def fix_subprocess_racecondition():
   del sys.modules['gc']
   import gc
 
+
+def fix_subprocess_popen():
+  '''
+  http://bugs.python.org/issue19809
+  '''
+  import os
+  import sys
+
+  if os.name == 'posix' and sys.version_info[0] < 3:
+    import subprocess
+    import threading
+
+    original_init = subprocess.Popen.__init__
+    lock = threading.RLock()
+
+    def locked_init(self, *a, **kw):
+      with lock:
+        original_init(self, *a, **kw)
+
+    subprocess.Popen.__init__ = locked_init
+
+
+fix_subprocess_popen()
 fix_subprocess_racecondition()
 fix_encoding_reimport_bug()
 
