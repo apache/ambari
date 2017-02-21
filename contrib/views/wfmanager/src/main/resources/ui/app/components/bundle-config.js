@@ -42,13 +42,13 @@ const Validations = buildValidations({
 
 export default Ember.Component.extend(Ember.Evented, Validations, {
   bundle : null,
-  errors: Ember.A([]),
   schemaVersions : SchemaVersions.create({}),
   propertyExtractor : Ember.inject.service('property-extractor'),
   fileBrowser : Ember.inject.service('file-browser'),
   workspaceManager : Ember.inject.service('workspace-manager'),
   initialize : function(){
     var self = this;
+    this.set('errors', Ember.A([]));
     this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id')).promise.then(function(draftBundle){
       self.loadBundle(draftBundle);
     }.bind(this)).catch(function(data){
@@ -98,7 +98,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.set('bundle.name', Ember.copy(this.get('tabInfo.name')));
     }
     this.schedulePersistWorkInProgress();
-  }, 
+  },
   schedulePersistWorkInProgress (){
     Ember.run.later(function(){
       this.persistWorkInProgress();
@@ -181,7 +181,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       deferred.resolve({data : data, type : type});
     }).fail(function(e){
       console.error(e);
-      deferred.reject();
+      deferred.reject(e);
     });
     return deferred;
   },
@@ -200,7 +200,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       deferred.resolve(data);
     }).fail(function(e){
       console.error(e);
-      deferred.reject();
+      deferred.reject(e);
     });
     return deferred;
   },
@@ -220,6 +220,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       var coordinatorJson = x2js.xml_str2json(coordinatorXml);
       var workflowPath = coordinatorJson['coordinator-app']['action']['workflow']['app-path'];
       if(this.get('propertyExtractor').containsParameters(workflowPath)){
+        this.set('containsParameteriedPaths', true);
         deferred.resolve(Array.from(coordProps.values()));
       }else{
         workflowPath = this.appendFileName(workflowPath, 'wf');
@@ -250,7 +251,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     closeFileBrowser(){
       this.set("showingFileBrowser", false);
       this.get('fileBrowser').getContext().trigger('fileSelected', this.get('filePath'));
-      if(this.get('bundleFilePath')){
+      if(this.get('filePathModel') === 'bundleFilePath'){
         this.importBundle(Ember.copy(this.get('bundleFilePath')));
         this.set('bundleFilePath', null);
       }
@@ -327,6 +328,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.$('#loading').show();
       this.get('bundle.coordinators').forEach((coordinator) =>{
         if(this.get('propertyExtractor').containsParameters(coordinator.appPath)){
+          this.set('containsParameteriedPaths', true);
           return;
         }
         var deferred = this.getJobProperties(coordinator.appPath);
@@ -336,7 +338,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
         var combinedProps = [];
         var excludedProps = [];
         props.forEach((prop, index)=>{
-          var coordinator = this.get('bundle.coordinators').objectAt(0);
+          var coordinator = this.get('bundle.coordinators').objectAt(index);
           if(coordinator.configuration && coordinator.configuration.property){
             coordinator.configuration.property.forEach((config) => {
               var idx = prop.indexOf('${'+config.name+'}');
