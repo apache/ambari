@@ -147,7 +147,7 @@ export default Ember.Component.extend(Ember.Evented,{
     }.on('didInsertElement'),
     mapSearchItems(key){
       key = key.replace(" ", "_").toLowerCase();
-      var keys = {"job_id":"id"};
+      var keys = {"job_id":"id","jobid":"id"};
       if(keys[key]){
         return keys[key];
       }
