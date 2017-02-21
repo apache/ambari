@@ -21,46 +21,46 @@
 {{/if}}
 
 {{#if App.router.mainController.isClusterDataLoaded}}
-<div id="side-nav" class="navigation-bar">
-  <div class="navigation-bar-container">
-  <ul class="side-nav-header nav nav-pills nav-stacked">
-    <li class="navigation-header">
-      {{#if enableLinks}}
-        <a {{translateAttr href="topnav.logo.href"}} class="ambari-logo">
-          <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
-        </a>
-      {{else}}
-        <a class="ambari-logo">
-          <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
-        </a>
-      {{/if}}
-      <div class="btn-group">
-        <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <span class="ambari-header" title="Apache Ambari">{{t app.name}}</span>
-          <span class="toggle-icon glyphicon glyphicon-triangle-bottom"></span>
+  <div id="side-nav" class="navigation-bar">
+    <div class="navigation-bar-container">
+    <ul class="side-nav-header nav nav-pills nav-stacked">
+      <li class="navigation-header">
+        {{#if enableLinks}}
+          <a {{translateAttr href="topnav.logo.href"}} class="ambari-logo">
+            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
+          </a>
+        {{else}}
+          <a class="ambari-logo">
+            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
+          </a>
+        {{/if}}
+        <div class="btn-group">
+          <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="ambari-header" title="Apache Ambari">{{t app.name}}</span>
+            <span class="toggle-icon glyphicon glyphicon-triangle-bottom"></span>
+          </div>
+          <ul class="dropdown-menu">
+            {{#if view.views.length}}
+              {{#each item in view.views}}
+                <li><a class="" href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a></li>
+              {{/each}}
+            {{else}}
+              <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
+            {{/if}}
+          </ul>
         </div>
-        <ul class="dropdown-menu">
-          {{#if view.views.length}}
-            {{#each item in view.views}}
-              <li><a class="" href="#" {{action "setView" item target="App.router.mainViewsController"}}>{{item.label}}</a></li>
-            {{/each}}
-          {{else}}
-            <li class="disabled"><a href="javascript:void(null);">{{t menu.item.views.noViews}}</a></li>
-          {{/if}}
-        </ul>
-      </div>
-    </li>
-  </ul>
-  {{view App.MainSideMenuView}}
-  <ul class="side-nav-footer nav nav-pills nav-stacked">
-    <li class="navigation-footer">
-      <a href="#" data-toggle="collapse-side-nav">
-        <span class="navigation-icon icon-double-angle-left"></span>
-      </a>
-    </li>
-  </ul>
+      </li>
+    </ul>
+    {{view App.MainSideMenuView}}
+    <ul class="side-nav-footer nav nav-pills nav-stacked">
+      <li class="navigation-footer">
+        <a href="#" data-toggle="collapse-side-nav">
+          <span class="navigation-icon icon-double-angle-left"></span>
+        </a>
+      </li>
+    </ul>
+    </div>
   </div>
-</div>
 {{/if}}
 
 <div id="main">

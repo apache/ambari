@@ -823,7 +823,6 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a,
 .navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a,
 .navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a {
-  padding: 15px 5px 15px 25px;
   display: table-cell;
   vertical-align: middle;
   width: 190px;
@@ -867,6 +866,16 @@ input.radio:checked + label:after {
   font-size: 14px;
   color: #b8bec4;
   padding: 3px 5px 3px 10px;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.navigation-footer > a,
+.navigation-bar-container ul.nav.side-nav-footer li.navigation-footer > a,
+.navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a,
+.navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a {
+  padding: 15px 5px 15px 25px;
+}
+.navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a,
+.navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a {
+  padding: 10px 5px 10px 25px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer {
@@ -1005,6 +1014,7 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-menu .menu-item-name,
 .navigation-bar-container ul.nav.side-nav-footer .menu-item-name {
   display: inline-block;
+  vertical-align: bottom;
   max-width: 94px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1068,7 +1078,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li > a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li > a {
-  padding: 15px 5px 15px 25px;
+  padding: 10px 5px 10px 25px;
   width: 190px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.active,

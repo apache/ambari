@@ -35,6 +35,15 @@
         $(this).addClass('navigation-bar-fit-height');
       }
 
+      //set main content left margin based on the width of side-nav
+      var containerWidth = $navigationContainer.width();
+      if (settings.moveLeftContent) {
+        $(settings.content).css('margin-left', containerWidth);
+      }
+      if (settings.moveLeftFooter) {
+        $(settings.footer).css('margin-left', containerWidth);
+      }
+
       function popStateHandler() {
         var path = window.location.pathname + window.location.hash;
         $navigationContainer.find('li a').each(function (index, link) {
