@@ -2123,8 +2123,6 @@ public class ClusterImpl implements Cluster {
     try {
       refresh();
       deleteAllServices();
-
-      refresh(); // update one-to-many clusterServiceEntities
       removeEntities();
       allConfigs.clear();
     } finally {
