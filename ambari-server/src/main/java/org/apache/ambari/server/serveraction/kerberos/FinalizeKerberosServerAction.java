@@ -200,14 +200,12 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
       }
     }
 
-    if(getKDCType(getCommandParameters()) != KDCType.NONE) {
-      // Ensure the keytab files for the Ambari identities have the correct permissions
-      // This is important in the event a secure cluster was created via Blueprints since some
-      // user accounts and group may not have been created when the keytab files were created.
-      requestSharedDataContext.put(this.getClass().getName() + "_visited", new HashSet<String>());
-      processIdentities(requestSharedDataContext);
-      requestSharedDataContext.remove(this.getClass().getName() + "_visited");
-    }
+    // Ensure the keytab files for the Ambari identities have the correct permissions
+    // This is important in the event a secure cluster was created via Blueprints since some
+    // user accounts and group may not have been created when the keytab files were created.
+    requestSharedDataContext.put(this.getClass().getName() + "_visited", new HashSet<String>());
+    processIdentities(requestSharedDataContext);
+    requestSharedDataContext.remove(this.getClass().getName() + "_visited");
 
     // Make sure this is a relevant directory. We don't want to accidentally allow _ANY_ directory
     // to be deleted.

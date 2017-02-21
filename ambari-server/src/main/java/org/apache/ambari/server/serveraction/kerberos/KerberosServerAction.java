@@ -194,7 +194,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     String kdcType = getCommandParameterValue(commandParameters, KDC_TYPE);
 
     return ((kdcType == null) || kdcType.isEmpty())
-        ? KDCType.NONE
+        ? KDCType.MIT_KDC
         : KDCType.translate(kdcType);
   }
 
