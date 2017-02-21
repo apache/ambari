@@ -42,7 +42,7 @@
               {{/each}}
             </ul>
         </div>
-        <button class="btn btn-default" {{action "visualExplainQuery" }}>{{fa-icon "link"}} Visual Explain</button>
+        <button class="btn btn-default" {{action "visualExplainQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "link"}} Visual Explain</button>
 
         {{#if worksheet.isQueryRunning}}
           {{fa-icon "spinner fa-1-5" spin=true}}

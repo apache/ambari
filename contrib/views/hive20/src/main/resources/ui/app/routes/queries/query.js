@@ -190,8 +190,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     visualExplainQuery(){
-      this.get('controller').set('isVisualExplainQuery', true );
-      this.send('executeQuery');
+      this.send('executeQuery', true);
     },
 
     updateQuery(query){
@@ -199,12 +198,19 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.get('controller.model').set('query', query);
     },
 
-    executeQuery(){
+    executeQuery(isVisualExplainQuery){
 
       let self = this;
       this.get('controller').set('currentJobId', null);
 
-      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
+      if(!Ember.isEmpty(isVisualExplainQuery)){
+        var isVisualExplainQuery = true;
+        this.get('controller').set('isVisualExplainQuery', true);
+      } else {
+        var isVisualExplainQuery = false;
+        this.get('controller').set('isVisualExplainQuery', false);
+      }
+
 
       let queryInput = this.get('controller').get('currentQuery');
 
@@ -260,6 +266,7 @@ export default Ember.Route.extend(UILoggerMixin, {
           .then((status) => {
             self.get('controller').set('isJobSuccess', true);
             self.send('getJobResult', data, payload.title);
+            self.transitionTo('queries.query.loading');
           }, (error) => {
             console.log('error', error);
             self.get('logger').danger('Failed to execute query.', self.extractError(error));
@@ -305,6 +312,8 @@ export default Ember.Route.extend(UILoggerMixin, {
 
         if(isVisualExplainQuery){
           self.send('showVisualExplain', payloadTitle);
+        } else {
+          self.get('controller.model').set('visualExplainJson', null);
         }
 
         if( self.paramsFor('queries.query').worksheetId == payloadTitle){
