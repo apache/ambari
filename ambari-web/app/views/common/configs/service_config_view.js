@@ -131,6 +131,7 @@ App.ServiceConfigView = Em.View.extend({
     App.tooltip($(".glyphicon .glyphicon-lock"), {placement: 'right'});
     App.tooltip($("[rel=tooltip]"));
     this.checkCanEdit();
+    this.set('filter', '');
   },
 
   willDestroyElement: function() {
