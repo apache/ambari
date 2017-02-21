@@ -29,5 +29,14 @@ export default Ember.Mixin.create({
     } else {
       return error;
     }
+  },
+  extractMessage(error) {
+    if (Ember.isArray(error.errors) && (error.errors.length >= 0)) {
+      return error.errors[0].message;
+    } else if(!Ember.isEmpty(error.errors)) {
+      return error.errors.message;
+    } else{
+      return error.message;
+    }
   }
 });

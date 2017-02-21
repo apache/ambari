@@ -53,7 +53,7 @@ public class WorkflowManagerService {
 
     } else {
       String workflowFileName = workflowFilesService.getWorkflowFileName(path, jobType);
-      Workflow workflowByPath = workflowsRepository.getWorkflowByPath(workflowFileName);
+      Workflow workflowByPath = workflowsRepository.getWorkflowByPath(workflowFileName,userName);
       if (workflowByPath != null) {
         setWorkflowAttributes(jobType, userName, name, workflowByPath);
         workflowsRepository.update(workflowByPath);
@@ -74,8 +74,8 @@ public class WorkflowManagerService {
     wf.setType(jobType.name());
   }
 
-  public Collection<Workflow> getAllWorkflows() {
-    return workflowsRepository.findAll();
+  public Collection<Workflow> getAllWorkflows(String username) {
+    return workflowsRepository.getWorkflows(username);
   }
 
   public void deleteWorkflow(String projectId, Boolean deleteDefinition) {

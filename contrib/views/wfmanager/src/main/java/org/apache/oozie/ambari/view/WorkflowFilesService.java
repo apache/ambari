@@ -20,6 +20,8 @@ package org.apache.oozie.ambari.view;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.apache.hadoop.fs.FileStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ public class WorkflowFilesService {
   private final static Logger LOGGER = LoggerFactory
           .getLogger(WorkflowFilesService.class);
   private HDFSFileUtils hdfsFileUtils;
+  private String currentDraftVersion="v1";
 
   public WorkflowFilesService(HDFSFileUtils hdfsFileUtils) {
     super();
@@ -118,8 +121,13 @@ public class WorkflowFilesService {
     if (appPath.endsWith(Constants.WF_ASSET_EXTENSION)) {
       assetFile = appPath;
     } else {
-      assetFile = appPath + (appPath.endsWith("/") ? "" : "/")
-              + Constants.DEFAULT_WORKFLOW_ASSET_FILENAME;
+      String[] paths=appPath.split("/");
+      if (paths[paths.length-1].contains(".")){
+        return appPath;
+      }else{
+        assetFile = appPath + (appPath.endsWith("/") ? "" : "/")
+          + Constants.DEFAULT_WORKFLOW_ASSET_FILENAME;
+      }
     }
     return assetFile;
   }
@@ -144,6 +152,7 @@ public class WorkflowFilesService {
               .getFileStatus(appPath);
       workflowInfo.setWorkflowModificationTime(workflowFileStatus
               .getModificationTime());
+
     }
     if (draftExists) {
       FileStatus draftFileStatus = hdfsFileUtils
@@ -167,4 +176,13 @@ public class WorkflowFilesService {
     }
   }
 
+  public boolean isDraftFormatCurrent(String json) {
+    JsonElement jsonElement = new JsonParser().parse(json);
+    JsonElement draftVersion = jsonElement.getAsJsonObject().get("draftVersion");
+    if (draftVersion != null && currentDraftVersion.equals(draftVersion.getAsString().trim())) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

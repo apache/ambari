@@ -48,7 +48,6 @@
     "ember-export-application-global": "^1.0.5",
     "ember-font-awesome": "2.2.0",
     "ember-i18n": "4.5.0",
-    "ember-light-table": "1.8.0",
     "ember-load-initializers": "^0.5.1",
     "ember-modal-dialog": "0.9.0",
     "ember-moment": "7.2.0",

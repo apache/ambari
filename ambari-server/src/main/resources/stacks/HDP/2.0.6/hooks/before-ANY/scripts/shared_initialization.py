@@ -198,6 +198,10 @@ def setup_java():
          not_if = format("test -f {jdk_curl_target}")
     )
 
+    File(jdk_curl_target,
+         mode = 0755,
+    )
+
     tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
 
     try:

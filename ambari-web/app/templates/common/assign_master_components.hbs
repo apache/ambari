@@ -89,8 +89,9 @@
                                 {{view App.SelectHostView
                                 componentBinding="this"
                                 disabledBinding="isInstalled"
-                                optionValuePath="content.host_name"
-                                optionLabelPath="content.host_info" }}
+                                contentBinding="content"
+                                optionValuePath="host_name"
+                                optionLabelPath="host_info" }}
                               {{/if}}
                               <span rel="popover" title="Warning" {{bindAttr data-content="warnMessage"}}>
                                 {{#if warnMessage}}

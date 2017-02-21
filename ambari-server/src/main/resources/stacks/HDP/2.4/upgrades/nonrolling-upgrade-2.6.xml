@@ -461,6 +461,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Set hive.enforce.bucketing property">
+        <task xsi:type="configure" id="hdp_2_6_0_0_hive_set_hive_enforce_bucketing_property">
+          <summary>Updating hive.enforce.bucketing property to true value</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Parameterizing WebHCat Log4J Properties">
         <task xsi:type="configure" id="webhcat_log4j_parameterize">
           <summary>Updating the Webhcat Log4J properties to include parameterizations</summary>

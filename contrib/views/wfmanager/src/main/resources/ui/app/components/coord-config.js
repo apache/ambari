@@ -223,7 +223,9 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       slainfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
-      }
+      },
+      xmlns : "uri:oozie:coordinator:" +this.get('schemaVersions').getDefaultVersion('coordinator'),
+      draftVersion: 'v1'
     });
   },
   importSampleCoordinator (){
@@ -515,7 +517,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     closeFileBrowser(){
       this.set("showingFileBrowser", false);
       this.get('fileBrowser').getContext().trigger('fileSelected', this.get('filePath'));
-      if(this.get('coordinatorFilePath')){
+      if(this.get('filePathModel') === 'coordinatorFilePath'){
         this.importCoordinator(Ember.copy(this.get('coordinatorFilePath')));
         this.set('coordinatorFilePath', null);
       }

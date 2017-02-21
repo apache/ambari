@@ -16,8 +16,13 @@
 * limitations under the License.
 }}
 {{#if showActionError}}
-<div id="alert"class="alert alert-danger alert-dismissible fade in workflow-error" role="alert">
-  <span>Action could not be completed.</span>
+<div id="error-alert"class="alert alert-danger alert-dismissible fade in workflow-error" role="alert">
+  <span>{{errorMessage}}</span>
+</div>
+{{/if}}
+{{#if showActionSuccess}}
+<div id="success-alert"class="alert alert-success alert-dismissible fade in workflow-error" role="alert">
+  <span>{{successMessage}}. Refresh to see the latest status.</span>
 </div>
 {{/if}}
 <table id="search-table" class="table search-table listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
@@ -54,7 +59,7 @@
   <tbody>
     {{#if jobs.jobs}}
       {{#each jobs.jobs as |job idx|}}
-        {{#job-row job=job onAction="onAction" showJobDetails="showJobDetails" rowSelected="rowSelected" userName=userName showError=showActionError}}{{/job-row}}
+        {{#job-row job=job onAction="onAction" showJobDetails="showJobDetails" rowSelected="rowSelected" userName=userName showMessage="showMessage"}}{{/job-row}}
       {{/each}}
     {{/if}}
   </tbody>

@@ -127,10 +127,7 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
 
 });
 
-App.SelectHostView = Em.Select.extend(App.SelectHost, {
-
-  classNames: ['form-control'],
-  attributeBindings: ['disabled'],
+App.SelectHostView = App.DropdownView.extend(App.SelectHost, {
 
   didInsertElement: function () {
     this.initContent();

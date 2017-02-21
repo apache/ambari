@@ -17,8 +17,9 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../../mixins/ui-logger';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(UILoggerMixin, {
 
   beforeModel(){
 
@@ -94,42 +95,50 @@ export default Ember.Route.extend({
 
         let resourcePayload = {"name":resourceName,"path":resourcePath};
 
-        this.get('udf').savefileResource(resourcePayload)
-          .then((data) => {
+        var newFileResource = this.get('store').createRecord('file-resource',
+          {name:resourceName,
+            path:resourcePath
+          });
 
-            console.log('fileResource is', data.fileResource.id);
-
-            let newUDF = this.get('store').createRecord('udf',
-              {name:udfName,
-                classname:udfClassName,
-                fileResource: data.fileResource.id
-              });
-
-            newUDF.save().then((data) => {
-              console.log('udf saved');
-
-              this.get('store').findAll('udf').then((data) => {
-                let udfList = [];
-                data.forEach(x => {
-                  let localUdf = {
-                    'id': x.get('id'),
-                    'name': x.get('name'),
-                    'classname': x.get('classname'),
-                    'fileResource': x.get('fileResource'),
-                    'owner': x.get('owner')
-                  };
-                  udfList.pushObject(localUdf);
-                });
-
-                this.controllerFor('udfs').set('udflist',udfList);
-                this.transitionTo('udfs');
-              })
-
+        newFileResource.save().then((data) => {
+          console.log('fileResource is', data.get('id'));
+          let newUDF = this.get('store').createRecord('udf',
+            {name:udfName,
+              classname:udfClassName,
+              fileResource: data.get('id')
             });
 
-          }, (error) => {
-            console.log("Error encountered", error);
+          newUDF.save().then((data) => {
+            console.log('udf saved');
+
+            this.get('store').findAll('udf').then((data) => {
+              let udfList = [];
+              data.forEach(x => {
+                let localUdf = {
+                  'id': x.get('id'),
+                  'name': x.get('name'),
+                  'classname': x.get('classname'),
+                  'fileResource': x.get('fileResource'),
+                  'owner': x.get('owner')
+                };
+                udfList.pushObject(localUdf);
+              });
+
+              this.controllerFor('udfs').set('udflist',udfList);
+              this.transitionTo('udfs');
+            })
+          })
+          .catch((error) => {
+            this.get('logger').danger('Failed to create UDF.', this.extractError(error));
+            this.transitionTo('udfs');
+
           });
+        })
+        .catch((error) => {
+          this.get('logger').danger('Failed to create File Resource.', this.extractError(error));
+          this.transitionTo('udfs');
+        });
+
       }
     },
 

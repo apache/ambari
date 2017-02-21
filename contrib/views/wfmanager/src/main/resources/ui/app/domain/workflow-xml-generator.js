@@ -44,10 +44,6 @@ var WorkflowGenerator= Ember.Object.extend({
     }
     this.get("workflowMapper").handleCredentialsGeneration(this.workflow.credentials,workflowObj["workflow-app"]);
     this.get("workflowMapper").hanldeParametersGeneration(this.workflow.parameters,workflowObj["workflow-app"]);
-    if (!this.ignoreErrors && (!workflowObj["workflow-app"].action || workflowObj["workflow-app"].action.length<1)){
-      this.workflowContext.addError({message : "Miniumum of one action node must exist"});
-      return;
-    }
     var reordered={"workflow-app":{}};
     var srcWorkflowApp=workflowObj["workflow-app"];
     var targetWorkflowApp=reordered["workflow-app"];

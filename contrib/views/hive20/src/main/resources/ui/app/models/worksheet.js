@@ -30,13 +30,15 @@ export default DS.Model.extend({
   selected: DS.attr('boolean', {transient: true, defaultValue: false}),
   jobData: DS.attr({defaultValue: []}),
   currentJobData: DS.attr({defaultValue: null}),
-  hidePreviousButton: DS.attr('boolean', { defaultValue: true}),
+  hasNext: DS.attr('boolean', { defaultValue: false}),
+  hasPrevious: DS.attr('boolean', { defaultValue: false}),
   selectedTablesModels: DS.attr(),
   selectedMultiDb: DS.attr(),
   queryFile: DS.attr('string', {defaultValue: ""}),
   logFile: DS.attr('string', {defaultValue: ""}),
   logResults: DS.attr('string', {defaultValue: ""}),
   isQueryRunning: DS.attr('boolean', {defaultValue: false}),
-  isQueryResultContainer: DS.attr('boolean', {defaultValue: false})
-
+  isQueryResultContainer: DS.attr('boolean', {defaultValue: false}),
+  visualExplainJson: DS.attr({defaultValue: null}),
+  lastResultRoute: DS.attr({defaultValue: ""})
 });

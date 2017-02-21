@@ -17,6 +17,7 @@
 
 import Ember from 'ember';
 import { validator, buildValidations } from 'ember-cp-validations';
+import CommonUtils from "../utils/common-utils";
 
 const Validations = buildValidations({
   'filePath': validator('presence', {
@@ -83,11 +84,11 @@ export default Ember.Component.extend(Validations, {
     }
   },
   saveJob(){
-    var url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath") + "&jobType="+this.get('displayName').toUpperCase();
-    this.saveWfJob(url, this.get("jobJson"));
-    if(!this.get('isDraft')){
-       url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
-       this.saveWfJob(url, this.get("jobXml"));
+    var url = Ember.ENV.API_URL + "/saveWorkflow?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath") + "&jobType="+this.get('displayName').toUpperCase();
+    if(this.get('isDraft')){
+       this.saveWfJob(url, this.get("jobJson"));
+    } else {
+      this.saveWfJob(url, this.get("jobXml"));
     }
   },
   saveWfJob(url, workflowData) {

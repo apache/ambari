@@ -28,13 +28,19 @@ export default Ember.Component.extend({
     var roundedStart = this.get('jobs.start') - this.get('jobs.start') % 10;
     return (roundedStart / this.get('jobs.pageSize'))+1;
   }),
+  userName : Ember.computed.alias('userInfo.userName'),
   rendered : function(){
     this.sendAction('onSearch', this.get('history').getSearchParams());
   }.on('didInsertElement'),
   isUpdated : function(){
     if(this.get('showActionError')){
-      this.$('#alert').fadeOut(2500, ()=>{
+      this.$('#error-alert').fadeOut(5000, ()=>{
         this.set("showActionError", false);
+      });
+    }
+    if(this.get('showActionSuccess')){
+      this.$('#success-alert').fadeOut(5000, ()=>{
+        this.set("showActionSuccess", false);
       });
     }
   }.on('didUpdate'),
@@ -130,6 +136,15 @@ export default Ember.Component.extend({
         }
       }else{
         this.set('showBulkAction', false);
+      }
+    },
+    showMessage(messageInfo){
+      if(messageInfo.type === 'error'){
+        this.set('showActionError', true);
+        this.set('errorMessage', messageInfo.message);
+      }else{
+        this.set('showActionSuccess', true);
+        this.set('successMessage', messageInfo.message);
       }
     }
   }

@@ -776,10 +776,12 @@
 
       <component name="HIVE_SERVER">
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options"/>
+          <task xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_task"/>
+          <task xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_am"/>
           <task xsi:type="configure" id="hdp_2_6_0_0_hive_append_heap_dump_options"/>
           <task xsi:type="configure" id="hive_log4j_parameterize" />
           <task xsi:type="configure" id="hive_llap_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_hive_set_hive_enforce_bucketing_property" />
         </pre-upgrade>
         
         <pre-downgrade />
@@ -796,6 +798,7 @@
           <task xsi:type="configure" id="webhcat_log4j_parameterize" />
           <task xsi:type="configure" id="hive_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
+          <task xsi:type="configure" id="llap_update_headroom"/>
         </pre-upgrade>
         
         <pre-downgrade />

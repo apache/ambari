@@ -51,6 +51,11 @@
         </div>
         <div class="panel-body">
           <div>
+            {{#if showUploadSuccess}}
+              <div id="success-alert"class="alert alert-success alert-dismissible fade in" role="alert">
+                <span>File uploaded</span>
+              </div>
+            {{/if}}
             {{#if alertMessage}}
               <div class="alert alert-{{alertType}} col-xs-24">
                 {{alertMessage}}

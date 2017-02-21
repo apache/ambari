@@ -336,9 +336,13 @@
             <type>hive-env</type>
             <insert key="content" value="export HADOOP_CLIENT_OPTS=&quot;$HADOOP_CLIENT_OPTS{{heap_dump_opts}}&quot;" insert-type="append" newline-before="true" newline-after="true" />
           </definition>
-          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options">
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_task">
             <type>tez-site</type>
             <insert key="tez.task.launch.cmd-opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_am">
+            <type>tez-site</type>
+            <insert key="tez.am.launch.cmd-opts" value="{{heap_dump_opts}}" insert-type="append" newline-before="false" newline-after="false" />
           </definition>
           <definition xsi:type="configure" id="hive_log4j_parameterize" summary="Parameterizing Hive Log4J Properties">
             <type>hive-log4j</type>
@@ -353,6 +357,11 @@
             <set key = "hive_llap_log_maxbackupindex" value="240"/>
             <regex-replace key="content" find="property.llap.daemon.log.maxfilesize = ([0-9]+)MB" replace-with="property.llap.daemon.log.maxfilesize = {{hive_llap_log_maxfilesize}}MB"/>
             <regex-replace key="content" find="property.llap.daemon.log.maxbackupindex = ([0-9]+)" replace-with="property.llap.daemon.log.maxbackupindex = {{hive_llap_log_maxbackupindex}}"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_set_hive_enforce_bucketing_property">
+            <type>hive-site</type>
+            <set key="hive.enforce.bucketing" value="true"/>
           </definition>
         </changes>
       </component>
@@ -382,6 +391,12 @@
             <regex-replace key="content" find="appender.DRFA.strategy.max = ([0-9]+)" replace-with="appender.DRFA.strategy.max = {{llap_cli_log_maxbackupindex}}"/>
             <replace key="content" find="appender.DRFA.strategy.type = DefaultRolloverStrategy" replace-with="appender.DRFA.strategy.type = DefaultRolloverStrategy&#xA;appender.DRFA.policies.fsize.type = SizeBasedTriggeringPolicy&#xA;appender.DRFA.policies.fsize.size = {{llap_cli_log_maxfilesize}}MB"/>
           </definition>
+
+          <definition xsi:type="configure" id="llap_update_headroom" summary="Update headroom for LLAP">
+            <type>hive-interactive-env</type>
+            <set key="llap_headroom_space" value="12288"/>
+          </definition>
+
         </changes>
 
       </component>

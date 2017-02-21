@@ -91,14 +91,14 @@
               <div class="col-sm-offset-2 col-sm-10">
                 <div class="checkbox">
                   <label>
-                    {{input type="checkbox" checked=column.isPartitioned disabled=(not column.editing)}} Partitioned
+                    {{input type="checkbox" checked=column.isPartitioned disabled=(or (not column.editing) editMode)}} Partitioned
                   </label>
                 </div>
               </div>
               <div class="col-sm-offset-2 col-sm-10">
                 <div class="checkbox">
                   <label>
-                    {{input type="checkbox" checked=column.isClustered disabled=(not column.editing)}} Clustered
+                    {{input type="checkbox" checked=column.isClustered disabled=(or (not column.editing) editMode)}} Clustered
                   </label>
                 </div>
               </div>
