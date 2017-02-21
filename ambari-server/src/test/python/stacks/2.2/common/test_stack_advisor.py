@@ -1300,7 +1300,6 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
-          'hive.enforce.bucketing': 'false',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.exec.failure.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
           'hive.exec.orc.compression.strategy': 'SPEED',

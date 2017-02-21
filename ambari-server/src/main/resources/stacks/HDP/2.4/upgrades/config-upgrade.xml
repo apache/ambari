@@ -96,6 +96,11 @@
             <regex-replace key="content" find="#log4j.appender.DRFA.MaxBackupIndex=([0-9]+)" replace-with="#log4j.appender.DRFA.MaxBackupIndex={{hive_log_maxbackupindex}}"/>
             <replace key="content" find="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.DRFA.MaxFileSize = {{hive_log_maxfilesize}}MB"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_hive_set_hive_enforce_bucketing_property">
+            <type>hive-site</type>
+            <set key="hive.enforce.bucketing" value="true"/>
+          </definition>
          </changes>
       </component>
 

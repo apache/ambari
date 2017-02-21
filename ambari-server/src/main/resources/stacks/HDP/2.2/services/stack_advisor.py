@@ -320,14 +320,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveSiteProperty("hive.support.concurrency", "true")
       putHiveSiteProperty("hive.compactor.initiator.on", "true")
       putHiveSiteProperty("hive.compactor.worker.threads", "1")
-      putHiveSiteProperty("hive.enforce.bucketing", "true")
       putHiveSiteProperty("hive.exec.dynamic.partition.mode", "nonstrict")
     else:
       putHiveSiteProperty("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager")
       putHiveSiteProperty("hive.support.concurrency", "false")
       putHiveSiteProperty("hive.compactor.initiator.on", "false")
       putHiveSiteProperty("hive.compactor.worker.threads", "0")
-      putHiveSiteProperty("hive.enforce.bucketing", "false")
       putHiveSiteProperty("hive.exec.dynamic.partition.mode", "strict")
 
     hiveMetastoreHost = self.getHostWithComponent("HIVE", "HIVE_METASTORE", services, hosts)
@@ -1442,6 +1440,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         self.getWarnItem("According to LDAP value for " + authentication_property + ", you should add " +
             ldap_domain_property + " property, if you are using AD, if not, then " + ldap_baseDN_property + "!")})
 
+
+    hive_enforce_bucketing = "hive.enforce.bucketing"
+    if hive_enforce_bucketing in properties and properties[hive_enforce_bucketing].lower() == "false":
+      validationItems.append({"config-name" : hive_enforce_bucketing, "item" :
+        self.getWarnItem("Set " + hive_enforce_bucketing + " to true otherwise there is a potential of data corruption!")})
 
     configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
     configurationValidationProblems.extend(parentValidationProblems)
