@@ -237,6 +237,10 @@ Ember._HandlebarsBoundView.reopen({
   }
 });
 
+Ember.TextField.reopen({
+  attributeBindings: ['readOnly']
+});
+
 Ember.TextArea.reopen({
   attributeBindings: ['readonly']
 });
