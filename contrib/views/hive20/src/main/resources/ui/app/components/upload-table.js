@@ -28,7 +28,7 @@ export default Ember.Component.extend({
   fileInfo: Ember.Object.create({
     files: Ember.A(),
     hdfsPath: null,
-    uploadSource: null,
+    uploadSource: "local",
   }),
   tableMeta: Ember.Object.create(),
   actions: {

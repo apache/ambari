@@ -220,6 +220,10 @@ public class ClusterTest {
   }
 
   private void createDefaultCluster() throws Exception {
+    createDefaultCluster(Sets.newHashSet("h1", "h2"));
+  }
+
+  private void createDefaultCluster(Set<String> hostNames) throws Exception {
     // TODO, use common function
     StackId stackId = new StackId("HDP", "0.1");
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
@@ -233,7 +237,6 @@ public class ClusterTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
 
-    Set<String> hostNames = new HashSet<String>() {{ add("h1"); add("h2"); }};
     for (String hostName : hostNames) {
       clusters.addHost(hostName);
 
@@ -1847,13 +1850,16 @@ public class ClusterTest {
 
   @Test
   public void testRecalculateClusterVersionStateWithNotRequired() throws Exception {
-    createDefaultCluster();
+    createDefaultCluster(Sets.newHashSet("h1", "h2", "h3"));
 
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
 
     Host h2 = clusters.getHost("h2");
     h2.setState(HostState.HEALTHY);
+
+    Host h3 = clusters.getHost("h3");
+    h3.setState(HostState.HEALTHY);
 
     // Phase 1: Install bits during distribution
     StackId stackId = new StackId("HDP-0.1");
@@ -1866,13 +1872,29 @@ public class ClusterTest {
         RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
 
-    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
-    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.NOT_REQUIRED);
+    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.NOT_REQUIRED);
+    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
+    HostVersionEntity hv3 = helper.createHostVersion("h3", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
 
     c1.recalculateClusterVersionState(repositoryVersionEntity);
-    //Should remain in its current state
-    checkStackVersionState(stackId, stackVersion,
-        RepositoryVersionState.INSTALLED);
+    ClusterVersionEntity cv = clusterVersionDAO.findByClusterAndStackAndVersion(c1.getClusterName(), stackId, stackVersion);
+    assertEquals(RepositoryVersionState.INSTALLING, cv.getState());
+
+    // 1 in NOT_REQUIRED, 1 in INSTALLED, 1 in CURRENT so should be INSTALLED
+    hv2.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv2);
+
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    cv = clusterVersionDAO.findByClusterAndStackAndVersion(c1.getClusterName(), stackId, stackVersion);
+    assertEquals(RepositoryVersionState.INSTALLED, cv.getState());
+
+    // 1 in NOT_REQUIRED, and 2 in CURRENT, so cluster version should be CURRENT
+    hv3.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv3);
+
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    cv = clusterVersionDAO.findByClusterAndStackAndVersion(c1.getClusterName(), stackId, stackVersion);
+    assertEquals(RepositoryVersionState.CURRENT, cv.getState());
   }
 
 

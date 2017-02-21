@@ -72,9 +72,15 @@ export default Ember.Component.extend({
         }else if(action === 'kill'){
           this.set('job.status','KILLED');
         }
+        this.sendAction('showMessage', {type:'success', message:`${action.toUpperCase()} action complete. Job is ${this.get('job.status')}`});
       }.bind(this)).catch(function(e){
         this.set('showError', true);
         this.set('showLoader', false);
+        var message = `${action.toUpperCase()} action for could not be completed`;
+        if(this.get('userName') !== this.get('job.user')){
+          message = `${message}. ${this.get('userName')} is not the job owner.`
+        }
+        this.sendAction('showMessage', {type:'error', message:message});
         console.error(e);
       }.bind(this));
       if(action === 'rerun' && this.get('job').bundleJobId){

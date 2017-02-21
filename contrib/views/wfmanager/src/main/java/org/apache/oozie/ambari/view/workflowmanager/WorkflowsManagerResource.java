@@ -30,17 +30,18 @@ import javax.ws.rs.QueryParam;
 import org.apache.ambari.view.ViewContext;
 
 public class WorkflowsManagerResource {
-	private WorkflowManagerService workflowManagerService;
-	
+	private final WorkflowManagerService workflowManagerService;
+	private final ViewContext viewContext;
 	public WorkflowsManagerResource(ViewContext viewContext) {
 		super();
+		this.viewContext=viewContext;
 		this.workflowManagerService=new WorkflowManagerService(viewContext);
 	}
 
 	@GET
 	public Map<String,Object> getWorkflows(){
 	    HashMap<String,Object> result=new HashMap<>();
-	    result.put("wfprojects", workflowManagerService.getAllWorkflows());
+	    result.put("wfprojects", workflowManagerService.getAllWorkflows(viewContext.getUsername()));
 	    return result;
 	}
 	

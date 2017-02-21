@@ -162,7 +162,7 @@
   </property>
   <property>
     <name>llap_headroom_space</name>
-    <value>6144</value>
+    <value>12288</value>
     <description>
       Maximum headroom reserved from the YARN container running LLAP daemons.
       This is an upper limit used during automatic size calculations, and the actual

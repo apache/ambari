@@ -143,6 +143,16 @@
                 {{druid_broker_urls}}
             &lt;/service&gt;
 
+            &lt;service&gt;
+                &lt;role&gt;ZEPPELINUI&lt;/role&gt;
+                {{zeppelin_ui_urls}}
+            &lt;/service&gt;
+
+            &lt;service&gt;
+                &lt;role&gt;ZEPPELINWS&lt;/role&gt;
+                {{zeppelin_ws_urls}}
+            &lt;/service&gt;
+
         &lt;/topology&gt;
     </value>
     <description>

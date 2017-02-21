@@ -36,7 +36,6 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -68,26 +67,30 @@ import com.google.inject.Singleton;
 public class OozieProxyImpersonator {
   private final static Logger LOGGER = LoggerFactory
     .getLogger(OozieProxyImpersonator.class);
+  private static final boolean PROJ_MANAGER_ENABLED = true;
+  public static final String RESPONSE_TYPE = "response-type";
+  public static final String OLDER_FORMAT_DRAFT_INGORED = "olderFormatDraftIngored";
 
-  private ViewContext viewContext;
+  private final ViewContext viewContext;
   private final Utils utils = new Utils();
 
 
   private final HDFSFileUtils hdfsFileUtils;
   private final WorkflowFilesService workflowFilesService;
   private WorkflowManagerService workflowManagerService;
-  private static final boolean PROJ_MANAGER_ENABLED = true;
+
   private final OozieDelegate oozieDelegate;
   private final OozieUtils oozieUtils = new OozieUtils();
   private final AssetResource assetResource;
-  private  final AmbariIOUtil ambariIOUtil;
-  private static enum ErrorCodes {
+
+  private enum ErrorCodes {
     OOZIE_SUBMIT_ERROR("error.oozie.submit", "Oozie Submit error"), OOZIE_IO_ERROR(
       "error.oozie.io", "Oozie I/O error"), FILE_ACCESS_ACL_ERROR(
       "error.file.access.control",
       "Access Error to file due to access control"), FILE_ACCESS_UNKNOWN_ERROR(
       "error.file.access", "Error accessing file"), WORKFLOW_PATH_EXISTS(
-      "error.workflow.path.exists", "Worfklow path exists");
+      "error.workflow.path.exists", "Workflow Path exists"), WORKFLOW_XML_DOES_NOT_EXIST(
+      "error.workflow.xml.not.exists", "Workflow Xml does not exist");
     private String errorCode;
     private String description;
 
@@ -104,7 +107,18 @@ public class OozieProxyImpersonator {
       return description;
     }
   }
+  private static enum WorkflowFormat{
+    XML("xml"),
+    DRAFT("draft");
+    String value;
+    WorkflowFormat(String value) {
+      this.value=value;
+    }
 
+    public String getValue() {
+      return value;
+    }
+  }
   @Inject
   public OozieProxyImpersonator(ViewContext viewContext) {
     this.viewContext = viewContext;
@@ -115,7 +129,6 @@ public class OozieProxyImpersonator {
     if (PROJ_MANAGER_ENABLED) {
       workflowManagerService = new WorkflowManagerService(viewContext);
     }
-    ambariIOUtil=new AmbariIOUtil(viewContext);
 
     LOGGER.info(String.format(
       "OozieProxyImpersonator initialized for instance: %s",
@@ -158,6 +171,16 @@ public class OozieProxyImpersonator {
     return Response.ok(viewContext.getUsername()).build();
   }
 
+  @GET
+  @Path("/getWorkflowManagerConfigs")
+  public Response getWorkflowConfigs() {
+    HashMap<String, String> workflowConfigs = new HashMap<String, String>();
+    workflowConfigs.put("nameNode", viewContext.getProperties().get("webhdfs.url"));
+    workflowConfigs.put("resourceManager", viewContext.getProperties().get("yarn.resourcemanager.address"));
+    workflowConfigs.put("userName", viewContext.getUsername());
+    return Response.ok(workflowConfigs).build();
+  }
+
   @POST
   @Path("/submitJob")
   @Consumes({MediaType.TEXT_PLAIN + "," + MediaType.TEXT_XML})
@@ -176,67 +199,64 @@ public class OozieProxyImpersonator {
   @Path("/saveWorkflow")
   @Consumes({MediaType.TEXT_PLAIN + "," + MediaType.TEXT_XML})
   public Response saveWorkflow(String postBody, @Context HttpHeaders headers,
-                               @Context UriInfo ui, @QueryParam("app.path") String appPath, @QueryParam("description") String description,
-                               @QueryParam("projectId") String projectId, @QueryParam("jobType") String jobType,
+                               @Context UriInfo ui, @QueryParam("app.path") String appPath, @QueryParam("jobType") String jobTypeStr,
                                @DefaultValue("false") @QueryParam("overwrite") Boolean overwrite) {
     LOGGER.info("save workflow  called");
     if (StringUtils.isEmpty(appPath)) {
       throw new RuntimeException("app path can't be empty.");
     }
-
-    JobType deducedJobType = oozieUtils.deduceJobType(postBody);
-    appPath = workflowFilesService.getWorkflowFileName(appPath.trim(),deducedJobType);
-
+    JobType jobType = StringUtils.isEmpty(jobTypeStr) ? JobType.WORKFLOW : JobType.valueOf(jobTypeStr);
+    String workflowFilePath = workflowFilesService.getWorkflowFileName(appPath.trim(), jobType);
     if (!overwrite) {
-      boolean fileExists = hdfsFileUtils.fileExists(appPath);
+      boolean fileExists = hdfsFileUtils.fileExists(workflowFilePath);
       if (fileExists) {
         return getFileExistsResponse();
       }
     }
 
-    postBody = utils.formatXml(postBody);
     try {
-      String filePath = workflowFilesService.createFile(appPath,
-        postBody, overwrite);
-      LOGGER.info(String.format(
-        "submit workflow job done. filePath=[%s]", filePath));
-      if (PROJ_MANAGER_ENABLED) {
-        String workflowName = oozieUtils.deduceWorkflowNameFromXml(postBody);
-        workflowManagerService.saveWorkflow(projectId, appPath,
-          deducedJobType, description,
-          viewContext.getUsername(), workflowName);
+      if (utils.isXml(postBody)) {
+        saveWorkflowXml(jobType, appPath, postBody, overwrite);
+      } else {
+        saveDraft(jobType, appPath, postBody, overwrite);
       }
-
-      return Response.ok().build();
-    } catch (Exception ex) {
-      LOGGER.error(ex.getMessage(), ex);
+      if (PROJ_MANAGER_ENABLED) {
+        workflowManagerService.saveWorkflow(null, workflowFilePath,
+          jobType, null,
+          viewContext.getUsername(), getWorkflowName(postBody));
+      }
+    } catch (IOException ex) {
       return getRespCodeForException(ex);
+    }
 
+    return Response.ok().build();
+  }
+  private String getWorkflowName(String postBody){
+    if (utils.isXml(postBody)) {
+      return oozieUtils.deduceWorkflowNameFromXml(postBody);
+    }else{
+      return oozieUtils.deduceWorkflowNameFromJson(postBody);
     }
   }
 
-  @POST
-  @Path("/saveWorkflowDraft")
-  @Consumes({MediaType.TEXT_PLAIN + "," + MediaType.TEXT_XML})
-  public Response saveDraft(String postBody, @Context HttpHeaders headers,
-                            @Context UriInfo ui, @QueryParam("app.path") String appPath,
-                            @QueryParam("projectId") String projectId, @QueryParam("description") String description,
-                            @DefaultValue("false") @QueryParam("overwrite") Boolean overwrite, @QueryParam("jobType") String jobTypeStr)
-    throws IOException {
-    LOGGER.info("save workflow  called");
-    if (StringUtils.isEmpty(appPath)) {
-      throw new RuntimeException("app path can't be empty.");
-    }
-    JobType jobType = StringUtils.isEmpty(jobTypeStr) ? JobType.WORKFLOW : JobType.valueOf(jobTypeStr);
-    appPath = workflowFilesService.getWorkflowDraftFileName(appPath.trim(),jobType);
+  private void saveWorkflowXml(JobType jobType, String appPath, String postBody, Boolean overwrite) throws IOException {
+    appPath = workflowFilesService.getWorkflowFileName(appPath.trim(), jobType);
+    postBody = utils.formatXml(postBody);
     workflowFilesService.createFile(appPath, postBody, overwrite);
-    if (PROJ_MANAGER_ENABLED) {
-      String name = oozieUtils.deduceWorkflowNameFromJson(postBody);
-      workflowManagerService.saveWorkflow(projectId, appPath,
-        jobType, description,
-        viewContext.getUsername(), name);
+    String workflowDraftPath = workflowFilesService.getWorkflowDraftFileName(appPath.trim(), jobType);
+    if (hdfsFileUtils.fileExists(workflowDraftPath)) {
+      hdfsFileUtils.deleteFile(workflowDraftPath);
     }
-    return Response.ok().build();
+  }
+
+  private void saveDraft(JobType jobType, String appPath, String postBody, Boolean overwrite) throws IOException {
+    String workflowFilePath = workflowFilesService.getWorkflowFileName(appPath.trim(), jobType);
+    if (!hdfsFileUtils.fileExists(workflowFilePath)) {
+      String noOpWorkflow = oozieUtils.getNoOpWorkflowXml(postBody, jobType);
+      workflowFilesService.createFile(workflowFilePath, noOpWorkflow, overwrite);
+    }
+    String workflowDraftPath = workflowFilesService.getWorkflowDraftFileName(appPath.trim(), jobType);
+    workflowFilesService.createFile(workflowDraftPath, postBody, true);
   }
 
   @POST
@@ -415,30 +435,40 @@ public class OozieProxyImpersonator {
   }
 
   @GET
-  @Path("/readWorkflowDetail")
-  public Response getWorkflowDetail(
-    @QueryParam("workflowXmlPath") String workflowPath) {
-    WorkflowFileInfo workflowDetails = workflowFilesService
-      .getWorkflowDetails(workflowPath, null);
-    return Response.ok(workflowDetails).build();
-  }
-
-  @GET
   @Path("/readWorkflow")
   public Response readWorkflow(
-    @QueryParam("workflowPath") String workflowPath,@QueryParam("jobType") String jobTypeStr) {
-    WorkflowFileInfo workflowDetails = workflowFilesService
-      .getWorkflowDetails(workflowPath,JobType.valueOf(jobTypeStr));
-    String filePath;
-    String responseType;
-
-    if (workflowPath.endsWith(Constants.WF_DRAFT_EXTENSION) || workflowDetails.getIsDraftCurrent()){
-      filePath=workflowFilesService.getWorkflowDraftFileName(workflowPath,JobType.valueOf(jobTypeStr));
-      responseType="draft";
-    }else{
-      filePath=workflowFilesService.getWorkflowFileName(workflowPath,JobType.valueOf(jobTypeStr));
-      responseType="xml";
+    @QueryParam("workflowPath") String workflowPath, @QueryParam("jobType") String jobTypeStr) {
+    String workflowFileName=workflowFilesService.getWorkflowFileName(workflowPath, JobType.valueOf(jobTypeStr));
+    if (!hdfsFileUtils.fileExists(workflowFileName)){
+      HashMap<String,String> response=new HashMap<>();
+      response.put("status", ErrorCodes.WORKFLOW_XML_DOES_NOT_EXIST.getErrorCode());
+      response.put("message", ErrorCodes.WORKFLOW_XML_DOES_NOT_EXIST.getDescription());
+      return Response.status(Status.BAD_REQUEST).entity(response).build();
     }
+
+    WorkflowFileInfo workflowDetails = workflowFilesService
+      .getWorkflowDetails(workflowPath, JobType.valueOf(jobTypeStr));
+    if (workflowPath.endsWith(Constants.WF_DRAFT_EXTENSION) || workflowDetails.getIsDraftCurrent()) {
+      String filePath = workflowFilesService.getWorkflowDraftFileName(workflowPath, JobType.valueOf(jobTypeStr));
+      try {
+        InputStream inputStream = workflowFilesService.readWorkflowXml(filePath);
+        String stringResponse = IOUtils.toString(inputStream);
+        if (!workflowFilesService.isDraftFormatCurrent(stringResponse)) {
+          filePath = workflowFilesService.getWorkflowFileName(workflowPath, JobType.valueOf(jobTypeStr));
+          return getWorkflowResponse(filePath, WorkflowFormat.XML.getValue(), true);
+        } else {
+          return Response.ok(stringResponse).header(RESPONSE_TYPE, WorkflowFormat.DRAFT.getValue()).build();
+        }
+      } catch (IOException e) {
+        return getRespCodeForException(e);
+      }
+    } else {
+      String filePath = workflowFilesService.getWorkflowFileName(workflowPath, JobType.valueOf(jobTypeStr));
+      return getWorkflowResponse(filePath, WorkflowFormat.XML.getValue(), false);
+    }
+  }
+
+  private Response getWorkflowResponse(String filePath, String responseType, boolean olderFormatDraftIngored) {
     try {
       final InputStream is = workflowFilesService
         .readWorkflowXml(filePath);
@@ -451,7 +481,11 @@ public class OozieProxyImpersonator {
           os.close();
         }
       };
-      return Response.ok(streamer).header("response-type",responseType).status(200).build();
+      Response.ResponseBuilder responseBuilder = Response.ok(streamer).header(RESPONSE_TYPE, responseType);
+      if(olderFormatDraftIngored){
+        responseBuilder.header(OLDER_FORMAT_DRAFT_INGORED,Boolean.TRUE.toString());
+      }
+      return  responseBuilder.build();
     } catch (IOException e) {
       return getRespCodeForException(e);
     }
@@ -494,28 +528,6 @@ public class OozieProxyImpersonator {
       resp.put("stackTrace", ExceptionUtils.getFullStackTrace(ex));
     }
     return resp;
-  }
-
-  @GET
-  @Path("/getDag")
-  @Produces("image/png")
-  public Response getDag(@Context HttpHeaders headers,
-                         @Context UriInfo ui, @QueryParam("jobid") String jobid) {
-    Map<String, String> newHeaders = utils.getHeaders(headers);
-    final InputStream is = oozieDelegate.readFromOozie(headers,
-      oozieDelegate.getDagUrl(jobid), HttpMethod.GET, null,
-      newHeaders);
-    StreamingOutput streamer = new StreamingOutput() {
-      @Override
-      public void write(OutputStream os) throws IOException,
-        WebApplicationException {
-        IOUtils.copy(is, os);
-        is.close();
-        os.close();
-      }
-
-    };
-    return Response.ok(streamer).status(200).build();
   }
 
   @GET

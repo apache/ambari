@@ -325,6 +325,14 @@ pre {
   padding-top:10px;
 }
 
+.query-result {
+  .table {
+    margin-top: 10px;
+    display: inline-block;
+    overflow: auto;
+  }
+}
+
 .database-panel{
 
   .panel-heading {
@@ -438,101 +446,8 @@ pre {
     }
   }
 
-  .ember-light-table {
-    width: 100%;
-    margin: 0 auto;
-    border-collapse: collapse;
-    height: 65vh; //This can be controlled from the hbs also.
-  }
-
   .full-vw-height{
     height: 100vh;
-  }
-
-  .ember-light-table .multi-select {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none
-  }
-
-  .ember-light-table tfoot .lt-column {
-    border-top: 1px solid #DADADA
-  }
-
-  .ember-light-table thead .lt-column {
-    border-bottom: 1px solid #DADADA
-  }
-
-  .ember-light-table tfoot th.is-dragging,
-  .ember-light-table thead th.is-dragging {
-    opacity: .75;
-    background: #eee
-  }
-
-  .ember-light-table tfoot th.is-drag-target.drag-right,
-  .ember-light-table thead th.is-drag-target.drag-right {
-    border-right: 1px dotted #DADADA
-  }
-
-  .ember-light-table tfoot th.is-drag-target.drag-left,
-  .ember-light-table thead th.is-drag-target.drag-left {
-    border-left: 1px dotted #DADADA
-  }
-
-  .ember-light-table .lt-column {
-    font-weight: 200;
-    font-size: 12px;
-    padding: 10px
-  }
-
-  .ember-light-table .lt-column .lt-sort-icon {
-    width: 15px
-  }
-
-  .ember-light-table .lt-column.lt-group-column {
-    border: none!important;
-    padding-bottom: 10px
-  }
-
-  .ember-light-table .lt-column .lt-column-resizer {
-    border-right: 1px dashed #ccc;
-    border-left: 1px dashed #ccc
-  }
-
-  .ember-light-table .lt-row {
-    height: 50px
-  }
-
-  .ember-light-table .lt-row.is-selected {
-    background-color: #DEDEDE!important
-  }
-
-  .ember-light-table .lt-row:not(.is-selected):hover {
-    background-color: #F5F4F4!important
-  }
-
-  .ember-light-table .lt-row:last-of-type td {
-    border-bottom-width: 0
-  }
-
-  .ember-light-table .lt-row.lt-expanded-row:hover,
-  .ember-light-table .lt-row.lt-no-data:hover {
-    background-color: transparent!important
-  }
-
-  .ember-light-table .lt-row.lt-expanded-row td,
-  .ember-light-table .lt-row.lt-no-data td {
-    padding: 15px
-  }
-
-  .ember-light-table .lt-row td {
-    border-color: #DADADA;
-    border-width: 0 0 1px;
-    border-style: solid;
-    font-size: 13px;
-    padding: 0 10px
   }
 
   tfoot tr>td {
@@ -896,81 +811,6 @@ ul.dropdown-menu {
   }
 }
 
-
-.step {
-  font-family: Roboto;
-  background-color:rgb(255, 255, 255);
-  padding: 8px 10px;
-  border: 1px solid rgb(223, 223, 223);
-  cursor: pointer;
-  &:hover {
-    background-color: rgb(223, 240, 247);
-  }
-
-  body {
-    font-family: Roboto;
-    background-color: rgba(0,0,0,0);
-  }
-}
-.step-sink {
-  body {
-    color: rgb(255, 255, 255);
-  }
-  background-color: rgb(42, 179, 119);
-  padding: 20px;
-}
-.step-sink .step-body {
-  font-weight: lighter;
-  margin-top: 10px;
-}
-
-.step-source {
-  body {
-    color: rgb(255, 255, 255);
-  }
-  background-color: rgb(85, 100, 105);
-}
-
-.step-job,
-.step-vectorization {
-  border: none;
-  background: none;
-  padding: 0;
-}
-
-.step-job body,
-.step-vectorization body {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.step__pill {
-  font-size: 12px;
-  border-radius: 25px;
-  padding: 5px 10px;
-  min-width: 60px;
-  color: rgb(255, 255, 255);
-  background-color: rgb(85, 100, 105);
-  text-align: center;
-}
-
-
-.step-caption {
-  font-size: 10px;
-}
-.step-body {
-  font-size: 12px;
-}
-
-.edge {
-  stroke: rgb(83, 100, 106);
-  stroke-width: 2px;
-  fill: none;
-}
-
 #explain-container {
   height: 100%;
   width: 100%;
@@ -979,6 +819,10 @@ ul.dropdown-menu {
 
 .break-word{
   word-break: break-all;
+}
+
+.visual-explain-container{
+  position: relative;
 }
 
 .visual-explain-detail-container {
@@ -1028,3 +872,74 @@ ul.dropdown-menu {
 
 }
 
+
+rect.operator__box {
+
+  fill:rgb(255, 255, 255);
+  stroke:rgb(223, 223, 223);
+  stroke-width: 1;
+
+  &:hover {
+    fill: rgb(223, 240, 247);
+  }
+
+  &.operator__box--TableScan {
+    fill: rgb(85, 100, 105);
+  }
+
+  &.operator__box--Fetch_Operator {
+    fill: rgb(42, 179, 119);
+  }
+}
+
+.operator body {
+  cursor: pointer;
+
+  font-family: Roboto;
+  padding: 8px 10px;
+  background-color: rgba(0,0,0,0);
+}
+
+.operator--Fetch_Operator body {
+  color: rgb(255, 255, 255);
+  padding: 12px;
+}
+
+.operator--Fetch_Operator .operator-body {
+  font-weight: lighter;
+}
+
+.operator--TableScan body {
+  color: rgb(255, 255, 255);
+}
+
+.operator-caption {
+  font-size: 10px;
+}
+
+.operator-body {
+  font-size: 12px;
+}
+.edge--hidden {
+  display: none;
+}
+.edge {
+  stroke: rgb(83, 100, 106);
+  stroke-width: 2px;
+  fill: none;
+}
+
+#explain-container {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.explain--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100px;
+  font-size: 16px;
+}

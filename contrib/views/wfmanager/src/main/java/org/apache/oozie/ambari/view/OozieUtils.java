@@ -106,6 +106,10 @@ public class OozieUtils {
     String name = jsonElement.getAsJsonObject().get("name").getAsString();
     return name;
   }
+  public String deduceWorkflowSchemaVersionFromJson(String json) {
+    JsonElement jsonElement = new JsonParser().parse(json);
+    return jsonElement.getAsJsonObject().get("xmlns").getAsString();
+  }
 
   public String deduceWorkflowNameFromXml(String xml) {
     try {
@@ -171,5 +175,19 @@ public class OozieUtils {
       LOGGER.error("error in generating workflow xml", e);
       throw new RuntimeException(e);
     }
+  }
+
+  public String getNoOpWorkflowXml(String json,JobType jobType) {
+    String schema=deduceWorkflowSchemaVersionFromJson(json);
+    String name=deduceWorkflowNameFromJson(json);
+    switch (jobType){
+      case WORKFLOW:
+        return String.format("<workflow-app xmlns=\"%s\" name=\"%s\"><start to=\"end\"/><end name=\"end\"/></workflow-app>",schema,name);
+      case COORDINATOR:
+        return String.format("<coordinator-app xmlns=\"%s\" name=\"%s\"></coordinator-app>",schema,name);
+      case BUNDLE:
+        return String.format("<bundle-app xmlns=\"%s\" name=\"%s\"></bundle-app>",schema,name);
+    }
+    return null;
   }
 }

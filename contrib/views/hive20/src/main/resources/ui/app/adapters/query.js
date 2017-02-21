@@ -29,13 +29,13 @@ export default ApplicationAdapter.extend({
     let postURL = this.buildURL();
     return this.ajax(postURL , 'POST', { data: {job: payload} });
   },
-  getJob(jobId, dateSubmitted, firstCall){
+  getJob(jobId, firstCall){
 
     let url = '';
     if(firstCall){
-      url = this.buildURL() + jobId + '/results?first=true&_='+ dateSubmitted;
+      url = this.buildURL() + jobId + '/results?first=true';
     }else {
-      url = this.buildURL() + jobId + '/results?_='+ dateSubmitted;
+      url = this.buildURL() + jobId + '/results';
     }
 
     return this.ajax(url, 'GET')

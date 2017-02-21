@@ -34,7 +34,7 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
-      SHOULD_PERFORM_SERVICE_CHECK: true
+      SHOULD_PERFORM_SERVICE_CHECK: false
     }
   };
 
