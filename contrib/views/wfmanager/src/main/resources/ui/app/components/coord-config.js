@@ -517,7 +517,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     closeFileBrowser(){
       this.set("showingFileBrowser", false);
       this.get('fileBrowser').getContext().trigger('fileSelected', this.get('filePath'));
-      if(this.get('coordinatorFilePath')){
+      if(this.get('filePathModel') === 'coordinatorFilePath'){
         this.importCoordinator(Ember.copy(this.get('coordinatorFilePath')));
         this.set('coordinatorFilePath', null);
       }

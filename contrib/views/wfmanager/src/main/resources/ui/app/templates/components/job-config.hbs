@@ -28,33 +28,7 @@
       </div>
       <div class="modal-body">
         {{designer-errors errors=jobConfigs.errors}}
-        {{#if (and (eq type 'bundle') containsParameteriedPaths)}}
-        <div class="panel panel-default">
-          <div class="panel-body">
-            <div class="col-xs-24">
-              <span>The underlying workflow path is templatized.
-                 Please enter the workflow path to deduce the templatized properties in the workflow.
-               </span>
-            </div>
-            {{#each parameterizedPaths as |path index|}}
-            <div class="row form-group">
-              <div class="col-xs-3">
-                <label class="control-label" for="path">Workflow path</label><span class="requiredField">&nbsp;*</span>
-              </div>
-              <div class="col-xs-8">
-                <div class="input-group">
-                  {{input class="form-control" type="text" name=path.name value=path.value}}
-                  <span class="input-group-btn">
-                    <button type="button" class="btn btn-secondary" {{action "selectFile" path.name}}>Browse</button>
-                  </span>
-                </div>
-                {{field-error model=this field='filePath' showErrorMessage=showErrorMessage}}
-              </div>
-            </div>
-            {{/each}}
-          </div>
-        </div>
-        {{else if (and (eq type 'coord') containsParameteriedPaths)}}
+        {{#if (and (eq type 'coord') containsParameteriedPaths)}}
         <div class="col-xs-24">
           <div class="alert alert-warning" role="alert">
             Workflow path contains variables. Please provide the absolute path to auto detect templatized variables. Skip this step if you have configured all the templatized variables of the workflow in the coordinator.
@@ -75,6 +49,13 @@
           </div>
         </div>
         {{else}}
+        {{#if (and (eq type 'bundle') containsParameteriedPaths)}}
+          <div class="col-xs-24">
+            <div class="alert alert-warning" role="alert">
+              <span>Auto detecting variables is not possible as one or more underlying workflow/coordinator path contains variables.  You have to configure the variables in custom job properties/coordinator configuration.</span>
+            </div>
+          </div>
+        {{/if}}
         <div class="panel panel-default">
           <div class="panel-body">
             {{#if alertType}}
@@ -158,7 +139,7 @@
 
       </div>
       <div class="modal-footer">
-        {{#if containsParameteriedPaths}}
+        {{#if (and (eq type 'coord') containsParameteriedPaths)}}
           <button type="button" class="btn btn-default" {{action "skip"}}>Skip</button>
           <button type="button" class="btn btn-primary" {{action "next"}}>Next</button>
         {{else}}
