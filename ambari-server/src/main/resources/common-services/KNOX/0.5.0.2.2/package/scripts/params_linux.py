@@ -438,3 +438,14 @@ if "druid-router" in config['configurations']:
   port = config['configurations']['druid-router']['druid.port']
   for host in config['clusterHostInfo']['druid_router_hosts']:
     druid_router_urls += buildUrlElement("http", host, port, "")
+
+zeppelin_ui_urls = ""
+zeppelin_ws_urls = ""
+websocket_support = "false"
+if "zeppelin-config" in config['configurations']:
+  port = config['configurations']['zeppelin-config']['zeppelin.server.port']
+  protocol = "https" if config['configurations']['zeppelin-config']['zeppelin.ssl'] else "http"
+  host = config['clusterHostInfo']['zeppelin_master_hosts'][0]
+  zeppelin_ui_urls += buildUrlElement(protocol, host, port, "")
+  zeppelin_ws_urls += buildUrlElement("ws", host, port, "/ws")
+  websocket_support = "true"
