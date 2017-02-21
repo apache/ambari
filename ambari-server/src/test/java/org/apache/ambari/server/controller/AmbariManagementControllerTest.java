@@ -151,6 +151,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStoppedEvent;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.easymock.Capture;
@@ -197,7 +198,6 @@ public class AmbariManagementControllerTest {
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
   private static final int STACK_VERSIONS_CNT = 16;
   private static final int REPOS_CNT = 3;
-  private static final int STACKS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
   private static final int STACK_COMPONENTS_CNT = 4;
   private static final int OS_CNT = 2;
@@ -256,6 +256,8 @@ public class AmbariManagementControllerTest {
 
   @Before
   public void setup() throws Exception {
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
     entityManager = injector.getProvider(EntityManager.class).get();
     actionDB = injector.getInstance(ActionDBAccessor.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
@@ -7233,10 +7235,14 @@ public class AmbariManagementControllerTest {
   @Test
   public void testGetStacks() throws Exception {
 
+    HashSet<String> availableStacks = new HashSet<>();
+    for (StackInfo stackInfo: ambariMetaInfo.getStacks()){
+      availableStacks.add(stackInfo.getName());
+    }
 
     StackRequest request = new StackRequest(null);
     Set<StackResponse> responses = controller.getStacks(Collections.singleton(request));
-    Assert.assertEquals(STACKS_CNT, responses.size());
+    Assert.assertEquals(availableStacks.size(), responses.size());
 
     StackRequest requestWithParams = new StackRequest(STACK_NAME);
     Set<StackResponse> responsesWithParams = controller.getStacks(Collections.singleton(requestWithParams));
@@ -9254,85 +9260,82 @@ public class AmbariManagementControllerTest {
     String HOST1 = getUniqueName();
     String HOST2 = getUniqueName();
 
-    try {
-      Clusters clusters = injector.getInstance(Clusters.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
 
-      clusters.addHost(HOST1);
-      Host host = clusters.getHost(HOST1);
-      setOsFamily(host, "redhat", "6.3");
+    clusters.addHost(HOST1);
+    Host host = clusters.getHost(HOST1);
+    setOsFamily(host, "redhat", "6.3");
+    clusters.getHost(HOST1).setState(HostState.HEALTHY);
+
+    clusters.addHost(HOST2);
+    host = clusters.getHost(HOST2);
+    setOsFamily(host, "redhat", "6.3");
       clusters.getHost(HOST1).setState(HostState.HEALTHY);
 
-      clusters.addHost(HOST2);
-      host = clusters.getHost(HOST2);
-      setOsFamily(host, "redhat", "6.3");
-      clusters.getHost(HOST1).setState(HostState.HEALTHY);
+    AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
 
-      AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
+    ClusterRequest cr = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
+    amc.createCluster(cr);
 
-      ClusterRequest cr = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
-      amc.createCluster(cr);
+    Long CLUSTER_ID = clusters.getCluster(CLUSTER_NAME).getClusterId();
 
-      Long CLUSTER_ID = clusters.getCluster(CLUSTER_NAME).getClusterId();
+    ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
+        new HashMap<String, String>() {{ put("a", "b"); }}, null);
+    cr.setDesiredConfig(Collections.singletonList(configRequest));
+    cr.setClusterId(CLUSTER_ID);
+    amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
 
-      ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
-          new HashMap<String, String>() {{ put("a", "b"); }}, null);
-      cr.setDesiredConfig(Collections.singletonList(configRequest));
-      cr.setClusterId(CLUSTER_ID);
-      amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    // add some hosts
+    Set<HostRequest> hrs = new HashSet<HostRequest>();
+    hrs.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+    HostResourceProviderTest.createHosts(amc, hrs);
 
-      // add some hosts
-      Set<HostRequest> hrs = new HashSet<HostRequest>();
-      hrs.add(new HostRequest(HOST1, CLUSTER_NAME, null));
-      HostResourceProviderTest.createHosts(amc, hrs);
+    Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "YARN", null));
 
-      Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
-      serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null));
-      serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null));
-      serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "YARN", null));
+    ServiceResourceProviderTest.createServices(amc, serviceRequests);
 
-      ServiceResourceProviderTest.createServices(amc, serviceRequests);
+    Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "NAMENODE", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "DATANODE", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "RESOURCEMANAGER", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "NODEMANAGER", null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "HDFS_CLIENT", null));
 
-      Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "NAMENODE", null));
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", null));
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "DATANODE", null));
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", null));
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "RESOURCEMANAGER", null));
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "NODEMANAGER", null));
-      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "HDFS_CLIENT", null));
+    ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
 
-      ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
+    Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "DATANODE", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "NAMENODE", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "YARN", "RESOURCEMANAGER", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "YARN", "NODEMANAGER", HOST1, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "HDFS_CLIENT", HOST1, null));
 
-      Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "DATANODE", HOST1, null));
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "NAMENODE", HOST1, null));
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", HOST1, null));
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", HOST1, null));
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "YARN", "RESOURCEMANAGER", HOST1, null));
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "YARN", "NODEMANAGER", HOST1, null));
-      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, "HDFS", "HDFS_CLIENT", HOST1, null));
+    amc.createHostComponents(componentHostRequests);
 
-      amc.createHostComponents(componentHostRequests);
+    RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", null, null);
+    ExecuteActionRequest ar = new ExecuteActionRequest(CLUSTER_NAME, Role.HDFS_SERVICE_CHECK.name(), null, false);
+    ar.getResourceFilters().add(resourceFilter);
+    amc.createAction(ar, null);
 
-      RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", null, null);
-      ExecuteActionRequest ar = new ExecuteActionRequest(CLUSTER_NAME, Role.HDFS_SERVICE_CHECK.name(), null, false);
-      ar.getResourceFilters().add(resourceFilter);
-      amc.createAction(ar, null);
 
-      // change mind, delete the cluster
-      amc.deleteCluster(cr);
+    // change mind, delete the cluster
+    amc.deleteCluster(cr);
 
       assertNotNull(clusters.getHost(HOST1));
       assertNotNull(clusters.getHost(HOST2));
 
-      HostDAO dao = injector.getInstance(HostDAO.class);
+    HostDAO dao = injector.getInstance(HostDAO.class);
 
-      assertNotNull(dao.findByName(HOST1));
-      assertNotNull(dao.findByName(HOST2));
+    assertNotNull(dao.findByName(HOST1));
+    assertNotNull(dao.findByName(HOST2));
 
-    } finally {
-//      injector.getInstance(PersistService.class).stop();
-    }
   }
 
   @Test
