@@ -317,7 +317,7 @@ function doClean(node) {
   } else {
     return (
       Object.keys(node)
-        .filter(cNodeKey => cNodeKey !== '_children')
+        .filter(cNodeKey => cNodeKey !== '_children' && cNodeKey !== '_uuid')
         .reduce((accumulator, cNodeKey) => {
           accumulator[cNodeKey] = node[cNodeKey];
           return accumulator;

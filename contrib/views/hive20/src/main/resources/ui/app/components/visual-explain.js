@@ -25,6 +25,8 @@ export default Ember.Component.extend({
 
   showDetailsModal: false,
 
+  classNames:['visual-explain-container'],
+
   explainDetailData: '',
 
   visualExplainInput: Ember.computed('visualExplainJson', function () {
