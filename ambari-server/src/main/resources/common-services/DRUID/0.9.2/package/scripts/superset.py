@@ -145,7 +145,7 @@ def quote_string_value(value):
   if value.lower() == "true" or value.lower() == "false" or value.isdigit():
     return value
   else:
-    return "'{}'".format(value)
+    return "'{0}'".format(value)
 
 
 

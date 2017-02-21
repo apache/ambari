@@ -162,7 +162,7 @@ ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 
 if has_metric_collector:
-    metric_emitter_type = "ambari-metrics-emitter"
+    metric_emitter_type = "ambari-metrics"
     if 'cluster-env' in config['configurations'] and \
                     'metrics_collector_vip_host' in config['configurations']['cluster-env']:
         metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
