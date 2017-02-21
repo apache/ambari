@@ -410,8 +410,6 @@ export default Ember.Route.extend(UILoggerMixin, {
       Ember.run.later(() => {
         this.transitionTo('queries.query.results', myWs);
       }, 1 * 1000);
-
-
     },
 
     openWorksheetModal(){
