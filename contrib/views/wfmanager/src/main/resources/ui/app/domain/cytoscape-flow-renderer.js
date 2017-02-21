@@ -287,18 +287,7 @@ var CytoscapeRenderer= Ember.Object.extend({
 
     this.get("context").$('.overlay-trash-icon i').off('click');
     this.get("context").$('.overlay-trash-icon i').on('click',function(){
-      var incomingNodes=this.get("currentCyNode").incomers("node").jsons().mapBy("data.node");
-      var transitionList=[];
-      var currentNodeId=this.get("currentCyNode").json().data.id;
-      for (var incomingNode of incomingNodes) {
-        for (var incomingTran of incomingNode.transitions ){
-          if (incomingTran.targetNode.id===currentNodeId){
-            incomingTran.sourceNode=incomingNode;
-            transitionList=transitionList.concat(incomingTran);
-          }
-        }
-      }
-      this.get("context").deleteWorkflowNode(this.get("context").$(".overlay-trash-icon").data("node"),transitionList);
+      this.get("context").deleteWorkflowNode(this.get("context").$(".overlay-trash-icon").data("node"), this.getIncomingTransitions(this.get("currentCyNode")));
       this.get("context").$('.overlay-node-actions').hide();
     }.bind(this));
 
@@ -316,7 +305,7 @@ var CytoscapeRenderer= Ember.Object.extend({
 
     this.get("context").$('.overlay-cut-icon i').off('click');
     this.get("context").$('.overlay-cut-icon i').on('click',function(){
-      this.get("context").cutNode(this.get("context").$(".overlay-cut-icon").data("node"));
+      this.get("context").cutNode(this.get("context").$(".overlay-cut-icon").data("node"), this.getIncomingTransitions(this.get("currentCyNode")));
       this.get("context").$('.overlay-node-actions').hide();
     }.bind(this));
 
@@ -344,8 +333,22 @@ var CytoscapeRenderer= Ember.Object.extend({
       this.get("context").$('.overlay-node-actions').hide();
     }.bind(this));
   },
+  getIncomingTransitions(node){
+    var incomingNodes=node.incomers("node").jsons().mapBy("data.node");
+    var transitionList=[];
+    var currentNodeId=this.get("currentCyNode").json().data.id;
+    for (var incomingNode of incomingNodes) {
+      for (var incomingTran of incomingNode.transitions ){
+        if (incomingTran.targetNode.id===currentNodeId){
+          incomingTran.sourceNode=incomingNode;
+          transitionList=transitionList.concat(incomingTran);
+        }
+      }
+    }
+    return transitionList;
+  },
   populateOkToandErrorTONodes(node){
-    let alternatePathNodes = this.cy.$('#'+node.id).predecessors("node[name][type='decision']").union(this.cy.$('#'+node.id).predecessors("node[name][type='decision']"));
+    let alternatePathNodes = this.cy.$('#'+node.id).predecessors("node[name][type='decision']").union(this.cy.$('#'+node.id).predecessors("node[name][type='fork']"));
     let descendantNodes = [];
     if(alternatePathNodes.length > 0){
       alternatePathNodes.forEach(childNode =>{
@@ -369,6 +372,9 @@ var CytoscapeRenderer= Ember.Object.extend({
     }, this);
     node.set('validOkToNodes', okToNodes);
     node.set('validErrorToNodes', errorToNodes);
+  },
+  isWorkflowValid(){
+    return this.cy.nodes("node[name][type='start']").successors("node[name]").intersection(this.cy.nodes("node[name][type='end']").length > 0);
   },
   renderWorkflow(workflow){
     this._getCyDataNodes(workflow);

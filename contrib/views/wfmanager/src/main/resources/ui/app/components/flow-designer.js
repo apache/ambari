@@ -670,9 +670,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   copyNode(node){
     this.get('clipboardService').setContent(node, 'copy');
   },
-  cutNode(node){
+  cutNode(node, transitionsList){
     this.get('clipboardService').setContent(node, 'cut');
-    this.deleteWorkflowNode(node);
+    this.deleteWorkflowNode(node, transitionsList);
   },
   replaceNode(node){
     var clipboardContent = this.get('clipboardService').getContent();
