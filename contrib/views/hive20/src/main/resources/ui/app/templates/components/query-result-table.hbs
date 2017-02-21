@@ -16,8 +16,17 @@
 * limitations under the License.
 }}
 
-  <div class="clearfix" style="text-align: right; padding-right:5px">
-    <span class="dropdown">
+  <div class="clearfix">
+    <div class="col-md-2">
+      <div class="row input-group">
+        {{input type="text" value=columnFilterText placeholder="Filter columns" class="form-control"}}
+        <span class="input-group-btn">
+          <button class="btn btn-default" {{action "clearColumnsFilter"}}>{{fa-icon "times"}} </button>
+        </span>
+      </div>
+    </div>
+    <div class="pull-right">
+      <span class="dropdown">
       <button class="btn btn-default dropdown-toggle" title="Actions" data-toggle="dropdown">{{fa-icon "bars"}} </button>
       <ul class="dropdown-menu dropdown-menu-right">
         <li><a href="#" {{action "openSaveHdfsModal" }} class="text-uppercase">{{fa-icon "save"}} Save To HDFS</a></li>
@@ -25,35 +34,35 @@
       </ul>
     </span>&nbsp;
 
-    <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" payloadTitle }} disabled={{not hasPrevious}} >{{fa-icon "arrow-left"}} </button>
-    <button class="btn btn-default" title="Next Page" {{action "goNextPage" payloadTitle}} disabled={{not hasNext}} >{{fa-icon "arrow-right"}} </button> &nbsp;
-    <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
-
+      <button class="btn btn-default" title="Previous Page" {{action "goPrevPage" payloadTitle }} disabled={{not hasPrevious}} >{{fa-icon "arrow-left"}} </button>
+      <button class="btn btn-default" title="Next Page" {{action "goNextPage" payloadTitle}} disabled={{not hasNext}} >{{fa-icon "arrow-right"}} </button> &nbsp;
+      <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
+    </div>
   </div>
 
-  <div class="clearfix">
-    {{#light-table table height='70vh' as |t|}}
-      {{#if columns.length}}
-        {{t.head
-        onColumnClick=(action 'onColumnClick')
-        iconAscending='fa fa-sort-asc'
-        iconDescending='fa fa-sort-desc'
-        fixed=true
-        }}
-
-        {{#t.body
-        canSelect=false
-        onScrolledToBottom=(action 'onScrolledToBottom')
-        as |body|
-        }}
-          {{#if isLoading}}
-            {{#body.loader}}
-              {{table-loader}}
-            {{/body.loader}}
-          {{/if}}
-        {{/t.body}}
-      {{/if}}
-    {{/light-table}}
+  <div class="col-md-12">
+    <div class="row">
+      <div class="query-result">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              {{#each filteredColumns as |column|}}
+                <th>{{column.label}}</th>
+              {{/each}}
+            </tr>
+          </thead>
+          <tbody>
+          {{#each rows as |row|}}
+            <tr>
+              {{#each filteredColumns as |column|}}
+                <td>{{extract-value row column.valuePath}}</td>
+              {{/each}}
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 {{#if showSaveHdfsModal}}

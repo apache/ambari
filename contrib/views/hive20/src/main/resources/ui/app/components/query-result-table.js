@@ -17,8 +17,6 @@
  */
 
 import Ember from 'ember';
-import Table from 'ember-light-table';
-import TableCommon from '../mixins/table-common';
 
 export default Ember.Component.extend({
 
@@ -27,6 +25,15 @@ export default Ember.Component.extend({
   jobId: null,
 
   queryResult: {'schema' :[], 'rows' :[]},
+
+  columnFilterText: null,
+  columnFilter: null,
+
+  columnFilterDebounced: Ember.observer('columnFilterText', function() {
+    Ember.run.debounce(this, () => {
+      this.set('columnFilter', this.get('columnFilterText'))
+    }, 500);
+  }),
 
   columns: Ember.computed('queryResult', function() {
     let queryResult = this.get('queryResult');
@@ -61,8 +68,11 @@ export default Ember.Component.extend({
     return rowArr;
   }),
 
-  table: Ember.computed('queryResult', 'rows', 'columns', function() {
-    return new Table(this.get('columns'), this.get('rows'));
+  filteredColumns: Ember.computed('columns', 'columnFilter', function() {
+    if (!Ember.isEmpty(this.get('columnFilter'))) {
+      return this.get('columns').filter((item) => item.label.indexOf(this.get('columnFilter')) > -1 );
+    }
+    return this.get('columns');
   }),
 
   showSaveHdfsModal:false,
@@ -130,6 +140,10 @@ export default Ember.Component.extend({
 
     showVisualExplain(){
       this.sendAction('showVisualExplain');
+    },
+
+    clearColumnsFilter() {
+      this.set('columnFilterText');
     }
 
   }
