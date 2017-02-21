@@ -53,6 +53,13 @@ export default Ember.Component.extend({
     this.set("alertDetails",data.details);
     this.set("alertMessage",data.message);
   },
+  isUpdated : function(){
+    if(this.get('showUploadSuccess')){
+      this.$('#success-alert').fadeOut(5000, ()=>{
+        this.set("showUploadSuccess", false);
+      });
+    }
+  }.on('didUpdate'),
   actions: {
     viewerError(error) {
       if (error.responseJSON && error.responseJSON.message && error.responseJSON.message.includes("Permission")) {
@@ -98,6 +105,8 @@ export default Ember.Component.extend({
     },
     uploadSuccess(e){
       this.get('uploaderService').trigger('uploadSuccess');
+      this.set('uploadSelected', false);
+      this.set('showUploadSuccess', true);
     },
     uploadFailure(textStatus,errorThrown){
       this.showNotification({
