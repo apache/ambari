@@ -72,6 +72,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showActionEditor : false,
   flattenedNodes: [],
   dataNodes: [], /* For cytoscape */
+  counterMap : {},
   hoveredAction: null,
   workflowImporter:WorkflowImporter.create({}),
   actionTypeResolver: ActionTypeResolver.create({}),
@@ -110,7 +111,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.sendAction('register', this.get('tabInfo'), this);
     this.set('flowRenderer',CytoscapeRenderer.create());
     this.set('workflow',Workflow.create({}));
-    this.set("isNew",true);
     CommonUtils.setTestContext(this);
   }.on('init'),
   elementsInserted :function(){
@@ -138,6 +138,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
           this.set("workflow",draftWorkflow);
           this.rerender();
           this.doValidation();
+          this.generateCounterMap();
         }
       }.bind(this)).catch(function(data){
       });
@@ -239,6 +240,22 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.flowRenderer.initRenderer(function(){
       this.renderWorkflow();
     }.bind(this),{context:this,id : this.get('cyId'),flattenedNodes:this.get("flattenedNodes"),dataNodes:this.get("dataNodes"), cyOverflow:this.get("cyOverflow"),canvasHeight:canvasHeight});
+    this.generateCounterMap();
+  },
+  generateCounterMap() {
+    let len = 0, id = 0, val = null, self = this;
+    this.get('dataNodes').forEach(function(item){
+      if(item.data.node) {
+        if(item.data.node.type === "action") {
+          let keyMap = self.get("counterMap"), type = item.data.node.actionType;
+          if(keyMap.hasOwnProperty(type)){
+            keyMap[type] = parseInt(keyMap[type])+1;
+          } else {
+            keyMap[type] = 1;
+          }
+        }
+      }
+    });
   },
   renderWorkflow(){
     this.set('renderNodeTransitions', true);
@@ -488,6 +505,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.get("workflow").resetWorfklow();
     this.set('globalConfig', {});
     this.set('parameters', {});
+    this.set('counterMap', {});
     this.set("undoAvailable", false);
     this.set("showingConfirmationNewWorkflow", false);
     if(this.get('workflow.parameters') !== null){
@@ -758,6 +776,16 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.importWorkflowFromString(dataStr);
     this.send("hideStreamImport");
   },
+  generateUniqueNodeId(type){
+    let keyMap = this.get("counterMap");
+    if(keyMap.hasOwnProperty(type)){
+      keyMap[type] = ++keyMap[type];
+      return keyMap[type];
+    } else {
+      keyMap[type] = 1;
+      return 1;
+    }
+  },
   actions:{
     importWorkflowStream(dataStr){
       this.importWorkflowFromFile(dataStr);
@@ -864,7 +892,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       var currentTransition=this.get("currentTransition.transition");
       var transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
       transition.source=this.get("currentTransition").source;
-      this.get("workflow").addNode(transition, type);
+
+      let temp = this.generateUniqueNodeId(type);
+      this.get("workflow").addNode(transition, type, {}, temp);
       this.rerender();
       this.doValidation();
       this.scrollToNewPosition();
