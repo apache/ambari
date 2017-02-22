@@ -16,4 +16,8 @@
 * limitations under the License.
 }}
 
-<div>I am in tez-ui route.</div>
+{{#if model.tezUrl}}
+<iframe  class="tez-ui" src={{model.tezUrl}}></iframe>
+{{else}}
+<div>Tez UI not available.</div>
+{{/if}}
