@@ -211,8 +211,8 @@ export default Ember.Route.extend(UILoggerMixin, {
         this.get('controller').set('isVisualExplainQuery', false);
       }
 
-
-      let queryInput = this.get('controller').get('currentQuery');
+      let originalQuery = this.get('controller').get('currentQuery');
+      let queryInput = originalQuery;
 
       if (isVisualExplainQuery) {
         queryInput = "";
@@ -233,16 +233,23 @@ export default Ember.Route.extend(UILoggerMixin, {
         }
       }
 
-      this.get('controller.model').set('query', queryInput);
+      this.get('controller.model').set('query', originalQuery);
 
       let dbid = this.get('controller.model').get('selectedDb');
       let worksheetTitle = this.get('controller.model').get('title');
 
       this.get('controller.model').set('jobData', []);
+      self.get('controller.model').set('currentPage', 0);
+      self.get('controller.model').set('previousPage', -1 );
+      self.get('controller.model').set('nextPage', 1);
+      self.get('controller.model').set('queryResult', {'schema' :[], 'rows' :[]});
+      self.get('controller.model').set('visualExplainJson', null);
+
+
       this.get('controller.model').set('isQueryRunning', true);
 
-      this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
-      this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
+      //this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
+      //this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
 
       let globalSettings = this.get('globalSettings');
 
