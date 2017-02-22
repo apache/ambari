@@ -126,6 +126,7 @@
       });
       $moreActions.on('click', function () {
         if (settings.fitHeight) {
+          // set actions submenu position
           var $moreIcon = $(this);
           $moreIcon.children('.dropdown-menu').css('position', 'fixed');
           var offset = $moreIcon.offset();
@@ -133,8 +134,10 @@
           $moreIcon.children('.dropdown-menu').css('left', offset.left);
         }
       });
-      $moreActions.children('.dropdown-menu').mouseleave(function () {
-        $(this).parent().removeClass('open');
+      $moreActions.children('.dropdown-menu').on('click', function () {
+        // some action was triggered, should hide this icon
+        var moreIcon = $(this).parent();
+        setTimeout(function(){ moreIcon.hide(); }, 1000);
       });
       $navigationContainer.children('.side-nav-menu').scroll(function () {
         $moreActions.removeClass('open');
