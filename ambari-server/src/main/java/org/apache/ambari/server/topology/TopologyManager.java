@@ -1050,6 +1050,9 @@ public class TopologyManager {
           if (groupInfo != null) {
             LOG.info("TopologyManager.ConfigureClusterTask areHostGroupsResolved: host group name = {} requires {} hosts to be mapped, but only {} are available.",
                 groupInfo.getHostGroupName(), groupInfo.getRequestedHostCount(), groupInfo.getHostNames().size());
+          } else {
+              LOG.error("TopologyManager.ConfigureClusterTask areHostGroupsResolved: host group name = {} is required group and does not map to any hosts. Use add host API to add host to this host group.",
+                  hostGroup);
           }
           break;
         } else {
