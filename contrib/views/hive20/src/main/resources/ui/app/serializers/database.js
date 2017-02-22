@@ -16,20 +16,10 @@
  * limitations under the License.
  */
 
-import ApplicationAdapter from './application';
+import DS from 'ember-data';
 
-export default ApplicationAdapter.extend({
-  ping() {
-    const url = this.urlForCreateRecord('ping');
-    return this.ajax(url, 'POST');
-  },
-
-  pathForType() {
-    return "system/ping";
-  },
-
-  fetchAuth(databaseName, tableName) {
-    const url = this.buildURL() + '/system/ranger/auth';
-    return this.ajax(url, "GET", {data: {database: databaseName, table: tableName}});
+export default DS.RESTSerializer.extend(DS.EmbeddedRecordsMixin, {
+  attrs: {
+    tables: {embedded: 'always'}
   }
 });

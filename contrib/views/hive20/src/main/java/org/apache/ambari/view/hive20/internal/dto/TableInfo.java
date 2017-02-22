@@ -26,11 +26,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public class TableInfo {
   private String name;
-  private String type;
 
-  public TableInfo(String name, String type) {
+  public TableInfo(String name) {
     this.name = name;
-    this.type = type;
   }
 
   public String getName() {
@@ -41,13 +39,6 @@ public class TableInfo {
     this.name = name;
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
 
   @Override
   public boolean equals(Object o) {
@@ -73,7 +64,6 @@ public class TableInfo {
   public String toString() {
     return "TableInfo{" +
         "name='" + name + '\'' +
-        ", type='" + type + '\'' +
         '}';
   }
 }

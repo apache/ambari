@@ -16,16 +16,12 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
+import ApplicationAdapter from './application';
 
-export default Ember.Service.extend({
-  store: Ember.inject.service(),
-  initialize: function() {
-    this.schedulePing();
-  },
+export default ApplicationAdapter.extend({
 
-  schedulePing() {
-    this.get('store').adapterFor('ping').ping();
-    Ember.run.later(this.schedulePing.bind(this), 60000);
+  fetchAuth(databaseName, tableName) {
+    const url = this.buildURL() + '/system/ranger/auth';
+    return this.ajax(url, "GET", {data: {database: databaseName, table: tableName}});
   }
 });

@@ -328,11 +328,6 @@
         <service-class>org.apache.ambari.view.hive20.resources.files.FileService</service-class>
     </resource>
 
-    <!--<resource>
-        <name>ddl</name>
-        <service-class>org.apache.ambari.view.hive2.resources.browser.HiveBrowserService</service-class>
-    </resource>-->
-
     <resource>
         <name>hive</name>
         <service-class>org.apache.ambari.view.hive20.HelpService</service-class>

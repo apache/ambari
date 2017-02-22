@@ -21,12 +21,7 @@ import tabs from '../configs/top-level-tabs';
 import ENV from 'ui/config/environment';
 
 export default Ember.Route.extend({
-  keepAlive: Ember.inject.service('keep-alive'),
   serviceCheck: Ember.inject.service(),
-  init: function () {
-    this._super(...arguments);
-    this.get('keepAlive').initialize();
-  },
 
   beforeModel() {
     if (ENV.APP.SHOULD_PERFORM_SERVICE_CHECK && !this.get('serviceCheck.checkCompleted')) {
