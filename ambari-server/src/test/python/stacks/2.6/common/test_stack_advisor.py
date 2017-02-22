@@ -20,7 +20,7 @@ import json
 import os
 from unittest import TestCase
 from mock.mock import patch
-
+import socket
 
 class TestHDP26StackAdvisor(TestCase):
   def setUp(self):
@@ -848,6 +848,543 @@ class TestHDP26StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendRangerKMSConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
+
+  def test_recommendHDFSConfigurations(self):
+    ambariHostName = socket.getfqdn()
+    configurations = {
+      "ranger-hdfs-plugin-properties": {
+        "properties": {
+          "ranger-hdfs-plugin-enabled": "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"hadoop"
+        }
+      },
+      "hadoop-env":{
+        "properties":{
+          "hdfs_user":"custom_hdfs"
+        }
+      }
+    }
+    clusterData = {
+      "totalAvailableRam": 2048,
+      "hBaseInstalled": True,
+      "hbaseRam": 112,
+      "reservedRam": 128
+    }
+
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
+          }
+        }]}
+
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "HDFS",
+              "service_version" : "2.7.0.2.6"
+            },
+            "components": [
+            ]
+          }
+        ],
+      "Versions": {
+        "stack_version": "2.6"
+      },
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+
+
+    expected = {
+      'core-site': {
+        'properties': {
+          'hadoop.proxyuser.ambari_user.groups': '*',
+          'hadoop.proxyuser.custom_hdfs.groups': '*',
+          'hadoop.proxyuser.custom_hdfs.hosts': '*',
+          'hadoop.proxyuser.ambari_user.hosts': ambariHostName
+        },
+        'property_attributes': {
+          'hadoop.security.key.provider.path': {
+            'delete': 'true'
+          }
+        }
+      },
+      'hadoop-env': {
+        'properties': {
+          'hdfs_user': 'custom_hdfs',
+          'namenode_heapsize': '1024',
+          'namenode_opt_maxnewsize': '128',
+          'namenode_opt_newsize': '128'
+        }
+      },
+      'hdfs-site': {
+        'properties': {
+          'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+          'dfs.datanode.failed.volumes.tolerated': '0',
+          'dfs.datanode.max.transfer.threads': '16384',
+          'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+          'dfs.namenode.handler.count': '100',
+          'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
+          'dfs.namenode.safemode.threshold-pct': '1.000',
+          'dfs.namenode.inode.attributes.provider.class': 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer',
+          'dfs.datanode.du.reserved': '1073741824'
+        },
+        'property_attributes': {
+          'dfs.datanode.failed.volumes.tolerated': {
+            'maximum': '1'
+          },
+          'dfs.encryption.key.provider.uri': {
+            'delete': 'true'
+          }
+        }
+      },
+      'ranger-hdfs-plugin-properties': {
+        'properties': {
+          'ranger-hdfs-plugin-enabled': 'Yes',
+          'REPOSITORY_CONFIG_USERNAME': 'custom_hdfs'
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations,expected)
+    configurations['hadoop-env']['properties']['hdfs_user'] = 'hadoop'
+    expected['hadoop-env']['properties']['hdfs_user'] = 'hadoop'
+    expected['ranger-hdfs-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'hadoop'
+    expected['core-site']['properties']['hadoop.proxyuser.hadoop.hosts'] = '*'
+    expected['core-site']['properties']['hadoop.proxyuser.hadoop.groups'] = '*'
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations,expected)
+
+
+  def test_recommendHiveConfigurations(self):
+    configurations = {
+      "ranger-hive-plugin-properties": {
+        "properties": {
+          "ranger-hive-plugin-enabled": "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"hive"
+        }
+      },
+      "hive-env":{
+        "properties":{
+          "hive_security_authorization":"ranger",
+          "hive_user":"custom_hive"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 3000,
+      "amMemory": 2000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+
+    hosts = {}
+
+    services = {
+      "services":
+        [
+         {
+            "StackServices": {
+              "service_name" : "HIVE",
+              "service_version" : "1.2.1.2.6"
+            },
+            "components": [
+            ]
+          }
+        ],
+      "Versions": {
+        "stack_name" : "HDP",
+        "stack_version": "2.6"
+      },
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+
+
+    expected = {
+      'yarn-env': {
+        'properties': {
+          'min_user_id': '500',
+          'service_check.queue.name': 'default'
+        }
+      },
+      'ranger-hive-plugin-properties': {
+        'properties': {
+          'ranger-hive-plugin-enabled': 'Yes',
+          'REPOSITORY_CONFIG_USERNAME': 'custom_hive'
+        }
+      },
+      'webhcat-site': {
+        'properties': {
+          'templeton.hadoop.queue.name': 'default'
+        }
+      },
+      'hive-interactive-env': {
+        'properties': {
+          'enable_hive_interactive': 'false'
+        },
+        'property_attributes': {
+          'num_llap_nodes': {
+            'read_only': 'true'
+          }
+        }
+      },
+      'hive-env': {
+        'properties': {
+          'hive.atlas.hook': 'false',
+          'hive_security_authorization': 'ranger',
+          'hive_exec_orc_storage_strategy': 'SPEED',
+          'hive_timeline_logging_enabled': 'true',
+          'hive_txn_acid': 'off',
+          'hive_user': 'custom_hive'
+        }
+      },
+      'hiveserver2-site': {
+        'properties': {
+          'hive.security.authorization.enabled': 'true',
+          'hive.conf.restricted.list': 'hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled',
+          'hive.security.authenticator.manager': 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator',
+          'hive.security.authorization.manager': 'org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory'
+        }
+      },
+      'hive-site': {
+        'properties': {
+          'hive.tez.container.size': '768',
+          'hive.exec.orc.default.stripe.size': '67108864',
+          'hive.execution.engine': 'mr',
+          'hive.vectorized.execution.reduce.enabled': 'false',
+          'hive.compactor.worker.threads': '0',
+          'hive.compactor.initiator.on': 'false',
+          'hive.exec.pre.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
+          'hive.compute.query.using.stats': 'true',
+          'hive.exec.orc.default.compress': 'ZLIB',
+          'hive.exec.orc.encoding.strategy': 'SPEED',
+          'hive.server2.tez.initialize.default.sessions': 'false',
+          'hive.security.authorization.enabled': 'true',
+          'hive.exec.post.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
+          'hive.server2.tez.default.queues': 'default',
+          'hive.prewarm.enabled': 'false',
+          'hive.exec.orc.compression.strategy': 'SPEED',
+          'hive.optimize.index.filter': 'true',
+          'hive.auto.convert.join.noconditionaltask.size': '214748364',
+          'hive.vectorized.execution.enabled': 'true',
+          'hive.exec.reducers.bytes.per.reducer': '67108864',
+          'hive.txn.manager': 'org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager',
+          'hive.server2.tez.sessions.per.default.queue': '1',
+          'hive.prewarm.numcontainers': '3',
+          'hive.tez.dynamic.partition.pruning': 'true',
+          'hive.tez.auto.reducer.parallelism': 'true',
+          'hive.server2.use.SSL': 'false',
+          'hive.exec.failure.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
+          'hive.support.concurrency': 'false',
+          'hive.tez.java.opts': '-server -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps',
+          'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
+          'hive.exec.dynamic.partition.mode': 'strict',
+          'hive.optimize.sort.dynamic.partition': 'false',
+          'hive.server2.enable.doAs': 'false'
+        },
+        'property_attributes': {
+          'hive.tez.container.size': {
+            'minimum': '256',
+            'maximum': '768'
+          },
+          'atlas.cluster.name': {
+            'delete': 'true'
+          },
+          'hive.server2.tez.default.queues': {
+            'entries': [
+              {
+                'value': 'default',
+                'label': 'default queue'
+              }
+            ]
+          },
+          'datanucleus.rdbms.datastoreAdapterClassName': {
+            'delete': 'true'
+          },
+          'hive.auto.convert.join.noconditionaltask.size': {
+            'maximum': '644245094'
+          },
+          'atlas.rest.address': {
+            'delete': 'true'
+          }
+        }
+      },
+      'hive-interactive-site': {
+        'properties': {}
+      },
+      'yarn-site': {
+        'properties': {
+          'hadoop.registry.rm.enabled': 'false',
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes': '',
+          'yarn.scheduler.minimum-allocation-vcores': '1',
+          'yarn.scheduler.maximum-allocation-vcores': '4',
+          'yarn.nodemanager.resource.memory-mb': '768',
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
+          'yarn.nodemanager.resource.cpu-vcores': '4',
+          'yarn.scheduler.maximum-allocation-mb': '768',
+          'yarn.nodemanager.linux-container-executor.group': 'hadoop'
+        },
+        'property_attributes': {
+          'yarn.authorization-provider': {
+            'delete': 'true'
+          }
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations,expected)
+    configurations['hive-env']['properties']['hive_user'] = 'hive'
+    expected['hive-env']['properties']['hive_user'] = 'hive'
+    expected['ranger-hive-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'hive'
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations,expected)
+
+
+  def test_recommendHBASEConfigurations(self):
+    configurations = {
+      "ranger-hbase-plugin-properties": {
+        "properties": {
+          "ranger-hbase-plugin-enabled": "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"hbase"
+        }
+      },
+      "hbase-env":{
+        "properties":{
+          "hbase_user":"custom_hbase"
+        }
+      }
+    }
+
+    services = {
+      "services": [{
+            "StackServices": {
+              "service_name" : "HBASE",
+              "service_version" : "1.1.2.2.6"
+            },
+            "components": [
+            ]
+          }
+        ],
+      "Versions": {
+        "stack_name" : "HDP",
+        "stack_version": "2.6"
+      },
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+
+
+    clusterData = {
+      "totalAvailableRam": 2048,
+      "hBaseInstalled": True,
+      "hbaseRam": 112,
+      "reservedRam": 128
+    }
+    expected = {
+      'hbase-site': {
+        'properties': {
+          'hbase.regionserver.wal.codec': 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec',
+          'hbase.master.ui.readonly': 'false',
+          'hbase.security.authorization': 'true',
+          'hbase.bucketcache.percentage.in.combinedcache': '1.0000',
+          'hbase.regionserver.global.memstore.size': '0.4',
+          'hfile.block.cache.size': '0.4',
+          'hbase.coprocessor.region.classes': 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor',
+          'hbase.bucketcache.size': '92160',
+          'hbase.coprocessor.regionserver.classes': 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor',
+          'hbase.coprocessor.master.classes': 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor',
+          'hbase.bucketcache.ioengine': 'offheap'
+        },
+        'property_attributes': {
+          'hbase.bucketcache.percentage.in.combinedcache': {
+            'delete': 'true'
+          },
+          'hbase.region.server.rpc.scheduler.factory.class': {
+            'delete': 'true'
+          }
+        }
+      },
+      'ranger-hbase-plugin-properties': {
+        'properties': {
+          'REPOSITORY_CONFIG_USERNAME': 'custom_hbase',
+          'ranger-hbase-plugin-enabled': 'Yes'
+        }
+      },
+      'hbase-env': {
+        'properties': {
+          'hbase_user': 'custom_hbase',
+          'hbase_master_heapsize': '1024',
+          'hbase_regionserver_heapsize': '20480',
+          'hbase_max_direct_memory_size': '94208'
+        }
+      },
+      'core-site': {
+        'properties': {}
+      }
+    }
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+    configurations['hbase-env']['properties']['hbase_user'] = 'hbase'
+    expected['hbase-env']['properties']['hbase_user'] = 'hbase'
+    expected['ranger-hbase-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'hbase'
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendYARNConfigurations(self):
+    configurations = {
+      "yarn-env": {
+        "properties": {
+          "yarn_user" : "custom_yarn"
+        }
+      },
+      "ranger-yarn-plugin-properties": {
+        "properties": {
+          "ranger-yarn-plugin-enabled" : "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"yarn"
+        }
+      }
+    }
+    services = {
+      "services" : [{
+        "StackServices": {
+          "service_name" : "YARN",
+          "service_version" : "2.7.3.2.6"
+        },
+        "components": []
+      }
+      ],
+      "configurations": configurations
+    }
+
+
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      'yarn-env': {
+        'properties': {
+          'yarn_user': 'custom_yarn',
+          'service_check.queue.name': 'default',
+          'min_user_id': '500'
+        }
+      },
+      'ranger-yarn-plugin-properties': {
+        'properties': {
+          'ranger-yarn-plugin-enabled': 'Yes',
+          'REPOSITORY_CONFIG_USERNAME': 'custom_yarn'
+        }
+      },
+      'yarn-site': {
+        'properties': {
+          'hadoop.registry.rm.enabled': 'false',
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes': '',
+          'yarn.authorization-provider': 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer',
+          'yarn.acl.enable': 'true',
+          'yarn.scheduler.minimum-allocation-vcores': '1',
+          'yarn.scheduler.maximum-allocation-vcores': '4',
+          'yarn.nodemanager.resource.memory-mb': '1280',
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
+          'yarn.nodemanager.resource.cpu-vcores': '4',
+          'yarn.scheduler.maximum-allocation-mb': '1280',
+          'yarn.nodemanager.linux-container-executor.group': 'hadoop'
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+    configurations['yarn-env']['properties']['yarn_user'] = 'yarn'
+    expected['yarn-env']['properties']['yarn_user'] = 'yarn'
+    expected['ranger-yarn-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'yarn'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendKAFKAConfigurations(self):
+    configurations = {
+      "kafka-env": {
+        "properties": {
+          "kafka_user" : "custom_kafka"
+        }
+      },
+      "ranger-kafka-plugin-properties": {
+        "properties": {
+          "ranger-kafka-plugin-enabled" : "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"kafka"
+        }
+      }
+    }
+    clusterData = []
+    services = {
+      "services" : [{
+        "StackServices": {
+          "service_name" : "KAFKA",
+          "service_version" : "0.10.0.2.6"
+        },
+        "components": []
+      }
+      ],
+      "configurations": configurations
+    }
+
+    expected = {
+      'kafka-env': {
+        'properties': {
+          'kafka_user': 'custom_kafka'
+        }
+      },
+      'kafka-log4j': {
+        'properties': {}
+      },
+      'kafka-broker': {
+        'properties': {},
+        'property_attributes': {
+          'principal.to.local.class': {
+            'delete': 'true'
+          },
+          'super.users': {
+            'delete': 'true'
+          },
+          'security.inter.broker.protocol': {
+            'delete': 'true'
+          },
+          'authorizer.class.name': {
+            'delete': 'true'
+          }
+        }
+      },
+      'ranger-kafka-plugin-properties': {
+        'properties': {
+          'ranger-kafka-plugin-enabled': 'Yes',
+          'REPOSITORY_CONFIG_USERNAME': 'custom_kafka'
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+    configurations['kafka-env']['properties']['kafka_user'] = 'kafka'
+    expected['kafka-env']['properties']['kafka_user'] = 'kafka'
+    expected['ranger-kafka-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'kafka'
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
 
 def load_json(self, filename):
   file = os.path.join(self.testDirectory, filename)

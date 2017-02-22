@@ -30,11 +30,16 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
   def getServiceConfigurationRecommenderDict(self):
       parentRecommendConfDict = super(HDP26StackAdvisor, self).getServiceConfigurationRecommenderDict()
       childRecommendConfDict = {
-          "DRUID": self.recommendDruidConfigurations,
-          "ATLAS": self.recommendAtlasConfigurations,
-          "TEZ": self.recommendTezConfigurations,
-          "RANGER": self.recommendRangerConfigurations,
-          "RANGER_KMS": self.recommendRangerKMSConfigurations
+        "DRUID": self.recommendDruidConfigurations,
+        "ATLAS": self.recommendAtlasConfigurations,
+        "TEZ": self.recommendTezConfigurations,
+        "RANGER": self.recommendRangerConfigurations,
+        "RANGER_KMS": self.recommendRangerKMSConfigurations,
+        "HDFS": self.recommendHDFSConfigurations,
+        "HIVE": self.recommendHIVEConfigurations,
+        "HBASE": self.recommendHBASEConfigurations,
+        "YARN": self.recommendYARNConfigurations,
+        "KAFKA": self.recommendKAFKAConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
@@ -150,6 +155,24 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "true")
       else:
         putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
+
+    if 'yarn-env' in services['configurations'] and 'yarn_user' in services['configurations']['yarn-env']['properties']:
+      yarn_user = services['configurations']['yarn-env']['properties']['yarn_user']
+    else:
+      yarn_user = 'yarn'
+    if 'ranger-yarn-plugin-properties' in configurations and 'ranger-yarn-plugin-enabled' in configurations['ranger-yarn-plugin-properties']['properties']:
+      ranger_yarn_plugin_enabled = (configurations['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
+    elif 'ranger-yarn-plugin-properties' in services['configurations'] and 'ranger-yarn-plugin-enabled' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
+      ranger_yarn_plugin_enabled = (services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
+    else:
+      ranger_yarn_plugin_enabled = False
+
+    if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
+      Logger.info("Setting Yarn Repo user for Ranger.")
+      putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
+      putRangerYarnPluginProperty("REPOSITORY_CONFIG_USERNAME",yarn_user)
+    else:
+      Logger.info("Not setting Yarn Repo user for Ranger.")
 
   def getMetadataConnectionString(self, database_type):
       driverDict = {
@@ -321,3 +344,87 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerKmsEnvProperty("kms_port", ranger_kms_ssl_port)
     else:
       putRangerKmsEnvProperty("kms_port", "9292")
+
+  def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    if 'hadoop-env' in services['configurations'] and 'hdfs_user' in  services['configurations']['hadoop-env']['properties']:
+      hdfs_user = services['configurations']['hadoop-env']['properties']['hdfs_user']
+    else:
+      hdfs_user = 'hadoop'
+
+    if 'ranger-hdfs-plugin-properties' in configurations and 'ranger-hdfs-plugin-enabled' in configurations['ranger-hdfs-plugin-properties']['properties']:
+      ranger_hdfs_plugin_enabled = (configurations['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'].lower() == 'Yes'.lower())
+    elif 'ranger-hdfs-plugin-properties' in services['configurations'] and 'ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
+      ranger_hdfs_plugin_enabled = (services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'].lower() == 'Yes'.lower())
+    else:
+      ranger_hdfs_plugin_enabled = False
+
+    if ranger_hdfs_plugin_enabled and 'ranger-hdfs-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
+      Logger.info("Setting HDFS Repo user for Ranger.")
+      putRangerHDFSPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
+      putRangerHDFSPluginProperty("REPOSITORY_CONFIG_USERNAME",hdfs_user)
+    else:
+      Logger.info("Not setting HDFS Repo user for Ranger.")
+
+  def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    if 'hive-env' in services['configurations'] and 'hive_user' in services['configurations']['hive-env']['properties']:
+      hive_user = services['configurations']['hive-env']['properties']['hive_user']
+    else:
+      hive_user = 'hive'
+
+    if 'hive-env' in configurations and 'hive_security_authorization' in configurations['hive-env']['properties']:
+      ranger_hive_plugin_enabled = (configurations['hive-env']['properties']['hive_security_authorization'].lower() == 'ranger')
+    elif 'hive-env' in services['configurations'] and 'hive_security_authorization' in services['configurations']['hive-env']['properties']:
+      ranger_hive_plugin_enabled = (services['configurations']['hive-env']['properties']['hive_security_authorization'].lower() == 'ranger')
+    else :
+      ranger_hive_plugin_enabled = False
+
+    if ranger_hive_plugin_enabled and 'ranger-hive-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hive-plugin-properties']['properties']:
+      Logger.info("Setting Hive Repo user for Ranger.")
+      putRangerHivePluginProperty = self.putProperty(configurations, "ranger-hive-plugin-properties", services)
+      putRangerHivePluginProperty("REPOSITORY_CONFIG_USERNAME",hive_user)
+    else:
+      Logger.info("Not setting Hive Repo user for Ranger.")
+
+  def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+    if 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties']:
+      hbase_user = services['configurations']['hbase-env']['properties']['hbase_user']
+    else:
+      hbase_user = 'hbase'
+
+    if 'ranger-hbase-plugin-properties' in configurations and 'ranger-hbase-plugin-enabled' in configurations['ranger-hbase-plugin-properties']['properties']:
+      ranger_hbase_plugin_enabled = (configurations['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'].lower() == 'Yes'.lower())
+    elif 'ranger-hbase-plugin-properties' in services['configurations'] and 'ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']:
+      ranger_hbase_plugin_enabled = (services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'].lower() == 'Yes'.lower())
+    else:
+      ranger_hbase_plugin_enabled = False
+
+    if ranger_hbase_plugin_enabled and 'ranger-hbase-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hbase-plugin-properties']['properties']:
+      Logger.info("Setting Hbase Repo user for Ranger.")
+      putRangerHbasePluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
+      putRangerHbasePluginProperty("REPOSITORY_CONFIG_USERNAME",hbase_user)
+    else:
+      Logger.info("Not setting Hbase Repo user for Ranger.")
+
+  def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP26StackAdvisor, self).recommendKAFKAConfigurations(configurations, clusterData, services, hosts)
+    if 'kafka-env' in services['configurations'] and 'kafka_user' in services['configurations']['kafka-env']['properties']:
+      kafka_user = services['configurations']['kafka-env']['properties']['kafka_user']
+    else:
+      kafka_user = "kafka"
+
+    if 'ranger-kafka-plugin-properties' in configurations and  'ranger-kafka-plugin-enabled' in configurations['ranger-kafka-plugin-properties']['properties']:
+      ranger_kafka_plugin_enabled = (configurations['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'].lower() == 'Yes'.lower())
+    elif 'ranger-kafka-plugin-properties' in services['configurations'] and 'ranger-kafka-plugin-enabled' in services['configurations']['ranger-kafka-plugin-properties']['properties']:
+      ranger_kafka_plugin_enabled = (services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'].lower() == 'Yes'.lower())
+    else:
+      ranger_kafka_plugin_enabled = False
+
+    if ranger_kafka_plugin_enabled and 'ranger-kafka-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-kafka-plugin-properties']['properties']:
+      Logger.info("Setting Kafka Repo user for Ranger.")
+      putRangerKafkaPluginProperty = self.putProperty(configurations, "ranger-kafka-plugin-properties", services)
+      putRangerKafkaPluginProperty("REPOSITORY_CONFIG_USERNAME",kafka_user)
+    else:
+      Logger.info("Not setting Kafka Repo user for Ranger.")

@@ -67,5 +67,25 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>REPOSITORY_CONFIG_USERNAME</name>
+    <value>admin</value>
+    <display-name>Ranger repository config user</display-name>
+    <description>Used for repository creation on ranger admin
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>REPOSITORY_CONFIG_PASSWORD</name>
+    <value>admin</value>
+    <display-name>Ranger repository config password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Used for repository creation on ranger admin
+    </description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
 </configuration>

@@ -67,5 +67,22 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>REPOSITORY_CONFIG_USERNAME</name>
+    <value>hbase</value>
+    <display-name>Ranger repository config user</display-name>
+    <description>Used for repository creation on ranger admin</description>
+    <depends-on>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+      <property>
+        <type>hbase-env</type>
+        <name>hbase_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
 </configuration>

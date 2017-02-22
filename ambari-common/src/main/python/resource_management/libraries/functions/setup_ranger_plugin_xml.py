@@ -88,6 +88,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
             if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
               service_name_exist = True
               Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
+              Logger.warning("If service name for {0} is not created on Ranger Admin UI, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
               break
     except Exception, err:
       Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
