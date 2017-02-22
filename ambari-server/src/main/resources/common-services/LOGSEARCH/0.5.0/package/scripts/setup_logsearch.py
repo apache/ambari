@@ -60,13 +60,34 @@ def setup_logsearch():
        content=''
        )
 
-  params.logsearch_env_config = update_credential_provider_path(params.logsearch_env_config,
-                                                                'logsearch-env',
-                                                                params.logsearch_env_jceks_file,
-                                                                params.logsearch_user,
-                                                                params.user_group
-                                                                )
-  params.logsearch_properties[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file' + params.logsearch_env_jceks_file
+  if params.credential_store_enabled:
+    params.logsearch_env_config = update_credential_provider_path(params.logsearch_env_config,
+                                                                 'logsearch-env',
+                                                                 params.logsearch_env_jceks_file,
+                                                                 params.logsearch_user,
+                                                                 params.user_group
+                                                                 )
+    params.logsearch_properties[HADOOP_CREDENTIAL_PROVIDER_PROPERTY_NAME] = 'jceks://file' + params.logsearch_env_jceks_file
+    File(format("{logsearch_server_keys_folder}/ks_pass.txt"),
+         action="delete"
+         )
+    File(format("{logsearch_server_keys_folder}/ts_pass.txt"),
+         action="delete"
+         )
+  else:
+    File(format("{logsearch_server_keys_folder}/ks_pass.txt"),
+         content=params.logsearch_keystore_password,
+         mode=0600,
+         owner= params.logsearch_user,
+         group=params.user_group
+         )
+    File(format("{logsearch_server_keys_folder}/ts_pass.txt"),
+         content=params.logsearch_truststore_password,
+         mode=0600,
+         owner= params.logsearch_user,
+         group=params.user_group
+         )
+  
   PropertiesFile(format("{logsearch_server_conf}/logsearch.properties"),
                  properties=params.logsearch_properties
                  )
