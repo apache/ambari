@@ -535,12 +535,6 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag"/>
       </execute-stage>
 
-      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Parameterizing Ranger Admin Log4J Properties">
-        <task xsi:type="configure" id="admin_log4j_parameterize">
-          <summary>Updating the Ranger admin Log4J properties to include parameterizations</summary>
-        </task>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
         <condition xsi:type="security" type="kerberos"/>
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation">
@@ -558,20 +552,8 @@
         <task xsi:type="configure" id="hdp_2_6_0_0_remove_bind_anonymous"/>
       </execute-stage>
  
-       <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Parameterizing Ranger Usersync Log4J Properties">
-        <task xsi:type="configure" id="usersync_log4j_parameterize">
-          <summary>Updating the Ranger usersync Log4J properties to include parameterizations</summary>
-        </task>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Apply config changes for Ranger Usersync">
         <task xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade"/>
-      </execute-stage>
-
-      <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Parameterizing Ranger Tagsync Log4J Properties">
-        <task xsi:type="configure" id="tagsync_log4j_parameterize">
-          <summary>Updating the Ranger tagsync Log4J properties to include parameterizations</summary>
-        </task>
       </execute-stage>
 
       <!-- RANGER KMS -->

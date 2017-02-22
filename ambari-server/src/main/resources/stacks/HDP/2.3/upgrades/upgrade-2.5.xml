@@ -577,7 +577,6 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
-          <task xsi:type="configure" id="admin_log4j_parameterize" />
           <task xsi:type="execute" hosts="all">
             <summary>Stop Ranger Admin</summary>
             <script>scripts/ranger_admin.py</script>
@@ -626,24 +625,11 @@
       </component>
 
       <component name="RANGER_USERSYNC">
-        <pre-upgrade>
-          <task xsi:type="configure" id="usersync_log4j_parameterize" />
-        </pre-upgrade>
-        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
 
-      <component name="RANGER_TAGSYNC">
-        <pre-upgrade>
-          <task xsi:type="configure" id="tagsync_log4j_parameterize" />
-        </pre-upgrade>
-        <pre-downgrade />
-        <upgrade>
-          <task xsi:type="restart-task" />
-        </upgrade>
-      </component>
     </service>
 
     <service name="RANGER_KMS">

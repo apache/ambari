@@ -177,43 +177,15 @@
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="bind_anonymous" />
           </definition>
-
-          <definition xsi:type="configure" id="admin_log4j_parameterize" summary="Parameterizing Ranger Log4J Properties">
-            <type>admin-log4j</type>
-            <set key="ranger_xa_log_maxfilesize" value="256"/>
-            <set key="ranger_xa_log_maxbackupindex" value="20"/>
-            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxFileSize={{ranger_xa_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.xa_log_appender=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.xa_log_appender.MaxBackupIndex={{ranger_xa_log_maxbackupindex}}"/>
-          </definition>
-
         </changes>
       </component>
 
       <component name="RANGER_USERSYNC">
         <changes>
-          <definition xsi:type="configure" id="usersync_log4j_parameterize" summary="Parameterizing Ranger Usersync Log4J Properties">
-            <type>usersync-log4j</type>
-            <set key="ranger_usersync_log_maxfilesize" value="256"/>
-            <set key="ranger_usersync_log_maxbackupindex" value="20"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_usersync_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_usersync_log_maxbackupindex}}"/>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade">
             <type>ranger-ugsync-site</type>
             <set key="ranger.usersync.ldap.deltasync" value="false"
               if-type="ranger-ugsync-site" if-key="ranger.usersync.source.impl.class" if-value="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder"/>
-          </definition>
-        </changes>
-      </component>
-      <component name="RANGER_TAGSYNC">
-        <changes>
-          <definition xsi:type="configure" id="tagsync_log4j_parameterize" summary="Parameterizing Ranger Tagsync Log4J Properties">
-            <type>tagsync-log4j</type>
-            <set key="ranger_tagsync_log_maxfilesize" value="256"/>
-            <set key="ranger_tagsync_log_number_of_backup_files" value="20"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxFileSize = {{ranger_tagsync_log_maxfilesize}}MB"/>
-            <replace key="content" find="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.logFile=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.logFile.MaxBackupIndex = {{ranger_tagsync_log_number_of_backup_files}}"/>
           </definition>
         </changes>
       </component>

@@ -1032,18 +1032,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Set<String> upgradePackServices = new HashSet<>();
       Set<String> upgradePackConfigTypes = new HashSet<>();
       AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-      Map<String, ServiceInfo> stackServicesMap = ambariMetaInfo.getServices(targetStack.getStackName(), targetStack.getStackVersion());
+
+      // ensure that we get the service info from the target stack
+      // (since it could include new configuration types for a service)
+      Map<String, ServiceInfo> stackServicesMap = ambariMetaInfo.getServices(
+          targetStack.getStackName(), targetStack.getStackVersion());
+
       for (Grouping group : upgradePack.getGroups(direction)) {
         for (UpgradePack.OrderService service : group.services) {
           if (service.serviceName == null || upgradePackServices.contains(service.serviceName)) {
             // No need to re-process service that has already been looked at
             continue;
           }
+
           upgradePackServices.add(service.serviceName);
           ServiceInfo serviceInfo = stackServicesMap.get(service.serviceName);
           if (serviceInfo == null) {
             continue;
           }
+
+          // add every configuration type for all services defined in the
+          // upgrade pack
           Set<String> serviceConfigTypes = serviceInfo.getConfigTypeAttributes().keySet();
           for (String serviceConfigType : serviceConfigTypes) {
             if (!upgradePackConfigTypes.contains(serviceConfigType)) {
@@ -1052,6 +1061,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
       }
+
+      // build a set of configurations that should not be merged since their
+      // services are not installed
       Set<String> servicesNotInUpgradePack = new HashSet<>(stackServicesMap.keySet());
       servicesNotInUpgradePack.removeAll(upgradePackServices);
       for (String serviceNotInUpgradePack : servicesNotInUpgradePack) {
@@ -1063,7 +1075,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           }
         }
       }
-      // Remove unused config-types from 'newConfigurationsByType'
+
+      // remove any configurations from the target stack that are not used
+      // because the services are not installed
       Iterator<String> iterator = newConfigurationsByType.keySet().iterator();
       while (iterator.hasNext()) {
         String configType = iterator.next();
@@ -1102,10 +1116,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         // get the existing configurations
         Map<String, String> existingConfigurations = currentClusterConfig.getProperties();
 
-        // if the new stack configurations don't have the type, then simple add
+        // if the new stack configurations don't have the type, then simply add
         // all of the existing in
         Map<String, String> newDefaultConfigurations = newConfigurationsByType.get(
             configurationType);
+
         if (null == newDefaultConfigurations) {
           newConfigurationsByType.put(configurationType, existingConfigurations);
           continue;
