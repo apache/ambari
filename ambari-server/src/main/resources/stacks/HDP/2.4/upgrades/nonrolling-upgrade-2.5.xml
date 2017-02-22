@@ -358,22 +358,6 @@
       </execute-stage>
 
       <!--RANGER-->
-      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Parameterizing Ranger Admin Log4J Properties">
-        <task xsi:type="configure" id="admin_log4j_parameterize">
-          <summary>Updating the Ranger admin Log4J properties to include parameterizations</summary>
-        </task>
-      </execute-stage>
-      <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Parameterizing Ranger Usersync Log4J Properties">
-        <task xsi:type="configure" id="usersync_log4j_parameterize">
-          <summary>Updating the Ranger usersync Log4J properties to include parameterizations</summary>
-        </task>
-      </execute-stage>
-      <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Parameterizing Ranger Tagsync Log4J Properties">
-        <task xsi:type="configure" id="tagsync_log4j_parameterize">
-          <summary>Updating the Ranger tagsync Log4J properties to include parameterizations</summary>
-        </task>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Configuring Ranger Alerts">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction">
           <summary>Configuring Ranger Alerts</summary>
