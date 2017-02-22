@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<a class="services-menu-blocks" {{bindAttr href="view.link"}}>
+<a class="services-menu-blocks" {{bindAttr href="view.link" data-href="view.dataHref"}}>
   {{#if view.alertsCount}}
     <span {{bindAttr class=":label :alerts-count view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count :pull-right"}}>
       {{view.alertsCount}}
@@ -26,5 +26,5 @@
     <i rel="tooltip" {{action goToConfigs target="view"}} {{bindAttr class=":glyphicon :glyphicon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
   </span>
   {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
-  {{unbound view.content.displayName}}
+  <span class="menu-item-name">{{unbound view.content.displayName}}</span>
 </a>

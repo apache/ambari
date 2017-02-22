@@ -411,6 +411,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         route: '/',
         connectOutlets: function (router, context) {
           router.set('mainAdminController.category', "kerberos");
+          router.set('mainAdminController.categoryLabel', Em.I18n.t('common.kerberos'));
           router.get('mainAdminController').connectOutlet('mainAdminKerberos');
         }
       }),
@@ -505,6 +506,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       route: '/stack',
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "stackAndUpgrade");
+        router.set('mainAdminController.categoryLabel', Em.I18n.t('admin.stackUpgrade.title'));
         router.get('mainAdminController').connectOutlet('mainAdminStackAndUpgrade');
       },
 
@@ -559,6 +561,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       },
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "adminServiceAccounts");
+        router.set('mainAdminController.categoryLabel', Em.I18n.t('common.serviceAccounts'));
         router.get('mainAdminController').connectOutlet('mainAdminServiceAccounts');
       }
     }),
@@ -572,6 +575,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       },
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "serviceAutoStart");
+        router.set('mainAdminController.categoryLabel', Em.I18n.t('admin.serviceAutoStart.title'));
         router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
       },
       exitRoute: function (router, context, callback) {

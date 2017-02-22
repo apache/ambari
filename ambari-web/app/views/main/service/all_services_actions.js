@@ -21,6 +21,8 @@ var App = require('app');
 App.AllServicesActionView = Em.View.extend({
   templateName: require('templates/main/service/all_services_actions'),
 
+  classNames: ['more-actions'],
+
   serviceController: function () {
     return App.get('router.mainServiceController');
   }.property('App.router.mainServiceController')

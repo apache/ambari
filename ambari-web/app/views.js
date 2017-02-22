@@ -131,6 +131,7 @@ require('views/main/alerts/add_alert_definition/step2_view');
 require('views/main/alerts/add_alert_definition/step3_view');
 require('views/main/alerts');
 require('views/main/alerts/manage_alert_groups_view');
+require('views/main/alerts/alert_instances_popup_view');
 require('views/main/alerts/manage_alert_notifications_view');
 require('views/main/charts');
 require('views/main/views/details');

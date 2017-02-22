@@ -17,20 +17,16 @@
 }}
 
 <div class="row">
-  <div class="services-menu well col-md-2 side-menu-well">
-    {{view App.MainServiceMenuView}}
-    {{view App.AllServicesActionView}}
-  </div>
-    <div class="summary-width col-md-10" id="dashboard-widgets-container">
-      <ul class="nav nav-tabs background-text">
-        {{#each category in view.categories}}
-          {{#view view.NavItemView itemBinding="category.name" }}
-            <a href="#" {{action "goToDashboardView" category.url}} >{{category.label}}</a>
-          {{/view}}
-        {{/each}}
-      </ul>
+  <div class="summary-width col-md-12" id="dashboard-widgets-container">
+    <ul class="nav nav-tabs background-text">
+      {{#each category in view.categories}}
+        {{#view view.NavItemView itemBinding="category.name" }}
+          <a href="#" {{action "goToDashboardView" category.url}} >{{category.label}}</a>
+        {{/view}}
+      {{/each}}
+    </ul>
 
-      <!--show widgets, heatmaps or configs in the content-->
-      {{outlet}}
-    </div>
+    <!--show widgets, heatmaps or configs in the content-->
+    {{outlet}}
+  </div>
 </div>
