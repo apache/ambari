@@ -18,6 +18,7 @@
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "db_name": "ambari"
     },
+    "credentialStoreEnabled": "true",
     "commandType": "EXECUTION_COMMAND",
     "roleParams": {},
     "serviceName": "SLIDER",
