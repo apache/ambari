@@ -18,15 +18,11 @@
 
 package org.apache.ambari.view.hive20.client;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Inbox;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive20.actor.message.Connect;
 import org.apache.ambari.view.hive20.actor.message.ExecuteJob;
@@ -40,15 +36,23 @@ import org.apache.ambari.view.hive20.actor.message.job.NoMoreItems;
 import org.apache.ambari.view.hive20.actor.message.job.NoResult;
 import org.apache.ambari.view.hive20.actor.message.job.Result;
 import org.apache.ambari.view.hive20.actor.message.job.ResultSetHolder;
+import org.apache.ambari.view.hive20.internal.dto.DatabaseInfo;
+import org.apache.ambari.view.hive20.internal.dto.TableInfo;
 import org.apache.ambari.view.hive20.utils.HiveActorConfiguration;
 import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.concurrent.duration.Duration;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Inbox;
+import scala.concurrent.duration.Duration;
 
 public class DDLDelegatorImpl implements DDLDelegator {
 
@@ -69,15 +73,29 @@ public class DDLDelegatorImpl implements DDLDelegator {
   }
 
   @Override
-  public List<String> getDbList(ConnectionConfig config, String like) {
+  public List<DatabaseInfo> getDbList(ConnectionConfig config, String like) {
     Optional<Result> rowsFromDB = getRowsFromDB(config, getDatabaseListStatements(like));
-    return rowsFromDB.isPresent() ? getFirstColumnValues(rowsFromDB.get().getRows()) : Lists.<String>newArrayList();
+    List<String> databaseNames = rowsFromDB.isPresent() ? getFirstColumnValues(rowsFromDB.get().getRows()) : Lists.<String>newArrayList();
+    return FluentIterable.from(databaseNames).transform(new Function<String, DatabaseInfo>() {
+      @Nullable
+      @Override
+      public DatabaseInfo apply(@Nullable String databaseName) {
+        return new DatabaseInfo(databaseName);
+      }
+    }).toList();
   }
 
   @Override
-  public List<String> getTableList(ConnectionConfig config, String database, String like) {
+  public List<TableInfo> getTableList(ConnectionConfig config, String database, String like) {
     Optional<Result> rowsFromDB = getRowsFromDB(config, getTableListStatements(database, like));
-    return rowsFromDB.isPresent() ? getFirstColumnValues(rowsFromDB.get().getRows()) : Lists.<String>newArrayList();
+    List<String> tableNames = rowsFromDB.isPresent() ? getFirstColumnValues(rowsFromDB.get().getRows()) : Lists.<String>newArrayList();
+    return FluentIterable.from(tableNames).transform(new Function<String, TableInfo>() {
+      @Nullable
+      @Override
+      public TableInfo apply(@Nullable String tableName) {
+        return new TableInfo(tableName);
+      }
+    }).toList();
   }
 
   @Override

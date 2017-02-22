@@ -72,9 +72,9 @@ public class LogAggregator extends HiveActor {
       try {
         getMoreLogs();
       } catch (SQLException e) {
-        LOG.error("SQL Error while getting logs. Tried writing to: {}", logFile);
+        LOG.warn("SQL Error while getting logs. Tried writing to: {}. Exception: {}", logFile, e.getMessage());
       } catch (HdfsApiException e) {
-        LOG.warn("HDFS Error while getting writing logs to {}", logFile);
+        LOG.warn("HDFS Error while writing logs to {}. Exception: {}", logFile, e.getMessage());
 
       }
     }
