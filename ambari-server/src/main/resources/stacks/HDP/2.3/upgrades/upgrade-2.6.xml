@@ -737,6 +737,7 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
+          <task xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename"/>
         </pre-upgrade>
         
         <pre-downgrade copy-upgrade="true" />
@@ -765,6 +766,7 @@
           <task xsi:type="configure" id="yarn_log4j_parameterize" />
           <task xsi:type="configure" id="yarn_env_security_opts" />
           <task xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name"/>
         </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
@@ -829,6 +831,10 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_tez_queue_name"/>
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -908,6 +914,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths"/>
           <task xsi:type="configure" id="webhcat_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_templeton_hadoop_queue_name"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -967,6 +974,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_remove_spark_properties_extraJavaOptions"/>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue"/>
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->

@@ -301,6 +301,18 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Resource Manager">
+        <task xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name">
+          <summary>Adding service check customization property</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
+        <task xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename">
+          <summary>Adding queue customization property</summary>
+        </task>
+      </execute-stage>
+
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
@@ -310,6 +322,13 @@
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_5_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_5_0_0_tez_queue_name">
+          <summary>Add queue customization property</summary>
+        </task>
       </execute-stage>
 
       <!--OOZIE-->
@@ -422,6 +441,13 @@
         </task>
       </execute-stage>
 
+      <!--SPARK-->
+      <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
+        <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue">
+          <summary>Add queue customization property</summary>
+        </task>
+      </execute-stage>
+
       <!-- SQOOP -->
       <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop to remove Atlas Configs">
         <!-- Remove Atlas configs that were incorrectly added to sqoop-site instead of Atlas' application.properties. -->
@@ -470,6 +496,12 @@
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Parameterizing WebHCat Log4J Properties">
         <task xsi:type="configure" id="webhcat_log4j_parameterize">
           <summary>Updating the Webhcat Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
+        <task xsi:type="configure" id="hdp_2_6_0_0_templeton_hadoop_queue_name">
+          <summary>Adding queue customization setting</summary>
         </task>
       </execute-stage>
 

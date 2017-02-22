@@ -5388,11 +5388,10 @@ class TestHDP25StackAdvisor(TestCase):
         ]
     }
 
-    # Test with ranger plugin enabled, validation fails
-    res_expected = [{'config-type': 'spark2-defaults', 'message': 'Value should be set', 'type': 'configuration', 'config-name': 'spark.yarn.queue', 'level': 'ERROR'}]
+    res_expected = []
 
     res = self.stackAdvisor.validateSpark2Defaults(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)
 
 
   def test_recommendOozieConfigurations_noFalconServer(self):

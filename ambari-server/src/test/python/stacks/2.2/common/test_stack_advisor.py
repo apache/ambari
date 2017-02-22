@@ -3488,12 +3488,7 @@ class TestHDP22StackAdvisor(TestCase):
                   'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
 
 
-    res_expected = [{'config-name': 'tez.queue.name',
-                     'config-type': 'tez-site',
-                     'level': 'ERROR',
-                     'message': 'Value should be set',
-                     'type': 'configuration'},
-                    {'config-name': 'tez.tez-ui.history-url.base',
+    res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
                      'config-type': 'tez-site',
                      'level': 'WARN',
                      'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
@@ -3510,7 +3505,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration'}]
 
     res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)
 
 
   def test_validateHDFSConfigurationsEnv(self):
@@ -3622,11 +3617,6 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration',
                      'config-name': 'yarn.app.mapreduce.am.command-opts',
                      'level': 'WARN'},
-                    {'config-name': 'mapreduce.job.queuename',
-                     'config-type': 'mapred-site',
-                     'level': 'ERROR',
-                     'message': 'Value should be set',
-                     'type': 'configuration'},
                     {'config-type': 'mapred-site',
                      'message': 'yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb (410)',
                      'type': 'configuration',
@@ -3634,7 +3624,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)
 
   def test_validateHiveConfigurationsEnv(self):
     properties = {"hive_security_authorization": "None"}
@@ -4318,7 +4308,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     # Test with ranger plugin enabled, validation fails
-    res_expected = [{'config-type': 'spark-defaults', 'message': 'Value should be set', 'type': 'configuration', 'config-name': 'spark.yarn.queue', 'level': 'ERROR'}]
+    res_expected = []
 
     res = self.stackAdvisor.validateSparkDefaults(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)

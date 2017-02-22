@@ -1689,7 +1689,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
     if propertyName not in properties:
-      return self.getErrorItem("Value should be set")
+      return None
 
     capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
     leaf_queue_names = self.getAllYarnLeafQueues(capacity_scheduler_properties)
