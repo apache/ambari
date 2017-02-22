@@ -76,6 +76,12 @@ class TestLogSearch(RMFTestCase):
                               mode = 0644,
                               content = ''
     )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ks_pass.txt',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ts_pass.txt',
+                              action = ['delete']
+    )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
                               properties = {'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch.jceks',
                                             'logsearch.audit.logs.split.interval.mins': '1',
