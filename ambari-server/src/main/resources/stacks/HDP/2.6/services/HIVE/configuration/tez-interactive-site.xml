@@ -29,7 +29,7 @@
   -->
   <property>
     <name>tez.task.heartbeat.timeout.check-ms</name>
-    <value>11000</value>
+    <value>15000</value>
     <description>The time interval, in milliseconds, at which the AM will check
       for timed out tasks
     </description>
@@ -37,7 +37,7 @@
   </property>
   <property>
     <name>tez.task.timeout-ms</name>
-    <value>20000</value>
+    <value>90000</value>
     <description>Amount of time the Tez AM waits before marking a task which
       has not sent in a heartbeat, as timed out
     </description>
@@ -45,7 +45,7 @@
   </property>
   <property>
     <name>tez.am.client.heartbeat.timeout.secs</name>
-    <value>60</value>
+    <value>90</value>
     <description>The time interval, after which an AM will kill itself, if it
       does not receive a heartbeat from the client.
     </description>
