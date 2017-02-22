@@ -606,11 +606,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       encodeBody: false,
       primary: Em.I18n.t('ok'),
       header: Em.I18n.t('installer.step9.service.start.header'),
-      secondaryClass: "hide",
-      body: Em.I18n.t('installer.step9.service.start.failed'),
-      primaryClass: 'btn-success',
-      onPrimary: function() { this.hide(); },
-      onClose: function() { this.hide(); }
+      secondary: false,
+      body: Em.I18n.t('installer.step9.service.start.failed')
     });
   },
 

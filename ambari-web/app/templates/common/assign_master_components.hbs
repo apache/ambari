@@ -160,24 +160,23 @@
   </div>
 </div>
 
-<div class="wizard-footer col-md-12">
-  <div class="btn-area">
-    {{#if view.isBackButtonVisible}}
-      <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
-        &larr; {{t common.back}}
-        {{#if App.router.backBtnClickInProgress}}
+{{#if view.isWizardStep}}
+  <div class="wizard-footer col-md-12">
+    <div class="btn-area">
+      {{#if view.isBackButtonVisible}}
+        <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+          &larr; {{t common.back}}
+          {{#if App.router.backBtnClickInProgress}}
+            {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+          {{/if}}
+        </button>
+      {{/if}}
+      <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="nextButtonDisabled"}} {{action submit target="controller"}}>
+        {{#if App.router.nextBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
         {{/if}}
+        {{t common.next}} &rarr;
       </button>
-    {{/if}}
-    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="nextButtonDisabled"}} {{action submit target="controller"}}>
-      {{#if App.router.nextBtnClickInProgress}}
-        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
-      {{/if}}
-      {{view.acceptButtonText}}
-    </button>
-    {{#if view.isCancelButtonVisible}}
-      <button class="btn btn-default pull-right mrm" {{action onCancel target="controller"}}>{{t common.cancel}}</button>
-    {{/if}}
+    </div>
   </div>
-</div>
+{{/if}}

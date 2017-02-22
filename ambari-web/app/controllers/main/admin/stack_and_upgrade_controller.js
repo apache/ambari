@@ -1022,7 +1022,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       secondary: function() {
         return this.get('controller.getSupportedUpgradeError') ? null : Em.I18n.t('common.cancel');
       }.property('controller.getSupportedUpgradeError'),
-      primaryClass: 'btn-success',
       classNames: ['upgrade-options-popup'],
       header: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
       controller: this,

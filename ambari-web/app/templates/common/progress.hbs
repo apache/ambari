@@ -75,11 +75,13 @@
     </div>
   </div>
 </div>
-<div class="wizard-footer col-md-12">
-  <div class="btn-area">
-    {{#if view.showBackButton}}
-      <button class="btn btn-default pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
-    {{/if}}
-    <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{{view.submitButtonText}}}</button>
+{{#unless view.isSimpleModal}}
+  <div class="wizard-footer col-md-12">
+    <div class="btn-area">
+      {{#if view.showBackButton}}
+        <button class="btn btn-default pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
+      {{/if}}
+      <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{{view.submitButtonText}}}</button>
+    </div>
   </div>
-</div>
+{{/unless}}

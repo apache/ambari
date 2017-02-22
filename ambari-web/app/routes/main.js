@@ -429,9 +429,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               bodyClass: App.KerberosDisableView.extend({
                 controllerBinding: 'App.router.kerberosDisableController'
               }),
-              primary: Em.I18n.t('form.cancel'),
+              primary: Em.I18n.t('common.complete'),
               secondary: null,
-              showFooter: false,
+              disablePrimary: Em.computed.alias('App.router.kerberosDisableController.isSubmitDisabled'),
 
               onClose: function () {
                 var self = this;

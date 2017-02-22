@@ -17,7 +17,14 @@
 }}
 
 <div class="modal-footer">
-  <button type="button" class="btn btn-default" {{action onCancel target="view.parentView"}}>{{t common.cancel}}</button>
-  <button type="button" class="btn btn-default" {{action onDiscard target="view.parentView"}}>{{t common.discard}}</button>
-  <button type="button" class="btn btn-success" {{bindAttr disabled="view.isSaveDisabled"}} {{action onSave target="view.parentView"}}>{{t common.save}}</button>
+  <button type="button" class="btn btn-default"
+    {{action onCancel target="view.parentView"}}>
+      {{t common.cancel}}
+  </button><button type="button" class="btn btn-default"
+    {{action onDiscard target="view.parentView"}}>
+      {{t common.discard}}
+  </button><button type="button" class="btn btn-success"
+    {{bindAttr disabled="view.isSaveDisabled"}}
+    {{action onSave target="view.parentView"}}>
+      {{t common.save}}</button>
 </div>

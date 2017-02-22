@@ -24,7 +24,7 @@
       {{! Modal header }}
       <div class="modal-header">
         {{#if view.showCloseButton}}
-          <a class="close" {{action onClose target="view"}}>x</a>
+          <a class="close" {{action onClose target="view"}}>&times;</a>
         {{/if}}
         <h4 id="modal-label">
           {{#if view.headerClass}}
@@ -54,17 +54,23 @@
         {{else}}
           <div class="modal-footer">
             {{#if view.third}}
-              <button {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass" id="view.thirdId"}} {{action onThird target="view"}}>{{view.third}}</button>
-            {{/if}}
-            {{#if view.secondary}}
-              <button {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass" id="view.secondaryId"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
-            {{/if}}
-            {{#if view.primary}}
-              <button {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass" id="view.primaryId"}} {{action onPrimary target="view"}}>{{view.primary}}</button>
+              <button
+                {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass" id="view.thirdId"}}
+                {{action onThird target="view"}}>
+                  {{view.third}}
+              </button>{{/if}}{{#if view.secondary}}<button
+                {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass" id="view.secondaryId"}}
+                {{action onSecondary target="view"}}>
+                  {{view.secondary}}
+              </button>{{/if}}{{#if view.primary}}<button
+                {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass" id="view.primaryId"}}
+                {{action onPrimary target="view"}}>
+                  {{view.primary}}
+              </button>
             {{/if}}
           </div>
-            {{/if}}
-          {{/if}}
+        {{/if}}
+      {{/if}}
     </div>
   </div>
 </div>

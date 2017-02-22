@@ -1323,11 +1323,13 @@ input.radio:checked + label:after {
 .modal .modal-content .modal-header {
   border-bottom: none;
   padding-top: 20px;
+  color: #666;
+  font-size: 20px;
 }
 .modal .modal-content .modal-header h4 {
   margin: 0;
-  color: #666;
-  font-size: 20px;
+  color: inherit;
+  font-size: inherit;
 }
 .modal .modal-content .modal-body {
   color: #666;
