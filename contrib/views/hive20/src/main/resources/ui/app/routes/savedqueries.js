@@ -36,9 +36,6 @@ export default Ember.Route.extend({
   },
 
   actions: {
-    historySavedQuery(id){
-      console.log('historySavedQuery', id);
-    },
 
     deleteSavedQuery(){
       let queryId = this.get('controller').get('selectedSavedQueryId');

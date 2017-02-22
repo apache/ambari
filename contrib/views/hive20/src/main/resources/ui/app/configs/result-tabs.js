@@ -23,19 +23,19 @@ let resultsTabs = [
     name: 'results',
     label: 'RESULTS',
     link: 'queries.query.results',
-    faIcon: 'paper-plane'
+    faIcon: 'file-text-o'
   }),
   Ember.Object.create({
     name: 'log',
     label: 'LOG',
     link: 'queries.query.log',
-    faIcon: 'paper-plane'
+    faIcon: 'list'
   }),
   Ember.Object.create({
     name: 'visual-explain',
     label: 'VISUAL EXPLAIN',
     link: 'queries.query.visual-explain',
-    faIcon: 'paper-plane'
+    faIcon: 'link'
   }),
   Ember.Object.create({
     name: 'tez-ui',
