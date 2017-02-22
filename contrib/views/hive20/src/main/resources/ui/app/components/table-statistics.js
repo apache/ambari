@@ -17,8 +17,9 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../mixins/ui-logger';
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(UILoggerMixin, {
   statsService: Ember.inject.service(),
 
   analyseWithStatistics: false,
@@ -76,6 +77,7 @@ export default Ember.Component.extend({
       Ember.run.later(() => this.closeAndRefresh(), 2 * 1000);
     }).catch((err) => {
       this.set('analyseMessage', 'Job failed for analysing statistics of table');
+      this.get('logger').danger(`Job failed for analysing statistics of table '${tableName}'`, this.extractError(err));
       Ember.run.later(() => this.closeAndRefresh(), 2 * 1000);
     });
   },
@@ -96,6 +98,7 @@ export default Ember.Component.extend({
     }).catch((err) => {
       column.set('isFetchingStats', false);
       column.set('statsError', true);
+      this.get('logger').danger(`Job failed for fetching column statistics for column '${column.name}' of table '${tableName}'`, this.extractError(err));
     });
   },
 

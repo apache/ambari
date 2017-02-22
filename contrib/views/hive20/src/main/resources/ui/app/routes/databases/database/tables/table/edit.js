@@ -57,7 +57,7 @@ export default TableMetaRouter.extend(UILoggerMixin, {
         this._transitionToTables();
       }).catch((err) => {
         this._modalStatus(false, 'Failed to edit table');
-        this.get('logger').danger(`Failed to  altered table '${settings.table}'`, this.extractError(err));
+        this.get('logger').danger(`Failed to alter table '${settings.table}'`, this.extractError(err));
       });
     }
 
