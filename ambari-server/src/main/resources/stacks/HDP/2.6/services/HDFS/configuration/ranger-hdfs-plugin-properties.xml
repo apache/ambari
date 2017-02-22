@@ -67,4 +67,22 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>REPOSITORY_CONFIG_USERNAME</name>
+    <value>hadoop</value>
+    <display-name>Ranger repository config user</display-name>
+    <description>Used for repository creation on ranger admin
+    </description>
+    <depends-on>
+      <property>
+        <type>ranger-hdfs-plugin-properties</type>
+        <name>ranger-hdfs-plugin-enabled</name>
+      </property>
+      <property>
+        <type>hadoop-env</type>
+        <name>hdfs_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

@@ -449,6 +449,25 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
       else:
         putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
 
+    if 'yarn-env' in services['configurations'] and 'yarn_user' in services['configurations']['yarn-env']['properties']:
+      yarn_user = services['configurations']['yarn-env']['properties']['yarn_user']
+    else:
+      yarn_user = 'yarn'
+    if 'ranger-yarn-plugin-properties' in configurations and 'ranger-yarn-plugin-enabled' in configurations['ranger-yarn-plugin-properties']['properties']:
+      ranger_yarn_plugin_enabled = (configurations['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
+    elif 'ranger-yarn-plugin-properties' in services['configurations'] and 'ranger-yarn-plugin-enabled' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
+      ranger_yarn_plugin_enabled = (services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
+    else:
+      ranger_yarn_plugin_enabled = False
+
+    if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
+      Logger.info("Setting Yarn Repo user for Ranger.")
+      putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
+      putRangerYarnPluginProperty("REPOSITORY_CONFIG_USERNAME",yarn_user)
+    else:
+      Logger.info("Not setting Yarn Repo user for Ranger.")
+
+
   #region LLAP
   def updateLlapConfigs(self, configurations, services, hosts, llap_queue_name):
     """

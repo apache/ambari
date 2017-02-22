@@ -66,6 +66,16 @@
     <value>yarn</value>
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin</description>
+    <depends-on>
+      <property>
+        <type>ranger-yarn-plugin-properties</type>
+        <name>ranger-yarn-plugin-enabled</name>
+      </property>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_user</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
