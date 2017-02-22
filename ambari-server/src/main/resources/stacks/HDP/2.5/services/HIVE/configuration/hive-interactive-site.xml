@@ -389,12 +389,6 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hive.llap.daemon.allow.permanent.fns</name>
-    <value>false</value>
-    <description>Whether LLAP daemon should localize the resources for permanent UDFs.</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>hive.llap.io.memory.size</name>
     <display-name>In-Memory Cache per Daemon</display-name>
     <description>The amount of memory reserved for Hive's optimized in-memory cache.</description>
