@@ -40,5 +40,6 @@ export default DS.Model.extend({
   isQueryRunning: DS.attr('boolean', {defaultValue: false}),
   isQueryResultContainer: DS.attr('boolean', {defaultValue: false}),
   visualExplainJson: DS.attr({defaultValue: null}),
-  lastResultRoute: DS.attr({defaultValue: ""})
+  lastResultRoute: DS.attr({defaultValue: ""}),
+  tezUrl: DS.attr('string', {defaultValue: null})
 });

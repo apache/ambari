@@ -27,6 +27,7 @@ export default Ember.Route.extend(UILoggerMixin, {
   isQueryEdidorPaneExpanded: false,
   isQueryResultPanelExpanded: false,
   globalSettings: '',
+  tezViewInfo: Ember.inject.service(),
 
   beforeModel(params){
     console.log('worksheetId', params.params['queries.query'].worksheetId);
@@ -74,7 +75,6 @@ export default Ember.Route.extend(UILoggerMixin, {
     } else {
       this.transitionTo('queries.query' + lastResultRoute);
     }
-
   },
 
   model(params) {
@@ -91,6 +91,7 @@ export default Ember.Route.extend(UILoggerMixin, {
   setupController(controller, model) {
 
     this._super(...arguments);
+    this.get("tezViewInfo").getTezViewInfo();
 
     let self = this;
     let alldatabases = this.store.findAll('database');
@@ -212,6 +213,11 @@ export default Ember.Route.extend(UILoggerMixin, {
       }
 
       let originalQuery = this.get('controller').get('currentQuery');
+      if(Ember.isBlank(originalQuery)) {
+        this.get('logger').danger('Query cannot be empty.');
+        this.send('resetDefaultWorksheet');
+        return;
+      }
       let queryInput = originalQuery;
 
       if (isVisualExplainQuery) {
@@ -234,6 +240,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       }
 
       this.get('controller.model').set('query', originalQuery);
+
 
       let dbid = this.get('controller.model').get('selectedDb');
       let worksheetTitle = this.get('controller.model').get('title');
@@ -272,8 +279,11 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
             self.get('controller').set('isJobSuccess', true);
-            self.send('getJobResult', data, payload.title);
+            let jobDetails = self.store.peekRecord('job', data.job.id);
+            console.log(jobDetails);
+            self.send('getJobResult', data, payload.title, jobDetails);
             self.transitionTo('queries.query.loading');
+
           }, (error) => {
             console.log('error', error);
             self.get('logger').danger('Failed to execute query.', self.extractError(error));
@@ -287,7 +297,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       });
     },
 
-    getJobResult(data, payloadTitle){
+    getJobResult(data, payloadTitle, jobDetails){
       let self = this;
 
       let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
@@ -305,7 +315,9 @@ export default Ember.Route.extend(UILoggerMixin, {
         if(existingWorksheets.get('length') > 0) {
           myWs = existingWorksheets.filterBy('title', payloadTitle).get('firstObject');
         }
-
+        if(!Ember.isBlank(jobDetails.get("dagId"))) {
+          self.get('controller.model').set('tezUrl', self.get("tezViewInfo").getTezViewURL() + jobDetails.get("dagId"));
+        }
         myWs.set('queryResult', data);
         myWs.set('isQueryRunning', false);
         myWs.set('hasNext', data.hasNext);
