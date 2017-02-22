@@ -1968,8 +1968,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       if( null != existingUpgrade ){
         throw new AmbariException(
             String.format("Unable to perform %s as another %s (request ID %s) is in progress.",
-                direction.getText(false), direction.getText(false),
-                existingUpgrade.getRequestId().longValue()));
+                direction.getText(false), existingUpgrade.getDirection().getText(false),
+                existingUpgrade.getRequestId()));
       }
 
       // skip this check if it's a downgrade or we are instructed to skip it
