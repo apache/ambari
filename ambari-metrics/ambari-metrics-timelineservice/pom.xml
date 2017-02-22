@@ -211,6 +211,9 @@
                   <location>conf/unix/metrics_whitelist</location>
                 </source>
                 <source>
+                  <location>conf/unix/amshbase_metrics_whitelist</location>
+                </source>
+                <source>
                   <location>target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
                 </source>
               </sources>
@@ -252,7 +255,9 @@
         <configuration>
           <excludes>
             <exclude>conf/unix/metrics_whitelist</exclude>
+            <exclude>conf/unix/amshbase_metrics_whitelist</exclude>
             <exclude>conf/windows/metrics_whitelist</exclude>
+            <exclude>conf/windows/amshbase_metrics_whitelist</exclude>
           </excludes>
         </configuration>
         <executions>

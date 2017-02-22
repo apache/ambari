@@ -116,7 +116,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       }
 
       //Initialize whitelisting & blacklisting if needed
-      TimelineMetricsFilter.initializeMetricFilter(metricsConf);
+      TimelineMetricsFilter.initializeMetricFilter(configuration);
 
       defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {

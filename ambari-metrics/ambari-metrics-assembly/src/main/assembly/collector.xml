@@ -45,6 +45,7 @@
         <include>ams-site.xml</include>
         <include>log4j.properties</include>
         <include>metrics_whitelist</include>
+        <include>amshbase_metrics_whitelist</include>
       </includes>
     </fileSet>
     <fileSet>

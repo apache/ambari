@@ -23,21 +23,27 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricsFilter;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
 public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   TimelineMetricMetadataManager metadataManager;
 
   @Before
-  public void insertDummyRecords() throws IOException, SQLException {
+  public void insertDummyRecords() throws IOException, SQLException, URISyntaxException {
     // Initialize new manager
     metadataManager = new TimelineMetricMetadataManager(hdb, new Configuration());
     final long now = System.currentTimeMillis();
@@ -86,7 +92,11 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     }});
     timelineMetrics.getMetrics().add(metric3);
 
-    TimelineMetricsFilter.initializeMetricFilter(new Configuration());
+    Configuration metricsConf = new Configuration();
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    replay(configuration);
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
     TimelineMetricsFilter.addToWhitelist("dummy_metric1");
     TimelineMetricsFilter.addToWhitelist("dummy_metric2");
 

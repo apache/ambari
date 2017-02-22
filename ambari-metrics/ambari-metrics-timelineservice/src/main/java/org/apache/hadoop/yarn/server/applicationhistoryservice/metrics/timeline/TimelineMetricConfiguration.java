@@ -17,17 +17,25 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
@@ -262,6 +270,8 @@ public class TimelineMetricConfiguration {
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";
 
+  public static final String AMSHBASE_METRICS_WHITESLIST_FILE = "amshbase_metrics_whitelist";
+
   private Configuration hbaseConf;
   private Configuration metricsConf;
   private Configuration amsEnvConf;
@@ -422,5 +432,34 @@ public class TimelineMetricConfiguration {
 
   public boolean isSecurityEnabled() {
     return hbaseConf.get("hbase.security.authentication", "").equals("kerberos");
+  }
+
+  public Set<String> getAmshbaseWhitelist() {
+
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = getClass().getClassLoader();
+    }
+
+    BufferedReader br = null;
+    String strLine;
+    Set<String> whitelist = new HashSet<>();
+
+    try(InputStream inputStream = classLoader.getResourceAsStream(AMSHBASE_METRICS_WHITESLIST_FILE)) {
+      br = new BufferedReader(new InputStreamReader(inputStream));
+
+      while ((strLine = br.readLine()) != null)   {
+        strLine = strLine.trim();
+        if (StringUtils.isEmpty(strLine)) {
+          continue;
+        }
+        whitelist.add(strLine);
+      }
+    } catch (IOException ioEx) {
+      LOG.error("Unable to parse ams-hbase metric whitelist file", ioEx);
+      return Collections.EMPTY_SET;
+    }
+
+    return whitelist;
   }
 }
