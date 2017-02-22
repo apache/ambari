@@ -27,7 +27,6 @@ export default Ember.Route.extend({
       id: newWorksheetName,
       title: newWorksheetTitle,
       //query: 'select 1;',
-      selectedDb : 'default',
       //owner: 'admin',
       selected: true
     });

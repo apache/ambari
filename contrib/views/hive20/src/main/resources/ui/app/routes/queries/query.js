@@ -75,6 +75,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     } else {
       this.transitionTo('queries.query' + lastResultRoute);
     }
+    return dbmodel;
   },
 
   model(params) {
@@ -93,24 +94,22 @@ export default Ember.Route.extend(UILoggerMixin, {
     this._super(...arguments);
     this.get("tezViewInfo").getTezViewInfo();
 
-    let self = this;
-    let alldatabases = this.store.findAll('database');
+    let self = this, selectedDb;
+    let alldatabases = this.store.peekAll('database');
     controller.set('alldatabases',alldatabases);
 
-    let selecteDBName = model.get('selectedDb');
+    selectedDb = this.checkIfDeafultDatabaseExists(alldatabases);
 
     let selectedTablesModels =[];
     let selectedMultiDb = [];
-
-    selectedTablesModels.pushObject(
-      {
-        'dbname': selecteDBName ,
-        'tables': this.store.query('table', {databaseId: selecteDBName}),
+    if(selectedDb) {
+      selectedTablesModels.pushObject({
+        'dbname': selectedDb ,
+        'tables': this.store.query('table', {databaseId: selectedDb}),
         'isSelected': true
-      }
-    )
-
-    selectedMultiDb.pushObject(selecteDBName);
+      })
+      selectedMultiDb.pushObject(selectedDb);
+    }
 
     controller.set('worksheet', model);
 
@@ -139,7 +138,23 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('tabs', tabs);
 
   },
-
+  checkIfDeafultDatabaseExists(alldatabases){
+    let defaultDB = alldatabases.findBy('name', 'default'), selectedDb;
+    if(defaultDB) {
+      selectedDb = defaultDB.get("name");
+      this.get('controller.model').set('selectedDb', selectedDb);
+    }
+    return selectedDb;
+  },
+  setSelectedDB(selectedDBs) {
+    let selectedDb = this.get('controller.model').get('selectedDb');
+    if(selectedDBs && selectedDBs.indexOf(selectedDb) === -1) {
+      this.get('controller.model').set('selectedDb', selectedDBs[0]);
+    }
+    else if(selectedDBs.length === 0) {
+      this.get('controller.model').set('selectedDb', null);
+    }
+  },
   actions: {
 
     resetDefaultWorksheet(){
@@ -161,7 +176,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       let self = this;
       let selectedTablesModels =[];
       let selectedMultiDb = [];
-
+      this.setSelectedDB(selectedDBs);
       selectedDBs.forEach(function(db, index){
         selectedTablesModels.pushObject(
           {
