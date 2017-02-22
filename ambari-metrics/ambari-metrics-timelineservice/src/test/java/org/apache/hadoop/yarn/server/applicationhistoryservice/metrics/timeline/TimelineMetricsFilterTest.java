@@ -17,20 +17,31 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.easymock.EasyMock;
 import org.junit.Test;
+
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TimelineMetricsFilterTest {
 
   @Test
-  public void testAppBlacklisting() {
+  public void testAppBlacklisting() throws Exception{
 
     Configuration metricsConf = new Configuration();
     metricsConf.set("timeline.metrics.apps.blacklist", "hbase,datanode,nimbus");
-    TimelineMetricsFilter.initializeMetricFilter(metricsConf);
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    replay(configuration);
+
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
 
     TimelineMetric timelineMetric = new TimelineMetric();
 
@@ -48,10 +59,14 @@ public class TimelineMetricsFilterTest {
   public void testMetricWhitelisting() throws Exception {
 
     Configuration metricsConf = new Configuration();
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    replay(configuration);
+
     URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
 
     metricsConf.set("timeline.metrics.whitelist.file", fileUrl.getPath());
-    TimelineMetricsFilter.initializeMetricFilter(metricsConf);
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
 
     TimelineMetric timelineMetric = new TimelineMetric();
 
@@ -73,11 +88,14 @@ public class TimelineMetricsFilterTest {
 
     Configuration metricsConf = new Configuration();
     metricsConf.set("timeline.metrics.apps.blacklist", "hbase,datanode,nimbus");
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+    replay(configuration);
 
     URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
     metricsConf.set("timeline.metrics.whitelist.file", fileUrl.getPath());
 
-    TimelineMetricsFilter.initializeMetricFilter(metricsConf);
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
 
     TimelineMetric timelineMetric = new TimelineMetric();
 
@@ -93,6 +111,39 @@ public class TimelineMetricsFilterTest {
     Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
 
     timelineMetric.setMetricName("dfs.FSNamesystem.TotalFiles");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+  }
+
+  @Test
+  public void testAmshbaseWhitelisting() throws Exception {
+
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+
+    Configuration metricsConf = new Configuration();
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+
+    Set<String> whitelist = new HashSet();
+    whitelist.add("regionserver.Server.Delete_99th_percentile");
+    whitelist.add("regionserver.Server.Delete_max");
+    whitelist.add("regionserver.Server.Delete_mean");
+    expect(configuration.getAmshbaseWhitelist()).andReturn(whitelist).once();
+
+    replay(configuration);
+
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
+
+    TimelineMetric timelineMetric = new TimelineMetric();
+
+    timelineMetric.setMetricName("regionserver.Server.Delete_max");
+    timelineMetric.setAppId("ams-hbase");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("regionserver.Server.Delete_min3333");
+    timelineMetric.setAppId("ams-hbase");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("jvm.JvmMetrics.MemHeapUsedM");
+    timelineMetric.setAppId("hbase");
     Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
   }
 
