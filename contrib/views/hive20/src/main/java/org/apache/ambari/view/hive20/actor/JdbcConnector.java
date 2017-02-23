@@ -238,6 +238,7 @@ public class JdbcConnector extends HiveActor {
     try {
       isCancelCalled = true;
       connectionDelegate.cancel();
+      LOG.info("Cancelled JobId:"+ jobId);
     } catch (SQLException e) {
       LOG.error("Failed to cancel job. JobId: {}. {}", message.getJobId(), e);
     }

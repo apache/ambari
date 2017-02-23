@@ -62,6 +62,11 @@ export default Ember.Service.extend({
     });
   },
 
+  stopJob : function(jobId) {
+    return this.get('store').findRecord('job', jobId)
+      .then(job => job.destroyRecord())
+  },
+
   _fetchDummyResult(jobId) {
     this.get('store').adapterFor('job').fetchResult(jobId);
   },

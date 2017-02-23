@@ -28,7 +28,15 @@
         {{query-editor query=currentQuery updateQuery='updateQuery' }}
       </div>
       <div class="row query-editor-controls">
-        <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "check"}} Execute</button>
+        {{#if isJobCreated}}
+          {{#if isJobCancelled}}
+             <button class="btn btn-warning" disabled >{{fa-icon "ban"}} Stopping</button>
+          {{else}}
+            <button class="btn btn-warning" {{action "stopQuery" }} >{{fa-icon "ban"}} Stop</button>
+          {{/if}}
+        {{else}}
+          <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}} >{{fa-icon "check"}} Execute</button>
+        {{/if}}
 
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
         <div class="btn-group">
