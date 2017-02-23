@@ -223,7 +223,7 @@ public abstract class ConfigBlock {
     logStatForMetric(statMetric, "Stat");
   }
 
-  public boolean logConfgs(Priority level) {
+  public boolean logConfigs(Priority level) {
     if (level.toInt() == Priority.INFO_INT && !LOG.isInfoEnabled()) {
       return false;
     }
