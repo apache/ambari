@@ -181,6 +181,7 @@
       <outputDirectory>/var/lib/ambari-server/resources/host_scripts</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>etc/init</directory>
       <outputDirectory>/etc/init</outputDirectory>
     </fileSet>
@@ -199,6 +200,7 @@
   -->
   <files>
     <file>
+      <fileMode>755</fileMode>
       <source>${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
     </file>
@@ -218,18 +220,22 @@
       <outputDirectory>/etc/init.d</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>${ambariProperties}</source>
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>conf/unix/log4j.properties</source>
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>conf/unix/metrics.properties</source>
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>conf/unix/krb5JAASLogin.conf</source>
       <outputDirectory>/etc/ambari-server/conf</outputDirectory>
     </file>
@@ -254,6 +260,7 @@
       <outputDirectory>/var/lib/ambari-server/</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>conf/unix/ca.config</source>
       <outputDirectory>/var/lib/ambari-server/keys</outputDirectory>
     </file>
@@ -328,10 +335,12 @@
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>${project.build.directory}/CredentialUtil.jar</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>src/main/resources/APACHE-AMBARI-MIB.txt</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
@@ -370,6 +379,7 @@
       <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
     </file>
     <file>
+      <fileMode>755</fileMode>
       <source>${basedir}/target/version</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
@@ -381,6 +391,7 @@
   </files>    
   <dependencySets>
     <dependencySet>
+      <fileMode>755</fileMode>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
       <scope>compile</scope>
