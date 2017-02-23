@@ -411,11 +411,15 @@
       color: #ccc;
     }
     .dropdown {
-      button .selected-item {
-        width: 95%;
-        margin-right: 5px;
-        float: left;
-        overflow: hidden;
+      button {
+        width: 100%;
+        .selected-item {
+          width: 95%;
+          margin-right: 5px;
+          float: left;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
     }
   }
