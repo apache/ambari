@@ -32,10 +32,8 @@
 
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
         <div class="btn-group">
-          <button class="btn btn-default" type="button" data-toggle="dropdown">Insert UDF
+          <button class="btn btn-default" type="button" data-toggle="dropdown" disabled={{ not allUDFList.length }}>Insert UDF
             <span class="caret"></span></button>
-
-
             <ul class="dropdown-menu">
               {{#each fileResourceList as |fileResource|}}
                 {{fileresource-item fileResource=fileResource createQuery='createQuery'}}

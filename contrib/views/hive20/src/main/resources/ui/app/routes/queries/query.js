@@ -54,6 +54,22 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.controller.set('fileResourceList', fileResourceList);
     });
 
+    this.store.findAll('udf').then((data) => {
+      let allUDFList = [];
+      data.forEach(x => {
+        let localUDF = {'id': x.get('id'),
+          'name': x.get('name'),
+          'classname': x.get('classname'),
+          'fileResource': x.get('fileResource'),
+          'owner': x.get('owner')
+        };
+        allUDFList.push(localUDF);
+      });
+      this.controller.set('allUDFList', allUDFList);
+    });
+
+
+
     this.store.findAll('setting').then((data) => {
       let localStr = '';
       data.forEach(x => {
