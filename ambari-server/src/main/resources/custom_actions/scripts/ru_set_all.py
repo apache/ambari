@@ -22,6 +22,7 @@ Ambari Agent
 
 import os
 import shutil
+import socket
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
@@ -38,15 +39,12 @@ from resource_management.libraries.functions import StackFeature
 
 class UpgradeSetAll(Script):
   """
-  This script is a part of Rolling Upgrade workflow and is used to set the
-  component versions as a final step in the upgrade process
+  This script is a part of stack upgrade workflow and is used to set the
+  all of the component versions as a final step in the upgrade process
   """
 
   def actionexecute(self, env):
-    config = Script.get_config()
-
     version = default('/commandParams/version', None)
-    stack_name = default('/hostLevelParams/stack_name', "")
 
     if not version:
       raise Fail("Value is required for '/commandParams/version'")
@@ -56,15 +54,25 @@ class UpgradeSetAll(Script):
       cmd = ('/usr/bin/yum', 'clean', 'all')
       code, out = shell.call(cmd, sudo=True)
 
-    real_ver = format_stack_version(version)
-    if real_ver and check_stack_feature(StackFeature.ROLLING_UPGRADE, real_ver):
-      stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
-      cmd = ('ambari-python-wrap', stack_selector_path, 'set', 'all', version)
-      code, out = shell.call(cmd, sudo=True)
-      if code != 0:
-        raise Exception("Command '{0}' exit code is nonzero".format(cmd))
+    formatted_version = format_stack_version(version)
+    if not formatted_version:
+      raise Fail("Unable to determine a properly formatted stack version from {0}".format(version))
 
-    if real_ver and check_stack_feature(StackFeature.CONFIG_VERSIONING, real_ver):
+    stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+
+    # this script runs on all hosts; if this host doesn't have stack components,
+    # then don't invoke the stack tool
+    # (no need to log that it's skipped - the function will do that)
+    if is_host_skippable(stack_selector_path, formatted_version):
+      return
+
+    # invoke "set all"
+    cmd = ('ambari-python-wrap', stack_selector_path, 'set', 'all', version)
+    code, out = shell.call(cmd, sudo=True)
+    if code != 0:
+      raise Exception("Command '{0}' exit code is nonzero".format(cmd))
+
+    if check_stack_feature(StackFeature.CONFIG_VERSIONING, formatted_version):
       # backup the old and symlink /etc/[component]/conf to <stack-root>/current/[component]
       for k, v in conf_select.get_package_dirs().iteritems():
         for dir_def in v:
@@ -146,6 +154,37 @@ class UpgradeSetAll(Script):
       Execute(("mv", backup_conf_directory, original_conf_directory), sudo=True)
     else:
       Logger.info("  Skipping restoring config from backup {0} since it does not exist".format(backup_conf_directory))
+
+
+def is_host_skippable(stack_selector_path, formatted_version):
+  """
+  Gets whether this host should not have the stack select tool called.
+  :param stack_selector_path  the path to the stack selector tool.
+  :param formatted_version: the version to use with the stack selector tool.
+  :return: True if this host should be skipped, False otherwise.
+  """
+  if not os.path.exists(stack_selector_path):
+    Logger.info("{0} does not have any stack components installed and will not invoke {1}".format(
+      socket.gethostname(), stack_selector_path))
+
+    return True
+
+  # invoke the tool, checking its output
+  cmd = ('ambari-python-wrap', stack_selector_path, "versions")
+  code, out = shell.call(cmd, sudo=True)
+
+  if code != 0:
+    Logger.info("{0} is unable to determine which stack versions are available using {1}".format(
+        socket.gethostname(), stack_selector_path))
+
+    return True
+
+  # check to see if the output is empty, indicating no versions installed
+  if not out.strip():
+    Logger.info("{0} has no stack versions installed".format(socket.gethostname()))
+    return True
+
+  return False
 
 
 def link_config(old_conf, link_conf):
