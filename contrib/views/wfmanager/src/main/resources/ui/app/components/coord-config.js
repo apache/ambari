@@ -274,12 +274,10 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       }
       this.set('coordinatorFilePath', filePath);
       this.set("isImporting", false);
-    }.bind(this)).catch(function(data){
-      console.error(data);
-      this.set("errorMsg", "There is some problem while importing.");
+    }.bind(this)).catch(function(e){
       this.set("isImporting", false);
       this.set("isImportingSuccess", false);
-      this.set("data", data);
+      throw new Error(e);
     }.bind(this));
   },
   getCoordinatorFromJSON(draftCoordinator){

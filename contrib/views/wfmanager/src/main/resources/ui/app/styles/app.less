@@ -605,10 +605,9 @@ input:invalid {
 #configureJob .modal-dialog,
 #asset-delete-confirm-dialog .modal-dialog,
 #projectsList .modal-dialog,
-#previewModal .modal-dialog,
-#stack_trace_dialog .modal-dialog {
+#previewModal .modal-dialog {
     width: @modalDialogWidth;
-    height: 100vh;
+height: 100vh;
 }
 
 #collapseOne{
@@ -1548,11 +1547,15 @@ input:invalid {
   padding-left: 0px;
   padding-right: 0px;
 }
-
+#stackTrace{
+  white-space: pre-wrap;
+  max-width: 100%;
+  max-height: 400px;
+  overflow: scroll;
+}
 .jobIdClass {
   width: 50px;
 }
-
 .width50 {
     white-space: nowrap;
     width: 150px;
