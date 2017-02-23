@@ -81,7 +81,6 @@ App.supports = {
   showPageLoadTime: false,
   skipComponentStartAfterInstall: false,
   preInstallChecks: false,
-  hostComboSearchBox: true,
   serviceAutoStart: true,
   logSearch: true,
   redhatSatellite: false,
