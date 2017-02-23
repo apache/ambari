@@ -94,7 +94,7 @@ public class UploadService extends HdfsService {
     try {
       if (!path.endsWith("/"))
         path = path + "/";
-      String filePath = path + contentDisposition.getFileName();
+      String filePath = path + new String(contentDisposition.getFileName().getBytes("ISO8859-1"),"UTF-8");
       uploadFile(filePath, uploadedInputStream);
       return Response.ok(
           getApi().fileStatusToJSON(getApi().getFileStatus(filePath)))

@@ -20,6 +20,12 @@ import DS from 'ember-data';
 import Ember from 'ember';
 
 export default DS.RESTAdapter.extend({
+  init: function () {
+    Ember.$.ajaxSetup({
+      cache: false
+    });
+  },
+
   namespace: Ember.computed(function() {
     var parts = window.location.pathname.split('/').filter(function(i) {
       return i !== "";
