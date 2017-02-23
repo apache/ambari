@@ -392,17 +392,21 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
             "isOK": [],
             "isUnknown": []
           };
-
+          var others = [];
           serviceDefinitions.forEach(function (definition) {
+            definition.set('isCollapsed', true);
+            var pushed = false; // make sure each definition gets pushed only one time
             Object.keys(definitionTypes).forEach(function (type) {
-              if (definition.get(type)) {
-                definition.set('isCollapsed', true);
+              if (!pushed && definition.get(type)) {
                 definitionTypes[type].push(definition);
-                serviceDefinitions = serviceDefinitions.without(definition);
+                pushed = true;
               }
             });
+            if (!pushed) {
+              others.push(definition);
+            }
           });
-          serviceDefinitions = definitionTypes.isCritical.concat(definitionTypes.isWarning, definitionTypes.isOK, definitionTypes.isUnknown, serviceDefinitions);
+          serviceDefinitions = definitionTypes.isCritical.concat(definitionTypes.isWarning, definitionTypes.isOK, definitionTypes.isUnknown, others);
 
           return serviceDefinitions;
         }.property('controller.content'),
