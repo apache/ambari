@@ -23,6 +23,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
     <dependencySet>
+      <fileMode>755</fileMode>
       <outputDirectory>/</outputDirectory>
       <unpack>true</unpack>
       <includes>

@@ -24,6 +24,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <files>
     <file>
+      <fileMode>755</fileMode>
       <source>${project.build.directory}/${artifact.artifactId}-simulator-${artifact.version}.jar</source>
       <outputDirectory>ambari-metrics-${project.version}/lib/ambari-metrics</outputDirectory>
     </file>
@@ -55,6 +56,7 @@
 
   <dependencySets>
     <dependencySet>
+      <fileMode>755</fileMode>
       <outputDirectory>ambari-metrics-${project.version}/lib/ambari-metrics</outputDirectory>
 <!--
       <useProjectArtifact>false</useProjectArtifact>
