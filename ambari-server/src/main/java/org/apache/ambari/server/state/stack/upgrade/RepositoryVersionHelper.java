@@ -162,6 +162,7 @@ public class RepositoryVersionHelper {
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_MIRRORS_LIST_PROPERTY_ID, repository.getMirrorsList());
         repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_UNIQUE_PROPERTY_ID, repository.isUnique());
         repositoriesJson.add(repositoryJson);
+        operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS, repository.isAmbariManagedRepositories());
       }
       operatingSystemJson.add(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID, repositoriesJson);
       operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, operatingSystem.getKey());
@@ -179,6 +180,7 @@ public class RepositoryVersionHelper {
         repositoryInfo.setRepoName(repositoryEntity.getName());
         repositoryInfo.setBaseUrl(repositoryEntity.getBaseUrl());
         repositoryInfo.setOsType(os.getOsType());
+        repositoryInfo.setAmbariManagedRepositories(os.isAmbariManagedRepos());
         repositoryInfos.add(repositoryInfo);
       }
     }
