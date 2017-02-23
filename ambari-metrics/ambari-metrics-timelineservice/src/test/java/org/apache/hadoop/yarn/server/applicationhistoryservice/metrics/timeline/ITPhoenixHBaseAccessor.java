@@ -62,8 +62,10 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createMetricHostAggregate;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.DATE_TIERED_COMPACTION_POLICY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.FIFO_COMPACTION_POLICY_CLASS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_COMPACTION_CLASS_KEY;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.HSTORE_ENGINE_CLASS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.PHOENIX_TABLES;
@@ -327,8 +329,6 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
       HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
       tableDescriptor.setNormalizationEnabled(true);
       Assert.assertTrue("Normalizer enabled.", tableDescriptor.isNormalizationEnabled());
-      Assert.assertNull("Default compaction policy is null.",
-        tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY));
 
       for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
@@ -352,7 +352,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // Verify expected policies are set
     boolean normalizerEnabled = false;
-    String compactionPolicy = null;
+    String precisionTableCompactionPolicy = null;
+    String aggregateTableCompactionPolicy = null;
     boolean tableDurabilitySet  = false;
     for (int i = 0; i < 10; i++) {
       LOG.warn("Policy check retry : " + i);
@@ -360,12 +361,15 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
         HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
         normalizerEnabled = tableDescriptor.isNormalizationEnabled();
         tableDurabilitySet = (Durability.ASYNC_WAL.equals(tableDescriptor.getDurability()));
-        compactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY);
+        if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+          precisionTableCompactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_ENGINE_CLASS);
+        } else {
+          aggregateTableCompactionPolicy = tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY);
+        }
         LOG.debug("Table: " + tableName + ", normalizerEnabled = " + normalizerEnabled);
-        LOG.debug("Table: " + tableName + ", compactionPolicy = " + compactionPolicy);
         // Best effort for 20 seconds
-        if (normalizerEnabled || compactionPolicy == null) {
-          Thread.sleep(2000l);
+        if (normalizerEnabled || (precisionTableCompactionPolicy == null && aggregateTableCompactionPolicy ==null)) {
+          Thread.sleep(20000l);
         }
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
           for (HColumnDescriptor family : tableDescriptor.getColumnFamilies()) {
@@ -377,7 +381,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     Assert.assertFalse("Normalizer disabled.", normalizerEnabled);
     Assert.assertTrue("Durability Set.", tableDurabilitySet);
-    Assert.assertEquals("FIFO compaction policy is set.", FIFO_COMPACTION_POLICY_CLASS, compactionPolicy);
+    Assert.assertEquals("FIFO compaction policy is set for METRIC_RECORD.", FIFO_COMPACTION_POLICY_CLASS, precisionTableCompactionPolicy);
+    Assert.assertEquals("FIFO compaction policy is set for aggregate tables", DATE_TIERED_COMPACTION_POLICY, aggregateTableCompactionPolicy);
     Assert.assertEquals("Precision TTL value not changed.", String.valueOf(2 * 86400), precisionTtl);
 
     hBaseAdmin.close();
