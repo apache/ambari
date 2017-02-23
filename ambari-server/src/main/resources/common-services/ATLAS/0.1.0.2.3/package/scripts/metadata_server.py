@@ -152,14 +152,13 @@ class MetadataServer(Script):
 
   def disable_security(self, env):
     import params
-    if not params.stack_supports_zk_security:
-      Logger.info("Stack doesn't support zookeeper security")
-      return
     if not params.zookeeper_quorum:
       Logger.info("No zookeeper connection string. Skipping reverting ACL")
       return
     zkmigrator = ZkMigrator(params.zookeeper_quorum, params.java_exec, params.java64_home, params.atlas_jaas_file, params.metadata_user)
     zkmigrator.set_acls(params.zk_root if params.zk_root.startswith('/') else '/' + params.zk_root, 'world:anyone:crdwa')
+    if params.atlas_kafka_group_id:
+      zkmigrator.set_acls(format('/consumers/{params.atlas_kafka_group_id}'), 'world:anyone:crdwa')
 
   def status(self, env):
     import status_params

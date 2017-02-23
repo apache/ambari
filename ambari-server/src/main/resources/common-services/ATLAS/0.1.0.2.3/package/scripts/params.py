@@ -81,6 +81,7 @@ java_version = expect("/hostLevelParams/java_version", int)
 
 zk_root = default('/configurations/application-properties/atlas.server.ha.zookeeper.zkroot', '/apache_atlas')
 stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+atlas_kafka_group_id = default('/configurations/application-properties/atlas.kafka.hook.group.id', None)
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
