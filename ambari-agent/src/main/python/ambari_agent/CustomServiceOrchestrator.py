@@ -29,6 +29,7 @@ from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
 from PythonReflectiveExecutor import PythonReflectiveExecutor
+from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
 import subprocess
 import Constants
@@ -122,6 +123,7 @@ class CustomServiceOrchestrator():
         logger.info("Canceling command with taskId = {tid}, " \
                     "reason - {reason} . Killing process {pid}"
                     .format(tid=str(task_id), reason=reason, pid=pid))
+        log_process_information(logger)
         shell.kill_process_with_children(pid)
       else: 
         logger.warn("Unable to find process associated with taskId = %s" % task_id)
