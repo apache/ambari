@@ -26,8 +26,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.oozie.ambari.view.exception.WfmWebException;
 
 public class WorkflowsManagerResource {
 	private final WorkflowManagerService workflowManagerService;
@@ -38,19 +40,27 @@ public class WorkflowsManagerResource {
 		this.workflowManagerService=new WorkflowManagerService(viewContext);
 	}
 
-	@GET
-	public Map<String,Object> getWorkflows(){
-	    HashMap<String,Object> result=new HashMap<>();
-	    result.put("wfprojects", workflowManagerService.getAllWorkflows(viewContext.getUsername()));
-	    return result;
-	}
-	
-	
-	@DELETE
+  @GET
+  public Response getWorkflows() {
+    try {
+      HashMap<String, Object> result = new HashMap<>();
+      result.put("wfprojects", workflowManagerService.getAllWorkflows(viewContext.getUsername()));
+      return Response.ok(result).build();
+    } catch (Exception ex) {
+      throw new WfmWebException(ex);
+    }
+  }
+
+
+  @DELETE
 	@Path("/{projectId}")
-	public void deleteWorkflow( @PathParam("projectId") String id,
-            @DefaultValue("false") @QueryParam("deleteDefinition") Boolean deleteDefinition){
-	    workflowManagerService.deleteWorkflow(id,deleteDefinition);
+	public Response deleteWorkflow(@PathParam("projectId") String id,
+                                 @DefaultValue("false") @QueryParam("deleteDefinition") Boolean deleteDefinition){
+	  try{
+      workflowManagerService.deleteWorkflow(id,deleteDefinition);
+      return Response.ok().build();
+    }catch (Exception ex) {
+      throw new WfmWebException(ex);
+    }
 	}
-	
 }

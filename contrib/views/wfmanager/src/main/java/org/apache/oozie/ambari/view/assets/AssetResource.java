@@ -25,13 +25,15 @@ import org.apache.oozie.ambari.view.*;
 import org.apache.oozie.ambari.view.assets.model.ActionAsset;
 import org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition;
 import org.apache.oozie.ambari.view.assets.model.AssetDefintion;
+import org.apache.oozie.ambari.view.exception.ErrorCode;
+import org.apache.oozie.ambari.view.exception.WfmException;
+import org.apache.oozie.ambari.view.exception.WfmWebException;
 import org.apache.oozie.ambari.view.model.APIResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.*;
 
@@ -65,7 +67,7 @@ public class AssetResource {
       result.setData(assets);
       return Response.ok(result).build();
     } catch (Exception e) {
-      throw new ServiceFormattedException(e);
+      throw new WfmWebException(e);
     }
   }
 
@@ -80,7 +82,7 @@ public class AssetResource {
       result.setData(assets);
       return Response.ok(result).build();
     } catch (Exception e) {
-      throw new ServiceFormattedException(e);
+      throw new WfmWebException(e);
     }
   }
   @POST
@@ -88,19 +90,20 @@ public class AssetResource {
                             @QueryParam("id") String id, @Context UriInfo ui, String body) {
     try {
       Gson gson = new Gson();
-      AssetDefintion assetDefinition = gson.fromJson(body,
-        AssetDefintion.class);
+      AssetDefintion assetDefinition = gson.fromJson(body, AssetDefintion.class);
       Map<String, String> validateAsset = validateAsset(headers,
         assetDefinition.getDefinition(), ui.getQueryParameters());
       if (!STATUS_OK.equals(validateAsset.get(STATUS_KEY))) {
-        return Response.status(Status.BAD_REQUEST).build();
+        throw new WfmWebException(ErrorCode.ASSET_INVALID_FROM_OOZIE);
       }
       assetService.saveAsset(id, viewContext.getUsername(), assetDefinition);
       APIResult result = new APIResult();
       result.setStatus(APIResult.Status.SUCCESS);
       return Response.ok(result).build();
-    } catch (Exception e) {
-      throw new ServiceFormattedException(e);
+    } catch (WfmWebException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new WfmWebException(ex);
     }
   }
 
@@ -113,43 +116,50 @@ public class AssetResource {
   public Map<String, String> validateAsset(HttpHeaders headers,
                                            String postBody, MultivaluedMap<String, String> queryParams) {
     String workflowXml = oozieUtils.generateWorkflowXml(postBody);
+    Map<String, String> result = new HashMap<>();
+    String tempWfPath = "/tmp" + "/tmpooziewfs/tempwf_" + Math.round(Math.random() * 100000) + ".xml";
     try {
-      Map<String, String> result = new HashMap<>();
-      String tempWfPath = "/tmp" + "/tmpooziewfs/tempwf_" + Math.round(Math.random()*100000) + ".xml";
       hdfsFileUtils.writeToFile(tempWfPath, workflowXml, true);
-      queryParams.put("oozieparam.action", getAsList("dryrun"));
-      queryParams.put("oozieconfig.rerunOnFailure", getAsList("false"));
-      queryParams.put("oozieconfig.useSystemLibPath", getAsList("true"));
-      queryParams.put("resourceManager", getAsList("useDefault"));
-      String dryRunResp = oozieDelegate.submitWorkflowJobToOozie(headers,
-        tempWfPath, queryParams, JobType.WORKFLOW);
-      LOGGER.info(String.format("resp from validating asset=[%s]",
-        dryRunResp));
+    } catch (IOException e) {
+      throw new WfmWebException(e, ErrorCode.FILE_ACCESS_UNKNOWN_ERROR);
+    }
+    queryParams.put("oozieparam.action", getAsList("dryrun"));
+    queryParams.put("oozieconfig.rerunOnFailure", getAsList("false"));
+    queryParams.put("oozieconfig.useSystemLibPath", getAsList("true"));
+    queryParams.put("resourceManager", getAsList("useDefault"));
+    String dryRunResp = oozieDelegate.submitWorkflowJobToOozie(headers,
+      tempWfPath, queryParams, JobType.WORKFLOW);
+    LOGGER.info(String.format("resp from validating asset=[%s]", dryRunResp));
+    try {
       hdfsFileUtils.deleteFile(tempWfPath);
-      if (dryRunResp != null && dryRunResp.trim().startsWith("{")) {
-        JsonElement jsonElement = new JsonParser().parse(dryRunResp);
-        JsonElement idElem = jsonElement.getAsJsonObject().get("id");
-        if (idElem != null) {
-          result.put(STATUS_KEY, STATUS_OK);
-        } else {
-          result.put(STATUS_KEY, STATUS_FAILED);
-          result.put(MESSAGE_KEY, dryRunResp);
-        }
+    } catch (IOException e) {
+      throw new WfmWebException(e, ErrorCode.FILE_ACCESS_UNKNOWN_ERROR);
+    }
+    if (dryRunResp != null && dryRunResp.trim().startsWith("{")) {
+      JsonElement jsonElement = new JsonParser().parse(dryRunResp);
+      JsonElement idElem = jsonElement.getAsJsonObject().get("id");
+      if (idElem != null) {
+        result.put(STATUS_KEY, STATUS_OK);
       } else {
         result.put(STATUS_KEY, STATUS_FAILED);
         result.put(MESSAGE_KEY, dryRunResp);
       }
-      return result;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } else {
+      result.put(STATUS_KEY, STATUS_FAILED);
+      result.put(MESSAGE_KEY, dryRunResp);
     }
+    return result;
   }
 
   @GET
   @Path("/assetNameAvailable")
   public Response assetNameAvailable(@QueryParam("name") String name){
-    boolean available=assetService.isAssetNameAvailable(name);
-    return Response.ok(available).build();
+    try {
+      boolean available = assetService.isAssetNameAvailable(name);
+      return Response.ok(available).build();
+    }catch (Exception e){
+      throw new WfmWebException(e);
+    }
   }
 
   @GET
@@ -162,7 +172,7 @@ public class AssetResource {
       result.setData(assetDefinition);
       return Response.ok(result).build();
     } catch (Exception e) {
-      throw new ServiceFormattedException(e);
+      throw new WfmWebException(e);
     }
   }
 
@@ -170,14 +180,13 @@ public class AssetResource {
   @Path("/definition/id}")
   public Response getAssetDefinition(@PathParam("defnitionId") String id) {
     try {
-      ActionAssetDefinition assetDefinition = assetService
-        .getAssetDefinition(id);
+      ActionAssetDefinition assetDefinition = assetService.getAssetDefinition(id);
       APIResult result = new APIResult();
       result.setStatus(APIResult.Status.SUCCESS);
       result.setData(assetDefinition);
       return Response.ok(result).build();
     } catch (Exception e) {
-      throw new ServiceFormattedException(e);
+      throw new WfmWebException(e);
     }
   }
 
@@ -187,19 +196,19 @@ public class AssetResource {
     try {
       ActionAsset asset = assetService.getAsset(id);
       if (asset == null) {
-        throw new RuntimeException("Asset doesnt exist");
+        throw new WfmWebException(ErrorCode.ASSET_NOT_EXIST);
       }
       if (!viewContext.getUsername().equals(asset.getOwner())){
-        throw new RuntimeException(
-          "Dont have permission to delete this asset");
+        throw new WfmWebException(ErrorCode.PERMISSION_ERROR);
       }
       assetService.deleteAsset(id);
       APIResult result = new APIResult();
       result.setStatus(APIResult.Status.SUCCESS);
       return Response.ok(result).build();
-    } catch (Exception e) {
-      throw new ServiceFormattedException(e);
+    } catch (WfmWebException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new WfmWebException(ex);
     }
   }
-
 }

@@ -34,4 +34,21 @@
       {{/if}}
     </div>
   {{/if}}
+
+  {{#if hasErrorMsg}}
+    <div id="loader">
+        <div id="alert"class="alert alert-danger alert-dismissible workflow-error" role="alert">
+            {{errorMsg}}
+            <div id="errorMsgDetails">
+              {{errorMsgDetails}}
+              {{#if isStackTraceAvailable}}
+                <a href="#" class="action-link" {{action "showStackTrace"}}>Details</a>
+              {{/if}}
+            </div>
+        </div>
+    </div>
+  {{/if}}
 </div>
+{{#if showingStackTrace}}
+  {{#stack-trace-dialog title="Stack Trace" stackTrace=stackTrace closeStackTrace="closeStackTrace"}}{{/stack-trace-dialog}}
+{{/if}}
