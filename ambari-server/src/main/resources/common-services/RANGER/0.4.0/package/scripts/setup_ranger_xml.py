@@ -19,7 +19,6 @@ limitations under the License.
 """
 import os
 import re
-from collections import OrderedDict
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
@@ -703,8 +702,8 @@ def setup_ranger_audit_solr():
     solr_cloud_util.add_solr_roles(params.config,
                                    roles = [params.infra_solr_role_ranger_admin, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
                                    new_service_principals = [params.ranger_admin_jaas_principal])
-    service_default_principals_map = OrderedDict([('hdfs', 'nn'), ('hbase', 'hbase'), ('hive', 'hive'), ('kafka', 'kafka'), ('kms', 'rangerkms'),
-                                                  ('knox', 'knox'), ('nifi', 'nifi'), ('storm', 'storm'), ('yanr', 'yarn')])
+    service_default_principals_map = [('hdfs', 'nn'), ('hbase', 'hbase'), ('hive', 'hive'), ('kafka', 'kafka'), ('kms', 'rangerkms'),
+                                                  ('knox', 'knox'), ('nifi', 'nifi'), ('storm', 'storm'), ('yanr', 'yarn')]
     service_principals = get_ranger_plugin_principals(service_default_principals_map)
     solr_cloud_util.add_solr_roles(params.config,
                                    roles = [params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
@@ -749,17 +748,17 @@ def secure_znode(znode, jaasFile):
                                jaas_file=jaasFile,
                                java64_home=params.java_home, sasl_users=[params.ranger_admin_jaas_principal])
 
-def get_ranger_plugin_principals(services_defaults_map):
+def get_ranger_plugin_principals(services_defaults_tuple_list):
   """
   Get ranger plugin user principals from service-default value maps using ranger-*-audit configurations
   """
   import params
   user_principals = []
-  if len(services_defaults_map) < 1:
+  if len(services_defaults_tuple_list) < 1:
     raise Exception("Services - defaults map parameter is missing.")
 
-  for key, default_value in services_defaults_map.iteritems():
-    user_principal = default(format("configurations/ranger-{key}-audit/xasecure.audit.jaas.Client.option.principal"), default_value)
+  for (service, default_value) in services_defaults_tuple_list:
+    user_principal = default(format("configurations/ranger-{service}-audit/xasecure.audit.jaas.Client.option.principal"), default_value)
     user_principals.append(user_principal)
   return user_principals
 
