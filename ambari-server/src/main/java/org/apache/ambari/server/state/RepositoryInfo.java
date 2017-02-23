@@ -34,6 +34,7 @@ public class RepositoryInfo {
   private String latestBaseUrl;
   private boolean baseSaved = false;
   private boolean unique = false;
+  private boolean ambariManagedRepositories = true;
 
   /**
    * @return the baseUrl
@@ -156,6 +157,7 @@ public class RepositoryInfo {
         + ", repoName=" + repoName
         + ", mirrorsList=" + mirrorsList
         + ", unique=" + unique
+        + ", ambariManagedRepositories=" + ambariManagedRepositories
         + " ]";
   }
 
@@ -170,12 +172,13 @@ public class RepositoryInfo {
         Objects.equal(repoName, that.repoName) &&
         Objects.equal(mirrorsList, that.mirrorsList) &&
         Objects.equal(defaultBaseUrl, that.defaultBaseUrl) &&
-        Objects.equal(latestBaseUrl, that.latestBaseUrl);
+        Objects.equal(latestBaseUrl, that.latestBaseUrl) &&
+        Objects.equal(ambariManagedRepositories, that.ambariManagedRepositories);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, latestBaseUrl);
+    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, latestBaseUrl, ambariManagedRepositories);
   }
 
   public RepositoryResponse convertToResponse()
@@ -234,5 +237,19 @@ public class RepositoryInfo {
    */
   public void setUnique(boolean unique) {
     this.unique = unique;
+  }
+
+  /**
+   * @return true if repositories managed by ambari
+   */
+  public boolean isAmbariManagedRepositories() {
+    return ambariManagedRepositories;
+  }
+
+  /**
+   * @param ambariManagedRepositories set is repositories managed by ambari
+   */
+  public void setAmbariManagedRepositories(boolean ambariManagedRepositories) {
+    this.ambariManagedRepositories = ambariManagedRepositories;
   }
 }
