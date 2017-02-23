@@ -26,6 +26,8 @@ require('views/common/log_file_search_view');
 require('views/common/log_tail_view');
 require('views/common/global/spinner');
 require('views/common/ajax_default_error_popup_body');
+require('views/common/buttons/button_progress_view');
+require('views/common/buttons/wizard_buttons');
 require('views/common/chart');
 require('views/common/chart/pie');
 require('views/common/chart/linear');

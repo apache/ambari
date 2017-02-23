@@ -87,9 +87,9 @@
       {{/if}}
         <div class="btn-area">
           {{#if view.showBackButton}}
-              <button class="btn pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
+              {{view App.WizardBackButton action="back" target="controller"}}
           {{/if}}
-            <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{{view.submitButtonText}}}</button>
+          {{view App.WizardNextButton buttonId="submit-kerberos-step3" action="done" target="controller"}}
         </div>
     </div>
 </div>

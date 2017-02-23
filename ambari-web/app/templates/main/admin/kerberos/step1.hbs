@@ -45,6 +45,6 @@
   </div>
 
   <div class="btn-area">
-    <a id="submit-kerberos-step1" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</a>
+    {{view App.WizardNextButton buttonId="submit-kerberos-step1" action="submit" target="controller"}}
   </div>
 </div>

@@ -15,19 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="kerberos-wizard-step4">
-  <div id="serviceConfig">
-    <h2>{{t admin.kerberos.wizard.step4.header}}</h2>
 
-    <p class="alert alert-info">
-      {{t admin.kerberos.wizard.step4.info.body}}
-    </p>
-
-    {{view App.ServicesConfigView}}
-
-    <div class="btn-area">
-      {{view App.WizardBackButton buttonId="back-kerberos-step4" action="back"}}
-      {{view App.WizardNextButton buttonId="submit-kerberos-step4" action="submit" target="controller"}}
-    </div>
-  </div>
-</div>
+<a {{bindAttr id="view.buttonId" class=":btn view.buttonClassNames" disabled="view.isDisabled"}} {{action handleClick target="view"}}>
+  {{#if view.doSpinRight}}
+    {{yield}}
+  {{/if}}
+  {{#if view.isInProgress}}
+    {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+  {{/if}}
+  {{#unless view.doSpinRight}}
+    {{yield}}
+  {{/unless}}
+</a>

@@ -29,6 +29,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
 
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
+    this.set('submitButtonClicked', false);
     this.set('selectedService', null);
     this.set('stepConfigs', []);
   },
@@ -312,6 +313,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   },
 
   submit: function() {
+    this.set('submitButtonClicked', true);
     this.saveConfigurations();
     App.router.send('next');
   },

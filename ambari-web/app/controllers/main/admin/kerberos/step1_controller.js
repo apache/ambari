@@ -143,7 +143,7 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
     }
   },
 
-  next: function () {
+  submit: function () {
     if (!this.get('isSubmitDisabled')) {
       App.router.send('next');
     }

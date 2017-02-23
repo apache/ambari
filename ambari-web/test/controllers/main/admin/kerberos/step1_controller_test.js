@@ -67,7 +67,7 @@ describe('App.KerberosWizardStep1Controller', function() {
     });
   });
 
-  describe("#next()", function () {
+  describe("#submit()", function () {
 
     beforeEach(function() {
       sinon.stub(App.router, 'send');
@@ -81,7 +81,7 @@ describe('App.KerberosWizardStep1Controller', function() {
       controller.reopen({
         'isSubmitDisabled': false
       });
-      controller.next();
+      controller.submit();
       expect(App.router.send.calledOnce).to.be.true;
     });
 
@@ -89,7 +89,7 @@ describe('App.KerberosWizardStep1Controller', function() {
       controller.reopen({
         'isSubmitDisabled': true
       });
-      controller.next();
+      controller.submit();
       expect(App.router.send.called).to.be.false;
     });
   });
