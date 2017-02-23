@@ -89,7 +89,10 @@
               "name": "/KAFKA/KAFKA_BROKER/kafka_broker"
             },
             {
-              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr"
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "when" : {
+                "contains" : ["services", "AMBARI_INFRA"]
+              }
             }
           ]
         }
