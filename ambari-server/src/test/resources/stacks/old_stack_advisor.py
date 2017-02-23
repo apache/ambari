@@ -359,7 +359,7 @@ class DefaultStackAdvisor(StackAdvisor):
             availableHosts = [hostName for hostName in hostsList if not self.isLocalHost(hostName)]
 
           if self.isMasterComponentWithMultipleInstances(component):
-            hostsCount = self.getMinComponentCount(component)
+            hostsCount = self.getMinComponentCount(component, hosts)
             if hostsCount > 1: # get first 'hostsCount' available hosts
               if len(availableHosts) < hostsCount:
                 hostsCount = len(availableHosts)
@@ -524,13 +524,13 @@ class DefaultStackAdvisor(StackAdvisor):
     service = self.getNotValuableComponents()
     return componentName in service
 
-  def getMinComponentCount(self, component):
+  def getMinComponentCount(self, component, hosts):
     componentName = self.getComponentName(component)
-    return self.getComponentCardinality(componentName)["min"]
+    return self.getComponentCardinality(componentName, hosts)["min"]
 
   # Helper dictionaries
-  def getComponentCardinality(self, componentName):
-    return self.getCardinalitiesDict().get(componentName, {"min": 1, "max": 1})
+  def getComponentCardinality(self, componentName, hosts):
+    return self.getCardinalitiesDict(hosts).get(componentName, {"min": 1, "max": 1})
 
   def getHostForComponent(self, component, hostsList):
     componentName = self.getComponentName(component)
@@ -568,7 +568,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getNotPreferableOnServerComponents(self):
     return []
 
-  def getCardinalitiesDict(self):
+  def getCardinalitiesDict(self, hosts):
     return {}
 
   def getComponentLayoutSchemes(self):

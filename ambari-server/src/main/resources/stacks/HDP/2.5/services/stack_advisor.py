@@ -142,6 +142,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "storm-site")
 
+  def getCardinalitiesDict(self, hosts):
+    result = super(HDP25StackAdvisor, self).getCardinalitiesDict(hosts)
+    min_val = 1
+    if len(hosts["items"]) > 999:
+      min_val = 2
+    result['METRICS_COLLECTOR'] = {"min": min_val}
+    return result
+
   def validateAtlasConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     application_properties = self.getSiteProperties(configurations, "application-properties")
     validationItems = []
