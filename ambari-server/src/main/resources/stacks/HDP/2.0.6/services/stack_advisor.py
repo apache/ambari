@@ -1501,6 +1501,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
           if unusedMemory > 4*gb and collector_needs_increase:  # warn user, if more than 4GB RAM is unused
             recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize * mb
+            recommended_collector_heapsize = min(16*gb, recommended_collector_heapsize) #Make sure heapsize <= 16GB
             recommended_collector_heapsize = round_to_n(recommended_collector_heapsize/mb,128) # Round to 128m multiple
             if collector_heapsize < recommended_collector_heapsize:
               validation_msg = "Consider allocating {0} MB to metrics_collector_heapsize in ams-env to use up some " \
@@ -1856,7 +1857,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def getNotPreferableOnServerComponents(self):
     return ['GANGLIA_SERVER', 'METRICS_COLLECTOR']
 
-  def getCardinalitiesDict(self):
+  def getCardinalitiesDict(self, hosts):
     return {
       'ZOOKEEPER_SERVER': {"min": 3},
       'HBASE_MASTER': {"min": 1},

@@ -1695,8 +1695,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     result.extend(['METRICS_MONITOR'])
     return result
 
-  def getCardinalitiesDict(self):
-    result = super(HDP22StackAdvisor, self).getCardinalitiesDict()
+  def getCardinalitiesDict(self, hosts):
+    result = super(HDP22StackAdvisor, self).getCardinalitiesDict(hosts)
     result['METRICS_COLLECTOR'] = {"min": 1}
     return result
 

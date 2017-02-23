@@ -404,6 +404,12 @@ class TestHDP25StackAdvisor(TestCase):
       data = json.load(f)
     return data
 
+  def prepareNHosts(self, host_count):
+    names = []
+    for i in range(0, host_count):
+      names.append("hostname" + str(i))
+    return self.prepareHosts(names)
+
   def prepareHosts(self, hostsNames):
     hosts = { "items": [] }
     for hostName in hostsNames:
@@ -435,6 +441,16 @@ class TestHDP25StackAdvisor(TestCase):
   def __getHosts(self, componentsList, componentName):
     return [component["StackServiceComponents"] for component in componentsList if component["StackServiceComponents"]["component_name"] == componentName][0]
 
+  def test_getCardinalitiesDict(self):
+    hosts = self.prepareNHosts(5)
+    actual = self.stackAdvisor.getCardinalitiesDict(hosts)
+    expected = {'ZOOKEEPER_SERVER': {'min': 3}, 'HBASE_MASTER': {'min': 1}, 'METRICS_COLLECTOR': {'min': 1}}
+    self.assertEquals(actual, expected)
+
+    hosts = self.prepareNHosts(1001)
+    actual = self.stackAdvisor.getCardinalitiesDict(hosts)
+    expected = {'ZOOKEEPER_SERVER': {'min': 3}, 'HBASE_MASTER': {'min': 1}, 'METRICS_COLLECTOR': {'min': 2}}
+    self.assertEquals(actual, expected)
 
   def test_getComponentLayoutValidations_one_hsi_host(self):
 

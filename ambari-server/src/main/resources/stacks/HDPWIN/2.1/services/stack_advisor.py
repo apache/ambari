@@ -517,7 +517,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
   def getNotPreferableOnServerComponents(self):
     return ['STORM_UI_SERVER', 'DRPC_SERVER', 'STORM_REST_API', 'NIMBUS']
 
-  def getCardinalitiesDict(self):
+  def getCardinalitiesDict(self, hosts):
     return {
       'ZOOKEEPER_SERVER': {"min": 3},
       'HBASE_MASTER': {"min": 1},
