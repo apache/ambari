@@ -137,6 +137,8 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('currentJobId', null);
     controller.set('queryResult', model.get('queryResult'));
     controller.set('isJobSuccess', false);
+    controller.set('isJobCancelled', false);
+    controller.set('isJobCreated', false);
 
     controller.set('isExportResultSuccessMessege', false);
     controller.set('isExportResultFailureMessege', false);
@@ -236,10 +238,10 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.get('controller').set('currentJobId', null);
 
       if(!Ember.isEmpty(isVisualExplainQuery)){
-        var isVisualExplainQuery = true;
+        isVisualExplainQuery = true;
         this.get('controller').set('isVisualExplainQuery', true);
       } else {
-        var isVisualExplainQuery = false;
+        isVisualExplainQuery = false;
         this.get('controller').set('isVisualExplainQuery', false);
       }
 
@@ -285,6 +287,7 @@ export default Ember.Route.extend(UILoggerMixin, {
 
 
       this.get('controller.model').set('isQueryRunning', true);
+      this.get('controller.model').set('isJobCreated',false);
 
       //this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
       //this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
@@ -306,10 +309,13 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('controller.model').set('queryFile', data.job.queryFile);
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
+        self.get('controller').set('isJobCreated',true);
 
         self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
             self.get('controller').set('isJobSuccess', true);
+            self.get('controller').set('isJobCancelled', false);
+            self.get('controller').set('isJobCreated', false);
             let jobDetails = self.store.peekRecord('job', data.job.id);
             console.log(jobDetails);
             self.send('getJobResult', data, payload.title, jobDetails);
@@ -317,6 +323,9 @@ export default Ember.Route.extend(UILoggerMixin, {
 
           }, (error) => {
             console.log('error', error);
+            self.get('controller').set('isJobSuccess', false);
+            self.get('controller').set('isJobCancelled', false);
+            self.get('controller').set('isJobCreated', false);
             self.get('logger').danger('Failed to execute query.', self.extractError(error));
             self.send('resetDefaultWorksheet');
           });
@@ -326,6 +335,12 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('logger').danger('Failed to execute query.', self.extractError(error));
         self.send('resetDefaultWorksheet');
       });
+    },
+
+    stopQuery(){
+      let jobId = this.get('controller').get('currentJobId');
+      this.get('jobs').stopJob(jobId)
+        .then( data => this.get('controller').set('isJobCancelled', true));
     },
 
     getJobResult(data, payloadTitle, jobDetails){
