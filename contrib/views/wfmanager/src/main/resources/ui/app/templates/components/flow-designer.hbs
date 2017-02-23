@@ -197,7 +197,7 @@
         <div id="cyRenderer">
           <div id="{{cyId}}" class="cy-panel"></div>
           {{#each dataNodes as |dataNode|}}
-            {{#if (or (eq dataNode.data.type 'action') (eq dataNode.data.type 'decision') (eq dataNode.data.type 'fork'))}}
+            {{#if (or (eq dataNode.data.type 'action') (eq dataNode.data.type 'decision') (eq dataNode.data.type 'fork')  (eq dataNode.data.type 'join'))}}
               <div id="{{dataNode.data.id}}" class="">
                 {{input required pattern="([a-zA-Z_]([\-_a-zA-Z0-9])*){1,39}" name="actionName" data-toggle="tooltip" title=dataNode.name classBinding="dataNode.data.node.errors:error:editable" class="editableNode overlay_node_editor" value=dataNode.dataNodeName placeholder="Action Name"}}
               </div>
