@@ -171,7 +171,7 @@ doConfigUpdate () {
           finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
           newFile="doSet_$newTag.json"
           echo "########## PUTting json into: $newFile"
-          echo $finalJson > $newFile
+          echo "$finalJson" > $newFile
           curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
           currentSiteTag
           echo "########## NEW Site:$SITE, Tag:$SITETAG";
@@ -196,7 +196,7 @@ doConfigFileUpdate () {
       newProperties=`cat $FILENAME`;
       finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
       newFile="doSet_$newTag.json"
-      echo $finalJson>$newFile
+      echo "$finalJson" > $newFile
       echo "########## PUTting file:\"$FILENAME\" into config(type:\"$SITE\", tag:$newTag) via $newFile"
       curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
       currentSiteTag
@@ -243,9 +243,9 @@ doGet () {
     fi
     if [ "$propertiesStarted" -gt "0" ]; then
       if [ -z $FILENAME ]; then
-        echo $line
+        echo "$line"
       else
-        echo $line >> $FILENAME
+        echo "$line" >> $FILENAME
       fi
     fi
     if [ "`echo $line | grep -E "{$"`" ]; then
