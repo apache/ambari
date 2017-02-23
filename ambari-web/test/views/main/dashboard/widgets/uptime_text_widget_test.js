@@ -60,7 +60,7 @@ describe('App.UptimeTextDashboardWidgetView', function() {
       {
         diff: 10*1000,
         e: {
-          timeUnit: 'secs'
+          timeUnit: 's'
         }
       },
       {
@@ -78,7 +78,7 @@ describe('App.UptimeTextDashboardWidgetView', function() {
       {
         diff: 1800*1000,
         e: {
-          timeUnit: 'mins'
+          timeUnit: 'min'
         }
       }
     ];

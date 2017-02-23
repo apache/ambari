@@ -33,8 +33,8 @@ describe('App.ResourceManagerUptimeView', function() {
       e: {
         isGreen: true,
         isNA: false,
-        content: '197.0 d',
-        data: 197
+        content: '192.1 d',
+        data: 192.1
       }
     },
     {
