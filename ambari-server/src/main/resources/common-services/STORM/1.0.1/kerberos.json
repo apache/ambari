@@ -106,7 +106,7 @@
               }
             },
             {
-              "name": "/STORM/NIMBUS/nimbus_server",
+              "name": "/STORM/storm_components",
               "principal": {
                 "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal"
               },

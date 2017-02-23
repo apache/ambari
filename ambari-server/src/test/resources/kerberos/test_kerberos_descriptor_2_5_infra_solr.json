@@ -1,0 +1,217 @@
+{
+  "properties": {
+    "realm": "${kerberos-env/realm}",
+    "keytab_dir": "/etc/security/keytabs"
+  },
+  "identities": [
+    {
+      "name": "spnego",
+      "principal": {
+        "value": "HTTP/_HOST@${realm}",
+        "type": "service"
+      },
+      "keytab": {
+        "file": "${keytab_dir}/spnego.service.keytab",
+        "owner": {
+          "name": "root",
+          "access": "r"
+        },
+        "group": {
+          "name": "${cluster-env/user_group}",
+          "access": "r"
+        }
+      }
+    }
+  ],
+  "services": [
+    {
+      "name": "ATLAS",
+      "identities": [
+        {
+          "name": "/spnego"
+        }
+      ],
+      "components": [
+        {
+          "name": "ATLAS_SERVER",
+          "identities": [
+            {
+              "name": "atlas",
+              "principal": {
+                "value": "atlas/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "application-properties/atlas.jaas.KafkaClient.option.principal",
+                "local_username" : "${atlas-env/metadata_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/atlas.service.keytab",
+                "owner": {
+                  "name": "${atlas-env/metadata_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "application-properties/atlas.jaas.KafkaClient.option.keyTab"
+              }
+            },
+            {
+              "name": "ranger_atlas_audit",
+              "reference": "/ATLAS/ATLAS_SERVER/atlas",
+              "principal": {
+                "configuration": "ranger-atlas-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-atlas-audit/xasecure.audit.jaas.Client.option.keyTab"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LOGSEARCH",
+      "identities": [
+        {
+          "name": "/spnego"
+        }
+      ],
+      "components": [
+        {
+          "name": "LOGSEARCH_SERVER",
+          "identities": [
+            {
+              "name": "logsearch",
+              "principal": {
+                "value": "logsearch/_HOST@${realm}",
+                "type": "service",
+                "configuration": "logsearch-env/logsearch_kerberos_principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/logsearch.service.keytab",
+                "owner": {
+                  "name": "${logsearch-env/logsearch_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "logsearch-env/logsearch_kerberos_keytab"
+              }
+            },
+            {
+              "name": "/AMBARI_INFRA/INFRA_SOLR/infra-solr",
+              "when" : {
+                "contains" : ["services", "AMBARI_INFRA"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RANGER",
+      "identities": [
+        {
+          "name": "/spnego"
+        }
+      ],
+      "components": [
+        {
+          "name": "RANGER_ADMIN",
+          "identities": [
+            {
+              "name": "rangeradmin",
+              "principal": {
+                "value": "rangeradmin/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "ranger-admin-site/ranger.admin.kerberos.principal",
+                "local_username" : "${ranger-env/ranger_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/rangeradmin.service.keytab",
+                "owner": {
+                  "name": "${ranger-env/ranger_user}",
+                  "access": "r"
+                },
+                "configuration": "ranger-admin-site/ranger.admin.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/spnego",
+              "keytab": {
+                "configuration": "ranger-admin-site/ranger.spnego.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STORM",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "storm_components",
+          "principal": {
+            "value": "${storm-env/storm_user}${principal_suffix}@${realm}",
+            "type": "user",
+            "configuration": "storm-env/storm_principal_name"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/storm.headless.keytab",
+            "owner": {
+              "name": "${storm-env/storm_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "storm-env/storm_keytab"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "NIMBUS",
+          "identities": [
+            {
+              "name": "nimbus_server",
+              "principal": {
+                "value": "nimbus/_HOST@${realm}",
+                "type": "service",
+                "configuration": "storm-env/nimbus_principal_name"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nimbus.service.keytab",
+                "owner": {
+                  "name": "${storm-env/storm_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "storm-env/nimbus_keytab"
+              }
+            },
+            {
+              "name": "/STORM/NIMBUS/nimbus_server",
+              "principal": {
+                "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

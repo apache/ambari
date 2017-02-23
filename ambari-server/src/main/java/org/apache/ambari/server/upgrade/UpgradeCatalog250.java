@@ -24,19 +24,30 @@ import com.google.inject.Injector;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
+import org.apache.ambari.server.collections.Predicate;
+import org.apache.ambari.server.collections.functors.ContainsPredicate;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,6 +190,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateRangerUrlConfigs();
     addManageServiceAutoStartPermissions();
     addManageAlertNotificationsPermissions();
+    updateKerberosDescriptorArtifacts();
   }
 
   /**
@@ -375,6 +387,82 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster,AMS_HBASE_LOG4J,newProperties,true,true);
           }
 
+        }
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+
+      if (data != null) {
+        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+
+        if (kerberosDescriptor != null) {
+          KerberosServiceDescriptor logSearchKerberosDescriptor = kerberosDescriptor.getService("LOGSEARCH");
+          KerberosServiceDescriptor atlasKerberosDescriptor = kerberosDescriptor.getService("ATLAS");
+          KerberosServiceDescriptor rangerKerberosDescriptor = kerberosDescriptor.getService("RANGER");
+          addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, atlasKerberosDescriptor, "ATLAS_SERVER");
+          addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, logSearchKerberosDescriptor, "LOGSEARCH_SERVER");
+          addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, rangerKerberosDescriptor, "RANGER_ADMIN");
+          KerberosServiceDescriptor stormKerberosDescriptor = kerberosDescriptor.getService("STORM");
+          if (stormKerberosDescriptor != null) {
+            KerberosComponentDescriptor componentDescriptor = stormKerberosDescriptor.getComponent("NIMBUS");
+            if (componentDescriptor != null) {
+              KerberosIdentityDescriptor origIdentityDescriptor = componentDescriptor.getIdentity("/STORM/NIMBUS/nimbus_server");
+              if (origIdentityDescriptor != null) {
+                KerberosPrincipalDescriptor origPrincipalDescriptor = origIdentityDescriptor.getPrincipalDescriptor();
+                KerberosPrincipalDescriptor newPrincipalDescriptor = new KerberosPrincipalDescriptor(
+                  null,
+                  null,
+                  (origPrincipalDescriptor == null) ?
+                    "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal" : origPrincipalDescriptor.getConfiguration(),
+                  null
+                );
+                KerberosKeytabDescriptor origKeytabDescriptor = origIdentityDescriptor.getKeytabDescriptor();
+                KerberosKeytabDescriptor newKeytabDescriptor = new KerberosKeytabDescriptor(
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  (origKeytabDescriptor == null) ?
+                    "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab" : origKeytabDescriptor.getConfiguration(),
+                  false);
+                componentDescriptor.removeIdentity("/STORM/NIMBUS/nimbus_server");
+                componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/STORM/storm_components", null, newPrincipalDescriptor, newKeytabDescriptor, null));
+
+                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+                artifactDAO.merge(artifactEntity);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add /AMBARI-INFRA/INFRA_SOLR/infra-solr reference to specific service component
+   */
+  private void addInfrSolrDescriptor(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity, KerberosDescriptor kerberosDescriptor,
+                                     KerberosServiceDescriptor serviceDescriptor, String componentName) {
+    if (serviceDescriptor != null) {
+      KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
+      if (componentDescriptor != null) {
+        KerberosIdentityDescriptor origIdentityDescriptor = componentDescriptor.getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+        if (origIdentityDescriptor != null) {
+          LOG.info("/AMBARI_INFRA/INFRA_SOLR/infra-solr identity already exists in {} component", componentName);
+        } else {
+          Predicate predicate = ContainsPredicate.fromMap(Collections.<String, Object>singletonMap(ContainsPredicate.NAME, Arrays.asList("services", "AMBARI_INFRA")));
+          componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/AMBARI_INFRA/INFRA_SOLR/infra-solr",null, null, null, predicate));
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
         }
       }
     }
@@ -1062,4 +1150,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
       updateConfigurationPropertiesForCluster(cluster, configType, updateProperty, true, false);
     }
   }
+
+
+
 }

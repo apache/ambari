@@ -39,10 +39,12 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
@@ -50,6 +52,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -64,7 +69,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.persistence.EntityManager;
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -280,6 +287,7 @@ public class UpgradeCatalog250Test {
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
     Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
+    Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
       .addMockedMethod(updateAmsConfigs)
@@ -299,6 +307,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(updateYarnSite)
       .addMockedMethod(updateAlerts)
       .addMockedMethod(removeAlertDuplicates)
+      .addMockedMethod(updateKerberosDescriptorArtifacts)
       .createMock();
 
 
@@ -351,6 +360,9 @@ public class UpgradeCatalog250Test {
       expectLastCall().once();
 
     upgradeCatalog250.removeAlertDuplicates();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateKerberosDescriptorArtifacts();
     expectLastCall().once();
 
     replay(upgradeCatalog250);
@@ -1097,9 +1109,9 @@ public class UpgradeCatalog250Test {
   public void testLogSearchUpdateConfigs() throws Exception {
     reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
-    
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    
+
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("createConfiguration")
@@ -1110,17 +1122,17 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    
+
     Map<String, String> oldLogSearchProperties = ImmutableMap.of(
         "logsearch.external.auth.enabled", "true",
         "logsearch.external.auth.host_url", "host_url",
         "logsearch.external.auth.login_url", "login_url");
-    
+
     Map<String, String> expectedLogSearchProperties = ImmutableMap.of(
         "logsearch.auth.external_auth.enabled", "true",
         "logsearch.auth.external_auth.host_url", "host_url",
         "logsearch.auth.external_auth.login_url", "login_url");
-    
+
     Config mockLogSearchProperties = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(mockLogSearchProperties).atLeastOnce();
     expect(mockLogSearchProperties.getProperties()).andReturn(oldLogSearchProperties).anyTimes();
@@ -1130,10 +1142,10 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> oldLogFeederEnv = ImmutableMap.of(
         "content", "infra_solr_ssl_enabled");
-    
+
     Map<String, String> expectedLogFeederEnv = ImmutableMap.of(
         "content", "logfeeder_use_ssl");
-    
+
     Config mockLogFeederEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
     expect(mockLogFeederEnv.getProperties()).andReturn(oldLogFeederEnv).anyTimes();
@@ -1146,10 +1158,10 @@ public class UpgradeCatalog250Test {
         "logsearch_solr_audit_logs_zk_node", "zk_node",
         "logsearch_solr_audit_logs_zk_quorum", "zk_quorum",
         "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
-    
+
     Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
         "content", "logsearch_use_ssl");
-    
+
     Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
     expect(mockLogSearchEnv.getProperties()).andReturn(oldLogSearchEnv).anyTimes();
@@ -1177,7 +1189,7 @@ public class UpgradeCatalog250Test {
         "    <param name=\"maxBackupIndex\" value=\"14\" />\n" +
         "    <layout class=\"org.apache.ambari.logsearch.appender.LogsearchConversion\" />\n" +
         "  </appender>");
-    
+
     Map<String, String> expectedLogFeederLog4j = ImmutableMap.of(
         "content",
         "    <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
@@ -1202,7 +1214,7 @@ public class UpgradeCatalog250Test {
         "logfeeder_log_maxbackupindex", "12",
         "logfeeder_json_log_maxfilesize", "13",
         "logfeeder_json_log_maxbackupindex", "14");
-    
+
     Config mockLogFeederLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
     expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
@@ -1260,7 +1272,7 @@ public class UpgradeCatalog250Test {
         "    <priority value=\"warn\"/>\n" +
         "    <appender-ref ref=\"rolling_file_json\"/>\n" +
         "  </category>");
-    
+
     Map<String, String> expectedLogSearchLog4j = new HashMap<>();
       expectedLogSearchLog4j.put("content",
         "  <appender name=\"rolling_file\" class=\"org.apache.log4j.RollingFileAppender\">\n" +
@@ -1320,7 +1332,7 @@ public class UpgradeCatalog250Test {
       expectedLogSearchLog4j.put("logsearch_audit_log_maxbackupindex", "16");
       expectedLogSearchLog4j.put("logsearch_perf_log_maxfilesize", "17");
       expectedLogSearchLog4j.put("logsearch_perf_log_maxbackupindex", "18");
-    
+
     Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
     expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
@@ -1349,14 +1361,14 @@ public class UpgradeCatalog250Test {
     Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
     assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());
   }
-  
+
   @Test
   public void testAmbariInfraUpdateConfigs() throws Exception {
     reset(clusters, cluster);
     expect(clusters.getClusters()).andReturn(ImmutableMap.of("normal", cluster)).once();
-    
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
-    
+
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("createConfiguration")
@@ -1373,13 +1385,13 @@ public class UpgradeCatalog250Test {
                    "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}\n" +
                    "SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}\n" +
                    "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST} -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}\"");
-    
+
     Map<String, String> expectedInfraSolrEnv = ImmutableMap.of(
         "content", "SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}\n" +
                    "SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}\n" +
                    "SOLR_KERB_NAME_RULES=\"{{infra_solr_kerberos_name_rules}}\"\n" +
                    "SOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST}\"");
-    
+
     Config mockInfraSolrEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("infra-solr-env")).andReturn(mockInfraSolrEnv).atLeastOnce();
     expect(mockInfraSolrEnv.getProperties()).andReturn(oldInfraSolrEnv).anyTimes();
@@ -1390,13 +1402,13 @@ public class UpgradeCatalog250Test {
     Map<String, String> oldInfraSolrLog4j = ImmutableMap.of(
         "content", "log4j.appender.file.MaxFileSize=15MB\n" +
                    "log4j.appender.file.MaxBackupIndex=5\n");
-    
+
     Map<String, String> expectedInfraSolrLog4j = ImmutableMap.of(
         "content", "log4j.appender.file.MaxFileSize={{infra_log_maxfilesize}}MB\n" +
                    "log4j.appender.file.MaxBackupIndex={{infra_log_maxbackupindex}}\n",
         "infra_log_maxfilesize", "15",
         "infra_log_maxbackupindex", "5");
-    
+
     Config mockInfraSolrLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("infra-solr-log4j")).andReturn(mockInfraSolrLog4j).atLeastOnce();
     expect(mockInfraSolrLog4j.getProperties()).andReturn(oldInfraSolrLog4j).anyTimes();
@@ -1408,14 +1420,14 @@ public class UpgradeCatalog250Test {
         "content", "log4j.appender.file.File\u003d{{infra_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
                    "log4j.appender.file.MaxFileSize=55MB\n" +
                    "log4j.appender.file.MaxBackupIndex=10\n");
-    
+
     Map<String, String> expectedInfraSolrClientLog4j = ImmutableMap.of(
         "content", "log4j.appender.file.File\u003d{{solr_client_log|default(\u0027/var/log/ambari-infra-solr-client/solr-client.log\u0027)}}\n" +
                    "log4j.appender.file.MaxFileSize={{solr_client_log_maxfilesize}}MB\n" +
                    "log4j.appender.file.MaxBackupIndex={{solr_client_log_maxbackupindex}}\n",
         "infra_client_log_maxfilesize", "55",
         "infra_client_log_maxbackupindex", "10");
-    
+
     Config mockInfraSolrClientLog4j = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("infra-solr-client-log4j")).andReturn(mockInfraSolrClientLog4j).atLeastOnce();
     expect(mockInfraSolrClientLog4j.getProperties()).andReturn(oldInfraSolrClientLog4j).anyTimes();
@@ -1438,7 +1450,7 @@ public class UpgradeCatalog250Test {
     Map<String, String> updatedInfraSolrClientLog4j = infraSolrClientLog4jCapture.getValue();
     assertTrue(Maps.difference(expectedInfraSolrClientLog4j, updatedInfraSolrClientLog4j).areEqual());
   }
-  
+
   @Test
   public void testUpdateHiveConfigs() throws Exception {
     reset(clusters, cluster);
@@ -1585,6 +1597,73 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testUpdateKerberosDescriptorArtifact() throws Exception {
+    final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
+
+    KerberosServiceDescriptor serviceDescriptor;
+
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_2_5_infra_solr.json");
+    Assert.assertNotNull(systemResourceURL);
+
+    final KerberosDescriptor kerberosDescriptorOrig = kerberosDescriptorFactory.createInstance(new File(systemResourceURL.getFile()));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("LOGSEARCH");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("LOGSEARCH_SERVER"));
+    Assert.assertNotNull(serviceDescriptor.getComponent("LOGSEARCH_SERVER").getIdentity("logsearch"));
+    Assert.assertNotNull(serviceDescriptor.getComponent("LOGSEARCH_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("ATLAS");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("ATLAS_SERVER"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("RANGER");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("RANGER_ADMIN"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("STORM");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("NIMBUS"));
+
+    UpgradeCatalog250 upgradeMock = createMockBuilder(UpgradeCatalog250.class).createMock();
+
+
+    ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
+    expect(artifactEntity.getArtifactData())
+      .andReturn(kerberosDescriptorOrig.toMap())
+      .once();
+
+    Capture<Map<String, Object>> updateData = Capture.newInstance(CaptureType.ALL);
+    artifactEntity.setArtifactData(capture(updateData));
+    expectLastCall().times(3);
+
+    ArtifactDAO artifactDAO = createNiceMock(ArtifactDAO.class);
+    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(3);
+
+    replay(artifactEntity, artifactDAO, upgradeMock);
+    upgradeMock.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
+    verify(artifactEntity, artifactDAO, upgradeMock);
+
+    KerberosDescriptor atlasKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(0));
+    KerberosDescriptor rangerKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(1));
+    KerberosDescriptor stormKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(2));
+
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getIdentity("spnego"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER"));
+    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN"));
+    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM"));
+    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS"));
+    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS").getIdentity("/STORM/storm_components"));
   }
 
   @Test
