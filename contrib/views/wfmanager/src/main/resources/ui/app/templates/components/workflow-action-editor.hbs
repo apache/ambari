@@ -32,11 +32,12 @@
         <div>
             <form class="form-horizontal" id="action_properties">
               {{#if (eq nodeType 'decision')}}
-                {{#decision-config actionModel=actionModel killNodes=killNodes register="registerChild"}}{{/decision-config}}
+                {{designer-errors errors=errors}}
+                {{#decision-config currentNode=currentNode actionModel=actionModel killNodes=killNodes register="registerChild"}}{{/decision-config}}
               {{/if}}
               {{#if (eq nodeType 'action')}}
                 {{#if containsUnsupportedProperties}}
-                  <span class="unsupported-elt-warning"> <p><a href='#unsupported-props'><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Action contains elements that are not currently supported by the designer.</a></p></span>
+                  <span class="unsupported-elt-warning"> <p><a href {{action "showUnsupportedProperties"}}><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Action contains elements that are not currently supported by the designer.</a></p></span>
                 {{/if}}
                 {{#if (eq actionType 'java')}}
                   {{#java-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/java-action}}

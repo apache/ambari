@@ -62,8 +62,18 @@ export default Ember.Component.extend( Ember.Evented,{
   saveClicked : false,
   unsupportedPropertiesXml : Ember.computed('actionModel.unsupportedProperties', {
     get(key){
+      let unsupportedPropertiesXml;
+      if(!this.get('actionModel.unsupportedProperties')){
+        return unsupportedPropertiesXml;
+      }
       let x2js = new X2JS();
-      return vkbeautify.xml(x2js.json2xml_str(this.get('actionModel.unsupportedProperties')));
+      let unsupportedProperties = Ember.copy(this.get('actionModel.unsupportedProperties'));
+      delete unsupportedProperties['@id'];
+      delete unsupportedProperties.__jsogObjectId;
+      if(!Ember.isEmpty(Object.keys(unsupportedProperties))){
+        unsupportedPropertiesXml = vkbeautify.xml(x2js.json2xml_str(this.get('actionModel.unsupportedProperties')));
+      }
+      return unsupportedPropertiesXml;
     },
     set(key, value) {
       let x2js = new X2JS();
@@ -75,12 +85,15 @@ export default Ember.Component.extend( Ember.Evented,{
       return value;
     }
   }),
+  containsUnsupportedProperties : Ember.computed('unsupportedPropertiesXml', function(){
+    return this.get('unsupportedPropertiesXml') && this.get('unsupportedPropertiesXml').length > 0;
+  }),
   actionXml : Ember.computed('actionModel', {
     get(key) {
       let x2js = new X2JS();
       var startTag = `<${this.get('actionType')}`;
       Object.keys(this.get('actionModel')).forEach(key => {
-        if(key.startsWith('_')){
+        if(key.startsWith('_') && key !== '__jsogObjectId'){
           startTag = `${startTag} ${key.substr(1)}="${this.get('actionModel')[key]}"`;
         }
       });
@@ -150,11 +163,6 @@ export default Ember.Component.extend( Ember.Evented,{
       delete this.get('actionModel').slaInfo;
       delete this.get('actionModel').slaEnabled;
     }
-    if(this.get('actionModel.unsupportedProperties') && !Ember.isEmpty(Object.keys(this.get('actionModel.unsupportedProperties')))){
-      this.set('containsUnsupportedProperties', true);
-    }else{
-      this.set('containsUnsupportedProperties', false);
-    }
   }.on('init'),
   initialize : function(){
     this.$('#action_properties_dialog').modal({
@@ -203,6 +211,19 @@ export default Ember.Component.extend( Ember.Evented,{
       }
     });
   },
+  validateDecisionNode(){
+    let containsOtherNodes = false;
+    this.get('actionModel').forEach((model)=>{
+      if(model.node.type !== 'kill'){
+        containsOtherNodes = true;
+      }
+    });
+    if(!containsOtherNodes){
+      this.get('errors').pushObject({message:'Atleast one of the decision branches should transition to a node other than a kill node.'});
+    }else{
+      this.get('errors').clear();
+    }
+  },
   actions : {
     closeEditor (){
       this.sendAction('close');
@@ -237,6 +258,11 @@ export default Ember.Component.extend( Ember.Evented,{
     },
     registerChild (name, context){
       this.get('childComponents').set(name, context);
+    },
+    showUnsupportedProperties(){
+      this.$('#action_properties_dialog .modal-body').animate({
+        scrollTop: this.$("#unsupported-props").offset().top
+      }, 'fast');
     }
   }
 });
