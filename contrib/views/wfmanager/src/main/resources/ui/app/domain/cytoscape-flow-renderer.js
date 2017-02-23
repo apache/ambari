@@ -19,7 +19,7 @@ import Ember from 'ember';
 import CytoscapeStyles from '../domain/cytoscape-style';
 var CytoscapeRenderer= Ember.Object.extend({
   currentCyNode: null,
-  staticNodes: ['start', 'end', 'join', 'placeholder'],
+  staticNodes: ['start', 'end', 'placeholder'],
   dataNodes: [],
   cyOverflow: {},
   cy: null,
