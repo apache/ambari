@@ -449,7 +449,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.createSnapshot();
     var transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
     transition.source=this.get("currentTransition").source;
-    var actionNode = this.get("workflow").addNode(transition,actionNodeType);
+    this.generateUniqueNodeId(actionNodeType);
+    var actionNode = this.get("workflow").addNode(transition,actionNodeType, {}, "");
     this.rerender();
     this.doValidation();
     this.scrollToNewPosition();
@@ -724,7 +725,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
     this.set("showingSaveWorkflow",true);
   },
-  openJobConfig (){
+  openJobConfig () {
     this.get('workflowContext').clearErrors();
     var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
     workflowContext:this.get('workflowContext')});
