@@ -45,7 +45,13 @@
         </div>
 
         <div class="additional btn-area clearfix">
-          <button class="btn btn-primary pull-right mls" {{action downloadCSV}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</button>
+          {{#view App.ButtonProgressView
+             classNames="pull-right mls"
+             buttonClassNames="btn-primary"
+             action="downloadCSV"
+             isInProgressBinding="controller.isCSVRequestInProgress"}}
+            {{t admin.kerberos.wizard.step5.downloadCSV}}
+          {{/view}}
           <button class="btn btn-default pull-right" {{action exitWizard}}>{{t admin.kerberos.wizard.step5.exitWizard}}</button>
         </div>
       </div>
@@ -53,9 +59,8 @@
   </div>
   <div class="wizard-footer col-md-12">
     <div class="btn-area">
-      <button id="back-kerberos-step5" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>
-      <button id="submit-kerberos-step5" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-        {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+      {{view App.WizardBackButton buttonId="back-kerberos-step5" action="back"}}
+      {{view App.WizardNextButton buttonId="submit-kerberos-step5" action="submit" target="controller"}}
     </div>
   </div>
 </div>

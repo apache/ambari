@@ -731,6 +731,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
 
   done: function () {
     if (!this.get('isSubmitDisabled')) {
+      this.set('isSubmitDisabled', true);
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('next');
     }
@@ -738,6 +739,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
 
   back: function () {
     if (!this.get('isBackButtonDisabled')) {
+      this.set('isBackButtonDisabled', true);
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('back');
     }
