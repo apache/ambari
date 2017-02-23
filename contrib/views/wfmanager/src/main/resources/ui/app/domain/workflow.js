@@ -141,7 +141,9 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
       computedTarget=target.getTargets()[0];
     }
     var generatedNode=this.generatedNode(computedTarget,type,settings);
-    generatedNode.name = generatedNode.name+ "_"+ id;
+    if(id){
+      generatedNode.name = generatedNode.name+ "_"+ id;
+    }
     var sourceNode=transition.source;
     if (sourceNode && sourceNode.isPlaceholder()) {
       var orignalTransition=this.findTransitionTo(this.startNode,sourceNode.id);
