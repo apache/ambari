@@ -138,7 +138,7 @@
   {{/if}}
   <div  id="content" class="panel panel-default designer-main-panel col-xs-20">
     <div class="designer-panel designer-canvas">
-      {{designer-errors errors=errors validationErrors=validationErrors errorMsg=errorMsg data=data}}
+      {{designer-errors errors=errors validationErrors=validationErrors}}
       {{#if undoAvailable}}
         <div id="alert"class="alert alert-warning workflow-error" role="alert">
           {{#if (eq undoType 'nodeDeleted')}}
@@ -156,6 +156,22 @@
            Importing workflow.Please wait...
           </div>
       </div>
+      {{/if}}
+      {{#if (not (eq errorMsg ""))}}
+        <div id="loader">
+            <div id="alert"class="alert alert-danger alert-dismissible workflow-error" role="alert">
+                {{errorMsg}}
+                {{#if isStackTraceAvailable}}
+                  {{#if isStackTraceVisible}}
+                    <a href="#" class="action-link" {{action "hideStackTrace"}}>Hide Log</a>
+                    <div id="stackTrace">{{{stackTrace}}}</div>
+                  {{/if}}
+                  {{#unless isStackTraceVisible}}
+                    <a href="#" class="action-link" {{action "showStackTrace"}}>Show Log</a>
+                  {{/unless}}
+                {{/if}}
+            </div>
+        </div>
       {{/if}}
       {{#if isAssetPublishing}}
         <div id="loader">

@@ -32,8 +32,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
-import org.apache.oozie.ambari.view.exception.ErrorCode;
-import org.apache.oozie.ambari.view.exception.WfmException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,16 +90,10 @@ public class OozieDelegate {
 
     LOGGER.info("Resp from oozie status entity=="
       + serviceResponse.getEntity());
-    String oozieResp=null;
     if (serviceResponse.getEntity() instanceof String) {
-      oozieResp= (String) serviceResponse.getEntity();
+      return (String) serviceResponse.getEntity();
     } else {
-      oozieResp= serviceResponse.getEntity().toString();
-    }
-    if (oozieResp != null && oozieResp.trim().startsWith("{")) {
-      return  oozieResp;
-    }else{
-      throw new WfmException(oozieResp,ErrorCode.OOZIE_SUBMIT_ERROR);
+      return "success";
     }
   }
 
