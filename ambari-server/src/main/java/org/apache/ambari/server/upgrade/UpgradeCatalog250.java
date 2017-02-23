@@ -325,6 +325,13 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             if ("distributed".equals(amsSite.getProperties().get(AMS_MODE))) {
               isDistributed = true;
             }
+
+            Map<String, String> amsSiteProperties = amsSite.getProperties();
+
+            if (amsSiteProperties != null && amsSiteProperties.containsKey("timeline.metrics.hbase.fifo.compaction.enabled")) {
+              LOG.info("Removing timeline.metrics.hbase.fifo.compaction.enabled from ams-site");
+              removeConfigurationPropertiesFromCluster(cluster, AMS_SITE, Collections.singleton("timeline.metrics.hbase.fifo.compaction.enabled"));
+            }
           }
 
           if (isDistributed) {

@@ -266,6 +266,24 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRIC_METADATA_FILTERS =
     "timeline.metrics.service.metadata.filters";
 
+  public static final String TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY =
+    "timeline.metrics.hbase.aggregate.table.compaction.policy.key";
+
+  public static final String TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS =
+    "timeline.metrics.hbase.aggregate.table.compaction.policy.class";
+
+  public static final String TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES =
+    "timeline.metrics.aggregate.table.hbase.hstore.blockingStoreFiles";
+
+  public static final String TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY =
+    "timeline.metrics.hbase.precision.table.compaction.policy.key";
+
+  public static final String TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS =
+    "timeline.metrics.hbase.precision.table.compaction.policy.class";
+
+  public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
+    "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
+
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";
@@ -422,9 +440,12 @@ public class TimelineMetricConfiguration {
     return defaultRpcAddress;
   }
 
-  public boolean isDistributedOperationModeEnabled() {
+  public boolean isDistributedCollectorModeDisabled() {
     try {
-      return getMetricsConf().get("timeline.metrics.service.operation.mode").equals("distributed");
+      if (metricsConf != null) {
+        return Boolean.parseBoolean(metricsConf.get("timeline.metrics.service.distributed.collector.mode.disabled", "false"));
+      }
+      return false;
     } catch (Exception e) {
       return false;
     }

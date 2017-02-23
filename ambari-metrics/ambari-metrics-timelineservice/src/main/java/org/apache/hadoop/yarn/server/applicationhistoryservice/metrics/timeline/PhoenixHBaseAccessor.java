@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -80,6 +81,11 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATE_TABLE_SPLIT_POINTS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_DURABILITY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.HBASE_BLOCKING_STORE_FILES;
@@ -103,6 +109,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_SIZE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_ENABLED;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
@@ -174,10 +181,12 @@ public class PhoenixHBaseAccessor {
 
   static final String HSTORE_COMPACTION_CLASS_KEY =
     "hbase.hstore.defaultengine.compactionpolicy.class";
+  static final String HSTORE_ENGINE_CLASS =
+    "hbase.hstore.engine.class";
   static final String FIFO_COMPACTION_POLICY_CLASS =
     "org.apache.hadoop.hbase.regionserver.compactions.FIFOCompactionPolicy";
-  static final String DEFAULT_COMPACTION_POLICY_CLASS =
-    "org.apache.hadoop.hbase.regionserver.compactions.ExploringCompactionPolicy";
+  static final String DATE_TIERED_COMPACTION_POLICY =
+    "org.apache.hadoop.hbase.regionserver.DateTieredStoreEngine";
   static final String BLOCKING_STORE_FILES_KEY =
     "hbase.hstore.blockingStoreFiles";
 
@@ -491,8 +500,6 @@ public class PhoenixHBaseAccessor {
   }
 
   protected void initPoliciesAndTTL() {
-    boolean enableNormalizer = hbaseConf.getBoolean("hbase.normalizer.enabled", false);
-    boolean enableFifoCompaction = metricsConf.getBoolean("timeline.metrics.hbase.fifo.compaction.enabled", true);
 
     HBaseAdmin hBaseAdmin = null;
     try {
@@ -507,90 +514,23 @@ public class PhoenixHBaseAccessor {
           boolean modifyTable = false;
           HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
 
+          //Set normalizer preferences
+          boolean enableNormalizer = hbaseConf.getBoolean("hbase.normalizer.enabled", false);
           if (enableNormalizer ^ tableDescriptor.isNormalizationEnabled()) {
             tableDescriptor.setNormalizationEnabled(enableNormalizer);
             LOG.info("Normalizer set to " + enableNormalizer + " for " + tableName);
             modifyTable = true;
           }
 
-          if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
-            if (!timelineMetricsPrecisionTableDurability.isEmpty()) {
-              LOG.info("Setting WAL option " + timelineMetricsPrecisionTableDurability + " for table : " + tableName);
-              boolean validDurability = true;
-              if ("SKIP_WAL".equals(timelineMetricsPrecisionTableDurability)) {
-                tableDescriptor.setDurability(Durability.SKIP_WAL);
-              } else if ("SYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
-                tableDescriptor.setDurability(Durability.SYNC_WAL);
-              } else if ("ASYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
-                tableDescriptor.setDurability(Durability.ASYNC_WAL);
-              } else if ("FSYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
-                tableDescriptor.setDurability(Durability.FSYNC_WAL);
-              } else {
-                LOG.info("Unknown value for " + TIMELINE_METRICS_PRECISION_TABLE_DURABILITY + " : " + timelineMetricsPrecisionTableDurability);
-                validDurability = false;
-              }
-              if (validDurability) {
-                modifyTable = true;
-              }
-            }
-          } else {
-            if (!timelineMetricsTablesDurability.isEmpty()) {
-              LOG.info("Setting WAL option " + timelineMetricsTablesDurability + " for table : " + tableName);
-              boolean validDurability = true;
-              if ("SKIP_WAL".equals(timelineMetricsTablesDurability)) {
-                tableDescriptor.setDurability(Durability.SKIP_WAL);
-              } else if ("SYNC_WAL".equals(timelineMetricsTablesDurability)) {
-                tableDescriptor.setDurability(Durability.SYNC_WAL);
-              } else if ("ASYNC_WAL".equals(timelineMetricsTablesDurability)) {
-                tableDescriptor.setDurability(Durability.ASYNC_WAL);
-              } else if ("FSYNC_WAL".equals(timelineMetricsTablesDurability)) {
-                tableDescriptor.setDurability(Durability.FSYNC_WAL);
-              } else {
-                LOG.info("Unknown value for " + TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY + " : " + timelineMetricsTablesDurability);
-                validDurability = false;
-              }
-              if (validDurability) {
-                modifyTable = true;
-              }
-            }
-          }
+          //Set durability preferences
+          boolean durabilitySettingsModified = setDurabilityForTable(tableName, tableDescriptor);
+          modifyTable = modifyTable || durabilitySettingsModified;
 
-          Map<String, String> config = tableDescriptor.getConfiguration();
-          if (enableFifoCompaction &&
-             !FIFO_COMPACTION_POLICY_CLASS.equals(config.get(HSTORE_COMPACTION_CLASS_KEY))) {
-            tableDescriptor.setConfiguration(HSTORE_COMPACTION_CLASS_KEY,
-              FIFO_COMPACTION_POLICY_CLASS);
-            LOG.info("Setting config property " + HSTORE_COMPACTION_CLASS_KEY +
-              " = " + FIFO_COMPACTION_POLICY_CLASS + " for " + tableName);
-            // Need to set blockingStoreFiles to 1000 for FIFO
-            int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, 1000);
-            if (blockingStoreFiles < 1000) {
-              blockingStoreFiles = 1000;
-            }
-            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, String.valueOf(blockingStoreFiles));
-            LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-              " = " + blockingStoreFiles + " for " + tableName);
-            modifyTable = true;
-          }
-          // Set back original policy if fifo disabled
-          if (!enableFifoCompaction &&
-             FIFO_COMPACTION_POLICY_CLASS.equals(config.get(HSTORE_COMPACTION_CLASS_KEY))) {
-            tableDescriptor.setConfiguration(HSTORE_COMPACTION_CLASS_KEY,
-              DEFAULT_COMPACTION_POLICY_CLASS);
-            LOG.info("Setting config property " + HSTORE_COMPACTION_CLASS_KEY +
-              " = " + DEFAULT_COMPACTION_POLICY_CLASS + " for " + tableName);
+          //Set compaction policy preferences
+          boolean compactionPolicyModified = false;
+          compactionPolicyModified = setCompactionPolicyForTable(tableName, tableDescriptor);
+          modifyTable = modifyTable || compactionPolicyModified;
 
-            int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, 300);
-            if (blockingStoreFiles > 300) {
-              LOG.warn("HBase blocking store file set too high without FIFO " +
-                "Compaction policy enabled, restoring low value = 300.");
-              blockingStoreFiles = 300;
-            }
-            tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, String.valueOf(blockingStoreFiles));
-            LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
-              " = " + blockingStoreFiles + " for " + tableName);
-            modifyTable = true;
-          }
           // Change TTL setting to match user configuration
           HColumnDescriptor[] columnFamilies = tableDescriptor.getColumnFamilies();
           if (columnFamilies != null) {
@@ -621,6 +561,103 @@ public class PhoenixHBaseAccessor {
         LOG.warn("Exception on HBaseAdmin close.", e);
       }
     }
+  }
+
+  private boolean setDurabilityForTable(String tableName, HTableDescriptor tableDescriptor) {
+
+    boolean modifyTable = false;
+    //Set WAL preferences
+    if (METRICS_RECORD_TABLE_NAME.equals(tableName)) {
+      if (!timelineMetricsPrecisionTableDurability.isEmpty()) {
+        LOG.info("Setting WAL option " + timelineMetricsPrecisionTableDurability + " for table : " + tableName);
+        boolean validDurability = true;
+        if ("SKIP_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.SKIP_WAL);
+        } else if ("SYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.SYNC_WAL);
+        } else if ("ASYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.ASYNC_WAL);
+        } else if ("FSYNC_WAL".equals(timelineMetricsPrecisionTableDurability)) {
+          tableDescriptor.setDurability(Durability.FSYNC_WAL);
+        } else {
+          LOG.info("Unknown value for " + TIMELINE_METRICS_PRECISION_TABLE_DURABILITY + " : " + timelineMetricsPrecisionTableDurability);
+          validDurability = false;
+        }
+        if (validDurability) {
+          modifyTable = true;
+        }
+      }
+    } else {
+      if (!timelineMetricsTablesDurability.isEmpty()) {
+        LOG.info("Setting WAL option " + timelineMetricsTablesDurability + " for table : " + tableName);
+        boolean validDurability = true;
+        if ("SKIP_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.SKIP_WAL);
+        } else if ("SYNC_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.SYNC_WAL);
+        } else if ("ASYNC_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.ASYNC_WAL);
+        } else if ("FSYNC_WAL".equals(timelineMetricsTablesDurability)) {
+          tableDescriptor.setDurability(Durability.FSYNC_WAL);
+        } else {
+          LOG.info("Unknown value for " + TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY + " : " + timelineMetricsTablesDurability);
+          validDurability = false;
+        }
+        if (validDurability) {
+          modifyTable = true;
+        }
+      }
+    }
+    return modifyTable;
+  }
+
+  private boolean setCompactionPolicyForTable(String tableName, HTableDescriptor tableDescriptor) {
+
+    String compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY,
+      HSTORE_ENGINE_CLASS);
+    String compactionPolicyClass = metricsConf.get(TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS,
+      DATE_TIERED_COMPACTION_POLICY);
+    int blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES, 60);
+
+    if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
+      compactionPolicyKey = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY,
+        HSTORE_COMPACTION_CLASS_KEY);
+      compactionPolicyClass = metricsConf.get(TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS,
+        FIFO_COMPACTION_POLICY_CLASS);
+      blockingStoreFiles = hbaseConf.getInt(TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES, 1000);
+    }
+
+    Map<String, String> config = new HashMap(tableDescriptor.getConfiguration());
+
+    if (StringUtils.isEmpty(compactionPolicyKey) || StringUtils.isEmpty(compactionPolicyClass)) {
+      config.remove(HSTORE_COMPACTION_CLASS_KEY);
+      config.remove(HSTORE_ENGINE_CLASS);
+      //Default blockingStoreFiles = 300
+      setHbaseBlockingStoreFiles(tableDescriptor, tableName, 300);
+    } else {
+      tableDescriptor.setConfiguration(compactionPolicyKey, compactionPolicyClass);
+      setHbaseBlockingStoreFiles(tableDescriptor, tableName, blockingStoreFiles);
+    }
+
+    if (!compactionPolicyKey.equals(HSTORE_ENGINE_CLASS)) {
+      tableDescriptor.removeConfiguration(HSTORE_ENGINE_CLASS);
+    }
+    if (!compactionPolicyKey.equals(HSTORE_COMPACTION_CLASS_KEY)) {
+      tableDescriptor.removeConfiguration(HSTORE_COMPACTION_CLASS_KEY);
+    }
+
+    Map<String, String> newConfig = tableDescriptor.getConfiguration();
+    return !Maps.difference(config, newConfig).areEqual();
+  }
+
+  private void setHbaseBlockingStoreFiles(HTableDescriptor tableDescriptor, String tableName, int value) {
+    int blockingStoreFiles = hbaseConf.getInt(HBASE_BLOCKING_STORE_FILES, value);
+    if (blockingStoreFiles != value) {
+      blockingStoreFiles = value;
+    }
+    tableDescriptor.setConfiguration(BLOCKING_STORE_FILES_KEY, String.valueOf(value));
+    LOG.info("Setting config property " + BLOCKING_STORE_FILES_KEY +
+      " = " + blockingStoreFiles + " for " + tableName);
   }
 
   protected String getSplitPointsStr(String splitPoints) {

@@ -52,6 +52,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
@@ -642,8 +643,16 @@ public class UpgradeCatalog250Test {
     Map<String, String> amsSite = new HashMap<String, String>() {
       {
         put("timeline.metrics.service.operation.mode", "distributed");
+        put("timeline.metrics.hbase.fifo.compaction.enabled", "true");
       }
     };
+
+    Map<String, String> newAmsSite = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.operation.mode", "distributed");
+      }
+    };
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
     Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
@@ -669,18 +678,23 @@ public class UpgradeCatalog250Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture(CaptureType.ALL);
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateAMSConfigs();
     easyMockSupport.verifyAll();
 
-    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(propertiesCapture.getValues().size() == 2);
+
+    Map<String, String> updatedProperties = propertiesCapture.getValues().get(0);
+    assertTrue(Maps.difference(newAmsSite, updatedProperties).areEqual());
+
+    updatedProperties = propertiesCapture.getValues().get(1);
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 

@@ -589,14 +589,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>timeline.metrics.hbase.fifo.compaction.enabled</name>
-    <value>true</value>
-    <description>
-      Enable Compaction policy for lower for Precision and Minute aggregate tables.
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>timeline.metrics.aggregators.skip.blockcache.enabled</name>
     <value>false</value>
     <description>

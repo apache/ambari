@@ -106,13 +106,17 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       hBaseAccessor.initPoliciesAndTTL();
       // Start HA service
       // Start the controller
-      haController = new MetricCollectorHAController(configuration);
-      try {
-        haController.initializeHAController();
-      } catch (Exception e) {
-        LOG.error(e);
-        throw new MetricsSystemInitializationException("Unable to " +
-          "initialize HA controller", e);
+      if (!configuration.isDistributedCollectorModeDisabled()) {
+        haController = new MetricCollectorHAController(configuration);
+        try {
+          haController.initializeHAController();
+        } catch (Exception e) {
+          LOG.error(e);
+          throw new MetricsSystemInitializationException("Unable to " +
+            "initialize HA controller", e);
+        }
+      } else {
+        LOG.info("Distributed collector mode disabled");
       }
 
       //Initialize whitelisting & blacklisting if needed
