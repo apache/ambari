@@ -28,7 +28,6 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.functions.default import default
 from kafka import ensure_base_directories
 
 import upgrade
@@ -111,6 +110,20 @@ class KafkaBroker(Script):
           action = "delete"
     )
 
+  def disable_security(self, env):
+    import params
+    if not params.zookeeper_connect:
+      Logger.info("No zookeeper connection string. Skipping reverting ACL")
+      return
+    if not params.secure_acls:
+      Logger.info("The zookeeper.set.acl is false. Skipping reverting ACL")
+      return
+    Execute(
+      "{0} --zookeeper.connect {1} --zookeeper.acl=unsecure".format(params.kafka_security_migrator, params.zookeeper_connect), \
+      user=params.kafka_user, \
+      environment={ 'JAVA_HOME': params.java64_home }, \
+      logoutput=True, \
+      tries=3)
 
   def status(self, env):
     import status_params

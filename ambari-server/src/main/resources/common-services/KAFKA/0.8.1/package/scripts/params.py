@@ -102,6 +102,8 @@ kafka_hosts.sort()
 
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()
+secure_acls = default("/configurations/kafka-broker/zookeeper.set.acl", False)
+kafka_security_migrator = os.path.join(kafka_home, "bin", "zookeeper-security-migration.sh")
 
 #Kafka log4j
 kafka_log_maxfilesize = default('/configurations/kafka-log4j/kafka_log_maxfilesize',256)
