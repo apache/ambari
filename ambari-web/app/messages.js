@@ -1295,7 +1295,8 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
 
   'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
-  'admin.manageJournalNode.wizard.step3.confirm.config.body': '<b>Configuration Change Review.</b></br>' +
+  'admin.manageJournalNode.wizard.step3.confirm.hosts.body': '<b>Confirm your host selections.</b>',
+  'admin.manageJournalNode.wizard.step3.confirm.config.body': '<p><b>Review Configuration Changes.</b></p>' +
   'As part of this process, configuration changes are required. Please review the changes below, and note that they are for <b>review only</b>.  Future steps in this wizard will update this configuration, and restart <b>all</b> services automatically.',
 
   'admin.manageJournalNode.wizard.step4.task0.title' : 'Stop Standby NameNode',
@@ -1579,8 +1580,9 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.wizard.step3.alert_message': '<b>Confirm your host selections.</b>',
   'admin.ra_highAvailability.wizard.step3.currentRA': 'Current Ranger Admin',
   'admin.ra_highAvailability.wizard.step3.additionalRA': 'Additional Ranger Admin',
-  'admin.rm_highAvailability.wizard.step3.configs_changes': '<b>Review Configuration Changes.</b></br>' +
-  '<i>policymgr_external_url</i> in admin-properties.xml will be changed by the Wizard to enable Ranger Admin HA',
+  'admin.rm_highAvailability.wizard.step3.configs_changes': '<p><b>Review Configuration Changes.</b></p>' +
+    'The following lists the configuration changes that will be made by the Wizard to enable Ranger Admin HA. ' +
+    'This information is for <b> review only </b> and is not editable.',
   'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
   'admin.ra_highAvailability.wizard.step4.task0.title': 'Stop All Services',
   'admin.ra_highAvailability.wizard.step4.task1.title': 'Install Additional Ranger Admin',
@@ -2260,10 +2262,12 @@ Em.I18n.translations = {
   'services.reassign.step2.body':'Assign {0} to new host.',
   'services.reassign.step2.body.namenodeHA':'Move {0} to new host. You can move only one master component at a time.',
   'services.reassign.step3.header':'Review',
-  'services.reassign.step3.body':'Please review the changes you made',
+  'services.reassign.step3.body':'<b>Confirm your host selections.</b>',
   'services.reassign.step3.targetHost':'Target Host:',
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
+  'services.reassign.step3.configs':'<div class="alert alert-info">' +
+    '<p><b>Review Configuration Changes.</b></p>The Wizard will make the following configuration changes.</div>',
   'services.reassign.step4.header':'Configure Component',
 
   'services.reassign.step4.tasks.stopRequiredServices.title':'Stop Required Services',
@@ -2632,17 +2636,12 @@ Em.I18n.translations = {
   'host.host.componentFilter.slave':'Slave Components',
   'host.host.componentFilter.client':'Client Components',
   'hosts.host.deleteComponent.popup.msg1':'Are you sure you want to delete {0}?',
-  'hosts.host.deleteComponent.popup.deleteZooKeeperServer':'Deleting <i>ZooKeeper Server</i> may reconfigure such properties:<ul><li>zookeeper.connect</li><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li><li>storm.zookeeper.servers</li><li>instance.zookeeper.host</li></ul>',
-  'hosts.host.deleteComponent.popup.deleteRangerKMSServer': 'Deleting <i>Ranger KMS Server</i> may reconfigure such properties:<ul><li>hadoop.security.key.provider.path</li><li>dfs.encryption.key.provider.uri</li>',
   'hosts.host.deleteComponent.popup.deleteJournalNodeMsg': 'You are about to open <i>Manage Journal Node Wizard</i>. Are you sure?',
   'hosts.host.deleteComponent.popup.warning':'<b>WARNING!</b> Delete the last <i>{0}</i> component in the cluster?</br>Deleting the last component in the cluster could result in permanent loss of service data.',
   'hosts.host.deleteComponent.popup.confirm':'Confirm Delete',
   'hosts.host.installComponent.popup.confirm':'Confirm Install',
   'hosts.host.installComponent.msg':'Are you sure you want to install {0}?',
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
-  'hosts.host.addComponent.ZOOKEEPER_SERVER':'Adding ZooKeeper Server may reconfigure such properties:<ul><li>zookeeper.connect</li><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li><li>storm.zookeeper.servers</li><li>instance.zookeeper.host</li></ul>',
-  'hosts.host.addComponent.NIMBUS': 'Adding Nimbus will reconfigure <b>nimbus.seeds</b>, <b>topology.min.replication.count</b>, <b>topology.max.replication.wait.time.sec</b> properties if they are defined.',
-  'hosts.host.addComponent.RANGER_KMS_SERVER': 'Adding Ranger KMS Server may reconfigure such properties:<ul><li>hadoop.security.key.provider.path</li><li>dfs.encryption.key.provider.uri</li>',
   'hosts.host.addComponent.deleteHostWithZooKeeper':'Deleting host with ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
   'host.host.addComponent.popup.dependedComponents.body': '{0} requires {1} to be installed along with it on the same host. Please add them first and then try adding {0}',
   'host.host.addComponent.popup.dependedComponents.header': 'Component dependencies',
@@ -2650,7 +2649,7 @@ Em.I18n.translations = {
   'hosts.host.zooKeeper.configs.save.note': 'This configuration is created by ambari while installing/deleting zookeeper component on a host',
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.addComponent.popup.confirm':'Confirm Add',
-  'hosts.host.manualKerberosWarning': '<br/><strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',
+  'hosts.host.manualKerberosWarning': '<strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',
   'hosts.host.deleteComponent.popup.deleteNimbus':'Deleting <i>Storm Nimbus</i> will reconfigure <b>nimbus.seeds</b>, <b>topology.min.replication.count</b>, <b>topology.max.replication.wait.time.sec</b> properties if they are defined.',
   'hosts.host.storm.configs.save.note': 'This configuration is created by ambari while installing/deleting storm component on a host',
   'hosts.host.datanode.decommission':'Decommission DataNode',
@@ -2668,8 +2667,6 @@ Em.I18n.translations = {
   'hosts.host.hbase_regionserver.decommission.warning':'Last RegionServer can\'t be decommissioned',
   'hosts.host.decommissioned':'Decommissioned',
   'hosts.host.decommissioning':'Decommissioning',
-  'hosts.host.addComponent.HIVE_METASTORE':'Adding <i>Hive Metastore</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
-  'hosts.host.addComponent.WEBHCAT_SERVER':'You are about to add <i>WebHCat Server</i>. Are you sure?',
   'hosts.host.addComponent.JOURNALNODE': 'You are about to open <i>Manage Journal Node Wizard</i>. Are you sure?',
   'hosts.host.deleteComponent.popup.deleteHiveMetastore':'Deleting <i>Hive Metastore</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
   'hosts.host.deleteComponent.popup.deleteWebHCatServer':'You are about to delete <i>WebHCat Server</i>. Are you sure?',
@@ -3259,8 +3256,8 @@ Em.I18n.translations = {
   'admin.removeHawqStandby.wizard.step2.header': 'Review',
   'admin.removeHawqStandby.wizard.step2.hawqStandby': '<b>Current HAWQ Standby:</b>',
   'admin.removeHawqStandby.wizard.step2.confirm.config.body':'<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b></br></br>After removing the HAWQ Standby Master, the Wizard removes the ' +
-      'hawq_standby_address_host property from hawq-site.xml. As a best practice, you should configure a new HAWQ Standby Master host after the Wizard completes.</div>',
+    '<p><b>Review Configuration Changes.</b></p>After removing the HAWQ Standby Master, the Wizard removes the ' +
+    'hawq_standby_address_host property from hawq-site.xml. As a best practice, you should configure a new HAWQ Standby Master host after the Wizard completes.</div>',
   'admin.removeHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Standby Master role changes.</b>',
   'admin.removeHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with removing HAWQ Standby Master? Please confirm, before proceeding as you will not be able to rollback from Ambari.',
   'admin.removeHawqStandby.wizard.step3.header': 'Finalize Setup',
@@ -3294,10 +3291,10 @@ Em.I18n.translations = {
   'admin.activateHawqStandby.wizard.step2.toBeActivated': 'TO BE ACTIVATED AS NEW HAWQ MASTER',
   'admin.activateHawqStandby.step4.save.configuration.note': 'This configuration is created by Activate HAWQ Standby wizard',
   'admin.activateHawqStandby.wizard.step2.confirm.config.body': '<div class="alert alert-info">' +
-      '<b>Review Configuration Changes.</b><br/><br/>The Wizard will make the following configuration changes. '+
-      'This information is for review only, and cannot be edited.<br/><br/><b>After activating the HAWQ Standby ' +
-      'Master, the wizard removes the hawq_standby_address_host property from hawq-site.xml.</b> ' +
-      'As a best practice, you should configure a new HAWQ Standby Master host after the wizard completes.</div>',
+    '<p><b>Review Configuration Changes.</b></p>The Wizard will make the following configuration changes. '+
+    'This information is for review only, and cannot be edited.<br/><br/><b>After activating the HAWQ Standby ' +
+    'Master, the wizard removes the hawq_standby_address_host property from hawq-site.xml.</b> ' +
+    'As a best practice, you should configure a new HAWQ Standby Master host after the wizard completes.</div>',
   'admin.activateHawqStandby.wizard.step2.confirm.host.body':'<b>Review HAWQ Master & Standby Master role changes.</b>',
   'admin.activateHawqStandby.wizard.step2.confirmPopup.body': 'Do you wish to continue with activating HAWQ Standy Master? ' +
       'Please confirm, before proceeding as you will not be able to rollback from Ambari.',

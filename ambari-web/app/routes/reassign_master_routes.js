@@ -169,16 +169,22 @@ module.exports = App.WizardRoute.extend({
   step3: Em.Route.extend({
     route: '/step3',
     connectOutlets: function (router) {
-      var controller = router.get('reassignMasterController');
+      var controller = router.get('reassignMasterController'),
+        stepController = router.get('reassignMasterWizardStep3Controller');
       controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        stepController.set('wizardController', controller);
         controller.connectOutlet('reassignMasterWizardStep3', controller.get('content'));
       })
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
-      var controller = router.get('reassignMasterController');
+      var controller = router.get('reassignMasterController'),
+        stepController = router.get('reassignMasterWizardStep3Controller'),
+        configs = stepController.get('configs'),
+        attributes = stepController.get('configsAttributes'),
+        secureConfigs = stepController.get('secureConfigs');
       App.db.setReassignTasksStatuses(undefined);
       App.db.setReassignTasksRequestIds(undefined);
       App.clusterStatus.setClusterStatus({
@@ -188,7 +194,14 @@ module.exports = App.WizardRoute.extend({
         localdb: App.db.data
       });
       controller.saveReassignComponentsInMM(controller.getReassignComponentsInMM());
+      stepController.updateServiceConfigs();
+      controller.saveConfigs(configs, attributes);
+      controller.saveSecureConfigs(secureConfigs);
       router.transitionTo('step4');
+    },
+
+    exit: function (router) {
+      router.get('reassignMasterWizardStep3Controller').clearStep();
     },
 
     unroutePath: function () {
@@ -199,11 +212,13 @@ module.exports = App.WizardRoute.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router) {
-      var controller = router.get('reassignMasterController');
+      var controller = router.get('reassignMasterController'),
+        stepController = router.get('reassignMasterWizardStep4Controller');
       controller.setCurrentStep('4');
       controller.setLowerStepsDisable(4);
       router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
         controller.loadAllPriorSteps();
+        stepController.set('wizardController', controller);
         controller.connectOutlet('reassignMasterWizardStep4', controller.get('content'));
       });
     },
@@ -303,11 +318,13 @@ module.exports = App.WizardRoute.extend({
   step7: Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router) {
-      var controller = router.get('reassignMasterController');
+      var controller = router.get('reassignMasterController'),
+        stepController = router.get('reassignMasterWizardStep7Controller');
       controller.setCurrentStep('7');
       controller.setLowerStepsDisable(7);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        stepController.set('wizardController', controller);
         controller.connectOutlet('reassignMasterWizardStep7', controller.get('content'));
       });
     },

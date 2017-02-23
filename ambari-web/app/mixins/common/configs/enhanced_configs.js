@@ -158,6 +158,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     this.set('recommendationsConfigs', null);
   },
 
+  clearRecommendations: function () {
+    this.clearRecommendationsInfo();
+    this.clearAllRecommendations();
+  },
+
   /**
    * sends request to get values for dependent configs
    * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations

@@ -535,20 +535,23 @@ describe("App.MainServiceInfoConfigsController", function () {
     beforeEach(function () {
       sinon.stub(Em.run, 'once', Em.K);
       sinon.stub(mainServiceInfoConfigsController, 'loadSelectedVersion');
-      sinon.stub(mainServiceInfoConfigsController, 'clearRecommendationsInfo');
+      sinon.spy(mainServiceInfoConfigsController, 'clearRecommendations');
+      mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});
+      mainServiceInfoConfigsController.set('recommendations', Em.A([{name: 'prop_1'}]));
+      mainServiceInfoConfigsController.doCancel();
     });
     afterEach(function () {
       Em.run.once.restore();
       mainServiceInfoConfigsController.loadSelectedVersion.restore();
-      mainServiceInfoConfigsController.clearRecommendationsInfo.restore();
+      mainServiceInfoConfigsController.clearRecommendations.restore();
+    });
+
+    it("should launch recommendations cleanup", function() {
+      expect(mainServiceInfoConfigsController.clearRecommendations.calledOnce).to.be.true;
     });
 
     it("should clear dependent configs", function() {
-      mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});
-      mainServiceInfoConfigsController.set('recommendations', Em.A([{name: 'prop_1'}]));
-      mainServiceInfoConfigsController.doCancel();
       expect(App.isEmptyObject(mainServiceInfoConfigsController.get('recommendations'))).to.be.true;
-      expect(mainServiceInfoConfigsController.clearRecommendationsInfo.calledOnce).to.be.true;
     });
   });
 

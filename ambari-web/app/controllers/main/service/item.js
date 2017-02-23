@@ -21,7 +21,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 var blueprintUtils = require('utils/blueprint');
 var stringUtils = require('utils/string_utils');
 
-App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.ConfigsSaverMixin, App.EnhancedConfigsMixin, {
+App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.ConfigsSaverMixin, App.EnhancedConfigsMixin, App.GroupsMappingMixin, {
   name: 'mainServiceItemController',
 
   /**
@@ -85,6 +85,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   routeToConfigs: false,
 
   deleteServiceProgressPopup: null,
+
+  isRecommendationInProgress: false,
 
   isClientsOnlyService: function() {
     return App.get('services.clientOnly').contains(this.get('content.serviceName'));
@@ -939,63 +941,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param componentName
    */
   addComponent: function (componentName) {
-    var self = this;
     var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
-    var componentDisplayName = component.get('displayName');
 
     App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-      return App.ModalPopup.show({
-        primary: Em.computed.ifThenElse('anyHostsWithoutComponent', Em.I18n.t('hosts.host.addComponent.popup.confirm'), undefined),
-
-        header: Em.I18n.t('popup.confirmation.commonHeader'),
-
-        addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
-
-        selectHostMsg: Em.computed.i18nFormat('services.summary.selectHostForComponent', 'componentDisplayName'),
-
-        thereIsNoHostsMsg: Em.computed.i18nFormat('services.summary.allHostsAlreadyRunComponent', 'componentDisplayName'),
-
-        hostsWithoutComponent: function () {
-          var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
-          var result = App.get('allHostNames');
-
-          hostsWithComponent.forEach(function (host) {
-            result = result.without(host);
-          });
-
-          return result;
-        }.property(),
-
-        anyHostsWithoutComponent: Em.computed.gt('hostsWithoutComponent.length', 0),
-
-        selectedHost: null,
-
-        componentName: componentName,
-
-        componentDisplayName: componentDisplayName,
-
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/service/add_host_popup')
-        }),
-
-        onPrimary: function () {
-          var selectedHost = this.get('selectedHost');
-
-          // Install
-          if (['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost) {
-            App.router.get('mainHostDetailsController').addComponentWithCheck(
-                {
-                  context: component,
-                  selectedHost: selectedHost
-                }
-            );
-          } else {
-            self.installHostComponentCall(selectedHost, component);
-          }
-
-          this.hide();
+      App.router.get('mainHostDetailsController').addComponentWithCheck(
+        {
+          context: component,
+          selectedHost: null
         }
-      });
+      );
     });
   },
 
@@ -1337,17 +1291,48 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   showLastWarning: function (serviceName, interDependentServices, dependentServicesToDeleteFmt) {
     var self = this,
       displayName = App.format.role(serviceName, true),
-      popupHeader = Em.I18n.t('services.service.delete.popup.header');
-
-    return App.showConfirmationPopup(
-      function() {self.confirmDeleteService(serviceName, interDependentServices, dependentServicesToDeleteFmt)},
-      Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
-      (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
-      null,
-      popupHeader,
-      Em.I18n.t('common.delete'),
-      true
-    );
+      popupHeader = Em.I18n.t('services.service.delete.popup.header'),
+      popupPrimary = Em.I18n.t('common.delete'),
+      warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
+        (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
+      callback = this.loadConfigRecommendations.bind(this, null, function () {
+        var serviceNames = self.get('changedProperties').mapProperty('serviceName').uniq();
+        self.loadConfigGroups(serviceNames).done(function () {
+          self.set('isRecommendationInProgress', false);
+        })
+      });
+    this.clearRecommendations();
+    this.setProperties({
+      isRecommendationInProgress: true,
+      selectedConfigGroup: Em.Object.create({
+        isDefault: true
+      })
+    });
+    App.get('router.mainController.isLoading').call(this, 'isServiceConfigsLoaded').done(callback);
+    return App.ModalPopup.show({
+      controller: self,
+      header: popupHeader,
+      primary: popupPrimary,
+      primaryClass: 'btn-danger',
+      disablePrimary: Em.computed.alias('controller.isRecommendationInProgress'),
+      classNameBindings: ['controller.changedProperties.length:sixty-percent-width-modal', 'controller.changedProperties.length:modal-full-width'],
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/service/info/delete_service_warning_popup'),
+        warningMessage: new Em.Handlebars.SafeString(warningMessage)
+      }),
+      onPrimary: function () {
+        self.confirmDeleteService(serviceName, interDependentServices, dependentServicesToDeleteFmt);
+        this._super();
+      },
+      onSecondary: function () {
+        self.clearRecommendations();
+        this._super();
+      },
+      onClose: function () {
+        self.clearRecommendations();
+        this._super();
+      }
+    });
   },
 
   /**
@@ -1589,8 +1574,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (params.servicesToDeleteNext) {
       this.deleteServiceCall(params.servicesToDeleteNext);
     } else {
-      var callback = this.loadConfigRecommendations.bind(this, null, this.saveConfigs.bind(this));
-      App.get('router.mainController.isLoading').call(this, 'isServiceConfigsLoaded').done(callback);
+      this.saveConfigs();
     }
   },
 

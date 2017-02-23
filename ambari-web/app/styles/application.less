@@ -1087,7 +1087,7 @@ h1 {
     margin-top: 8px;
   }
 
-  #ha-step3-review-table, #manage-journal-node-step2-review-table {
+  #ha-step3-review-table, #manage-journal-node-step2-review-table, #reassign-review-table {
     td {
       text-align: left;
       vertical-align: top;
@@ -5990,28 +5990,52 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   td {
     min-width: 120px;
     word-break: break-all;
+    &.check-box-col {
+      min-width: 5px;
+      width: 5px;
+    }
+    &.config-dependency-name {
+      min-width: @config-dependency-t-name-width;
+    }
+    &.config-dependency-service {
+      min-width: @config-dependency-t-service-width;
+      max-width: @config-dependency-t-service-width;
+    }
+    &.config-dependency-group {
+      max-width: @config-dependency-t-group-width;
+    }
+    &.config-dependency-filename {
+      max-width: @config-dependency-t-filename-width;
+    }
+    &.config-dependency-value,
+    &.config-dependency-recommended-value {
+      width: @config-dependency-t-value-width;
+      min-width: @config-dependency-t-value-width;
+    }
+    .diff {
+      td {
+        color: #fff;
+        &.empty {
+          width: 50%;
+        }
+        &.delete {
+          background-color: @health-status-red !important;
+        }
+        &.insert {
+          background-color: @health-status-green !important;
+        }
+        &.replace {
+          background-color: @health-status-orange !important;
+        }
+      }
+    }
   }
-  td.check-box-col {
-    min-width: 5px;
-    width: 5px;
-  }
-  td.config-dependency-name {
-    min-width: @config-dependency-t-name-width;
-  }
-  td.config-dependency-service {
-    min-width: @config-dependency-t-service-width;
-    max-width: @config-dependency-t-service-width;
-  }
-  td.config-dependency-group {
-    max-width: @config-dependency-t-group-width;
-  }
-  td.config-dependency-filename {
-    max-width: @config-dependency-t-filename-width;
-  }
-  td.config-dependency-value,
-  td.config-dependency-recommended-value {
-    width: @config-dependency-t-value-width;
-    min-width: @config-dependency-t-value-width;
+  .config-dependencies-headings-wrapper {
+    width: 100%;
+    .config-dependencies-heading {
+      float: left;
+      width: 50%;
+    }
   }
 }
 

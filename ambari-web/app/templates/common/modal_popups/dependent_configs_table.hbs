@@ -29,15 +29,17 @@
       <th>{{t common.configGroup}}</th>
       <th>{{t common.fileName}}</th>
       <th>
-        <div class="span6">
-          {{t popup.dependent.configs.table.currentValue}}
-        </div>
-        <div class="span6">
-          {{#if view.isEditable}}
-            {{t popup.dependent.configs.table.recommendedValue}}
-          {{else}}
-            {{t popup.dependent.configs.table.newValue}}
-          {{/if}}
+        <div class="config-dependencies-headings-wrapper">
+          <div class="config-dependencies-heading">
+            {{t popup.dependent.configs.table.currentValue}}
+          </div>
+          <div class="config-dependencies-heading">
+            {{#if view.isEditable}}
+              {{t popup.dependent.configs.table.recommendedValue}}
+            {{else}}
+              {{t popup.dependent.configs.table.newValue}}
+            {{/if}}
+          </div>
         </div>
       </th>
     </tr>

@@ -23,7 +23,7 @@ var App = require('app');
  *
  * @type {Em.Mixin}
  */
-App.GroupsMappingMixin = Em.Mixin.create({
+App.GroupsMappingMixin = Em.Mixin.create(App.TrackRequestMixin, {
 
   /**
    * Load config groups

@@ -82,6 +82,7 @@ var files = [
   'test/controllers/main/admin/highAvailability/hawq/addStandby/step3_controller_test',
   'test/controllers/main/admin/highAvailability/hawq/removeStandby/step2_controller_test',
   'test/controllers/main/admin/highAvailability/hawq/activateStandby/step2_controller_test',
+  'test/controllers/main/admin/highAvailability/rangerAdmin/step3_controller_test',
   'test/controllers/main/dashboard/config_history_controller_test',
   'test/controllers/main/charts/heatmap_test',
   'test/controllers/main/charts/heatmap_metrics/heatmap_metric_test',

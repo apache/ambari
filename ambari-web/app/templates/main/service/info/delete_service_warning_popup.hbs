@@ -16,28 +16,11 @@
 * limitations under the License.
 }}
 
-<p>{{{deleteComponentMsg}}}</p>
-{{#if lastComponent}}
-  <div class="alert-error row-fluid">
-    <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
-    <div class='span10'>{{{lastComponentError}}}</div>
-  </div>
-{{/if}}
-{{#if isZkServer}}
-  <div class='alert'>{{{deleteZkServerMsg}}}</div>
-{{/if}}
-{{#if isHiveMetastore}}
-  <div class='alert'>{{{deleteHiveMetastoreMsg}}}</div>
-{{/if}}
-{{#if isWebHCatServer}}
-  <div class='alert'>{{{deleteWebHCatServerMsg}}}</div>
-{{/if}}
-{{#if isNimbus}}
-  <div class='alert'>{{{deleteNimbusMsg}}}</div>
-{{/if}}
-{{#if isRangerKMSServer}}
-  <div class='alert'>{{{deleteRangerKMSServereMsg}}}</div>
-{{/if}}
-{{#if isJournalNode}}
-    <div class='alert'>{{{deleteJournalNodeMsg}}}</div>
+{{view.warningMessage}}
+{{#if controller.isRecommendationInProgress}}
+  {{view App.SpinnerView}}
+{{else}}
+  {{#if controller.changedProperties.length}}
+    {{view App.DependentConfigsListView recommendationsBinding="controller.changedProperties"}}
+  {{/if}}
 {{/if}}

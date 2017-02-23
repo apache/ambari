@@ -500,125 +500,72 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#addComponent()', function () {
+    var cases = [
+      {
+        componentName: 'ZOOKEEPER_SERVER',
+        showAddComponentPopupCallCount: 1,
+        showConfirmationPopupCallCount: 0
+      },
+      {
+        componentName: 'RESOURCEMANAGER',
+        showAddComponentPopupCallCount: 1,
+        showConfirmationPopupCallCount: 0
+      },
+      {
+        componentName: 'JOURNALNODE',
+        showAddComponentPopupCallCount: 0,
+        showConfirmationPopupCallCount: 1
+      },
+      {
+        componentName: 'HIVE_CLIENT',
+        showAddComponentPopupCallCount: 1,
+        showConfirmationPopupCallCount: 0
+      }
+    ];
     beforeEach(function () {
-      sinon.spy(App, "showConfirmationPopup");
-      sinon.stub(controller, "addClientComponent", Em.K);
-      sinon.stub(controller, "installHostComponentCall", Em.K);
       sinon.stub(controller, "checkComponentDependencies", Em.K);
+      sinon.stub(controller, "showAddComponentPopup", Em.K);
+      sinon.stub(controller, "clearConfigsChanges", Em.K);
+      sinon.stub(App, "showConfirmationPopup", Em.K);
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: "HDFS_CLIENT"
         })]
       });
-      controller.reopen({
-        securityEnabled: false
-      });
     });
 
     afterEach(function () {
-      App.showConfirmationPopup.restore();
-      controller.addClientComponent.restore();
-      controller.installHostComponentCall.restore();
       controller.checkComponentDependencies.restore();
-    });
-
-    it('add ZOOKEEPER_SERVER', function () {
-      var event = {
-        context: Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER'
-        })
-      };
-      controller.addComponent(event);
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-    });
-    it('add WEBHCAT_SERVER', function () {
-      var event = {
-        context: Em.Object.create({
-          componentName: 'WEBHCAT_SERVER'
-        })
-      };
-      controller.addComponent(event);
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-    });
-    it('add slave component', function () {
-      var event = {
-        context: Em.Object.create({
-          componentName: 'HIVE_CLIENT'
-        })
-      };
-      controller.set('securityEnabled', false);
-      controller.addComponent(event);
-      expect(controller.addClientComponent.calledWith(Em.Object.create({
-        componentName: 'HIVE_CLIENT'
-      }))).to.be.true;
-    });
-  });
-
-  describe('#formatClientsMessage()', function () {
-    var testCases = [
-      {
-        title: 'subComponentNames is null',
-        client: Em.Object.create({
-          subComponentNames: null,
-          displayName: 'CLIENTS'
-        }),
-        result: 'CLIENTS'
-      },
-      {
-        title: 'subComponentNames is empty',
-        client: Em.Object.create({
-          subComponentNames: [],
-          displayName: 'CLIENTS'
-        }),
-        result: 'CLIENTS'
-      },
-      {
-        title: 'displayName is null',
-        client: Em.Object.create({
-          subComponentNames: ['DATANODE'],
-          displayName: null
-        }),
-        result: ' (DataNode)'
-      },
-      {
-        title: 'displayName is CLIENTS',
-        client: Em.Object.create({
-          subComponentNames: ['DATANODE'],
-          displayName: 'CLIENTS'
-        }),
-        result: 'CLIENTS (DataNode)'
-      }
-    ];
-    testCases.forEach(function (test) {
-      it(test.title, function () {
-        expect(controller.formatClientsMessage(test.client)).to.equal(test.result);
-      });
-    });
-  });
-
-  describe('#addClientComponent()', function () {
-
-    var component = Em.Object.create({
-      componentName: ' Comp1'
-    });
-
-    beforeEach(function () {
-      sinon.spy(controller, 'showAddComponentPopup');
-      sinon.stub(controller, 'installHostComponentCall', Em.K);
-    });
-
-    afterEach(function () {
       controller.showAddComponentPopup.restore();
-      controller.installHostComponentCall.restore();
+      controller.clearConfigsChanges.restore();
+      App.showConfirmationPopup.restore();
     });
 
-    it('any CLIENT component', function () {
-      controller.set('content.hostName', 'host1');
-      var popup = controller.addClientComponent(component);
-      expect(controller.showAddComponentPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.installHostComponentCall.calledWith('host1', component)).to.be.true;
+    cases.forEach(function (testCase) {
+
+      describe('add ' + testCase.componentName, function () {
+
+        beforeEach(function () {
+          var event = {
+            context: Em.Object.create({
+              componentName: testCase.componentName
+            })
+          };
+          controller.addComponent(event);
+        });
+
+        it('controller.showAddComponentPopup', function () {
+          expect(controller.showAddComponentPopup.callCount).to.equal(testCase.showAddComponentPopupCallCount);
+        });
+
+        it('App.showConfirmationPopup', function () {
+          expect(App.showConfirmationPopup.callCount).to.equal(testCase.showConfirmationPopupCallCount);
+        });
+
+      });
+
     });
+
   });
 
   describe("#loadOozieConfigs()", function() {
@@ -647,7 +594,7 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
@@ -672,6 +619,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'getStormNimbusHosts').returns("host1");
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       controller.set('nimbusHost', 'host2');
       controller.onLoadStormConfigs(data);
     });
@@ -679,6 +627,7 @@ describe('App.MainHostDetailsController', function () {
       controller.getStormNimbusHosts.restore();
       controller.updateZkConfigs.restore();
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
     it("updateZkConfigs called with valid arguments", function() {
       expect(controller.updateZkConfigs.calledWith({'storm-site': {
@@ -718,7 +667,7 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
@@ -742,7 +691,7 @@ describe('App.MainHostDetailsController', function () {
             tag: 'tag'
           }
         }
-      }});
+      }}, null, {});
       var args = testHelpers.findAjaxRequest('name', 'admin.get.all_configurations');
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
@@ -812,10 +761,8 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#showAddComponentPopup()', function () {
 
-    var message = 'Comp1';
-
     beforeEach(function () {
-      sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(App.ModalPopup, 'show');
     });
 
     afterEach(function () {
@@ -823,9 +770,8 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('should display add component confirmation', function () {
-      var popup = controller.showAddComponentPopup(message, false, Em.K);
+      controller.showAddComponentPopup(Em.Object.create());
       expect(App.ModalPopup.show.calledOnce).to.be.true;
-      expect(popup.get('addComponentMsg')).to.eql(Em.I18n.t('hosts.host.addComponent.msg').format(message));
     });
   });
 
@@ -1008,7 +954,7 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('url params is empty', function () {
-      expect(controller.loadConfigsSuccessCallback()).to.be.false;
+      expect(controller.loadConfigsSuccessCallback(null, null, {})).to.be.false;
       var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
       expect(args).not.exists;
     });
@@ -1016,6 +962,12 @@ describe('App.MainHostDetailsController', function () {
       mockUrlParams = ['param1'];
       var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
       expect(args).exists;
+    });
+    it('isConfigsLoadingInProgress is false', function () {
+      mockUrlParams = [];
+      controller.set('isConfigsLoadingInProgress', true);
+      controller.loadConfigsSuccessCallback(null, null, {});
+      expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
     });
   });
 
@@ -1074,6 +1026,7 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
       sinon.stub(controller, 'updateZkConfigs', Em.K);
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
       sinon.stub(App.Service, 'find', function() {
         return [
           Em.Object.create({ serviceName: 'HIVE' }),
@@ -1090,77 +1043,78 @@ describe('App.MainHostDetailsController', function () {
       App.Service.find.restore();
       controller.updateZkConfigs.restore();
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
 
-      it('configs for YARN', function () {
-        var expected = {
-          properties: {
-            'yarn-site': {
-              p: 'ys'
-            }
-          },
-          properties_attributes: {
-            'yarn-site': {
-              p: 'pa_ys'
-            }
+    it('configs for YARN', function () {
+      var expected = {
+        properties: {
+          'yarn-site': {
+            p: 'ys'
           }
-        };
-        expect(this.groups[1]).to.be.eql(expected);
-      });
+        },
+        properties_attributes: {
+          'yarn-site': {
+            p: 'pa_ys'
+          }
+        }
+      };
+      expect(this.groups[1]).to.be.eql(expected);
+    });
 
-      it('configs for HIVE', function () {
-        var expected = {
-          "properties": {
-            "hive-site": {
-              "hs": "hs"
-            },
-            "webhcat-site": {
-              "ws": "ws"
-            }
+    it('configs for HIVE', function () {
+      var expected = {
+        "properties": {
+          "hive-site": {
+            "hs": "hs"
           },
-          "properties_attributes": {
-            "hive-site": {
-              "hs": "pa_hs"
-            },
-            "webhcat-site": {
-              "ws": "pa_ws"
-            }
+          "webhcat-site": {
+            "ws": "ws"
           }
-        };
-        expect(this.groups[0]).to.be.eql(expected);
-      });
+        },
+        "properties_attributes": {
+          "hive-site": {
+            "hs": "pa_hs"
+          },
+          "webhcat-site": {
+            "ws": "pa_ws"
+          }
+        }
+      };
+      expect(this.groups[0]).to.be.eql(expected);
+    });
 
-      it('configs for HBASE', function () {
-        var expected = {
-          "properties": {
-            "hbase-site": {
-              "hbs": "hbs"
-            }
-          },
-          "properties_attributes": {
-            "hbase-site": {
-              "hbs": "pa_hbs"
-            }
+    it('configs for HBASE', function () {
+      var expected = {
+        "properties": {
+          "hbase-site": {
+            "hbs": "hbs"
           }
-        };
-        expect(this.groups[2]).to.be.eql(expected);
-      });
+        },
+        "properties_attributes": {
+          "hbase-site": {
+            "hbs": "pa_hbs"
+          }
+        }
+      };
+      expect(this.groups[2]).to.be.eql(expected);
+    });
 
-      it('configs for ACCUMULO', function () {
-        var expected = {
-          "properties": {
-            "accumulo-site": {
-              "as": "as"
-            }
-          },
-          "properties_attributes": {
-            "accumulo-site": {
-              "as": "pa_as"
-            }
+    it('configs for ACCUMULO', function () {
+      var expected = {
+        "properties": {
+          "accumulo-site": {
+            "as": "as"
           }
-        };
-        expect(this.groups[3]).to.be.eql(expected);
-      });
+        },
+        "properties_attributes": {
+          "accumulo-site": {
+            "as": "pa_as"
+          }
+        }
+      };
+      expect(this.groups[3]).to.be.eql(expected);
+    });
 
   });
 
@@ -1928,9 +1882,9 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.sendComponentCommand.calledWith(
-          controller.get('serviceNonClientActiveComponents'),
-          Em.I18n.t('hosts.host.maintainance.startAllComponents.context'),
-          App.HostComponentStatus.started)
+        controller.get('serviceNonClientActiveComponents'),
+        Em.I18n.t('hosts.host.maintainance.startAllComponents.context'),
+        App.HostComponentStatus.started)
       ).to.be.true;
     });
   });
@@ -1966,9 +1920,9 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.sendComponentCommand.calledWith(
-          controller.get('serviceNonClientActiveComponents'),
-          Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'),
-          App.HostComponentStatus.stopped)
+        controller.get('serviceNonClientActiveComponents'),
+        Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'),
+        App.HostComponentStatus.stopped)
       ).to.be.true;
     });
     it('serviceNonClientActiveComponents is correct, NAMENODE started', function () {
@@ -2556,8 +2510,8 @@ describe('App.MainHostDetailsController', function () {
   describe('#_doDeleteHostComponent()', function () {
     it('single component', function () {
       controller.set('content.hostName', 'host1');
-      var component = Em.Object.create({componentName: 'COMP'});
-      controller._doDeleteHostComponent(component);
+      var componentName = 'COMP';
+      controller._doDeleteHostComponent(componentName);
       var args = testHelpers.findAjaxRequest('name', 'common.delete.host_component');
       expect(args[0]).exists;
       expect(args[0].data).to.be.eql({
@@ -2578,72 +2532,27 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#_doDeleteHostComponentSuccessCallback()', function () {
+    var data = {
+      componentName: 'COMPONENT',
+      hostName: 'h1'
+    };
+
     beforeEach(function () {
       sinon.stub(controller, 'removeHostComponentModel', Em.K);
-      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
-        callback();
-      });
-      sinon.stub(controller, 'loadConfigs', Em.K);
+      controller.set('_deletedHostComponentResult', {});
+      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
     });
 
     afterEach(function () {
       controller.removeHostComponentModel.restore();
-      controller.isServiceMetricsLoaded.restore();
-      controller.loadConfigs.restore();
     });
 
-    it('ZOOKEEPER_SERVER component', function () {
-      var data = {
-        componentName: 'ZOOKEEPER_SERVER'
-      };
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
+    it('should reset `_deletedHostComponentResult`', function () {
       expect(controller.get('_deletedHostComponentResult')).to.be.null;
-      expect(controller.get('fromDeleteZkServer')).to.be.true;
-      expect(controller.loadConfigs.calledOnce).to.be.true;
     });
-    it('Not ZOOKEEPER_SERVER component', function () {
-      var data = {
-        componentName: 'COMP'
-      };
-      controller.set('fromDeleteZkServer', false);
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
-      expect(controller.get('_deletedHostComponentResult')).to.be.null;
-      expect(controller.get('fromDeleteZkServer')).to.be.false;
-    });
+
     it('should call `removeHostComponentModel` with correct params', function () {
-      var data = {
-        componentName: 'COMPONENT',
-        hostName: 'h1'
-      };
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
       expect(controller.removeHostComponentModel.calledWith('COMPONENT', 'h1')).to.be.true;
-    });
-    it('HIVE_METASTORE component', function () {
-      var data = {
-        componentName: 'HIVE_METASTORE'
-      };
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
-      expect(controller.get('_deletedHostComponentResult')).to.be.null;
-      expect(controller.get('deleteHiveMetaStore')).to.be.true;
-      expect(controller.loadConfigs.calledWith('loadHiveConfigs')).to.be.true;
-    });
-    it('NIMBUS component', function () {
-      var data = {
-        componentName: 'NIMBUS'
-      };
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
-      expect(controller.get('_deletedHostComponentResult')).to.be.null;
-      expect(controller.get('deleteNimbusHost')).to.be.true;
-      expect(controller.loadConfigs.calledWith('loadStormConfigs')).to.be.true;
-    });
-    it('RANGER_KMS_SERVER component', function () {
-      var data = {
-        componentName: 'RANGER_KMS_SERVER'
-      };
-      controller._doDeleteHostComponentSuccessCallback({}, {}, data);
-      expect(controller.get('_deletedHostComponentResult')).to.be.null;
-      expect(controller.get('deleteRangerKMSServer')).to.be.true;
-      expect(controller.loadConfigs.calledWith('loadRangerConfigs')).to.be.true;
     });
   });
 
@@ -2676,62 +2585,6 @@ describe('App.MainHostDetailsController', function () {
     it('call showBackgroundOperationsPopup', function () {
       controller.refreshComponentConfigsSuccessCallback();
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#checkZkConfigs()', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'removeObserver');
-      sinon.stub(controller, 'loadConfigs');
-      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
-      this.stub = sinon.stub(App.router, 'get');
-    });
-    afterEach(function () {
-      controller.loadConfigs.restore();
-      controller.removeObserver.restore();
-      controller.isServiceMetricsLoaded.restore();
-      this.stub.restore();
-    });
-
-    it('No operations of ZOOKEEPER_SERVER', function () {
-      this.stub.withArgs('backgroundOperationsController.services').returns([]);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.called).to.be.false;
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-
-    it('Operation of ZOOKEEPER_SERVER running', function () {
-      this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-        id: 1,
-        isRunning: true
-      })]);
-      controller.set('zkRequestId', 1);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.called).to.be.false;
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-
-    describe('Operation of ZOOKEEPER_SERVER finished', function () {
-
-      beforeEach(function () {
-        this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-          id: 1
-        })]);
-        this.clock = sinon.useFakeTimers();
-        controller.set('zkRequestId', 1);
-        controller.checkZkConfigs();
-      });
-
-      afterEach(function () {
-        this.clock.restore();
-      });
-
-      it('loadConfigs is called after `componentsUpdateInterval`', function () {
-        expect(controller.removeObserver.calledWith('App.router.backgroundOperationsController.serviceTimestamp', controller, controller.checkZkConfigs)).to.be.true;
-        this.clock.tick(App.get('componentsUpdateInterval'));
-        expect(controller.loadConfigs.calledOnce).to.be.true;
-      });
-
     });
   });
 
@@ -2883,86 +2736,86 @@ describe('App.MainHostDetailsController', function () {
   describe('#installClients()', function () {
 
     var cases = [
-        {
-          context: [
-            Em.Object.create({
-              componentName: 'c0',
-              workStatus: 'INSTALLED'
-            }),
-            Em.Object.create({
-              componentName: 'c1',
-              workStatus: 'INIT'
-            }),
-            Em.Object.create({
-              componentName: 'c2',
-              workStatus: 'INSTALL_FAILED'
-            })
-          ],
-          dependencies: {
-            c0: [],
-            c1: [],
-            c2: []
-          },
-          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
-          getKDCSessionStateCalled: true,
-          sendComponentCommandCalled: true,
-          showAlertPopupCalled: false,
-          title: 'No clients to add, some clients to install'
+      {
+        context: [
+          Em.Object.create({
+            componentName: 'c0',
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            componentName: 'c1',
+            workStatus: 'INIT'
+          }),
+          Em.Object.create({
+            componentName: 'c2',
+            workStatus: 'INSTALL_FAILED'
+          })
+        ],
+        dependencies: {
+          c0: [],
+          c1: [],
+          c2: []
         },
-        {
-          context: [
-            Em.Object.create({
-              componentName: 'c3',
-              displayName: 'c3'
-            })
-          ],
-          dependencies: {
-            c3: []
-          },
-          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
-          getKDCSessionStateCalled: true,
-          sendComponentCommandCalled: false,
-          showAlertPopupCalled: false,
-          title: 'No clients to install, some clients to add'
+        getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
+        getKDCSessionStateCalled: true,
+        sendComponentCommandCalled: true,
+        showAlertPopupCalled: false,
+        title: 'No clients to add, some clients to install'
+      },
+      {
+        context: [
+          Em.Object.create({
+            componentName: 'c3',
+            displayName: 'c3'
+          })
+        ],
+        dependencies: {
+          c3: []
         },
-        {
-          context: [
-            Em.Object.create({
-              componentName: 'c4',
-              displayName: 'c4'
-            })
-          ],
-          dependencies: {
-            c4: ['c5']
-          },
-          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
-          getKDCSessionStateCalled: false,
-          sendComponentCommandCalled: false,
-          showAlertPopupCalled: true,
-          title: 'Clients to add have unresolved dependencies'
+        getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
+        getKDCSessionStateCalled: true,
+        sendComponentCommandCalled: false,
+        showAlertPopupCalled: false,
+        title: 'No clients to install, some clients to add'
+      },
+      {
+        context: [
+          Em.Object.create({
+            componentName: 'c4',
+            displayName: 'c4'
+          })
+        ],
+        dependencies: {
+          c4: ['c5']
         },
-        {
-          context: [
-            Em.Object.create({
-              componentName: 'c5',
-              displayName: 'c5'
-            }),
-            Em.Object.create({
-              componentName: 'c6',
-              displayName: 'c6'
-            })
-          ],
-          dependencies: {
-            c5: ['c6'],
-            c6: ['c5']
-          },
-          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
-          getKDCSessionStateCalled: true,
-          sendComponentCommandCalled: false,
-          showAlertPopupCalled: false,
-          title: 'Clients to add have mutual dependencies'
-        }
-      ];
+        getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
+        getKDCSessionStateCalled: false,
+        sendComponentCommandCalled: false,
+        showAlertPopupCalled: true,
+        title: 'Clients to add have unresolved dependencies'
+      },
+      {
+        context: [
+          Em.Object.create({
+            componentName: 'c5',
+            displayName: 'c5'
+          }),
+          Em.Object.create({
+            componentName: 'c6',
+            displayName: 'c6'
+          })
+        ],
+        dependencies: {
+          c5: ['c6'],
+          c6: ['c5']
+        },
+        getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
+        getKDCSessionStateCalled: true,
+        sendComponentCommandCalled: false,
+        showAlertPopupCalled: false,
+        title: 'Clients to add have mutual dependencies'
+      }
+    ];
 
     beforeEach(function () {
       sinon.stub(controller, 'sendComponentCommand', Em.K);
@@ -3096,9 +2949,7 @@ describe('App.MainHostDetailsController', function () {
       });
 
       it('_doDeleteHostComponent is called with correct arguments', function () {
-        expect(controller._doDeleteHostComponent.calledWith(Em.Object.create({
-          componentName: 'COMP1'
-        }))).to.be.true;
+        expect(controller._doDeleteHostComponent.calledWith('COMP1')).to.be.true;
       });
       it('fromDeleteHost is true', function () {
         expect(controller.get('fromDeleteHost')).to.be.true;
@@ -3429,11 +3280,13 @@ describe('App.MainHostDetailsController', function () {
     ];
 
     beforeEach(function () {
-      sinon.spy(controller, 'saveConfigsBatch')
+      sinon.spy(controller, 'saveConfigsBatch');
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
     });
 
     afterEach(function () {
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
 
     cases.forEach(function (item) {
@@ -3507,43 +3360,6 @@ describe('App.MainHostDetailsController', function () {
     });
     it('Record is deleted', function () {
       expect(App.serviceMapper.deleteRecord.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#updateStormConfigs()", function () {
-    beforeEach(function () {
-      this.serviceMock = sinon.stub(App.Service, 'find');
-      sinon.stub(controller, 'loadConfigs');
-      this.mock = sinon.stub(App, 'get')
-    });
-    afterEach(function () {
-      this.serviceMock.restore();
-      this.mock.restore();
-      controller.loadConfigs.restore();
-    });
-    it("storm not installed, hadoop stack is 2.2", function () {
-      this.serviceMock.returns(Em.Object.create({
-        isLoaded: false
-      }));
-      this.mock.returns(false);
-      controller.updateStormConfigs();
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-    it("storm installed, hadoop stack is 2.2", function () {
-      this.serviceMock.returns(Em.Object.create({
-        isLoaded: true
-      }));
-      this.mock.returns(false);
-      controller.updateStormConfigs();
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-    it("storm installed, hadoop stack is 2.3", function () {
-      this.serviceMock.returns(Em.Object.create({
-        isLoaded: true
-      }));
-      this.mock.returns(true);
-      controller.updateStormConfigs();
-      expect(controller.loadConfigs.calledWith('loadStormConfigs')).to.be.true;
     });
   });
 
@@ -3714,10 +3530,13 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function() {
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      sinon.stub(controller, 'saveLoadedConfigs', Em.K);
+      controller.set('configs', {});
     });
 
     afterEach(function() {
       controller.saveConfigsBatch.restore();
+      controller.saveLoadedConfigs.restore();
     });
 
     var makeHostComponentModel = function(componentName, hostNames) {
@@ -4053,5 +3872,238 @@ describe('App.MainHostDetailsController', function () {
 
       });
     });
+  });
+
+  describe('#setConfigsChangesForDisplay', function () {
+
+    var propertiesToChange = [
+        {
+          propertyName: 'n0',
+          propertyFileName: 'f0'
+        },
+        {
+          propertyName: 'n1',
+          propertyFileName: 'f1'
+        },
+        {
+          propertyName: 'n2',
+          propertyFileName: 'f2'
+        },
+        {
+          propertyName: 'n3',
+          propertyFileName: 'f3'
+        }
+      ],
+      result = {
+        recommendedPropertiesToChange: [
+          {
+            propertyName: 'n0',
+            propertyFileName: 'f0',
+            saveRecommended: true
+          },
+          {
+            propertyName: 'n3',
+            propertyFileName: 'f3',
+            saveRecommended: true
+          }
+        ],
+        requiredPropertiesToChange: [
+          {
+            propertyName: 'n1',
+            propertyFileName: 'f1'
+          },
+          {
+            propertyName: 'n2',
+            propertyFileName: 'f2'
+          }
+        ]
+      };
+
+    beforeEach(function () {
+      controller.setProperties({
+        allPropertiesToChange: propertiesToChange,
+        recommendedPropertiesToChange: [],
+        requiredPropertiesToChange: []
+      });
+      sinon.stub(App.configsCollection, 'getConfigByName', function (propertyName) {
+        var map = {
+          n0: {
+            isEditable: true,
+            isReconfigurable: true
+          },
+          n1: {
+            isEditable: true,
+            isReconfigurable: false
+          },
+          n2: {
+            isEditable: false,
+            isReconfigurable: false
+          }
+        };
+        return map[propertyName];
+      });
+      sinon.stub(App, 'get').withArgs('router.clusterController.isConfigsPropertiesLoaded').returns(true);
+      controller.set('isConfigsLoadingInProgress', true);
+      controller.setConfigsChangesForDisplay();
+    });
+
+    afterEach(function () {
+      App.configsCollection.getConfigByName.restore();
+      App.get.restore();
+    });
+
+    it('editable changes', function () {
+      expect(controller.get('recommendedPropertiesToChange').toArray()).to.eql(result.recommendedPropertiesToChange);
+    });
+
+    it('non-editable changes', function () {
+      expect(controller.get('requiredPropertiesToChange').toArray()).to.eql(result.requiredPropertiesToChange);
+    });
+
+    it('isConfigsLoadingInProgress', function () {
+      expect(controller.get('isConfigsLoadingInProgress')).to.be.false;
+    });
+
+  });
+
+  describe('#clearConfigsChanges', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'abortRequests', Em.K);
+      controller.setProperties({
+        allPropertiesToChange: [{}],
+        recommendedPropertiesToChange: [{}],
+        requiredPropertiesToChange: [{}],
+        groupedPropertiesToChange: [{}],
+        isReconfigureRequired: true,
+        configs: {}
+      });
+    });
+
+    afterEach(function () {
+      controller.abortRequests.restore();
+    });
+
+    describe('default case', function () {
+
+      beforeEach(function () {
+        controller.clearConfigsChanges();
+      });
+
+      it('allPropertiesToChange', function () {
+        expect(controller.get('allPropertiesToChange')).to.have.length(0);
+      });
+
+      it('recommendedPropertiesToChange', function () {
+        expect(controller.get('recommendedPropertiesToChange')).to.have.length(0);
+      });
+
+      it('groupedPropertiesToChange', function () {
+        expect(controller.get('groupedPropertiesToChange')).to.have.length(0);
+      });
+
+      it('isReconfigureRequired', function () {
+        expect(controller.get('isReconfigureRequired')).to.be.false;
+      });
+
+      it('configs', function () {
+        expect(controller.get('configs')).to.be.null;
+      });
+
+    });
+
+    describe('no loaded configs cleanup', function () {
+
+      beforeEach(function () {
+        controller.clearConfigsChanges(true);
+      });
+
+      it('configs shouldn\'t be cleared', function () {
+        expect(controller.get('configs')).to.not.be.null;
+      });
+
+    });
+
+  });
+
+  describe('#saveLoadedConfigs', function () {
+
+    var data = {
+      items: [
+        {
+          type: 't0',
+          properties: {
+            p0: 'v0',
+            p1: 'v1'
+          },
+          properties_attributes: {}
+        },
+        {
+          type: 't1',
+          properties: {
+            p2: 'v2',
+            p3: 'v3'
+          },
+          properties_attributes: {}
+        }
+      ]
+    };
+
+    it('should store data in configs object', function () {
+      controller.set('configs', null);
+      controller.saveLoadedConfigs(data);
+      expect(controller.get('configs')).to.eql(data);
+    });
+
+  });
+
+  describe('#loadComponentRelatedConfigs', function () {
+
+    var testCases = [
+      {
+        isReconfigureRequired: true,
+        loadConfigsCallCount: 1,
+        isConfigsLoadingInProgress: true,
+        message: 'reconfigure required'
+      },
+      {
+        isReconfigureRequired: false,
+        loadConfigsCallCount: 0,
+        isConfigsLoadingInProgress: false,
+        message: 'no reconfigure required'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+
+      describe(test.message, function () {
+
+        beforeEach(function () {
+          sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
+          sinon.stub(controller, 'loadConfigs', Em.K);
+          controller.setProperties({
+            isReconfigureRequired: test.isReconfigureRequired,
+            isConfigsLoadingInProgress: false
+          });
+          controller.loadComponentRelatedConfigs();
+        });
+
+        afterEach(function () {
+          controller.isServiceMetricsLoaded.restore();
+          controller.loadConfigs.restore();
+        });
+
+        it('loadConfigs', function () {
+          expect(controller.loadConfigs.callCount).to.equal(test.loadConfigsCallCount);
+        });
+
+        it('isConfigsLoadingInProgress', function () {
+          expect(controller.get('isConfigsLoadingInProgress')).to.equal(test.isConfigsLoadingInProgress);
+        });
+
+      });
+
+    });
+
   });
 });
