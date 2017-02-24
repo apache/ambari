@@ -254,8 +254,12 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         classNames: ['modal-690px-width'],
         modalDialogClasses: ['modal-lg'],
         showCloseButton: false,
+        primary: Em.I18n.t('common.apply'),
+        secondary: serviceId == 'MISC' ? Em.I18n.t('common.ignore') : null,
+        third: Em.I18n.t('common.cancel'),
+        secondaryClass: 'btn-warning',
         header: "Warning: you must also change these Service properties",
-        onApply: function () {
+        onPrimary: function () {
           self.get("newAffectedProperties").forEach(function(item) {
             if (item.isNewProperty) {
               self.createProperty({
@@ -275,11 +279,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
-        onIgnore: function () {
+        onSecondary: function () {
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
-        onUndo: function () {
+        onThird: function () {
           var affected = self.get("newAffectedProperties").objectAt(0),
             changedProperty = self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName)
               .get("configs").findProperty("name", affected.changedPropertyName);
@@ -287,11 +291,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
-        footerClass: Em.View.extend({
-          classNames: ['modal-footer'],
-          templateName: require('templates/common/configs/propertyDependence_footer'),
-          canIgnore: serviceId == 'MISC'
-        }),
         bodyClass: Em.View.extend({
           templateName: require('templates/common/configs/propertyDependence'),
           controller: this,

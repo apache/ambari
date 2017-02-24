@@ -173,8 +173,8 @@ public abstract class Filter extends ConfigBlock {
   }
 
   @Override
-  public boolean logConfgs(Priority level) {
-    if (!super.logConfgs(level)) {
+  public boolean logConfigs(Priority level) {
+    if (!super.logConfigs(level)) {
       return false;
     }
     LOG.log(level, "input=" + input.getShortDescription());

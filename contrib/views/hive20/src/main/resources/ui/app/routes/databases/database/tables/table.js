@@ -38,6 +38,8 @@ export default Ember.Route.extend(UILoggerMixin, {
     console.log(model.get('detailedInfo.tableType').toLowerCase());
     if (model.get('detailedInfo.tableType').toLowerCase().indexOf('view') === -1) {
       newTabs = newTabs.rejectBy('name', 'viewInfo');
+    } else {
+      newTabs = newTabs.rejectBy('name', 'statistics');
     }
     controller.set('tabs', newTabs);
   },

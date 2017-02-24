@@ -28,21 +28,27 @@
         {{query-editor query=currentQuery updateQuery='updateQuery' }}
       </div>
       <div class="row query-editor-controls">
-        <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "check"}} Execute</button>
+        {{#if isJobCreated}}
+          {{#if isJobCancelled}}
+             <button class="btn btn-warning" disabled >{{fa-icon "ban"}} Stopping</button>
+          {{else}}
+            <button class="btn btn-warning" {{action "stopQuery" }} >{{fa-icon "ban"}} Stop</button>
+          {{/if}}
+        {{else}}
+          <button class="btn btn-success" {{action "executeQuery" }} disabled={{ worksheet.isQueryRunning}} >{{fa-icon "check"}} Execute</button>
+        {{/if}}
 
         <button class="btn btn-default" {{action "openWorksheetModal" }}>{{fa-icon "save"}} Save As</button>
         <div class="btn-group">
-          <button class="btn btn-default" type="button" data-toggle="dropdown">Insert UDF
+          <button class="btn btn-default" type="button" data-toggle="dropdown" disabled={{ not allUDFList.length }}>Insert UDF
             <span class="caret"></span></button>
-
-
             <ul class="dropdown-menu">
               {{#each fileResourceList as |fileResource|}}
                 {{fileresource-item fileResource=fileResource createQuery='createQuery'}}
               {{/each}}
             </ul>
         </div>
-        <button class="btn btn-default" {{action "visualExplainQuery" }}>{{fa-icon "link"}} Visual Explain</button>
+        <button class="btn btn-default" {{action "visualExplainQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "link"}} Visual Explain</button>
 
         {{#if worksheet.isQueryRunning}}
           {{fa-icon "spinner fa-1-5" spin=true}}
@@ -130,5 +136,4 @@
     </div>
   {{/modal-dialog}}
 {{/if}}
-
 

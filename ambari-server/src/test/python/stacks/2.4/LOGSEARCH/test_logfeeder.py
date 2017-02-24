@@ -60,6 +60,12 @@ class TestLogFeeder(RMFTestCase):
                               mode=0644,
                               content=''
                               )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/keys/ks_pass.txt',
+                              action = ['delete']
+                              )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/keys/ts_pass.txt',
+                              action = ['delete']
+                              )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
                               properties={'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder.jceks',
                                           'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',

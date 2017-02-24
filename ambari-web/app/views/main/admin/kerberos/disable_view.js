@@ -37,6 +37,6 @@ App.KerberosDisableView = App.KerberosProgressPageView.extend({
 
   msgColor: 'alert-info',
 
-  submitButtonText: Em.I18n.t('common.complete')
+  isSimpleModal: true
 
 });

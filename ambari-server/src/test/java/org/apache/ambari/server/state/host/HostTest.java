@@ -95,7 +95,7 @@ public class HostTest {
     info.setMemorySize(100);
     info.setProcessorCount(10);
     info.setPhysicalProcessorCount(2);
-    List<DiskInfo> mounts = new ArrayList<DiskInfo>();
+    List<DiskInfo> mounts = new ArrayList<>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
         "5000000", "4000000", "10%", "size", "fstype"));
     info.setMounts(mounts);
@@ -146,7 +146,7 @@ public class HostTest {
     HostInfo info = new HostInfo();
     info.setMemorySize(100);
     info.setProcessorCount(10);
-    List<DiskInfo> mounts = new ArrayList<DiskInfo>();
+    List<DiskInfo> mounts = new ArrayList<>();
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
         "5000000", "4000000", "10%", "size", "fstype"));
     info.setMounts(mounts);
@@ -375,7 +375,7 @@ public class HostTest {
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
@@ -400,7 +400,6 @@ public class HostTest {
 
     Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
-    Assert.assertEquals("Expect global user to be '_test'", "_test", map.get("global").getUser());
 
     config = configFactory.createNew(c1, "global", "v2",
         new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<String, Map<String,String>>());
@@ -409,7 +408,6 @@ public class HostTest {
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
     Assert.assertEquals("Expect version to be 'v2'", "v2", map.get("global").getTag());
-    Assert.assertEquals("Expect user to be '_test1'", "_test1", map.get("global").getUser());
 
     host.addDesiredConfig(c1.getClusterId(), false, "_test2", config);
     map = host.getDesiredConfigs(c1.getClusterId());
@@ -430,7 +428,7 @@ public class HostTest {
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);

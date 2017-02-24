@@ -153,13 +153,13 @@ module.exports = {
    * 30 ms = 30 ms
    * 300 ms = 300 ms
    * 999 ms = 999 ms
-   * 1000 ms = 1 secs
-   * 3000 ms = 3 secs
-   * 35000 ms = 35 secs
-   * 350000 ms = 350 secs
-   * 999999 ms = 999 secs
-   * 1000000 ms = 17 mins
-   * 3500000 secs = 58 mins
+   * 1000 ms = 1.00 secs
+   * 3000 ms = 3.00 secs
+   * 35000 ms = 35.00 secs
+   * 350000 ms = 350.00 secs
+   * 999999 ms = 999.99 secs
+   * 1000000 ms = 16.66 mins
+   * 3500000 secs = 58.33 mins
    *
    * @param {number} time
    * @param {bool} [zeroValid] for the case to show 0 when time is 0, not null
@@ -175,7 +175,6 @@ module.exports = {
       return null;
     }
     var timeStr = intTime.toString();
-    var date = new Date(intTime);
     var lengthOfNumber = timeStr.length;
     var oneMinMs = 60000;
     var oneHourMs = 3600000;
@@ -185,18 +184,19 @@ module.exports = {
       return time + ' ms';
     }
     if (lengthOfNumber < 7) {
-      time = (time / 1000).toFixed(0);
+      time = (time / 1000).toFixed(2);
       return time + ' secs';
     }
     if (time < oneHourMs) {
-      time = (time / oneMinMs).toFixed(0);
+      time = (time / oneMinMs).toFixed(2);
       return time + ' mins';
     }
     if (time < oneDayMs) {
-      return date.getUTCHours() + 'h '+ date.getUTCMinutes() + 'm ' + date.getUTCSeconds() +'s';
+      time = (time / oneHourMs).toFixed(2);
+      return time + ' hours';
     }
-
-    return ((date.getUTCFullYear() - 1970) * 365 + date.getUTCMonth() * 31 + date.getUTCDate()-1) + 'd ' + date.getUTCHours() + 'h ' + date.getUTCMinutes() + 'm';
+    time = (time / oneDayMs).toFixed(2);
+    return time + ' days';
   },
 
   /**

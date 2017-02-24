@@ -76,23 +76,20 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   uptimeProcessing: function (uptime) {
     var uptimeString = this.timeConverter(uptime);
     var diff = App.dateTimeWithTimeZone() - uptime;
-    var valueType = "";
     if (diff < 0) {
       diff = 0;
     }
     var formatted = date.timingFormat(diff); //17.67 days
     var timeUnit = null;
     if (formatted) {
-      valueType = formatted.split(" ")[0];
-      switch (valueType[valueType.length-1]) {
+      switch (formatted.split(" ")[1]) {
         case 'secs':
           timeUnit = 's';
           break;
-        case 'h':
+        case 'hours':
           timeUnit = 'hr';
-
           break;
-        case 'd':
+        case 'days':
           timeUnit = 'd';
           break;
         case 'mins':

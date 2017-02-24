@@ -426,7 +426,7 @@ public class GenericDbmsHelper implements DbmsHelper {
     // org.eclipse.persistence.internal.databaseaccess.appendParameterInternal
     Object dbValue = databasePlatform.convertToDatabaseType(value);
     String valueString = value.toString();
-    if (dbValue instanceof String) {
+    if (dbValue instanceof String || dbValue instanceof Enum) {
       valueString = "'" + value.toString() + "'";
     }
 

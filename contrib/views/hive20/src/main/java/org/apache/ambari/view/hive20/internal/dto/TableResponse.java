@@ -24,7 +24,6 @@ package org.apache.ambari.view.hive20.internal.dto;
 public class TableResponse {
   private String id;
   private String name;
-  private String type;
   private String databaseId;
 
   public String getId() {
@@ -41,14 +40,6 @@ public class TableResponse {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
   }
 
   public String getDatabaseId() {

@@ -36,12 +36,10 @@ public class DesiredConfigTest {
     DesiredConfig dc = new DesiredConfig();
     dc.setServiceName("service");
     dc.setTag("global");
-    dc.setUser("_test");
 
     Assert.assertEquals("Expected service 'service'", "service", dc.getServiceName());
     Assert.assertEquals("Expected version 'global'", "global", dc.getTag());
     Assert.assertEquals("Expected no host overrides", 0, dc.getHostOverrides().size());
-    Assert.assertEquals("Expected user '_test'", "_test", dc.getUser());
     
 
     List<DesiredConfig.HostOverride> hosts = Arrays.asList(

@@ -18,20 +18,16 @@
 
 package org.apache.ambari.view.hive20.resources.system;
 
-import akka.actor.ActorRef;
-import org.apache.ambari.view.hive20.BaseService;
-import org.apache.ambari.view.hive20.ConnectionSystem;
-import org.apache.ambari.view.hive20.actor.message.Ping;
-import org.apache.ambari.view.hive20.resources.system.ranger.RangerService;
-import org.json.simple.JSONObject;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
-import java.util.List;
+
+import org.apache.ambari.view.hive20.BaseService;
+import org.apache.ambari.view.hive20.resources.system.ranger.RangerService;
+import org.json.simple.JSONObject;
 
 /**
  * System services which are required for the working of the application
@@ -43,20 +39,6 @@ public class SystemService extends BaseService {
   @Inject
   public SystemService(RangerService rangerService) {
     this.rangerService = rangerService;
-  }
-
-  /**
-   * Clients should sent pings to the server at regular interval so that the system could keep alive stuffs or do
-   * cleanup work when the pings stops
-   * @return No content
-   */
-  @POST
-  @Path("ping")
-  public Response ping() {
-    //TODO: Change this to EventBus implementation
-    ActorRef metaDataManager = ConnectionSystem.getInstance().getMetaDataManager(context);
-    metaDataManager.tell(new Ping(context.getUsername(), context.getInstanceName()), ActorRef.noSender());
-    return Response.ok().status(Response.Status.NO_CONTENT).build();
   }
 
 

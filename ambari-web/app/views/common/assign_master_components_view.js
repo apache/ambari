@@ -43,11 +43,9 @@ App.AssignMasterComponentsView = Em.View.extend({
    */
   shouldUseInputs: Em.computed.gt('controller.hosts.length', 25),
 
+  isWizardStep: true,
+
   isBackButtonVisible: true,
-
-  isCancelButtonVisible: false,
-
-  acceptButtonText: Em.I18n.t('common.next') + '&rarr;',
 
   didInsertElement: function () {
     this.get('controller').loadStep();

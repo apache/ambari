@@ -81,7 +81,8 @@ module.exports.config = {
           'vendor/scripts/jquery.flexibleArea.js',
           'vendor/scripts/FileSaver.js',
           'vendor/scripts/Blob.js',
-          'vendor/scripts/pluralize.js'
+          'vendor/scripts/pluralize.js',
+          'vendor/scripts/theme/bootstrap-ambari.js'
         ]
       }
     },

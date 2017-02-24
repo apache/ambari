@@ -15,11 +15,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<div class="pull-right">
-  <button class="btn btn-default" {{action onUndo target="view.parentView"}}>{{t common.cancel}}</button>
-  {{#if view.canIgnore}}
-    <button class="btn btn-warning" {{action onIgnore target="view.parentView"}}>{{t common.ignore}}</button>
-  {{/if}}
-  <button class="btn btn-success" {{action onApply target="view.parentView"}}>{{t common.apply}}</button>
+<div id="stack_trace_dialog" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">{{title}}</h4>
+      </div>
+      <div class="modal-body">
+        <div id="stackTrace">{{{stackTrace}}}</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
 </div>

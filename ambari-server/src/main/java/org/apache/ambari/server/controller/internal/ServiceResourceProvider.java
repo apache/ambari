@@ -781,7 +781,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           if ( ambariMetaInfo.getComponent(
               sid.getStackName(), sid.getStackVersion(), sc.getServiceName(),
               sch.getServiceComponentName()).isMaster()) {
-            throw new AmbariException(error);
+            throw new IllegalArgumentException(error);
           } else {
             LOG.warn("Ignoring: " + error);
             continue;

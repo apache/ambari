@@ -27,6 +27,7 @@ export default Ember.Route.extend(UILoggerMixin, {
   isQueryEdidorPaneExpanded: false,
   isQueryResultPanelExpanded: false,
   globalSettings: '',
+  tezViewInfo: Ember.inject.service(),
 
   beforeModel(params){
     console.log('worksheetId', params.params['queries.query'].worksheetId);
@@ -53,6 +54,22 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.controller.set('fileResourceList', fileResourceList);
     });
 
+    this.store.findAll('udf').then((data) => {
+      let allUDFList = [];
+      data.forEach(x => {
+        let localUDF = {'id': x.get('id'),
+          'name': x.get('name'),
+          'classname': x.get('classname'),
+          'fileResource': x.get('fileResource'),
+          'owner': x.get('owner')
+        };
+        allUDFList.push(localUDF);
+      });
+      this.controller.set('allUDFList', allUDFList);
+    });
+
+
+
     this.store.findAll('setting').then((data) => {
       let localStr = '';
       data.forEach(x => {
@@ -74,7 +91,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     } else {
       this.transitionTo('queries.query' + lastResultRoute);
     }
-
+    return dbmodel;
   },
 
   model(params) {
@@ -91,25 +108,24 @@ export default Ember.Route.extend(UILoggerMixin, {
   setupController(controller, model) {
 
     this._super(...arguments);
+    this.get("tezViewInfo").getTezViewInfo();
 
-    let self = this;
-    let alldatabases = this.store.findAll('database');
+    let self = this, selectedDb;
+    let alldatabases = this.store.peekAll('database');
     controller.set('alldatabases',alldatabases);
 
-    let selecteDBName = model.get('selectedDb');
+    selectedDb = this.checkIfDeafultDatabaseExists(alldatabases);
 
     let selectedTablesModels =[];
     let selectedMultiDb = [];
-
-    selectedTablesModels.pushObject(
-      {
-        'dbname': selecteDBName ,
-        'tables': this.store.query('table', {databaseId: selecteDBName}),
+    if(selectedDb) {
+      selectedTablesModels.pushObject({
+        'dbname': selectedDb ,
+        'tables': this.store.query('table', {databaseId: selectedDb}),
         'isSelected': true
-      }
-    )
-
-    selectedMultiDb.pushObject(selecteDBName);
+      })
+      selectedMultiDb.pushObject(selectedDb);
+    }
 
     controller.set('worksheet', model);
 
@@ -121,6 +137,8 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('currentJobId', null);
     controller.set('queryResult', model.get('queryResult'));
     controller.set('isJobSuccess', false);
+    controller.set('isJobCancelled', false);
+    controller.set('isJobCreated', false);
 
     controller.set('isExportResultSuccessMessege', false);
     controller.set('isExportResultFailureMessege', false);
@@ -138,7 +156,23 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('tabs', tabs);
 
   },
-
+  checkIfDeafultDatabaseExists(alldatabases){
+    let defaultDB = alldatabases.findBy('name', 'default'), selectedDb;
+    if(defaultDB) {
+      selectedDb = defaultDB.get("name");
+      this.get('controller.model').set('selectedDb', selectedDb);
+    }
+    return selectedDb;
+  },
+  setSelectedDB(selectedDBs) {
+    let selectedDb = this.get('controller.model').get('selectedDb');
+    if(selectedDBs && selectedDBs.indexOf(selectedDb) === -1) {
+      this.get('controller.model').set('selectedDb', selectedDBs[0]);
+    }
+    else if(selectedDBs.length === 0) {
+      this.get('controller.model').set('selectedDb', null);
+    }
+  },
   actions: {
 
     resetDefaultWorksheet(){
@@ -160,7 +194,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       let self = this;
       let selectedTablesModels =[];
       let selectedMultiDb = [];
-
+      this.setSelectedDB(selectedDBs);
       selectedDBs.forEach(function(db, index){
         selectedTablesModels.pushObject(
           {
@@ -190,8 +224,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     visualExplainQuery(){
-      this.get('controller').set('isVisualExplainQuery', true );
-      this.send('executeQuery');
+      this.send('executeQuery', true);
     },
 
     updateQuery(query){
@@ -199,14 +232,26 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.get('controller.model').set('query', query);
     },
 
-    executeQuery(){
+    executeQuery(isVisualExplainQuery){
 
       let self = this;
       this.get('controller').set('currentJobId', null);
 
-      let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
+      if(!Ember.isEmpty(isVisualExplainQuery)){
+        isVisualExplainQuery = true;
+        this.get('controller').set('isVisualExplainQuery', true);
+      } else {
+        isVisualExplainQuery = false;
+        this.get('controller').set('isVisualExplainQuery', false);
+      }
 
-      let queryInput = this.get('controller').get('currentQuery');
+      let originalQuery = this.get('controller').get('currentQuery');
+      if(Ember.isBlank(originalQuery)) {
+        this.get('logger').danger('Query cannot be empty.');
+        this.send('resetDefaultWorksheet');
+        return;
+      }
+      let queryInput = originalQuery;
 
       if (isVisualExplainQuery) {
         queryInput = "";
@@ -227,16 +272,25 @@ export default Ember.Route.extend(UILoggerMixin, {
         }
       }
 
-      this.get('controller.model').set('query', queryInput);
+      this.get('controller.model').set('query', originalQuery);
+
 
       let dbid = this.get('controller.model').get('selectedDb');
       let worksheetTitle = this.get('controller.model').get('title');
 
       this.get('controller.model').set('jobData', []);
-      this.get('controller.model').set('isQueryRunning', true);
+      self.get('controller.model').set('currentPage', 0);
+      self.get('controller.model').set('previousPage', -1 );
+      self.get('controller.model').set('nextPage', 1);
+      self.get('controller.model').set('queryResult', {'schema' :[], 'rows' :[]});
+      self.get('controller.model').set('visualExplainJson', null);
 
-      this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
-      this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
+
+      this.get('controller.model').set('isQueryRunning', true);
+      this.get('controller.model').set('isJobCreated',false);
+
+      //this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
+      //this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
 
       let globalSettings = this.get('globalSettings');
 
@@ -255,13 +309,23 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('controller.model').set('queryFile', data.job.queryFile);
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
+        self.get('controller').set('isJobCreated',true);
 
         self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
             self.get('controller').set('isJobSuccess', true);
-            self.send('getJobResult', data, payload.title);
+            self.get('controller').set('isJobCancelled', false);
+            self.get('controller').set('isJobCreated', false);
+            let jobDetails = self.store.peekRecord('job', data.job.id);
+            console.log(jobDetails);
+            self.send('getJobResult', data, payload.title, jobDetails);
+            self.transitionTo('queries.query.loading');
+
           }, (error) => {
             console.log('error', error);
+            self.get('controller').set('isJobSuccess', false);
+            self.get('controller').set('isJobCancelled', false);
+            self.get('controller').set('isJobCreated', false);
             self.get('logger').danger('Failed to execute query.', self.extractError(error));
             self.send('resetDefaultWorksheet');
           });
@@ -273,7 +337,13 @@ export default Ember.Route.extend(UILoggerMixin, {
       });
     },
 
-    getJobResult(data, payloadTitle){
+    stopQuery(){
+      let jobId = this.get('controller').get('currentJobId');
+      this.get('jobs').stopJob(jobId)
+        .then( data => this.get('controller').set('isJobCancelled', true));
+    },
+
+    getJobResult(data, payloadTitle, jobDetails){
       let self = this;
 
       let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
@@ -291,7 +361,9 @@ export default Ember.Route.extend(UILoggerMixin, {
         if(existingWorksheets.get('length') > 0) {
           myWs = existingWorksheets.filterBy('title', payloadTitle).get('firstObject');
         }
-
+        if(!Ember.isBlank(jobDetails.get("dagId"))) {
+          self.get('controller.model').set('tezUrl', self.get("tezViewInfo").getTezViewURL() + jobDetails.get("dagId"));
+        }
         myWs.set('queryResult', data);
         myWs.set('isQueryRunning', false);
         myWs.set('hasNext', data.hasNext);
@@ -305,6 +377,8 @@ export default Ember.Route.extend(UILoggerMixin, {
 
         if(isVisualExplainQuery){
           self.send('showVisualExplain', payloadTitle);
+        } else {
+          self.get('controller.model').set('visualExplainJson', null);
         }
 
         if( self.paramsFor('queries.query').worksheetId == payloadTitle){

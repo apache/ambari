@@ -97,7 +97,7 @@ export default Ember.Component.extend(Validations, {
     this.get("saveJobService").saveWorkflow(url, workflowData).promise.then(function(response){
         self.showNotification({
           "type": "success",
-          "message": "Workflow have been saved"
+          "message": this.get("displayName")+" have been saved"
         });
         self.set("savingInProgress",false);
         this.set('jobFilePath', this.get('filePath'));

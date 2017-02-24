@@ -57,7 +57,6 @@ import org.apache.ambari.view.hive20.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl;
 import org.apache.ambari.view.hive20.utils.HiveActorConfiguration;
-import org.apache.ambari.view.hive20.utils.MetaDataManagerEventSubmitter;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hive.jdbc.HiveConnection;
 import org.slf4j.Logger;
@@ -239,6 +238,7 @@ public class JdbcConnector extends HiveActor {
     try {
       isCancelCalled = true;
       connectionDelegate.cancel();
+      LOG.info("Cancelled JobId:"+ jobId);
     } catch (SQLException e) {
       LOG.error("Failed to cancel job. JobId: {}. {}", message.getJobId(), e);
     }
@@ -290,9 +290,6 @@ public class JdbcConnector extends HiveActor {
     LOG.info("Finished processing SQL statements for Job id : {}", jobId.or("SYNC JOB"));
     if (isAsync() && jobId.isPresent()) {
       updateJobStatus(jobId.get(), Job.JOB_STATE_FINISHED);
-
-      LOG.info("Sending event to refresh meta information for user {} and instance {}", username, instanceName);
-      MetaDataManagerEventSubmitter.sendDBRefresh(username, instanceName);
     }
 
     if (resultSetOptional.isPresent()) {

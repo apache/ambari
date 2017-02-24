@@ -64,37 +64,4 @@ describe('App.MainAlertInstancesController', function () {
 
   });
 
-
-  describe('#showPopup', function () {
-
-    describe('#bodyClass', function () {
-
-      var bodyView;
-
-      beforeEach(function () {
-        controller.reopen({unhealthyAlertInstances: [
-          App.AlertInstance.createRecord({state: 'CRITICAL'}),
-          App.AlertInstance.createRecord({state: 'WARNING'}),
-          App.AlertInstance.createRecord({state: 'WARNING'}),
-          App.AlertInstance.createRecord({state: 'CRITICAL'})
-        ]});
-        bodyView = controller.showPopup().get('bodyClass').create();
-      });
-
-      it('#content', function () {
-        expect(bodyView.get('content.length')).to.equal(4);
-      });
-
-      it('#isLoaded', function () {
-        expect(bodyView.get('isLoaded')).to.be.true;
-      });
-
-      it('#isAlertEmptyList', function () {
-        expect(bodyView.get('isAlertEmptyList')).to.be.false;
-      });
-
-    });
-
-  });
-
 });

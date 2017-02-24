@@ -26,10 +26,12 @@
   {{/if}}
 </div>
 {{#if view.parentView.secondary}}
-  <button type="button"
-          class="btn btn-info" {{bindAttr disabled="view.isUpdateInProgress"}} {{action onSecondary target="view.parentView"}}>
-    <i class="glyphicon glyphicon-repeat"></i>&nbsp;{{view.parentView.secondary}}</button>
-{{/if}}
-{{#if view.parentView.primary}}
-  <button type="button" class="btn btn-default" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</button>
+  <button type="button" class="btn btn-info"
+    {{bindAttr disabled="view.isUpdateInProgress"}}
+    {{action onSecondary target="view.parentView"}}>
+      <i class="glyphicon glyphicon-repeat"></i>&nbsp;{{view.parentView.secondary}}
+  </button>{{/if}}{{#if view.parentView.primary}}<button type="button" class="btn btn-default"
+    {{action onPrimary target="view.parentView"}}>
+      {{view.parentView.primary}}
+  </button>
 {{/if}}

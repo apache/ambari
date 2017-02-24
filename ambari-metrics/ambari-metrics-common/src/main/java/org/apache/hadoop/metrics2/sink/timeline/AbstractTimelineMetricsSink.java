@@ -82,6 +82,8 @@ public abstract class AbstractTimelineMetricsSink {
 
   protected static final AtomicInteger failedCollectorConnectionsCounter = new AtomicInteger(0);
   public static int NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 100;
+  protected static final AtomicInteger nullCollectorCounter = new AtomicInteger(0);
+  public static int NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS = 20;
   public int ZK_CONNECT_TRY_COUNT = 10;
   public int ZK_SLEEP_BETWEEN_RETRY_TIME = 2000;
   public boolean shardExpired = true;
@@ -214,7 +216,7 @@ public abstract class AbstractTimelineMetricsSink {
       collectorHost = targetCollectorHostSupplier.get();
       // Last X attempts have failed - force refresh
       if (failedCollectorConnectionsCounter.get() > RETRY_COUNT_BEFORE_COLLECTOR_FAILOVER) {
-        LOG.info("Removing collector " + collectorHost + " from allKnownLiveCollectors.");
+        LOG.debug("Removing collector " + collectorHost + " from allKnownLiveCollectors.");
         allKnownLiveCollectors.remove(collectorHost);
         targetCollectorHostSupplier = null;
         collectorHost = findPreferredCollectHost();
@@ -224,8 +226,15 @@ public abstract class AbstractTimelineMetricsSink {
     }
 
     if (collectorHost == null) {
-      LOG.warn("No live collector to send metrics to. Metrics to be sent will be discarded.");
+      if (nullCollectorCounter.getAndIncrement() == 0) {
+        LOG.info("No live collector to send metrics to. Metrics to be sent will be discarded. " +
+          "This message will be skipped for the next " + NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS + " times.");
+      } else {
+        nullCollectorCounter.compareAndSet(NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS, 0);
+      }
       return false;
+    } else {
+      nullCollectorCounter.set(0);
     }
 
     String connectUrl = getCollectorUri(collectorHost);
@@ -356,7 +365,7 @@ public abstract class AbstractTimelineMetricsSink {
     if (allKnownLiveCollectors.size() == 0 && getZookeeperQuorum() != null
       && (currentTime - lastFailedZkRequestTime) > zookeeperBackoffTimeMillis) {
 
-      LOG.info("No live collectors from configuration. Requesting zookeeper...");
+      LOG.debug("No live collectors from configuration. Requesting zookeeper...");
       allKnownLiveCollectors.addAll(collectorHAHelper.findLiveCollectorHostsFromZNode());
       boolean noNewCollectorFromZk = true;
       for (String collectorHostFromZk : allKnownLiveCollectors) {
@@ -366,7 +375,7 @@ public abstract class AbstractTimelineMetricsSink {
         }
       }
       if (noNewCollectorFromZk) {
-        LOG.info("No new collector was found from Zookeeper. Will not request zookeeper for " + zookeeperBackoffTimeMillis + " millis");
+        LOG.debug("No new collector was found from Zookeeper. Will not request zookeeper for " + zookeeperBackoffTimeMillis + " millis");
         lastFailedZkRequestTime = System.currentTimeMillis();
       }
     }
@@ -396,7 +405,7 @@ public abstract class AbstractTimelineMetricsSink {
       shardExpired = true;
       return collectorHost;
     }
-    LOG.warn("Couldn't find any live collectors. Returning null");
+    LOG.debug("Couldn't find any live collectors. Returning null");
     shardExpired = true;
     return null;
   }
@@ -416,7 +425,7 @@ public abstract class AbstractTimelineMetricsSink {
             }
             break; // Found at least 1 live collector
           } catch (MetricCollectorUnavailableException e) {
-            LOG.info("Collector " + hostStr + " is not longer live. Removing " +
+            LOG.debug("Collector " + hostStr + " is not longer live. Removing " +
               "it from list of know live collector hosts : " + allKnownLiveCollectors);
             allKnownLiveCollectors.remove(hostStr);
           }
@@ -473,7 +482,6 @@ public abstract class AbstractTimelineMetricsSink {
       LOG.debug(errorMessage);
       LOG.debug(ioe);
       String warnMsg = "Unable to connect to collector to find live nodes.";
-      LOG.warn(warnMsg);
       throw new MetricCollectorUnavailableException(warnMsg);
     }
     return collectors;

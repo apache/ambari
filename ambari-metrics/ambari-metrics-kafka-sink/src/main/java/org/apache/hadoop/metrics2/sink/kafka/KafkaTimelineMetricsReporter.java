@@ -378,9 +378,12 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final long currentTimeMillis = System.currentTimeMillis();
       final String sanitizedName = sanitizeName(name);
 
-      cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
-
-      populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+      try {
+        cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
+        populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+      } catch (NumberFormatException ex) {
+        LOG.debug(ex.getMessage());
+      }
     }
 
     private String[] cacheKafkaMetered(long currentTimeMillis, String sanitizedName, Metered meter) {

@@ -20,11 +20,14 @@ package org.apache.ambari.view.hive20.client;
 
 import java.util.List;
 
+import org.apache.ambari.view.hive20.internal.dto.DatabaseInfo;
+import org.apache.ambari.view.hive20.internal.dto.TableInfo;
+
 public interface DDLDelegator {
 
-  List<String> getDbList(ConnectionConfig config, String like);
+  List<DatabaseInfo> getDbList(ConnectionConfig config, String like);
 
-  List<String> getTableList(ConnectionConfig config, String database, String like);
+  List<TableInfo> getTableList(ConnectionConfig config, String database, String like);
 
   List<Row> getTableDescriptionFormatted(ConnectionConfig config, String database, String table);
 

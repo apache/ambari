@@ -22,6 +22,6 @@ export default TableMetaRouter.extend({
   model(params, transition) {
     let databaseName = transition.params['databases.database']['databaseId'];
     let tableName = transition.params['databases.database.tables.table']['name'];
-    return this.store.adapterFor('ping').fetchAuth(databaseName, tableName);
+    return this.store.adapterFor('ranger').fetchAuth(databaseName, tableName);
   }
 });

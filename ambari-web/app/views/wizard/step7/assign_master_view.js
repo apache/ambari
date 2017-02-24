@@ -26,13 +26,9 @@ App.AssignMasterOnStep7View = App.AssignMasterComponentsView.extend({
 
   showTitle: false,
 
-  acceptButtonText: Em.I18n.t('common.select'),
-
   alertMessage: '',
 
-  isBackButtonVisible: false,
-
-  isCancelButtonVisible: true,
+  isWizardStep: false,
 
   willInsertElement: function() {
     this._super();

@@ -18,6 +18,7 @@
 import Ember from 'ember';
 var defaultNodeColor = '#fff';
 var actionNodeColor = '#f5f5f5';
+var killNodeColor='#d43f3a'
 var labelFunction=function(target) {
   if (!target.data().node.name) {
     return "";
@@ -113,6 +114,13 @@ export default Ember.Object.create({
           }else{
             return "none";
           }
+        },
+        'color': function(target){
+              if (!target.data().transition || !target.data().transition.isOnError()) {
+                return "black"
+              }else{
+                return killNodeColor;
+              }
         },
         width: 1,
         'font-size': 12,

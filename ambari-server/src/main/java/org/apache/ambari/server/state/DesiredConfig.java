@@ -34,7 +34,6 @@ public class DesiredConfig {
 
   private String tag;
   private String serviceName;
-  private String user;
   private Long version;
   private List<HostOverride> hostOverrides = new ArrayList<HostOverride>();
 
@@ -80,23 +79,6 @@ public class DesiredConfig {
   public void setHostOverrides(List<HostOverride> overrides) {
     hostOverrides = overrides;
   }
-
-  /**
-   * Gets the user that set the desired config.
-   */
-  @JsonSerialize(include = Inclusion.NON_EMPTY)
-  public String getUser() {
-    return user;
-  }
-  
-  /**
-   * Sets the user that set the desired config.
-   * @param userName the username
-   */
-  public void setUser(String userName) {
-    user = userName;
-  }
-  
   
   /**
    * Gets the host overrides for the desired config.  Cluster-based desired configs only.
@@ -208,7 +190,6 @@ public class DesiredConfig {
     return new EqualsBuilder()
       .append(tag, that.tag)
       .append(serviceName, that.serviceName)
-      .append(user, that.user)
       .append(version, that.version)
       .append(hostOverrides, that.hostOverrides)
       .isEquals();
@@ -219,7 +200,6 @@ public class DesiredConfig {
     return new HashCodeBuilder(17, 37)
       .append(tag)
       .append(serviceName)
-      .append(user)
       .append(version)
       .append(hostOverrides)
       .toHashCode();

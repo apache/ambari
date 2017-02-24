@@ -121,7 +121,7 @@ public class ClustersTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-	  Map<String, String> hostAttributes = new HashMap<String, String>();
+	  Map<String, String> hostAttributes = new HashMap<>();
 	  hostAttributes.put("os_family", osFamily);
 	  hostAttributes.put("os_release_version", osVersion);
 
@@ -323,7 +323,7 @@ public class ClustersTest {
     Cluster c4 = (Cluster) clusters.getClustersForHost(h2).toArray()[0];
 
     Assert.assertEquals(c3, c4);
-    Set<String> hostnames = new HashSet<String>();
+    Set<String> hostnames = new HashSet<>();
     hostnames.add(h1);
     hostnames.add(h2);
 
@@ -465,7 +465,7 @@ public class ClustersTest {
     ));
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
-    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
+    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config WHERE config.selected = 1").getResultList().size());
 
     // add topology request
     Blueprint bp = createNiceMock(Blueprint.class);
@@ -506,7 +506,6 @@ public class ClustersTest {
     ));
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
-    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
     Assert.assertEquals(0, topologyRequestDAO.findByClusterId(cluster.getClusterId()).size());
   }
 

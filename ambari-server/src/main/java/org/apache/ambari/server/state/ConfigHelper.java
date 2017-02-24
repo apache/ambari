@@ -180,7 +180,7 @@ public class ConfigHelper {
       clusterDesired = new HashMap<>();
     }
 
-    Map<String, Map<String, String>> resolved = new TreeMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> resolved = new TreeMap<>();
 
     // Do not use host component config mappings.  Instead, the rules are:
     // 1) Use the cluster desired config
@@ -197,7 +197,7 @@ public class ConfigHelper {
           continue;
         }
 
-        Map<String, String> tags = new LinkedHashMap<String, String>();
+        Map<String, String> tags = new LinkedHashMap<>();
 
         tags.put(CLUSTER_DEFAULT_TAG, config.getTag());
 
@@ -232,17 +232,17 @@ public class ConfigHelper {
   public Map<String, Map<String, String>> getEffectiveConfigProperties(
       Cluster cluster, Map<String, Map<String, String>> desiredTags) {
 
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
 
     if (desiredTags != null) {
       for (Entry<String, Map<String, String>> entry : desiredTags.entrySet()) {
         String type = entry.getKey();
         Map<String, String> propertyMap = properties.get(type);
         if (propertyMap == null) {
-          propertyMap = new HashMap<String, String>();
+          propertyMap = new HashMap<>();
         }
 
-        Map<String, String> tags = new HashMap<String, String>(entry.getValue());
+        Map<String, String> tags = new HashMap<>(entry.getValue());
         String clusterTag = tags.get(CLUSTER_DEFAULT_TAG);
 
         // Overrides is only supported if the config type exists at cluster
@@ -282,7 +282,7 @@ public class ConfigHelper {
   public Map<String, Map<String, Map<String, String>>> getEffectiveConfigAttributes(
       Cluster cluster, Map<String, Map<String, String>> desiredTags) {
 
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
 
     if (desiredTags != null) {
       for (Entry<String, Map<String, String>> entry : desiredTags.entrySet()) {
@@ -290,13 +290,13 @@ public class ConfigHelper {
         String type = entry.getKey();
         Map<String, Map<String, String>> attributesMap = null;
 
-        Map<String, String> tags = new HashMap<String, String>(entry.getValue());
+        Map<String, String> tags = new HashMap<>(entry.getValue());
         String clusterTag = tags.get(CLUSTER_DEFAULT_TAG);
 
         if (clusterTag != null) {
           Config config = cluster.getConfig(type, clusterTag);
           if (config != null) {
-            attributesMap = new TreeMap<String, Map<String, String>>();
+            attributesMap = new TreeMap<>();
             cloneAttributesMap(config.getPropertiesAttributes(), attributesMap);
           }
           tags.remove(CLUSTER_DEFAULT_TAG);
@@ -326,7 +326,7 @@ public class ConfigHelper {
   public Map<String, String> getMergedConfig(Map<String,
       String> persistedClusterConfig, Map<String, String> override) {
 
-    Map<String, String> finalConfig = new HashMap<String, String>(persistedClusterConfig);
+    Map<String, String> finalConfig = new HashMap<>(persistedClusterConfig);
 
     if (override != null && override.size() > 0) {
       for (Entry<String, String> entry : override.entrySet()) {
@@ -480,7 +480,7 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
                                               stackId.getStackVersion());
 
-    Set<String> result = new HashSet<String>();
+    Set<String> result = new HashSet<>();
 
     for (Service service : clusters.getCluster(clusterName).getServices().values()) {
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
@@ -517,8 +517,9 @@ public class ConfigHelper {
     Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
     for (PropertyInfo serviceProperty : serviceProperties) {
       if (serviceProperty.getPropertyTypes().contains(propertyType)) {
-        if (!serviceProperty.getPropertyValueAttributes().isKeyStore())
+        if (!serviceProperty.getPropertyValueAttributes().isKeyStore()) {
           continue;
+        }
         String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
         passwordProperties = result.get(stackPropertyConfigType);
         if (passwordProperties == null) {
@@ -561,7 +562,7 @@ public class ConfigHelper {
                                                        Map<String, ServiceInfo> servicesMap,
                                                        Set<PropertyInfo> stackProperties) throws AmbariException {
     Map<String, Config> actualConfigs = new HashMap<>();
-    Set<String> result = new HashSet<String>();
+    Set<String> result = new HashSet<>();
 
     for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
       String configType = desiredConfigEntry.getKey();
@@ -570,7 +571,7 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
+      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
@@ -724,7 +725,7 @@ public class ConfigHelper {
   public Set<PropertyInfo> getServiceProperties(StackId stackId, String serviceName, boolean removeExcluded)
       throws AmbariException {
     ServiceInfo service = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    Set<PropertyInfo> properties = new HashSet<PropertyInfo>(service.getProperties());
+    Set<PropertyInfo> properties = new HashSet<>(service.getProperties());
 
     if (removeExcluded) {
       Set<String> excludedConfigTypes = service.getExcludedConfigTypes();
@@ -794,9 +795,9 @@ public class ConfigHelper {
 
     Config oldConfig = cluster.getDesiredConfigByType(configType);
     Map<String, String> oldConfigProperties;
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     Map<String, Map<String, String>> propertiesAttributes =
-      new HashMap<String, Map<String, String>>();
+      new HashMap<>();
 
     if (oldConfig == null) {
       oldConfigProperties = null;
@@ -890,7 +891,7 @@ public class ConfigHelper {
       Map<String, Map<String, String>> batchProperties, String authenticatedUserName,
       String serviceVersionNote) throws AmbariException {
 
-    Map<String, Set<Config>> serviceMapped = new HashMap<String, Set<Config>>();
+    Map<String, Set<Config>> serviceMapped = new HashMap<>();
 
     for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
       String type = entry.getKey();
@@ -922,8 +923,33 @@ public class ConfigHelper {
 
   }
 
-  Config createConfig(Cluster cluster, AmbariManagementController controller, String type, String tag,
-                      Map<String, String> properties, Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
+  /**
+   * Creates a new configuration using the specified tag as the first version
+   * tag. Otherwise, the configuration will be created with {@literal version}
+   * along with the current timestamp.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param controller
+   *          the controller which actually creates the configuration (not
+   *          {@code null}).
+   * @param type
+   *          the new configuration type (not {@code null}).
+   * @param tag
+   *          the initial tag; if this configuration already exists, it will use
+   *          the timestamp along with {@literal version}.
+   * @param properties
+   *          the properties to persist (not {@code null}).
+   * @param propertyAttributes
+   *          the attributes to persist, or {@code null} for none.
+   * @return
+   * @throws AmbariException
+   */
+  Config createConfig(Cluster cluster, AmbariManagementController controller, String type,
+      String tag, Map<String, String> properties,
+      Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
+
+    // if the configuration is not new, then create a timestamp tag
     if (cluster.getConfigsByType(type) != null) {
       tag = "version" + System.currentTimeMillis();
     }
@@ -962,7 +988,7 @@ public class ConfigHelper {
    */
   public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster, boolean onStackUpgradeFilter)
       throws AmbariException {
-    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<>();
 
     // populate the stack (non-service related) properties first
     Set<org.apache.ambari.server.state.PropertyInfo> stackConfigurationProperties = ambariMetaInfo.getStackProperties(
@@ -1155,8 +1181,8 @@ public class ConfigHelper {
   private Collection<String> findChangedKeys(Cluster cluster, String type,
                                              Collection<String> desiredTags, Collection<String> actualTags) {
 
-    Map<String, String> desiredValues = new HashMap<String, String>();
-    Map<String, String> actualValues = new HashMap<String, String>();
+    Map<String, String> desiredValues = new HashMap<>();
+    Map<String, String> actualValues = new HashMap<>();
 
     for (String tag : desiredTags) {
       Config config = cluster.getConfig(type, tag);
@@ -1172,7 +1198,7 @@ public class ConfigHelper {
       }
     }
 
-    List<String> keys = new ArrayList<String>();
+    List<String> keys = new ArrayList<>();
 
     for (Entry<String, String> entry : desiredValues.entrySet()) {
       String key = entry.getKey();
@@ -1192,7 +1218,7 @@ public class ConfigHelper {
    * @return the map of tags for a desired config
    */
   private Map<String, String> buildTags(HostConfig hc) {
-    Map<String, String> map = new LinkedHashMap<String, String>();
+    Map<String, String> map = new LinkedHashMap<>();
     map.put(CLUSTER_DEFAULT_TAG, hc.getDefaultVersionTag());
     if (hc.getConfigGroupOverrides() != null) {
       for (Entry<Long, String> entry : hc.getConfigGroupOverrides().entrySet()) {
@@ -1217,8 +1243,8 @@ public class ConfigHelper {
       desiredTags.remove(CLUSTER_DEFAULT_TAG);
     }
 
-    Set<String> desiredSet = new HashSet<String>(desiredTags.values());
-    Set<String> actualSet = new HashSet<String>(actualTags.values());
+    Set<String> desiredSet = new HashSet<>(desiredTags.values());
+    Set<String> actualSet = new HashSet<>(actualTags.values());
 
     // Both desired and actual should be exactly the same
     return !desiredSet.equals(actualSet);
@@ -1228,7 +1254,7 @@ public class ConfigHelper {
    * @return the list of combined config property names
    */
   private Collection<String> mergeKeyNames(Cluster cluster, String type, Collection<String> tags) {
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
 
     for (String tag : tags) {
       Config config = cluster.getConfig(type, tag);

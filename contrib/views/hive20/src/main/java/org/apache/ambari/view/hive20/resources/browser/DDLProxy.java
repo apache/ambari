@@ -18,17 +18,14 @@
 
 package org.apache.ambari.view.hive20.resources.browser;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Inbox;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive20.ConnectionFactory;
 import org.apache.ambari.view.hive20.ConnectionSystem;
-import org.apache.ambari.view.hive20.actor.DatabaseManager;
 import org.apache.ambari.view.hive20.client.ConnectionConfig;
 import org.apache.ambari.view.hive20.client.DDLDelegator;
 import org.apache.ambari.view.hive20.client.DDLDelegatorImpl;
@@ -56,10 +53,8 @@ import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobController;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobResourceManager;
-import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.concurrent.duration.Duration;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -68,7 +63,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -93,21 +87,33 @@ public class DDLProxy {
   }
 
   public DatabaseResponse getDatabase(final String databaseId) {
-    Optional<DatabaseInfo> infoOptional = selectDatabase(databaseId);
-    if (!infoOptional.isPresent()) {
-      // Throw exception
-    }
+    DatabaseInfo dbInfo = new DatabaseInfo(databaseId);
+    List<TableInfo> tables = getTableInfos(databaseId);
+    dbInfo.setTables(new HashSet<>(tables));
 
-    return transformToDatabaseResponse(infoOptional.get());
+    return transformToDatabaseResponse(dbInfo);
   }
 
   public Set<TableResponse> getTables(final String databaseId) {
-    Optional<DatabaseInfo> infoOptional = selectDatabase(databaseId);
-    if (!infoOptional.isPresent()) {
-      // Throw exception;
-    }
-    DatabaseInfo info = infoOptional.get();
-    return transformToTablesResponse(info.getTables(), info.getName());
+    List<TableInfo> tables = getTableInfos(databaseId);
+
+    return FluentIterable.from(tables).transform(new Function<TableInfo, TableResponse>() {
+      @Nullable
+      @Override
+      public TableResponse apply(@Nullable TableInfo tableInfo) {
+        TableResponse response = new TableResponse();
+        response.setDatabaseId(databaseId);
+        response.setId(databaseId + "/" + tableInfo.getName());
+        response.setName(tableInfo.getName());
+        return response;
+      }
+    }).toSet();
+  }
+
+  private List<TableInfo> getTableInfos(String databaseId) {
+    ConnectionConfig hiveConnectionConfig = ConnectionFactory.create(context);
+    DDLDelegator delegator = new DDLDelegatorImpl(context, ConnectionSystem.getInstance().getActorSystem(), ConnectionSystem.getInstance().getOperationController(context));
+    return delegator.getTableList(hiveConnectionConfig, databaseId, "*");
   }
 
   public TableResponse getTable(final String databaseName, final String tableName) {
@@ -190,7 +196,6 @@ public class DDLProxy {
     TableResponse response = new TableResponse();
     response.setId(databaseName + "/" + tableInfo.getName());
     response.setName(tableInfo.getName());
-    response.setType(tableInfo.getType());
     response.setDatabaseId(databaseName);
     return response;
   }
@@ -205,26 +210,10 @@ public class DDLProxy {
   }
 
   private Set<DatabaseInfo> getDatabaseInfos() {
-    ActorRef metaDataManager = ConnectionSystem.getInstance().getMetaDataManager(context);
-    ActorSystem system = ConnectionSystem.getInstance().getActorSystem();
-
-    Inbox inbox = Inbox.create(system);
-
-    inbox.send(metaDataManager, new DatabaseManager.GetDatabases(context.getUsername()));
-    Object receive;
-    try {
-      receive = inbox.receive(Duration.create(60 * 1000, TimeUnit.MILLISECONDS));
-    } catch (Throwable ex) {
-      String errorMessage = "Query timed out to fetch databases information for user: " + context.getUsername();
-      LOG.error(errorMessage, ex);
-      throw new ServiceFormattedException(errorMessage, ex);
-    }
-    Set<DatabaseInfo> infos = new HashSet<>();
-
-    if (receive instanceof DatabaseManager.DatabasesResult) {
-      infos = ((DatabaseManager.DatabasesResult) receive).getDatabases();
-    }
-    return infos;
+    ConnectionConfig hiveConnectionConfig = ConnectionFactory.create(context);
+    DDLDelegator delegator = new DDLDelegatorImpl(context, ConnectionSystem.getInstance().getActorSystem(), ConnectionSystem.getInstance().getOperationController(context));
+    List<DatabaseInfo> databases = delegator.getDbList(hiveConnectionConfig, "*");
+    return new HashSet<>(databases);
   }
 
   public String generateCreateTableDDL(String databaseName, TableMeta tableMeta) throws ServiceException {

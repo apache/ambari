@@ -1085,6 +1085,11 @@ Em.I18n.translations = {
   'form.validator.alertNotificationName':'Invalid Alert Notification Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
+  'alerts.dropdown.dialog.title': 'Notifications',
+  'alerts.dropdown.dialog.filters.critical': 'Critical ({0})',
+  'alerts.dropdown.dialog.filters.warning': 'Warning ({0})',
+  'alerts.dropdown.dialog.filters.all': 'All ({0})',
+
   'alerts.add.header': 'Create Alert',
   'alerts.add.step1.header': 'Choose Alert Type',
   'alerts.add.step1.header.description': 'Select the type of alert you want to create',
@@ -2932,6 +2937,7 @@ Em.I18n.translations = {
   'dashboard.services.yarn.resourceManager.standby':'Standby ResourceManager',
   'dashboard.services.resourceManager.nodes.heap':'ResourceManager Heap',
   'dashboard.services.yarn.nodeManagers.status': 'NodeManagers Status',
+  'dashboard.services.yarn.nodeManagers.status.msg': '{0} active / {1} lost / {2} unhealthy / {3} rebooted / {4} decommissioned',
   'dashboard.services.yarn.nodeManagers.status.active': 'active',
   'dashboard.services.yarn.nodeManagers.status.lost': 'lost',
   'dashboard.services.yarn.nodeManagers.status.unhealthy': 'unhealthy',

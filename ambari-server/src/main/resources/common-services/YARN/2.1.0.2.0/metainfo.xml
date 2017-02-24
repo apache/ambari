@@ -301,6 +301,7 @@
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
         <config-type>ams-ssl-client</config-type>
+        <config-type>yarn-site</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>

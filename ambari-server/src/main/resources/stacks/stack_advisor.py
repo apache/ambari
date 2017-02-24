@@ -806,7 +806,7 @@ class DefaultStackAdvisor(StackAdvisor):
       return component["StackServiceComponents"]["hostnames"]
 
     if len(hostsList) > 1 and self.isMasterComponentWithMultipleInstances(component):
-      hostsCount = self.getMinComponentCount(component)
+      hostsCount = self.getMinComponentCount(component, hosts)
       if hostsCount > 1: # get first 'hostsCount' available hosts
         hostsForComponent = []
         hostIndex = 0
@@ -1460,13 +1460,13 @@ class DefaultStackAdvisor(StackAdvisor):
     service = self.getNotValuableComponents()
     return componentName in service
 
-  def getMinComponentCount(self, component):
+  def getMinComponentCount(self, component, hosts):
     componentName = self.getComponentName(component)
-    return self.getComponentCardinality(componentName)["min"]
+    return self.getComponentCardinality(componentName, hosts)["min"]
 
   # Helper dictionaries
-  def getComponentCardinality(self, componentName):
-    dict = self.getCardinalitiesDict()
+  def getComponentCardinality(self, componentName, hosts):
+    dict = self.getCardinalitiesDict(hosts)
     if componentName in dict:
       return dict[componentName]
     else:
@@ -1508,7 +1508,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getNotPreferableOnServerComponents(self):
     return self.notPreferableOnServerComponents
 
-  def getCardinalitiesDict(self):
+  def getCardinalitiesDict(self, hosts):
     return self.cardinalitiesDict
 
   def getComponentLayoutSchemes(self):
@@ -2526,7 +2526,7 @@ class DefaultStackAdvisor(StackAdvisor):
   #region YARN and MAPREDUCE
   def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
     if propertyName not in properties:
-      return self.getErrorItem("Value should be set")
+      return None
 
     capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
     leaf_queue_names = self.getAllYarnLeafQueues(capacity_scheduler_properties)

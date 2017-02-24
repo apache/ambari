@@ -72,6 +72,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showActionEditor : false,
   flattenedNodes: [],
   dataNodes: [], /* For cytoscape */
+  counterMap : {},
   hoveredAction: null,
   workflowImporter:WorkflowImporter.create({}),
   actionTypeResolver: ActionTypeResolver.create({}),
@@ -93,13 +94,13 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   isWorkflowImporting: false,
   isAssetPublishing: false,
   errorMsg: "",
+  data : {
+    "responseText": ""
+  },
   shouldPersist : false,
   useCytoscape: Constants.useCytoscape,
   cyOverflow: {},
   clipboard : Ember.computed.alias('clipboardService.clipboard'),
-  isStackTraceVisible: false,
-  isStackTraceAvailable: false,
-  stackTrace:"",
   showingStreamImport:false,
   fileInfo:Ember.Object.create(),
   isDraft: false,
@@ -110,7 +111,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.sendAction('register', this.get('tabInfo'), this);
     this.set('flowRenderer',CytoscapeRenderer.create());
     this.set('workflow',Workflow.create({}));
-    this.set("isNew",true);
     CommonUtils.setTestContext(this);
   }.on('init'),
   elementsInserted :function(){
@@ -138,6 +138,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
           this.set("workflow",draftWorkflow);
           this.rerender();
           this.doValidation();
+          this.generateCounterMap();
         }
       }.bind(this)).catch(function(data){
       });
@@ -239,6 +240,22 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.flowRenderer.initRenderer(function(){
       this.renderWorkflow();
     }.bind(this),{context:this,id : this.get('cyId'),flattenedNodes:this.get("flattenedNodes"),dataNodes:this.get("dataNodes"), cyOverflow:this.get("cyOverflow"),canvasHeight:canvasHeight});
+    this.generateCounterMap();
+  },
+  generateCounterMap() {
+    let len = 0, id = 0, val = null, self = this;
+    this.get('dataNodes').forEach(function(item){
+      if(item.data.node) {
+        if(item.data.node.type === "action") {
+          let keyMap = self.get("counterMap"), type = item.data.node.actionType;
+          if(keyMap.hasOwnProperty(type)){
+            keyMap[type] = parseInt(keyMap[type])+1;
+          } else {
+            keyMap[type] = 1;
+          }
+        }
+      }
+    });
   },
   renderWorkflow(){
     this.set('renderNodeTransitions', true);
@@ -293,24 +310,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   doValidation(){
     this.validate();
   },
-  getStackTrace(data){
-    if(data){
-     try{
-      var stackTraceMsg = JSON.parse(data).stackTrace;
-      if(!stackTraceMsg){
-        return "";
-      }
-     if(stackTraceMsg instanceof Array){
-       return stackTraceMsg.join("").replace(/\tat /g, '&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;');
-     } else {
-       return stackTraceMsg.replace(/\tat /g, '<br/>&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;');
-     }
-     } catch(err){
-       return "";
-     }
-    }
-    return "";
-  },
   importWorkflow(filePath){
     var self = this;
     this.set("isWorkflowImporting", true);
@@ -326,8 +325,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set("workflowFilePath", filePath);
     }.bind(this)).catch(function(data){
       console.error(data);
-      self.set("errorMsg", "There is some problem while importing.Please try again.");
-      self.showingErrorMsgInDesigner(data);
+      self.set("errorMsg", "There is some problem while importing.");
+      self.set("data", data);
       self.set("isWorkflowImporting", false);
     });
   },
@@ -432,7 +431,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.createSnapshot();
     var transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
     transition.source=this.get("currentTransition").source;
-    var actionNode = this.get("workflow").addNode(transition,actionNodeType);
+    this.generateUniqueNodeId(actionNodeType);
+    var actionNode = this.get("workflow").addNode(transition,actionNodeType, {}, "");
     this.rerender();
     this.doValidation();
     this.scrollToNewPosition();
@@ -473,8 +473,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     exportActionNodeXmlDefered.promise.then(function(data){
       self.set("isAssetPublishing", false);
     }.bind(this)).catch(function(data){
-      self.set("errorMsg", "There is some problem while publishing asset. Please try again.");
-      self.showingErrorMsgInDesigner(data);
+      self.set("errorMsg", "There is some problem while publishing asset.");
+      self.set("data", data);
       self.set("isAssetPublishing", false);
     });
 
@@ -488,6 +488,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.get("workflow").resetWorfklow();
     this.set('globalConfig', {});
     this.set('parameters', {});
+    this.set('counterMap', {});
     this.set("undoAvailable", false);
     this.set("showingConfirmationNewWorkflow", false);
     if(this.get('workflow.parameters') !== null){
@@ -706,7 +707,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
     this.set("showingSaveWorkflow",true);
   },
-  openJobConfig (){
+  openJobConfig () {
     this.get('workflowContext').clearErrors();
     var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
     workflowContext:this.get('workflowContext')});
@@ -719,15 +720,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.set("workflowSubmitConfigs",configForSubmit);
       this.set("showingWorkflowConfigProps",true);
     }
-  },
-  showingErrorMsgInDesigner(data){
-      var self = this, stackTraceMsg = self.getStackTrace(data.responseText);
-      if(stackTraceMsg.length){
-        self.set("stackTrace", stackTraceMsg);
-        self.set("isStackTraceAvailable", true);
-      } else {
-        self.set("isStackTraceAvailable", false);
-      }
   },
   isDraftExists(path){
     var deferred = Ember.RSVP.defer(), url, self = this;
@@ -757,6 +749,16 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.resetDesigner();
     this.importWorkflowFromString(dataStr);
     this.send("hideStreamImport");
+  },
+  generateUniqueNodeId(type){
+    let keyMap = this.get("counterMap");
+    if(keyMap.hasOwnProperty(type)){
+      keyMap[type] = ++keyMap[type];
+      return keyMap[type];
+    } else {
+      keyMap[type] = 1;
+      return 1;
+    }
   },
   actions:{
     importWorkflowStream(dataStr){
@@ -803,12 +805,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         self.importActionNodeFromString(event.target.result);
       });
       reader.readAsText(file);
-    },
-    showStackTrace(){
-      this.set("isStackTraceVisible", true);
-    },
-    hideStackTrace(){
-      this.set("isStackTraceVisible", false);
     },
     showWorkflowSla (value) {
       this.set('showWorkflowSla', value);
@@ -864,7 +860,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       var currentTransition=this.get("currentTransition.transition");
       var transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
       transition.source=this.get("currentTransition").source;
-      this.get("workflow").addNode(transition, type);
+
+      let temp = this.generateUniqueNodeId(type);
+      this.get("workflow").addNode(transition, type, {}, temp);
       this.rerender();
       this.doValidation();
       this.scrollToNewPosition();
@@ -998,9 +996,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         actionSettingsXmlDefered.promise.then(function(data){
           this.importActionSettingsFromString(data);
         }.bind(this)).catch(function(data){
-          console.error(data);
-          self.set("errorMsg", "There is some problem while importing asset.Please try again.");
-          self.showingErrorMsgInDesigner(data);
+          self.set("errorMsg", "There is some problem while importing asset.");
+          self.set("data", data);
         });
       }
     },
@@ -1016,9 +1013,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         actionSettingsXmlDefered.promise.then(function(data){
           this.importActionNodeFromString(data);
         }.bind(this)).catch(function(data){
-          console.error(data);
-          self.set("errorMsg", "There is some problem while importing asset. Please try again.");
-          self.showingErrorMsgInDesigner(data);
+          self.set("errorMsg", "There is some problem while importing asset.");
+          self.set("data", data);
         });
       }
     },
@@ -1153,9 +1149,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       saveAssetConfigDefered.promise.then(function(data){
         self.set("isAssetPublishing", false);
       }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while saving asset.");
+        self.set("data", data);
         self.set("isAssetPublishing", false);
-        self.set("errorMsg", "There is some problem while saving asset. Please try again.");
-        self.showingErrorMsgInDesigner(data);
       });
     },
     showAssetList(value) {
@@ -1173,9 +1169,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         self.importActionSettingsFromString(importedAsset.definition);
         self.set("isAssetImporting", false);
       }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while importing asset.");
+        self.set("data", data);
         self.set("isAssetImporting", false);
-        self.set("errorMsg", "There is some problem while importing asset. Please try again.");
-        self.showingErrorMsgInDesigner(data);
       });
     },
     showAssetNodeList(value) {
@@ -1193,9 +1189,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         self.importActionNodeFromString(importedAsset.definition);
         self.set("isAssetImporting", false);
       }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while importing asset.");
+        self.set("data", data);
         self.set("isAssetImporting", false);
-        self.set("errorMsg", "There is some problem while importing asset. Please try again.");
-        self.showingErrorMsgInDesigner(data);
       });
     }
   }

@@ -71,7 +71,6 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -1023,15 +1022,12 @@ public class ClusterTest {
     Assert.assertTrue("Expect desired config contain " + config3.getType(), desiredConfigs.containsKey("core-site"));
     Assert.assertEquals("Expect desired config for global should be " + config1.getTag(),
       config1.getTag(), desiredConfigs.get(config1.getType()).getTag());
-    Assert.assertEquals("_test1", desiredConfigs.get(config1.getType()).getUser());
-    Assert.assertEquals("_test3", desiredConfigs.get(config3.getType()).getUser());
     DesiredConfig dc = desiredConfigs.get(config1.getType());
     Assert.assertTrue("Expect no host-level overrides",
       (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
 
     Thread.sleep(1);
     c1.addDesiredConfig("_test2", Collections.singleton(config2));
-    Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
 
     Thread.sleep(1);
     c1.addDesiredConfig("_test1", Collections.singleton(config1));
@@ -1160,24 +1156,22 @@ public class ClusterTest {
     // ServiceConfig
     Assert.assertEquals(0,
       em.createQuery("SELECT serviceConfig from ServiceConfigEntity serviceConfig").getResultList().size());
+
     // ClusterConfig
-    Assert.assertEquals(2,
-      em.createQuery("SELECT config from ClusterConfigEntity config").getResultList().size());
-    // ClusterConfigMapping
-    List<ClusterConfigMappingEntity> configMappingEntities =
-        em.createQuery("SELECT configmapping from ClusterConfigMappingEntity configmapping",
-        ClusterConfigMappingEntity.class).getResultList();
+    List<ClusterConfigEntity> clusterConfigs = em.createQuery(
+        "SELECT config from ClusterConfigEntity config", ClusterConfigEntity.class).getResultList();
 
-    Assert.assertEquals(2, configMappingEntities.size());
+    Assert.assertEquals(2, clusterConfigs.size());
 
-    for (ClusterConfigMappingEntity configMappingEntity : configMappingEntities) {
-      if (StringUtils.equals(configMappingEntity.getType(), "core-site")) {
+    for (ClusterConfigEntity configEntity : clusterConfigs) {
+      if (StringUtils.equals(configEntity.getType(), "core-site")) {
         assertEquals("core-site is not part of HDFS in test stack, should remain mapped to cluster",
-            1, configMappingEntity.isSelected());
+            true, configEntity.isSelected());
       }
-      if (StringUtils.equals(configMappingEntity.getType(), "hdfs-site")) {
+
+      if (StringUtils.equals(configEntity.getType(), "hdfs-site")) {
         assertEquals("hdfs-site should be unmapped from cluster when HDFS service is removed",
-            0, configMappingEntity.isSelected());
+            false, configEntity.isSelected());
       }
     }
 
@@ -2415,177 +2409,142 @@ public class ClusterTest {
 
     String configType = "foo-type";
 
-    ClusterConfigEntity clusterConfig = new ClusterConfigEntity();
-    clusterConfig.setClusterEntity(clusterEntity);
-    clusterConfig.setConfigId(1L);
-    clusterConfig.setStack(currentStack);
-    clusterConfig.setTag("version-1");
-    clusterConfig.setData("{}");
-    clusterConfig.setType(configType);
-    clusterConfig.setTimestamp(1L);
-    clusterConfig.setVersion(1L);
+    ClusterConfigEntity clusterConfig1 = new ClusterConfigEntity();
+    clusterConfig1.setClusterEntity(clusterEntity);
+    clusterConfig1.setConfigId(1L);
+    clusterConfig1.setStack(currentStack);
+    clusterConfig1.setTag("version-1");
+    clusterConfig1.setData("{}");
+    clusterConfig1.setType(configType);
+    clusterConfig1.setTimestamp(1L);
+    clusterConfig1.setVersion(1L);
+    clusterConfig1.setSelected(true);
 
-    clusterDAO.createConfig(clusterConfig);
-    clusterEntity.getClusterConfigEntities().add(clusterConfig);
+    clusterDAO.createConfig(clusterConfig1);
+    clusterEntity.getClusterConfigEntities().add(clusterConfig1);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
-    ClusterConfigEntity newClusterConfig = new ClusterConfigEntity();
-    newClusterConfig.setClusterEntity(clusterEntity);
-    newClusterConfig.setConfigId(2L);
-    newClusterConfig.setStack(newStack);
-    newClusterConfig.setTag("version-2");
-    newClusterConfig.setData("{}");
-    newClusterConfig.setType(configType);
-    newClusterConfig.setTimestamp(2L);
-    newClusterConfig.setVersion(2L);
+    ClusterConfigEntity clusterConfig2 = new ClusterConfigEntity();
+    clusterConfig2.setClusterEntity(clusterEntity);
+    clusterConfig2.setConfigId(2L);
+    clusterConfig2.setStack(newStack);
+    clusterConfig2.setTag("version-2");
+    clusterConfig2.setData("{}");
+    clusterConfig2.setType(configType);
+    clusterConfig2.setTimestamp(2L);
+    clusterConfig2.setVersion(2L);
+    clusterConfig2.setSelected(false);
 
-    clusterDAO.createConfig(newClusterConfig);
-    clusterEntity.getClusterConfigEntities().add(newClusterConfig);
+    clusterDAO.createConfig(clusterConfig2);
+    clusterEntity.getClusterConfigEntities().add(clusterConfig2);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
-    // config mapping set to 1
-    ClusterConfigMappingEntity configMapping = new ClusterConfigMappingEntity();
-    configMapping.setClusterEntity(clusterEntity);
-    configMapping.setCreateTimestamp(1L);
-    configMapping.setSelected(1);
-    configMapping.setTag("version-1");
-    configMapping.setType(configType);
-    configMapping.setUser("admin");
-
-    // new config mapping set to 0
-    ClusterConfigMappingEntity newConfigMapping = new ClusterConfigMappingEntity();
-    newConfigMapping.setClusterEntity(clusterEntity);
-    newConfigMapping.setCreateTimestamp(2L);
-    newConfigMapping.setSelected(0);
-    newConfigMapping.setTag("version-2");
-    newConfigMapping.setType(configType);
-    newConfigMapping.setUser("admin");
-
-    clusterDAO.persistConfigMapping(configMapping);
-    clusterDAO.persistConfigMapping(newConfigMapping);
-    clusterEntity.getConfigMappingEntities().add(configMapping);
-    clusterEntity.getConfigMappingEntities().add(newConfigMapping);
-    clusterEntity = clusterDAO.merge(clusterEntity);
-
-    // check that the original mapping is enabled
-    Collection<ClusterConfigMappingEntity> clusterConfigMappings = clusterEntity.getConfigMappingEntities();
-    Assert.assertEquals(2, clusterConfigMappings.size());
-    for (ClusterConfigMappingEntity clusterConfigMapping : clusterConfigMappings) {
-      if (clusterConfigMapping.getTag().equals("version-1")) {
-        Assert.assertEquals(1, clusterConfigMapping.isSelected());
+    // check that the original config is enabled
+    Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();
+    Assert.assertEquals(2, clusterConfigs.size());
+    for (ClusterConfigEntity clusterConfig : clusterConfigs) {
+      if (clusterConfig.getTag().equals("version-1")) {
+        Assert.assertTrue(clusterConfig.isSelected());
       } else {
-        Assert.assertEquals(0, clusterConfigMapping.isSelected());
+        Assert.assertFalse(clusterConfig.isSelected());
       }
     }
 
     cluster.applyLatestConfigurations(newStackId);
     clusterEntity = clusterDAO.findByName("c1");
 
-    // now check that the new config mapping is enabled
-    clusterConfigMappings = clusterEntity.getConfigMappingEntities();
-    Assert.assertEquals(2, clusterConfigMappings.size());
-    for (ClusterConfigMappingEntity clusterConfigMapping : clusterConfigMappings) {
-      if (clusterConfigMapping.getTag().equals("version-1")) {
-        Assert.assertEquals(0, clusterConfigMapping.isSelected());
+    // now check that the new config is enabled
+    clusterConfigs = clusterEntity.getClusterConfigEntities();
+    Assert.assertEquals(2, clusterConfigs.size());
+    for (ClusterConfigEntity clusterConfig : clusterConfigs) {
+      if (clusterConfig.getTag().equals("version-1")) {
+        Assert.assertFalse(clusterConfig.isSelected());
       } else {
-        Assert.assertEquals(1, clusterConfigMapping.isSelected());
+        Assert.assertTrue(clusterConfig.isSelected());
       }
     }
   }
 
   /**
    * Tests that {@link Cluster#applyLatestConfigurations(StackId)} sets the
-   * right configs to enabled when there are duplicate mappings for type/tag.
-   * Only the most recent should be enabled.
+   * right configs to enabled when setting them to a prior stack which has
+   * several configs.
    *
    * @throws Exception
    */
   @Test
-  public void testApplyLatestConfigurationsWithMultipleMappings() throws Exception {
+  public void testApplyLatestConfigurationsToPreviousStack() throws Exception {
     createDefaultCluster();
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
     StackId stackId = cluster.getCurrentStackVersion();
+    StackId newStackId = new StackId("HDP-2.0.6");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
+
+    Assert.assertFalse(stackId.equals(newStackId));
 
     String configType = "foo-type";
-    String configTag = "version-1";
 
-    // create the config for the mappings
-    ClusterConfigEntity clusterConfig = new ClusterConfigEntity();
-    clusterConfig.setClusterEntity(clusterEntity);
-    clusterConfig.setConfigId(1L);
-    clusterConfig.setStack(currentStack);
-    clusterConfig.setTag(configTag);
-    clusterConfig.setData("{}");
-    clusterConfig.setType(configType);
-    clusterConfig.setTimestamp(1L);
-    clusterConfig.setVersion(1L);
+    // create 5 configurations in the current stack
+    for (int i = 1; i <= 5; i++) {
+      ClusterConfigEntity clusterConfig = new ClusterConfigEntity();
+      clusterConfig.setClusterEntity(clusterEntity);
+      clusterConfig.setConfigId(Long.valueOf(i));
+      clusterConfig.setStack(currentStack);
+      clusterConfig.setTag("version-" + i);
+      clusterConfig.setData("{}");
+      clusterConfig.setType(configType);
+      clusterConfig.setTimestamp(System.currentTimeMillis());
+      clusterConfig.setVersion(Long.valueOf(i));
 
-    clusterDAO.createConfig(clusterConfig);
-    clusterEntity.getClusterConfigEntities().add(clusterConfig);
-    clusterEntity = clusterDAO.merge(clusterEntity);
+      // set to true, then back to false to get a value populated in the
+      // selected timestamp
+      clusterConfig.setSelected(true);
+      clusterConfig.setSelected(false);
 
-    // create 3 mappings for the same type/tag, each with a different time
+      clusterDAO.createConfig(clusterConfig);
+      clusterEntity.getClusterConfigEntities().add(clusterConfig);
 
-    // config mapping 1
-    ClusterConfigMappingEntity configMapping = new ClusterConfigMappingEntity();
-    configMapping.setClusterEntity(clusterEntity);
-    configMapping.setCreateTimestamp(1L);
-    configMapping.setSelected(0);
-    configMapping.setTag(configTag);
-    configMapping.setType(configType);
-    configMapping.setUser("admin");
-    clusterDAO.persistConfigMapping(configMapping);
-    clusterEntity.getConfigMappingEntities().add(configMapping);
-
-    // config mapping 2
-    configMapping = new ClusterConfigMappingEntity();
-    configMapping.setClusterEntity(clusterEntity);
-    configMapping.setCreateTimestamp(2L);
-    configMapping.setSelected(0);
-    configMapping.setTag(configTag);
-    configMapping.setType(configType);
-    configMapping.setUser("admin");
-    clusterDAO.persistConfigMapping(configMapping);
-    clusterEntity.getConfigMappingEntities().add(configMapping);
-
-    // config mapping 3
-    configMapping = new ClusterConfigMappingEntity();
-    configMapping.setClusterEntity(clusterEntity);
-    configMapping.setCreateTimestamp(3L);
-    configMapping.setSelected(0);
-    configMapping.setTag(configTag);
-    configMapping.setType(configType);
-    configMapping.setUser("admin");
-    clusterDAO.persistConfigMapping(configMapping);
-    clusterEntity.getConfigMappingEntities().add(configMapping);
-
-    clusterEntity = clusterDAO.merge(clusterEntity);
-
-    // check all 3 mappings are disabled
-    Collection<ClusterConfigMappingEntity> clusterConfigMappings = clusterEntity.getConfigMappingEntities();
-    Assert.assertEquals(3, clusterConfigMappings.size());
-    for (ClusterConfigMappingEntity clusterConfigMapping : clusterConfigMappings) {
-      Assert.assertEquals(0, clusterConfigMapping.isSelected());
+      // ensure there is at least some pause between to ensure that the
+      // timestamps are different
+      Thread.sleep(5);
     }
 
-    // apply configurations and check to see we've set the one with the latest
-    // timestamp ONLY
-    cluster.applyLatestConfigurations(cluster.getCurrentStackVersion());
+    // save them all
+    clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // create a new configuration in the new stack and enable it
+    ClusterConfigEntity clusterConfigNewStack = new ClusterConfigEntity();
+    clusterConfigNewStack.setClusterEntity(clusterEntity);
+    clusterConfigNewStack.setConfigId(6L);
+    clusterConfigNewStack.setStack(newStack);
+    clusterConfigNewStack.setTag("version-6");
+    clusterConfigNewStack.setData("{}");
+    clusterConfigNewStack.setType(configType);
+    clusterConfigNewStack.setTimestamp(System.currentTimeMillis());
+    clusterConfigNewStack.setVersion(6L);
+    clusterConfigNewStack.setSelected(true);
+
+    clusterDAO.createConfig(clusterConfigNewStack);
+    clusterEntity.getClusterConfigEntities().add(clusterConfigNewStack);
+    clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // check that only the newest configuration is enabled
+    ClusterConfigEntity clusterConfig = clusterDAO.findEnabledConfigByType(
+        clusterEntity.getClusterId(), configType);
+    Assert.assertTrue(clusterConfig.isSelected());
+    Assert.assertEquals(clusterConfigNewStack.getTag(), clusterConfig.getTag());
+
+    // move back to the original stack
+    cluster.applyLatestConfigurations(stackId);
     clusterEntity = clusterDAO.findByName("c1");
 
-    // now check that the new config mapping is enabled
-    clusterConfigMappings = clusterEntity.getConfigMappingEntities();
-    Assert.assertEquals(3, clusterConfigMappings.size());
-    for (ClusterConfigMappingEntity clusterConfigMapping : clusterConfigMappings) {
-      if (clusterConfigMapping.getCreateTimestamp() < 3) {
-        Assert.assertEquals(0, clusterConfigMapping.isSelected());
-      } else {
-        Assert.assertEquals(1, clusterConfigMapping.isSelected());
-      }
-    }
+    // now check that latest config from the original stack is enabled
+    clusterConfig = clusterDAO.findEnabledConfigByType(clusterEntity.getClusterId(), configType);
+    Assert.assertTrue(clusterConfig.isSelected());
+    Assert.assertEquals("version-5", clusterConfig.getTag());
   }
 
   /**
@@ -2687,6 +2646,7 @@ public class ClusterTest {
     clusterConfig.setType(configType);
     clusterConfig.setTimestamp(1L);
     clusterConfig.setVersion(1L);
+    clusterConfig.setSelected(true);
 
     clusterDAO.createConfig(clusterConfig);
     clusterEntity.getClusterConfigEntities().add(clusterConfig);
@@ -2701,33 +2661,10 @@ public class ClusterTest {
     newClusterConfig.setType(configType);
     newClusterConfig.setTimestamp(2L);
     newClusterConfig.setVersion(2L);
+    newClusterConfig.setSelected(false);
 
     clusterDAO.createConfig(newClusterConfig);
     clusterEntity.getClusterConfigEntities().add(newClusterConfig);
-    clusterEntity = clusterDAO.merge(clusterEntity);
-
-    // config mapping set to 1
-    ClusterConfigMappingEntity configMapping = new ClusterConfigMappingEntity();
-    configMapping.setClusterEntity(clusterEntity);
-    configMapping.setCreateTimestamp(1L);
-    configMapping.setSelected(1);
-    configMapping.setTag("version-1");
-    configMapping.setType(configType);
-    configMapping.setUser("admin");
-
-    // new config mapping set to 0
-    ClusterConfigMappingEntity newConfigMapping = new ClusterConfigMappingEntity();
-    newConfigMapping.setClusterEntity(clusterEntity);
-    newConfigMapping.setCreateTimestamp(2L);
-    newConfigMapping.setSelected(0);
-    newConfigMapping.setTag("version-2");
-    newConfigMapping.setType(configType);
-    newConfigMapping.setUser("admin");
-
-    clusterDAO.persistConfigMapping(configMapping);
-    clusterDAO.persistConfigMapping(newConfigMapping);
-    clusterEntity.getConfigMappingEntities().add(configMapping);
-    clusterEntity.getConfigMappingEntities().add(newConfigMapping);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
     // get back the cluster configs for the new stack

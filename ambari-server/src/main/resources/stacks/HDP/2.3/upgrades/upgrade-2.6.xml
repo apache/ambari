@@ -617,7 +617,6 @@
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_java_patches</function>
           </task>
-          <task xsi:type="configure" id="admin_log4j_parameterize" />
         </pre-upgrade>
 
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
@@ -630,17 +629,7 @@
 
       <component name="RANGER_USERSYNC">
         <pre-upgrade>
-          <task xsi:type="configure" id="usersync_log4j_parameterize" />
           <task xsi:type="configure" id="hdp_2_6_0_0_disable_delta_sync_during_upgrade"/>
-        </pre-upgrade>
-        <pre-downgrade />
-        <upgrade>
-          <task xsi:type="restart-task" />
-        </upgrade>
-      </component>
-      <component name="RANGER_TAGSYNC">
-        <pre-upgrade>
-          <task xsi:type="configure" id="tagsync_log4j_parameterize" />
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
@@ -737,6 +726,7 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
             <summary>Verifying LZO codec path for mapreduce</summary>
           </task>
+          <task xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename"/>
         </pre-upgrade>
         
         <pre-downgrade copy-upgrade="true" />
@@ -765,6 +755,7 @@
           <task xsi:type="configure" id="yarn_log4j_parameterize" />
           <task xsi:type="configure" id="yarn_env_security_opts" />
           <task xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name"/>
         </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
@@ -829,6 +820,10 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_tez_queue_name"/>
+        </pre-upgrade>
+        <pre-downgrade/>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -908,6 +903,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths"/>
           <task xsi:type="configure" id="webhcat_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_6_0_0_templeton_hadoop_queue_name"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -967,6 +963,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_remove_spark_properties_extraJavaOptions"/>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts"/>
+          <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue"/>
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->

@@ -119,7 +119,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   },
 
   /**
-   *  ========================== alerts popup dialog =========================
+   *  ========================== alerts notifications dropdown dialog =========================
    */
 
   /**
@@ -128,8 +128,18 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @type {Number}
    */
   unhealthyAlertInstancesCount: function () {
+    return this.get('criticalAlertInstancesCount') + this.get('warningAlertInstancesCount');
+  }.property('criticalAlertInstancesCount', 'warningAlertInstancesCount'),
+
+  criticalAlertInstancesCount: function () {
     return this.get('content').map(function (alertDefinition) {
-      return alertDefinition.getWithDefault('summary.CRITICAL.count', 0) + alertDefinition.getWithDefault('summary.WARNING.count', 0);
+      return alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
+    }).reduce(Em.sum, 0);
+  }.property('content.@each.summary'),
+
+  warningAlertInstancesCount: function () {
+    return this.get('content').map(function (alertDefinition) {
+      return alertDefinition.getWithDefault('summary.WARNING.count', 0);
     }).reduce(Em.sum, 0);
   }.property('content.@each.summary'),
 

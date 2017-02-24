@@ -117,8 +117,10 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       bodyClass: App.AssignMasterOnStep7View.extend({
         controller: self
       }),
-      primary: Em.I18n.t('form.cancel'),
-      showFooter: false,
+      primary: Em.I18n.t('common.select'),
+      onSecondary: function() {
+        this.showWarningPopup();
+      },
       onClose: function () {
         this.showWarningPopup();
       },
@@ -402,12 +404,5 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       configActionComponent.hostName = componentHostName;
       self.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
     });
-  },
-
-  /**
-   * function called for onclcik event on cancel button for the popup
-   */
-  onCancel: function() {
-    this.get('popup').showWarningPopup();
   }
 });

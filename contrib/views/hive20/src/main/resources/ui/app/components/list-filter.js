@@ -22,6 +22,7 @@ export default Ember.Component.extend({
   classNames: ['list-filter'],
   header: '',
   subHeader: '',
+  caseInsensitive: true,
   items: [],
   filterText: '',
   emptyFilterText: Ember.computed('filterText', function() {
@@ -29,7 +30,9 @@ export default Ember.Component.extend({
   }),
   filteredItems: Ember.computed('filterText', 'items.@each', function() {
     return this.get('items').filter((item) => {
-      return item.get('name').indexOf(this.get('filterText')) !== -1;
+      let filterText = this.get('caseInsensitive') ? this.get('filterText').toLowerCase() : this.get('filterText');
+      let itemName = this.get('caseInsensitive') ? item.get('name').toLowerCase() : item.get('name')
+      return itemName.indexOf(filterText) !== -1;
     });
   }),
 

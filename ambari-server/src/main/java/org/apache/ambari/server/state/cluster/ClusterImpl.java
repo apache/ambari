@@ -89,7 +89,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -2220,40 +2219,39 @@ public class ClusterImpl implements Cluster {
     try {
       Map<String, Set<DesiredConfig>> map = new HashMap<>();
       Collection<String> types = new HashSet<>();
-      Collection<ClusterConfigMappingEntity> entities = getClusterEntity().getConfigMappingEntities();
+      Collection<ClusterConfigEntity> entities = getClusterEntity().getClusterConfigEntities();
 
-      for (ClusterConfigMappingEntity e : entities) {
-        if (allVersions || e.isSelected() > 0) {
-          DesiredConfig c = new DesiredConfig();
-          c.setServiceName(null);
-          c.setTag(e.getTag());
-          c.setUser(e.getUser());
-          if(!allConfigs.containsKey(e.getType())) {
-            LOG.error("Config inconsistency exists:" +
-                " unknown configType=" + e.getType());
+      for (ClusterConfigEntity configEntity : entities) {
+        if (allVersions || configEntity.isSelected()) {
+          DesiredConfig desiredConfig = new DesiredConfig();
+          desiredConfig.setServiceName(null);
+          desiredConfig.setTag(configEntity.getTag());
+
+          if (!allConfigs.containsKey(configEntity.getType())) {
+            LOG.error("An inconsistency exists for configuration {}", configEntity.getType());
             continue;
           }
 
-          Map<String, Config> configMap = allConfigs.get(e.getType());
-          if(!configMap.containsKey(e.getTag())) {
-            LOG.debug("Config inconsistency exists for typeName=" +
-                    e.getType() +
-                    ", unknown versionTag=" + e.getTag());
+          Map<String, Config> configMap = allConfigs.get(configEntity.getType());
+          if(!configMap.containsKey(configEntity.getTag())) {
+            LOG.error("An inconsistency exists for the configuration {} with tag {}",
+                configEntity.getType(), configEntity.getTag());
+
             continue;
           }
 
-          Config config = configMap.get(e.getTag());
-          c.setVersion(config.getVersion());
+          Config config = configMap.get(configEntity.getTag());
+          desiredConfig.setVersion(config.getVersion());
 
-          Set<DesiredConfig> configs = map.get(e.getType());
+          Set<DesiredConfig> configs = map.get(configEntity.getType());
           if (configs == null) {
             configs = new HashSet<>();
           }
 
-          configs.add(c);
+          configs.add(desiredConfig);
 
-          map.put(e.getType(), configs);
-          types.add(e.getType());
+          map.put(configEntity.getType(), configs);
+          types.add(configEntity.getType());
         }
       }
 
@@ -2590,18 +2588,18 @@ public class ClusterImpl implements Cluster {
       throw new ObjectNotFoundException("Service config version with serviceName={} and version={} not found");
     }
 
-    //disable all configs related to service
+    // disable all configs related to service
     if (serviceConfigEntity.getGroupId() == null) {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
-      List<ClusterConfigMappingEntity> mappingEntities =
-          clusterDAO.getSelectedConfigMappingByTypes(getClusterId(), new ArrayList<>(configTypes));
-      for (ClusterConfigMappingEntity entity : mappingEntities) {
-        entity.setSelected(0);
-        clusterDAO.mergeConfigMapping(entity);
+      List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);
+      for (ClusterConfigEntity enabledConfig : enabledConfigs) {
+        enabledConfig.setSelected(false);
+        clusterDAO.merge(enabledConfig);
       }
 
       for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
-        selectConfig(configEntity.getType(), configEntity.getTag(), user);
+        configEntity.setSelected(true);
+        clusterDAO.merge(configEntity);
       }
     } else {
       Long configGroupId = serviceConfigEntity.getGroupId();
@@ -2654,32 +2652,6 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  void selectConfig(String type, String tag, String user) {
-    Collection<ClusterConfigMappingEntity> entities =
-      clusterDAO.getLatestClusterConfigMappingsEntityByType(getClusterId(), type);
-
-    //disable previous config
-    for (ClusterConfigMappingEntity e : entities) {
-      e.setSelected(0);
-      clusterDAO.mergeConfigMapping(e);
-    }
-
-    ClusterEntity clusterEntity = getClusterEntity();
-    ClusterConfigMappingEntity entity = new ClusterConfigMappingEntity();
-    entity.setClusterEntity(clusterEntity);
-    entity.setClusterId(clusterEntity.getClusterId());
-    entity.setCreateTimestamp(System.currentTimeMillis());
-    entity.setSelected(1);
-    entity.setUser(user);
-    entity.setType(type);
-    entity.setTag(tag);
-    clusterDAO.persistConfigMapping(entity);
-
-    clusterEntity.getConfigMappingEntities().add(entity);
-    clusterDAO.merge(clusterEntity);
-  }
-
-  @Transactional
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
 
     String serviceName = null;
@@ -2703,9 +2675,24 @@ public class ClusterImpl implements Cluster {
       }
     }
 
+    // update the selected flag for every config type
+    ClusterEntity clusterEntity = getClusterEntity();
+    Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();
     for (Config config: configs) {
-      selectConfig(config.getType(), config.getTag(), user);
+      for (ClusterConfigEntity clusterConfigEntity : clusterConfigs) {
+        // unset for this config type
+        if (StringUtils.equals(clusterConfigEntity.getType(), config.getType())) {
+          clusterConfigEntity.setSelected(false);
+
+          // unless both the tag and type match, then enable it
+          if (StringUtils.equals(clusterConfigEntity.getTag(), config.getTag())) {
+            clusterConfigEntity.setSelected(true);
+          }
+        }
+      }
     }
+
+    clusterEntity = clusterDAO.merge(clusterEntity);
 
     if (serviceName == null) {
       ArrayList<String> configTypes = new ArrayList<>();
@@ -2728,29 +2715,23 @@ public class ClusterImpl implements Cluster {
 
   private List<ClusterConfigEntity> getClusterConfigEntitiesByService(String serviceName) {
     Collection<String> configTypes = serviceConfigTypes.get(serviceName);
-    return clusterDAO.getLatestClusterConfigsByTypes(getClusterId(), new ArrayList<>(configTypes));
+    return clusterDAO.getEnabledConfigsByTypes(getClusterId(), new ArrayList<>(configTypes));
   }
 
   @Override
   public Config getDesiredConfigByType(String configType) {
-    List<ClusterConfigMappingEntity> entities = clusterDAO.getLatestClusterConfigMappingsEntityByType(getClusterId(), configType);
-    if (!entities.isEmpty()) {
-      return getConfig(configType, entities.get(0).getTag());
+    ClusterConfigEntity config = clusterDAO.findEnabledConfigByType(getClusterId(), configType);
+    if (null == config) {
+      return null;
     }
 
-    return null;
+    return getConfig(configType, config.getTag());
   }
 
   @Override
   public boolean isConfigTypeExists(String configType) {
-    for (ClusterConfigMappingEntity e : clusterDAO.getClusterConfigMappingEntitiesByCluster(
-        getClusterId())) {
-      if (e.getType().equals(configType)) {
-        return true;
-      }
-    }
-
-    return false;
+    ClusterConfigEntity config = clusterDAO.findEnabledConfigByType(getClusterId(), configType);
+    return null != config;
   }
 
   @Override
@@ -2773,7 +2754,6 @@ public class ClusterImpl implements Cluster {
       DesiredConfig desiredConfig = new DesiredConfig();
       desiredConfig.setTag(mappingEntity.getVersion());
       desiredConfig.setServiceName(mappingEntity.getServiceName());
-      desiredConfig.setUser(mappingEntity.getUser());
 
       desiredConfigsByHost.get(mappingEntity.getHostId()).put(mappingEntity.getType(), desiredConfig);
     }
@@ -3135,38 +3115,37 @@ public class ClusterImpl implements Cluster {
 
     try {
       ClusterEntity clusterEntity = getClusterEntity();
-      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+      Collection<ClusterConfigEntity> configEntities = clusterEntity.getClusterConfigEntities();
 
-      // hash them for easier retrieval later - these are the same entity
-      // instances which exist on the cluster entity, so modification of the CCM
-      // entity here will affect the cluster CCM entities as well
-      ImmutableMap<Object, ClusterConfigMappingEntity> ccmMap = Maps.uniqueIndex(configMappingEntities, Functions.identity());
+      // hash them for easier retrieval later
+      ImmutableMap<Object, ClusterConfigEntity> clusterConfigEntityMap = Maps.uniqueIndex(
+          configEntities, Functions.identity());
 
       // disable all configs
-      for (ClusterConfigMappingEntity e : configMappingEntities) {
-        LOG.debug("{} with tag {} is unselected", e.getType(), e.getTag());
-        e.setSelected(0);
+      for (ClusterConfigEntity e : configEntities) {
+        LOG.debug("Disabling configuration {} with tag {}", e.getType(), e.getTag());
+        e.setSelected(false);
       }
 
       // work through the in-memory list, finding only the most recent mapping per type
-      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMappingsForStack(
-          clusterEntity.getClusterId(), stackId);
+      Collection<ClusterConfigEntity> latestConfigsByStack = clusterDAO.getLatestConfigurations(
+          clusterId, stackId);
 
-      for( ClusterConfigMappingEntity latestConfigMapping : latestConfigMappingByStack ){
-        ClusterConfigMappingEntity mapping = ccmMap.get(latestConfigMapping);
-        mapping.setSelected(1);
+      // pull the correct latest mapping for the stack out of the cached map
+      // from the cluster entity
+      for (ClusterConfigEntity latestConfigByStack : latestConfigsByStack) {
+        ClusterConfigEntity entity = clusterConfigEntityMap.get(latestConfigByStack);
+        entity.setSelected(true);
 
-        LOG.info("Settting {} with version tag {} created on {} to selected for stack {}",
-            mapping.getType(), mapping.getTag(), new Date(mapping.getCreateTimestamp()),
+        LOG.info("Setting {} with version tag {} created on {} to selected for stack {}",
+            entity.getType(), entity.getTag(), new Date(entity.getTimestamp()),
             stackId.toString());
       }
 
       // since the entities which were modified came from the cluster entity's
       // list to begin with, we can just save them right back - no need for a
-      // new collection since the CCM entity instances were modified directly
-      clusterEntity.setConfigMappingEntities(configMappingEntities);
+      // new collection since the entity instances were modified directly
       clusterEntity = clusterDAO.merge(clusterEntity);
-      clusterDAO.mergeConfigMappings(configMappingEntities);
 
       cacheConfigurations();
     } finally {
@@ -3183,62 +3162,6 @@ public class ClusterImpl implements Cluster {
     // stale data
     EntityManagerCacheInvalidationEvent event = new EntityManagerCacheInvalidationEvent();
     jpaEventPublisher.publish(event);
-  }
-
-  /**
-   * Retrieves all of the configuration mappings (selected and unselected) for
-   * the specified stack and then iterates through them, returning the most
-   * recent mapping for every type/tag combination.
-   * <p/>
-   * Because of how configuration revert works, mappings can be created for the
-   * same type/tag combinations. The only difference being that the timestamp
-   * reflects when each mapping was created.
-   * <p/>
-   * JPQL cannot be used directly here easily because some databases cannot
-   * support the necessary grouping and IN clause. For example: <br/>
-   *
-   * <pre>
-   * SELECT mapping FROM clusterconfigmappingentity mapping
-   *   WHERE (mapping.typename, mapping.createtimestamp) IN
-   *     (SELECT latest.typename, MAX(latest.createtimestamp)
-   *      FROM clusterconfigmappingentity latest
-   *      GROUP BY latest.typename)
-   * </pre>
-   *
-   * @param clusterId
-   *          the cluster ID
-   * @param stackId
-   *          the stack to retrieve the mappings for (not {@code null}).
-   * @return the most recent mapping (selected or unselected) for the specified
-   *         stack for every type.
-   */
-  public Collection<ClusterConfigMappingEntity> getLatestConfigMappingsForStack(long clusterId,
-      StackId stackId) {
-
-    // get all mappings for the specified stack (which could include
-    // duplicates since a config revert creates a duplicate mapping with a
-    // different timestamp)
-    List<ClusterConfigMappingEntity> clusterConfigMappingsForStack = clusterDAO.getClusterConfigMappingsByStack(
-        clusterId, stackId);
-
-    Map<String, ClusterConfigMappingEntity> latestMappingsByType = new HashMap<>();
-    for (ClusterConfigMappingEntity mapping : clusterConfigMappingsForStack) {
-      String type = mapping.getType();
-
-      if (!latestMappingsByType.containsKey(type)) {
-        latestMappingsByType.put(type, mapping);
-        continue;
-      }
-
-      ClusterConfigMappingEntity entityStored = latestMappingsByType.get(type);
-      Long timestampStored = entityStored.getCreateTimestamp();
-      Long timestamp = mapping.getCreateTimestamp();
-      if (timestamp > timestampStored) {
-        latestMappingsByType.put(type, mapping);
-      }
-    }
-
-    return latestMappingsByType.values();
   }
 
   /**
@@ -3307,31 +3230,6 @@ public class ClusterImpl implements Cluster {
     }
 
     clusterEntity.setClusterConfigEntities(clusterConfigEntities);
-    clusterEntity = clusterDAO.merge(clusterEntity);
-
-    // remove config mappings
-    Collection<ClusterConfigMappingEntity> configMappingEntities =
-        clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
-
-    for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
-      String removedClusterConfigType = removedClusterConfig.getType();
-      String removedClusterConfigTag = removedClusterConfig.getTag();
-
-      Iterator<ClusterConfigMappingEntity> clusterConfigMappingIterator = configMappingEntities.iterator();
-      while (clusterConfigMappingIterator.hasNext()) {
-        ClusterConfigMappingEntity clusterConfigMapping = clusterConfigMappingIterator.next();
-        String mappingType = clusterConfigMapping.getType();
-        String mappingTag = clusterConfigMapping.getTag();
-
-        if (removedClusterConfigTag.equals(mappingTag)
-          && removedClusterConfigType.equals(mappingType)) {
-          clusterConfigMappingIterator.remove();
-          clusterDAO.removeConfigMapping(clusterConfigMapping);
-        }
-      }
-    }
-
-    clusterEntity.setConfigMappingEntities(configMappingEntities);
     clusterEntity = clusterDAO.merge(clusterEntity);
   }
 

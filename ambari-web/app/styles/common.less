@@ -37,9 +37,9 @@
 ***********************************************************************/
 @health-status-red: #EF6162;
 @health-status-blue: #0000ff;
-@health-status-green: #3FAE2A;
+@health-status-green: #1EB475;
 @health-status-yellow: #FFD13D;
-@health-status-orange: #E98A41;
+@health-status-orange: #e98a41;
 @maintenance-black: #000;
 /************************************************************************
 * Health status(service/host/host component health)icon colors ends
@@ -60,7 +60,7 @@
 
 @top-nav-bg-color-from: #555;
 @top-nav-bg-color-to: #333;
-@top-nav-brand-color: #fff;
+@top-nav-brand-color: #999;
 @top-nav-ops-count-color: #fff;
 @top-nav-ops-count-bg-color: #c3c3c3;
 @top-nav-menu-active-text-color: #333;
@@ -184,6 +184,7 @@
 }
 
 @footer-height: 100px;
+@side-navigation-width: 190px;
 
 @default-font-size: 14px;
 @smaller-font-size: 12px;
@@ -197,3 +198,9 @@
 @modal-header-height: 50px;
 // modal footer height
 @modal-footer-height: 60px;
+
+.btn-primary[disabled] {
+  .icon-spinner {
+    color: white;
+  }
+}

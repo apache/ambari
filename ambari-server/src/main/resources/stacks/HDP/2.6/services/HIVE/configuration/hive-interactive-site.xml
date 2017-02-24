@@ -96,4 +96,11 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
 
+  <property>
+    <name>hive.llap.daemon.am.liveness.heartbeat.interval.ms</name>
+    <value>10000ms</value>
+    <description>Tez AM-LLAP heartbeat interval. This should be below the task timeout</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
 </configuration>

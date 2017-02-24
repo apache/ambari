@@ -16,8 +16,14 @@
 * limitations under the License.
 }}
 
-<ul class="nav nav-tabs">
-    {{#each view.items}}
-      <li {{bindAttr class="active"}} ><a {{action navigate routing }} href="#">{{unbound label}}</a></li>
-    {{/each}}
-</ul>
+<a {{bindAttr id="view.buttonId" class=":btn view.buttonClassNames" disabled="view.isDisabled"}} {{action handleClick target="view"}}>
+  {{#if view.doSpinRight}}
+    {{yield}}
+  {{/if}}
+  {{#if view.isInProgress}}
+    {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+  {{/if}}
+  {{#unless view.doSpinRight}}
+    {{yield}}
+  {{/unless}}
+</a>

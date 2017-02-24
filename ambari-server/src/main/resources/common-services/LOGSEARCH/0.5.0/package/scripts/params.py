@@ -53,9 +53,14 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
+credential_store_enabled = False
+if 'credentialStoreEnabled' in config:
+  credential_store_enabled = config['credentialStoreEnabled']
+
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
 logsearch_server_keys_folder = logsearch_server_conf + "/keys"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_keys_folder = logsearch_logfeeder_conf + "/keys"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
 
@@ -176,8 +181,10 @@ logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_
 
 logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
 logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
+logsearch_keystore_password = config['configurations']['logsearch-env']['logsearch_keystore_password']
 logsearch_truststore_location = config['configurations']['logsearch-env']['logsearch_truststore_location']
 logsearch_truststore_type = config['configurations']['logsearch-env']['logsearch_truststore_type']
+logsearch_truststore_password = config['configurations']['logsearch-env']['logsearch_truststore_password']
 
 logsearch_env_config = dict(config['configurations']['logsearch-env'])
 logsearch_env_jceks_file = os.path.join(logsearch_server_conf, 'logsearch.jceks')
@@ -312,8 +319,10 @@ logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 
 logfeeder_keystore_location = config['configurations']['logfeeder-env']['logfeeder_keystore_location']
 logfeeder_keystore_type = config['configurations']['logfeeder-env']['logfeeder_keystore_type']
+logfeeder_keystore_password = config['configurations']['logfeeder-env']['logfeeder_keystore_password']
 logfeeder_truststore_location = config['configurations']['logfeeder-env']['logfeeder_truststore_location']
 logfeeder_truststore_type = config['configurations']['logfeeder-env']['logfeeder_truststore_type']
+logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
 
 logfeeder_env_config = dict(config['configurations']['logfeeder-env'])
 logfeeder_env_jceks_file = os.path.join(logsearch_logfeeder_conf, 'logfeeder.jceks')

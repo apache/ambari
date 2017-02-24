@@ -156,10 +156,12 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       }
       this.set('bundleFilePath', filePath);
       this.set("isImporting", false);
-    }.bind(this)).catch(function(e){
+    }.bind(this)).catch(function(data){
+      console.error(data);
+      this.set("errorMsg", "There is some problem while importing.");
       this.set("isImporting", false);
       this.set("isImportingSuccess", false);
-      throw new Error(e);
+      this.set("data", data);
     }.bind(this));
   },
   getBundleFromJSON(draftBundle){
@@ -363,7 +365,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       }.bind(this)).catch(function(e){
         this.$('#loading').hide();
         this.get("errors").pushObject({'message' : 'Could not process coordinator from ' + e.path});
-        throw new Error(e.trace);
+        throw new Error(e);
       }.bind(this));
     },
     preview(){

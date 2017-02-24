@@ -133,7 +133,7 @@ function getRenderer(type) {
           </div>
           <div class='operator-body' style='margin-left: 10px;'>
             <div>${getOperatorLabel(d)}</div>
-            ${d['limit:'] ? '<div><span style="font-weight: lighter;">Limit:</span> ' + d['limit:'] + ' </div>' : ''}
+            ${(d['limit:'] && d['limit:'] > -1) ? '<div><span style="font-weight: lighter;">Limit:</span> ' + d['limit:'] + ' </div>' : ''}
           </div>
         </div>
       `);
@@ -317,7 +317,7 @@ function doClean(node) {
   } else {
     return (
       Object.keys(node)
-        .filter(cNodeKey => cNodeKey !== '_children')
+        .filter(cNodeKey => cNodeKey !== '_children' && cNodeKey !== '_uuid')
         .reduce((accumulator, cNodeKey) => {
           accumulator[cNodeKey] = node[cNodeKey];
           return accumulator;

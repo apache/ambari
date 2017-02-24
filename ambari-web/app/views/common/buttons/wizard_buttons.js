@@ -16,20 +16,21 @@
  * limitations under the License.
  */
 
-import ApplicationAdapter from './application';
+var App = require('app');
 
-export default ApplicationAdapter.extend({
-  ping() {
-    const url = this.urlForCreateRecord('ping');
-    return this.ajax(url, 'POST');
-  },
+App.WizardNextButton = App.ButtonProgressView.extend({
+  classNames: ['pull-right'],
+  isInProgressBinding: 'App.router.nextBtnClickInProgress',
+  buttonClassNames: ['btn-success'],
+  template: Em.Handlebars.compile('{{t common.next}} &rarr;'),
+  disabledBinding: 'controller.isSubmitDisabled'
+});
 
-  pathForType() {
-    return "system/ping";
-  },
-
-  fetchAuth(databaseName, tableName) {
-    const url = this.buildURL() + '/system/ranger/auth';
-    return this.ajax(url, "GET", {data: {database: databaseName, table: tableName}});
-  }
+App.WizardBackButton = App.ButtonProgressView.extend({
+  classNames: ['pull-left'],
+  isInProgressBinding: 'App.router.backBtnClickInProgress',
+  buttonClassNames: ['btn-default'],
+  template: Em.Handlebars.compile('&larr; {{t common.back}}'),
+  doSpinRight: false,
+  disabledBinding: 'controller.isBackButtonDisabled'
 });
