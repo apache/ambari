@@ -51,7 +51,7 @@ module.exports = {
     }
     App.ModalPopup.show({
 
-      classNames: [ 'sixty-percent-width-modal' ],
+      classNames: ['sixty-percent-width-modal', 'full-height-modal'],
 
       elementId: 'host-selection-dialog',
 
