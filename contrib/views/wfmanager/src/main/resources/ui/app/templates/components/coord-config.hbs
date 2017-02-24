@@ -106,7 +106,7 @@
                   {{input type="text" class="form-control" name="appPath" focus-out="showWorkflowName" value=coordinator.workflow.appPath placeholder="Path of the workflow file"}}
                   <span class="input-group-btn">
                     <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "coordinator.workflow.appPath"}}>Browse</button>
-                    <button class="btn btn-default" type="button" {{action "openTab" 'wf' coordinator.workflow.appPath}} name="button"><i class="fa fa-external-link"></i></button>
+                    <button class="btn btn-default" type="button" disabled={{containsParameteriedPaths}} title={{parameterizedPathWarning}} {{action "openTab" 'wf' coordinator.workflow.appPath}} name="button"><i class="fa fa-external-link"></i></button>
                   </span>
                 </div>
                 {{#if workflowName}}
