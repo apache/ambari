@@ -191,7 +191,7 @@ var SqoopActionJobHandler=ActionJobHandler.extend({
     ];
   },
   validate(nodeDomain){
-    if (Ember.isBlank(nodeDomain.command) && nodeDomain.arg.length < 1){
+    if (Ember.isBlank(nodeDomain.command) && (!nodeDomain.arg || nodeDomain.arg.length < 1)){
       return [{message : "Either command or arguments have to be set."}];
     }
   }
