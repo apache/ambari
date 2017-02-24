@@ -17,7 +17,7 @@
  */
 
 import doEnhance from './enhancer';
-import {getProcessedVertices} from './processor';
+import {getProcessedVertices, getEdgesWithCorrectedUnion} from './processor';
 
 export default function doTransform(data) {
   const plan = getTezPlan(data);
@@ -29,27 +29,54 @@ export default function doTransform(data) {
   ];
 
   const tezEdges = getEdges(plan, vertices);
-  const edges = getEdgesWithFetch(tezEdges, vertices);
+  const edgesWithCorrectedUnion = getEdgesWithCorrectedUnion(tezEdges);
+  const edges = getEdgesWithFetch(edgesWithCorrectedUnion, vertices);
 
   const enhancedVertices = doEnhance(vertices);
 
   const processedVertices = getProcessedVertices(enhancedVertices, edges);
 
+  const verticesWithIndexOfChildren = getVerticesWithIndexOfChildren(processedVertices);
 
   const tree = getVertexTree(edges);
-  const connections = getConnections(processedVertices, edges);
-  const treeWithOffsetY = getTreeWithOffsetAndHeight(tree, processedVertices, connections);
+  const connections = getConnections(verticesWithIndexOfChildren, edges);
+  const treeWithOffsetY = getTreeWithOffsetAndHeight(tree, verticesWithIndexOfChildren, connections);
 
-
-  const nodes = getNodes(processedVertices);
+  const nodes = getNodes(verticesWithIndexOfChildren);
 
   return ({
-    vertices: processedVertices,
+    vertices: verticesWithIndexOfChildren,
     edges,
     tree: treeWithOffsetY,
     nodes,
     connections,
   });
+}
+
+function getVerticesWithIndexOfChildren(vertices) {
+  const verticesWithIndexX = vertices.map(cVertex => Object.assign({}, cVertex, {
+    _children: doGetChildrenWithIndexX(cVertex._children, 0)
+  }));
+
+  const verticesWithIndexY = verticesWithIndexX.map(cVertex => Object.assign({}, cVertex, {
+    _children: doGetChildrenWithIndexY(cVertex._children, 0)
+  }));
+
+  return verticesWithIndexY;
+}
+
+function doGetChildrenWithIndexX(children, cIndex) {
+  return children.map(cChild => Object.assign({}, cChild, {
+    _indexX: cIndex,
+    _children: doGetChildrenWithIndexX(cChild._children, cIndex + 1)
+  }))
+}
+
+function doGetChildrenWithIndexY(children, cIndex) {
+  return children.map((cChild, index) => Object.assign({}, cChild, {
+    _indexY: cIndex + index,
+    _children: doGetChildrenWithIndexY(cChild._children, cIndex + index)
+  }))
 }
 
 function getTezPlan(data) {
@@ -179,21 +206,17 @@ function doHarmonize(nodes) {
   });
 }
 
-function doGetHeightOfNodes(children) {
-  if(children.length > 0) {
-    return children.reduce((height, cChild) => height + doGetHeightOfNodes(cChild._children), 0);
-  }
-  return 1;
-}
-
 function getTreeWithOffsetAndHeight(node, vertices, connections) {
-  const treeWithCumulativeHeight = getTreeWithCumulativeHeight(node, vertices);
-  const treeWithCumulativeWidth = getTreeWithIndividualWidth(treeWithCumulativeHeight, vertices);
-  const treeWithOffsetY = Object.assign({}, getTreeWithOffsetYInHiererchy(treeWithCumulativeWidth, connections), {
+  const treeWithCumulativeHeight = getTreeWithCumulativeHeight(node, vertices, connections);
+  const treeWithIndividualWidth = getTreeWithIndividualWidth(treeWithCumulativeHeight, vertices);
+  //const treeWithCumulativeWidth = getTreeWithCumulativeWidth(treeWithIndividualWidth);
+  const treeWithOffsetY = Object.assign({}, getTreeWithOffsetYInHiererchy(treeWithIndividualWidth, connections), {
     _offsetY: 0
   });
+  const treeWithEffectiveOffsetX =  getTreeWithEffectiveOffsetX(treeWithOffsetY, 0);
+  const treeWithEffectiveOffsetY =  getTreeWithEffectiveOffsetY(treeWithEffectiveOffsetX, 0);
 
-  return treeWithOffsetY;
+  return treeWithEffectiveOffsetY;
 }
 
 function doGetWidthOfNodes(children = []) {
@@ -203,15 +226,50 @@ function doGetWidthOfNodes(children = []) {
   return 1 + Math.max(0, ...children.map(cChild => doGetWidthOfNodes(cChild._children)));
 }
 
-function getTreeWithCumulativeHeight(node, vertices) {
+function getTreeWithEffectiveOffsetX(node, positionX) {
+  const _vertices = node._vertices.map(cVertex => getTreeWithEffectiveOffsetX(cVertex, positionX + node._widthOfSelf));
+
+  return Object.assign({}, node, {
+    _X: positionX,
+    _vertices,
+  });
+}
+
+function getTreeWithEffectiveOffsetY(node, positionY) {
+  const _vertices = node._vertices.map(cVertex => getTreeWithEffectiveOffsetY(cVertex, positionY + cVertex._offsetY));
+
+  return Object.assign({}, node, {
+    _Y: positionY,
+    _vertices,
+  });
+}
+
+function doGetHeightOfNodes(children) {
+  if(children.length > 0) {
+    return children.reduce((height, cChild) => height + doGetHeightOfNodes(cChild._children), 0);
+  }
+  return 1;
+}
+
+function getTreeWithCumulativeHeight(node, vertices, connections) {
   const vertexKey = node._vertex;
   const vertex = vertices.find(cVertex => cVertex._vertex === vertexKey);
+
+  // if does not overlap > add 1
+  const vertexNext = node._vertices[0] && vertices.find(cVertex => cVertex._vertex === node._vertices[0]._vertex);
+  const source = vertexNext && getLastOperatorOf(vertexNext);
+  const target = getFirstOperatorOf(vertex);
+  const isFirstConnectedToLast = connections.some(cConnection => source && target && cConnection._source._uuid === source._uuid && cConnection._target._uuid === target._uuid);
+
 
   let _height = doGetHeightOfNodes(vertex._children);
   let _vertices = [];
   if(Array.isArray(node._vertices)){
-    _vertices = node._vertices.map(cVertex => getTreeWithCumulativeHeight(cVertex, vertices));
-    _height = Math.max(_height, _vertices.reduce((height, cVertex) => height + cVertex._height, 1));
+    _vertices = node._vertices.map(cVertex => getTreeWithCumulativeHeight(cVertex, vertices, connections));
+    _height = Math.max(_height, _vertices.reduce((height, cVertex) => height + cVertex._height, 0));
+  }
+  if(source && !isFirstConnectedToLast) {
+    _height = _height + 1;
   }
   return Object.assign({}, node, vertex, {
     _height,
@@ -288,20 +346,7 @@ function getEdges(plan, vertices) {
         }
       }, []);
 
-  const edgesWithFixedUnions =
-    edges
-      .map(cEdge => {
-        if(cEdge.type === 'CONTAINS') {
-          return Object.assign({}, cEdge, {
-            _source: cEdge._target,
-            _target: cEdge._source,
-          });
-        } else {
-          return cEdge;
-        }
-      });
-
-  return edgesWithFixedUnions;
+  return edges;
 }
 
 function doCloneAndOmit(obj, keys) {
