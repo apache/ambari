@@ -593,7 +593,16 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       });
     },
     openTab(type, path){
-      this.sendAction('openTab', type, path);
+      this.set('errorMsg', '');
+      var path = this.appendFileName(path, type);
+      var deferred = this.readFromHdfs(path);
+      deferred.promise.then(function(data){
+        this.sendAction('openTab', type, path);
+      }.bind(this)).catch(function(data){
+        console.log(data);
+        this.set('errorMsg', 'There is some problem while importing.');
+        this.set('data', data);
+      }.bind(this));
     },
     showParameterSettings(value){
       if(this.get('coordinator.parameters') !== null){
@@ -636,15 +645,26 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     showWorkflowName(){
       this.set('workflowName', null);
+      this.set('errorMsg', "");
       var path = this.appendFileName(this.get('coordinator.workflow.appPath'), 'wf');
+      if (this.get('propertyExtractor').containsParameters(path)) {
+        this.set('containsParameteriedPaths', true);
+        this.set('parameterizedPathWarning', 'Workflow path contains variables');
+        return;
+      } else {
+        this.set('containsParameteriedPaths', false);
+        this.set('parameterizedPathWarning', '');
+      }
       var deferred = this.readFromHdfs(path);
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var workflowJson = x2js.xml_str2json(data);
         this.set('workflowName', workflowJson["workflow-app"]._name);
-      }.bind(this)).catch(function(e){
+      }.bind(this)).catch(function(data){
+        console.log(data);
         this.set('workflowName', null);
-        throw new Error(e);
+        this.set('errorMsg', "There is some problem while fetching workflow name.");
+        this.set("data", data);
       }.bind(this));
     },
     showVersionSettings(value){
