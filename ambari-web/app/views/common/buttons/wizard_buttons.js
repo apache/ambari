@@ -21,7 +21,8 @@ var App = require('app');
 App.WizardNextButton = App.ButtonProgressView.extend({
   classNames: ['pull-right'],
   isInProgressBinding: 'App.router.nextBtnClickInProgress',
-  buttonClassNames: ['btn-success'],
+  doSpinRight: false,
+  buttonClassNames: 'btn-success pull-right',
   template: Em.Handlebars.compile('{{t common.next}} &rarr;'),
   disabledBinding: 'controller.isSubmitDisabled'
 });
@@ -30,6 +31,6 @@ App.WizardBackButton = App.ButtonProgressView.extend({
   classNames: ['pull-left'],
   isInProgressBinding: 'App.router.backBtnClickInProgress',
   template: Em.Handlebars.compile('&larr; {{t common.back}}'),
-  doSpinRight: false,
+  buttonClassNames: 'pull-left',
   disabledBinding: 'controller.isBackButtonDisabled'
 });
