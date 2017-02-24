@@ -41,7 +41,7 @@ class SparkThriftServer(Script):
 
     self.install_packages(env)
 
-  def configure(self, env ,upgrade_type=None):
+  def configure(self, env, upgrade_type=None, config_dir=None):
     import params
     env.set_params(params)
     setup_spark(env, 'server', upgrade_type = upgrade_type, action = 'config')
@@ -70,10 +70,9 @@ class SparkThriftServer(Script):
     import params
 
     env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.SPARK2_THRIFTSERVER, params.version):
-      Logger.info("Executing Spark2 Thrift Server Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark2", params.version)
-      stack_select.select("spark2-thriftserver", params.version)
+    Logger.info("Executing Spark2 Thrift Server Stack Upgrade pre-restart")
+    conf_select.select(params.stack_name, "spark2", params.version)
+    stack_select.select("spark2-thriftserver", params.version)
       
   def get_log_folder(self):
     import params

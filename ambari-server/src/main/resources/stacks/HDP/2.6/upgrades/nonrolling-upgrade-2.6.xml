@@ -109,6 +109,12 @@
         <component>LIVY_SERVER</component>
       </service>
 
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
+      </service>
+
       <service name="ZEPPELIN">
         <component>ZEPPELIN_MASTER</component>
       </service>
@@ -527,12 +533,33 @@
       </service>
     </group>
 
+    <group xsi:type="restart" name="SPARK2" title="Spark2">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
+      </service>
+    </group>
+
     <group xsi:type="restart" name="SPARK_CLIENTS" title="Spark Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="SPARK2_CLIENTS" title="Spark2 Clients">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+      <service name="SPARK2">
+        <component>SPARK2_CLIENT</component>
       </service>
     </group>
 
@@ -592,6 +619,7 @@
       <priority>
         <service>HIVE</service>
         <service>SPARK</service>
+        <service>SPARK2</service>
         <service>SLIDER</service>
         <service>ATLAS</service>
         <service>ZEPPELIN</service>
@@ -991,6 +1019,29 @@
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK2_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="LIVY2_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK2_CLIENT">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
