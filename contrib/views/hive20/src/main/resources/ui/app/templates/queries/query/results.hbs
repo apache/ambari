@@ -19,7 +19,9 @@
 {{outlet}}
 
 {{#unless hasJobAssociated}}
-  <div>No Results available.</div>
+  <div class="explain--error">
+    <div>No Results available.</div>
+  </div>
 {{/unless}}
 
 {{#if hasJobAssociated}}
