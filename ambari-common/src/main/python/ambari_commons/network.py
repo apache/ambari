@@ -20,20 +20,47 @@ limitations under the License.
 
 import httplib
 import ssl
+import socket
 
+from ambari_commons.logging_utils import print_warning_msg
 from resource_management.core.exceptions import Fail
+
+# overrides default httplib.HTTPSConnection implementation to use specified ssl version
+class HTTPSConnectionWithCustomSslVersion(httplib.HTTPSConnection):
+  def __init__(self, host, port, ssl_version, **kwargs):
+    httplib.HTTPSConnection.__init__(self, host, port, **kwargs)
+    self.ssl_version = ssl_version
+
+  def connect(self):
+    conn_socket = socket.create_connection((self.host, self.port),
+                                    self.timeout)
+    if getattr(self, '_tunnel_host', None):
+      self.sock = conn_socket
+      self._tunnel()
+
+    self.sock = ssl.wrap_socket(conn_socket, self.key_file, self.cert_file,
+                                ssl_version=self.ssl_version)
 
 def get_http_connection(host, port, https_enabled=False, ca_certs=None):
   if https_enabled:
+    ssl_version = ssl.PROTOCOL_SSLv23
     if ca_certs:
-      check_ssl_certificate(host, port, ca_certs)
-    return httplib.HTTPSConnection(host, port)
+      ssl_version = check_ssl_certificate_and_return_ssl_version(host, port, ca_certs)
+    return HTTPSConnectionWithCustomSslVersion(host, port, ssl_version)
   else:
     return httplib.HTTPConnection(host, port)
 
-def check_ssl_certificate(host, port, ca_certs):
+def check_ssl_certificate_and_return_ssl_version(host, port, ca_certs):
   try:
-    ssl.get_server_certificate((host, port), ssl_version=ssl.PROTOCOL_SSLv23, ca_certs=ca_certs)
-  except (ssl.SSLError) as ssl_error:
-    raise Fail("Failed to verify the SSL certificate for https://{0}:{1} with CA certificate in {2}"
-               .format(host, port, ca_certs))
+    ssl_version = ssl.PROTOCOL_TLSv1
+    ssl.get_server_certificate((host, port), ssl_version=ssl_version, ca_certs=ca_certs)
+  except ssl.SSLError as ssl_error:
+    print_warning_msg("Failed to verify the SSL certificate for https://{0}:{1} with CA certificate in {2} using ssl.PROTOCOL_TLSv1."
+                      " Trying to use less secure ssl.PROTOCOL_SSLv23. Error : {3}".format(host, port, ca_certs, str(ssl_error)))
+    try:
+      ssl_version = ssl.PROTOCOL_SSLv23
+      ssl.get_server_certificate((host, port), ssl_version=ssl_version, ca_certs=ca_certs)
+    except ssl.SSLError as ssl_error:
+      raise Fail("Failed to verify the SSL certificate for https://{0}:{1} with CA certificate in {2}. Error : {3}"
+               .format(host, port, ca_certs, str(ssl_error)))
+  return ssl_version

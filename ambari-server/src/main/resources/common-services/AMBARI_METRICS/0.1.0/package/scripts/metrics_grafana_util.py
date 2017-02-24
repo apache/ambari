@@ -46,12 +46,16 @@ Server = namedtuple('Server', [ 'protocol', 'host', 'port', 'user', 'password' ]
 def perform_grafana_get_call(url, server):
   grafana_https_enabled = server.protocol.lower() == 'https'
   response = None
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       conn = network.get_http_connection(server.host,
                                          int(server.port),
-                                         grafana_https_enabled)
+                                         grafana_https_enabled, ca_certs)
 
       userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
@@ -82,9 +86,14 @@ def perform_grafana_put_call(url, id, payload, server):
              'Authorization' : 'Basic %s' %  userAndPass }
   grafana_https_enabled = server.protocol.lower() == 'https'
 
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
+
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
-      conn = network.get_http_connection(server.host, int(server.port), grafana_https_enabled)
+      conn = network.get_http_connection(server.host, int(server.port), grafana_https_enabled, ca_certs)
       conn.request("PUT", url + "/" + str(id), payload, headers)
       response = conn.getresponse()
       data = response.read()
@@ -112,12 +121,17 @@ def perform_grafana_post_call(url, payload, server):
              'Authorization' : 'Basic %s' %  userAndPass}
   grafana_https_enabled = server.protocol.lower() == 'https'
 
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
+
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       Logger.info("Connecting (POST) to %s:%s%s" % (server.host, server.port, url))
       conn = network.get_http_connection(server.host,
                                          int(server.port),
-                                         grafana_https_enabled)
+                                         grafana_https_enabled, ca_certs)
       
       conn.request("POST", url, payload, headers)
 
@@ -149,11 +163,16 @@ def perform_grafana_delete_call(url, server):
   grafana_https_enabled = server.protocol.lower() == 'https'
   response = None
 
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
+
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       conn = network.get_http_connection(server.host,
                                          int(server.port),
-                                         grafana_https_enabled)
+                                         grafana_https_enabled, ca_certs)
 
       userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
