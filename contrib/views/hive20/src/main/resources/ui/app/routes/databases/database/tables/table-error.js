@@ -17,15 +17,11 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../../../../mixins/ui-logger';
 
-export default Ember.Controller.extend({
-
-  showStatus: Ember.computed('model', function() {
-    return this.get('model.status') !== -1;
-  }),
-
-  displayBody: Ember.computed('model', function() {
-    return !(Ember.isBlank(this.get('model.responseMessage'))
-      && Ember.isBlank(this.get('model.trace')));
-  })
+export default Ember.Route.extend(UILoggerMixin, {
+  setupController(controller, error) {
+    let alertMessage = this.get('logger').danger("Failed to fetch table information", this.extractError(error), {sticky: false, timeout: 0});
+    controller.set('alert', alertMessage);
+  }
 });

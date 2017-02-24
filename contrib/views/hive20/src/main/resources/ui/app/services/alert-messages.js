@@ -54,23 +54,23 @@ export default Ember.Service.extend({
   }),
 
   success: function(message, options = {}, alertOptions = {}) {
-    this._processMessage('success', message, options, alertOptions);
+    return this._processMessage('success', message, options, alertOptions);
   },
 
   warn: function(message, options = {}, alertOptions = {}) {
-    this._processMessage('warn', message, options, alertOptions);
+    return this._processMessage('warn', message, options, alertOptions);
   },
 
   info: function(message, options = {}, alertOptions = {}) {
-    this._processMessage('info', message, options, alertOptions);
+    return this._processMessage('info', message, options, alertOptions);
   },
 
   danger: function(message, options = {}, alertOptions = {}) {
-    this._processMessage('danger', message, options, alertOptions);
+    return this._processMessage('danger', message, options, alertOptions);
   },
 
   error: function() {
-    this.danger(...arguments);
+    return this.danger(...arguments);
   },
 
   clearMessages: function() {
@@ -97,6 +97,8 @@ export default Ember.Service.extend({
       case 'danger':
         this.get('flashMessages').danger(message, this._getOptions(alertOptions));
     }
+
+    return alertRecord;
   },
 
   _addDetailsToMessage: function(message, record) {
