@@ -35,7 +35,7 @@ App.ExperimentalController = Em.Controller.extend(App.UserPref, {
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {
-      App.set('supports', $.merge(response, App.get('supports')));
+      App.set('supports', $.extend(App.get('supports'), response));
     }
   },
 
