@@ -18,6 +18,8 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability;
 
 import com.google.common.base.Joiner;
+import org.I0Itec.zkclient.exception.ZkNoNodeException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +39,7 @@ import org.apache.helix.model.OnlineOfflineSMD;
 import org.apache.helix.model.StateModelDefinition;
 import org.apache.helix.tools.StateModelConfigGenerator;;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -123,8 +126,15 @@ public class MetricCollectorHAController {
     admin.addCluster(clusterName, false);
 
     // Adding host to the cluster
-    List<String> nodes = admin.getInstancesInCluster(clusterName);
-    if (nodes == null || !nodes.contains(instanceConfig.getInstanceName())) {
+    List<String> nodes = Collections.EMPTY_LIST;
+    try {
+      nodes =  admin.getInstancesInCluster(clusterName);
+    } catch (ZkNoNodeException ex) {
+      LOG.warn("Child znode under /" + CLUSTER_NAME + " not found.Recreating the cluster.");
+        admin.addCluster(clusterName, true);
+    }
+
+    if (CollectionUtils.isEmpty(nodes) || !nodes.contains(instanceConfig.getInstanceName())) {
       LOG.info("Adding participant instance " + instanceConfig);
       admin.addInstance(clusterName, instanceConfig);
     }
