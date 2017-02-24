@@ -1273,8 +1273,8 @@ input.radio:checked + label:after {
 }
 #notifications-dropdown.dropdown-menu .notifications-body .table.alerts-table tbody td.content .name {
   font-weight: bold;
-  font-size: 12px;
-  color: #666;
+  font-size: 14px;
+  color: #333;
   margin-bottom: 5px;
 }
 #notifications-dropdown.dropdown-menu .notifications-body .table.alerts-table tbody td.content .description {
@@ -1284,6 +1284,7 @@ input.radio:checked + label:after {
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  max-height: 47px; /* For firefox */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;

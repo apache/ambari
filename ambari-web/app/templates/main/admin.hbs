@@ -17,20 +17,7 @@
 }}
 
 <div class="row">
-  <div id="main-admin-menu" class="well col-md-2 side-menu-well">
-      <ul class="nav nav-list">
-        {{#each category in view.categories}}
-          {{#view view.NavItemView itemBinding="category.name" elementIdBinding="category.name"}}
-              <a href="#" {{action "goToAdmin" category}} >{{category.label}}</a>
-          {{/view}}
-        {{/each}}
-      </ul>
-  </div>
-  <div class="col-md-10">
-    <div class="row">
-      <div class="col-md-12">
-        {{outlet}}
-      </div>
-    </div>
+  <div class="col-md-12">
+    {{outlet}}
   </div>
 </div>
