@@ -216,7 +216,7 @@ var SLAMapper= Ember.Object.extend({
       var slaPrefix="sla";
       slaInfo["__prefix"]=slaPrefix;
       if (sla.nominalTime){
-        slaInfo[slaPrefix+":"+"nominal-time"]=sla.nominalTime;
+        slaInfo[slaPrefix+":"+"nominal-time"]=sla.nominalTime.value;
       }
       if (sla.shouldStart && sla.shouldStart.time){
         slaInfo[slaPrefix+":"+"should-start"]="${"+sla.shouldStart.time+ "*"+sla.shouldStart.unit+"}";
@@ -245,7 +245,7 @@ var SLAMapper= Ember.Object.extend({
   handleImport(domain,infoJson,key){
     var sla=domain[key]=SlaInfo.create({});
     if (infoJson["nominal-time"] && infoJson["nominal-time"].__text){
-      sla.nominalTime=infoJson["nominal-time"].__text;
+      sla.nominalTime= this.extractDateField(infoJson["nominal-time"].__text);
     }
     if (infoJson["alert-contact"]&& infoJson["alert-contact"].__text){
       sla.alertContact=infoJson["alert-contact"].__text;
@@ -273,6 +273,20 @@ var SLAMapper= Ember.Object.extend({
   parseSlaTime(str,key){
     var timePeriod= str.substring(str.indexOf("{")+1,str.indexOf("}"));
     return timePeriod.split("*");
-  }
+  },
+  extractDateField(value){
+    var dateField = {};
+    var date = new Date(value);
+    dateField.value = value;
+    if(isNaN(date.getTime())){
+      dateField.displayValue = value;
+      dateField.type = 'expr';
+    }else{
+      dateField.type = 'date';
+      var utcDate = new Date(date.getTime() + date.getTimezoneOffset()*60*1000);
+      dateField.displayValue = moment(utcDate).format("MM/DD/YYYY hh:mm A");
+    }
+    return dateField;
+  },
 });
 export {MappingMixin,ConfigurationMapper,PrepareMapper,SLAMapper};

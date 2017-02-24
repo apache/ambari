@@ -19,24 +19,6 @@ import { validator, buildValidations } from 'ember-cp-validations';
 import { v1, v4 } from "ember-uuid";
 
 const Validations = buildValidations({
-  'nominalTime': {
-    validators: [
-      validator('presence', {
-        presence : true,
-        disabled(model, attribute) {
-          return !model.get('slaEnabled');
-        },
-        dependentKeys : ['slaEnabled']
-      }),
-      validator('date', {
-        disabled(model, attribute) {
-          return !model.get('slaEnabled');
-        },
-        format: 'MM/DD/YYYY hh:mm A',
-        dependentKeys : ['slaEnabled']
-      }),
-    ]
-  },
   'slaInfo.shouldEnd.time': {
     validators: [
       validator('presence', {
@@ -125,14 +107,6 @@ export default Ember.Component.extend(Validations, {
       this.set('slaEnabled', false);
     }
     Ember.addObserver(this, 'slaEnabled', this, this.slaObserver);
-    if(this.get('slaInfo.nominalTime')){
-      var date = new Date(this.get('slaInfo.nominalTime'));
-      if(date && !isNaN(date.getTime())){
-        var utcDate = new Date(date.getTime() + date.getTimezoneOffset()*60*1000);
-        this.set('nominalTime', moment(utcDate).format("MM/DD/YYYY hh:mm A"));
-      }
-    }
-    Ember.addObserver(this, 'nominalTime', this, this.nominalTimeObserver);
     this.set('collapseId', v1());
   }.on('init'),
   alertEventsObserver : function(){
@@ -142,24 +116,13 @@ export default Ember.Component.extend(Validations, {
   onDestroy : function(){
     Ember.removeObserver(this, 'alertEvents.@each.alertEnabled', this, this.alertEventsObserver);
     Ember.removeObserver(this, 'slaEnabled', this, this.slaObserver);
-    Ember.removeObserver(this, 'nominalTime', this, this.nominalTimeObserver);
   }.on('willDestroyElement'),
   elementsInserted : function() {
-    this.$('input[name="nominalTime"]').datetimepicker({
-      useCurrent: false,
-      showClose : true,
-      format: 'MM/DD/YYYY hh:mm A',
-      defaultDate : this.get('slaInfo.nominalTime')
-    });
     this.sendAction('register','slaInfo', this);
     if(this.get('slaEnabled')){
       this.$('#slaCollapse').collapse('show');
     }
   }.on('didInsertElement'),
-  nominalTimeObserver : function(){
-    var date = new Date(this.get('nominalTime'));
-    this.set('slaInfo.nominalTime',moment(date).format("YYYY-MM-DDTHH:mm")+'Z');
-  },
   slaObserver : function(){
     if(this.get('slaEnabled')){
       this.$('#slaCollapse').collapse('show');
