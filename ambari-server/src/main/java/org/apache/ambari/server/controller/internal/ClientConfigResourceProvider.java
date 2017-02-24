@@ -35,6 +35,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_L
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
 import java.io.BufferedInputStream;
@@ -395,6 +396,12 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredClusterConfigs);
         String userList = gson.toJson(userSet);
         hostLevelParams.put(USER_LIST, userList);
+
+        //Create a user_group mapping and send it as part of the hostLevelParams
+        Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
+          stackId, cluster, desiredClusterConfigs);
+        String userGroups = gson.toJson(userGroupsMap);
+        hostLevelParams.put(USER_GROUPS,userGroups);
 
         Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredClusterConfigs);
         String groupList = gson.toJson(groupSet);

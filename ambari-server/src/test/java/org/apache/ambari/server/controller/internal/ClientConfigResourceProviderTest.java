@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.io.ByteArrayInputStream;
@@ -72,7 +73,10 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UserGroupInfo;
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -189,7 +193,9 @@ public class ClientConfigResourceProviderTest {
     Configuration configuration = PowerMock.createStrictMockAndExpectNew(Configuration.class);
     Map<String, String> configMap = createNiceMock(Map.class);
 
-    File mockFile = PowerMock.createNiceMock(File.class);
+    File newFile = File.createTempFile("config",".json",new File("/tmp/"));
+    newFile.deleteOnExit();
+
     Runtime runtime = createMock(Runtime.class);
     Process process = createNiceMock(Process.class);
 
@@ -320,14 +326,42 @@ public class ClientConfigResourceProviderTest {
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
     Set<String> userSet = new HashSet<String>();
     userSet.add("hdfs");
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
-    PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
-    PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
-    expect(mockFile.getParent()).andReturn("");
-    PowerMock.mockStatic(Runtime.class);
-    expect(mockFile.exists()).andReturn(true);
-    String commandLine = "ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs null " +
-            "/tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
+    expect(configHelper.getPropertyValuesWithPropertyType(
+      stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
+    Map<PropertyInfo, String> userProperties = new HashMap<>();
+    Map<PropertyInfo, String> groupProperties = new HashMap<>();
+    PropertyInfo userProperty = new PropertyInfo();
+    userProperty.setFilename("hadoop-env.xml");
+    userProperty.setName("hdfs-user");
+    userProperty.setValue("hdfsUser");
+
+
+    PropertyInfo groupProperty = new PropertyInfo();
+    groupProperty.setFilename("hadoop-env.xml");
+    groupProperty.setName("hdfs-group");
+    groupProperty.setValue("hdfsGroup");
+    ValueAttributesInfo valueAttributesInfo = new ValueAttributesInfo();
+    valueAttributesInfo.setType("user");
+    Set<UserGroupInfo> userGroupEntries = new HashSet<>();
+    UserGroupInfo userGroupInfo = new UserGroupInfo();
+    userGroupInfo.setType("hadoop-env");
+    userGroupInfo.setName("hdfs-group");
+    userGroupEntries.add(userGroupInfo);
+    valueAttributesInfo.setUserGroupEntries(userGroupEntries);
+    userProperty.setPropertyValueAttributes(valueAttributesInfo);
+    userProperties.put(userProperty, "hdfsUser");
+    groupProperties.put(groupProperty, "hdfsGroup");
+    Map<String, Set<String>> userGroupsMap = new HashMap<>();
+    userGroupsMap.put("hdfsUser", new HashSet<String>(Arrays.asList("hdfsGroup")));
+    expect(configHelper.getPropertiesWithPropertyType(
+      stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userProperties).anyTimes();
+    expect(configHelper.getPropertiesWithPropertyType(
+      stackId, PropertyInfo.PropertyType.GROUP, cluster, desiredConfigMap)).andReturn(groupProperties).anyTimes();
+    expect(configHelper.createUserGroupsMap(stackId, cluster, desiredConfigMap)).andReturn(userGroupsMap).anyTimes();
+
+    PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(newFile).anyTimes();
+    String commandLine = "ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs "+newFile  +
+      " /tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
             "INFO /var/lib/ambari-server/tmp";
 
     if (System.getProperty("os.name").contains("Windows")) {
@@ -364,6 +398,8 @@ public class ClientConfigResourceProviderTest {
 
     Set<Resource> resources = provider.getResources(request, predicate);
     assertFalse(resources.isEmpty());
+    String str = FileUtils.readFileToString(newFile);
+    assertTrue(str.contains("\"user_groups\":\"{\\\"hdfsUser\\\":[\\\"hdfsGroup\\\"]}"));
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo,commandScriptDefinition,

@@ -1246,17 +1246,27 @@ public class AmbariManagementControllerTest {
     Map<String, String> configs = new HashMap<String, String>();
     configs.put("a", "b");
 
-    ConfigurationRequest cr1,cr2;
+    Map<String, String> hadoopEnvConfigs = new HashMap<>();
+    hadoopEnvConfigs.put("hdfs_user", "myhdfsuser");
+    hadoopEnvConfigs.put("hdfs_group", "myhdfsgroup");
+
+    ConfigurationRequest cr1,cr2, cr3;
+
     cr1 = new ConfigurationRequest(cluster1, "core-site","version1",
                                    configs, null);
     cr2 = new ConfigurationRequest(cluster1, "hdfs-site","version1",
                                    configs, null);
+    cr3 = new ConfigurationRequest(cluster1, "hadoop-env","version1",
+      hadoopEnvConfigs, null);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
 
@@ -1271,11 +1281,13 @@ public class AmbariManagementControllerTest {
     assertEquals(cluster1, ec.getClusterName());
     Map<String, Map<String, String>> configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(2, configurations.size());
+    assertEquals(3, configurations.size());
     assertTrue(configurations.containsKey("hdfs-site"));
     assertTrue(configurations.containsKey("core-site"));
+    assertTrue(configurations.containsKey("hadoop-env"));
     assertTrue(ec.getConfigurationAttributes().containsKey("hdfs-site"));
     assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("hadoop-env"));
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
     assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
@@ -1291,6 +1303,13 @@ public class AmbariManagementControllerTest {
     assertNotNull(ec.getCommandParams());
     assertTrue(ec.getCommandParams().containsKey("custom_folder"));
     assertEquals("dashboards", ec.getCommandParams().get("custom_folder"));
+    assertNotNull(ec.getHostLevelParams());
+    assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_LIST));
+    assertEquals("[\"myhdfsuser\"]", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_LIST));
+    assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.GROUP_LIST));
+    assertEquals("[\"myhdfsgroup\"]", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.GROUP_LIST));
+    assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUP));
+    assertEquals("{\"myhdfsuser\":[\"myhdfsgroup\"]}", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUP));
   }
 
   @Test

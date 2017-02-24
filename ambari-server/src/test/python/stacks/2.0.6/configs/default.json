@@ -20,6 +20,7 @@
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "java_version": "8",
         "db_name": "ambari",
+        "user_group": "{\"sample\":[\"sample\",\"users\"]}",
         "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
         "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]",
         "custom_mysql_jdbc_name" : "mysql-connector-java.jar",

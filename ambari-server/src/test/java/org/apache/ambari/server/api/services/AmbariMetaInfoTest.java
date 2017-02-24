@@ -130,7 +130,7 @@ public class AmbariMetaInfoTest {
   private static final String NON_EXT_VALUE = "XXX";
 
   private static final int REPOS_CNT = 3;
-  private static final int PROPERTIES_CNT = 62;
+  private static final int PROPERTIES_CNT = 64;
   private static final int OS_CNT = 4;
 
   private static TestAmbariMetaInfo metaInfo = null;

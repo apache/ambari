@@ -384,10 +384,15 @@ public String getVersion() {
     return properties;
   }
 
+  public void setProperties(List properties) {
+    this.properties = properties;
+  }
+
   public List<ComponentInfo> getComponents() {
     if (components == null) components = new ArrayList<ComponentInfo>();
     return components;
   }
+
   /**
    * Finds ComponentInfo by component name
    * @param componentName  name of the component

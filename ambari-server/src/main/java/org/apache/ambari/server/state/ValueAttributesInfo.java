@@ -86,6 +86,10 @@ public class ValueAttributesInfo {
   @JsonProperty("property-file-type")
   private String propertyFileType;
 
+  @XmlElementWrapper(name = "user-groups")
+  @XmlElements(@XmlElement(name = "property"))
+  private Collection<UserGroupInfo> userGroupEntries;
+
   @XmlElement(name = "keystore")
   private boolean keyStore;
 
@@ -131,6 +135,14 @@ public class ValueAttributesInfo {
 
   public void setEntries(Collection<ValueEntryInfo> entries) {
     this.entries = entries;
+  }
+
+  public Collection<UserGroupInfo> getUserGroupEntries() {
+    return userGroupEntries;
+  }
+
+  public void setUserGroupEntries(Collection<UserGroupInfo> userGroupEntries) {
+    this.userGroupEntries = userGroupEntries;
   }
 
   public String getHidden() {
@@ -313,6 +325,7 @@ public class ValueAttributesInfo {
     if (unit != null ? !unit.equals(that.unit) : that.unit != null) return false;
     if (delete != null ? !delete.equals(that.delete) : that.delete != null) return false;
     if (incrementStep != null ? !incrementStep.equals(that.incrementStep) : that.incrementStep != null) return false;
+    if (userGroupEntries != null ? !userGroupEntries.equals(that.userGroupEntries) : that.userGroupEntries != null) return false;
 
     return true;
   }
@@ -339,6 +352,7 @@ public class ValueAttributesInfo {
     result = 31 * result + (showPropertyName != null ? showPropertyName.hashCode() : 0);
     result = 31 * result + (uiOnlyProperty != null ? uiOnlyProperty.hashCode() : 0);
     result = 31 * result + (copy != null ? copy.hashCode() : 0);
+    result = 31 * result + (userGroupEntries != null ? userGroupEntries.hashCode() : 0);
     return result;
   }
 
@@ -364,6 +378,7 @@ public class ValueAttributesInfo {
       ", propertyFileName='" + propertyFileName + '\'' +
       ", propertyFileType='" + propertyFileType + '\'' +
       ", copy='" + copy + '\'' +
+      ", userGroupEntries='" + userGroupEntries + '\'' +
       '}';
   }
 }

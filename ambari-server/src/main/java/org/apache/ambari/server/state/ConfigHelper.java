@@ -545,6 +545,156 @@ public class ConfigHelper {
     return result;
   }
 
+  /***
+   * Fetch user to group mapping from the cluster configs. UserGroupEntries contain information regarding the group that the user is associated to.
+   * @param stackId
+   * @param cluster
+   * @param desiredConfigs
+   * @return
+   * @throws AmbariException
+   */
+  public Map<String, Set<String>> createUserGroupsMap(StackId stackId,
+                                                      Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+    return createUserGroupsMap(cluster, desiredConfigs, servicesMap, stackProperties);
+  }
+
+  /***
+   * Fetch user to group mapping from the cluster configs. UserGroupEntries contain information regarding the group that the user is associated to.
+   * @param cluster
+   * @param desiredConfigs
+   * @param servicesMap
+   * @param stackProperties
+   * @return
+   * @throws AmbariException
+   */
+  public Map<String, Set<String>> createUserGroupsMap(
+    Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
+    Map<String, ServiceInfo> servicesMap, Set<PropertyInfo> stackProperties) throws AmbariException {
+
+    Map<String, Set<String>> userGroupsMap = new HashMap<>();
+    Map<PropertyInfo, String> userProperties = getPropertiesWithPropertyType(
+      PropertyType.USER, cluster, desiredConfigs, servicesMap, stackProperties);
+    Map<PropertyInfo, String> groupProperties = getPropertiesWithPropertyType(
+      PropertyType.GROUP, cluster, desiredConfigs, servicesMap, stackProperties);
+
+    if(userProperties != null && groupProperties != null) {
+      for(Map.Entry<PropertyInfo, String> userProperty : userProperties.entrySet()) {
+        PropertyInfo userPropertyInfo = userProperty.getKey();
+        String userPropertyValue = userProperty.getValue();
+        if(userPropertyInfo.getPropertyValueAttributes() != null
+          && userPropertyInfo.getPropertyValueAttributes().getUserGroupEntries() != null) {
+          Set<String> groupPropertyValues = new HashSet<>();
+          Collection<UserGroupInfo> userGroupEntries = userPropertyInfo.getPropertyValueAttributes().getUserGroupEntries();
+          for (UserGroupInfo userGroupInfo : userGroupEntries) {
+            boolean found = false;
+            for(Map.Entry<PropertyInfo, String> groupProperty : groupProperties.entrySet()) {
+              PropertyInfo groupPropertyInfo = groupProperty.getKey();
+              String groupPropertyValue = groupProperty.getValue();
+              if(StringUtils.equals(userGroupInfo.getType(),
+                ConfigHelper.fileNameToConfigType(groupPropertyInfo.getFilename()))
+                && StringUtils.equals(userGroupInfo.getName(), groupPropertyInfo.getName())) {
+                groupPropertyValues.add(groupPropertyValue);
+                found = true;
+              }
+            }
+            if(!found) {
+             //Log error if the user-group mapping is not found
+              LOG.error("User group mapping property {" + userGroupInfo.getType() + "/" + userGroupInfo.getName() + "} is missing for user property {" + ConfigHelper.fileNameToConfigType(userPropertyInfo.getFilename()) + "/" + userPropertyInfo.getName() + "} (username = " + userPropertyInfo.getValue() +")");
+            }
+          }
+          userGroupsMap.put(userPropertyValue, groupPropertyValues);
+        }
+      }
+    }
+    return userGroupsMap;
+  }
+
+  /***
+   * Fetch all the properties of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param stackId
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @return
+   * @throws AmbariException
+   */
+  public Map<PropertyInfo, String> getPropertiesWithPropertyType(StackId stackId, PropertyType propertyType,
+                                                                 Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+
+    return getPropertiesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
+  }
+
+  /***
+   * Fetch all the properties of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @param servicesMap
+   * @param stackProperties
+   * @return
+   */
+  public Map<PropertyInfo, String> getPropertiesWithPropertyType(PropertyType propertyType, Cluster cluster,
+                                                                 Map<String, DesiredConfig> desiredConfigs, Map<String, ServiceInfo> servicesMap,
+                                                                 Set<PropertyInfo> stackProperties) throws AmbariException {
+    Map<String, Config> actualConfigs = new HashMap<>();
+    Map<PropertyInfo, String> result = new HashMap<>();
+
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
+    }
+
+    for (Service service : cluster.getServices().values()) {
+      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
+      for (PropertyInfo serviceProperty : serviceProperties) {
+        if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+          String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+          try {
+            String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
+            if (null == property){
+              LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
+                  + "The property does not exist in version %s of %s configuration.",
+                serviceProperty.getName(),
+                propertyType,
+                desiredConfigs.get(stackPropertyConfigType),
+                stackPropertyConfigType
+              ));
+            } else {
+              result.put(serviceProperty, property);
+            }
+          } catch (Exception ignored) {
+          }
+        }
+      }
+    }
+
+
+    for (PropertyInfo stackProperty : stackProperties) {
+      if (stackProperty.getPropertyTypes().contains(propertyType)) {
+        String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
+        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+      }
+    }
+
+    return result;
+  }
+
+  /***
+   * Fetch all the property values of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param stackId
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @return
+   * @throws AmbariException
+   */
   public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType,
                                                        Cluster cluster, Map<String,
                                                        DesiredConfig> desiredConfigs) throws AmbariException {
@@ -555,6 +705,16 @@ public class ConfigHelper {
     return getPropertyValuesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
   }
 
+  /***
+   * Fetch all the property values of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @param servicesMap
+   * @param stackProperties
+   * @return
+   * @throws AmbariException
+   */
   public Set<String> getPropertyValuesWithPropertyType(PropertyType propertyType,
                                                        Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
                                                        Map<String, ServiceInfo> servicesMap,
@@ -592,6 +752,14 @@ public class ConfigHelper {
     return result;
   }
 
+  /***
+   * Fetch all the config values of a given PropertyType. For eg: Fetch all stack configs that are of type "user"
+   * @param cluster
+   * @param configType
+   * @param propertyName
+   * @return
+   * @throws AmbariException
+   */
   public String getPropertyValueFromStackDefinitions(Cluster cluster, String configType, String propertyName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),

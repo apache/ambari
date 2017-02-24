@@ -39,6 +39,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
@@ -2403,6 +2404,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.USER, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String userList = gson.toJson(userSet);
     hostParams.put(USER_LIST, userList);
+
+    //Create a user_group mapping and send it as part of the hostLevelParams
+    Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
+      cluster, clusterDesiredConfigs, servicesMap, stackProperties);
+    String userGroups = gson.toJson(userGroupsMap);
+    hostParams.put(USER_GROUPS, userGroups);
 
     Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(PropertyType.GROUP, cluster, clusterDesiredConfigs, servicesMap, stackProperties);
     String groupList = gson.toJson(groupSet);

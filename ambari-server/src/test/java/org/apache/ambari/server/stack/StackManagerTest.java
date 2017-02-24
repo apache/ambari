@@ -194,7 +194,7 @@ public class StackManagerTest {
     List<ComponentInfo> components = hdfsService.getComponents();
     assertEquals(6, components.size());
     List<PropertyInfo> properties = hdfsService.getProperties();
-    assertEquals(62, properties.size());
+    assertEquals(64, properties.size());
 
     // test a couple of the properties for filename
     boolean hdfsPropFound = false;

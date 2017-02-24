@@ -107,8 +107,16 @@
       <xs:element name="selection-cardinality" type="xs:string" minOccurs="0"/>
       <xs:element name="property-file-name" type="xs:string" minOccurs="0"/>
       <xs:element name="property-file-type" type="xs:string" minOccurs="0"/>
+    <xs:element name="user-groups" minOccurs="0">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="property" type="userGroupInfo" minOccurs="1"/>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
     </xs:all>
   </xs:complexType>
+
 
   <xs:complexType name="valueEntryInfo">
     <xs:all>
@@ -116,6 +124,15 @@
       <xs:element name="label" type="xs:string" minOccurs="0"/>
       <xs:element name="description" type="xs:string" minOccurs="0"/>
     </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="userGroupInfo">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="name" type="xs:string" minOccurs="0"/>
+        <xs:element name="type" type="xs:string" minOccurs="0"/>
+      </xs:choice>
+    </xs:sequence>
   </xs:complexType>
 
   <xs:complexType name="propertyDependencyInfo">
