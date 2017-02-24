@@ -36,6 +36,10 @@
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-bundle</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.amazonaws</groupId>
           <artifactId>aws-java-sdk</artifactId>
         </exclusion>
         <exclusion>
@@ -47,11 +51,6 @@
           <artifactId>jackson-annotations</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws-java-sdk.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
