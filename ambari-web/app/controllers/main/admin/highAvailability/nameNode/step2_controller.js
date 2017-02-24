@@ -54,9 +54,8 @@ App.HighAvailabilityWizardStep2Controller = Em.Controller.extend(App.BlueprintMi
   },
 
   showHideJournalNodesAddRemoveControl: function() {
-    var masterComponents = this.get('selectedServicesMasters');
-    var jns = masterComponents.filterProperty('component_name', 'JOURNALNODE');
-    var maxNumMasters = this.getMaxNumberOfMasters('JOURNALNODE')
+    var jns = this.get('selectedServicesMasters').filterProperty('component_name', 'JOURNALNODE');
+    var maxNumMasters = this.getMaxNumberOfMasters('JOURNALNODE');
     var showRemoveControl = jns.get('length') > this.get('JOURNALNODES_COUNT_MINIMUM');
     var showAddControl = jns.get('length') < maxNumMasters;
     jns.forEach(function(item) {

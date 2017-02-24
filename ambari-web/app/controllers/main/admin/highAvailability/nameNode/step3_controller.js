@@ -38,6 +38,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   haConfig: $.extend(true, {}, require('data/configs/wizards/ha_properties').haConfig),
   once: false,
   isLoaded: false,
+  isNextDisabled: Em.computed.not('isLoaded'),
   versionLoaded: true,
   hideDependenciesInfoBar: true,
 
@@ -60,7 +61,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   },
 
   loadConfigsTags: function () {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'config.tags',
       sender: this,
       success: 'onLoadConfigsTags',
@@ -221,8 +222,8 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   },
 
   onLoadConfigs: function (data) {
-    this.set('serverConfigData',data);
-    this.removeConfigs(this.get('configsToRemove'), this.get('serverConfigData'));
+    this.set('serverConfigData', data);
+    this.removeConfigs(this.get('configsToRemove'), data);
     this.tweakServiceConfigs(this.get('haConfig.configs'));
     this.renderServiceConfigs(this.get('haConfig'));
     this.set('isLoaded', true);
@@ -240,8 +241,8 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     var configsFromServer = this.get('serverConfigData.items');
     ret.namespaceId = this.get('content.nameServiceId');
     ret.serverConfigs = configsFromServer;
-    var hdfsConfigs = configsFromServer.findProperty('type','hdfs-site').properties;
-    var zkConfigs = configsFromServer.findProperty('type','zoo.cfg').properties;
+    var hdfsConfigs = configsFromServer.findProperty('type', 'hdfs-site').properties;
+    var zkConfigs = configsFromServer.findProperty('type', 'zoo.cfg').properties;
 
     var dfsHttpA = hdfsConfigs['dfs.namenode.http-address'];
     ret.nnHttpPort = dfsHttpA ? dfsHttpA.split(':')[1] : 50070;
@@ -271,7 +272,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     return localDB;
   },
 
-  tweakServiceConfigs: function(configs) {
+  tweakServiceConfigs: function (configs) {
     var localDB = this._prepareLocalDB();
     var dependencies = this._prepareDependencies();
 
@@ -289,8 +290,8 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
    * @param configs - configuration object
    * @returns {Object}
    */
-  removeConfigs:function (configsToRemove, configs) {
-    Em.keys(configsToRemove).forEach(function(site){
+  removeConfigs: function (configsToRemove, configs) {
+    Em.keys(configsToRemove).forEach(function (site) {
       var siteConfigs = configs.items.findProperty('type', site);
       if (siteConfigs) {
         configsToRemove[site].forEach(function (property) {
@@ -320,7 +321,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
     this.get('stepConfigs').pushObject(serviceConfig);
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
-    this.once = true;
+    this.set('once', true);
   },
 
   /**
@@ -334,8 +335,5 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
     }, this);
-  },
-
-  isNextDisabled: Em.computed.not('isLoaded')
-
+  }
 });

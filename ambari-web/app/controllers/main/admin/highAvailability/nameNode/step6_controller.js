@@ -24,6 +24,8 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
 
   POLL_INTERVAL: 1000,
 
+  MINIMAL_JOURNALNODE_COUNT: 3,
+
   /**
    * Define whether next button should be enabled
    * @type {Boolean}
@@ -74,7 +76,7 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
   },
 
   pullEachJnStatus: function (hostName) {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'admin.high_availability.getJnCheckPointStatus',
       sender: this,
       data: {
@@ -85,7 +87,6 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
   },
 
   checkJnCheckPointStatus: function (data) {
-    var self = this;
     var journalStatusInfo;
     var initJnCounter = 0;
 
@@ -98,20 +99,25 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
       this.set('hasStoppedJNs', true);
     }
 
-    if (this.incrementProperty('requestsCounter') === 3) {
-      if (initJnCounter === 3) {
-        this.set('status', 'done');
-        this.set('isNextEnabled', true);
+    if (this.incrementProperty('requestsCounter') === this.MINIMAL_JOURNALNODE_COUNT) {
+      this.resolveJnCheckPointStatus(initJnCounter);
+    }
+  },
+
+  resolveJnCheckPointStatus: function(initJnCounter) {
+    var self = this;
+    if (initJnCounter === this.MINIMAL_JOURNALNODE_COUNT) {
+      this.set('status', 'done');
+      this.set('isNextEnabled', true);
+    } else {
+      if (this.get('hasStoppedJNs')) {
+        this.set('status', 'journalnode_stopped')
       } else {
-        if (this.get('hasStoppedJNs')) {
-          this.set('status', 'journalnode_stopped')
-        } else {
-          this.set('status', 'waiting');
-        }
-        window.setTimeout(function () {
-          self.pullCheckPointStatus();
-        }, self.POLL_INTERVAL);
+        this.set('status', 'waiting');
       }
+      window.setTimeout(function () {
+        self.pullCheckPointStatus();
+      }, self.POLL_INTERVAL);
     }
   },
 

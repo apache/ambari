@@ -44,7 +44,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   disableSNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
-    App.ajax.send({
+    return App.ajax.send({
       name: 'common.host.host_component.passive',
       sender: this,
       data: {
@@ -71,7 +71,22 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
    * @param {Object} data - config object to update
    */
   updateConfigProperties: function(data) {
-    var siteNames = ['hdfs-site','core-site'];
+    var siteNames = ['hdfs-site', 'core-site'].concat(this.getRangerSiteNames(data));
+    var note = Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false));
+    var configData = this.reconfigureSites(siteNames, data, note);
+    return App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      error: 'onTaskError',
+      success: 'installHDFSClients'
+    });
+  },
+
+  getRangerSiteNames: function(data) {
+    var siteNames = [];
     if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       var hdfsPluginConfig = data.items.findProperty('type', 'ranger-hdfs-plugin-properties');
       if (hdfsPluginConfig) {
@@ -86,16 +101,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
         }
       }
     }
-    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
-    App.ajax.send({
-      name: 'common.service.configurations',
-      sender: this,
-      data: {
-        desired_config: configData
-      },
-      error: 'onTaskError',
-      success: 'installHDFSClients'
-    });
+    return siteNames;
   },
 
   installHDFSClients: function () {
