@@ -245,7 +245,7 @@ public class LogFeeder {
 
       // We will only check for is_enabled out here. Down below we will check whether this output is enabled for the input
       if (output.getBooleanValue("is_enabled", true)) {
-        output.logConfgs(Level.INFO);
+        output.logConfigs(Level.INFO);
         outputManager.add(output);
       } else {
         LOG.info("Output is disabled. So ignoring it. " + output.getShortDescription());
@@ -277,7 +277,7 @@ public class LogFeeder {
         input.setOutputManager(outputManager);
         input.setInputManager(inputManager);
         inputManager.add(input);
-        input.logConfgs(Level.INFO);
+        input.logConfigs(Level.INFO);
       } else {
         LOG.info("Input is disabled. So ignoring it. " + input.getShortDescription());
       }
@@ -311,7 +311,7 @@ public class LogFeeder {
         if (filter.isEnabled()) {
           filter.setOutputManager(outputManager);
           input.addFilter(filter);
-          filter.logConfgs(Level.INFO);
+          filter.logConfigs(Level.INFO);
         } else {
           LOG.debug("Ignoring filter " + filter.getShortDescription() + " for input " + input.getShortDescription());
         }
@@ -371,6 +371,13 @@ public class LogFeeder {
         }
       }
     }
+    
+    // In case of simulation copies of the output are added for each simulation instance, these must be added to the manager
+    for (Output output : InputSimulate.getSimulateOutputs()) {
+      outputManager.add(output);
+      usedOutputSet.add(output);
+    }
+    
     outputManager.retainUsedOutputs(usedOutputSet);
   }
 
