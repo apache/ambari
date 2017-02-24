@@ -83,6 +83,7 @@ App.ModalPopup = Ember.View.extend({
       .on('enter-key-pressed', this.enterKeyPressed.bind(this))
       .on('escape-key-pressed', this.escapeKeyPressed.bind(this));
     this.fitZIndex();
+    this.handleBackDrop();
     var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
     if (!$.mocho) {
       this.$('#modal').modal({
@@ -92,6 +93,14 @@ App.ModalPopup = Ember.View.extend({
     }
     this.focusElement(firstInputElement);
     this.subscribeResize();
+  },
+
+  handleBackDrop: function () {
+    if (this.get('backdrop') === false) {
+      $('.modal-backdrop').css('visibility', 'hidden');
+    } else {
+      $('.modal-backdrop').css('visibility', 'visible');
+    }
   },
 
   subscribeResize: function() {

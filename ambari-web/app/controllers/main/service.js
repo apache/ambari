@@ -171,7 +171,8 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
         query: query
       },
       success: 'allServicesCallSuccessCallback',
-      error: 'allServicesCallErrorCallback'
+      error: 'allServicesCallErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -196,7 +197,8 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
           state: 'INSTALLED'
         }
       },
-      success: 'silentStopSuccess'
+      success: 'silentStopSuccess',
+      showLoadingPopup: true
     });
   },
 
@@ -246,7 +248,8 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
             state: 'STARTED'
           }
         },
-        success: 'silentCallSuccessCallback'
+        success: 'silentCallSuccessCallback',
+        showLoadingPopup: true
       });
     }
   }.observes('shouldStart', 'controllers.backgroundOperationsController.allOperationsCount'),
@@ -333,7 +336,8 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
     App.ajax.send({
       name: 'restart.staleConfigs',
       sender: this,
-      success: 'restartAllRequiredSuccessCallback'
+      success: 'restartAllRequiredSuccessCallback',
+      showLoadingPopup: true
     });
   },
 

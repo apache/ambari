@@ -462,7 +462,8 @@ describe('App.MainServiceController', function () {
             state: 'INSTALLED'
           }
         },
-        success: 'silentStopSuccess'
+        success: 'silentStopSuccess',
+        showLoadingPopup: true
       });
     });
   });
@@ -598,7 +599,8 @@ describe('App.MainServiceController', function () {
             state: 'STARTED'
           }
         },
-        success: 'silentCallSuccessCallback'
+        success: 'silentCallSuccessCallback',
+        showLoadingPopup: true
       });
       expect(mainServiceController.get('shouldStart')).to.be.false;
     });
