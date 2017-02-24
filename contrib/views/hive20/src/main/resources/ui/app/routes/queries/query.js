@@ -41,35 +41,6 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.selectDatabase(dbmodel);
     }
 
-    this.store.findAll('file-resource').then((data) => {
-      let fileResourceList = [];
-      data.forEach(x => {
-        let localFileResource = {'id': x.get('id'),
-          'name': x.get('name'),
-          'path': x.get('path'),
-          'owner': x.get('owner')
-        };
-        fileResourceList.push(localFileResource);
-      });
-      this.controller.set('fileResourceList', fileResourceList);
-    });
-
-    this.store.findAll('udf').then((data) => {
-      let allUDFList = [];
-      data.forEach(x => {
-        let localUDF = {'id': x.get('id'),
-          'name': x.get('name'),
-          'classname': x.get('classname'),
-          'fileResource': x.get('fileResource'),
-          'owner': x.get('owner')
-        };
-        allUDFList.push(localUDF);
-      });
-      this.controller.set('allUDFList', allUDFList);
-    });
-
-
-
     this.store.findAll('setting').then((data) => {
       let localStr = '';
       data.forEach(x => {
@@ -126,6 +97,34 @@ export default Ember.Route.extend(UILoggerMixin, {
       })
       selectedMultiDb.pushObject(selectedDb);
     }
+
+    this.store.findAll('file-resource').then((data) => {
+      let fileResourceList = [];
+      data.forEach(x => {
+        let localFileResource = {'id': x.get('id'),
+          'name': x.get('name'),
+          'path': x.get('path'),
+          'owner': x.get('owner')
+        };
+        fileResourceList.push(localFileResource);
+      });
+      controller.set('fileResourceList', fileResourceList);
+    });
+
+    this.store.findAll('udf').then((data) => {
+      let allUDFList = [];
+      data.forEach(x => {
+        let localUDF = {'id': x.get('id'),
+          'name': x.get('name'),
+          'classname': x.get('classname'),
+          'fileResource': x.get('fileResource'),
+          'owner': x.get('owner')
+        };
+        allUDFList.push(localUDF);
+      });
+      controller.set('allUDFList', allUDFList);
+    });
+
 
     controller.set('worksheet', model);
 
@@ -319,6 +318,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             let jobDetails = self.store.peekRecord('job', data.job.id);
             console.log(jobDetails);
             self.send('getJobResult', data, payload.title, jobDetails);
+            self.get('logger').success('Query has been submitted.');
             self.transitionTo('queries.query.loading');
 
           }, (error) => {
@@ -387,23 +387,16 @@ export default Ember.Route.extend(UILoggerMixin, {
 
       }, function(error) {
         console.log('error' , error);
+        self.get('logger').danger('Failed to execute query.', self.extractError(error));
       });
     },
 
     showVisualExplain(payloadTitle){
-       let self = this;
-       let jobId = this.get('controller').get('currentJobId');
-       this.get('query').getVisualExplainJson(jobId).then(function(data) {
-          console.log('Successful getVisualExplainJson', data);
-          self.get('controller.model').set('visualExplainJson', data.rows[0][0]);
-
-          if( self.paramsFor('queries.query').worksheetId == payloadTitle){
-           self.transitionTo('queries.query.visual-explain');
-          }
-
-        }, function(error){
-          console.log('error getVisualExplainJson', error);
-        });
+       if( this.paramsFor('queries.query').worksheetId == payloadTitle){
+         Ember.run.later(() => {
+           this.transitionTo('queries.query.visual-explain');
+         }, 1);
+       }
     },
 
     goNextPage(payloadTitle){

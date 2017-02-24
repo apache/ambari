@@ -19,10 +19,17 @@
 {{outlet}}
 
 {{#unless hasJobAssociated}}
-  <div>No Visual Explain available.</div>
+  <div class="explain--error">
+    <div>No Visual Explain available.</div>
+  </div>
 {{/unless}}
 
 {{#if hasJobAssociated}}
+  {{#unless visualExplainJson}}
+    <div class="explain--error">
+      <div>No Visual Explain available.</div>
+    </div>
+  {{/unless}}
   {{#if visualExplainJson}}
     {{visual-explain
     expandQueryResultPanel='expandQueryResultPanel'

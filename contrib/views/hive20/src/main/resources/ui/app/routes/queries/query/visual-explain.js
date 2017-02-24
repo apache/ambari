@@ -32,17 +32,16 @@ export default Ember.Route.extend({
 
   setupController(controller, model){
     this._super(...arguments);
-
     model.set('lastResultRoute', ".visual-explain");
 
-    if(!Ember.isEmpty(model.get('currentJobData'))){
-
+    if(!Ember.isEmpty(model.get('currentJobData'))) {
       let jobId = model.get('currentJobData').job.id;
       this.controller.set('jobId', jobId);
       this.controller.set('payloadTitle',  model.get('currentJobData').job.title);
       this.controller.set('isQueryRunning', model.get('isQueryRunning'));
-      this.controller.set('visualExplainJson', model.get('visualExplainJson'));
-
+      if(!Ember.isEmpty(JSON.parse(model.get('queryResult').rows[0][0])['STAGE PLANS'])){
+        this.controller.set('visualExplainJson', model.get('queryResult').rows[0][0]);
+      }
       this.controller.set('hasJobAssociated', true);
     } else {
       this.controller.set('hasJobAssociated', false);

@@ -17,13 +17,13 @@
 }}
 
 {{#unless hasJobAssociated}}
-  <div>No Log available.</div>
+  <div class="explain--error">
+    <div>No Log available.</div>
+  </div>
 {{/unless}}
 
 {{#if hasJobAssociated}}
   <div>
     <pre class="prettyprint">{{logResults}}</pre>
   </div>
-
 {{/if}}
-

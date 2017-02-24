@@ -19,5 +19,7 @@
 {{#if model.tezUrl}}
 <iframe  class="tez-ui" src={{model.tezUrl}}></iframe>
 {{else}}
-<div>Tez UI not available.</div>
+<div class="explain--error">
+  <div>Tez UI not available.</div>
+</div>
 {{/if}}
