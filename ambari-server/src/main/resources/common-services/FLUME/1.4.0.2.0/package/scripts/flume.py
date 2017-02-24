@@ -197,7 +197,7 @@ def flume(action = None):
                   tries=20,
                   try_sleep=10)
         except:
-          show_logs(params.flume_log_dir, None)
+          show_logs(params.flume_log_dir, params.flume_user)
           raise
 
     pass
@@ -224,7 +224,7 @@ def flume(action = None):
           Execute(("kill", "-9", pid), sudo=True)
       
       if not await_flume_process_termination(pid_file, try_count=10):
-        show_logs(params.flume_log_dir, None)
+        show_logs(params.flume_log_dir, params.flume_user)
         raise Fail("Can't stop flume agent: {0}".format(agent))
         
       File(pid_file, action = 'delete')
