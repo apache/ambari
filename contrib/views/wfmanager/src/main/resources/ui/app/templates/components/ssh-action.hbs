@@ -42,11 +42,12 @@
         <input type="radio" name="arg" checked={{if (eq useArg true) 'checked'}}  {{action "argTypeChanged" true on="change"}}> Arg
       </div>
     </div>
-    {{#if useArg}}
+    <div id="arg-option">
       {{#arg-config args=actionModel.arg register="register" title="Arg"}}{{/arg-config}}
-    {{else}}
+    </div>
+    <div id="args-option">
       {{#arg-config args=actionModel.args register="register" title="Args"}}{{/arg-config}}
-    {{/if}}
+    </div>
     <div class="form-group">
       <label class="control-label col-xs-2">Capture output</label>
       <div class="col-xs-8">

@@ -40,13 +40,6 @@ const Validations = buildValidations({
 });
 
 export default Ember.Component.extend(Validations,{
-  hiveOptionObserver : Ember.observer('isScript',function(){
-    if(this.get('isScript')){
-      this.set("actionModel.query", undefined);
-    }else{
-      this.set("actionModel.script",  undefined);
-    }
-  }),
   setUp : function(){
     if(this.get('actionModel.script')){
       this.set('isScript', true);
@@ -83,12 +76,20 @@ export default Ember.Component.extend(Validations,{
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
+    this.send('setIsScript', this.get('isScript'));
   }.on('didInsertElement'),
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
+  onDestroy : function(){
+    if(this.get('isScript')){
+      this.set('actionModel.query', undefined);
+    }else{
+      this.set("actionModel.script", undefined);
+    }
+  }.on('willDestroyElement'),
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
@@ -100,11 +101,14 @@ export default Ember.Component.extend(Validations,{
     register (name, context){
       this.sendAction('register',name , context);
     },
-    onHiveOptionChange(value){
-      if(value === "script"){
-        this.set('isScript',true);
+    setIsScript(value){
+      this.set('isScript', value);
+      if(value){
+        this.$('#query-option').hide();
+        this.$('#script-option').show();
       }else{
-        this.set('isScript',false);
+        this.$('#script-option').hide();
+        this.$('#query-option').show();
       }
     }
   }
