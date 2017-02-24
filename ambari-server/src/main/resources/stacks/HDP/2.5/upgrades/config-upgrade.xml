@@ -170,6 +170,14 @@
         </definition>
       </changes>
     </component>
+    <component name="NODEMANAGER">
+      <changes>
+        <definition xsi:type="configure" id="hdp_2_6_0_0_enable_mapreduce_shuffle_connection_keepalive">
+          <type>mapred-site</type>
+          <set key="mapreduce.shuffle.connection-keep-alive.enable" value="true"/>
+        </definition>
+      </changes>
+    </component>
   </service>
 
   <service name="MAPREDUCE2">
@@ -347,6 +355,17 @@
     </component>
     </service>
 
+    <service name="TEZ">
+      <component name="TEZ_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_client_enable_connection_keepalive">
+            <type>tez-site</type>
+            <set key="tez.runtime.shuffle.keep-alive.enabled" value="true"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="PIG">
       <component name="PIG">
         <changes>
@@ -424,6 +443,11 @@
           <definition xsi:type="configure" id="llap_update_headroom" summary="Update headroom for LLAP">
             <type>hive-interactive-env</type>
             <set key="llap_headroom_space" value="12288"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_6_0_0_tez_interactive_enable_connection_keepalive">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.keep-alive.enabled" value="true"/>
           </definition>
 
         </changes>

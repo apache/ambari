@@ -74,5 +74,11 @@
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>tez.runtime.shuffle.keep-alive.enabled</name>
+    <value>true</value>
+    <description>Enables/Disables connection keep from the client side</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
 </configuration>

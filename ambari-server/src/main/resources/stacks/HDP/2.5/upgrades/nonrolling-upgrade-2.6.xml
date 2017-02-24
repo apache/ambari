@@ -287,6 +287,13 @@
         </task>
       </execute-stage>
 
+      <!--YARN-->
+      <execute-stage service="YARN" component="NODEMANAGER" title="Enable ShuffleHandler keep-alive">
+        <task xsi:type="configure" id="hdp_2_6_0_0_enable_mapreduce_shuffle_connection_keepalive">
+          <summary>Enabling connection keep alive for the MapReduce Shuffle Handler</summary>
+        </task>
+      </execute-stage>
+
       <!--Yarn-->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Parameterizing Yarn Log4J Properties Resource Manager">
         <task xsi:type="configure" id="yarn_log4j_parameterize">
@@ -331,6 +338,13 @@
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Update Tez queue configuration">
         <task xsi:type="configure" id="hdp_2_5_0_0_tez_queue_name">
           <summary>Add queue customization property</summary>
+        </task>
+      </execute-stage>
+
+      <!--TEZ-->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Enable Tez Client Shuffle Connectio Keep-Alive">
+        <task xsi:type="configure" id="hdp_2_6_0_0_tez_client_enable_connection_keepalive">
+          <summary>Enabling connection keep alive for Tez shuffle client</summary>
         </task>
       </execute-stage>
 
@@ -521,6 +535,12 @@
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Parameterizing Hive Log4J2 Properties">
         <task xsi:type="configure" id="hive_log4j2_parameterize">
           <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Enable Tez-HiveInteractive Client Shuffle Connectio Keep-Alive">
+        <task xsi:type="configure" id="hdp_2_6_0_0_tez_interactive_enable_connection_keepalive">
+          <summary>Enabling connection keep alive for Tez-HiveInteractive shuffle client</summary>
         </task>
       </execute-stage>
       
