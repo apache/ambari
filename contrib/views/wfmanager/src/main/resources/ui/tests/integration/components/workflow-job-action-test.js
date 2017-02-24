@@ -14,27 +14,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+import { moduleForComponent, test } from 'ember-qunit';
+import hbs from 'htmlbars-inline-precompile';
 
-import Ember from 'ember';
-import Constants from '../utils/constants';
-export default Ember.Object.create({
-  extractSchemaVersion(xmlns){
-    return xmlns.substring(xmlns.lastIndexOf(":")+1);
-  },
-  extractSchema(xmlns){
-    return xmlns.substr(0,xmlns.lastIndexOf(":"));
-  },
-  setTestContext(context){
-    window.flowDesignerTestContext=context;
-  },
-  isSupportedAction(actionType){
-    return Constants.actions.findBy('name', actionType)? true : false;
-  },
-  decodeXml(xml){
-    return xml && xml.length > 0 ? xml.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '\"').replace(/&apos;/g, '\'') : xml;
-  },
-  startsWith (string,searchString, position){
-    position = position || 0;
-    return string.substr(position, searchString.length) === searchString;
-  }
+moduleForComponent('workflow-job-action', 'Integration | Component | workflow job action', {
+  integration: true
+});
+
+test('it renders', function(assert) {
+  // Set any properties with this.set('myProperty', 'value');
+  // Handle any actions with this.on('myAction', function(val) { ... });"
+
+  this.render(hbs`{{workflow-job-action}}`);
+
+  assert.equal(this.$().text().trim(), '');
+
+  // Template block usage:"
+  this.render(hbs`
+    {{#workflow-job-action}}
+      template block text
+    {{/workflow-job-action}}
+  `);
+
+  assert.equal(this.$().text().trim(), 'template block text');
 });

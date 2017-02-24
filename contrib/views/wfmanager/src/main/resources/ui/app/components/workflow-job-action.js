@@ -14,27 +14,22 @@
 *    See the License for the specific language governing permissions and
 *    limitations under the License.
 */
-
 import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
 
 export default Ember.Component.extend({
-  dagUrl:Ember.computed('model.id',function(){
-    return Ember.ENV.API_URL+'/getDag?jobid='+this.get('model.id');
-  }),
-  validTrackerUrl:Ember.computed('model.actionInfo.consoleUrl',function(){
-    var trackerUrl = this.get("model.actionInfo.consoleUrl");
+  tagName: 'tr',
+  validTrackerUrl:Ember.computed('actionInfo.consoleUrl',function(){
+    var trackerUrl = this.get("actionInfo.consoleUrl");
     if (trackerUrl && CommonUtils.startsWith(trackerUrl.trim(), "http")) {
       return true;
     }
     return false;
   }),
-  actions :{
-    getJobLog (params) {
-      this.sendAction('getJobLog', params);
-    },
-    getActionDetails(action){
-      this.sendAction('getActionDetails',action);
+
+  actions: {
+    getActionDetails(actionInfo) {
+      this.sendAction('getActionDetails', actionInfo)
     }
   }
 });
