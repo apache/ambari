@@ -259,6 +259,16 @@
       </service>
     </group>
 
+    <group name="SPARK2" title="Spark2">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+      </service>
+    </group>
+
     <group name="ZEPPELIN" title="Zeppelin">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
@@ -272,6 +282,13 @@
       <skippable>true</skippable>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <group name="SPARK2_CLIENTS" title="Spark2 Clients">
+      <skippable>true</skippable>
+      <service name="SPARK2">
+        <component>SPARK2_CLIENT</component>
       </service>
     </group>
 
@@ -860,6 +877,28 @@
       <component name="SPARK_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue"/>
+        </pre-upgrade>
+        <pre-downgrade/>
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+      <component name="SPARK2_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+      <component name="SPARK2_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_spark2_yarn_queue"/>
         </pre-upgrade>
         <pre-downgrade/>
         <upgrade>
