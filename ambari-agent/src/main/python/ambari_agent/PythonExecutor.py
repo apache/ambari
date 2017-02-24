@@ -27,6 +27,7 @@ import platform
 from threading import Thread
 import time
 from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
+from resource_management.libraries.functions.log_process_information import log_process_information
 from ambari_commons.os_check import OSConst, OSCheck
 from Grep import Grep
 import sys
@@ -127,16 +128,7 @@ class PythonExecutor(object):
     Log some useful information after task failure.
     """
     logger.info("Command " + pprint.pformat(pythonCommand) + " failed with exitcode=" + str(result['exitcode']))
-    if OSCheck.is_windows_family():
-      cmd_list = ["WMIC path win32_process get Caption,Processid,Commandline", "netstat -an"]
-    else:
-      cmd_list = ["export COLUMNS=9999 ; ps faux", "netstat -tulpn"]
-
-    shell_runner = shellRunner()
-
-    for cmd in cmd_list:
-      ret = shell_runner.run(cmd)
-      logger.info("Command '{0}' returned {1}. {2}{3}".format(cmd, ret["exitCode"], ret["error"], ret["output"]))
+    log_process_information(logger)
 
   def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
