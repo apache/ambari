@@ -18,7 +18,7 @@
 
 export default function doRender(data, selector, onRequestDetail) {
 
-  const width = '100vw', height = '100vh';
+  const width = '1200', height = '960';
 
   d3.select(selector).select('*').remove();
   const svg =
@@ -30,7 +30,8 @@ export default function doRender(data, selector, onRequestDetail) {
   const container = svg.append('g');
   const zoom =
     d3.behavior.zoom()
-      .scaleExtent([1 / 10, 4])
+      .scale(1/10)
+      .scaleExtent([1 / 10, 1])
       .on('zoom', () => {
         container.attr('transform', `translate(${d3.event.translate}) scale(${d3.event.scale})`);
       });
@@ -58,7 +59,7 @@ export default function doRender(data, selector, onRequestDetail) {
     .enter()
       .insert('path', ':first-child')
     .attr('class', 'edge')
-    .attr('d', d => getConnectionPath(d, svg, container));
+    .attr('d', d => (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) ? getConnectionPathFF(d, svg, container) : getConnectionPath(d, svg, container));
 
   reset(zoom, svg, container);
 
@@ -273,7 +274,51 @@ function reset(zoom, svg, container) {
     .call( zoom.event );
 }
 
-function getConnectionPath(connector, svg, container) {
+function getConnectionPathFF(connector, svg, container) {
+  const source = container.select(`#${connector._source._uuid}`).node();
+  const target = container.select(`#${connector._target._uuid}`).node();
+  const rSource = d3.select(source).data()[0];
+  const rTarget = d3.select(target).data()[0];
+  const rSourceVertex = d3.select($(source).closest('.vertex').get(0)).data()[0];
+  const rTargetVertex = d3.select($(target).closest('.vertex').get(0)).data()[0];
+
+  const offsetBox = $(container.node()).children('.vertex').get(0).getBoundingClientRect();
+
+
+  const pSource = {
+    x: offsetBox.left - 200 + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
+    y: offsetBox.top + (rSourceVertex._Y + rSource._indexY) * 100 + 55 / 2,
+  };
+  const pTarget = {
+    x: offsetBox.left - 200 + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
+    y: offsetBox.top + (rTargetVertex._Y + rTarget._indexY) * 100 + 55 / 2,
+  };
+  const path = [
+    pTarget
+  ];
+  const junctionXMultiplier = (pTarget.x - pSource.x < 0) ? +1 : -1;
+  if(pSource.y !== pTarget.y) {
+    path.push({
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pTarget.y
+    }, {
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pSource.y
+    });
+  }
+  path.push(pSource);
+  const offsetY = svg.node().getBoundingClientRect().top;
+  return path.reduce((accumulator, cPoint, index) => {
+    if(index === 0) {
+      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`
+    } else {
+      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`
+    }
+  }, '');
+}
+
+
+function getConnectionPath(connector, svg, container){
   const operators = container.selectAll('.operator');
   const source = container.select(`#${connector._source._uuid}`);
   const target = container.select(`#${connector._target._uuid}`);
@@ -317,7 +362,7 @@ function doClean(node) {
   } else {
     return (
       Object.keys(node)
-        .filter(cNodeKey => cNodeKey !== '_children' && cNodeKey !== '_uuid')
+        .filter(cNodeKey => cNodeKey === '_operator' || !cNodeKey.startsWith('_'))
         .reduce((accumulator, cNodeKey) => {
           accumulator[cNodeKey] = node[cNodeKey];
           return accumulator;

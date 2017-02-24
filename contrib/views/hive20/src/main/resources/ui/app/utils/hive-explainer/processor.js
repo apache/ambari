@@ -25,11 +25,12 @@ function processEdges(vertices, edges) {
 
   return vertices
     .map(cVertex => {
-      const isVertexPartOfSimpleEdge = edges.some(cEdge => cEdge.type === 'SIMPLE_EDGE' && cEdge.parent === cVertex._vertex);
-      const isVertexPartOfBroadcastEdge = edges.some(cEdge => cEdge.type === 'BROADCAST_EDGE' && cEdge.parent === cVertex._vertex);
-      const isVertexPartOfCustomSimpleEdge = edges.some(cEdge => cEdge.type === 'CUSTOM_SIMPLE_EDGE' && cEdge.parent === cVertex._vertex);
-      const isVertexPartOfCustomEdge = edges.some(cEdge => cEdge.type === 'CUSTOM_EDGE' && cEdge.parent === cVertex._vertex);
-      const isVertexPartOfXProdEdge = edges.some(cEdge => cEdge.type === 'XPROD_EDGE' && cEdge.parent === cVertex._vertex);
+      const isVertexPartOfSimpleEdge = edges.some(cEdge => cEdge.type === 'SIMPLE_EDGE' && cEdge._source === cVertex._vertex);
+      const isVertexPartOfBroadcastEdge = edges.some(cEdge => cEdge.type === 'BROADCAST_EDGE' && cEdge._source === cVertex._vertex);
+      const isVertexPartOfCustomSimpleEdge = edges.some(cEdge => cEdge.type === 'CUSTOM_SIMPLE_EDGE' && cEdge._source === cVertex._vertex);
+      const isVertexPartOfCustomEdge = edges.some(cEdge => cEdge.type === 'CUSTOM_EDGE' && cEdge._source === cVertex._vertex);
+      const isVertexPartOfXProdEdge = edges.some(cEdge => cEdge.type === 'XPROD_EDGE' && cEdge._source === cVertex._vertex);
+      const isVertexPartOfUnionEdge = edges.some(cEdge => cEdge.type === 'CONTAINS' && cEdge._source === cVertex._vertex);
 
       let tVertex = cVertex;
 
@@ -56,6 +57,11 @@ function processEdges(vertices, edges) {
       if(isVertexPartOfXProdEdge) {
         tVertex = appendIfTerminusOfOperator(tVertex, {
           _operator: 'Cross-product Distribute Pseudo-Edge'
+        });
+      }
+      if(isVertexPartOfUnionEdge) {
+        tVertex = appendIfTerminusOfOperator(tVertex, {
+          _operator: 'Partition/Sort Pseudo-Edge'
         });
       }
 
@@ -237,4 +243,20 @@ function doCloneAndOmit(obj, keys) {
     .reduce((tObj, cObjKey) => Object.assign({}, tObj, {
       [cObjKey]: obj[cObjKey]
     }), {});
+}
+
+export function getEdgesWithCorrectedUnion(edges) {
+
+  return edges
+      .map(cEdge => {
+        if(cEdge.type === 'CONTAINS') {
+          return Object.assign({}, cEdge, {
+            _source: cEdge._target,
+            _target: cEdge._source,
+          });
+        } else {
+          return cEdge;
+        }
+      });
+
 }
