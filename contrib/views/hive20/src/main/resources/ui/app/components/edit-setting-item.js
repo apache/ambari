@@ -52,7 +52,7 @@ export default Ember.Component.extend({
       return {valid: true};
     }
 
-    if (setting.get('values') && setting.get('values').mapBy('value').contains(value)) {
+    if (setting.get('values') && setting.get('values').mapBy('value').contains(value.toLowerCase())) {
       return {valid: true};
     } else if (setting.get('values')) {
       error = `Value should be in (${setting.get('values').mapBy('value').join(', ')})`;
