@@ -252,7 +252,8 @@ App.BulkOperationsController = Em.Controller.extend({
           context: operationData.message,
           noOpsMessage: Em.I18n.t('hosts.host.maintainance.reinstallFailedComponents.context')
         },
-        success: 'bulkOperationForHostComponentsSuccessCallback'
+        success: 'bulkOperationForHostComponentsSuccessCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -274,7 +275,8 @@ App.BulkOperationsController = Em.Controller.extend({
           hosts: hosts.mapProperty('hostName')
         },
         success: 'bulkOperationForHostsDeleteDryRunCallback',
-        error: 'bulkOperationForHostsDeleteDryRunCallback'
+        error: 'bulkOperationForHostsDeleteDryRunCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -371,7 +373,8 @@ App.BulkOperationsController = Em.Controller.extend({
               hosts: hosts.mapProperty('deleted.key')
             },
             success: 'bulkOperationForHostsDeleteCallback',
-            error: 'bulkOperationForHostsDeleteCallback'
+            error: 'bulkOperationForHostsDeleteCallback',
+            showLoadingPopup: true
           });
         },
         bodyClass: Em.View.extend({
@@ -623,7 +626,8 @@ App.BulkOperationsController = Em.Controller.extend({
           }),
           context: operationData.message + ' ' + operationData.componentNameFormatted,
         },
-        success: 'bulkOperationForHostComponentsAddSuccessCallback'
+        success: 'bulkOperationForHostComponentsAddSuccessCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -932,28 +936,19 @@ App.BulkOperationsController = Em.Controller.extend({
       return;
     }
 
-    var loadingPopup = App.ModalPopup.show({
-      header: Em.I18n.t('jobs.loadingTasks'),
-      primary: false,
-      secondary: false,
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('{{view App.SpinnerView}}')
-      })
-    });
-
-    this.getHostsForBulkOperations(queryParams, operationData, loadingPopup);
+    this.getHostsForBulkOperations(queryParams, operationData);
   },
 
-  getHostsForBulkOperations: function (queryParams, operationData, loadingPopup) {
+  getHostsForBulkOperations: function (queryParams, operationData) {
     return App.ajax.send({
       name: 'hosts.bulk.operations',
       sender: this,
       data: {
         parameters: App.router.get('updateController').computeParameters(queryParams),
-        operationData: operationData,
-        loadingPopup: loadingPopup
+        operationData: operationData
       },
-      success: 'getHostsForBulkOperationSuccessCallback'
+      success: 'getHostsForBulkOperationSuccessCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -978,8 +973,6 @@ App.BulkOperationsController = Em.Controller.extend({
     if (!hosts.length) {
       return;
     }
-
-    Em.tryInvoke(param.loadingPopup, 'hide');
 
     if ('SET_RACK_INFO' === operationData.action) {
       return self.bulkOperation(operationData, hosts);

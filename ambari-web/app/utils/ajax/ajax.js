@@ -3103,13 +3103,29 @@ var ajax = Em.Object.extend({
       return null;
     }
 
+    var loadingPopup = null;
+    var loadingPopupTimeout = null;
+    if(config.hasOwnProperty("showLoadingPopup") && config.showLoadingPopup === true) {
+      loadingPopupTimeout = setTimeout(function() {
+        loadingPopup = App.ModalPopup.show({
+          header: Em.I18n.t('jobs.loadingTasks'),
+          backdrop: false,
+          primary: false,
+          secondary: false,
+          bodyClass: Em.View.extend({
+            template: Em.Handlebars.compile('{{view App.SpinnerView}}')
+          })
+        });
+      }, 500);
+    }
+
     // default parameters
     var params = {
       clusterName: (App.get('clusterName') || App.clusterStatus.get('clusterName'))
     };
 
     // extend default parameters with provided
-    if (config.data) {
+    if (config.hasOwnProperty("data") && config.data) {
       jQuery.extend(params, config.data);
     }
 
@@ -3152,6 +3168,12 @@ var ajax = Em.Object.extend({
       }
     };
     opt.complete = function () {
+      if (loadingPopupTimeout) {
+        clearTimeout(loadingPopupTimeout);
+      }
+      if(loadingPopup) {
+        Em.tryInvoke(loadingPopup, 'hide');
+      }
       App.logger.logTimerIfMoreThan(consoleMsg, 1000);
       if (config.callback) {
         config.callback();
