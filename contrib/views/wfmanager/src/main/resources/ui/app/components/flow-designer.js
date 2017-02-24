@@ -658,7 +658,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('showActionEditor', true);
     this.set('currentAction', node.actionType);
     var domain = node.getNodeDetail();
-    this.set('clonedDomain',Ember.copy(domain));
+    this.set('clonedDomain', JSOG.stringify(domain));
     this.set('clonedErrorNode', node.errorNode);
     this.set('clonedKillMessage',node.get('killMessage'));
     node.set("domain", domain);
@@ -1095,7 +1095,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.currentNode.onSave();
         this.doValidation();
       }	else {
-        this.set('currentNode.domain',Ember.copy(this.get('clonedDomain')));
+        this.set('currentNode.domain',JSOG.parse(this.get('clonedDomain')));
         this.set('currentNode.errorNode', this.get('clonedErrorNode'));
         if(this.currentNode.type === 'kill'){
           this.set('currentNode.killMessage', this.get('clonedKillMessage'));
