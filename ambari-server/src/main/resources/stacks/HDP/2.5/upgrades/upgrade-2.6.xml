@@ -683,10 +683,6 @@
       </component>
 
       <component name="NODEMANAGER">
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_6_0_0_enable_mapreduce_shuffle_connection_keepalive"/>
-        </pre-upgrade>
-        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -806,7 +802,6 @@
           <task xsi:type="configure" id="hive_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_update_headroom"/>
-          <task xsi:type="configure" id="hdp_2_6_0_0_tez_interactive_enable_connection_keepalive"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -903,7 +898,6 @@
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
-          <task xsi:type="configure" id="hdp_2_6_0_0_tez_client_enable_connection_keepalive"/>
         </pre-upgrade>
 
         <pre-downgrade>
