@@ -218,8 +218,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
               }
 
               if (password == null) {
-                if (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
-                  .exists(evaluatedPrincipal, hostEntity.getHostId())) {
+                if (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)
+                  || (kerberosPrincipalHostDAO.exists(evaluatedPrincipal, hostEntity.getHostId()) && destinationKeytabFile.exists())) { // same principal can have multiple keytabs, therefore checking if keytab file exists
                   // There is nothing to do for this since it must already exist and we don't want to
                   // regenerate the keytab
                   message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
