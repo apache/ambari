@@ -20,6 +20,7 @@ limitations under the License.
 import collections
 import re
 import os
+import ast
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -245,7 +246,13 @@ if has_ranger_admin:
   user_to_groups_dict[ranger_user] = [ranger_group]
 if has_zeppelin_master:
   user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
-
+#Append new user-group mapping to the dict
+try:
+  user_group_map = ast.literal_eval(config['hostLevelParams']['user_group'])
+  for key in user_group_map.iterkeys():
+    user_to_groups_dict[key] = user_group_map[key]
+except ValueError:
+  print('User Group mapping (user_group) is missing in the hostLevelParams')
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
