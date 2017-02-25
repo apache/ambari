@@ -131,8 +131,14 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
           // add the logging metadata for this host component
           resource.setProperty("logging", loggingInfo);
         } else {
-          Utils.logErrorMessageWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
-            "Error occurred while making request to LogSearch service, unable to populate logging properties on this resource");
+          if (LOG.isDebugEnabled()) {
+            String debugMessage =
+              String.format("Error occurred while making request to LogSearch service, unable to populate logging properties on this resource, component = %s, host = %s",
+                            componentName, hostName);
+
+            Utils.logDebugMessageWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+                                             debugMessage);
+          }
         }
       }
 
