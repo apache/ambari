@@ -41,6 +41,12 @@
                 },
                 "configuration": "kafka-env/kafka_keytab"
               }
+            },
+            {
+              "name": "/HDFS/NAMENODE/hdfs",
+              "when" : {
+                "contains" : ["services", "HDFS"]
+              }
             }
           ]
         }

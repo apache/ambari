@@ -60,6 +60,12 @@
               "keytab": {
                 "configuration": "ranger-kafka-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
+            },
+            {
+              "name": "/HDFS/NAMENODE/hdfs",
+              "when" : {
+                "contains" : ["services", "HDFS"]
+              }
             }
           ]
         }
