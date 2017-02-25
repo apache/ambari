@@ -478,6 +478,33 @@ public String getVersion() {
   }
 
   /**
+   * Indicates if this service is requires credential store.
+   * False if it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreRequired() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isRequired() != null) {
+        return credentialStoreInfo.isRequired();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service requires credential store.
+   * @param credentialStoreRequired
+   */
+  public void setCredentialStoreRequired(boolean credentialStoreRequired) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setRequired(credentialStoreRequired);
+  }
+
+  /**
    * Indicates if this service is enabled for credential store use.
    * False if it was not specified.
    *

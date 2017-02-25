@@ -23,6 +23,12 @@
       <name>STORM</name>
       <comment>Apache Hadoop Stream processing framework</comment>
       <version>0.9.0.1</version>
+      <credential-store>
+        <supported>false</supported>
+        <enabled>false</enabled>
+        <required>false</required>
+      </credential-store>
+
       <components>
 
         <component>

@@ -222,6 +222,7 @@
         "StackServices/required_services",
         "StackServices/credential_store_supported",
         "StackServices/credential_store_enabled",
+        "StackServices/credential_store_required",
         "StackServices/properties",
         "_"
     ],

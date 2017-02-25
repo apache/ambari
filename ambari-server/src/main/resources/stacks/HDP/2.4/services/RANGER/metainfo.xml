@@ -24,10 +24,6 @@
     <service>
       <name>RANGER</name>
       <version>0.5.0.2.4</version>
-      <credential-store>
-        <supported>true</supported>
-        <enabled>false</enabled>
-      </credential-store>
     </service>
   </services>
 </metainfo>

@@ -27,81 +27,103 @@ import javax.xml.bind.annotation.XmlElement;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class CredentialStoreInfo {
-    /**
-     * Use Boolean data-type internally, so that we can validate
-     * the XML.
-     */
+  /**
+   * Use Boolean data-type internally, so that we can validate the XML.
+   */
 
-    @XmlElement(name="supported")
-    private Boolean supported = null;
+  @XmlElement(name = "supported")
+  private Boolean supported = null;
 
-    @XmlElement(name="enabled")
-    private Boolean enabled = null;
+  @XmlElement(name = "required")
+  private Boolean required = null;
 
-    /**
-     * Default constructor
-     */
-    public CredentialStoreInfo() {
-    }
+  @XmlElement(name = "enabled")
+  private Boolean enabled = null;
 
-    /**
-     * Constructor taking in values for supported and enabled
-     *
-     * @param supported
-     * @param enabled
-     */
-    public CredentialStoreInfo(Boolean supported, Boolean enabled) {
-        this.supported = supported;
-        this.enabled = enabled;
-    }
+  /**
+   * Default constructor
+   */
+  public CredentialStoreInfo() {
+  }
 
-    /**
-     * Gets a value indicating if the service supports
-     * credential store. If null, this was not specified.
-     * @return
-     */
-    public Boolean isSupported() {
-        return supported;
-    }
+  /**
+   * Constructor taking in values for supported and enabled
+   *
+   * @param supported
+   * @param enabled
+   * @param required
+   */
+  public CredentialStoreInfo(Boolean supported, Boolean enabled, Boolean required) {
+    this.supported = supported;
+    this.enabled = enabled;
+    this.required = required;
+  }
 
-    /**
-     * Set whether a service supports credential store.
-     *
-     * @param supported
-     */
-    public void setSupported(Boolean supported) {
-        this.supported = supported;
-    }
+  /**
+   * Gets a value indicating if the service supports credential store. If null, this was not specified.
+   *
+   * @return
+   */
+  public Boolean isSupported() {
+    return supported;
+  }
 
-    /**
-     * Gets a value indicating whether the service is
-     * enabled for credential store use.
-     *
-     * @return - true, false, null if not specified.
-     */
-    public Boolean isEnabled() {
-        return enabled;
-    }
+  /**
+   * Set whether a service supports credential store.
+   *
+   * @param supported
+   */
+  public void setSupported(Boolean supported) {
+    this.supported = supported;
+  }
 
-    /**
-     * Set whether the service is enabled for credential
-     * store use.
-     *
-     * @param enabled - true, false, null.
-     */
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
+  /**
+   * Gets a value indicating whether the service is enabled for credential store use.
+   *
+   * @return - true, false, null if not specified.
+   */
+  public Boolean isEnabled() {
+    return enabled;
+  }
 
-    /**
-     * String representation of this object
-     * @return
-     */
-    @Override
-    public String toString() {
-        return "CredentialStoreInfo{" +
-                "supported=" + supported +
-                ", enabled=" + enabled +
-                '}';
-    }
+  /**
+   * Set whether the service is enabled for credential store use.
+   *
+   * @param enabled - true, false, null.
+   */
+  public void setEnabled(Boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  /**
+   * Gets a value indicating whether the service requires credential store.
+   *
+   * @return - true, false, null if not specified.
+   */
+  public Boolean isRequired() {
+    return required;
+  }
+
+  /**
+   * Set whether the service requires credential store
+   *
+   * @param required - true, false, null.
+   */
+  public void setRequired(Boolean required) {
+    this.required = required;
+  }
+
+  /**
+   * String representation of this object
+   *
+   * @return
+   */
+  @Override
+  public String toString() {
+    return "CredentialStoreInfo{" +
+           "supported=" + supported +
+           ", required=" + required +
+           ", enabled=" + enabled +
+           '}';
+  }
 }
