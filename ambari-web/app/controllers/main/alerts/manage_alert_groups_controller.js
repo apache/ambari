@@ -372,7 +372,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var self = this;
     return App.ModalPopup.show({
 
-      classNames: [ 'common-modal-wrapper' ],
+      classNames: ['common-modal-wrapper', 'full-height-modal'],
 
       modalDialogClasses: ['modal-lg'],
 
