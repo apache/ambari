@@ -339,6 +339,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       svcRequest.setMaintenanceState(o.toString());
     }
 
+    o = properties.get(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
+    if (null != o) {
+      svcRequest.setMaintenanceState(o.toString());
+    }
+
     return svcRequest;
   }
 
@@ -368,22 +373,30 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), request.getServiceName());
-      LOG.info("Service: {}, credential_store_supported from stack definition:{}", request.getServiceName(),
-          serviceInfo.isCredentialStoreSupported());
 
+      boolean credentialStoreSupported = serviceInfo.isCredentialStoreSupported();
+      boolean credentialStoreRequired = serviceInfo.isCredentialStoreRequired();
+
+      LOG.info("Service: {}, credential_store_supported = {} and credential_store_required = {} from stack definition",
+               request.getServiceName(), credentialStoreSupported, credentialStoreRequired);
       /**
        * If request does not have credential_store_enabled field,
        * then get the default from the stack definition.
        */
       if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
         boolean credentialStoreEnabled = Boolean.parseBoolean(request.getCredentialStoreEnabled());
-        s.setCredentialStoreEnabled(credentialStoreEnabled);
-        LOG.info("Service: {}, credential_store_enabled from request: {}", request.getServiceName(),
-            credentialStoreEnabled);
+        boolean enableCredStore = credentialStoreSupported && (credentialStoreRequired || credentialStoreEnabled);
+        s.setCredentialStoreEnabled(enableCredStore);
+        LOG.info("Service: {}, credential_store_enabled = {} from request and resulting" +
+                 " credential store enabled status is = {}",
+                 request.getServiceName(), credentialStoreEnabled, enableCredStore);
       } else {
-        s.setCredentialStoreEnabled(serviceInfo.isCredentialStoreEnabled());
-        LOG.info("Service: {}, credential_store_enabled from stack definition:{}", s.getName(),
-            serviceInfo.isCredentialStoreEnabled());
+        boolean enableCredStore = credentialStoreSupported &&
+                                  (credentialStoreRequired || serviceInfo.isCredentialStoreEnabled());
+        s.setCredentialStoreEnabled(enableCredStore);
+        LOG.info("Service: {}, credential_store_enabled = {} from stack definition and resulting" +
+                 " credential store enabled status is = {}",
+                 s.getName(), serviceInfo.isCredentialStoreEnabled(), enableCredStore);
       }
 
       // Initialize service widgets
@@ -498,7 +511,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       reqOpLvl = Resource.Type.Cluster;
     }
 
-    Clusters       clusters        = controller.getClusters();
+    Clusters clusters = controller.getClusters();
 
     // We don't expect batch requests for different clusters, that's why
     // nothing bad should happen if value is overwritten few times
@@ -581,9 +594,18 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           throw new IllegalArgumentException("Invalid arguments, cannot enable credential store " +
               "as it is not supported by the service. Service=" + s.getName());
         }
+        if (s.isCredentialStoreRequired() && !credentialStoreEnabled) {
+          throw new IllegalArgumentException("Invalid arguments, cannot disable credential store " +
+                                             "as it is required by the service. Service=" + s.getName());
+        }
         serviceCredentialStoreEnabledMap.put(s, credentialStoreEnabled);
         LOG.info("Service: {}, credential_store_enabled from request: {}", request.getServiceName(),
             credentialStoreEnabled);
+      }
+
+      if (StringUtils.isNotEmpty(request.getCredentialStoreSupported())) {
+        throw new IllegalArgumentException("Invalid arguments, cannot update credential_store_supported " +
+                                           "as it is set only via service definition. Service=" + s.getName());
       }
 
       if (newState == null) {

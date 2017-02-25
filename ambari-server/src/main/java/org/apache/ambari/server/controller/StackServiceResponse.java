@@ -70,6 +70,12 @@ public class StackServiceResponse {
   private boolean credentialStoreEnabled;
 
   /**
+   * Indicates if the stack definition says this service requires
+   * credential store use. If not specified, this will be false.
+   */
+  private boolean credentialStoreRequired;
+
+  /**
    * Constructor.
    *
    * @param service
@@ -280,5 +286,23 @@ public class StackServiceResponse {
    */
   public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
     this.credentialStoreEnabled = credentialStoreEnabled;
+  }
+
+  /**
+   * Get whether credential store use is required
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreRequired() {
+    return credentialStoreRequired;
+  }
+
+  /**
+   * Set credential store required value.
+   *
+   * @param credentialStoreRequired
+   */
+  public void setCredentialStoreRequired(boolean credentialStoreRequired) {
+    this.credentialStoreRequired = credentialStoreRequired;
   }
 }

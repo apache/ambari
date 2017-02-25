@@ -10380,6 +10380,89 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testCredentialStoreRelatedAPICallsToUpdateSettings() throws Exception {
+    String cluster1 = getUniqueName();
+    createCluster(cluster1);
+    clusters.getCluster(cluster1).setDesiredStackVersion(
+        new StackId("HDP-2.2.0"));
+
+    String service1Name = "HDFS";
+    String service2Name = "STORM";
+    String service3Name = "ZOOKEEPER";
+    createService(cluster1, service1Name, null);
+    createService(cluster1, service2Name, null);
+    createService(cluster1, service3Name, null);
+    String component1Name = "NAMENODE";
+    String component2Name = "DRPC_SERVER";
+    String component3Name = "ZOOKEEPER_SERVER";
+    createServiceComponent(cluster1, service1Name, component1Name, State.INIT);
+    createServiceComponent(cluster1, service2Name, component2Name, State.INIT);
+    createServiceComponent(cluster1, service3Name, component3Name, State.INIT);
+    String host1 = getUniqueName();
+    addHostToCluster(host1, cluster1);
+    createServiceComponentHost(cluster1, service1Name, component1Name, host1, null);
+    createServiceComponentHost(cluster1, service2Name, component2Name, host1, null);
+    createServiceComponentHost(cluster1, service3Name, component3Name, host1, null);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put("context", "Called from a test");
+
+    Cluster cluster = clusters.getCluster(cluster1);
+    Service service1 = cluster.getService(service1Name);
+
+    MaintenanceStateHelper
+        maintenanceStateHelper =
+        MaintenanceStateHelperTest.getMaintenanceStateHelperInstance(clusters);
+
+    // test updating a service
+    ServiceRequest sr = new ServiceRequest(cluster1, service1Name, null);
+    sr.setCredentialStoreEnabled("true");
+
+    ServiceResourceProviderTest.updateServices(controller,
+                                               Collections.singleton(sr), requestProperties, false, false,
+                                               maintenanceStateHelper);
+    Assert.assertTrue(service1.isCredentialStoreEnabled());
+    Assert.assertTrue(service1.isCredentialStoreSupported());
+    Assert.assertFalse(service1.isCredentialStoreRequired());
+
+    ServiceRequest sr2 = new ServiceRequest(cluster1, service2Name, null);
+    sr2.setCredentialStoreEnabled("true");
+    try {
+      ServiceResourceProviderTest.updateServices(controller,
+                                                 Collections.singleton(sr2), requestProperties, false, false,
+                                                 maintenanceStateHelper);
+      Assert.assertTrue("Expected exception not thrown - service does not support cred store", true);
+    }catch(IllegalArgumentException iaex) {
+      Assert.assertTrue(iaex.getMessage(), iaex.getMessage().contains(
+          "Invalid arguments, cannot enable credential store as it is not supported by the service. Service=STORM"));
+    }
+
+    ServiceRequest sr3 = new ServiceRequest(cluster1, service3Name, null);
+    sr3.setCredentialStoreEnabled("false");
+    try {
+      ServiceResourceProviderTest.updateServices(controller,
+                                                 Collections.singleton(sr3), requestProperties, false, false,
+                                                 maintenanceStateHelper);
+      Assert.assertTrue("Expected exception not thrown - service does not support disabling of cred store", true);
+    }catch(IllegalArgumentException iaex) {
+      Assert.assertTrue(iaex.getMessage(), iaex.getMessage().contains(
+          "Invalid arguments, cannot disable credential store as it is required by the service. Service=ZOOKEEPER"));
+    }
+
+    ServiceRequest sr4 = new ServiceRequest(cluster1, service3Name, null);
+    sr4.setCredentialStoreSupported("true");
+    try {
+      ServiceResourceProviderTest.updateServices(controller,
+                                                 Collections.singleton(sr4), requestProperties, false, false,
+                                                 maintenanceStateHelper);
+      Assert.assertTrue("Expected exception not thrown - service does not support updating cred store support", true);
+    }catch(IllegalArgumentException iaex) {
+      Assert.assertTrue(iaex.getMessage(), iaex.getMessage().contains(
+          "Invalid arguments, cannot update credential_store_supported as it is set only via service definition. Service=ZOOKEEPER"));
+    }
+  }
+
+  @Test
   public void testPassiveSkipServices() throws Exception {
     String cluster1 = getUniqueName();
     createCluster(cluster1);

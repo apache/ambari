@@ -86,13 +86,16 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       "StackServices", "custom_commands");
 
   private static final String SERVICE_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId(
-    "StackServices", "properties");
+      "StackServices", "properties");
 
   private static final String CREDENTIAL_STORE_SUPPORTED = PropertyHelper.getPropertyId(
-          "StackServices", "credential_store_supported");
+      "StackServices", "credential_store_supported");
+
+  private static final String CREDENTIAL_STORE_REQUIRED = PropertyHelper.getPropertyId(
+      "StackServices", "credential_store_required");
 
   private static final String CREDENTIAL_STORE_ENABLED = PropertyHelper.getPropertyId(
-          "StackServices", "credential_store_enabled");
+      "StackServices", "credential_store_enabled");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
@@ -191,13 +194,16 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
         response.getCustomCommands(), requestedIds);
 
     setResourceProperty(resource, SERVICE_PROPERTIES_PROPERTY_ID,
-      response.getServiceProperties(), requestedIds);
+        response.getServiceProperties(), requestedIds);
 
     setResourceProperty(resource, CREDENTIAL_STORE_SUPPORTED,
-      response.isCredentialStoreSupported(), requestedIds);
+        response.isCredentialStoreSupported(), requestedIds);
+
+    setResourceProperty(resource, CREDENTIAL_STORE_REQUIRED,
+        response.isCredentialStoreRequired(), requestedIds);
 
     setResourceProperty(resource, CREDENTIAL_STORE_ENABLED,
-      response.isCredentialStoreEnabled(), requestedIds);
+        response.isCredentialStoreEnabled(), requestedIds);
 
     return resource;
   }

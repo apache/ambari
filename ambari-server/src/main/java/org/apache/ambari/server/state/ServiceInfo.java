@@ -30,6 +30,8 @@ import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -473,6 +475,33 @@ public String getVersion() {
       credentialStoreInfo = new CredentialStoreInfo();
     }
     credentialStoreInfo.setSupported(credentialStoreSupported);
+  }
+
+  /**
+   * Indicates if this service is requires credential store.
+   * False if it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreRequired() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isRequired() != null) {
+        return credentialStoreInfo.isRequired();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service requires credential store.
+   * @param credentialStoreRequired
+   */
+  public void setCredentialStoreRequired(boolean credentialStoreRequired) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setRequired(credentialStoreRequired);
   }
 
   /**
