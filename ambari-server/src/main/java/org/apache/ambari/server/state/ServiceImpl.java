@@ -420,7 +420,6 @@ public class ServiceImpl implements Service {
    */
   private void persist(ClusterServiceEntity serviceEntity) {
     persistEntities(serviceEntity);
-    refresh();
 
     // publish the service installed event
     StackId stackId = cluster.getDesiredStackVersion();
@@ -443,15 +442,6 @@ public class ServiceImpl implements Service {
     clusterServiceDAO.merge(serviceEntity);
   }
 
-  @Transactional
-  public void refresh() {
-    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceName(getName());
-    ClusterServiceEntity serviceEntity = getServiceEntity();
-    clusterServiceDAO.refresh(serviceEntity);
-    serviceDesiredStateDAO.refresh(serviceEntity.getServiceDesiredStateEntity());
-  }
 
   @Override
   public boolean canBeRemoved() {
