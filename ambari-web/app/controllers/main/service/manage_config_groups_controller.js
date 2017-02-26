@@ -560,12 +560,15 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    */
   addHostsCallback: function (selectedHosts) {
     if (selectedHosts) {
+      var sortedHosts;
       var group = this.get('selectedConfigGroup');
       var parentGroupHosts = group.get('parentConfigGroup.hosts');
       var newHostsForParentGroup = parentGroupHosts.filter(function(hostName) {
         return !selectedHosts.contains(hostName);
       });
-      group.set('hosts', group.get('hosts').pushObjects(selectedHosts).slice().sort());
+      group.get('hosts').pushObjects(selectedHosts);
+      sortedHosts = group.get('hosts').sort();
+      group.set('hosts', sortedHosts);
       group.set('parentConfigGroup.hosts', newHostsForParentGroup);
     }
   },
