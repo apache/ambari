@@ -125,7 +125,7 @@ public class StackVersionListener {
         processComponentAdvertisedVersion(cluster, sch, newVersion, sc);
       } else if(!sc.isVersionAdvertised() && StringUtils.isNotBlank(newVersion)
           && !UNKNOWN_VERSION.equalsIgnoreCase(newVersion)) {
-        LOG.error("ServiceComponent {0} doesn't advertise version, " +
+        LOG.error("ServiceComponent {} doesn't advertise version, " +
                 "however ServiceHostComponent {} on host {} advertised version as {}. Skipping version update",
             sc.getName(), sch.getServiceComponentName(), sch.getHostName(), newVersion);
       } else {
