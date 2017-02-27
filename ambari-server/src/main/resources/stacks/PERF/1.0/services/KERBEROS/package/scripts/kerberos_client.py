@@ -70,9 +70,6 @@ class KerberosClient(KerberosScript):
   def remove_keytab(self, env):
     self.delete_keytab_file()
 
-  def download_install_jce(self, env):
-    pass
-
 
 if __name__ == "__main__":
   KerberosClient().execute()

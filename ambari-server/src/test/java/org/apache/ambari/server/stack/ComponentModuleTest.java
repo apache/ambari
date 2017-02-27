@@ -25,6 +25,7 @@ import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -445,6 +446,40 @@ public class ComponentModuleTest {
     parentInfo.setDecommissionAllowed("false");
     info.setDecommissionAllowed("true");
     assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  @Test
+  public void testResolve_UnlimitedKeyJCERequiredInheritance(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child doesn't
+    parentInfo.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.ALWAYS);
+    assertSame(UnlimitedKeyJCERequirement.ALWAYS, resolveComponent(info, parentInfo).getModuleInfo().getUnlimitedKeyJCERequired());
+  }
+
+  @Test
+  public void testResolve_UnlimitedKeyJCERequired(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent doesn't have it, child has it
+    info.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.NEVER);
+    assertSame(UnlimitedKeyJCERequirement.NEVER, resolveComponent(info, parentInfo).getModuleInfo().getUnlimitedKeyJCERequired());
+  }
+
+  @Test
+  public void testResolve_UnlimitedKeyJCERequiredOverwrite(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child overwrites it
+    parentInfo.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.KERBEROS_ENABLED);
+    info.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.ALWAYS);
+    assertSame(UnlimitedKeyJCERequirement.ALWAYS, resolveComponent(info, parentInfo).getModuleInfo().getUnlimitedKeyJCERequired());
   }
 
   @Test

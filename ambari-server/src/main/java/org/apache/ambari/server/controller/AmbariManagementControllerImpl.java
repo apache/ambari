@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import javax.persistence.RollbackException;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -39,6 +38,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
@@ -65,6 +65,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+
+import javax.persistence.RollbackException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -182,6 +184,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityControllerFactory;
@@ -2433,6 +2436,26 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
     hostParams.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
+
+    // If we are starting a component, calculate whether the unlimited key JCE policy is
+    // required for the relevant host.  One of the following indicates that the unlimited
+    // key JCE policy is required:
+    //
+    //   * The component explicitly requires it whether Kerberos is enabled or not (example, SMARTSENSE/HST_SERVER)
+    //   * The component explicitly requires it only when Kerberos is enabled AND Kerberos is enabled (example, most components)
+    //
+    UnlimitedKeyJCERequirement unlimitedKeyJCERequirement = componentInfo.getUnlimitedKeyJCERequired();
+    // Ensure that the unlimited key requirement is set. If null, the default value should be used.
+    if(unlimitedKeyJCERequirement == null) {
+      unlimitedKeyJCERequirement = UnlimitedKeyJCERequirement.DEFAULT;
+    }
+
+    boolean unlimitedKeyJCEPolicyRequired = (UnlimitedKeyJCERequirement.ALWAYS == unlimitedKeyJCERequirement) ||
+        ((UnlimitedKeyJCERequirement.KERBEROS_ENABLED == unlimitedKeyJCERequirement) && (cluster.getSecurityType() == SecurityType.KERBEROS));
+
+    // Set/update the unlimited_key_jce_required value as needed
+    hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (unlimitedKeyJCEPolicyRequired) ? "true" : "false");
+
     execCmd.setHostLevelParams(hostParams);
 
     Map<String, String> roleParams = new TreeMap<>();
