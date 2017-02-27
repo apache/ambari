@@ -295,6 +295,7 @@ App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDo
    */
   allServicesCallErrorCallback: function (request, ajaxOptions, error, opt, params) {
     params.query.set('status', 'FAIL');
+    App.ajax.defaultErrorHandler(request, opt.url, opt.type, request.status);
   },
 
   /**

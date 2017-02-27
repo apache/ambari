@@ -506,8 +506,13 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       sender: this,
       data: data,
       success: 'startPolling',
-      error: 'onTaskError'
+      error: 'startServicesErrorCallback'
     });
+  },
+
+  startServicesErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+    this.onTaskError(jqXHR, ajaxOptions, error, opt);
   },
 
   /**
