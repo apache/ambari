@@ -55,7 +55,6 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   _nmUnhealthy: Em.computed.formatUnavailable('service.nodeManagersCountUnhealthy'),
   _nmRebooted: Em.computed.formatUnavailable('service.nodeManagersCountRebooted'),
   _nmDecom: Em.computed.formatUnavailable('service.nodeManagersCountDecommissioned'),
-  nodeManagersStatus: Em.computed.i18nFormat('dashboard.services.yarn.nodeManagers.status.msg', '_nmActive', '_nmLost', '_nmUnhealthy', '_nmRebooted', '_nmDecom'),
 
   _allocated: Em.computed.formatUnavailable('service.containersAllocated'),
   _pending: Em.computed.formatUnavailable('service.containersPending'),
