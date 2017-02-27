@@ -170,6 +170,7 @@ var files = [
   'test/mixins/main/host/details/host_components/install_component_test',
   'test/mixins/main/service/configs/widget_popover_support_test',
   'test/mixins/main/service/configs/config_overridable_test',
+  'test/mixins/main/service/configs/component_actions_by_configs_test',
   'test/mixins/routers/redirections_test',
   'test/mixins/wizard/addSeccurityConfigs_test',
   'test/mixins/wizard/assign_master_components_test',
