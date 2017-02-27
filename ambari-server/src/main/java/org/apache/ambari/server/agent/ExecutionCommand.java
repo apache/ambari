@@ -415,6 +415,7 @@ public class ExecutionCommand extends AgentCommand {
     String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";
+    String UNLIMITED_KEY_JCE_REQUIRED = "unlimited_key_jce_required";
     String MYSQL_JDBC_URL = "mysql_jdbc_url";
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";

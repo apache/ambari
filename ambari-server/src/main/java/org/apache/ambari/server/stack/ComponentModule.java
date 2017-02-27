@@ -101,6 +101,10 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
         componentInfo.setDecommissionAllowed(parentInfo.getDecommissionAllowed());
       }
 
+      if (componentInfo.getUnlimitedKeyJCERequired() == null) {
+        componentInfo.setUnlimitedKeyJCERequired(parentInfo.getUnlimitedKeyJCERequired());
+      }
+
       if (componentInfo.getAutoDeploy() == null) {
         componentInfo.setAutoDeploy(parentInfo.getAutoDeploy());
       }
