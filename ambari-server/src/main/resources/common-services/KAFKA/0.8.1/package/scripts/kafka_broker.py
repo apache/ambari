@@ -22,7 +22,7 @@ from resource_management.core.resources.system import Execute, File, Directory
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import StackFeature
@@ -68,8 +68,7 @@ class KafkaBroker(Script):
         src_version = format_stack_version(params.version)
         dst_version = format_stack_version(params.downgrade_from_version)
 
-      # TODO: How to handle the case of crossing stack version boundary in a stack agnostic way?
-      if compare_versions(src_version, '2.3.4.0') < 0 and compare_versions(dst_version, '2.3.4.0') >= 0:
+      if not check_stack_feature(StackFeature.KAFKA_ACL_MIGRATION_SUPPORT, src_version) and check_stack_feature(StackFeature.KAFKA_ACL_MIGRATION_SUPPORT, dst_version):
         # Calling the acl migration script requires the configs to be present.
         self.configure(env, upgrade_type=upgrade_type)
         upgrade.run_migration(env, upgrade_type)
