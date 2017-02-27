@@ -67,14 +67,23 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   removeOverride: function (event) {
     // arg 1 SCP means ServiceConfigProperty
     var scpToBeRemoved = event.contexts[0];
-    var overrides = this.get('serviceConfigProperty.overrides');
+    var scp = this.get('serviceConfigProperty');
+    var overrides = scp.get('overrides');
+    var controller = this.get('controller');
+    var group = controller.get('selectedService.configGroups').findProperty('name', controller.get('selectedConfigGroup.name'));
     // remove override property from selectedService on installer 7-th step
-    if (this.get('controller.name') == 'wizardStep7Controller') {
-      var controller = this.get('controller');
-      var group = controller.get('selectedService.configGroups').findProperty('name', controller.get('selectedConfigGroup.name'));
+    if (this.get('controller.name') === 'wizardStep7Controller') {
       group.get('properties').removeObject(scpToBeRemoved);
     }
-    overrides = overrides.without(scpToBeRemoved);
-    this.set('serviceConfigProperty.overrides', overrides);
+    if (overrides) {
+      overrides = overrides.without(scpToBeRemoved);
+      this.set('serviceConfigProperty.overrides', overrides);
+    }
+    else {
+      if (scp.get('isUserProperty')) {
+        this.get('parentView.serviceConfigs').removeObject(scpToBeRemoved);
+        this.get('parentView.categoryConfigsAll').removeObject(scpToBeRemoved);
+      }
+    }
   }
 });
