@@ -107,7 +107,7 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   onHasChangedDependenciesUpdated: function () {
     if (this.get('controller.hasChangedDependencies')) {
       Em.run.next(function () {
-        $(".dependencies-info-bar-wrapper").stick_in_parent({parent: '#serviceConfig', offset_top: 60});
+        $(".dependencies-info-bar-wrapper").stick_in_parent({parent: '#serviceConfig', offset_top: 74});
         Em.run.next(function () {
           $(".dependencies-info-bar-wrapper").trigger("sticky_kit:recalc"); // '.dependencies-info-bar-wrapper' position should be recalculated
         });
