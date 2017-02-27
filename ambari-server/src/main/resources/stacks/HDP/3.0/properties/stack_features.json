@@ -22,6 +22,11 @@
       "min_version": "2.2.0.0"
     },
     {
+      "name": "kafka_acl_migration_support",
+      "description": "ACL migration support",
+      "min_version": "2.3.4.0"
+    },
+    {
       "name": "secure_zookeeper",
       "description": "Protect ZNodes with SASL acl in secure clusters",
       "min_version": "2.6.0.0"
