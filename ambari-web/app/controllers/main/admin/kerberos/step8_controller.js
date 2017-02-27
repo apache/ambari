@@ -34,7 +34,7 @@ App.KerberosWizardStep8Controller = App.KerberosProgressPageController.extend({
         urlParams: "params/run_smoke_test=" + !skipServiceCheck
       },
       success: 'startPolling',
-      error: 'onTaskError'
+      error: 'startServicesErrorCallback'
     });
   },
 
