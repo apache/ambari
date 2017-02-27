@@ -59,11 +59,13 @@ function create_config() {
 }
 
 function generate_keys() {
-  IP=`hostname --ip-address`
-  echo "generating stores for IP: $IP"
-  mkdir /root/config/ssl
-  keytool -genkeypair -alias logsearch -keyalg RSA -keysize 2048 -keypass bigdata -storepass bigdata -validity 9999 -keystore /root/config/ssl/logsearch.keyStore.jks -ext SAN=DNS:localhost,IP:127.0.0.1,IP:$IP -dname "CN=Common Name, OU=Organizational Unit, O=Organization, L=Location, ST=State, C=Country" -rfc
-  cp /root/config/ssl/logsearch.keyStore.jks /root/config/ssl/logsearch.trustStore.jks
+  if [ $GENERATE_KEYSTORE_AT_START == 'true' ]
+  then
+    IP=`hostname --ip-address`
+    echo "generating stores for IP: $IP"
+    mkdir -p /etc/ambari-logsearch-portal/conf/keys/
+    keytool -genkeypair -alias logsearch -keyalg RSA -keysize 2048 -keypass bigdata -storepass bigdata -validity 9999 -keystore /etc/ambari-logsearch-portal/conf/keys/logsearch.jks  -ext SAN=DNS:localhost,IP:127.0.0.1,IP:$IP -dname "CN=Common Name, OU=Organizational Unit, O=Organization, L=Location, ST=State, C=Country" -rfc
+  fi
 }
 
 function start_solr() {

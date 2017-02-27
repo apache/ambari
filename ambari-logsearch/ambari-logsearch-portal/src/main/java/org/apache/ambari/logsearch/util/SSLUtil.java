@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -289,7 +290,9 @@ public class SSLUtil {
     AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
     BcContentSignerBuilder sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId);
     
-    SubjectPublicKeyInfo pubKey = new SubjectPublicKeyInfo(sigAlgId, rsaPublicKey.getEncoded());
+    ASN1InputStream publicKeyStream = new ASN1InputStream(rsaPublicKey.getEncoded());
+    SubjectPublicKeyInfo pubKey = SubjectPublicKeyInfo.getInstance(publicKeyStream.readObject());
+    publicKeyStream.close();
     
     X509v3CertificateBuilder v3CertBuilder = new X509v3CertificateBuilder(
         new X500Name("CN=" + domainName + ", OU=None, O=None L=None, C=None"),
@@ -304,7 +307,7 @@ public class SSLUtil {
     
     X509CertificateHolder certificateHolder = v3CertBuilder.build(contentSigner);
     
-    JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
+    JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter().setProvider("BC");
     return certConverter.getCertificate(certificateHolder);
   }
 
