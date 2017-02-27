@@ -392,24 +392,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     });
     return deferred;
   },
-  getAssetFromHdfs(filePath){
-    var url = Ember.ENV.API_URL + "/readAsset?assetPath="+filePath;
-    var deferred = Ember.RSVP.defer();
-    Ember.$.ajax({
-      url: url,
-      method: 'GET',
-      dataType: "text",
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
-        xhr.setRequestHeader("X-Requested-By", "Ambari");
-      }
-    }).done(function(data){
-      deferred.resolve(data);
-    }).fail(function(data){
-      deferred.reject(data);
-    });
-    return deferred;
-  },
+
   importActionSettingsFromString(actionSettings) {
     var x2js = new X2JS();
     var actionSettingsObj = x2js.xml_str2json(actionSettings);
@@ -477,8 +460,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       self.set("data", data);
       self.set("isAssetPublishing", false);
     });
-
-    console.log("Action Node", actionNodeXml);
   },
   resetDesigner(){
     this.set("xmlAppPath", null);
@@ -552,7 +533,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   getWorkflowAsNativeJsonImpl(){
     try{
      var json=JSON.stringify(this.get("workflow")), self = this;
-     var actionVersions = JSON.stringify([...this.get("workflow").schemaVersions.actionVersions]);
+     var actionVersions = JSON.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
      var workflow = JSON.parse(json);
      workflow.schemaVersions.actionVersions = actionVersions
      return JSON.stringify(workflow);
@@ -564,7 +545,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   getWorkflowAsJsonJsoGImpl(){
    try{
     var json=JSOG.stringify(this.get("workflow")), self = this;
-    var actionVersions = JSOG.stringify([...this.get("workflow").schemaVersions.actionVersions]);
+    var actionVersions = JSOG.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
     var workflow = JSOG.parse(json);
     workflow.schemaVersions.actionVersions = actionVersions
     return JSOG.stringify(workflow);
@@ -578,13 +559,11 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     function detect (obj) {
       if (typeof obj === 'object') {
         if (seenObjects.indexOf(obj) !== -1) {
-          console.log("object already seen",obj);
           return true;
         }
         seenObjects.push(obj);
         for (var key in obj) {
           if (obj.hasOwnProperty(key) && detect(obj[key])) {
-            console.log("object already seen",key);
             return true;
           }
         }

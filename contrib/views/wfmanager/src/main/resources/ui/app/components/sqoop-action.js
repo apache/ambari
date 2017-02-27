@@ -97,7 +97,6 @@ export default Ember.Component.extend(Validations, {
       this.sendAction('openFileBrowser', model, context);
     },
     register (name, context){
-      this.get('childComponents').set(name, context);
       this.sendAction('register',name , context);
     },
     setIsArg(value){

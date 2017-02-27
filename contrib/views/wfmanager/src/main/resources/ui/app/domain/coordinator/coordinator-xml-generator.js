@@ -25,7 +25,6 @@ var CoordinatorGenerator= Ember.Object.extend({
   },
   process(){
     var xmlJson={"coordinator-app":{}};
-    console.log(this.coordinator);
     var coordinatorApp=xmlJson["coordinator-app"];
     coordinatorApp._name = this.coordinator.name;
     if(this.coordinator.frequency.type !== 'cron'){

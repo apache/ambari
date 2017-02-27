@@ -81,7 +81,7 @@ var CoordinatorXmlImporter= Ember.Object.extend({
     }
     coordinator.schemaVersions.coordinatorVersion = coordinatorVersion;
     var frequency = coordinatorApp._frequency;
-    if(frequency.startsWith('${coord:')){
+    if(CommonUtils.startsWith(frequency,'${coord:')){
       coordinator.frequency.type = frequency.substring(frequency.indexOf(':')+1, frequency.indexOf('('));
       coordinator.frequency.value = frequency.substring(frequency.indexOf('(')+1, frequency.indexOf(')'));
     }else{
@@ -135,7 +135,7 @@ var CoordinatorXmlImporter= Ember.Object.extend({
       timezone : dataset._timezone
     };
     var frequency = dataset._frequency;
-    if(frequency.startsWith('${coord:')){
+    if(CommonUtils.startsWith(frequency,'${coord:')){
       dataSetJson.frequency.type = frequency.substring(frequency.indexOf(':')+1, frequency.indexOf('('));
       dataSetJson.frequency.value = frequency.substring(frequency.indexOf('(')+1, frequency.indexOf(')'));
     }else{

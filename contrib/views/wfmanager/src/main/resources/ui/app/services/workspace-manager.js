@@ -40,11 +40,7 @@ export default Ember.Service.extend({
 
       this.get("userInfo").getUserData().promise.then(function(data){
         var tabs = localStorage.getItem(data+'-tabsInfo');
-        console.log("Restoring tabs "+tabs);
         deferred.resolve(JSON.parse(tabs));
-
-        //return JSON.parse(tabs);
-
       }.bind(this)).catch(function(e){
         deferred.resolve("");
         console.error(e);
@@ -84,7 +80,7 @@ export default Ember.Service.extend({
       localStorage.setItem(data+"-"+id, workInProgress);
     }.bind(this)).catch(function(e){
       console.error(e);
-    });    
+    });
   },
   deleteWorkInProgress(id){
     this.get("userInfo").getUserData().promise.then(function(data){

@@ -27,7 +27,7 @@ export default Ember.Object.extend({
   actionSchemas:{
     "hive":["0.6","0.5","0.4","0.3","0.2","0.1"],
     "hive2":["0.2","0.1"],
-    "sqoop":["0.3","0.2","0.1"],
+    "sqoop":["0.4","0.3","0.2","0.1"],
     "shell":["0.3","0.2","0.1"],
     "spark":["0.2","0.1"],
     "distcp":["0.2","0.1"],
@@ -79,7 +79,7 @@ export default Ember.Object.extend({
 
   initializeDefaultVersions(){
     this.supportedVersions.forEach((value, key) =>{
-      var max = Math.max(...value)
+      var max = Math.max.apply(null,value);
       if(isNaN(max)){
         max = value.reduce((a, b) => a > b?a:b);
       }

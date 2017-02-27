@@ -99,7 +99,7 @@ var CytoscapeRenderer= Ember.Object.extend({
 
       self.get('dataNodes').pushObject({
         data: {
-          id: node.id, name: node.name, type: node.type,
+          id: node.id, name: node.name,
           shape: self._getShape(node.type),
           type : node.type,
           node: node
@@ -107,11 +107,12 @@ var CytoscapeRenderer= Ember.Object.extend({
         dataNodeName: Ember.computed.alias('data.node.name')
       });
       if (node.transitions.length > 0) {
+        var counter=0;
         node.transitions.forEach(function(transition){
-          //if (transition.isOnError()|| transition.targetNode.isKillNode()){
           if ((transition.isOnError() && transition.getTargetNode().isKillNode())){
             return;
           }
+          counter++;
           var targetNodeId=transition.targetNode.id;
           if (transition.targetNode.isKillNode()){
             errorNodeCounter++;
@@ -119,7 +120,7 @@ var CytoscapeRenderer= Ember.Object.extend({
             targetNodeId=errorNode.id+errorNodeCounter;
             self.get('dataNodes').pushObject({
               data: {
-                id: targetNodeId, name: errorNode.name, type: errorNode.type,
+                id: targetNodeId, name: errorNode.name,
                 shape: self._getShape(errorNode.type),
                 type : errorNode.type,
                 node: errorNode
@@ -130,7 +131,7 @@ var CytoscapeRenderer= Ember.Object.extend({
           self.get('dataNodes').pushObject(
             {
               data: {
-                id: transition.sourceNodeId + '_to_' + targetNodeId,
+                id: transition.sourceNodeId + '_to_' + targetNodeId+"_"+counter,
                 source:transition.sourceNodeId,
                 target: targetNodeId,
                 transition: transition,
@@ -337,14 +338,14 @@ var CytoscapeRenderer= Ember.Object.extend({
     var incomingNodes=node.incomers("node").jsons().mapBy("data.node");
     var transitionList=[];
     var currentNodeId=this.get("currentCyNode").json().data.id;
-    for (var incomingNode of incomingNodes) {
-      for (var incomingTran of incomingNode.transitions ){
+    incomingNodes.forEach(function(incomingNode){
+      incomingNode.transitions.forEach(function(incomingTran){
         if (incomingTran.targetNode.id===currentNodeId){
           incomingTran.sourceNode=incomingNode;
           transitionList=transitionList.concat(incomingTran);
         }
-      }
-    }
+      });
+    });
     return transitionList;
   },
   populateOkToandErrorTONodes(node){

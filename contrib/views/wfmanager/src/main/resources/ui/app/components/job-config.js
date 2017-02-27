@@ -38,8 +38,6 @@ export default Ember.Component.extend(Validations, {
   systemConfigs : Ember.A([]),
   showingFileBrowser : false,
   overwritePath : false,
-  configMap : Ember.A([]),
-  configPropsExists : false,
   savingInProgress : false,
   isStackTraceVisible: false,
   isStackTraceAvailable: false,
@@ -231,7 +229,7 @@ export default Ember.Component.extend(Validations, {
         this.set("savingInProgress",false);
       }.bind(this),
       error: function(response) {
-        console.log(response);
+        console.error(response);
         this.set("savingInProgress",false);
         this.showNotification({
           "type": "error",

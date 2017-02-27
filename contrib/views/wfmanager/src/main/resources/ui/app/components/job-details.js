@@ -260,7 +260,6 @@ export default Ember.Component.extend({
     renderDag(xmlString){
       var wfObject = this.get("workflowImporter").importWorkflow(xmlString);
       var workflow = wfObject.workflow;
-      console.log("Workflow Object..", workflow);
       var dataNodes=this.getCyDataNodes(workflow);
       if (dataNodes.length > Constants.flowGraphMaxNodeCount) {
         this.set("model.flowGraphMaxNodeCountReached", true);

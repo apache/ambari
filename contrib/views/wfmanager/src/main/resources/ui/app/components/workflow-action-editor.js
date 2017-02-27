@@ -93,7 +93,7 @@ export default Ember.Component.extend( Ember.Evented,{
       let x2js = new X2JS();
       var startTag = `<${this.get('actionType')}`;
       Object.keys(this.get('actionModel')).forEach(key => {
-        if(key.startsWith('_') && key !== '__jsogObjectId'){
+        if(CommonUtils.startsWith(key,'_') && key !== '__jsogObjectId'){
           startTag = `${startTag} ${key.substr(1)}="${this.get('actionModel')[key]}"`;
         }
       });
