@@ -599,7 +599,6 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       deferred.promise.then(function(data){
         this.sendAction('openTab', type, path);
       }.bind(this)).catch(function(data){
-        console.log(data);
         this.set('errorMsg', 'There is some problem while importing.');
         this.set('data', data);
       }.bind(this));
@@ -661,7 +660,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
         var workflowJson = x2js.xml_str2json(data);
         this.set('workflowName', workflowJson["workflow-app"]._name);
       }.bind(this)).catch(function(data){
-        console.log(data);
+        console.error(data);
         this.set('workflowName', null);
         this.set('errorMsg', "There is some problem while fetching workflow name.");
         this.set("data", data);

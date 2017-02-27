@@ -102,7 +102,6 @@ export default Ember.Component.extend(Validations, {
         self.set("savingInProgress",false);
         this.set('jobFilePath', this.get('filePath'));
     }.bind(this)).catch(function(response){
-        console.log(response);
         self.set("savingInProgress",false);
         self.showNotification({
           "type": "error",

@@ -148,8 +148,14 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     if (sourceNode && sourceNode.isPlaceholder()) {
       var orignalTransition=this.findTransitionTo(this.startNode,sourceNode.id);
       orignalTransition.targetNode=generatedNode;
+      if (orignalTransition.isOnError()){
+        orignalTransition.source.set("errorNode",generatedNode);
+      }
     } else {
       transition.targetNode=generatedNode;
+      if (transition.isOnError()){
+        transition.source.set("errorNode",generatedNode);
+      }
     }
     return generatedNode;
   },
@@ -218,6 +224,9 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
         }
       }else{
         tran.targetNode=target;
+        if (tran.isOnError()){
+          tran.sourceNode.set("errorNode",target );
+        }
       }
     });
   },

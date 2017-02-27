@@ -107,7 +107,15 @@ export default Ember.Object.create({
     {
       selector: 'edge',
       style: {
-        'curve-style': 'bezier',
+        'curve-style': function(target){
+           if (target.data().transition  && target.data().transition.isOnError()){
+             return 'unbundled-bezier';
+           }else{
+             return 'haystack'
+           }
+        },
+        'control-point-distances': 20,
+        'control-point-step-size': 10,
 				'target-arrow-shape': function(target){
           if (target.data().transition && target.data().transition.getTargetNode(false) && !target.data().transition.getTargetNode(false).isPlaceholder()) {
             return "triangle";

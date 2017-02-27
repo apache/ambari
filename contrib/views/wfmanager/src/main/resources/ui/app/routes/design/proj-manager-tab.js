@@ -20,7 +20,7 @@ import Ember from 'ember';
 export default Ember.Route.extend({
   model:function(params) {
 	var data = this.store.findAll("wfproject").catch((error) => {
-      console.log(error);
+      console.error(error);
     });
     return data;
   },
