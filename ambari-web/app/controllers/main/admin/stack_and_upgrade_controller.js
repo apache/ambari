@@ -935,10 +935,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
       var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
       if (configsMergeCheckData && Em.isArray(configsMergeCheckData)) {
-        configs = configsMergeCheckData.map(function (item) {
+        configs = configsMergeCheckData.reduce(function (allConfigs, item) {
           var isDeprecated = Em.isNone(item.new_stack_value),
             willBeRemoved = Em.isNone(item.result_value);
-          return {
+          if (!isDeprecated && !willBeRemoved && Em.compare(item.current, item.result_value) === 0) {
+            return allConfigs;
+          }
+          return allConfigs.concat({
             type: item.type,
             name: item.property,
             currentValue: item.current,
@@ -946,8 +949,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             isDeprecated: isDeprecated,
             resultingValue: willBeRemoved ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved') : item.result_value,
             willBeRemoved: willBeRemoved
-          };
-        });
+          });
+        }, []);
       }
     }
     return configs;
