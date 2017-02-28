@@ -118,3 +118,4 @@ class StackFeature:
   HIVE_INTERACTIVE_GA_SUPPORT='hive_interactive_ga'
   SECURE_RANGER_SSL_PASSWORD = "secure_ranger_ssl_password"
   RANGER_KMS_SSL = "ranger_kms_ssl"
+  KAFKA_ACL_MIGRATION_SUPPORT = "kafka_acl_migration_support"
