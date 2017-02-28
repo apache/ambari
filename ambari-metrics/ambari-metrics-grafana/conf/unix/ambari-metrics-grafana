@@ -94,7 +94,7 @@ function isRunning() {
 
 case "$1" in
   start)
-    echo $"Starting $DESC: .... " >> $LOG_FILE
+    echo $"$(date) Starting $DESC: .... " >> $LOG_FILE
 
     isRunning
     if [ $? -eq 0 ]; then
@@ -116,10 +116,19 @@ case "$1" in
     return=$?
     if [ $return -eq 0 ]
     then
-      sleep 5
-      # check if pid file has been written two
+      for i in {1..10}
+      do
+        sleep 2
+        # check if pid file has been written to
+        if [ -s $PID_FILE ]; then
+          echo " $(date) pid_file has been written to" >> $LOG_FILE
+          break
+        else
+          echo " $(date) pid_file not yet written to" >> $LOG_FILE
+        fi
+      done
       if ! [[ -s $PID_FILE ]]; then
-        echo "Start FAILED because daemon did not write pid in pid_file" >> $LOG_FILE
+        echo " $(date) Start FAILED because daemon did not write pid in pid_file after 20 seconds" >> $LOG_FILE
         exit 1
       fi
       i=0

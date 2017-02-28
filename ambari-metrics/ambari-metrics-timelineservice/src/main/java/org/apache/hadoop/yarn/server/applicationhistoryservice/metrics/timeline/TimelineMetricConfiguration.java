@@ -467,6 +467,12 @@ public class TimelineMetricConfiguration {
     Set<String> whitelist = new HashSet<>();
 
     try(InputStream inputStream = classLoader.getResourceAsStream(AMSHBASE_METRICS_WHITESLIST_FILE)) {
+
+      if (inputStream == null) {
+        LOG.info("ams-hbase metrics whitelist file not present.");
+        return Collections.EMPTY_SET;
+      }
+
       br = new BufferedReader(new InputStreamReader(inputStream));
 
       while ((strLine = br.readLine()) != null)   {
@@ -476,8 +482,8 @@ public class TimelineMetricConfiguration {
         }
         whitelist.add(strLine);
       }
-    } catch (IOException ioEx) {
-      LOG.error("Unable to parse ams-hbase metric whitelist file", ioEx);
+    } catch (Exception ex) {
+      LOG.error("Unable to read ams-hbase metric whitelist file", ex);
       return Collections.EMPTY_SET;
     }
 
