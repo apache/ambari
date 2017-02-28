@@ -349,6 +349,25 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent</location>
+
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-agent</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent</location>
+                  <includes>
+                    <include>/cred/lib/*.jar</include>
+                    <include>/tools/zkmigrator.jar</include>
+                    <include>/cache/stacks/HDP/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
+                    <include>/cache/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</include>
+                    <include>/cache/common-services/STORM/0.9.1/package/files/wordCount.jar</include>
+                  </includes>
                 </source>
               </sources>
             </mapping>

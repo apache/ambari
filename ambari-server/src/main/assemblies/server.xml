@@ -132,7 +132,7 @@
       </excludes>
     </fileSet>
     <fileSet>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <directory>${ambari-admin-dir}/target</directory>
       <outputDirectory>/var/lib/ambari-server/resources/views</outputDirectory>
       <includes>
@@ -149,9 +149,21 @@
       <directory>src/main/resources/upgrade/dml</directory>
       <outputDirectory>/var/lib/ambari-server/resources/upgrade/dml</outputDirectory>
     </fileSet>
-     <fileSet>
+    <fileSet>
+      <fileMode>755</fileMode>
       <directory>${commonServicesSrcLocation}</directory>
       <outputDirectory>/var/lib/ambari-server/resources/common-services</outputDirectory>
+      <excludes>
+	    <exclude>/STORM/0.9.1/package/files/wordCount.jar</exclude>
+	  </excludes>
+    </fileSet>
+    <fileSet>
+      <fileMode>644</fileMode>
+      <directory>${commonServicesSrcLocation}</directory>
+      <outputDirectory>/var/lib/ambari-server/resources/common-services</outputDirectory>
+      <includes>
+	    <include>/STORM/0.9.1/package/files/wordCount.jar</include>
+	  </includes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -159,8 +171,22 @@
       <outputDirectory>/var/lib/ambari-server/resources/upgrade/catalog</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>${stacksSrcLocation}</directory>
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
+      <excludes>
+	    <exclude>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</exclude>
+        <exclude>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
+	  </excludes>
+    </fileSet>
+    <fileSet>
+      <fileMode>644</fileMode>
+      <directory>${stacksSrcLocation}</directory>
+      <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
+      <includes>
+	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
+        <include>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</include>
+	  </includes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -173,10 +199,12 @@
       <outputDirectory>/var/lib/ambari-server/resources/custom_action_definitions</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>${customActionsRoot}</directory>
       <outputDirectory>/var/lib/ambari-server/resources/custom_actions</outputDirectory>
     </fileSet>
     <fileSet>
+      <fileMode>755</fileMode>
       <directory>src/main/resources/host_scripts</directory>
       <outputDirectory>/var/lib/ambari-server/resources/host_scripts</outputDirectory>
     </fileSet>
@@ -200,7 +228,7 @@
   -->
   <files>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
     </file>
@@ -330,12 +358,12 @@
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${project.build.directory}/DBConnectionVerification.jar</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${project.build.directory}/CredentialUtil.jar</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
@@ -391,7 +419,7 @@
   </files>    
   <dependencySets>
     <dependencySet>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
       <scope>compile</scope>
