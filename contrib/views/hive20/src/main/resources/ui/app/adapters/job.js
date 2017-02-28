@@ -26,12 +26,49 @@ export default ApplicationAdapter.extend({
 
   getQuery(job) {
     let queryUrl = this.buildURL() + "/file" + encodeURI(job.get('queryFile'));
-    console.log(queryUrl);
   },
 
   saveToHDFS(jobId, path){
-    let resultUrl = this.urlForFindRecord(jobId, 'job') + "/results/csv/saveToHDFS?commence=true&file=" + path + ".csv";
-    return this.ajax(resultUrl, 'GET');
+    let url = this.urlForFindRecord(jobId, 'job') + "/results/csv/saveToHDFS?commence=true&file=" + path + ".csv";
+
+    return new Ember.RSVP.Promise((resolve, reject) => {
+      this.ajax(url).then((response) => {
+        if (response.status.toLowerCase() !== "TERMINATED".toLowerCase()) {
+          this.pollSaveToHDFS(response).then( (response) => {
+            resolve(response);
+          },  (error) => {
+            reject(error);
+          });
+        } else {
+          resolve(response);
+        }
+      }, (error) => {
+        reject(error);
+      });
+    })
+
+  },
+
+  pollSaveToHDFS: function (data) {
+    let url = this.urlForFindRecord(data.jobId, 'job') + "/results/csv/saveToHDFS";
+
+    return new Ember.RSVP.Promise((resolve, reject) => {
+
+      this.ajax(url).then( (response) => {
+        if (response.status.toLowerCase() !== "TERMINATED".toLowerCase()) {
+          Ember.run.later( () => {
+            this.pollSaveToHDFS(response)
+              .then((data) => { resolve(data)}, (error) => {
+                reject(error);
+              });
+          }, 2000);
+        } else {
+            resolve(response);
+        }
+      }, (error) => {
+        reject(error);
+      });
+    });
   },
 
   downloadAsCsv(jobId, path){
