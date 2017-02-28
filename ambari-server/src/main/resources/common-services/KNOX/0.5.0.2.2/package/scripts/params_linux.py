@@ -135,7 +135,7 @@ if type(webhcat_server_hosts) is list:
 else:
   webhcat_server_host = webhcat_server_hosts
 
-hbase_master_port = default('/configurations/hbase-site/hbase.rest.port', "8080")
+hbase_master_port = default('/configurations/hbase-site/hbase.rest.port', "16080")
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", None)
 if type(hbase_master_hosts) is list:
   hbase_master_host = hbase_master_hosts[0]
