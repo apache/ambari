@@ -57,7 +57,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
       showDivider: false
     });
     return content;
-  }.property('App.supports.createAlerts'),
+  }.property('App.supports.createAlerts', 'App.auth'),
 
   /**
    * Common handler for menu item click

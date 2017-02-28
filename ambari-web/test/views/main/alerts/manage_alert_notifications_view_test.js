@@ -229,20 +229,6 @@ describe('App.ManageAlertNotificationsView', function () {
         view.onLoad();
         expect(view.get('selectedAlertNotification')).to.be.null;
       });
-
-      it("isAddButtonDisabled should be true", function () {
-        view.set('isAddButtonDisabled', true);
-        App.set('isOperator', true);
-        view.onLoad();
-        expect(view.get('isAddButtonDisabled')).to.be.true;
-      });
-
-      it("isAddButtonDisabled should be false", function () {
-        view.set('isAddButtonDisabled', true);
-        App.set('isOperator', false);
-        view.onLoad();
-        expect(view.get('isAddButtonDisabled')).to.be.false;
-      });
     });
 
     describe("controller.isLoaded is true, alertNotifications is array", function () {
