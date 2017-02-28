@@ -52,6 +52,7 @@ module.exports = function(defaults) {
 
    app.import('bower_components/codemirror/lib/codemirror.js');
    app.import('bower_components/codemirror/addon/hint/sql-hint.js');
+   app.import('bower_components/codemirror/mode/sql/sql.js');
    app.import('bower_components/codemirror/addon/hint/show-hint.js');
    app.import('bower_components/d3/d3.js');
    app.import('bower_components/webcola/WebCola/cola.min.js');

@@ -36,7 +36,6 @@ export default Ember.Component.extend({
 
     this.set('editor', CodeMirror.fromTextArea(document.getElementById('code-mirror'), {
       mode: 'text/x-hive',
-      hint: CodeMirror.hint.sql,
       indentWithTabs: true,
       smartIndent: true,
       lineNumbers: true,
