@@ -94,11 +94,7 @@
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Pre Upgrade Ranger Admin Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database.
-            If audit database size is too large( > 3GB ) then follow the below instructions:
-            1. Backup the audit table from audit database.
-            2. Truncate audit table.
-            3. Follow upgrade process and once completed then restore audit data to audit table.</message>
+          <message>Before continuing, please backup the Ranger Admin database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 

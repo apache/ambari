@@ -110,8 +110,6 @@
       <configuration-dependencies>
         <config-type>admin-log4j</config-type>
         <config-type>usersync-log4j</config-type>
-        <config-type>ranger-hdfs-plugin-properties</config-type>
-        <config-type>ranger-hbase-plugin-properties</config-type>
       </configuration-dependencies>
 
     </service>
