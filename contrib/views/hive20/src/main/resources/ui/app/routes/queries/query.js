@@ -156,6 +156,9 @@ export default Ember.Route.extend(UILoggerMixin, {
 
   },
   checkIfDeafultDatabaseExists(alldatabases){
+    if(this.get('controller.model').get('selectedDb')) {
+      return this.get('controller.model').get('selectedDb');
+    }
     let defaultDB = alldatabases.findBy('name', 'default'), selectedDb;
     if(defaultDB) {
       selectedDb = defaultDB.get("name");

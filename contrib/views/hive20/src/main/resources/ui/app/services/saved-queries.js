@@ -48,6 +48,16 @@ export default Ember.Service.extend({
       dataType:"json",
       headers: {'X-Requested-By': 'ambari'}
     })
+  },
+
+  fetchSavedQuery(path) {
+    let url = this.get('store').adapterFor('application').buildURL()+ '/files/' + encodeURIComponent(path);
+
+    return $.ajax({
+      type: "GET",
+      url: url,
+      headers: {'X-Requested-By': 'ambari'}
+    })
   }
 
 });

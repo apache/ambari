@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,12 +53,11 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
 
   @Override
   public SavedQuery create(SavedQuery object) {
+    String query = object.getShortQuery();
+    object.setShortQuery(makeShortQuery(query));
     object = super.create(object);
     try {
-
-      if (object.getQueryFile() == null || object.getQueryFile().isEmpty()) {
-        createDefaultQueryFile(object);
-      }
+      createDefaultQueryFile(object, query);
 
     } catch (ServiceFormattedException e) {
       cleanupAfterErrorAndThrowAgain(object, e);
@@ -66,7 +65,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
     return object;
   }
 
-  private void createDefaultQueryFile(SavedQuery object) {
+  private void createDefaultQueryFile(SavedQuery object, String query) {
     String userScriptsPath = context.getProperties().get("scripts.dir");
     if (userScriptsPath == null) {
       String msg = "scripts.dir is not configured!";
@@ -82,7 +81,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
     String newFilePath = null;
     try {
       newFilePath = HdfsUtil.findUnallocatedFileName(sharedObjectsFactory.getHdfsApi(), baseFileName, ".hql");
-      HdfsUtil.putStringToFile(sharedObjectsFactory.getHdfsApi(), newFilePath, "");
+      HdfsUtil.putStringToFile(sharedObjectsFactory.getHdfsApi(), newFilePath, query);
     } catch (HdfsApiException e) {
       throw new ServiceFormattedException(e);
     }
@@ -94,26 +93,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   @Override
   public SavedQuery read(Object id) throws ItemNotFound {
     SavedQuery savedQuery = super.read(id);
-    fillShortQueryField(savedQuery);
     return savedQuery;
-  }
-
-  private void fillShortQueryField(SavedQuery savedQuery) {
-    if (savedQuery.getQueryFile() != null) {
-      FilePaginator paginator = new FilePaginator(savedQuery.getQueryFile(), sharedObjectsFactory.getHdfsApi());
-      String query = null;
-      try {
-        query = paginator.readPage(0);
-      } catch (IOException e) {
-        LOG.error("Can't read query file " + savedQuery.getQueryFile());
-        return;
-      } catch (InterruptedException e) {
-        LOG.error("Can't read query file " + savedQuery.getQueryFile());
-        return;
-      }
-      savedQuery.setShortQuery(makeShortQuery(query));
-    }
-    storageFactory.getStorage().store(SavedQuery.class, savedQuery);
   }
 
   private void emptyShortQueryField(SavedQuery query) {
@@ -131,7 +111,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   protected static String makeShortQuery(String query) {
     query = query.replaceAll("(?i)set\\s+[\\w\\-.]+(\\s*)=(\\s*)[\\w\\-.]+(\\s*);", "");
     query = query.trim();
-    return query.substring(0, (query.length() > 42)?42:query.length());
+    return query.substring(0, (query.length() > 42) ? 42 : query.length());
   }
 
   @Override
@@ -146,12 +126,6 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   @Override
   public List<SavedQuery> readAll(FilteringStrategy filteringStrategy) {
     List<SavedQuery> queries = super.readAll(filteringStrategy);
-    for(SavedQuery query : queries) {
-      String shortQuery = query.getShortQuery();
-      if(shortQuery == null || shortQuery.isEmpty()) {
-        fillShortQueryField(query);
-      }
-    }
     return queries;
   }
 
