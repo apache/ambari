@@ -26,32 +26,38 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
    * List of available actions for alert definitions
    * @type {{title: string, icon: string, action: string, showDivider: boolean}[]}
    */
-  content: [
-    /*{
-      title: Em.I18n.t('alerts.actions.create'),
-      icon: 'icon-plus',
-      action: 'createNewAlertDefinition',
-      showDivider: true
-    },*/
-    {
+  content: function() {
+    var content = [];
+    if (App.supports.createAlerts) {
+      content.push({
+        title: Em.I18n.t('alerts.actions.create'),
+        icon: 'icon-plus',
+        action: 'createNewAlertDefinition',
+        showDivider: true
+      });
+    }
+    content.push({
       title: Em.I18n.t('alerts.actions.manageGroups'),
       icon: 'icon-th-large',
       action: 'manageAlertGroups',
       showDivider: false
-    },
-    {
-      title: Em.I18n.t('alerts.actions.manageNotifications'),
-      icon: 'icon-envelope-alt',
-      action: 'manageNotifications',
-      showDivider: false
-    },
-    {
+    });
+    if (App.isAuthorized('CLUSTER.MANAGE_ALERT_NOTIFICATIONS')) {
+      content.push({
+        title: Em.I18n.t('alerts.actions.manageNotifications'),
+        icon: 'icon-envelope-alt',
+        action: 'manageNotifications',
+        showDivider: false
+      });
+    }
+    content.push({
       title: Em.I18n.t('alerts.actions.manageSettings'),
       icon: 'icon-cogs',
       action: 'manageSettings',
       showDivider: false
-    }
-  ],
+    });
+    return content;
+  }.property('App.supports.createAlerts'),
 
   /**
    * Common handler for menu item click
