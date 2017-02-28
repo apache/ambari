@@ -50,27 +50,27 @@
 
   <files>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${hadoop-sink.dir}/target/ambari-metrics-hadoop-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${flume-sink.dir}/target/ambari-metrics-flume-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${storm-sink.dir}/target/ambari-metrics-storm-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${storm-sink-legacy.dir}/target/ambari-metrics-storm-sink-legacy-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
     <file>
-      <fileMode>755</fileMode>
+      <fileMode>644</fileMode>
       <source>${kafka-sink.dir}/target/ambari-metrics-kafka-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
