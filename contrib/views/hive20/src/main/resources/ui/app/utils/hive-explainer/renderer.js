@@ -18,7 +18,7 @@
 
 export default function doRender(data, selector, onRequestDetail) {
 
-  const width = '1200', height = '960';
+  const width = '1600', height = '800';
 
   d3.select(selector).select('*').remove();
   const svg =

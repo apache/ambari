@@ -260,3 +260,70 @@ export function getEdgesWithCorrectedUnion(edges) {
       });
 
 }
+
+// DANGER: impure function
+// DANGER: breaks if there is a many-one / one-many connection
+export function getAdjustedVerticesAndEdges(vertices, edges) {
+
+  vertices
+    .filter(cVertex => ['Select Operator', 'HASHTABLEDUMMY', 'File Output Operator'].indexOf(getFirstOperatorOf(cVertex)._operator) >= 0)
+    .map(cVertex => edges.filter(cEdge => cEdge._target === cVertex._vertex))
+    .forEach(cEdges => {
+      const source = vertices.find(cVertex => cEdges.some(tcEdge => cVertex._vertex === tcEdge._source));
+      const target = vertices.find(cVertex => cEdges.some(tcEdge => cVertex._vertex === tcEdge._target));
+
+      const operatorLastOfSource = getLastOperatorOf(source);
+      const operatorFirstOfTarget = getFirstOperatorOf(target);
+
+      operatorLastOfSource._groups = [
+        ...(operatorLastOfSource._groups || [doCloneAndOmit(operatorLastOfSource, ['_groups'])]),
+        ...(operatorFirstOfTarget._groups || [doCloneAndOmit(operatorFirstOfTarget, ['_groups'])]),
+      ];
+      target._children = operatorFirstOfTarget._children;
+
+      target._isGroupedWith = source._vertex;
+    });
+
+  // cleanup
+  const adjustedVertices = vertices.filter(cVertex => cVertex._children.length > 0);
+  const cleanedVertices = vertices.filter(cVertex => cVertex._children.length === 0);
+  console.log(cleanedVertices);
+
+  const adjustedEdges =
+    edges
+      .reduce((accumulator, cEdge) => {
+        const cleanedAtSourceVertex = cleanedVertices.find(cVertex => cEdge._source === cVertex._vertex);
+        const cleanedAtTargetVertex = cleanedVertices.find(cVertex => cEdge._target === cVertex._vertex);
+        if(cleanedAtSourceVertex) {
+          // do not add edge back
+          // add new edge instead
+          accumulator.push(Object.assign({}, cEdge, {
+            _source: cleanedAtSourceVertex._isGroupedWith,
+            _target: cEdge._target
+          }));
+        } else if(cleanedAtTargetVertex) {
+          // do not add edge back
+        } else {
+          accumulator.push(cEdge);
+        }
+        return accumulator;
+      }, []);
+
+  return ({
+    adjustedVertices,
+    adjustedEdges
+  });
+}
+
+
+function getLastOperatorOf(vertex) {
+  let operator = vertex._children[0];
+  while(operator._children.length > 0) {
+    operator = operator._children[0];
+  }
+  return operator;
+}
+
+function getFirstOperatorOf(vertex) {
+  return vertex._children[0];
+}

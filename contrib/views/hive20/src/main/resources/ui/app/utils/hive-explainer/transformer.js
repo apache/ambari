@@ -17,37 +17,42 @@
  */
 
 import doEnhance from './enhancer';
-import {getProcessedVertices, getEdgesWithCorrectedUnion} from './processor';
+import {getProcessedVertices, getEdgesWithCorrectedUnion, getAdjustedVerticesAndEdges} from './processor';
 
 export default function doTransform(data) {
   const plan = getTezPlan(data);
   const fetch = getFetchPlan(data);
 
-  const vertices = [
+  let vertices = [
     ...getVertices(plan),
     getFetchVertex(fetch)
   ];
 
-  const tezEdges = getEdges(plan, vertices);
-  const edgesWithCorrectedUnion = getEdgesWithCorrectedUnion(tezEdges);
-  const edges = getEdgesWithFetch(edgesWithCorrectedUnion, vertices);
+  let edges = getEdges(plan, vertices);
+  edges = getEdgesWithCorrectedUnion(edges);
+  edges = getEdgesWithFetch(edges, vertices);
 
-  const enhancedVertices = doEnhance(vertices);
+  vertices = doEnhance(vertices);
 
-  const processedVertices = getProcessedVertices(enhancedVertices, edges);
+  vertices = getProcessedVertices(vertices, edges);
 
-  const verticesWithIndexOfChildren = getVerticesWithIndexOfChildren(processedVertices);
+  const {adjustedVertices, adjustedEdges} = getAdjustedVerticesAndEdges(vertices, edges);
+  vertices = adjustedVertices;
+  edges = adjustedEdges;
 
-  const tree = getVertexTree(edges);
-  const connections = getConnections(verticesWithIndexOfChildren, edges);
-  const treeWithOffsetY = getTreeWithOffsetAndHeight(tree, verticesWithIndexOfChildren, connections);
+  vertices = getVerticesWithIndexOfChildren(vertices);
 
-  const nodes = getNodes(verticesWithIndexOfChildren);
+  let tree = getVertexTree(edges);
+
+  const connections = getConnections(vertices, edges);
+  tree = getTreeWithOffsetAndHeight(tree, vertices, connections);
+
+  const nodes = getNodes(vertices);
 
   return ({
-    vertices: verticesWithIndexOfChildren,
+    vertices,
     edges,
-    tree: treeWithOffsetY,
+    tree,
     nodes,
     connections,
   });
