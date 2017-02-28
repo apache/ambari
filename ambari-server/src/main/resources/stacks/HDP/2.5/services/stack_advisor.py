@@ -34,6 +34,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.YARN_ROOT_DEFAULT_QUEUE_NAME = 'default'
     self.AMBARI_MANAGED_LLAP_QUEUE_NAME = 'llap'
     self.CONFIG_VALUE_UINITIALIZED = 'SET_ON_FIRST_INVOCATION'
+    self.CLUSTER_CREATE_OPERATION = "ClusterCreate"
+
 
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor,self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
@@ -780,6 +782,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Note: All memory calculations are in MB, unless specified otherwise.
     """
     Logger.info("DBG: Entered updateLlapConfigs");
+
+    # Determine if we entered here during cluster creation.
+    operation = getUserOperationContext(services, "operation")
+    is_cluster_create_opr = False
+    if operation == self.CLUSTER_CREATE_OPERATION:
+      is_cluster_create_opr = True
+    Logger.info("Is cluster create operation ? = {0}".format(is_cluster_create_opr))
+
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
@@ -901,7 +911,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     Logger.info("DBG: Calculated total_cluster_capacity : {0}, using following : node_manager_cnt : {1}, "
                 "yarn_nm_mem_in_mb : {2}".format(total_cluster_capacity, node_manager_cnt, yarn_nm_mem_in_mb))
     yarn_min_container_size = float(self.get_yarn_min_container_size(services, configurations))
-    tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_capacity))
+    tez_am_container_size = self.calculate_tez_am_container_size(services, long(total_cluster_capacity), is_cluster_create_opr,
+                                                                 changed_configs_has_enable_hive_int)
     normalized_tez_am_container_size = self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 
     if yarn_site and "yarn.nodemanager.resource.cpu-vcores" in yarn_site:
@@ -915,7 +926,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     # Calculate the available memory for LLAP app
     yarn_nm_mem_in_mb_normalized = self._normalizeDown(yarn_nm_mem_in_mb, yarn_min_container_size)
-    mem_per_thread_for_llap = float(self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
+    mem_per_thread_for_llap = float(self.calculate_mem_per_thread_for_llap(services, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host,
+                                                                           is_cluster_create_opr, changed_configs_has_enable_hive_int))
     Logger.info("DBG: Calculated mem_per_thread_for_llap : {0}, using following: yarn_nm_mem_in_mb_normalized : {1}, "
                   "cpu_per_nm_host : {2}".format(mem_per_thread_for_llap, yarn_nm_mem_in_mb_normalized, cpu_per_nm_host))
 
@@ -939,7 +951,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     Logger.info("DBG: Calculated 'min_node_required': {0}, using following : min_memory_required : {1}, yarn_nm_mem_in_mb_normalized "
                 ": {2}".format(min_nodes_required, min_memory_required, yarn_nm_mem_in_mb_normalized))
     if min_nodes_required > node_manager_cnt:
-      Logger.warn("ERROR: Not enough memory/nodes to run LLAP");
+      Logger.warning("ERROR: Not enough memory/nodes to run LLAP");
       self.recommendDefaultLlapConfiguration(configurations, services, hosts)
       return
 
@@ -1176,8 +1188,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Done with calculations, updating calculated configs.
     Logger.info("DBG: Applying the calculated values....")
 
-    normalized_tez_am_container_size = long(normalized_tez_am_container_size)
-    putTezInteractiveSiteProperty('tez.am.resource.memory.mb', normalized_tez_am_container_size)
+    if is_cluster_create_opr or changed_configs_has_enable_hive_int:
+      normalized_tez_am_container_size = long(normalized_tez_am_container_size)
+      putTezInteractiveSiteProperty('tez.am.resource.memory.mb', normalized_tez_am_container_size)
+      Logger.info("DBG: Setting 'tez.am.resource.memory.mb' config value as : {0}".format(normalized_tez_am_container_size))
 
     if not llap_concurrency_in_changed_configs:
       min_llap_concurrency = 1
@@ -1193,20 +1207,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
     #TODO A single value is not being set for numNodes in case of a custom queue. Also the attribute is set to non-visible, so the UI likely ends up using an old cached value
     if (num_llap_nodes != num_llap_nodes_requested):
-      Logger.info("User requested num_llap_nodes : {0}, but used/adjusted value for calculations is : {1}".format(num_llap_nodes_requested, num_llap_nodes))
+      Logger.info("DBG: User requested num_llap_nodes : {0}, but used/adjusted value for calculations is : {1}".format(num_llap_nodes_requested, num_llap_nodes))
     else:
-      Logger.info("Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
+      Logger.info("DBG: Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
     putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', num_llap_nodes)
-    Logger.info("Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
+    Logger.info("DBG: Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
 
     llap_container_size = long(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
 
     # Set 'hive.tez.container.size' only if it is read as "SET_ON_FIRST_INVOCATION", implying initialization.
     # Else, we don't (1). Override the previous calculated value or (2). User provided value.
-    if self.get_hive_tez_container_size(services) == self.CONFIG_VALUE_UINITIALIZED:
+    if is_cluster_create_opr or changed_configs_has_enable_hive_int:
       mem_per_thread_for_llap = long(mem_per_thread_for_llap)
       putHiveInteractiveSiteProperty('hive.tez.container.size', mem_per_thread_for_llap)
+      Logger.info("DBG: Setting 'hive.tez.container.size' config value as : {0}".format(mem_per_thread_for_llap))
+
 
     putTezInteractiveSiteProperty('tez.runtime.io.sort.mb', tez_runtime_io_sort_mb)
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
@@ -1329,13 +1345,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # TODO: This potentially takes up the entire node leaving no space for AMs.
     return min(math.floor(nm_mem_per_node_normalized / mem_per_thread), nm_cpus_per_node)
 
-  def calculate_mem_per_thread_for_llap(self, services, nm_mem_per_node_normalized, cpu_per_nm_host):
+  def calculate_mem_per_thread_for_llap(self, services, nm_mem_per_node_normalized, cpu_per_nm_host, is_cluster_create_opr=False,
+                                        enable_hive_interactive_1st_invocation=False):
     """
     Calculates 'mem_per_thread_for_llap' for 1st time initialization. Else returns 'hive.tez.container.size' read value.
     """
     hive_tez_container_size = self.get_hive_tez_container_size(services)
-
-    if hive_tez_container_size == self.CONFIG_VALUE_UINITIALIZED:
+    if is_cluster_create_opr or enable_hive_interactive_1st_invocation:
       if nm_mem_per_node_normalized <= 1024:
         calculated_hive_tez_container_size = min(512, nm_mem_per_node_normalized)
       elif nm_mem_per_node_normalized <= 4096:
@@ -1361,6 +1377,18 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     hsi_site = self.getServicesSiteProperties(services, self.HIVE_INTERACTIVE_SITE)
     if hsi_site and 'hive.tez.container.size' in hsi_site:
       hive_container_size = hsi_site['hive.tez.container.size']
+
+    if not hive_container_size:
+      # This can happen (1). If config is missing in hive-interactive-site or (2). its an
+      # upgrade scenario from Ambari 2.4 to Ambari 2.5 with HDP 2.5 installed. Read it
+      # from hive-site.
+      #
+      # If Ambari 2.5 after upgrade from 2.4 is managing HDP 2.6 here, this config would have
+      # already been added in hive-interactive-site as part of HDP upgrade from 2.5 to 2.6,
+      # and we wont end up in this block to look up in hive-site.
+      hive_site = self.getServicesSiteProperties(services, "hive-site")
+      if hive_site and 'hive.tez.container.size' in hive_site:
+        hive_container_size = hive_site['hive.tez.container.size']
     return hive_container_size
 
   def get_llap_headroom_space(self, services, configurations):
@@ -1434,14 +1462,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if yarn_min_container_size < 256:
       return 256
 
-  def calculate_tez_am_container_size(self, services, total_cluster_capacity):
+  def calculate_tez_am_container_size(self, services, total_cluster_capacity, is_cluster_create_opr=False, enable_hive_interactive_1st_invocation=False):
     """
     Calculates Tez App Master container size (tez.am.resource.memory.mb) for tez_hive2/tez-site on initialization if values read is 0.
     Else returns the read value.
     """
     tez_am_resource_memory_mb = self.get_tez_am_resource_memory_mb(services)
     calculated_tez_am_resource_memory_mb = None
-    if tez_am_resource_memory_mb == self.CONFIG_VALUE_UINITIALIZED:
+    if is_cluster_create_opr or enable_hive_interactive_1st_invocation:
       if total_cluster_capacity <= 4096:
         calculated_tez_am_resource_memory_mb = 256
       elif total_cluster_capacity > 4096 and total_cluster_capacity <= 73728:

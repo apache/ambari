@@ -647,7 +647,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.tez.container.size</name>
-    <value>SET_ON_FIRST_INVOCATION</value>
+    <value>682</value>
     <depends-on>
       <property>
         <type>hive-interactive-env</type>
@@ -670,7 +670,7 @@ limitations under the License.
         <name>hive.server2.tez.sessions.per.default.queue</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.auto.convert.join.noconditionaltask.size</name>
