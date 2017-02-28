@@ -44,6 +44,7 @@ The following are the properties which can be used to configure Ambari.
 | agent.check.remote.mounts | Determines whether the Ambari Agents will use the `df` or `df -l` command when checking disk mounts for capacity issues. Auto-mounted remote directories can cause long delays. |`false` | 
 | agent.package.install.task.timeout | The time, in seconds, before package installation commands are killed. |`1800` | 
 | agent.package.parallel.commands.limit | The maximum number of tasks which can run within a single operational request. If there are more tasks, then they will be broken up between multiple operations. |`100` | 
+| agent.service.check.task.timeout | The time, in seconds, before agent service check commands are killed. |`0` | 
 | agent.ssl | Determines whether SSL is used to communicate between Ambari Server and Ambari Agents. |`true` | 
 | agent.stack.retry.on_repo_unavailability | Determines whether agents should retrying installation commands when the repository is not available. This can prevent false installation errors with repositories that are sporadically inaccessible. |`false` | 
 | agent.stack.retry.tries | The number of times an Ambari Agent should retry package installation when it fails due to a repository error. <br/><br/> This property is related to `agent.stack.retry.on_repo_unavailability`. |`5` | 
@@ -61,6 +62,7 @@ The following are the properties which can be used to configure Ambari.
 | ambari.post.user.creation.hook | The location of the post user creation hook on the ambari server hosting machine. |`/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh` | 
 | ambari.post.user.creation.hook.enabled | Indicates whether the post user creation is enabled or not. By default is false. |`false` | 
 | ambari.python.wrap | The name of the shell script used to wrap all invocations of Python by Ambari.  |`ambari-python-wrap` | 
+| ambariserver.metrics.disable | Global disable flag for AmbariServer Metrics. |`false` | 
 | anonymous.audit.name | The name of the user given to requests which are executed without any credentials. |`_anonymous` | 
 | api.authenticated.user | The username of the default user assumed to be executing API calls. When set, authentication is not required in order to login to Ambari or use the REST APIs.   | | 
 | api.csrfPrevention.enabled | Determines whether Cross-Site Request Forgery attacks are prevented by looking for the `X-Requested-By` header. |`true` | 
@@ -148,6 +150,7 @@ The following are the properties which can be used to configure Ambari.
 | kerberos.operation.retry.timeout | The time to wait (in seconds) between failed kerberos operations retries. |`10` | 
 | ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`</ul> |`convert` | 
 | log4j.monitor.delay | Indicates the delay, in milliseconds, for the log4j monitor to check for changes |`300000` | 
+| logsearch.metadata.cache.expire.timeout | The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making a request to the LogSearch Portal to get the latest metadata. |`24` | 
 | logsearch.portal.connect.timeout | The time, in milliseconds, that the Ambari Server will wait while attempting to connect to the LogSearch Portal service. |`5000` | 
 | logsearch.portal.read.timeout | The time, in milliseconds, that the Ambari Server will wait while attempting to read a response from the LogSearch Portal service. |`5000` | 
 | metadata.path | The location on the Ambari Server where the stack resources exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/stacks`</ul> | | 
@@ -172,7 +175,7 @@ The following are the properties which can be used to configure Ambari.
 | repo.validation.suffixes.ubuntu | The suffixes to use when validating Ubuntu repositories. |`/dists/%s/Release` | 
 | resources.dir | The location on the Ambari Server where all resources exist, including common services, stacks, and scripts. |`/var/lib/ambari-server/resources/` | 
 | rolling.upgrade.skip.packages.prefixes | A comma-separated list of packages which will be skipped during a stack upgrade. | | 
-| security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information.|`true` | 
+| security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.<br><br>WARNING: By setting this value to false, host names will not be validated, allowing a possible security vulnerability as described in CVE-2014-3582. See https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Vulnerabilities for more information. |`true` | 
 | security.master.key.location | The location on the Ambari Server of the master key file. This is the key to the master keystore. | | 
 | security.master.keystore.location | The location on the Ambari Server of the master keystore file. | | 
 | security.server.cert_name | The name of the file located in the `security.server.keys_dir` directory where certificates will be generated when Ambari uses the `openssl ca` command. |`ca.crt` | 
@@ -248,9 +251,11 @@ The following are the properties which can be used to configure Ambari.
 | server.requestlogs.namepattern | The pattern of request log file name |`ambari-access-yyyy_mm_dd.log` | 
 | server.requestlogs.path | The location on the Ambari Server where request logs can be created. | | 
 | server.requestlogs.retaindays | The number of days that request log would be retained. |`15` | 
+| server.script.threads | The number of threads that should be allocated to run external script. |`4` | 
 | server.script.timeout | The time, in milliseconds, until an external script is killed. |`5000` | 
 | server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
 | server.stages.parallel | Determines whether operations in different execution requests can be run concurrently. |`true` | 
+| server.startup.web.timeout | The time, in seconds, that the ambari-server Python script will wait for Jetty to startup before returning an error code. |`50` | 
 | server.task.timeout | The time, in seconds, before a server-side operation is terminated. |`1200` | 
 | server.timeline.metrics.cache.catchup.interval | The time, in milliseconds, that Ambari Metrics intervals should use when extending the boundaries of the original request.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`300000` | 
 | server.timeline.metrics.cache.connect.timeout.millis | The time, in milliseconds, to wait while attempting to connect to Ambari Metrics.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`5000` | 
