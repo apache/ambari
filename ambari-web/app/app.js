@@ -38,7 +38,7 @@ module.exports = Em.Application.create({
   isOperator: false,
   isClusterUser: false,
   isPermissionDataLoaded: false,
-  auth: null,
+  auth: undefined,
   isOnlyViewUser: function() {
     return App.auth && (App.auth.length == 0 || (App.isAuthorized('VIEW.USE') && App.auth.length == 1));
   }.property('auth'),

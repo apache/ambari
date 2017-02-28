@@ -36,22 +36,24 @@ App.ManageAlertNotificationsView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isAddButtonDisabled: Em.computed.alias('App.isOperator'),
+  isEditButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', '!controller.selectedAlertNotification.enabled'),
 
   /**
    * @type {boolean}
    */
-  isEditButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
+
+  isRemoveButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected'),
 
   /**
    * @type {boolean}
    */
-  isRemoveButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
+  isDuplicateButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', '!controller.selectedAlertNotification.enabled'),
 
   /**
    * @type {boolean}
    */
-  isDuplicateButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
+
+  isEnableOrDisableButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected'),
 
   /**
    * Show EMAIL information if selected alert notification has type EMAIL
