@@ -6014,9 +6014,11 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     .diff {
       td {
-        color: #fff;
         &.empty {
           width: 50%;
+        }
+        &.delete, &.insert, &.replace {
+          color: #fff;
         }
         &.delete {
           background-color: @health-status-red !important;
