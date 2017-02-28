@@ -530,45 +530,6 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.get('controller').set('showWorksheetModal', false);
     },
 
-    saveToHDFS(jobId, path){
-
-      console.log('saveToHDFS query route with jobId == ', jobId);
-      console.log('saveToHDFS query route with path == ', path);
-
-      this.get('query').saveToHDFS(jobId, path)
-        .then((data) => {
-          console.log('successfully saveToHDFS', data);
-          this.get('controller').set('isExportResultSuccessMessege', true);
-          this.get('controller').set('isExportResultFailureMessege', false);
-
-          Ember.run.later(() => {
-            this.get('controller').set('showSaveHdfsModal', false);
-          }, 2 * 1000);
-
-        }, (error) => {
-          console.log("Error encountered", error);
-          this.get('controller').set('isExportResultFailureMessege', true);
-          this.get('controller').set('isExportResultSuccessMessege', false);
-
-          Ember.run.later(() => {
-            this.get('controller').set('showSaveHdfsModal', false);
-          }, 2 * 1000);
-
-        });
-    },
-
-    downloadAsCsv(jobId, path){
-
-      console.log('downloadAsCsv query route with jobId == ', jobId);
-      console.log('downloadAsCsv query route with path == ', path);
-
-      let downloadAsCsvUrl = this.get('query').downloadAsCsv(jobId, path) || '';
-
-      this.get('controller').set('showDownloadCsvModal', false);
-      window.open(downloadAsCsvUrl);
-
-    },
-
     expandQueryEdidorPanel(){
       if(!this.get('isQueryEdidorPaneExpanded')){
         this.set('isQueryEdidorPaneExpanded', true);
