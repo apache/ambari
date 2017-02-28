@@ -29,31 +29,33 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
   content: function() {
     var content = [];
     if (App.supports.createAlerts) {
-      content = [{
+      content.push({
         title: Em.I18n.t('alerts.actions.create'),
         icon: 'glyphicon glyphicon-plus',
         action: 'createNewAlertDefinition',
         showDivider: true
-      }];
+      });
     }
-    content = content.concat([{
+    content.push({
       title: Em.I18n.t('alerts.actions.manageGroups'),
       icon: 'glyphicon glyphicon-th-large',
       action: 'manageAlertGroups',
       showDivider: false
-      },
-      {
+    });
+    if (App.isAuthorized('CLUSTER.MANAGE_ALERT_NOTIFICATIONS')) {
+      content.push({
         title: Em.I18n.t('alerts.actions.manageNotifications'),
         icon: 'glyphicon glyphicon-envelope',
         action: 'manageNotifications',
         showDivider: false
-      },
-      {
-        title: Em.I18n.t('alerts.actions.manageSettings'),
-        icon: 'glyphicon glyphicon-cog',
-        action: 'manageSettings',
-        showDivider: false
-      }]);
+      });
+    }
+    content.push({
+      title: Em.I18n.t('alerts.actions.manageSettings'),
+      icon: 'glyphicon glyphicon-cog',
+      action: 'manageSettings',
+      showDivider: false
+    });
     return content;
   }.property('App.supports.createAlerts'),
 
