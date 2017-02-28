@@ -2557,6 +2557,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> LOGSEARCH_METADATA_CACHE_EXPIRE_TIMEOUT = new ConfigurationProperty<>(
     "logsearch.metadata.cache.expire.timeout", 24);
 
+  /**
+   * The time, in seconds, that the ambari-server Python script will wait for
+   * Jetty to startup before returning an error code.
+   */
+  @Markdown(description = "The time, in seconds, that the ambari-server Python script will wait for Jetty to startup before returning an error code.")
+  public static final ConfigurationProperty<Integer> SERVER_STARTUP_WEB_TIMEOUT = new ConfigurationProperty<>(
+    "server.startup.web.timeout", 50);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2748,7 +2756,7 @@ public class Configuration {
     H2("h2");
 
     private static final Map<String, DatabaseType> m_mappedTypes =
-      new HashMap<String, Configuration.DatabaseType>(5);
+      new HashMap<>(5);
 
     static {
       for (DatabaseType databaseType : EnumSet.allOf(DatabaseType.class)) {
@@ -2827,12 +2835,12 @@ public class Configuration {
   public Configuration(Properties properties) {
     this.properties = properties;
 
-    agentConfigsMap = new HashMap<String, String>();
+    agentConfigsMap = new HashMap<>();
     agentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
     agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
     agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
 
-    configsMap = new HashMap<String, String>();
+    configsMap = new HashMap<>();
     configsMap.putAll(agentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP.getKey(), getProperty(AMBARI_PYTHON_WRAP));
     configsMap.put(SRVR_AGENT_HOSTNAME_VALIDATE.getKey(), getProperty(SRVR_AGENT_HOSTNAME_VALIDATE));
@@ -4090,7 +4098,7 @@ public class Configuration {
   public Map<String, String> getAmbariProperties() {
 
     Properties properties = readConfigFile();
-    Map<String, String> ambariPropertiesMap = new HashMap<String, String>();
+    Map<String, String> ambariPropertiesMap = new HashMap<>();
 
     for(String key : properties.stringPropertyNames()) {
       ambariPropertiesMap.put(key, properties.getProperty(key));
@@ -5650,7 +5658,7 @@ public class Configuration {
     // Get and process the configured user type values to convert the comma-delimited string of
     // user types into a ordered (as found in the comma-delimited value) list of UserType values.
     String userTypes = getProperty(KERBEROS_AUTH_USER_TYPES);
-    List<UserType> orderedUserTypes = new ArrayList<UserType>();
+    List<UserType> orderedUserTypes = new ArrayList<>();
 
     String[] types = userTypes.split(",");
     for (String type : types) {

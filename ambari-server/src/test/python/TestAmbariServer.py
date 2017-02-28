@@ -4401,8 +4401,8 @@ class TestAmbariServer(TestCase):
   @patch("os.chown")
   @patch("ambari_server.setupSecurity.get_master_key_location")
   @patch("ambari_server.setupSecurity.save_master_key")
-  @patch("ambari_server_main.get_is_persisted")
-  @patch("ambari_server_main.get_is_secure")
+  @patch("ambari_server.setupSecurity.get_is_persisted")
+  @patch("ambari_server.setupSecurity.get_is_secure")
   @patch('os.chmod', autospec=True)
   @patch("ambari_server.serverConfiguration.write_property")
   @patch("ambari_server.serverConfiguration.get_validated_string_input")
@@ -8589,6 +8589,28 @@ class TestAmbariServer(TestCase):
 
     self.assertTrue(is_server_runing_method.called)
     pass
+
+
+  def test_web_server_startup_timeout(self):
+    from ambari_server.serverConfiguration import get_web_server_startup_timeout
+    from ambari_server.serverConfiguration import WEB_SERVER_STARTUP_TIMEOUT
+
+    properties = Properties()
+    timeout = get_web_server_startup_timeout(properties)
+    self.assertEquals(50, timeout)
+
+    properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "")
+    timeout = get_web_server_startup_timeout(properties)
+    self.assertEquals(50, timeout)
+
+    properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "120")
+    timeout = get_web_server_startup_timeout(properties)
+    self.assertEquals(120, timeout)
+
+    properties.process_pair(WEB_SERVER_STARTUP_TIMEOUT, "120  ")
+    timeout = get_web_server_startup_timeout(properties)
+    self.assertEquals(120, timeout)
+
 
   def _create_empty_options_mock(self):
     options = MagicMock()

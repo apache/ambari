@@ -181,6 +181,9 @@ VIEWS_DIR_PROPERTY = "views.dir"
 
 ACTIVE_INSTANCE_PROPERTY = "active.instance"
 
+# web server startup timeout
+WEB_SERVER_STARTUP_TIMEOUT = "server.startup.web.timeout"
+
 #Common setup or upgrade message
 SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
                        "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
@@ -976,6 +979,25 @@ def remove_password_file(filename):
       return 1
   pass
   return 0
+
+
+def get_web_server_startup_timeout(properties):
+  """
+  Gets the time, in seconds, that the startup script should wait for the web server to bind to
+  the configured port. If this value is too low, then the startup script will return an
+  error code even though Ambari is actually starting up.
+  :param properties:
+  :return: The timeout value, in seconds. The default is 50.
+  """
+  # get the timeout property and strip it if it exists
+  timeout = properties[WEB_SERVER_STARTUP_TIMEOUT]
+  timeout = None if timeout is None else timeout.strip()
+
+  if timeout is None or timeout == "":
+    timeout = 50
+  else:
+    timeout = int(timeout)
+  return timeout
 
 
 def get_original_master_key(properties, options = None):
