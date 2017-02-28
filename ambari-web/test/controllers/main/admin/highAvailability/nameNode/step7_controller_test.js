@@ -17,8 +17,6 @@
  */
 
 var App = require('app');
-var testHelpers = require('test/helpers');
-
 
 describe('App.HighAvailabilityWizardStep7Controller', function() {
   var controller;

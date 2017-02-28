@@ -144,7 +144,7 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
   });
 
   describe('#done', function() {
-    var mock  = {
+    var mock = {
       getKDCSessionState: Em.clb
     };
 
