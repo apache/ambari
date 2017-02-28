@@ -269,6 +269,7 @@ public class JdbcConnector extends HiveActor {
     isFailure = true;
     this.failure = failure;
     if (isAsync() && jobId.isPresent()) {
+      stopStatementExecutor();
       if(isCancelCalled) {
         processCancel();
         return;
@@ -281,8 +282,16 @@ public class JdbcConnector extends HiveActor {
     }
   }
 
+  private void stopStatementExecutor() {
+    if (statementExecutor != null) {
+      statementExecutor.tell(PoisonPill.getInstance(), ActorRef.noSender());
+      statementExecutor = null;
+    }
+  }
+
   private void processResult(Optional<ResultSet> resultSetOptional) {
     executing = false;
+    stopStatementExecutor();
 
     LOG.info("Finished processing SQL statements for Job id : {}", jobId.or("SYNC JOB"));
     if (isAsync() && jobId.isPresent()) {
