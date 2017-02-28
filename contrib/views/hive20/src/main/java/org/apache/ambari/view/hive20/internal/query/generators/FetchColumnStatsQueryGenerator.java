@@ -34,7 +34,7 @@ public class FetchColumnStatsQueryGenerator implements QueryGenerator{
 
   @Override
   public Optional<String> getQuery() throws ServiceException {
-    return Optional.of("DESCRIBE FORMATTED " + "`" + this.databaseName + "." + this.tableName +  "." + this.columnName +
+    return Optional.of("DESCRIBE FORMATTED " + "`" + this.databaseName + "`.`" + this.tableName +  "` `" + this.columnName +
       "`" );
   }
 }

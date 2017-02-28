@@ -58,7 +58,7 @@ public class AlterTableQueryGenerator implements QueryGenerator {
 
   public String getQueryPerfix() {
     return new StringBuffer(" ALTER TABLE ")
-      .append("`").append(this.getOldMeta().getDatabase()).append(".").append(this.getOldMeta().getTable().trim()).append("` ").toString();
+      .append("`").append(this.getOldMeta().getDatabase()).append("`.`").append(this.getOldMeta().getTable().trim()).append("` ").toString();
   }
 
   public Optional<String> getQuery() {

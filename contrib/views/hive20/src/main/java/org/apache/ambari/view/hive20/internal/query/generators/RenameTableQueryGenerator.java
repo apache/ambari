@@ -60,7 +60,7 @@ public class RenameTableQueryGenerator implements QueryGenerator {
   public Optional<String> getQuery() throws ServiceException {
     StringBuilder queryBuilder = new StringBuilder("ALTER TABLE `");
     if(!Strings.isNullOrEmpty(this.getOldDatabaseName())){
-      queryBuilder.append(this.getOldDatabaseName().trim()).append(".");
+      queryBuilder.append(this.getOldDatabaseName().trim()).append("`.`");
     }
     if(!Strings.isNullOrEmpty(this.getOldTableName())){
       queryBuilder.append(this.getOldTableName().trim());
@@ -70,7 +70,7 @@ public class RenameTableQueryGenerator implements QueryGenerator {
     queryBuilder.append("` RENAME TO `");
 
     if(!Strings.isNullOrEmpty(this.getNewDatabaseName())){
-      queryBuilder.append(this.getNewDatabaseName().trim()).append(".");
+      queryBuilder.append(this.getNewDatabaseName().trim()).append("`.`");
     }
 
     if(!Strings.isNullOrEmpty(this.getNewTableName())){
