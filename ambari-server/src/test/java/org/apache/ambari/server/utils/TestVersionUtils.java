@@ -97,6 +97,52 @@ public class TestVersionUtils {
   }
 
   @Test
+  public void testVersionCompareSuccessCustomVersion() {
+    Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual("", "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(null, null, true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "1.2.3_MYAMBARI_000000", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, null, true));
+
+    Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));
+    Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", false));
+    Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertFalse(VersionUtils.areVersionsEqual("", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertFalse(VersionUtils.areVersionsEqual("", null, true));
+    Assert.assertFalse(VersionUtils.areVersionsEqual(null, "", true));
+    Assert.assertFalse(VersionUtils.areVersionsEqual(null, "1.2.3_MYAMBARI_000000", true));
+
+    //Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4_MYAMBARI_000000"));
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4_MYAMBARI_000000", "1.2.3_MYAMBARI_000000"));
+    Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000"));
+
+    Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4_MYAMBARI_000000", 3));
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", 3));
+    Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", 3));
+
+    Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3.9_MYAMBARI_000000", "1.2.4.6_MYAMBARI_000000", 3));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.4.6_MYAMBARI_000000", 3));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("1.2_MYAMBARI_000000", "1.2.4.6_MYAMBARI_000000", 3));
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.4.8_MYAMBARI_000000", "1.2.3.6.7_MYAMBARI_000000", 3));
+    Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3.4_MYAMBARI_000000", 3));
+    Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3.6.7_MYAMBARI_000000", "1.2.3.4_MYAMBARI_000000", 3));
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.6.7_MYAMBARI_000000", "1.2.3.4_MYAMBARI_000000", 4));
+    Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3.0_MYAMBARI_000000", 4));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("1.2.3_MYAMBARI_000000", "1.2.3.1_MYAMBARI_000000", 4));
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.6.7_MYAMBARI_000000\n", "1.2.3.4_MYAMBARI_000000\n", 4)); //test version trimming
+
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.1_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertEquals(1, VersionUtils.compareVersions("2.1.3_MYAMBARI_000000", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertEquals(-1, VersionUtils.compareVersions("", "1.2.3_MYAMBARI_000000", true));
+    Assert.assertEquals(1, VersionUtils.compareVersions("", null, true));
+    Assert.assertEquals(-1, VersionUtils.compareVersions(null, "", true));
+    Assert.assertEquals(-1, VersionUtils.compareVersions(null, "1.2.3_MYAMBARI_000000", true));
+  }
+
+  @Test
   public void testVersionCompareError() {
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage("version2 cannot be empty");
