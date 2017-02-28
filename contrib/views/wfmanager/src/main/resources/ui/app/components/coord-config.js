@@ -262,6 +262,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     return deferred;
   },
   importCoordinator (filePath){
+    this.hideSuccessMsg();
     filePath = this.appendFileName(filePath, 'coord');
     this.set("coordinatorFilePath", filePath);
     this.set("isImporting", false);
@@ -367,7 +368,22 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     }.bind(this));
     return isChildComponentsValid;
   },
+  hideSuccessMsg(){
+    this.set('successMessage', '');
+    this.set('isWFSaveSuccess', false);
+  },
   actions : {
+    showSuccessMessage(msg, isHideSuccessMsg) {
+      if(isHideSuccessMsg){
+        this.set("isWFSaveSuccess", false);
+      } else {
+        this.set("isWFSaveSuccess", true);
+      }
+      Ember.run.later(()=>{
+      this.$('#successMsg').fadeOut();
+      }, 3000);
+      this.set("successMessage", msg);
+    },
     registerChild(key, context){
       this.get('childComponents').set(key, context);
     },
@@ -571,6 +587,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     resetCoordinator(){
       this.get("errors").clear();
+      this.hideSuccessMsg();
       this.set('showingResetConfirmation', false);
       if(this.get('coordinatorFilePath')){
         this.importCoordinator(this.get('coordinatorFilePath'));

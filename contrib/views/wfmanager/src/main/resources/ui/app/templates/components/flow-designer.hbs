@@ -159,15 +159,22 @@
       {{/if}}
       {{#if isAssetPublishing}}
         <div id="loader">
-            <div id="alert"class="alert alert-info alert-dismissible workflow-error" role="alert">
+            <div id="alert" class="alert alert-info alert-dismissible workflow-error" role="alert">
               Publishing asset. Please wait...
             </div>
         </div>
       {{/if}}
       {{#if isAssetImporting}}
         <div id="loader">
-            <div id="alert"class="alert alert-info alert-dismissible workflow-error" role="alert">
+            <div id="alert" class="alert alert-info alert-dismissible workflow-error" role="alert">
               Importing asset. Please wait...
+            </div>
+        </div>
+      {{/if}}
+      {{#if isWFSaveSuccess}}
+        <div id="successMsg">
+            <div id="alert" class="alert alert-info alert-dismissible workflow-error" role="alert">
+              {{successMessage}}
             </div>
         </div>
       {{/if}}
@@ -265,10 +272,10 @@
   {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" setNodeTransitions="setNodeTransitions" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes credentials=workflow.credentials}}
 {{/if}}
 {{#if showingSaveWorkflow}}
-  {{save-wf type='wf' close="closeSaveWorkflow" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
+  {{save-wf type='wf' close="closeSaveWorkflow" showSuccessMessage="showSuccessMessage" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
 {{/if}}
 {{#if showingWorkflowConfigProps}}
-  {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath tabInfo=tabInfo openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
+  {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" showSuccessMessage="showSuccessMessage" jobFilePath=workflowFilePath tabInfo=tabInfo openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
 {{/if}}
 {{#if showGlobalConfig}}
   {{#global-config closeGlobalConfig="closeWorkflowGlobalProps" saveGlobalConfig="saveGlobalConfig" actionModel=globalConfig}}{{/global-config}}
