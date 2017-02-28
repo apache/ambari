@@ -23,9 +23,13 @@ import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.hive20.utils.SharedObjectsFactory;
 import org.apache.ambari.view.utils.UserLocal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class HiveViewImpl implements View {
+  private final Logger LOG = LoggerFactory.getLogger(getClass());
+
   @Override
   public void onDeploy(ViewDefinition definition) {
 
@@ -45,6 +49,7 @@ public class HiveViewImpl implements View {
   @Override
   public void onUpdate(ViewInstanceDefinition definition) {
     //drop all cached connection for instance
+    LOG.info("Settings updated for instance '" + definition.getInstanceName() + "'");
     UserLocal.dropInstanceCache(definition.getInstanceName());
     SharedObjectsFactory.dropInstanceCache(definition.getInstanceName());
     ConnectionSystem.getInstance().removeOperationControllerFromCache(definition.getInstanceName());
