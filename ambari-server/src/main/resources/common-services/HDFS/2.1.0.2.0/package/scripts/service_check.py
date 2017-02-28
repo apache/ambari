@@ -37,20 +37,10 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     dir = params.hdfs_tmp_dir
     tmp_file = format("{dir}/{unique}")
 
-    safemode_command = format("dfsadmin -fs {namenode_address} -safemode get | grep OFF")
-
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
         user=params.hdfs_user
       )
-    ExecuteHadoop(safemode_command,
-                  user=params.hdfs_user,
-                  logoutput=True,
-                  conf_dir=params.hadoop_conf_dir,
-                  try_sleep=3,
-                  tries=20,
-                  bin_dir=params.hadoop_bin_dir
-    )
     params.HdfsResource(dir,
                         type="directory",
                         action="create_on_execute",
