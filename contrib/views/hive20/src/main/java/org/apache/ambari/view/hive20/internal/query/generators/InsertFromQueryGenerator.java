@@ -38,7 +38,7 @@ public class InsertFromQueryGenerator implements QueryGenerator{
 
   @Override
   public Optional<String> getQuery() throws ServiceException {
-    StringBuilder insertQuery = new StringBuilder("INSERT INTO TABLE `").append(insertFromQueryInput.getToDatabase()).append(".")
+    StringBuilder insertQuery = new StringBuilder("INSERT INTO TABLE `").append(insertFromQueryInput.getToDatabase()).append("`.`")
         .append(insertFromQueryInput.getToTable()).append("`")
         .append(" SELECT ");
 

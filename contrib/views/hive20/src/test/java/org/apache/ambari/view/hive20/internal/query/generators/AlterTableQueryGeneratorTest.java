@@ -228,8 +228,8 @@ public class AlterTableQueryGeneratorTest {
 
     LOG.info("hqlQuery : {}", hqlQuery);
 
-    String expectedQuery = " ALTER TABLE `default.table2`  CHANGE COLUMN `col2` `col3` STRING(333);\n" +
-        " ALTER TABLE `default.table2`  CHANGE COLUMN `col3` `col4` TINYINT";
+    String expectedQuery = " ALTER TABLE `default`.`table2`  CHANGE COLUMN `col2` `col3` STRING(333);\n" +
+        " ALTER TABLE `default`.`table2`  CHANGE COLUMN `col3` `col4` TINYINT";
     Assert.assertEquals("Alter Edit table query did not match ", expectedQuery, hqlQuery);
   }
 }

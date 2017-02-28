@@ -34,7 +34,7 @@ public class AnalyzeTableQueryGenerator implements QueryGenerator {
 
   @Override
   public Optional<String> getQuery() throws ServiceException {
-    return Optional.of("ANALYZE TABLE " + "`" + databaseName + "." + tableName + "`" + " COMPUTE STATISTICS " +
+    return Optional.of("ANALYZE TABLE " + "`" + databaseName + "`.`" + tableName + "`" + " COMPUTE STATISTICS " +
       (shouldAnalyzeColumns? " FOR COLUMNS ": "") + ";");
   }
 }
