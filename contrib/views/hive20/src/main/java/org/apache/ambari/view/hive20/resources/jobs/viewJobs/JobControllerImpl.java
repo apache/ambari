@@ -39,7 +39,7 @@ import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +47,14 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 
 public class JobControllerImpl implements JobController, ModifyNotificationDelegate {
     private final static Logger LOG =
@@ -113,11 +121,20 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     }
 
     private String[] getStatements(String jobDatabase, String query) {
-      String[] queries = query.split(";");
-
-
-      String[] strings = {"use " + jobDatabase};
-      return ArrayUtils.addAll(strings, queries);
+      List<String> queries = Lists.asList("use " + jobDatabase, query.split(";"));
+      List<String> cleansedQueries = FluentIterable.from(queries).transform(new Function<String, String>() {
+          @Nullable
+          @Override
+          public String apply(@Nullable String s) {
+              return s.trim();
+          }
+      }).filter(new Predicate<String>() {
+          @Override
+          public boolean apply(@Nullable String s) {
+              return !StringUtils.isEmpty(s);
+          }
+      }).toList();
+      return cleansedQueries.toArray(new String[0]);
     }
 
 
