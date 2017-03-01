@@ -135,4 +135,116 @@ describe('Ember functionality extension', function () {
       });
     });
   });
+
+  describe('#expand_properties', function () {
+
+    var body;
+    var tests = [
+      {
+        keys: ['a', 'b'],
+        expandedKeys: ['a', 'b']
+      },
+      {
+        keys: ['a.b', 'b'],
+        expandedKeys: ['a.b', 'b']
+      },
+      {
+        keys: ['a', 'a.b'],
+        expandedKeys: ['a', 'a.b']
+      },
+      {
+        keys: ['a.b', 'a.b'],
+        expandedKeys: ['a.b']
+      },
+      {
+        keys: ['a.b', 'b.c'],
+        expandedKeys: ['a.b', 'b.c']
+      },
+      {
+        keys: ['a.{b,c}'],
+        expandedKeys: ['a.b', 'a.c']
+      },
+      {
+        keys: ['{a,b}.c'],
+        expandedKeys: ['a.c', 'b.c']
+      },
+      {
+        keys: ['a.{b,c,d}'],
+        expandedKeys: ['a.b', 'a.c', 'a.d']
+      },
+      {
+        keys: ['a.@each.{b,c}'],
+        expandedKeys: ['a.@each.b', 'a.@each.c']
+      },
+      {
+        keys: ['a.{b.[],c}'],
+        expandedKeys: ['a.b.[]', 'a.c']
+      },
+      {
+        keys: ['a.{b,c.[]}'],
+        expandedKeys: ['a.b', 'a.c.[]']
+      },
+      {
+        keys: ['a.{b,c.[],b}'],
+        expandedKeys: ['a.b', 'a.c.[]']
+      },
+      {
+        keys: ['{a,b}.{c,d}'],
+        expandedKeys: ['a.d', 'b.d', 'a.c', 'b.c']
+      }
+    ];
+
+    beforeEach(function () {
+      body = function () {};
+    });
+
+    describe('#computed properties', function() {
+
+      describe('#Ember.computed', function () {
+        tests.forEach(function(test) {
+          it(JSON.stringify(test.keys), function () {
+            var args = test.keys.slice(0);
+            args.push(body);
+            var cp = Ember.computed.apply(null, args);
+            expect(cp._dependentKeys).to.be.eql(test.expandedKeys);
+          });
+        });
+      });
+
+      describe('#function(){}.property', function () {
+        tests.forEach(function(test) {
+          it(JSON.stringify(test.keys), function () {
+            var cp = body.property.apply(null, test.keys);
+            expect(cp._dependentKeys).to.be.eql(test.expandedKeys);
+          });
+        });
+      });
+
+    });
+
+    describe('#observers', function () {
+
+      describe('#Ember.observer', function () {
+        tests.forEach(function(test) {
+          it(JSON.stringify(test.keys), function () {
+            var args = [body].concat(test.keys);
+            var obs = Ember.observer.apply(null, args);
+            expect(obs.__ember_observes__).to.be.eql(test.expandedKeys);
+          });
+        });
+      });
+
+      describe('#function(){}.observes', function () {
+        tests.forEach(function(test) {
+          it(JSON.stringify(test.keys), function () {
+            var obs = body.observes.apply(body, test.keys);
+            expect(obs.__ember_observes__).to.be.eql(test.expandedKeys);
+          });
+        });
+      });
+
+    });
+
+  });
+
 });
