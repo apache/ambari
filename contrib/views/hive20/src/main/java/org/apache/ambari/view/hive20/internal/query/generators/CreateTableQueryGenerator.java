@@ -48,13 +48,16 @@ public class CreateTableQueryGenerator implements QueryGenerator{
   public Optional<String> getQuery(){
     StringBuffer query = new StringBuffer();
     query.append("CREATE TABLE ");
-    query.append(tableMeta.getDatabase()).append(".");
-    query.append(tableMeta.getTable()).append(" ");
+    query.append("`").append(tableMeta.getDatabase()).append("`").append(".");
+    query.append("`").append(tableMeta.getTable()).append("`").append(" ");
     query.append("(").append(getColumnQuery(tableMeta.getColumns())).append(") ");
     if(null != tableMeta.getDetailedInfo() && null != tableMeta.getDetailedInfo().getParameters()){
       String tableComment = tableMeta.getDetailedInfo().getParameters().get(COMMENT);
       if(!Strings.isNullOrEmpty(tableComment)){
-        query.append(" COMMENT ").append(tableComment);
+        tableComment = tableMeta.getDetailedInfo().getParameters().get(COMMENT.toLowerCase());
+        if(!Strings.isNullOrEmpty(tableComment)) {
+          query.append(" COMMENT ").append(tableComment);
+        }
       }
     }
     if(null != tableMeta.getPartitionInfo() ) {

@@ -45,14 +45,23 @@ public class ColumnInfo {
   }
 
   public ColumnInfo(String name, String type, String comment) {
-    this.name = name;
-    this.type = type;
-    this.comment = comment;
+    this(name, type, null, null, comment);
+  }
+
+  public ColumnInfo(String name, String type, Integer precision, String comment) {
+    this(name, type, precision, null, comment);
+  }
+
+  public ColumnInfo(String name, String type, Integer precision, Integer scale) {
+    this(name, type, precision, scale, null);
+  }
+
+  public ColumnInfo(String name, String type, Integer precision) {
+    this(name, type, precision, null, null);
   }
 
   public ColumnInfo(String name, String type) {
-    this.name = name;
-    this.type = type;
+    this(name, type, null, null, null);
   }
 
   public String getName() {

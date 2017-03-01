@@ -30,6 +30,14 @@ public class CreateTableQueryGeneratorTest {
 
   @Test
   public void testGetQuery() throws Exception {
+    String createTableQuery = "CREATE TABLE `d1`.`t2` (`col_name1` string COMMENT 'col_name1 comment'," +
+      "`col_name2` decimal(10,2) COMMENT 'col_name2 comment')  PARTITIONED BY ( `col_name4` char(1) COMMENT 'col_name4 comment'," +
+      "`col_name3` string COMMENT 'col_name3 comment') CLUSTERED BY (col_name1, col_name2) SORTED BY (col_name1 ASC,col_name2 DESC)" +
+      " INTO 5 BUCKETS  ROW FORMAT DELIMITED  FIELDS TERMINATED BY ',' ESCAPED BY '\\\\' STORED AS  INPUTFORMAT " +
+      "'org.apache.hadoop.mapred.SequenceFileInputFormat' OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat' " +
+      "LOCATION 'hdfs://c6401.ambari.apache.org:8020/user/hive/tables/d1/t1' TBLPROPERTIES ('immutable'='false'," +
+      "'orc.compress'='SNAPPY','transient_lastDdlTime'='1481520077','NO_AUTO_COMPACTION'='true','comment'='table t1 comment'," +
+      "'SORTBUCKETCOLSPREFIX'='TRUE')";
     String json = "{\n" +
       "\t\"id\": \"d1/t2\",\n" +
       "\t\"database\": \"d1\",\n" +
@@ -43,7 +51,6 @@ public class CreateTableQueryGeneratorTest {
       "\t\t\"type\": \"decimal(10,2)\",\n" +
       "\t\t\"comment\": \"col_name2 comment\"\n" +
       "\t}],\n" +
-      "\t\"ddl\": \"CREATE TABLE `t2`(\\n  `col_name1` string COMMENT \\u0027col_name1 comment\\u0027, \\n  `col_name2` decimal(10,2) COMMENT \\u0027col_name2 comment\\u0027)\\nCOMMENT \\u0027table t1 comment\\u0027\\nPARTITIONED BY ( \\n  `col_name3` string COMMENT \\u0027col_name3 comment\\u0027, \\n  `col_name4` char(1) COMMENT \\u0027col_name4 comment\\u0027)\\nCLUSTERED BY ( \\n  col_name1, \\n  col_name2) \\nSORTED BY ( \\n  col_name1 ASC, \\n  col_name2 DESC) \\nINTO 5 BUCKETS\\nROW FORMAT DELIMITED \\n  FIELDS TERMINATED BY \\u0027,\\u0027 \\nWITH SERDEPROPERTIES ( \\n  \\u0027escape.delim\\u0027\\u003d\\u0027\\\\\\\\\\u0027) \\nSTORED AS INPUTFORMAT \\n  \\u0027org.apache.hadoop.mapred.SequenceFileInputFormat\\u0027 \\nOUTPUTFORMAT \\n  \\u0027org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat\\u0027\\nLOCATION\\n  \\u0027hdfs://c6401.ambari.apache.org:8020/user/hive/tables/d1/t1\\u0027\\nTBLPROPERTIES (\\n  \\u0027NO_AUTO_COMPACTION\\u0027\\u003d\\u0027true\\u0027, \\n  \\u0027immutable\\u0027\\u003d\\u0027false\\u0027, \\n  \\u0027orc.compress\\u0027\\u003d\\u0027SNAPPY\\u0027, \\n  \\u0027transient_lastDdlTime\\u0027\\u003d\\u00271481520077\\u0027)\\n\",\n" +
       "\t\"partitionInfo\": {\n" +
       "\t\t\"columns\": [{\n" +
       "\t\t\t\"name\": \"col_name4\",\n" +
@@ -97,5 +104,7 @@ public class CreateTableQueryGeneratorTest {
     Optional<String> createQuery = new CreateTableQueryGenerator(tableMeta).getQuery();
     LOG.info("createQuery : {}", createQuery);
     Assert.assertTrue(createQuery.isPresent());
+
+    Assert.assertEquals( "incorrect create table query.", createTableQuery, createQuery.get());
   }
 }
