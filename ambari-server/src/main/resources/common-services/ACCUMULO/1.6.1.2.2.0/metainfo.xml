@@ -202,7 +202,6 @@
       <configuration-dependencies>
         <config-type>accumulo-env</config-type>
         <config-type>accumulo-site</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
     </service>
