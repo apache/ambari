@@ -25,11 +25,20 @@ export default Ember.Component.extend({
   statusFilter: null,
   titleFilter: null,
 
-  titleFilteredJobs: Ember.computed('jobs', 'titleFilter', function() {
+  sortedJobs: Ember.computed.sort('jobs', function (m1, m2) {
+    if (m1.get('dateSubmitted') < m2.get('dateSubmitted')) {
+      return 1;
+    } else if (m1.get('dateSubmitted') > m2.get('dateSubmitted')) {
+      return -1;
+    }
+    return 0;
+  }),
+
+  titleFilteredJobs: Ember.computed('sortedJobs', 'titleFilter', function() {
     if (!Ember.isEmpty(this.get('titleFilter'))) {
-      return (this.get('jobs').filter((entry) => entry.get('title').toLowerCase().indexOf(this.get('titleFilter').toLowerCase()) >= 0));
+      return (this.get('sortedJobs').filter((entry) => entry.get('title').toLowerCase().indexOf(this.get('titleFilter').toLowerCase()) >= 0));
     } else {
-      return this.get('jobs');
+      return this.get('sortedJobs');
     }
   }),
 
