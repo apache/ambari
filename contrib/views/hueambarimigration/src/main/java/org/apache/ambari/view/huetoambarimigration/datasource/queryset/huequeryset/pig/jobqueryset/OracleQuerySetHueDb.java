@@ -30,17 +30,17 @@ public class OracleQuerySetHueDb extends QuerySetHueDb {
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =?  AND start_time <= date(?)";
+    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =?  AND start_time <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= date(?)";
+    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= date(?) AND start_time <= date(?)";
+    return "select status,start_time,statusdir,script_title,user_id from pig_job where user_id =? AND start_time >= to_date(?, 'YYYY-MM-DD') AND start_time <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
@@ -49,17 +49,17 @@ public class OracleQuerySetHueDb extends QuerySetHueDb {
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time <= date(?)";
+    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= date(?)";
+    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= date(?) AND start_time <= date(?)";
+    return "select status,start_time,statusdir,script_title,user_id from pig_job where  start_time >= to_date(?, 'YYYY-MM-DD') AND start_time <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override

@@ -31,16 +31,16 @@ public class OracleQuerySetHueDb extends QuerySetHueDb {
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime <= date(?)";
+    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime >= date(?)";
+    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime >= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime >= date(?) AND mtime <= date(?)";
+    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query'and owner_id =? AND mtime >= to_date(?, 'YYYY-MM-DD') AND mtime <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
@@ -49,17 +49,17 @@ public class OracleQuerySetHueDb extends QuerySetHueDb {
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime <= date(?)";
+    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime >= date(?)";
+    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime >= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime >= date(?) AND mtime <= date(?)";
+    return "select data,name,owner_id from beeswax_savedquery where name!='My saved query' AND mtime >= to_date(?, 'YYYY-MM-DD') AND mtime <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
