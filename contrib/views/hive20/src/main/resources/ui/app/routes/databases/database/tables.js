@@ -31,8 +31,18 @@ export default Ember.Route.extend({
   },
   selectTable(model) {
     let sortedModel = model.sortBy('name');
-    let toSelect = sortedModel.get('firstObject');
-    toSelect.set('selected', true);
+    let alreadySelected = sortedModel.findBy('selected', true);
+    if (Ember.isEmpty(alreadySelected)) {
+      let paramsForTable = this.paramsFor('databases.database.tables.table');
+      let toSelect = null;
+      if (!Ember.isEmpty(paramsForTable.name)) {
+        toSelect = sortedModel.findBy('name', paramsForTable.name);
+      } else {
+        toSelect = sortedModel.get('firstObject');
+      }
+
+      toSelect.set('selected', true);
+    }
   },
   actions: {
     tableSelected(table) {
