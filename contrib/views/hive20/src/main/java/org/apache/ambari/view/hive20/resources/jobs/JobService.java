@@ -27,6 +27,7 @@ import org.apache.ambari.view.hive20.ConnectionFactory;
 import org.apache.ambari.view.hive20.ConnectionSystem;
 import org.apache.ambari.view.hive20.actor.message.job.Failure;
 import org.apache.ambari.view.hive20.backgroundjobs.BackgroundJobController;
+import org.apache.ambari.view.hive20.backgroundjobs.BackgroundJobException;
 import org.apache.ambari.view.hive20.client.AsyncJobRunner;
 import org.apache.ambari.view.hive20.client.AsyncJobRunnerImpl;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
@@ -296,9 +297,9 @@ public class JobService extends BaseService {
               stream.close();
 
             } catch (IOException e) {
-              throw new ServiceFormattedException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
+              throw new BackgroundJobException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
             } catch (InterruptedException e) {
-              throw new ServiceFormattedException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
+              throw new BackgroundJobException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
             }
           }
         });
@@ -320,7 +321,7 @@ public class JobService extends BaseService {
       throw ex;
     } catch (ItemNotFound itemNotFound) {
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
-    } catch (Exception ex) {
+    }  catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
