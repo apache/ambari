@@ -18,58 +18,23 @@
 
 package org.apache.ambari.view.hive20.internal.query.generators;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import org.apache.ambari.view.hive20.exceptions.ServiceException;
-import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
-import org.apache.ambari.view.hive20.internal.dto.TableMeta;
-
-import javax.annotation.Nullable;
-
-import static org.apache.ambari.view.hive20.internal.query.generators.QueryGenerationUtils.isNullOrEmpty;
 
 public class AnalyzeTableQueryGenerator implements QueryGenerator {
-  private TableMeta tableMeta;
+  private final String databaseName;
+  private final String tableName;
   private final Boolean shouldAnalyzeColumns;
 
-  public AnalyzeTableQueryGenerator(TableMeta tableMeta, Boolean shouldAnalyzeColumns) {
-    this.tableMeta = tableMeta;
+  public AnalyzeTableQueryGenerator(String databaseName, String tableName, Boolean shouldAnalyzeColumns) {
+    this.databaseName = databaseName;
+    this.tableName = tableName;
     this.shouldAnalyzeColumns = shouldAnalyzeColumns;
   }
 
   @Override
   public Optional<String> getQuery() throws ServiceException {
-    StringBuilder query = new StringBuilder("ANALYZE TABLE " );
-    query.append("`").append(tableMeta.getDatabase()).append("`").append(".").append("`").append(tableMeta.getTable()).append("`");
-
-    if( null != tableMeta.getPartitionInfo() && !isNullOrEmpty(tableMeta.getPartitionInfo().getColumns())){
-      query.append(" PARTITION (")
-           .append(Joiner.on(",")
-              .join(FluentIterable.from(tableMeta.getPartitionInfo().getColumns())
-                  .transform(
-                  new Function<ColumnInfo, Object>() {
-                    @Nullable
-                    @Override
-                    public Object apply(@Nullable ColumnInfo columnInfo) {
-                      return columnInfo.getName();
-                    }
-                  })
-              )
-           )
-           .append(")");
-    }
-
-
-    query.append(" COMPUTE STATISTICS ");
-
-    if(shouldAnalyzeColumns){
-      query.append(" FOR COLUMNS ");
-    }
-
-    query.append(";");
-
-    return Optional.of(query.toString());
+    return Optional.of("ANALYZE TABLE " + "`" + databaseName + "`.`" + tableName + "`" + " COMPUTE STATISTICS " +
+      (shouldAnalyzeColumns? " FOR COLUMNS ": "") + ";");
   }
 }

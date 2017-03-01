@@ -332,10 +332,8 @@ public class DDLProxy {
     }
   }
 
-  public Job analyzeTable(String databaseName, String tableName, Boolean shouldAnalyzeColumns, JobResourceManager resourceManager, ConnectionConfig hiveConnectionConfig) throws ServiceException {
-    TableMeta tableMeta = this.getTableProperties(context, hiveConnectionConfig, databaseName, tableName);
-
-    AnalyzeTableQueryGenerator queryGenerator = new AnalyzeTableQueryGenerator(tableMeta, shouldAnalyzeColumns);
+  public Job analyzeTable(String databaseName, String tableName, Boolean shouldAnalyzeColumns, JobResourceManager resourceManager) throws ServiceException {
+    AnalyzeTableQueryGenerator queryGenerator = new AnalyzeTableQueryGenerator(databaseName, tableName, shouldAnalyzeColumns);
     Optional<String> analyzeTable = queryGenerator.getQuery();
     String jobTitle = "Analyze table " + databaseName + "." + tableName;
     if(analyzeTable.isPresent()) {
