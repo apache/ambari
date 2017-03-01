@@ -19,6 +19,17 @@ import { validator, buildValidations } from 'ember-cp-validations';
 import { v1, v4 } from "ember-uuid";
 
 const Validations = buildValidations({
+  'slaInfo.nominalTime.value': {
+     validators: [
+       validator('presence', {
+         presence : true,
+         disabled(model, attribute) {
+           return !model.get('slaEnabled');
+         },
+         dependentKeys : ['slaEnabled']
+       })
+     ]
+   },
   'slaInfo.shouldEnd.time': {
     validators: [
       validator('presence', {

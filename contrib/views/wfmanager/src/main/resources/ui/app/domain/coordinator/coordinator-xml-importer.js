@@ -63,7 +63,7 @@ var CoordinatorXmlImporter= Ember.Object.extend({
       },
       timezone : 'UTC',
       dataInputType : 'simple',
-      slainfo : SlaInfo.create({}),
+      slaInfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
       }
