@@ -46,13 +46,24 @@ export default Ember.Route.extend(UILoggerMixin, {
   },
 
   selectDatabase(model) {
-    // check if default database is present
-    let toSelect = model.findBy('name', 'default');
-    if (Ember.isEmpty(toSelect)) {
-      let sortedModel = model.sortBy('name');
-      toSelect = sortedModel.get('firstObject');
+    let alreadySelected = model.findBy('selected', true);
+    if (Ember.isEmpty(alreadySelected)) {
+      // Check if params present
+      let paramsForDatabase = this.paramsFor('databases.database');
+      let toSelect = null;
+      if (!Ember.isEmpty(paramsForDatabase.databaseId)) {
+        toSelect = model.findBy('name', paramsForDatabase.databaseId);
+      } else {
+        // check if default database is present
+        toSelect = model.findBy('name', 'default');
+      }
+
+      if (Ember.isEmpty(toSelect)) {
+        let sortedModel = model.sortBy('name');
+        toSelect = sortedModel.get('firstObject');
+      }
+      toSelect.set('selected', true);
     }
-    toSelect.set('selected', true);
   },
 
   actions: {
@@ -68,7 +79,6 @@ export default Ember.Route.extend(UILoggerMixin, {
       }
 
       this.get('controller').set('databaseToDelete', selectedModel);
-
       if (selectedModel.get('tables.length') > 0) {
         this.get('controller').set('databaseNotEmpty', true);
         console.log('database not empty');
