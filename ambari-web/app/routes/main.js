@@ -438,21 +438,20 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   self.proceedOnClose();
                   return;
                 }
-                // warn user if disable kerberos command in progress
-                var unkerberizeCommand = controller.get('tasks').findProperty('command', 'unkerberize');
-                if (unkerberizeCommand && !unkerberizeCommand.get('isCompleted')) {
-                  // user cannot exit wizard during removing kerberos
-                  if (unkerberizeCommand.get('status') == 'IN_PROGRESS') {
-                    App.showAlertPopup(Em.I18n.t('admin.kerberos.disable.unkerberize.header'), Em.I18n.t('admin.kerberos.disable.unkerberize.message'));
-                  } else {
-                    // otherwise show confirmation window
-                    App.showConfirmationPopup(function () {
-                      self.proceedOnClose();
-                    }, Em.I18n.t('admin.security.disable.onClose'));
-                  }
-                } else {
+                var unkerberizeCommand = controller.get('tasks').findProperty('command', 'unkerberize') || Em.Object.create();
+                var isUnkerberizeInProgress = unkerberizeCommand.get('status') === 'IN_PROGRESS';
+                if (controller.get('tasks').everyProperty('status', 'COMPLETED')) {
                   self.proceedOnClose();
+                  return;
                 }
+                // user cannot exit wizard during removing kerberos
+                if (isUnkerberizeInProgress) {
+                  App.showAlertPopup(Em.I18n.t('admin.kerberos.disable.unkerberize.header'), Em.I18n.t('admin.kerberos.disable.unkerberize.message'));
+                  return;
+                }
+                App.showConfirmationPopup(function () {
+                  self.proceedOnClose();
+                }, Em.I18n.t('admin.security.disable.onClose'));
               },
               proceedOnClose: function () {
                 var self = this;
