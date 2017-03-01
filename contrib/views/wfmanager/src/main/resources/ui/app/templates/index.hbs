@@ -59,7 +59,10 @@
       <h3>Issues detected</h3>
       {{#each serviceChecks as |check|}}
         {{#if (and (not check.isAvailable) check.checkCompleted)}}
-          {{check.errorMessage}} <br>
+          {{check.errorMessage}} <a class="pointer action-link" href="javascript:void(0)" {{action "showDetails" check}}>Details</a><br>
+          {{#if check.showingDetails}}
+            <div class="well">{{check.stackTrace}}</div>
+          {{/if}}
         {{/if}}
       {{/each}}
     </div>

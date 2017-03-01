@@ -20,23 +20,23 @@ import BaseValidator from 'ember-cp-validations/validators/base';
 const DuplicateDataNodeName = BaseValidator.extend({
   validate(value, options, model, attribute) {
     if (model.get('dataNodes')) {
-      var nodeNames = new Map();
-      model.get("validationErrors").clear();
-      model.get('dataNodes').forEach((item)=>{
-        if (item.data.node && item.data.node.name) {
+      var killNodes = model.get('workflow').killNodes || [];
+      var nodeNames = new Map(killNodes.map((killNode) => [killNode.name, killNode.name]));
+      for(let i=0;i<model.get('dataNodes').length;i++){
+        let item = model.get('dataNodes').objectAt(i);
+        if (item.data.node) {
+          if(Ember.isBlank(item.data.node.name)){
+            return "Node name should not be blank";
+          }
           Ember.set(item.data.node, "errors", false);
-          if(nodeNames.get(item.data.node.name) && item.data.node.type!=='kill'){
+          if(nodeNames.get(item.data.node.name)){
             Ember.set(item.data.node, "errors", true);
-            model.get("validationErrors").pushObject({node:item.data,message:"Node name should be unique"});
+            return `${item.data.node.name} : Node name should be unique`;
           }else{
             nodeNames.set(item.data.node.name, item.data);
             Ember.set(item.data.node, "errors", false);
           }
         }
-      });
-
-      if(model.get('dataNodes').length !== nodeNames.size){
-        return false;
       }
       return true;
     }

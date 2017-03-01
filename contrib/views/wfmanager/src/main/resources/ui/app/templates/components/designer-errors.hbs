@@ -29,7 +29,7 @@
       {{/if}}
       {{#if (gt validationErrors.length 0)}}
         {{#each validationErrors as |error|}}
-        <div>{{error.node.name}} : {{error.message}}</div>
+        <div>{{error.node.name}} {{#if error.node}}:{{/if}} {{error.message}}</div>
         {{/each}}
       {{/if}}
     </div>
