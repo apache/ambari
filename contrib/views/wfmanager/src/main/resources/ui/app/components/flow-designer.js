@@ -44,13 +44,6 @@ const Validations = buildValidations({
         dependentKeys: ['workflow.killNodes.@each.name']
       })
     ]
-  },
-  'flattenedNodes': {
-    validators: [
-      validator('duplicate-flattened-node-name', {
-        dependentKeys: ['flattenedNodes.@each.name']
-      })
-    ]
   }
 });
 
@@ -88,7 +81,23 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   parameters : {},
   clonedDomain : {},
   clonedErrorNode : {},
-  validationErrors : [],
+  validationErrors : Ember.computed('validations.attrs.dataNodes.message', 'validations.attrs.workflow.killNodes.message', {
+    get(key){
+      var errors = [];
+      if(this.get('validations.attrs.dataNodes.message')){
+        errors.pushObject({message : this.get('validations.attrs.dataNodes.message')});
+      }
+      if(this.get('validations.attrs.workflow.killNodes.message')){
+        errors.pushObject(this.get('validations.attrs.dataNodes.message'));
+      }
+      return errors;
+    },
+    set(key, value){
+      if(!value){
+        this.set(key, Ember.A([]));
+      }
+    }
+  }),
   showingFileBrowser : false,
   killNode : {},
   isWorkflowImporting: false,
@@ -112,6 +121,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('flowRenderer',CytoscapeRenderer.create());
     this.set('workflow',Workflow.create({}));
     CommonUtils.setTestContext(this);
+    this.set('dataNodes', Ember.A([]));
+    this.set('validationErrors', Ember.A([]));
   }.on('init'),
   elementsInserted :function(){
     this.setConentWidth();
@@ -830,9 +841,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     createKillNode(killNode){
       this.set("killNode", killNode);
       this.set("createKillnodeError",null);
-      var existingKillNode=this.get('workflow').get("killNodes").findBy("name",this.get('killNode.name'));
+      var existingKillNode= this.get('workflow').get("killNodes").findBy("name",this.get('killNode.name')) || this.get('dataNodes').findBy("dataNodeName", this.get('killNode.name'));
       if (existingKillNode){
-        this.set("createKillnodeError","The kill node already exists");
+        this.set("createKillnodeError","Node with same name already exists");
         return;
       }
       if (Ember.isBlank(this.get('killNode.name'))){
@@ -919,6 +930,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       }, this);
     },
     submitWorkflow(){
+      if(this.get('validationErrors') && this.get('validationErrors').length > 0){
+        return;
+      }
       this.set('dryrun', false);
       this.openJobConfig();
     },
@@ -926,6 +940,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.openSaveWorkflow();
     },
     previewWorkflow(){
+      if(this.get('validationErrors') && this.get('validationErrors').length > 0){
+        return;
+      }
       this.set("showingPreview",false);
       this.get('workflowContext').clearErrors();
       var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),

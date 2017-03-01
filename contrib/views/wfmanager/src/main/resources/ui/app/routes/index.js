@@ -43,6 +43,8 @@ export default Ember.Route.extend({
       }).catch((e)=>{
         console.error(e);
         Ember.set(serviceCheck, 'isAvailable', false);
+        var response = typeof e.responseText === "string"? JSON.parse(e.responseText) : e.responseText;
+        Ember.set(serviceCheck, 'stackTrace', response.stackTrace);
       }).finally(()=>{
         Ember.set(serviceCheck, 'checkCompleted', true);
       });
@@ -106,5 +108,10 @@ export default Ember.Route.extend({
           }
         });
       });
+    },
+    actions : {
+      showDetails (check){
+        Ember.set(check, 'showingDetails', !check.showingDetails);
+      }
     }
 });
