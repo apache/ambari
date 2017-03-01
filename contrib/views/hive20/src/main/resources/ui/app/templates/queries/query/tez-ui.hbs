@@ -17,7 +17,14 @@
 }}
 
 {{#if model.tezUrl}}
+<div class="pull-right">
+  <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }}>{{fa-icon "expand"}}</button>
+</div>
 <iframe  class="tez-ui" src={{model.tezUrl}}></iframe>
+{{else if model.tezError}}
+<div class="explain--error">
+  <div>{{model.tezError}}</div>
+</div>
 {{else}}
 <div class="explain--error">
   <div>Tez UI not available.</div>

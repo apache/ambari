@@ -39,9 +39,11 @@ export default Ember.Route.extend({
       this.controller.set('jobId', jobId);
       this.controller.set('payloadTitle',  model.get('currentJobData').job.title);
       this.controller.set('isQueryRunning', model.get('isQueryRunning'));
-      if(!Ember.isEmpty(JSON.parse(model.get('queryResult').rows[0][0])['STAGE PLANS'])){
-        this.controller.set('visualExplainJson', model.get('queryResult').rows[0][0]);
-      }
+      try {
+        if(!Ember.isEmpty(JSON.parse(model.get('queryResult').rows[0][0])['STAGE PLANS'])){
+          this.controller.set('visualExplainJson', model.get('queryResult').rows[0][0]);
+        }
+      }catch(error) { }
       this.controller.set('hasJobAssociated', true);
     } else {
       this.controller.set('hasJobAssociated', false);
