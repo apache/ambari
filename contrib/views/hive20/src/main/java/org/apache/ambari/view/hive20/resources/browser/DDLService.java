@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -183,8 +184,7 @@ public class DDLService extends BaseService {
       shouldAnalyzeColumns = Boolean.valueOf(analyzeColumns.trim());
     }
     try {
-      ConnectionConfig hiveConnectionConfig = getHiveConnectionConfig();
-      Job job = proxy.analyzeTable(databaseName, tableName, shouldAnalyzeColumns, getResourceManager(), hiveConnectionConfig);
+      Job job = proxy.analyzeTable(databaseName, tableName, shouldAnalyzeColumns, getResourceManager());
       JSONObject response = new JSONObject();
       response.put("job", job);
       return Response.status(Response.Status.ACCEPTED).entity(response).build();
