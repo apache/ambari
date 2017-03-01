@@ -5366,7 +5366,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           ? AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_MODIFY_CONFIGS)
           : AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.CLUSTER_MODIFY_CONFIGS);
 
-      if (!isAuthorized) {
+      if (!isAuthorized && changesToIgnore != null) {
         Set<String> relevantChangesToIgnore = changesToIgnore.get(configType);
         Map<String, String[]> relevantPropertyChanges;
 
@@ -5383,10 +5383,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         // If relevant configuration changes have been made, then the user is not authorized to
         // perform the requested operation and an AuthorizationException must be thrown
-        if (relevantPropertyChanges.size() > 0) {
-          throw new AuthorizationException(String.format("The authenticated user does not have authorization to modify %s configurations",
-              (isServiceConfiguration) ? "service" : "cluster"));
+        if (relevantPropertyChanges.size() == 0) {
+          return;
         }
+      }
+      if (!isAuthorized) {
+        throw new AuthorizationException(String.format("The authenticated user does not have authorization to modify %s configurations",
+          (isServiceConfiguration) ? "service" : "cluster"));
       }
     }
   }
