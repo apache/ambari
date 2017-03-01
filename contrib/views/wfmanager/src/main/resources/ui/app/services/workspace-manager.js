@@ -22,14 +22,14 @@ export default Ember.Service.extend({
   workInProgress : {},
   userInfo : Ember.inject.service('user-info'),
   setLastActiveTab(tabId){
-    this.get("userInfo").getUserData().promise.then(function(data){
+    this.get("userInfo").getUserData().then(function(data){
        localStorage.setItem(data+"-lastActiveTab", tabId);
       }.bind(this)).catch(function(e){
         console.error(e);
       });
   },
   getLastActiveTab(){
-      this.get("userInfo").getUserData().promise.then(function(data){
+      this.get("userInfo").getUserData().then(function(data){
         return localStorage.getItem(data+"-lastActiveTab");
       }.bind(this)).catch(function(e){
         console.error(e);
@@ -37,8 +37,7 @@ export default Ember.Service.extend({
   },
   restoreTabs(){
       var deferred = Ember.RSVP.defer();
-
-      this.get("userInfo").getUserData().promise.then(function(data){
+      this.get("userInfo").getUserData().then(function(data){
         var tabs = localStorage.getItem(data+'-tabsInfo');
         deferred.resolve(JSON.parse(tabs));
       }.bind(this)).catch(function(e){
@@ -60,15 +59,15 @@ export default Ember.Service.extend({
         filePath : tab.filePath
       });
     });
-    this.get("userInfo").getUserData().promise.then(function(data){
-          localStorage.setItem(data+'-tabsInfo', JSON.stringify(tabArray));
+    this.get("userInfo").getUserData().then(function(data){
+      localStorage.setItem(data+'-tabsInfo', JSON.stringify(tabArray));
     }.bind(this)).catch(function(e){
       console.error(e);
     });
   },
   restoreWorkInProgress(id){
     var deferred = Ember.RSVP.defer();
-    this.get("userInfo").getUserData().promise.then(function(data){
+    this.get("userInfo").getUserData().then(function(data){
        deferred.resolve(localStorage.getItem(data+"-"+id));
     }.bind(this)).catch(function(data){
        deferred.resolve("");
@@ -76,14 +75,14 @@ export default Ember.Service.extend({
     return deferred;
   },
   saveWorkInProgress(id, workInProgress){
-    this.get("userInfo").getUserData().promise.then(function(data){
+    this.get("userInfo").getUserData().then(function(data){
       localStorage.setItem(data+"-"+id, workInProgress);
     }.bind(this)).catch(function(e){
       console.error(e);
     });
   },
   deleteWorkInProgress(id){
-    this.get("userInfo").getUserData().promise.then(function(data){
+    this.get("userInfo").getUserData().then(function(data){
       localStorage.removeItem(data+"-"+id);
     }.bind(this)).catch(function(e){
       console.error(e);

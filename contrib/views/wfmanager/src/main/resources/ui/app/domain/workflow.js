@@ -31,7 +31,6 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
   killNodes : null,
   nodeVisitor : null,
   nodeFactory:NodeFactory.create({}),
-  sla : SlaInfo.create({}),
   credentials : Ember.A([]),
   initialize(){
     this.nodeVisitor=NodeVisitor.create({});
@@ -55,6 +54,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     this.set("draftVersion", "v1");
     this.set("parameters", null);
     this.set("credentials", Ember.A([]));
+    this.set("sla", SlaInfo.create({}));
     this.appendDefaultKillNode();
     src.addTransitionTo(dest);
   },
