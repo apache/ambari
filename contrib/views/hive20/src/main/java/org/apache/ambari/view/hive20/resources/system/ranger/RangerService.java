@@ -115,7 +115,13 @@ public class RangerService {
   }
 
   private List<Policy> parseResponse(String rangerResponse) {
-    JSONArray jsonArray = (JSONArray) JSONValue.parse(rangerResponse);
+    Object parsedResult = JSONValue.parse(rangerResponse);
+    if (parsedResult instanceof JSONObject) {
+      JSONObject obj = (JSONObject) parsedResult;
+      LOG.error("Bad response from Ranger: {}", rangerResponse);
+      throw new RangerException((String)obj.get("msgDesc"), "RANGER_ERROR", ((Long)obj.get("statusCode")).intValue());
+    }
+    JSONArray jsonArray = (JSONArray) parsedResult;
     if (jsonArray.size() == 0) {
       return new ArrayList<>();
     }
@@ -184,6 +190,7 @@ public class RangerService {
         LOG.error("Ranger returned an empty stream.");
         throw new RangerException("Ranger returned an empty stream.", "RANGER_ERROR", 500);
       }
+
       return IOUtils.toString(stream);
     } catch (IOException e) {
       LOG.error("Bad response from Ranger. Exception: {}", e);
