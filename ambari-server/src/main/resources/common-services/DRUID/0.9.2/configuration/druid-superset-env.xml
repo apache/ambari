@@ -89,6 +89,9 @@
     <display-name>superset-env template</display-name>
     <value>
       # Set environment variables here.
+      
+      export LC_ALL=C.UTF-8
+      export LANG=C.UTF-8
 
       # Superset Home Dir
       export SUPERSET_CONFIG_DIR={{superset_config_dir}}
