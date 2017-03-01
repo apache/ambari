@@ -71,6 +71,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     if (!this.get('preSelectedConfigVersion')) {
       this.set('selectedVersion', this.get('currentDefaultVersion'));
     }
+    this.set('preSelectedConfigVersion', null);
   },
 
   loadPreSelectedConfigVersion: function () {
@@ -88,7 +89,6 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
       });
       self.set('selectedConfigGroup', selectedGroup);
       self.loadSelectedVersion(preSelectedVersion.get('version'), selectedGroup);
-      self.set('preSelectedConfigVersion', null);
       preSelectedVersion = null;
     });
   },

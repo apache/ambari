@@ -173,6 +173,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       placement: 'top'
     });
     this.$(".version-info-bar-wrapper").stick_in_parent({parent: '#serviceConfig', offset_top: 10});
+    this.onChangeConfigGroup();
   },
 
   willDestroyElement: function() {
@@ -211,38 +212,37 @@ App.ConfigHistoryFlowView = Em.View.extend({
   onChangeConfigGroup: function () {
     var serviceVersions = this.get('serviceVersions');
     var selectedGroupName = this.get('controller.selectedConfigGroup.name');
+    var preselectedVersion = this.get('controller.selectedVersion');
     var startIndex = 0;
     var currentIndex = 0;
+    var isCurrentInDefaultGroupIndex = null;
+
 
     serviceVersions.setEach('isDisplayed', false);
-    //display the version belongs to current group
-    if (this.get('controller.selectedConfigGroup.isDefault')) {
-      // display current in default group
-      serviceVersions.forEach(function (serviceVersion, index) {
-        // find current in default group
-        if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName) {
-          serviceVersion.set('isDisplayed', true);
-          currentIndex = index + 1;
-        }
-      });
-    } else {
-      // display current in selected group
+    // display selected version from config history
+    serviceVersions.forEach(function (serviceVersion, index) {
+      // find selected version in group
+      if (serviceVersion.get('version') === preselectedVersion && serviceVersion.get('groupName') === selectedGroupName) {
+        serviceVersion.set('isDisplayed', true);
+        currentIndex = index + 1;
+      }
+    });
+    // display current in selected group
+    if (!currentIndex) {
       serviceVersions.forEach(function (serviceVersion, index) {
         // find current in selected group
         if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === selectedGroupName) {
           serviceVersion.set('isDisplayed', true);
           currentIndex = index + 1;
         }
+        if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName) {
+          isCurrentInDefaultGroupIndex = index;
+        }
       });
-      // no current version for selected group, show default group current version
-      if (currentIndex == 0) {
-        serviceVersions.forEach(function (serviceVersion, index) {
-          // find current in default group
-          if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName) {
-            currentIndex = index + 1;
-            serviceVersion.set('isDisplayed', true);
-          }
-        });
+      // if there is no current version in selected group show current version from default group
+      if (!currentIndex) {
+        serviceVersions[isCurrentInDefaultGroupIndex].set('isDisplayed', true);
+        currentIndex = isCurrentInDefaultGroupIndex + 1;
       }
     }
     // show current version as the last one
@@ -251,7 +251,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-  }.observes('controller.selectedConfigGroup.name'),
+  }.observes('controller.selectedConfigGroup'),
 
   /**
    *  define the first element in viewport
