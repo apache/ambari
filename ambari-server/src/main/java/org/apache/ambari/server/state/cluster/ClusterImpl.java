@@ -146,6 +146,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -447,7 +448,7 @@ public class ClusterImpl implements Cluster {
 
   private void loadServices() {
     ClusterEntity clusterEntity = getClusterEntity();
-    if (clusterEntity.getClusterServiceEntities().isEmpty()) {
+    if (CollectionUtils.isEmpty(clusterEntity.getClusterServiceEntities())) {
       return;
     }
 

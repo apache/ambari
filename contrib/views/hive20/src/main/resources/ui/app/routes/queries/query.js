@@ -41,39 +41,10 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.selectDatabase(dbmodel);
     }
 
-    this.store.findAll('file-resource').then((data) => {
-      let fileResourceList = [];
-      data.forEach(x => {
-        let localFileResource = {'id': x.get('id'),
-          'name': x.get('name'),
-          'path': x.get('path'),
-          'owner': x.get('owner')
-        };
-        fileResourceList.push(localFileResource);
-      });
-      this.controller.set('fileResourceList', fileResourceList);
-    });
-
-    this.store.findAll('udf').then((data) => {
-      let allUDFList = [];
-      data.forEach(x => {
-        let localUDF = {'id': x.get('id'),
-          'name': x.get('name'),
-          'classname': x.get('classname'),
-          'fileResource': x.get('fileResource'),
-          'owner': x.get('owner')
-        };
-        allUDFList.push(localUDF);
-      });
-      this.controller.set('allUDFList', allUDFList);
-    });
-
-
-
     this.store.findAll('setting').then((data) => {
       let localStr = '';
       data.forEach(x => {
-        localStr = localStr + 'set '+ x.get('key')+ '='+ x.get('value') + '\n';
+        localStr = localStr + 'set '+ x.get('key')+ '='+ x.get('value') + ';\n';
       });
       this.set('globalSettings', localStr);
     });
@@ -95,7 +66,7 @@ export default Ember.Route.extend(UILoggerMixin, {
   },
 
   model(params) {
-    let selectedWs = this.store.peekAll('worksheet').filterBy('title', params.worksheetId).get('firstObject');
+    let selectedWs = this.store.peekAll('worksheet').filterBy('id', params.worksheetId.toLowerCase()).get('firstObject');
 
     if(selectedWs) {
       selectedWs.set('selected', true);
@@ -127,6 +98,34 @@ export default Ember.Route.extend(UILoggerMixin, {
       selectedMultiDb.pushObject(selectedDb);
     }
 
+    this.store.findAll('file-resource').then((data) => {
+      let fileResourceList = [];
+      data.forEach(x => {
+        let localFileResource = {'id': x.get('id'),
+          'name': x.get('name'),
+          'path': x.get('path'),
+          'owner': x.get('owner')
+        };
+        fileResourceList.push(localFileResource);
+      });
+      controller.set('fileResourceList', fileResourceList);
+    });
+
+    this.store.findAll('udf').then((data) => {
+      let allUDFList = [];
+      data.forEach(x => {
+        let localUDF = {'id': x.get('id'),
+          'name': x.get('name'),
+          'classname': x.get('classname'),
+          'fileResource': x.get('fileResource'),
+          'owner': x.get('owner')
+        };
+        allUDFList.push(localUDF);
+      });
+      controller.set('allUDFList', allUDFList);
+    });
+
+
     controller.set('worksheet', model);
 
     controller.set('selectedTablesModels',model.get('selectedTablesModels') || selectedTablesModels );
@@ -157,6 +156,9 @@ export default Ember.Route.extend(UILoggerMixin, {
 
   },
   checkIfDeafultDatabaseExists(alldatabases){
+    if(this.get('controller.model').get('selectedDb')) {
+      return this.get('controller.model').get('selectedDb');
+    }
     let defaultDB = alldatabases.findBy('name', 'default'), selectedDb;
     if(defaultDB) {
       selectedDb = defaultDB.get("name");
@@ -294,12 +296,14 @@ export default Ember.Route.extend(UILoggerMixin, {
 
       let globalSettings = this.get('globalSettings');
 
+      let forcedContent = globalSettings + queryInput;
       this.send('showQueryResultContainer');
 
       let payload ={
+        "id":this.get('controller.model').get('id'),
         "title":worksheetTitle,
         "dataBase":dbid,
-        "forcedContent":queryInput,
+        "forcedContent":forcedContent,
         "referrer":"job",
         "globalSettings":globalSettings};
 
@@ -318,8 +322,8 @@ export default Ember.Route.extend(UILoggerMixin, {
             self.get('controller').set('isJobCreated', false);
             let jobDetails = self.store.peekRecord('job', data.job.id);
             console.log(jobDetails);
-            self.send('getJobResult', data, payload.title, jobDetails);
-            self.transitionTo('queries.query.loading');
+            self.send('getJobResult', data, payload.id, jobDetails);
+            self.get('logger').success('Query has been submitted.');
 
           }, (error) => {
             console.log('error', error);
@@ -359,10 +363,15 @@ export default Ember.Route.extend(UILoggerMixin, {
         let existingWorksheets = self.get('store').peekAll('worksheet');
         let myWs = null;
         if(existingWorksheets.get('length') > 0) {
-          myWs = existingWorksheets.filterBy('title', payloadTitle).get('firstObject');
+          myWs = existingWorksheets.filterBy('id', payloadTitle).get('firstObject');
         }
         if(!Ember.isBlank(jobDetails.get("dagId"))) {
-          self.get('controller.model').set('tezUrl', self.get("tezViewInfo").getTezViewURL() + jobDetails.get("dagId"));
+          let tezData = self.get("tezViewInfo").getTezViewData();
+          if(tezData && tezData.error) {
+            self.get('controller.model').set('tezError', tezData.errorMsg);
+          } else if(tezData.tezUrl) {
+            self.get('controller.model').set('tezUrl', tezData.tezUrl + jobDetails.get("dagId"));
+          }
         }
         myWs.set('queryResult', data);
         myWs.set('isQueryRunning', false);
@@ -381,29 +390,28 @@ export default Ember.Route.extend(UILoggerMixin, {
           self.get('controller.model').set('visualExplainJson', null);
         }
 
-        if( self.paramsFor('queries.query').worksheetId == payloadTitle){
-          self.transitionTo('queries.query.results');
+        if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() == payloadTitle)){
+          self.transitionTo('queries.query.loading');
+
+          Ember.run.later(() => {
+            self.transitionTo('queries.query.results');
+          }, 1 * 100);
+
+
         }
 
       }, function(error) {
         console.log('error' , error);
+        self.get('logger').danger('Failed to execute query.', self.extractError(error));
       });
     },
 
     showVisualExplain(payloadTitle){
-       let self = this;
-       let jobId = this.get('controller').get('currentJobId');
-       this.get('query').getVisualExplainJson(jobId).then(function(data) {
-          console.log('Successful getVisualExplainJson', data);
-          self.get('controller.model').set('visualExplainJson', data.rows[0][0]);
-
-          if( self.paramsFor('queries.query').worksheetId == payloadTitle){
-           self.transitionTo('queries.query.visual-explain');
-          }
-
-        }, function(error){
-          console.log('error getVisualExplainJson', error);
-        });
+       if( this.paramsFor('queries.query').worksheetId && this.paramsFor('queries.query').worksheetId.toLowerCase() === payloadTitle){
+         Ember.run.later(() => {
+           this.transitionTo('queries.query.visual-explain');
+         }, 1);
+       }
     },
 
     goNextPage(payloadTitle){
@@ -447,14 +455,14 @@ export default Ember.Route.extend(UILoggerMixin, {
       let existingWorksheets = this.get('store').peekAll('worksheet');
       let myWs = null;
       if(existingWorksheets.get('length') > 0) {
-        myWs = existingWorksheets.filterBy('title', payloadTitle).get('firstObject');
+        myWs = existingWorksheets.filterBy('id', payloadTitle.toLowerCase()).get('firstObject');
       }
 
       this.transitionTo('queries.query.loading');
 
       Ember.run.later(() => {
         this.transitionTo('queries.query.results', myWs);
-      }, 1 * 1000);
+      }, 1 * 100);
     },
 
     goPrevPage(payloadTitle){
@@ -476,14 +484,14 @@ export default Ember.Route.extend(UILoggerMixin, {
       let existingWorksheets = this.get('store').peekAll('worksheet');
       let myWs = null;
       if(existingWorksheets.get('length') > 0) {
-        myWs = existingWorksheets.filterBy('title', payloadTitle).get('firstObject');
+        myWs = existingWorksheets.filterBy('id', payloadTitle.toLowerCase()).get('firstObject');
       }
 
       this.transitionTo('queries.query.loading');
 
       Ember.run.later(() => {
         this.transitionTo('queries.query.results', myWs);
-      }, 1 * 1000);
+      }, 1 * 100);
     },
 
     openWorksheetModal(){
@@ -532,45 +540,6 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     closeWorksheetModal(){
       this.get('controller').set('showWorksheetModal', false);
-    },
-
-    saveToHDFS(jobId, path){
-
-      console.log('saveToHDFS query route with jobId == ', jobId);
-      console.log('saveToHDFS query route with path == ', path);
-
-      this.get('query').saveToHDFS(jobId, path)
-        .then((data) => {
-          console.log('successfully saveToHDFS', data);
-          this.get('controller').set('isExportResultSuccessMessege', true);
-          this.get('controller').set('isExportResultFailureMessege', false);
-
-          Ember.run.later(() => {
-            this.get('controller').set('showSaveHdfsModal', false);
-          }, 2 * 1000);
-
-        }, (error) => {
-          console.log("Error encountered", error);
-          this.get('controller').set('isExportResultFailureMessege', true);
-          this.get('controller').set('isExportResultSuccessMessege', false);
-
-          Ember.run.later(() => {
-            this.get('controller').set('showSaveHdfsModal', false);
-          }, 2 * 1000);
-
-        });
-    },
-
-    downloadAsCsv(jobId, path){
-
-      console.log('downloadAsCsv query route with jobId == ', jobId);
-      console.log('downloadAsCsv query route with path == ', path);
-
-      let downloadAsCsvUrl = this.get('query').downloadAsCsv(jobId, path) || '';
-
-      this.get('controller').set('showDownloadCsvModal', false);
-      window.open(downloadAsCsvUrl);
-
     },
 
     expandQueryEdidorPanel(){

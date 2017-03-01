@@ -19,7 +19,9 @@
 {{outlet}}
 
 {{#unless hasJobAssociated}}
-  <div>No Results avaiable.</div>
+  <div class="explain--error">
+    <div>No Results available.</div>
+  </div>
 {{/unless}}
 
 {{#if hasJobAssociated}}
@@ -37,9 +39,10 @@
   saveToHDFS='saveToHDFS'
   downloadAsCsv='downloadAsCsv'
   expandQueryResultPanel='expandQueryResultPanel'
-  isExportResultSuccessMessege=false
-  isExportResultFailureMessege=false
-  showSaveHdfsModal=false
+  isExportResultSuccessMessege=isExportResultSuccessMessege
+  isExportResultFailureMessege=isExportResultFailureMessege
+  showSaveHdfsModal=showSaveHdfsModal
+  showDownloadCsvModal=showDownloadCsvModal
   }}
 {{/if}}
 

@@ -23,22 +23,21 @@ import sys
 import logging
 
 from ambari_commons.exceptions import FatalException
-from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, \
-  set_debug_mode_from_options
+from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, set_debug_mode_from_options
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons.os_utils import is_root, run_os_command
+from ambari_commons.os_utils import is_root
 from ambari_server.ambariPath import AmbariPath
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_properties, \
-  get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
-  get_is_active_instance, update_properties, get_ambari_server_ui_port, \
-  PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
-  SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file, get_missing_properties
+  get_java_exe_path, read_ambari_user, \
+  get_is_active_instance, update_properties, get_ambari_server_ui_port, PID_NAME, \
+  check_database_name_property, parse_properties_file, get_missing_properties
+
+from ambari_server.serverConfiguration import get_web_server_startup_timeout
 from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
-from ambari_server.setupSecurity import generate_env, \
-  ensure_can_start_under_current_user
+from ambari_server.setupSecurity import generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, \
   save_main_pid_ex, check_exitcode, get_live_pids_count, wait_for_ui_start
 from ambari_server.serverClassPath import ServerClassPath
@@ -104,7 +103,6 @@ SERVER_START_CMD_DEBUG_WINDOWS = "{0} " \
 
 SERVER_START_TIMEOUT = 5  #seconds
 SERVER_START_RETRIES = 4
-WEB_UI_INIT_TIME = 50     #seconds
 
 SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
@@ -229,9 +227,11 @@ def wait_for_server_start(pidFile, scmStatus):
   exception = None
   if server_started:
     ambari_server_ui_port = get_ambari_server_ui_port(properties)
-    if not wait_for_ui_start(int(ambari_server_ui_port), WEB_UI_INIT_TIME):
+    web_server_startup_timeout = get_web_server_startup_timeout(properties)
+
+    if not wait_for_ui_start(int(ambari_server_ui_port), web_server_startup_timeout):
       exception = FatalException(1, "Server not yet listening on http port " + ambari_server_ui_port + \
-                                 " after " + str(WEB_UI_INIT_TIME) + " seconds. Exiting.")
+                                 " after " + str(web_server_startup_timeout) + " seconds. Exiting.")
   elif get_live_pids_count(pids) <= 0:
     exitcode = check_exitcode(os.path.join(configDefaults.PID_DIR, EXITCODE_NAME))
     exception = FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))

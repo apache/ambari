@@ -56,7 +56,7 @@ describe('App.KerberosWizardStep8Controller', function() {
           urlParams: "params/run_smoke_test=false"
         },
         success: 'startPolling',
-        error: 'onTaskError'
+        error: 'startServicesErrorCallback'
       });
     });
   });

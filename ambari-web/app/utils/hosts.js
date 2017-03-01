@@ -51,7 +51,7 @@ module.exports = {
     }
     App.ModalPopup.show({
 
-      classNames: [ 'common-modal-wrapper' ],
+      classNames: ['common-modal-wrapper', 'full-height-modal'],
       modalDialogClasses: ['modal-lg'],
 
       elementId: 'host-selection-dialog',

@@ -157,6 +157,8 @@ App.TableServerViewMixin = Em.Mixin.create({
   resetStartIndex: function () {
     if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
       this.set('startIndex', 1);
+      this.saveStartIndex();
+      this.updatePagination('SKIP_REFRESH');
     }
   }.observes('controller.resetStartIndex')
 });

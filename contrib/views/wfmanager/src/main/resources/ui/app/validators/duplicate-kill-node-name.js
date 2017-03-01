@@ -18,27 +18,19 @@ import BaseValidator from 'ember-cp-validations/validators/base';
 
 const DuplicateKillNodeName = BaseValidator.extend({
   validate(value, options, model, attribute) {
-    let killNodes = [], flag;
-    model.get("validationErrors").clear();
-    if(model.get("workflow") && model.get("workflow").killNodes){
-      killNodes = model.get("workflow").killNodes;
-      for(let i=0; i<killNodes.length; i++){
-        for(let j=0; j<killNodes.length; j++){
-          if(killNodes[i].name === killNodes[j].name && i !== j){
-            model.get('validationErrors').pushObject({node : killNodes[j] ,message : "Duplicate killnode"});
-            flag = true;
-            break;
+    if (model.get("workflow") && model.get("workflow").killNodes) {
+      var dataNodes = model.get('dataNodes') || [];
+      var nodeNames = new Map(dataNodes.map((node) => [node.name, node.name]));
+      for(let i = 0; i < model.get("workflow").killNodes.length; i++){
+        let item = model.get("workflow").killNodes.objectAt(i);
+          if(nodeNames.get(item.name)){
+            return `${item.name} : Node name should be unique`;
+          }else{
+            nodeNames.set(item.name, item);
           }
         }
-        if(flag){
-          break;
-        }
-      }
+      return true;
     }
-    if (flag){
-      return false;
-    }
-    return true;
   }
 });
 

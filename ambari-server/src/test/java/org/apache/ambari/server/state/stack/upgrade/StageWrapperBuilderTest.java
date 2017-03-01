@@ -127,6 +127,8 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
 
     ServerActionTask task = (ServerActionTask)(skipSummaryWrapper.getTasks().get(0).getTasks().get(0));
     Assert.assertEquals(AutoSkipFailedSummaryAction.class.getName(), task.implClass);
+    Assert.assertEquals(1, task.messages.size());
+    Assert.assertTrue(task.messages.get(0).contains("There are failures that were automatically skipped"));
 
     verifyAll();
   }

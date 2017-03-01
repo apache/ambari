@@ -21,9 +21,6 @@ import { validator, buildValidations } from 'ember-cp-validations';
 const Validations = buildValidations({
   'actionModel.mainClass': validator('presence', {
     presence : true
-  }),
-  'actionModel.jobTracker': validator('presence', {
-    presence : true
   })
 });
 
@@ -65,12 +62,20 @@ export default Ember.Component.extend(Validations, {
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
     this.sendAction('register','javaAction', this);
+    this.send('setIsSingle', this.get('isSingle'));
   }.on('didInsertElement'),
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
+  onDestroy : function(){
+    if(this.get('isSingle')){
+      this.set('actionModel.javaOpt', Ember.A([]));
+    }else{
+      this.set("actionModel.javaOpts", undefined);
+    }
+  }.on('willDestroyElement'),
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
@@ -82,13 +87,14 @@ export default Ember.Component.extend(Validations, {
     register (name, context){
       this.sendAction('register',name , context);
     },
-    onJavaOptChange(value){
-      if(value === "single"){
-        this.set('isSingle',true);
-        this.set("actionModel.javaOpt", Ember.A([]));
+    setIsSingle(value){
+      this.set('isSingle', value);
+      if(this.get('isSingle')){
+        this.$('#single-option').show();
+        this.$('#arg-option').hide();
       }else{
-        this.set('isSingle',false);
-        this.set("actionModel.javaOpts", undefined);
+        this.$('#single-option').hide();
+        this.$('#arg-option').show();
       }
     }
   }

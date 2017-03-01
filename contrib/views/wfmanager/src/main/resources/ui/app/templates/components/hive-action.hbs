@@ -20,13 +20,13 @@
   <div class="form-group padding10">
     <label class="control-label col-xs-2">Hive Option</label>
     <div class="col-xs-2">
-      <input type="radio" name="hiveOption" checked={{if (eq isScript true) 'checked'}}  {{action "onHiveOptionChange" "script" preventDefault=false on="change"}}> Script
+      <input type="radio" name="hiveOption" checked={{if (eq isScript true) 'checked'}}  {{action "setIsScript" true preventDefault=false on="change"}}> Script
     </div>
     <div class="col-xs-2">
-      <input type="radio" name="hiveOption" checked={{if (eq isScript false) 'checked'}}  {{action "onHiveOptionChange" "query" preventDefault=false on="change"}}> Query
+      <input type="radio" name="hiveOption" checked={{if (eq isScript false) 'checked'}}  {{action "setIsScript" false preventDefault=false on="change"}}> Query
     </div>
   </div>
-  {{#if isScript}}
+  <div id="script-option">
     <div class="form-group padding10">
       <label class="control-label col-xs-2">Script<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
@@ -39,17 +39,18 @@
         {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
       </div>
     </div>
-  {{else}}
-  <div class="form-group padding10">
-    <label class="control-label col-xs-2">Query<span class="requiredField">&nbsp;*</span></label>
-    <div class="col-xs-7">
-      <div class="input-group">
-        {{textarea class="form-control" name="query" class="query-text-area" value=actionModel.query placeholder="hive query"}}
+  </div>
+  <div id="query-option">
+    <div class="form-group padding10">
+      <label class="control-label col-xs-2">Query<span class="requiredField">&nbsp;*</span></label>
+      <div class="col-xs-7">
+        <div class="input-group">
+          {{textarea class="form-control" name="query" class="query-text-area" value=actionModel.query placeholder="hive query"}}
+        </div>
+        {{field-error model=this field='actionModel.query' showErrorMessage=showErrorMessage}}
       </div>
-      {{field-error model=this field='actionModel.query' showErrorMessage=showErrorMessage}}
     </div>
   </div>
-  {{/if}}
   {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}
   {{#arg-config args=actionModel.params register="register" title="Param"}}{{/arg-config}}
 </div>

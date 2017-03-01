@@ -31,7 +31,7 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   }
   @Override
   protected String getSqlinsertToPigScript(int id) {
-    return "INSERT INTO ds_pigscript_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00','f',?,?,'','',?)";
+    return "INSERT INTO ds_pigscript_" + id + " values (?,TO_TIMESTAMP('1970-01-17 20:28:55', 'YYYY-MM-DD HH24:MI:SS'),0,?,?,'','',?)";
   }
   @Override
   protected String getRevSql(int id, String maxcount) {

@@ -17,19 +17,27 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
+
 
 describe('App.HighAvailabilityWizardStep4Controller', function() {
+  var controller;
+
+  beforeEach(function() {
+    controller = App.HighAvailabilityWizardStep4Controller.create({
+      content: Em.Object.create()
+    });
+  });
   
   describe('#checkNnCheckPointStatus', function() {
     beforeEach(function() {
-      this.controller = App.HighAvailabilityWizardStep4Controller.create();
       this.clock = sinon.useFakeTimers();
-      sinon.stub(this.controller, 'pullCheckPointStatus');
+      sinon.stub(controller, 'pullCheckPointStatus');
     });
 
     afterEach(function() {
       this.clock.restore();
-      this.controller.pullCheckPointStatus.restore();
+      controller.pullCheckPointStatus.restore();
     });
 
     var tests = [
@@ -95,20 +103,74 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
       describe(test.m, function() {
 
         beforeEach(function () {
-          this.controller.set('isNameNodeStarted', !test.e.isNameNodeStarted);
-          this.controller.checkNnCheckPointStatus(test.responseData);
-          this.clock.tick(this.controller.get('POLL_INTERVAL'));
+          controller.set('isNameNodeStarted', !test.e.isNameNodeStarted);
+          controller.checkNnCheckPointStatus(test.responseData);
+          this.clock.tick(controller.get('POLL_INTERVAL'));
         });
         it('isNameNodeStarted is ' + test.e.isNameNodeStarted, function () {
-          expect(this.controller.get('isNameNodeStarted')).to.be.equal(test.e.isNameNodeStarted);
+          expect(controller.get('isNameNodeStarted')).to.be.equal(test.e.isNameNodeStarted);
         });
         it('isNextEnabled is ' + test.e.isNextEnabled, function () {
-          expect(this.controller.get('isNextEnabled')).to.be.equal(test.e.isNextEnabled);
+          expect(controller.get('isNextEnabled')).to.be.equal(test.e.isNextEnabled);
         });
         it('pullCheckPointStatus is ' + (test.e.isPollingCalled ? '' : 'not') + ' called', function () {
-          expect(this.controller.pullCheckPointStatus.called).to.be.equal(test.e.isPollingCalled);
+          expect(controller.pullCheckPointStatus.called).to.be.equal(test.e.isPollingCalled);
         });
       });
+    });
+  });
+
+  describe('#pullCheckPointStatus', function() {
+
+    it('App.ajax.send should be called', function() {
+      controller.set('content.masterComponentHosts', [
+        {
+          component: 'NAMENODE',
+          isInstalled: true,
+          hostName: 'host1'
+        }
+      ]);
+      controller.pullCheckPointStatus();
+      var args = testHelpers.findAjaxRequest('name', 'admin.high_availability.getNnCheckPointStatus');
+      expect(args[0]).to.be.eql({
+        name: 'admin.high_availability.getNnCheckPointStatus',
+        sender: controller,
+        data: {
+          hostName: 'host1'
+        },
+        success: 'checkNnCheckPointStatus'
+      });
+    });
+  });
+
+  describe('#done', function() {
+    var mock = {
+      getKDCSessionState: Em.clb
+    };
+
+    beforeEach(function() {
+      sinon.spy(mock, 'getKDCSessionState');
+      sinon.stub(App, 'get').returns(mock);
+      sinon.stub(App.router, 'send');
+    });
+    afterEach(function() {
+      App.get.restore();
+      App.router.send.restore();
+      mock.getKDCSessionState.restore();
+    });
+
+    it('App.router.send should not be called', function() {
+      controller.set('isNextEnabled', false);
+      controller.done();
+      expect(mock.getKDCSessionState.called).to.be.false;
+      expect(App.router.send.called).to.be.false;
+    });
+
+    it('App.router.send should be called', function() {
+      controller.set('isNextEnabled', true);
+      controller.done();
+      expect(mock.getKDCSessionState.calledOnce).to.be.true;
+      expect(App.router.send.calledOnce).to.be.true;
     });
   });
 });

@@ -138,6 +138,7 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
     recommender = HDFSRecommender()
     recommender.recommendConfigurationsFromHDP206(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsFromHDP23(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsFromHDP26(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """
@@ -271,6 +272,29 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
     else:
       putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
+
+  def recommendConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+    """
+    Recommend configurations for this service based on HDP 2.6
+    """
+    if 'hadoop-env' in services['configurations'] and 'hdfs_user' in  services['configurations']['hadoop-env']['properties']:
+      hdfs_user = services['configurations']['hadoop-env']['properties']['hdfs_user']
+    else:
+      hdfs_user = 'hadoop'
+
+    if 'ranger-hdfs-plugin-properties' in configurations and 'ranger-hdfs-plugin-enabled' in configurations['ranger-hdfs-plugin-properties']['properties']:
+      ranger_hdfs_plugin_enabled = (configurations['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'].lower() == 'Yes'.lower())
+    elif 'ranger-hdfs-plugin-properties' in services['configurations'] and 'ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
+      ranger_hdfs_plugin_enabled = (services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'].lower() == 'Yes'.lower())
+    else:
+      ranger_hdfs_plugin_enabled = False
+
+    if ranger_hdfs_plugin_enabled and 'ranger-hdfs-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
+      Logger.info("Setting HDFS Repo user for Ranger.")
+      putRangerHDFSPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
+      putRangerHDFSPluginProperty("REPOSITORY_CONFIG_USERNAME",hdfs_user)
+    else:
+      Logger.info("Not setting HDFS Repo user for Ranger.")
 
 
 class HDFSValidator(service_advisor.ServiceAdvisor):

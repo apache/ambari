@@ -6,7 +6,8 @@
         "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred", 
-        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
+        "unlimited_key_jce_required" : "true",
         "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//ojdbc6.jar",
         "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0.8\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]", 
         "package_list": "[{\"type\":\"rpm\",\"name\":\"hadoop-yarn\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-nodemanager\"},{\"type\":\"rpm\",\"name\":\"hadoop-mapreduce\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-proxyserver\"},{\"type\":\"rpm\",\"name\":\"hadoop-yarn-resourcemanager\"}]", 
@@ -35,6 +36,19 @@
     "taskId": 186, 
     "public_hostname": "c6401.ambari.apache.org", 
     "configurations": {
+        "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
+            "security_enabled": "true",
+            "ignore_groupsusers_create": "false",
+            "smokeuser": "ambari-qa",
+            "smokeuser_principal_name": "ambari-qa@EXAMPLE.COM",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop",
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+            "kinit_path_local": "/usr/bin",
+            "manage_dirs_on_root": "true",
+            "ignore_bad_mounts": "false"
+        },
         "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 
             "mapreduce.jobhistory.webapp.spnego-keytab-file": "/etc/security/keytabs/spnego.service.keytab", 

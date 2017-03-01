@@ -110,6 +110,13 @@ public interface Service {
   boolean isCredentialStoreSupported();
 
   /**
+   * Get a true or false value specifying
+   * whether credential store is required by this service.
+   * @return true or false
+   */
+  boolean isCredentialStoreRequired();
+
+  /**
    * Get a true or false value specifying whether
    * credential store use is enabled for this service.
    *

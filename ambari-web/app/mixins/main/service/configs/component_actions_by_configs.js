@@ -61,27 +61,33 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         });
 
         if (configs.length) {
-          if(config_action.get('fileName') === 'capacity-scheduler.xml' && !self.isYarnQueueRefreshed) {
-            var hsiInstance = App.HostComponent.find().filterProperty('componentName', "HIVE_SERVER_INTERACTIVE");
-            if(self.get('content.serviceName') === 'HIVE') {
-              // Auto refresh yarn capacity scheduler if capacity-scheduler configs are changed from Hive configs page
-              self.popupPrimaryButtonCallback(config_action);
-              // Show a popup to restart HSI if HSI is enabled
-              if(hsiInstance.length > 0) {
-                self.showHsiRestartPopup(hsiInstance);
-              }
-            } else {
-              self.configAction = config_action;
-              var body = config_action.get('popupProperties').body;
-              if(config_action.get('popupProperties').hasOwnProperty('conditionalWarning') && config_action.get('popupProperties').conditionalWarning === true) {
-                // Check if Hive Server 2 Interactive is enabled and show a warning message if it is enabled
-                if(hsiInstance.length > 0) {
-                  body += "<br/><br/>" + config_action.get('popupProperties').warningMessage;
-                }
-              }
-              App.showConfirmationPopup(function () {
+          var hostComponents = App.HostComponent.find();
+          if (config_action.get('fileName') === 'capacity-scheduler.xml' && !self.isYarnQueueRefreshed) {
+            var isRMRunning = hostComponents.some(function (component) {
+              return component.get('componentName') === 'RESOURCEMANAGER' && component.get('isRunning');
+            });
+            if (isRMRunning) {
+              var hsiInstance = hostComponents.filterProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
+              if (self.get('content.serviceName') === 'HIVE') {
+                // Auto refresh yarn capacity scheduler if capacity-scheduler configs are changed from Hive configs page
                 self.popupPrimaryButtonCallback(config_action);
-              }, body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+                // Show a popup to restart HSI if HSI is enabled
+                if (hsiInstance.length > 0) {
+                  self.showHsiRestartPopup(hsiInstance);
+                }
+              } else {
+                self.configAction = config_action;
+                var body = config_action.get('popupProperties').body;
+                if (config_action.get('popupProperties').hasOwnProperty('conditionalWarning') && config_action.get('popupProperties').conditionalWarning === true) {
+                  // Check if Hive Server 2 Interactive is enabled and show a warning message if it is enabled
+                  if (hsiInstance.length > 0) {
+                    body += "<br/><br/>" + config_action.get('popupProperties').warningMessage;
+                  }
+                }
+                App.showConfirmationPopup(function () {
+                  self.popupPrimaryButtonCallback(config_action);
+                }, body, null, Em.I18n.t('popup.confirmation.commonHeader'), config_action.get('popupProperties').primaryButton.label, false, 'refresh_yarn_queues')
+              }
             }
           }
         }

@@ -178,7 +178,6 @@
         <config-type>ranger-hbase-audit</config-type>
         <config-type>ranger-hbase-policymgr-ssl</config-type>
         <config-type>ranger-hbase-security</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
       <commandScript>

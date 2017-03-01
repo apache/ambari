@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -60,6 +60,9 @@ public class ComponentInfo {
    * */
   @XmlElements(@XmlElement(name = "decommissionAllowed"))
   private String decommissionAllowed;
+
+  @XmlElement(name="unlimitedKeyJCERequired")
+  private UnlimitedKeyJCERequirement unlimitedKeyJCERequired;
 
   /**
   * Added at schema ver 2
@@ -150,6 +153,7 @@ public class ComponentInfo {
     versionAdvertisedField = prototype.versionAdvertisedField;
     versionAdvertisedInternal = prototype.versionAdvertisedInternal;
     decommissionAllowed = prototype.decommissionAllowed;
+    unlimitedKeyJCERequired = prototype.unlimitedKeyJCERequired;
     clientsToUpdateConfigs = prototype.clientsToUpdateConfigs;
     commandScript = prototype.commandScript;
     logs = prototype.logs;
@@ -368,6 +372,14 @@ public class ComponentInfo {
     this.decommissionAllowed = decommissionAllowed;
   }
 
+  public UnlimitedKeyJCERequirement getUnlimitedKeyJCERequired() {
+    return unlimitedKeyJCERequired;
+  }
+
+  public void setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement unlimitedKeyJCERequired) {
+    this.unlimitedKeyJCERequired = unlimitedKeyJCERequired;
+  }
+
   public void setRecoveryEnabled(boolean recoveryEnabled) {
     this.recoveryEnabled = recoveryEnabled;
   }
@@ -421,6 +433,7 @@ public class ComponentInfo {
     if (versionAdvertisedField != null ? !versionAdvertisedField.equals(that.versionAdvertisedField) : that.versionAdvertisedField != null) return false;
     if (versionAdvertisedInternal != that.versionAdvertisedInternal) return false;
     if (decommissionAllowed != null ? !decommissionAllowed.equals(that.decommissionAllowed) : that.decommissionAllowed != null) return false;
+    if (unlimitedKeyJCERequired != null ? !unlimitedKeyJCERequired.equals(that.unlimitedKeyJCERequired) : that.unlimitedKeyJCERequired != null) return false;
     if (reassignAllowed != null ? !reassignAllowed.equals(that.reassignAllowed) : that.reassignAllowed != null) return false;
     if (category != null ? !category.equals(that.category) : that.category != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
@@ -451,6 +464,7 @@ public class ComponentInfo {
     result = 31 * result + (deleted ? 1 : 0);
     result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);
     result = 31 * result + (decommissionAllowed != null ? decommissionAllowed.hashCode() : 0);
+    result = 31 * result + (unlimitedKeyJCERequired != null ? unlimitedKeyJCERequired.hashCode() : 0);
     result = 31 * result + (reassignAllowed != null ? reassignAllowed.hashCode() : 0);
     result = 31 * result + (commandScript != null ? commandScript.hashCode() : 0);
     result = 31 * result + (logs != null ? logs.hashCode() : 0);

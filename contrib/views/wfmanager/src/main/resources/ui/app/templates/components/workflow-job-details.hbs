@@ -83,20 +83,8 @@
         </tr>
       </thead>
       <tbody>
-        {{#each model.actions as |actionInfo|}}
-        <tr class="{{if (eq actionInfo model.actionDetails) "active"}}">
-          <td class="pointer action-link" {{action 'getActionDetails' actionInfo}}>{{actionInfo.name}}</td>
-          <td>{{actionInfo.type}}</td>
-          <td>{{actionInfo.status}}</td>
-          <td>{{actionInfo.transition}}</td>
-          <td>{{actionInfo.startTime}}</td>
-          <td>{{actionInfo.endTime}}</td>
-          {{#unless (eq "-" actionInfo.consoleUrl)}}
-            <td><a target="_blank" href="#" {{action 'openConsoleUrl'  actionInfo.consoleUrl preventDefault=true}}><i class="fa fa-external-link action-link" aria-hidden="true"></i></a></td>
-          {{else}}
-            <td>{{actionInfo.consoleUrl}}</td>
-          {{/unless}}
-        </tr>
+        {{#each model.actions as |actionInfo|}}        
+          {{workflow-job-action actionInfo=actionInfo getActionDetails="getActionDetails"}}
         {{/each}}
       </tbody>
     </table>
@@ -241,7 +229,13 @@
                 </div>
                 <div class="row">
                   <div class="col-md-4 text-bold">Job URL</div>
-                  <div class="col-md-8"><a target="_blank" href="{{model.actionInfo.consoleUrl}}"><i class="fa fa-external-link action-link" aria-hidden="true"></i></a></div>
+                  <div class="col-md-8">
+                    {{#if validTrackerUrl}}
+                      <a target="_blank" href="{{model.actionInfo.consoleUrl}}"><i class="fa fa-external-link action-link" aria-hidden="true"></i></a>
+                    {{else}}
+                      -
+                    {{/if}}
+                  </div>
                 </div>
                 <div class="row pull-right" {{action 'getActionDetails' model.actionInfo}}>
                   <div class="col-md-12">

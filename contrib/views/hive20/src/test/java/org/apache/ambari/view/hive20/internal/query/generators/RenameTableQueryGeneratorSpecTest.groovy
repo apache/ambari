@@ -38,7 +38,7 @@ public class RenameTableQueryGeneratorSpecTest extends Specification{
 
     then:
     with(hiveQuery){
-      hiveQuery == "ALTER TABLE `d1.tab1` RENAME TO `d2.tab2`"
+      hiveQuery == "ALTER TABLE `d1`.`tab1` RENAME TO `d2`.`tab2`"
     }
   }
 
@@ -57,7 +57,7 @@ public class RenameTableQueryGeneratorSpecTest extends Specification{
 
     then:
     with(hiveQuery){
-      hiveQuery == "ALTER TABLE `tab1` RENAME TO `d2.tab2`"
+      hiveQuery == "ALTER TABLE `tab1` RENAME TO `d2`.`tab2`"
     }
   }
 

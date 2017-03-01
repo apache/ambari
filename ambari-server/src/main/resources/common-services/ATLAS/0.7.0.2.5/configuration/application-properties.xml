@@ -147,6 +147,12 @@
     <name>atlas.kafka.bootstrap.servers</name>
     <value/>
     <description>Comma separated list of Kafka broker endpoints in host:port form</description>
+    <depends-on>
+      <property>
+        <type>kafka-broker</type>
+        <name>port</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -300,7 +306,7 @@
     <description>Enable kerberized Solr support for Atlas.</description>
     <on-ambari-upgrade add="false"/>
   </property>
-  
+
   <!-- The type determines whether to show LDAP or AD settings in smart config's theme.json file. -->
   <property>
     <name>atlas.authentication.method.ldap.type</name>

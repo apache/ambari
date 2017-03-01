@@ -23,7 +23,11 @@
       <displayName>ZooKeeper</displayName>
       <comment>Centralized service which provides highly reliable distributed coordination</comment>
       <version>3.4.5.2.0</version>
-
+      <credential-store>
+        <supported>true</supported>
+        <enabled>false</enabled>
+        <required>true</required>
+      </credential-store>
       <components>
         <component>
           <name>ZOOKEEPER_SERVER</name>

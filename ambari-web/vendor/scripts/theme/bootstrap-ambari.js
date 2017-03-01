@@ -128,10 +128,10 @@
         if (settings.fitHeight) {
           // set actions submenu position
           var $moreIcon = $(this);
+          var $header = $('.side-nav-header');
           $moreIcon.children('.dropdown-menu').css('position', 'fixed');
-          var offset = $moreIcon.offset();
-          $moreIcon.children('.dropdown-menu').css('top', offset.top + 20 + 'px');
-          $moreIcon.children('.dropdown-menu').css('left', offset.left);
+          $moreIcon.children('.dropdown-menu').css('top', $moreIcon.offset().top - $header.offset().top  + 20 + 'px');
+          $moreIcon.children('.dropdown-menu').css('left', $moreIcon.offset().left);
         }
       });
       $moreActions.children('.dropdown-menu').on('click', function () {

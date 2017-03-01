@@ -35,7 +35,7 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   }
   @Override
   protected String getTableIdSqlFromInstanceNameHistoryQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl' and view_instance_name=?";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.jobs.viewJobs.JobImpl' and view_instance_name=?";
   }
 
   @Override
@@ -68,16 +68,16 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
 
   @Override
   protected String getSqlSequenceNoFromAmbariSequence() {
-    return "select sequence_value from ambari_sequences where sequence_name=?;";
+    return "select sequence_value from ambari_sequences where sequence_name=?";
   }
 
   @Override
   protected String getSqlUpdateSequenceNo() {
-    return "update ambari_sequences set sequence_value=? where sequence_name=?;";
+    return "update ambari_sequences set sequence_value=? where sequence_name=?";
   }
 
   @Override
   protected String getSqlUdfFileNameAndOwners(int id) {
-    return "select ds_name, ds_owner from ds_fileresourceitem_" + id + ";";
+    return "select ds_name, ds_owner from ds_fileresourceitem_" + id;
   }
 }

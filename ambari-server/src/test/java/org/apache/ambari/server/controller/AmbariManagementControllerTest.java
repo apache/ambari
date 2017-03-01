@@ -1248,17 +1248,27 @@ public class AmbariManagementControllerTest {
     Map<String, String> configs = new HashMap<String, String>();
     configs.put("a", "b");
 
-    ConfigurationRequest cr1,cr2;
+    Map<String, String> hadoopEnvConfigs = new HashMap<>();
+    hadoopEnvConfigs.put("hdfs_user", "myhdfsuser");
+    hadoopEnvConfigs.put("hdfs_group", "myhdfsgroup");
+
+    ConfigurationRequest cr1,cr2, cr3;
+
     cr1 = new ConfigurationRequest(cluster1, "core-site","version1",
                                    configs, null);
     cr2 = new ConfigurationRequest(cluster1, "hdfs-site","version1",
                                    configs, null);
+    cr3 = new ConfigurationRequest(cluster1, "hadoop-env","version1",
+      hadoopEnvConfigs, null);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    crReq = new ClusterRequest(cluster.getClusterId(), cluster1, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
 
@@ -1273,11 +1283,13 @@ public class AmbariManagementControllerTest {
     assertEquals(cluster1, ec.getClusterName());
     Map<String, Map<String, String>> configurations = ec.getConfigurations();
     assertNotNull(configurations);
-    assertEquals(2, configurations.size());
+    assertEquals(3, configurations.size());
     assertTrue(configurations.containsKey("hdfs-site"));
     assertTrue(configurations.containsKey("core-site"));
+    assertTrue(configurations.containsKey("hadoop-env"));
     assertTrue(ec.getConfigurationAttributes().containsKey("hdfs-site"));
     assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("hadoop-env"));
     assertTrue(ec.getCommandParams().containsKey("max_duration_for_retries"));
     assertEquals("0", ec.getCommandParams().get("max_duration_for_retries"));
     assertTrue(ec.getCommandParams().containsKey("command_retry_enabled"));
@@ -1293,6 +1305,13 @@ public class AmbariManagementControllerTest {
     assertNotNull(ec.getCommandParams());
     assertTrue(ec.getCommandParams().containsKey("custom_folder"));
     assertEquals("dashboards", ec.getCommandParams().get("custom_folder"));
+    assertNotNull(ec.getHostLevelParams());
+    assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_LIST));
+    assertEquals("[\"myhdfsuser\"]", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_LIST));
+    assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.GROUP_LIST));
+    assertEquals("[\"myhdfsgroup\"]", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.GROUP_LIST));
+    assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUPS));
+    assertEquals("{\"myhdfsuser\":[\"myhdfsgroup\"]}", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUPS));
   }
 
   @Test
@@ -10358,6 +10377,89 @@ public class AmbariManagementControllerTest {
         Assert.assertEquals(sch == targetSch ? State.INIT : State.INSTALLED,
             sch.getState());
       }
+    }
+  }
+
+  @Test
+  public void testCredentialStoreRelatedAPICallsToUpdateSettings() throws Exception {
+    String cluster1 = getUniqueName();
+    createCluster(cluster1);
+    clusters.getCluster(cluster1).setDesiredStackVersion(
+        new StackId("HDP-2.2.0"));
+
+    String service1Name = "HDFS";
+    String service2Name = "STORM";
+    String service3Name = "ZOOKEEPER";
+    createService(cluster1, service1Name, null);
+    createService(cluster1, service2Name, null);
+    createService(cluster1, service3Name, null);
+    String component1Name = "NAMENODE";
+    String component2Name = "DRPC_SERVER";
+    String component3Name = "ZOOKEEPER_SERVER";
+    createServiceComponent(cluster1, service1Name, component1Name, State.INIT);
+    createServiceComponent(cluster1, service2Name, component2Name, State.INIT);
+    createServiceComponent(cluster1, service3Name, component3Name, State.INIT);
+    String host1 = getUniqueName();
+    addHostToCluster(host1, cluster1);
+    createServiceComponentHost(cluster1, service1Name, component1Name, host1, null);
+    createServiceComponentHost(cluster1, service2Name, component2Name, host1, null);
+    createServiceComponentHost(cluster1, service3Name, component3Name, host1, null);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put("context", "Called from a test");
+
+    Cluster cluster = clusters.getCluster(cluster1);
+    Service service1 = cluster.getService(service1Name);
+
+    MaintenanceStateHelper
+        maintenanceStateHelper =
+        MaintenanceStateHelperTest.getMaintenanceStateHelperInstance(clusters);
+
+    // test updating a service
+    ServiceRequest sr = new ServiceRequest(cluster1, service1Name, null);
+    sr.setCredentialStoreEnabled("true");
+
+    ServiceResourceProviderTest.updateServices(controller,
+                                               Collections.singleton(sr), requestProperties, false, false,
+                                               maintenanceStateHelper);
+    Assert.assertTrue(service1.isCredentialStoreEnabled());
+    Assert.assertTrue(service1.isCredentialStoreSupported());
+    Assert.assertFalse(service1.isCredentialStoreRequired());
+
+    ServiceRequest sr2 = new ServiceRequest(cluster1, service2Name, null);
+    sr2.setCredentialStoreEnabled("true");
+    try {
+      ServiceResourceProviderTest.updateServices(controller,
+                                                 Collections.singleton(sr2), requestProperties, false, false,
+                                                 maintenanceStateHelper);
+      Assert.assertTrue("Expected exception not thrown - service does not support cred store", true);
+    }catch(IllegalArgumentException iaex) {
+      Assert.assertTrue(iaex.getMessage(), iaex.getMessage().contains(
+          "Invalid arguments, cannot enable credential store as it is not supported by the service. Service=STORM"));
+    }
+
+    ServiceRequest sr3 = new ServiceRequest(cluster1, service3Name, null);
+    sr3.setCredentialStoreEnabled("false");
+    try {
+      ServiceResourceProviderTest.updateServices(controller,
+                                                 Collections.singleton(sr3), requestProperties, false, false,
+                                                 maintenanceStateHelper);
+      Assert.assertTrue("Expected exception not thrown - service does not support disabling of cred store", true);
+    }catch(IllegalArgumentException iaex) {
+      Assert.assertTrue(iaex.getMessage(), iaex.getMessage().contains(
+          "Invalid arguments, cannot disable credential store as it is required by the service. Service=ZOOKEEPER"));
+    }
+
+    ServiceRequest sr4 = new ServiceRequest(cluster1, service3Name, null);
+    sr4.setCredentialStoreSupported("true");
+    try {
+      ServiceResourceProviderTest.updateServices(controller,
+                                                 Collections.singleton(sr4), requestProperties, false, false,
+                                                 maintenanceStateHelper);
+      Assert.assertTrue("Expected exception not thrown - service does not support updating cred store support", true);
+    }catch(IllegalArgumentException iaex) {
+      Assert.assertTrue(iaex.getMessage(), iaex.getMessage().contains(
+          "Invalid arguments, cannot update credential_store_supported as it is set only via service definition. Service=ZOOKEEPER"));
     }
   }
 

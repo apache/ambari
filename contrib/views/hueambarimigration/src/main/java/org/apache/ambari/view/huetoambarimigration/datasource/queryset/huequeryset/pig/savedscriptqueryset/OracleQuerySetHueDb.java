@@ -26,39 +26,39 @@ public class OracleQuerySetHueDb extends QuerySetHueDb {
   }
   @Override
   protected String fetchHueQueriesNoStartdateNoEnddateSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =?";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =?";
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND  date_created <= date(?)";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND  date_created <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND date_created >= date(?)";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND date_created >= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND date_created >= date(?) AND date_created <= date(?)";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 AND user_id =? AND date_created >= to_date(?, 'YYYY-MM-DD') AND date_created <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesNoStartdateNoEnddateYesallUserSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 ";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1 ";
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND  date_created <= date(?)";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND  date_created <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND date_created >= date(?)";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND date_created >= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND date_created >= date(?) AND date_created <= date(?)";
+    return "select user_id, pig_script,title,date_created,saved,arguments from pig_pigscript where saved=1  AND date_created >= to_date(?, 'YYYY-MM-DD') AND date_created <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchUserNameSql() {
-    return "select username from auth_user where id = ?;";
+    return "select username from auth_user where id = ?";
   }
 
 }

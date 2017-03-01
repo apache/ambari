@@ -21,6 +21,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import Hook
+from resource_management.core.exceptions import Fail
 import json
 
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
@@ -258,10 +259,10 @@ class TestHookBeforeStart(RMFTestCase):
     config_file = "stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       default_json = json.load(f)
-      
+
     default_json['serviceName'] = 'HDFS'
     default_json['configurations']['core-site']['net.topology.script.file.name'] = '/home/myhadoop/hadoop/conf.hadoop/topology_script.py'
-    
+
     self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
                        classname="BeforeStartHook",
                        command="hook",
@@ -335,14 +336,13 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-
-def test_that_jce_is_required_in_secured_cluster(self):
-  try:
-    self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
-                       classname="BeforeStartHook",
-                       command="hook",
-                       config_file="secured_no_jce_name.json"
-    )
-    self.fail("Should throw an exception")
-  except Fail:
-    pass  # Expected
+  def test_that_jce_is_required_in_secured_cluster(self):
+    try:
+      self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
+                         classname="BeforeStartHook",
+                         command="hook",
+                         config_file="secured_no_jce_name.json"
+      )
+      self.fail("Should throw an exception")
+    except Fail:
+      pass  # Expected

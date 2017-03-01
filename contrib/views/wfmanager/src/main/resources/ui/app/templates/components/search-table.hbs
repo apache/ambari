@@ -44,14 +44,17 @@
             <i class="fa fa-cog" aria-hidden="true"></i>&nbsp;<span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
-            <li {{action 'doBulkAction' 'resume'}} class={{toggleResume}}><a href="#"><i class="fa fa-play"></i>Resume</a></li>
-            <li {{action 'doBulkAction' 'suspend'}} class={{toggleSuspend}}><a href="#"><i class="fa fa-pause"></i>Suspend</a></li>
-            <li {{action 'doBulkAction' 'kill'}} class={{toggleKill}}><a href="#"><i class="fa fa-close"></i>Kill</a></li>
+            <li {{action 'doBulkAction' 'start'}} class={{toggleStart}}><a href="javascript:void(0)"><i class="fa fa-play"></i>Start</a></li>
+            <li {{action 'doBulkAction' 'resume'}} class={{toggleResume}}><a href="javascript:void(0)"><i class="fa fa-play"></i>Resume</a></li>
+            <li {{action 'doBulkAction' 'suspend'}} class={{toggleSuspend}}><a href="javascript:void(0)"><i class="fa fa-pause"></i>Suspend</a></li>
+            <li {{action 'doBulkAction' 'kill'}} class={{toggleKill}}><a href="javascript:void(0)"><i class="fa fa-close"></i>Kill</a></li>
           </ul>
         </div>
-        <div id="bulk-action-loader" class='loading-container hidden'>
-          {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
-        </div>
+        {{#if showBulkActionLoader}}
+          <div class='loading-container'>
+            {{spin-spinner lines=7 length=3 width=3 radius=3 top=200 left=1250}}
+          </div>
+        {{/if}}
         {{/if}}
       </th>
     </tr>

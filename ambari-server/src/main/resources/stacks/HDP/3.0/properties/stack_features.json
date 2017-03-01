@@ -22,6 +22,11 @@
       "min_version": "2.2.0.0"
     },
     {
+      "name": "kafka_acl_migration_support",
+      "description": "ACL migration support",
+      "min_version": "2.3.4.0"
+    },
+    {
       "name": "secure_zookeeper",
       "description": "Protect ZNodes with SASL acl in secure clusters",
       "min_version": "2.6.0.0"
@@ -322,6 +327,51 @@
       "name": "phoenix_core_hdfs_site_required",
       "description": "HDFS and CORE site required for Phoenix",
       "max_version": "2.5.9.9"
+    },
+    {
+      "name": "ranger_tagsync_ssl_xml_support",
+      "description": "Ranger Tagsync ssl xml support.",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "ranger_xml_configuration",
+      "description": "Ranger code base support xml configurations",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "kafka_ranger_plugin_support",
+      "description": "Ambari stack changes for Ranger Kafka Plugin (AMBARI-11299)",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "yarn_ranger_plugin_support",
+      "description": "Implement Stack changes for Ranger Yarn Plugin integration (AMBARI-10866)",
+      "min_version": "2.3.0.0"
+    },
+    {
+      "name": "ranger_solr_config_support",
+      "description": "Showing Ranger solrconfig.xml on UI",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "core_site_for_ranger_plugins",
+      "description": "Adding core-site.xml in when Ranger plugin is enabled for Storm, Kafka, and Knox.",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "secure_ranger_ssl_password",
+      "description": "Securing Ranger Admin and Usersync SSL and Trustore related passwords in jceks",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "ranger_kms_ssl",
+      "description": "Ranger KMS SSL properties in ambari stack",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "atlas_hdfs_site_on_namenode_ha",
+      "description": "Need to create hdfs-site under atlas-conf dir when Namenode-HA is enabled.",
+      "min_version": "2.6.0.0"
     }
   ]
 }

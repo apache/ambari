@@ -26,6 +26,7 @@ public class ServiceRequest {
   private String desiredState; // CREATE/UPDATE
   private String maintenanceState; // UPDATE
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
+  private String credentialStoreSupported; //GET
 
   public ServiceRequest(String clusterName, String serviceName,
                         String desiredState) {
@@ -107,6 +108,14 @@ public class ServiceRequest {
     return credentialStoreEnabled;
   }
 
+
+  /**
+   * @return credential store supported
+   */
+  public String getCredentialStoreSupported() {
+    return credentialStoreSupported;
+  }
+
   /**
    * @param credentialStoreEnabled the new credential store enabled
    */
@@ -114,12 +123,20 @@ public class ServiceRequest {
     this.credentialStoreEnabled = credentialStoreEnabled;
   }
 
+  /**
+   * @param credentialStoreSupported the new credential store supported
+   */
+  public void setCredentialStoreSupported(String credentialStoreSupported) {
+    this.credentialStoreSupported = credentialStoreSupported;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("clusterName=" + clusterName
         + ", serviceName=" + serviceName
         + ", desiredState=" + desiredState
-        + ", credentialStoreEnabled=" + credentialStoreEnabled);
+        + ", credentialStoreEnabled=" + credentialStoreEnabled
+        + ", credentialStoreSupported=" + credentialStoreSupported);
     return sb.toString();
   }
 }

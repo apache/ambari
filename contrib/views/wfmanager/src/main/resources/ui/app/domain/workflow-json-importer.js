@@ -30,20 +30,23 @@ var WorkflowJsonImporter= Ember.Object.extend({
         workflow.set("name",workflowJson.name);
         workflow.schemaVersions.workflowVersion = workflowJson.schemaVersions.workflowVersion;
         workflow.schemaVersions.actionVersions = new Map(JSON.parse(workflowJson.schemaVersions.actionVersions));
+        workflow.sla = workflowJson.sla;
+        workflow.slaEnabled = workflowJson.slaEnabled;
+        workflow.credentials = workflowJson.credentials;
+        workflow.globalSetting = workflowJson.globalSetting;
+        workflow.parameters = workflowJson.parameters;
         this.restoreKillNodes(workflowJson.killNodes,workflow);
         var nodeMap= new Map();
         var startNode=this.visitNode(workflowJson.startNode,nodeMap);
         workflow.set("startNode",startNode);
         var maxId=0;
         for(let value of nodeMap.keys()){
-            console.log("Value in it=",value);
             var id=Number.parseInt(value.substr(5));
             if (id>maxId){
               maxId=id;
             }
         }
         this.nodeFactory.resetNodeIdTo(maxId+1);
-        console.log("imported workflow==",workflow);
         return workflow;
       }catch(e){
         console.error(e);
@@ -91,7 +94,7 @@ var WorkflowJsonImporter= Ember.Object.extend({
       killnodesJson.forEach(function(killNodeJson){
         workflow.createKillNode(killNodeJson.name,killNodeJson.killMessage);
       });
-      console.log("killnodes json=",killnodesJson);
+    
     }
 });
 export {WorkflowJsonImporter};

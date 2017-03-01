@@ -46,12 +46,20 @@ export default Ember.Component.extend(Validations, {
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
     this.sendAction('register','sshAction', this);
+    this.send('argTypeChanged', this.get('useArg'));
   }.on('didInsertElement'),
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
+  onDestroy : function(){
+    if(this.get('useArg')){
+      this.set("actionModel.args", Ember.A([]));
+    }else{
+      this.set("actionModel.arg", Ember.A([]));
+    }
+  }.on('willDestroyElement'),
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
@@ -66,9 +74,11 @@ export default Ember.Component.extend(Validations, {
     argTypeChanged(useArg){
       this.set('useArg', useArg);
       if(useArg){
-        this.set("actionModel.args", Ember.A([]));
+        this.$('#args-option').hide();
+        this.$('#arg-option').show();
       }else{
-        this.set("actionModel.arg", Ember.A([]));
+        this.$('#arg-option').hide();
+        this.$('#args-option').show();
       }
     }
   }

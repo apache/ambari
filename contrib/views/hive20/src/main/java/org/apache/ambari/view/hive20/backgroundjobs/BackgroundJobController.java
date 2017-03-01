@@ -37,17 +37,26 @@ public class BackgroundJobController {
     return viewSingletonObjects.get(context.getInstanceName());
   }
 
-  private Map<String, Thread> jobs = new HashMap<String, Thread>();
-  public void startJob(String key, Runnable runnable) {
+  private Map<String, BackgroundJob> jobs = new HashMap<String, BackgroundJob>();
+  public void startJob(final String key, Runnable runnable)  {
     if (jobs.containsKey(key)) {
-      interrupt(key);
       try {
-        jobs.get(key).join();
+        interrupt(key);
+        jobs.get(key).getJobThread().join();
       } catch (InterruptedException ignored) {
+      } catch (BackgroundJobException e) {
       }
     }
     Thread t = new Thread(runnable);
-    jobs.put(key, t);
+    t.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      @Override
+      public void uncaughtException(Thread t, Throwable e) {
+        if (e instanceof BackgroundJobException) {
+          jobs.get(key).setJobException((BackgroundJobException) e);
+        }
+      }
+    });
+    jobs.put(key, new BackgroundJob(t));
     t.start();
   }
 
@@ -56,7 +65,7 @@ public class BackgroundJobController {
       return Thread.State.TERMINATED;
     }
 
-    Thread.State state = jobs.get(key).getState();
+    Thread.State state = jobs.get(key).getJobThread().getState();
 
     if (state == Thread.State.TERMINATED) {
       jobs.remove(key);
@@ -70,7 +79,7 @@ public class BackgroundJobController {
       return false;
     }
 
-    jobs.get(key).interrupt();
+    jobs.get(key).getJobThread().interrupt();
     return true;
   }
 
@@ -79,6 +88,28 @@ public class BackgroundJobController {
       return true;
     }
 
-    return jobs.get(key).isInterrupted();
+    return jobs.get(key).getJobThread().isInterrupted();
   }
+
+  class BackgroundJob {
+
+    private Thread jobThread;
+    private BackgroundJobException jobException;
+
+    public BackgroundJob(Thread jobThread) {
+      this.jobThread = jobThread;
+    }
+
+    public Thread getJobThread() {
+      if(jobException != null) throw jobException;
+      return jobThread;
+    }
+
+    public void setJobException(BackgroundJobException exception) {
+      this.jobException = exception;
+    }
+  }
+
 }
+
+

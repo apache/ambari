@@ -101,8 +101,9 @@ export default Ember.Component.extend(Validations, {
         });
         self.set("savingInProgress",false);
         this.set('jobFilePath', this.get('filePath'));
+        self.$("#configureJob").modal("hide");
+        self.sendAction("showSuccessMessage", this.get("displayName")+" have been saved successfully.");
     }.bind(this)).catch(function(response){
-        console.log(response);
         self.set("savingInProgress",false);
         self.showNotification({
           "type": "error",

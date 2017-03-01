@@ -63,6 +63,11 @@ export default Ember.Route.extend(UILoggerMixin, {
       return setting.destroyRecord().then(data => {
         let model = this.get('controller.model');
         model.removeObject(data);
+        let hiveParameters = this.controller.get('hiveParameters');
+        let existingHiveParams = hiveParameters.findBy('name', setting.get('key'));
+        if(existingHiveParams) {
+          existingHiveParams.set('disabled', false);
+        }
       }, err => {
         this.get('logger').danger(`Failed to delete setting with key: '${setting.get('key')}`, this.extractError(err));
       })

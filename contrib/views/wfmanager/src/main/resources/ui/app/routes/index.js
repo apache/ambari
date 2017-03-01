@@ -27,7 +27,7 @@ export default Ember.Route.extend({
       this.processServiceCheckPromise(ooziePromise, serviceChecks.findBy('name', 'oozie'));
       this.processServiceCheckPromise(hdfsPromise, serviceChecks.findBy('name', 'hdfs'));
       this.processServiceCheckPromise(homeDirPromise, serviceChecks.findBy('name', 'homeDir'));
-      Promise.all([ooziePromise, hdfsPromise, homeDirPromise]).then(()=>{
+      Ember.RSVP.Promise.all([ooziePromise, hdfsPromise, homeDirPromise]).then(()=>{
         this.controllerFor('index').set('serviceChecksComplete', true);
         Ember.run.later(()=>{
           this.transitionTo('design');
@@ -43,6 +43,8 @@ export default Ember.Route.extend({
       }).catch((e)=>{
         console.error(e);
         Ember.set(serviceCheck, 'isAvailable', false);
+        var response = typeof e.responseText === "string"? JSON.parse(e.responseText) : e.responseText;
+        Ember.set(serviceCheck, 'stackTrace', response.stackTrace);
       }).finally(()=>{
         Ember.set(serviceCheck, 'checkCompleted', true);
       });
@@ -106,5 +108,10 @@ export default Ember.Route.extend({
           }
         });
       });
+    },
+    actions : {
+      showDetails (check){
+        Ember.set(check, 'showingDetails', !check.showingDetails);
+      }
     }
 });

@@ -979,8 +979,8 @@ public class ServiceModuleTest {
    */
   @Test
   public void testResolve_CredentialStoreInfo() throws Exception {
-    CredentialStoreInfo credentialStoreInfoChild = new CredentialStoreInfo(true /* supported */, false /* enabled */);
-    CredentialStoreInfo credentialStoreInfoParent = new CredentialStoreInfo(true /* supported */, true /* enabled */);
+    CredentialStoreInfo credentialStoreInfoChild = new CredentialStoreInfo(true /* supported */, false /* enabled */, true /*required*/);
+    CredentialStoreInfo credentialStoreInfoParent = new CredentialStoreInfo(true /* supported */, true /* enabled */, false /*required*/);
     ServiceInfo childInfo = new ServiceInfo();
     ServiceInfo parentInfo = new ServiceInfo();
     ServiceModule service;
@@ -991,6 +991,7 @@ public class ServiceModuleTest {
     service = resolveService(childInfo, parentInfo);
     assertEquals(credentialStoreInfoChild.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
     assertEquals(credentialStoreInfoChild.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
+    assertEquals(credentialStoreInfoChild.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
 
     // specified in parent only, parent wins
     childInfo.setCredentialStoreInfo(null);
@@ -998,6 +999,7 @@ public class ServiceModuleTest {
     service = resolveService(childInfo, parentInfo);
     assertEquals(credentialStoreInfoParent.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
     assertEquals(credentialStoreInfoParent.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
+    assertEquals(credentialStoreInfoParent.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
 
     // specified in both, child wins
     childInfo.setCredentialStoreInfo(credentialStoreInfoChild);
@@ -1005,6 +1007,7 @@ public class ServiceModuleTest {
     service = resolveService(childInfo, parentInfo);
     assertEquals(credentialStoreInfoChild.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
     assertEquals(credentialStoreInfoChild.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
+    assertEquals(credentialStoreInfoChild.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
   }
 
   @Test

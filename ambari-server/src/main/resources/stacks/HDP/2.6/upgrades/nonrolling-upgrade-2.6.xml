@@ -109,6 +109,12 @@
         <component>LIVY_SERVER</component>
       </service>
 
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
+      </service>
+
       <service name="ZEPPELIN">
         <component>ZEPPELIN_MASTER</component>
       </service>
@@ -164,10 +170,7 @@
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}. If audit database size is too large (greater than 3GB) then follow the below instructions:
-            1. Backup the audit table from audit database.
-            2. Truncate audit table.
-            3. Follow upgrade process and once completed then restore audit data to audit table.</message>
+          <message>Before continuing, please backup the Ranger Admin database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -527,12 +530,33 @@
       </service>
     </group>
 
+    <group xsi:type="restart" name="SPARK2" title="Spark2">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="SPARK2">
+        <component>SPARK2_JOBHISTORYSERVER</component>
+        <component>SPARK2_THRIFTSERVER</component>
+        <component>LIVY2_SERVER</component>
+      </service>
+    </group>
+
     <group xsi:type="restart" name="SPARK_CLIENTS" title="Spark Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="SPARK2_CLIENTS" title="Spark2 Clients">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+      <service name="SPARK2">
+        <component>SPARK2_CLIENT</component>
       </service>
     </group>
 
@@ -592,6 +616,7 @@
       <priority>
         <service>HIVE</service>
         <service>SPARK</service>
+        <service>SPARK2</service>
         <service>SLIDER</service>
         <service>ATLAS</service>
         <service>ZEPPELIN</service>
@@ -991,6 +1016,29 @@
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_JOBHISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK2_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="LIVY2_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK2_CLIENT">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

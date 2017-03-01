@@ -386,10 +386,15 @@ public String getVersion() {
     return properties;
   }
 
+  public void setProperties(List properties) {
+    this.properties = properties;
+  }
+
   public List<ComponentInfo> getComponents() {
     if (components == null) components = new ArrayList<ComponentInfo>();
     return components;
   }
+
   /**
    * Finds ComponentInfo by component name
    * @param componentName  name of the component
@@ -470,6 +475,33 @@ public String getVersion() {
       credentialStoreInfo = new CredentialStoreInfo();
     }
     credentialStoreInfo.setSupported(credentialStoreSupported);
+  }
+
+  /**
+   * Indicates if this service is requires credential store.
+   * False if it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreRequired() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isRequired() != null) {
+        return credentialStoreInfo.isRequired();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service requires credential store.
+   * @param credentialStoreRequired
+   */
+  public void setCredentialStoreRequired(boolean credentialStoreRequired) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setRequired(credentialStoreRequired);
   }
 
   /**

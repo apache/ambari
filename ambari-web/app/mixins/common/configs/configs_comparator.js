@@ -222,8 +222,8 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method getMockComparisonConfig
    */
   getMockComparisonConfig: function (serviceConfig, compareServiceVersion) {
-    var compareObject = $.extend(true, {isComparison: false},  serviceConfig);
-    compareObject.setProperties({
+    var compareObject = $.extend(true, {isComparison: false}, serviceConfig);
+    Em.setProperties(compareObject, {
       isEditable: false,
       serviceVersion: App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + compareServiceVersion),
       isMock: true,

@@ -163,6 +163,7 @@ public class ServiceInfoTest {
             "      <credential-store>\n" +
             "          <supported>true</supported>\n" +
             "          <enabled>true</enabled>\n" +
+            "          <required>true</required>\n" +
             "      </credential-store>\n" +
             "    </service>\n" +
             "  </services>\n" +
@@ -171,6 +172,7 @@ public class ServiceInfoTest {
     ServiceInfo service = serviceInfoMap.get("RANGER");
     assertTrue(service.isCredentialStoreSupported());
     assertTrue(service.isCredentialStoreEnabled());
+    assertTrue(service.isCredentialStoreRequired());
 
     /*
      * <credential-store> supported but not enabled.
@@ -183,6 +185,7 @@ public class ServiceInfoTest {
             "      <credential-store>\n" +
             "          <supported>true</supported>\n" +
             "          <enabled>false</enabled>\n" +
+            "          <required>false</required>\n" +
             "      </credential-store>\n" +
             "    </service>\n" +
             "  </services>\n" +
@@ -191,6 +194,7 @@ public class ServiceInfoTest {
     service = serviceInfoMap.get("HIVE");
     assertTrue(service.isCredentialStoreSupported());
     assertFalse(service.isCredentialStoreEnabled());
+    assertFalse(service.isCredentialStoreRequired());
 
     /*
      * <credential-store> is missing

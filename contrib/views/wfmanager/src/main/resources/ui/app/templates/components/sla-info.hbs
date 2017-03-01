@@ -22,16 +22,10 @@
     </div>
     <div id="{{collapseId}}" class="panel-collapse collapse panel-body">
       <div class="form-group">
-      <label class="control-label col-xs-2">Enabled</label>
-      <span class="col-xs-2 paddingtop7">{{input type="checkbox" checked=slaEnabled}}</span>
-    </div>
-      <div class="form-group">
-        <label class="control-label col-xs-2 padding10">Nominal Time<span class="requiredField">&nbsp;*</span></label>
-        <div class="col-xs-3 padding10">
-          {{input type="text" name="nominalTime" title="Date in UTC Format" class="form-control" value=nominalTime placeholder="Nominal Time"}}
-          {{field-error model=this field='nominalTime' showErrorMessage=showErrorMessage}}
-        </div>
+        <label class="control-label col-xs-2">Enabled</label>
+        <span class="col-xs-2 paddingtop7">{{input type="checkbox" checked=slaEnabled}}</span>
       </div>
+      {{#date-with-expr required=true inputName="nominalTime" label="Nominal Time" inputPlaceholder="Nominal Time" dateField=slaInfo.nominalTime}}{{/date-with-expr}}
       <div class="form-group">
         <label class="control-label col-xs-2">Should Start</label>
         <div class="col-xs-3">

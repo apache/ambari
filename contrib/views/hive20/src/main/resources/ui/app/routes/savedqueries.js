@@ -17,8 +17,9 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../mixins/ui-logger';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(UILoggerMixin, {
 
   savedQueries: Ember.inject.service(),
 
@@ -84,7 +85,7 @@ export default Ember.Route.extend({
 
     openAsWorksheet(savedQuery){
 
-      let hasWorksheetModel = this.modelFor('queries');
+      let hasWorksheetModel = this.modelFor('queries'), self = this;
       let worksheetId;
 
       if (Ember.isEmpty(hasWorksheetModel)){
@@ -103,19 +104,29 @@ export default Ember.Route.extend({
         });
         worksheetId = `worksheet${worksheets.get('length') + 1}`;
       }
+      var isTabExisting = this.store.peekRecord('worksheet', savedQuery.id);
+      if(isTabExisting) {
+        self.transitionTo('queries.query', isTabExisting.get("id"));
+        return;
+      }
+      this.get("savedQueries").fetchSavedQuery(savedQuery.get('queryFile')).then(function(response) {
+        let localWs = {
+          id: savedQuery.get('id'),
+          title: savedQuery.get('title'),
+          queryFile: savedQuery.get('queryFile'),
+          query: response.file.fileContent,
+          selectedDb : savedQuery.get('dataBase'),
+          owner: savedQuery.get('owner'),
+          selected: true
+        };
 
-      let localWs = {
-        id: worksheetId,
-        title: savedQuery.get('title'),
-        query: savedQuery.get('shortQuery'),
-        selectedDb : savedQuery.get('dataBase'),
-        owner: savedQuery.get('owner'),
-        selected: true
-      };
+        self.store.createRecord('worksheet', localWs );
+        self.controllerFor('queries').set('worksheets', self.store.peekAll('worksheet'));
 
-      this.store.createRecord('worksheet', localWs );
-
-      this.transitionTo('queries.query', localWs.title);
+        self.transitionTo('queries.query', savedQuery.get('id'));
+      }, (error) => {
+         self.get('logger').danger('Failed to load the query', self.extractError(error));
+      });
     }
   }
 

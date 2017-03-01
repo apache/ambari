@@ -124,7 +124,7 @@ public class ResultSetIterator extends HiveActor {
 
       if (index == 0) {
         // We have hit end of resultSet
-        sender().tell(new NoMoreItems(), self());
+        sender().tell(new NoMoreItems(columnDescriptions), self());
         if(!async) {
           cleanUpResources();
         }

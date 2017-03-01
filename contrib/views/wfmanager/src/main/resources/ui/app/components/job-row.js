@@ -72,7 +72,7 @@ export default Ember.Component.extend({
         }else if(action === 'kill'){
           this.set('job.status','KILLED');
         }
-        this.sendAction('showMessage', {type:'success', message:`${action.toUpperCase()} action complete. Job is ${this.get('job.status')}`});
+        this.sendAction('showMessage', {type:'success', message:`${action.toUpperCase()} action request complete. Job is ${this.get('job.status')}`});
       }.bind(this)).catch(function(e){
         this.set('showError', true);
         this.set('showLoader', false);

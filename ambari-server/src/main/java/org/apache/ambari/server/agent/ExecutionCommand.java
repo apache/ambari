@@ -415,6 +415,7 @@ public class ExecutionCommand extends AgentCommand {
     String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";
+    String UNLIMITED_KEY_JCE_REQUIRED = "unlimited_key_jce_required";
     String MYSQL_JDBC_URL = "mysql_jdbc_url";
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
@@ -429,6 +430,7 @@ public class ExecutionCommand extends AgentCommand {
     String COMPONENT_CATEGORY = "component_category";
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
+    String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";

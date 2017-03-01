@@ -588,6 +588,18 @@
             </organization>
         </developer>
         <developer>
+            <id>lpuskas</id>
+            <name>Laszlo Puskas</name>
+            <email>lpuskas@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>mahadev</id>
             <name>Mahadev Konar</name>
             <email>mahadev@apache.org</email>

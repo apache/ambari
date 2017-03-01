@@ -69,6 +69,7 @@ public class ServiceImpl implements Service {
   private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
   private final boolean isClientOnlyService;
   private final boolean isCredentialStoreSupported;
+  private final boolean isCredentialStoreRequired;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -130,6 +131,7 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
 
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
+    isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
 
     persist(serviceEntity);
   }
@@ -176,6 +178,7 @@ public class ServiceImpl implements Service {
         stackId.getStackVersion(), getName());
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
+    isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
   }
 
   @Override
@@ -332,7 +335,16 @@ public class ServiceImpl implements Service {
     return isCredentialStoreSupported;
   }
 
-
+  /**
+   * Get a true or false value specifying whether
+   * credential store is required by this service.
+   *
+   * @return true or false
+   */
+  @Override
+  public boolean isCredentialStoreRequired() {
+    return isCredentialStoreRequired;
+  }
 
 
   /**
@@ -406,7 +418,6 @@ public class ServiceImpl implements Service {
    */
   private void persist(ClusterServiceEntity serviceEntity) {
     persistEntities(serviceEntity);
-    refresh();
 
     // publish the service installed event
     StackId stackId = cluster.getDesiredStackVersion();
@@ -429,15 +440,6 @@ public class ServiceImpl implements Service {
     clusterServiceDAO.merge(serviceEntity);
   }
 
-  @Transactional
-  public void refresh() {
-    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceName(getName());
-    ClusterServiceEntity serviceEntity = getServiceEntity();
-    clusterServiceDAO.refresh(serviceEntity);
-    serviceDesiredStateDAO.refresh(serviceEntity.getServiceDesiredStateEntity());
-  }
 
   @Override
   public boolean canBeRemoved() {

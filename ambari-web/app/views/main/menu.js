@@ -49,7 +49,6 @@ App.MainSideMenuView = Em.CollectionView.extend({
     return result;
   }.property(
       'App.router.loggedIn',
-      'views.length',
       'App.router.clusterController.isLoaded',
       'App.router.clusterInstallCompleted',
       'App.router.wizardWatcherController.isWizardRunning'

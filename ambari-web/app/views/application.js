@@ -23,11 +23,8 @@ App.ApplicationView = Em.View.extend({
   templateName: require('templates/application'),
 
   views: function () { 
-    if (App.router.get('loggedIn')) { 
-      return App.router.get('mainViewsController.ambariViews').filterProperty('visible'); 
-    } else { 
-      return []; 
-    } }.property('App.router.mainViewsController.ambariViews.length', 'App.router.loggedIn'),
+    return App.router.get('loggedIn') ? App.router.get('mainViewsController.visibleAmbariViews') : [];
+   }.property('App.router.mainViewsController.visibleAmbariViews.[]', 'App.router.loggedIn'),
 
   /**
    * Create the breadcrums showing on ambari top bar

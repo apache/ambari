@@ -27,10 +27,6 @@
       <comment>Comprehensive security for Hadoop</comment>
       <extends>common-services/RANGER/0.5.0</extends>
       <version>0.5.0.2.3</version>
-      <credential-store>
-        <supported>true</supported>
-        <enabled>false</enabled>
-      </credential-store>
     </service>
   </services>
 </metainfo>

@@ -42,7 +42,18 @@
   {{! NodeManagers status }}
   <div class="row nodemanager-status">
     <div class="col-md-6 summary-label">{{t dashboard.services.yarn.nodeManagers.status}}</div>
-    <div class="col-md-6 summary-value">{{view.nodeManagersStatus}}</div>
+    <div class="col-md-6 summary-value">
+      <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.active"}} rel="tooltip">
+      {{view._nmActive}} {{t dashboard.services.yarn.nodeManagers.status.active}} </span> /
+    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.lost"}} rel="tooltip">
+      {{view._nmLost}} {{t dashboard.services.yarn.nodeManagers.status.lost}} </span> /
+    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.unhealthy"}} rel="tooltip">
+      {{view._nmUnhealthy}} {{t dashboard.services.yarn.nodeManagers.status.unhealthy}} </span> /
+    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.rebooted"}} rel="tooltip">
+      {{view._nmRebooted}} {{t dashboard.services.yarn.nodeManagers.status.rebooted}} </span> /
+    <span {{translateAttr data-original-title="dashboard.services.yarn.nodeManagers.status.tooltip.decommissioned"}} rel="tooltip">
+      {{view._nmDecom}} {{t dashboard.services.yarn.nodeManagers.status.decommissioned}} </span>
+    </div>
   </div>
   {{! YARN Clients }}
   <div {{bindAttr class=":row :component view.yarnClientComponent.componentName"}}>

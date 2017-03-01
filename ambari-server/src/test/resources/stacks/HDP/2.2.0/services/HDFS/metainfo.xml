@@ -22,7 +22,11 @@
       <name>HDFS</name>
       <comment>Apache Hadoop Distributed File System</comment>
       <version>2.1.0.2.0.6.0</version>
-
+      <credential-store>
+        <supported>true</supported>
+        <enabled>true</enabled>
+        <required>false</required>
+      </credential-store>
       <components>
         <component>
           <name>NAMENODE</name>

@@ -23,6 +23,7 @@ Ambari Agent
 __all__ = ["TerminateStrategy", "terminate_process"]
 
 import os
+import time
 import signal
 from resource_management.core.base import Fail
 

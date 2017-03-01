@@ -25,7 +25,15 @@ function O (fl) {
 }
 
 describe('App.HighAvailabilityWizardStep2Controller', function () {
-  var controller = App.HighAvailabilityWizardStep2Controller.create();
+  var controller;
+
+  beforeEach(function() {
+    controller = App.HighAvailabilityWizardStep2Controller.create({
+      addNewMasters: Em.K,
+      getMaxNumberOfMasters: Em.K,
+      selectedServicesMasters:[]
+    });
+  });
 
   describe('#sortMasterComponents', function () {
 
@@ -33,6 +41,82 @@ describe('App.HighAvailabilityWizardStep2Controller', function () {
       var init = [O(true), O(false), O(true), O(false), O(true)];
       var sorted = [O(true), O(true), O(true), O(false), O(false)];
       expect(controller.sortMasterComponents(init)).to.eql(sorted);
+    });
+  });
+
+  describe('#renderComponents', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'showHideJournalNodesAddRemoveControl');
+    });
+    afterEach(function() {
+      controller.showHideJournalNodesAddRemoveControl.restore();
+    });
+
+    it('showHideJournalNodesAddRemoveControl should be called', function() {
+      controller.renderComponents([]);
+      expect(controller.showHideJournalNodesAddRemoveControl.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#addComponent', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'showHideJournalNodesAddRemoveControl');
+    });
+    afterEach(function() {
+      controller.showHideJournalNodesAddRemoveControl.restore();
+    });
+
+    it('showHideJournalNodesAddRemoveControl should be called', function() {
+      controller.addComponent('C1');
+      expect(controller.showHideJournalNodesAddRemoveControl.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#removeComponent', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'showHideJournalNodesAddRemoveControl');
+    });
+    afterEach(function() {
+      controller.showHideJournalNodesAddRemoveControl.restore();
+    });
+
+    it('showHideJournalNodesAddRemoveControl should be called', function() {
+      controller.removeComponent('C1', 'id');
+      expect(controller.showHideJournalNodesAddRemoveControl.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#showHideJournalNodesAddRemoveControl', function() {
+    beforeEach(function() {
+      sinon.stub(controller, 'getMaxNumberOfMasters').returns(3);
+    });
+    afterEach(function() {
+      controller.getMaxNumberOfMasters.restore();
+    });
+
+    it('should manage Journal Node controls', function() {
+      var selectedServicesMasters = Em.A([
+        Em.Object.create({
+          component_name: 'JOURNALNODE'
+        }),
+        Em.Object.create({
+          component_name: 'JOURNALNODE'
+        })
+      ]);
+      controller.set('selectedServicesMasters', selectedServicesMasters);
+      controller.showHideJournalNodesAddRemoveControl();
+      expect(JSON.stringify(controller.get('selectedServicesMasters'))).to.be.eql(JSON.stringify(Em.A([
+        Em.Object.create({
+          component_name: 'JOURNALNODE',
+          showAddControl: false,
+          showRemoveControl: false
+        }),
+        Em.Object.create({
+          component_name: 'JOURNALNODE',
+          showAddControl: true,
+          showRemoveControl: false
+        })
+      ])))
     });
   });
 

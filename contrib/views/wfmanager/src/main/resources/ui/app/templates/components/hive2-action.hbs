@@ -21,36 +21,37 @@
     <div class="form-group padding10">
       <label class="control-label col-xs-2">Hive Option</label>
       <div class="col-xs-2">
-        <input type="radio" name="hiveOption" checked={{if (eq isScript true) 'checked'}}  {{action "onHiveOptionChange" "script" preventDefault=false on="change"}}> Script
+        <input type="radio" name="hiveOption" checked={{if (eq isScript true) 'checked'}}  {{action "setIsScript" true preventDefault=false on="change"}}> Script
       </div>
       <div class="col-xs-2">
-        <input type="radio" name="hiveOption" checked={{if (eq isScript false) 'checked'}}  {{action "onHiveOptionChange" "query" preventDefault=false on="change"}}> Query
+        <input type="radio" name="hiveOption" checked={{if (eq isScript false) 'checked'}} {{action "setIsScript" false preventDefault=false on="change"}}> Query
       </div>
     </div>
-    {{#if isScript}}
-    <div class="form-group padding10">
-      <label class="control-label col-xs-2">Script<span class="requiredField">&nbsp;*</span></label>
-      <div class="col-xs-7">
-        <div class="input-group">
-          {{input type="text" class="form-control" name="script" value=actionModel.script placeholder="hive.hql"}}
-          <span class="input-group-btn">
-            <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
-          </span>
+    <div id="script-option">
+      <div class="form-group padding10">
+        <label class="control-label col-xs-2">Script<span class="requiredField">&nbsp;*</span></label>
+        <div class="col-xs-7">
+          <div class="input-group">
+            {{input type="text" class="form-control" name="script" value=actionModel.script placeholder="hive.hql"}}
+            <span class="input-group-btn">
+              <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
+            </span>
+          </div>
+          {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
         </div>
-        {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
       </div>
     </div>
-    {{else}}
-    <div class="form-group padding10">
-      <label class="control-label col-xs-2">Query<span class="requiredField">&nbsp;*</span></label>
-      <div class="col-xs-7">
-        <div class="input-group">
-          {{textarea class="form-control" name="query" class="query-text-area" value=actionModel.query placeholder="hive query"}}
+    <div id="query-option">
+      <div class="form-group padding10">
+        <label class="control-label col-xs-2">Query<span class="requiredField">&nbsp;*</span></label>
+        <div class="col-xs-7">
+          <div class="input-group">
+            {{textarea class="form-control" name="query" class="query-text-area" value=actionModel.query placeholder="hive query"}}
+          </div>
+          {{field-error model=this field='actionModel.query' showErrorMessage=showErrorMessage}}
         </div>
-        {{field-error model=this field='actionModel.query' showErrorMessage=showErrorMessage}}
       </div>
     </div>
-    {{/if}}
     <div class="form-group">
       <label class="control-label col-xs-2">jdbc-url<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">

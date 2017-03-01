@@ -16,33 +16,4 @@
 * limitations under the License.
 }}
 
-<div class={{alert-message-context-class model.type "panel panel-"}}>
-  <div class="panel-heading wrap-message">
-    {{#fa-stack size="lg"}}
-      {{fa-icon "circle-thin" stack=2}}
-      {{fa-icon (alert-message-icon-class model.type) stack=1}}
-    {{/fa-stack}}
-    {{{model.message}}}
-  </div>
-  {{#if displayBody}}
-    <div class="panel-body">
-      {{#if showStatus}}
-        <p><strong>Status:</strong> {{model.status}}</p>
-        <hr/>
-      {{/if}}
-      {{#if model.responseMessage}}
-        {{alert-message-display title="Message:"
-        value=model.responseMessage
-        shorten=true
-        length=200}}
-        <hr/>
-      {{/if}}
-      {{#if model.trace}}
-        {{alert-message-display title="Trace:"
-        value=model.trace
-        shorten=true
-        length=500}}
-      {{/if}}
-    </div>
-  {{/if}}
-</div>
+{{notification-message notification=model}}

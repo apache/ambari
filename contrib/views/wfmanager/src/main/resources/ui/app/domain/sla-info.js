@@ -24,7 +24,11 @@ var SlaInfo = Ember.Object.extend(Ember.Copyable,{
     return slaInfo;
   },
   init (){
-    this.nominalTime=undefined;
+    this.nominalTime={
+      value : undefined,
+      displayValue : undefined,
+      type : 'date'
+    };
     this.shouldStart = {
       time : undefined,
       unit : undefined
@@ -40,7 +44,11 @@ var SlaInfo = Ember.Object.extend(Ember.Copyable,{
     this.alertEvents = undefined;
     this.alertContacts = undefined;
   },
-  nominalTime:undefined,
+  nominalTime:{
+    value : undefined,
+    displayValue : undefined,
+    type : 'date'
+  },
   shouldStart : {
     time : undefined,
     unit : undefined

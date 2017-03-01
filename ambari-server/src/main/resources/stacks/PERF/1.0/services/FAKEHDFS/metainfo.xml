@@ -239,7 +239,6 @@
         <config-type>ranger-hdfs-audit</config-type>
         <config-type>ranger-hdfs-policymgr-ssl</config-type>
         <config-type>ranger-hdfs-security</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
 

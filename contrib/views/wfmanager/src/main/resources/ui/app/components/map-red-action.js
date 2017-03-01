@@ -53,6 +53,7 @@ export default Ember.Component.extend({
       }
       var existingStaticProp = this.get(property.belongsTo).findBy('name',property.name);
       if(existingStaticProp){
+        this.get(property.belongsTo).removeObject(existingStaticProp);
         Ember.set(property,'value',existingStaticProp.value);
         Ember.set(existingStaticProp,'static', true);
       }

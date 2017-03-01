@@ -63,13 +63,13 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   installZKFC: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.createInstallComponentTask('ZKFC', hostName, "HDFS");
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
+    this.createInstallComponentTask('ZKFC', hostNames, "HDFS");
   },
 
   startZKFC: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.updateComponent('ZKFC', hostName, "HDFS", "Start");
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
+    this.updateComponent('ZKFC', hostNames, "HDFS", "Start");
   },
 
   isPxfComponentInstalled: function () {
@@ -235,6 +235,25 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
     });
   },
 
+  /**
+   *
+   * @param {array} siteNames
+   * @param {object} data
+   */
+  saveReconfiguredConfigs: function(siteNames, data) {
+    var note = Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false));
+    var configData = this.reconfigureSites(siteNames, data, note);
+    return App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      success: 'saveConfigTag',
+      error: 'onTaskError'
+    });
+  },
+
   reconfigureHBase: function () {
     var data = this.get('content.serviceConfigProperties');
     var siteNames = ['hbase-site'];
@@ -252,58 +271,19 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
         }
       }
     }
-    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
-    App.ajax.send({
-      name: 'common.service.configurations',
-      sender: this,
-      data: {
-        desired_config: configData
-      },
-      success: 'saveConfigTag',
-      error: 'onTaskError'
-    });
+    this.saveReconfiguredConfigs(siteNames, data);
   },
 
   reconfigureAMS: function () {
-    var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['ams-hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
-    App.ajax.send({
-      name: 'common.service.configurations',
-      sender: this,
-      data: {
-        desired_config: configData
-      },
-      success: 'saveConfigTag',
-      error: 'onTaskError'
-    });
+    this.saveReconfiguredConfigs(['ams-hbase-site'], this.get('content.serviceConfigProperties'));
   },
 
   reconfigureAccumulo: function () {
-    var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
-    App.ajax.send({
-      name: 'common.service.configurations',
-      sender: this,
-      data: {
-        desired_config: configData
-      },
-      success: 'saveConfigTag',
-      error: 'onTaskError'
-    });
+    this.saveReconfiguredConfigs(['accumulo-site'], this.get('content.serviceConfigProperties'));
   },
 
   reconfigureHawq: function () {
-    var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['hawq-site', 'hdfs-client'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
-    App.ajax.send({
-      name: 'common.service.configurations',
-      sender: this,
-      data: {
-        desired_config: configData
-      },
-      success: 'saveConfigTag',
-      error: 'onTaskError'
-    });
+    this.saveReconfiguredConfigs(['hawq-site', 'hdfs-client'], this.get('content.serviceConfigProperties'));
   },
 
   saveConfigTag: function () {
@@ -326,7 +306,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   deleteSNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
-    App.ajax.send({
+    return App.ajax.send({
       name: 'common.delete.host_component',
       sender: this,
       data: {

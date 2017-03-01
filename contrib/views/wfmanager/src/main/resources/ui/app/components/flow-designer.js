@@ -44,13 +44,6 @@ const Validations = buildValidations({
         dependentKeys: ['workflow.killNodes.@each.name']
       })
     ]
-  },
-  'flattenedNodes': {
-    validators: [
-      validator('duplicate-flattened-node-name', {
-        dependentKeys: ['flattenedNodes.@each.name']
-      })
-    ]
   }
 });
 
@@ -88,7 +81,23 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   parameters : {},
   clonedDomain : {},
   clonedErrorNode : {},
-  validationErrors : [],
+  validationErrors : Ember.computed('validations.attrs.dataNodes.message', 'validations.attrs.workflow.killNodes.message', {
+    get(key){
+      var errors = [];
+      if(this.get('validations.attrs.dataNodes.message')){
+        errors.pushObject({message : this.get('validations.attrs.dataNodes.message')});
+      }
+      if(this.get('validations.attrs.workflow.killNodes.message')){
+        errors.pushObject(this.get('validations.attrs.dataNodes.message'));
+      }
+      return errors;
+    },
+    set(key, value){
+      if(!value){
+        this.set(key, Ember.A([]));
+      }
+    }
+  }),
   showingFileBrowser : false,
   killNode : {},
   isWorkflowImporting: false,
@@ -112,6 +121,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('flowRenderer',CytoscapeRenderer.create());
     this.set('workflow',Workflow.create({}));
     CommonUtils.setTestContext(this);
+    this.set('dataNodes', Ember.A([]));
+    this.set('validationErrors', Ember.A([]));
   }.on('init'),
   elementsInserted :function(){
     this.setConentWidth();
@@ -392,24 +403,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     });
     return deferred;
   },
-  getAssetFromHdfs(filePath){
-    var url = Ember.ENV.API_URL + "/readAsset?assetPath="+filePath;
-    var deferred = Ember.RSVP.defer();
-    Ember.$.ajax({
-      url: url,
-      method: 'GET',
-      dataType: "text",
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
-        xhr.setRequestHeader("X-Requested-By", "Ambari");
-      }
-    }).done(function(data){
-      deferred.resolve(data);
-    }).fail(function(data){
-      deferred.reject(data);
-    });
-    return deferred;
-  },
+
   importActionSettingsFromString(actionSettings) {
     var x2js = new X2JS();
     var actionSettingsObj = x2js.xml_str2json(actionSettings);
@@ -477,8 +471,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       self.set("data", data);
       self.set("isAssetPublishing", false);
     });
-
-    console.log("Action Node", actionNodeXml);
   },
   resetDesigner(){
     this.set("xmlAppPath", null);
@@ -491,6 +483,8 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('counterMap', {});
     this.set("undoAvailable", false);
     this.set("showingConfirmationNewWorkflow", false);
+    this.set("successMessage", "");
+    this.set("isWFSaveSuccess", false);
     if(this.get('workflow.parameters') !== null){
       this.set('workflow.parameters', {});
     }
@@ -552,7 +546,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   getWorkflowAsNativeJsonImpl(){
     try{
      var json=JSON.stringify(this.get("workflow")), self = this;
-     var actionVersions = JSON.stringify([...this.get("workflow").schemaVersions.actionVersions]);
+     var actionVersions = JSON.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
      var workflow = JSON.parse(json);
      workflow.schemaVersions.actionVersions = actionVersions
      return JSON.stringify(workflow);
@@ -564,7 +558,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   getWorkflowAsJsonJsoGImpl(){
    try{
     var json=JSOG.stringify(this.get("workflow")), self = this;
-    var actionVersions = JSOG.stringify([...this.get("workflow").schemaVersions.actionVersions]);
+    var actionVersions = JSOG.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
     var workflow = JSOG.parse(json);
     workflow.schemaVersions.actionVersions = actionVersions
     return JSOG.stringify(workflow);
@@ -578,13 +572,11 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     function detect (obj) {
       if (typeof obj === 'object') {
         if (seenObjects.indexOf(obj) !== -1) {
-          console.log("object already seen",obj);
           return true;
         }
         seenObjects.push(obj);
         for (var key in obj) {
           if (obj.hasOwnProperty(key) && detect(obj[key])) {
-            console.log("object already seen",key);
             return true;
           }
         }
@@ -658,7 +650,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('showActionEditor', true);
     this.set('currentAction', node.actionType);
     var domain = node.getNodeDetail();
-    this.set('clonedDomain',Ember.copy(domain));
+    this.set('clonedDomain', JSOG.stringify(domain));
     this.set('clonedErrorNode', node.errorNode);
     this.set('clonedKillMessage',node.get('killMessage'));
     node.set("domain", domain);
@@ -761,6 +753,17 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }
   },
   actions:{
+    showSuccessMessage(msg, isHideSuccessMsg) {
+      if(isHideSuccessMsg){
+        this.set("isWFSaveSuccess", false);
+      } else {
+        this.set("isWFSaveSuccess", true);
+      }
+      Ember.run.later(()=>{
+      this.$('#successMsg').fadeOut();
+      }, 3000);
+      this.set("successMessage", msg);
+    },
     importWorkflowStream(dataStr){
       this.importWorkflowFromFile(dataStr);
     },
@@ -838,9 +841,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     createKillNode(killNode){
       this.set("killNode", killNode);
       this.set("createKillnodeError",null);
-      var existingKillNode=this.get('workflow').get("killNodes").findBy("name",this.get('killNode.name'));
+      var existingKillNode= this.get('workflow').get("killNodes").findBy("name",this.get('killNode.name')) || this.get('dataNodes').findBy("dataNodeName", this.get('killNode.name'));
       if (existingKillNode){
-        this.set("createKillnodeError","The kill node already exists");
+        this.set("createKillnodeError","Node with same name already exists");
         return;
       }
       if (Ember.isBlank(this.get('killNode.name'))){
@@ -927,6 +930,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       }, this);
     },
     submitWorkflow(){
+      if(this.get('validationErrors') && this.get('validationErrors').length > 0){
+        return;
+      }
       this.set('dryrun', false);
       this.openJobConfig();
     },
@@ -934,6 +940,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       this.openSaveWorkflow();
     },
     previewWorkflow(){
+      if(this.get('validationErrors') && this.get('validationErrors').length > 0){
+        return;
+      }
       this.set("showingPreview",false);
       this.get('workflowContext').clearErrors();
       var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
@@ -1095,7 +1104,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.currentNode.onSave();
         this.doValidation();
       }	else {
-        this.set('currentNode.domain',Ember.copy(this.get('clonedDomain')));
+        this.set('currentNode.domain',JSOG.parse(this.get('clonedDomain')));
         this.set('currentNode.errorNode', this.get('clonedErrorNode'));
         if(this.currentNode.type === 'kill'){
           this.set('currentNode.killMessage', this.get('clonedKillMessage'));

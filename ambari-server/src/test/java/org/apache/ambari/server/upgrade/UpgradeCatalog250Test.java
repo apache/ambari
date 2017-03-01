@@ -32,7 +32,9 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -54,10 +56,12 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
@@ -65,8 +69,12 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
@@ -367,6 +375,7 @@ public class UpgradeCatalog250Test {
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
     Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
+    Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
@@ -386,6 +395,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateYarnSite)
         .addMockedMethod(updateAlerts)
         .addMockedMethod(removeAlertDuplicates)
+        .addMockedMethod(updateKerberosDescriptorArtifacts)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -438,6 +448,9 @@ public class UpgradeCatalog250Test {
 
     upgradeCatalog250.removeAlertDuplicates();
       expectLastCall().once();
+
+    upgradeCatalog250.updateKerberosDescriptorArtifacts();
+    expectLastCall().once();
 
     replay(upgradeCatalog250);
 
@@ -643,8 +656,16 @@ public class UpgradeCatalog250Test {
     Map<String, String> amsSite = new HashMap<String, String>() {
       {
         put("timeline.metrics.service.operation.mode", "distributed");
+        put("timeline.metrics.hbase.fifo.compaction.enabled", "true");
       }
     };
+
+    Map<String, String> newAmsSite = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.service.operation.mode", "distributed");
+      }
+    };
+
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
     Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
@@ -670,18 +691,23 @@ public class UpgradeCatalog250Test {
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture(CaptureType.ALL);
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
-        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
     replay(controller, injector2);
     new UpgradeCatalog250(injector2).updateAMSConfigs();
     easyMockSupport.verifyAll();
 
-    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(propertiesCapture.getValues().size() == 2);
+
+    Map<String, String> updatedProperties = propertiesCapture.getValues().get(0);
+    assertTrue(Maps.difference(newAmsSite, updatedProperties).areEqual());
+
+    updatedProperties = propertiesCapture.getValues().get(1);
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 
@@ -1572,6 +1598,73 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testUpdateKerberosDescriptorArtifact() throws Exception {
+    final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
+
+    KerberosServiceDescriptor serviceDescriptor;
+
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_2_5_infra_solr.json");
+    Assert.assertNotNull(systemResourceURL);
+
+    final KerberosDescriptor kerberosDescriptorOrig = kerberosDescriptorFactory.createInstance(new File(systemResourceURL.getFile()));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("LOGSEARCH");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("LOGSEARCH_SERVER"));
+    Assert.assertNotNull(serviceDescriptor.getComponent("LOGSEARCH_SERVER").getIdentity("logsearch"));
+    Assert.assertNotNull(serviceDescriptor.getComponent("LOGSEARCH_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("ATLAS");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("ATLAS_SERVER"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("RANGER");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("RANGER_ADMIN"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("STORM");
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(serviceDescriptor.getComponent("NIMBUS"));
+
+    UpgradeCatalog250 upgradeMock = createMockBuilder(UpgradeCatalog250.class).createMock();
+
+
+    ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
+    expect(artifactEntity.getArtifactData())
+      .andReturn(kerberosDescriptorOrig.toMap())
+      .once();
+
+    Capture<Map<String, Object>> updateData = Capture.newInstance(CaptureType.ALL);
+    artifactEntity.setArtifactData(capture(updateData));
+    expectLastCall().times(3);
+
+    ArtifactDAO artifactDAO = createNiceMock(ArtifactDAO.class);
+    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(3);
+
+    replay(artifactEntity, artifactDAO, upgradeMock);
+    upgradeMock.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
+    verify(artifactEntity, artifactDAO, upgradeMock);
+
+    KerberosDescriptor atlasKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(0));
+    KerberosDescriptor rangerKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(1));
+    KerberosDescriptor stormKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(2));
+
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getIdentity("spnego"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER"));
+    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER"));
+    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN"));
+    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
+    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM"));
+    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS"));
+    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS").getIdentity("/STORM/storm_components"));
   }
 
   @Test

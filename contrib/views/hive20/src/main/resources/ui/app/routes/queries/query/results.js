@@ -17,8 +17,9 @@
  */
 
 import Ember from 'ember';
+import UILoggerMixin from '../../../mixins/ui-logger';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(UILoggerMixin, {
 
   jobs: Ember.inject.service(),
   query: Ember.inject.service(),
@@ -44,7 +45,14 @@ export default Ember.Route.extend({
       this.controller.set('previousPage', model.get('previousPage'));
       this.controller.set('hasNext', model.get('hasNext'));
       this.controller.set('hasPrevious', model.get('hasPrevious'));
+
       this.controller.set('queryResult', model.get('queryResult'));
+      this.controller.set('isExportResultSuccessMessege', false);
+      this.controller.set('isExportResultFailureMessege', false);
+      this.controller.set('showSaveHdfsModal', false);
+      this.controller.set('showDownloadCsvModal', false);
+
+
       this.controller.set('hasJobAssociated', true);
     } else {
       this.controller.set('hasJobAssociated', false);
@@ -53,6 +61,55 @@ export default Ember.Route.extend({
   },
 
   actions:{
+
+    saveToHDFS(jobId, path){
+
+      var self = this;
+
+      console.log('saveToHDFS query route with jobId == ', jobId);
+      console.log('saveToHDFS query route with path == ', path);
+
+      this.get('query').saveToHDFS(jobId, path)
+        .then((data) => {
+
+          console.log('successfully saveToHDFS', data);
+          this.get('controller').set('isExportResultSuccessMessege', true);
+          this.get('controller').set('isExportResultFailureMessege', false);
+
+          Ember.run.later(() => {
+            this.get('controller').set('showSaveHdfsModal', false);
+            this.get('logger').success('Successfully Saved to HDFS.');
+
+          }, 2 * 1000);
+
+        }, (error) => {
+
+          console.log("Error encountered", error);
+          this.get('controller').set('isExportResultFailureMessege', true);
+          this.get('controller').set('isExportResultSuccessMessege', false);
+
+          Ember.run.later(() => {
+            this.get('controller').set('showSaveHdfsModal', false);
+            this.get('logger').danger('Failed to save to HDFS.', this.extractError(error));
+          }, 2 * 1000);
+
+
+        });
+    },
+
+
+    downloadAsCsv(jobId, path){
+
+      console.log('downloadAsCsv query route with jobId == ', jobId);
+      console.log('downloadAsCsv query route with path == ', path);
+
+      let downloadAsCsvUrl = this.get('query').downloadAsCsv(jobId, path) || '';
+
+      this.get('controller').set('showDownloadCsvModal', false);
+      this.get('logger').success('Successfully downloaded as CSV.');
+      window.open(downloadAsCsvUrl);
+
+    },
 
   }
 

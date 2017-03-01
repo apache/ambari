@@ -193,6 +193,10 @@ public class PropertyInfo {
     return dependsOnProperties;
   }
 
+  public void setPropertyValueAttributes(ValueAttributesInfo propertyValueAttributes) {
+    this.propertyValueAttributes = propertyValueAttributes;
+  }
+
   public Set<PropertyDependencyInfo> getDependedByProperties() {
     return dependedByProperties;
   }

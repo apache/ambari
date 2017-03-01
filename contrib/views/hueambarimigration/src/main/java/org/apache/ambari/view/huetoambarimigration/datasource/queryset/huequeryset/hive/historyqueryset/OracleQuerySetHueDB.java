@@ -26,36 +26,36 @@ public class OracleQuerySetHueDB extends QuerySetHueDB {
   }
   @Override
   protected String fetchHueQueriesNoStartdateNoEnddateSql() {
-    return "select query from beeswax_queryhistory where owner_id =?";
+    return "select owner_id, query from beeswax_queryhistory where owner_id =?";
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select query from beeswax_queryhistory where owner_id =? AND submission_date <= date(?)";
+    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?)";
+    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?) AND submission_date <= date(?)";
+    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= to_date(?, 'YYYY-MM-DD') AND submission_date <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesNoStartdateNoEnddateYesallUserSql() {
-    return "select query from beeswax_queryhistory";
+    return "select owner_id, query from beeswax_queryhistory";
   }
   @Override
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select query from beeswax_queryhistory where submission_date <= date(?)";
+    return "select owner_id, query from beeswax_queryhistory where submission_date <= to_date(?, 'YYYY-MM-DD')";
   }
   @Override
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select query from beeswax_queryhistory where submission_date >= date(?)";
+    return "select owner_id, query from beeswax_queryhistory where submission_date >= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select query from beeswax_queryhistory where submission_date >= date(?) AND submission_date <= date(?)";
+    return "select owner_id, query from beeswax_queryhistory where submission_date >= to_date(?, 'YYYY-MM-DD') AND submission_date <= to_date(?, 'YYYY-MM-DD')";
 
   }
   @Override

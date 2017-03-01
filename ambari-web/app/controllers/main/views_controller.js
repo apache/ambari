@@ -25,6 +25,8 @@ App.MainViewsController = Em.Controller.extend({
 
   ambariViews: [],
 
+  visibleAmbariViews: Em.computed.filterBy('ambariViews', 'visible', true),
+
   dataLoading: function () {
     var viewsController = this;
     var dfd = $.Deferred();

@@ -42,6 +42,17 @@ $nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
            color: #fff;
            border: 1px solid darken($body-bg, 15%);
            border-bottom: none;
+           &.ember-transitioning-out {
+             background-color: $body-bg;
+             color: darken($body-bg, 50%);
+             border: none;
+           }
+         }
+         &.ember-transitioning-in {
+           background-color: $gray-dark;
+           color: #fff;
+           border: 1px solid darken($body-bg, 15%);
+           border-bottom: none;
          }
        }
     }
@@ -51,6 +62,15 @@ $nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
       font-weight: bold;
       color: darken($body-bg, 50%);
       &.active {
+        background-color: #fff;
+        border: 1px solid darken($body-bg, 15%);
+        border-bottom: none;
+        &.ember-transitioning-out {
+          background-color: $body-bg;
+          border: none;
+        }
+      }
+      &.ember-transitioning-in {
         background-color: #fff;
         border: 1px solid darken($body-bg, 15%);
         border-bottom: none;

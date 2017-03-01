@@ -32,10 +32,18 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
+artifact_dir = tmp_dir + "/AMBARI-artifacts"
+
+# Global flag enabling or disabling the sysprep feature
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # Whether to skip copying fast-hdfs-resource.jar to /var/lib/ambari-agent/lib/
 # This is required if tarballs are going to be copied to HDFS, so set to False
-sysprep_skip_copy_fast_jar_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_fast_jar_hdfs", False)
+sysprep_skip_copy_fast_jar_hdfs = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_copy_fast_jar_hdfs", False)
+
+# Whether to skip setting up the unlimited key JCE policy
+sysprep_skip_setup_jce = host_sys_prepped and default("/configurations/cluster-env/sysprep_skip_setup_jce", False)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
@@ -69,6 +77,17 @@ current_service = config['serviceName']
 
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
+
+ambari_server_resources_url = default("/hostLevelParams/jdk_location", None)
+if ambari_server_resources_url is not None and ambari_server_resources_url.endswith('/'):
+  ambari_server_resources_url = ambari_server_resources_url[:-1]
+
+# Unlimited key JCE policy params
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+unlimited_key_jce_required = default("/hostLevelParams/unlimited_key_jce_required", False)
+jdk_name = default("/hostLevelParams/jdk_name", None)
+java_home = default("/hostLevelParams/java_home", None)
+java_exec = "{0}/bin/java".format(java_home) if java_home is not None else "/bin/java"
 
 #users and groups
 has_hadoop_env = 'hadoop-env' in config['configurations']
@@ -164,9 +183,8 @@ server_db_name = config['hostLevelParams']['db_name']
 db_driver_filename = config['hostLevelParams']['db_driver_filename']
 oracle_driver_url = config['hostLevelParams']['oracle_jdbc_url']
 mysql_driver_url = config['hostLevelParams']['mysql_jdbc_url']
-ambari_server_resources = config['hostLevelParams']['jdk_location']
-oracle_driver_symlink_url = format("{ambari_server_resources}oracle-jdbc-driver.jar")
-mysql_driver_symlink_url = format("{ambari_server_resources}mysql-jdbc-driver.jar")
+oracle_driver_symlink_url = format("{ambari_server_resources_url}/oracle-jdbc-driver.jar")
+mysql_driver_symlink_url = format("{ambari_server_resources_url}/mysql-jdbc-driver.jar")
 
 ambari_db_rca_url = config['hostLevelParams']['ambari_db_rca_url'][0]
 ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver'][0]
@@ -184,7 +202,6 @@ else:
   rca_prefix = rca_disabled_prefix
 
 #hadoop-env.sh
-java_home = config['hostLevelParams']['java_home']
 
 jsvc_path = "/usr/lib/bigtop-utils"
 

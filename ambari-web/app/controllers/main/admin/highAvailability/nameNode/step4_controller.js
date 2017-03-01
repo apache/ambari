@@ -31,8 +31,10 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
   isNameNodeStarted: true,
 
   pullCheckPointStatus: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
-    App.ajax.send({
+    var hostName = this.get('content.masterComponentHosts')
+                  .filterProperty('component', 'NAMENODE')
+                  .findProperty('isInstalled', true).hostName;
+    return App.ajax.send({
       name: 'admin.high_availability.getNnCheckPointStatus',
       sender: this,
       data: {

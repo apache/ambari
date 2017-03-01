@@ -220,7 +220,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       },
       timezone : 'UTC',
       dataInputType : 'simple',
-      slainfo : SlaInfo.create({}),
+      slaInfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
       },
@@ -262,6 +262,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     return deferred;
   },
   importCoordinator (filePath){
+    this.hideSuccessMsg();
     filePath = this.appendFileName(filePath, 'coord');
     this.set("coordinatorFilePath", filePath);
     this.set("isImporting", false);
@@ -367,7 +368,22 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     }.bind(this));
     return isChildComponentsValid;
   },
+  hideSuccessMsg(){
+    this.set('successMessage', '');
+    this.set('isWFSaveSuccess', false);
+  },
   actions : {
+    showSuccessMessage(msg, isHideSuccessMsg) {
+      if(isHideSuccessMsg){
+        this.set("isWFSaveSuccess", false);
+      } else {
+        this.set("isWFSaveSuccess", true);
+      }
+      Ember.run.later(()=>{
+      this.$('#successMsg').fadeOut();
+      }, 3000);
+      this.set("successMessage", msg);
+    },
     registerChild(key, context){
       this.get('childComponents').set(key, context);
     },
@@ -571,6 +587,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     resetCoordinator(){
       this.get("errors").clear();
+      this.hideSuccessMsg();
       this.set('showingResetConfirmation', false);
       if(this.get('coordinatorFilePath')){
         this.importCoordinator(this.get('coordinatorFilePath'));
@@ -593,7 +610,15 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       });
     },
     openTab(type, path){
-      this.sendAction('openTab', type, path);
+      this.set('errorMsg', '');
+      var path = this.appendFileName(path, type);
+      var deferred = this.readFromHdfs(path);
+      deferred.promise.then(function(data){
+        this.sendAction('openTab', type, path);
+      }.bind(this)).catch(function(data){
+        this.set('errorMsg', 'There is some problem while importing.');
+        this.set('data', data);
+      }.bind(this));
     },
     showParameterSettings(value){
       if(this.get('coordinator.parameters') !== null){
@@ -636,15 +661,26 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     },
     showWorkflowName(){
       this.set('workflowName', null);
+      this.set('errorMsg', "");
       var path = this.appendFileName(this.get('coordinator.workflow.appPath'), 'wf');
+      if (this.get('propertyExtractor').containsParameters(path)) {
+        this.set('containsParameteriedPaths', true);
+        this.set('parameterizedPathWarning', 'Workflow path contains variables');
+        return;
+      } else {
+        this.set('containsParameteriedPaths', false);
+        this.set('parameterizedPathWarning', '');
+      }
       var deferred = this.readFromHdfs(path);
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var workflowJson = x2js.xml_str2json(data);
         this.set('workflowName', workflowJson["workflow-app"]._name);
-      }.bind(this)).catch(function(e){
+      }.bind(this)).catch(function(data){
+        console.error(data);
         this.set('workflowName', null);
-        throw new Error(e);
+        this.set('errorMsg', "There is some problem while fetching workflow name.");
+        this.set("data", data);
       }.bind(this));
     },
     showVersionSettings(value){

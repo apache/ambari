@@ -80,8 +80,10 @@ public class VersionUtils {
       return 0;
     }
 
-    String[] version1Parts = version1.split("\\.");
-    String[] version2Parts = version2.split("\\.");
+    //String pattern = "^([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([0-9]+).*";
+    String pattern = "([0-9]+).([0-9]+).([0-9]+).([0-9]+)?.*";
+    String[] version1Parts = version1.replaceAll(pattern, "$1.$2.$3.$4").split("\\.");
+    String[] version2Parts = version2.replaceAll(pattern, "$1.$2.$3.$4").split("\\.");
 
     int length = Math.max(version1Parts.length, version2Parts.length);
     length = maxLengthToCompare == 0 || maxLengthToCompare > length ? length : maxLengthToCompare;

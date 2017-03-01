@@ -25,12 +25,17 @@ package org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqu
 public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
 
   @Override
+  protected String getHiveVersionDetailSql(){
+    return "select distinct(view_name) as viewname from viewentity where view_instance_name =?";
+  }
+
+  @Override
   protected String getSqlMaxDSidFromTableId(int id) {
     return "select MAX(cast(ds_id as integer)) as max from ds_jobimpl_" + id + "";
   }
   @Override
   protected String getTableIdSqlFromInstanceName() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl' and view_instance_name=?";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.jobs.viewJobs.JobImpl' and view_instance_name=?";
   }
 
   @Override

@@ -192,6 +192,7 @@
   </files>
   <dependencySets>
     <dependencySet>
+      <fileMode>644</fileMode>
       <outputDirectory>/var/lib/${project.artifactId}/cred/lib</outputDirectory>
       <unpack>false</unpack>
       <includes>

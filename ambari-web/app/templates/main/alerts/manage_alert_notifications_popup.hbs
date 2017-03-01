@@ -32,14 +32,13 @@
           <div class="btn-toolbar pull-right">
             <button rel="button-info" class="btn btn-default add-notification-button"
               {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.addButton"}}
-              {{bindAttr disabled="view.isAddButtonDisabled"}}
               {{action addAlertNotification target="controller"}}><i class="glyphicon glyphicon-plus"></i></button>
             <button rel="button-info" class="btn btn-default remove-notification-button"
               {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.removeButton"}}
               {{bindAttr disabled="view.isRemoveButtonDisabled"}}
               {{action deleteAlertNotification target="controller"}}><i class="glyphicon glyphicon-minus"></i></button>
             <div class="btn-group notification-actions-button dropup">
-              <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.isAddButtonDisabled"}}>
+              <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                 <i class="glyphicon glyphicon-cog"></i>&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">

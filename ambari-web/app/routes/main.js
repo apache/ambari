@@ -433,6 +433,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               secondary: null,
               disablePrimary: Em.computed.alias('App.router.kerberosDisableController.isSubmitDisabled'),
 
+              onPrimary() {
+                this.onClose();
+              },
+
               onClose: function () {
                 var self = this;
                 var controller = router.get('kerberosDisableController');
