@@ -17,19 +17,14 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,9 +58,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -84,11 +77,7 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -98,9 +87,6 @@ import com.google.inject.Injector;
 /**
  * UpgradeResourceDefinition tests.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AuthorizationHelper.class})
-@PowerMockIgnore({"javax.management.*", "javax.crypto.*"})
 public class UpgradeResourceProviderHDP22Test {
 
   private UpgradeDAO upgradeDao = null;
@@ -124,6 +110,9 @@ public class UpgradeResourceProviderHDP22Test {
 
   @Before
   public void before() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
     // create an injector which will inject the mocks
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
 
@@ -174,7 +163,7 @@ public class UpgradeResourceProviderHDP22Test {
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
@@ -197,13 +186,6 @@ public class UpgradeResourceProviderHDP22Test {
     StageUtils.setTopologyManager(topologyManager);
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
     ActionManager.setTopologyManager(topologyManager);
-
-
-    Method isAuthorizedMethod = AuthorizationHelper.class.getMethod("isAuthorized", ResourceType.class, Long.class, Set.class);
-    PowerMock.mockStatic(AuthorizationHelper.class, isAuthorizedMethod);
-    expect(AuthorizationHelper.isAuthorized(eq(ResourceType.CLUSTER), anyLong(),
-        eq(EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK)))).andReturn(true).anyTimes();
-    PowerMock.replay(AuthorizationHelper.class);
   }
 
   @After
@@ -241,7 +223,7 @@ public class UpgradeResourceProviderHDP22Test {
     Config config = configFactory.createNew(cluster, "hive-site", configTagVersion1, configTagVersion1Properties, null);
     cluster.addDesiredConfig("admin", Collections.singleton(config));
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.4.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
@@ -307,7 +289,7 @@ public class UpgradeResourceProviderHDP22Test {
 
       // ensure that the latest tag is being used - this is absolutely required
       // for upgrades
-      Set<String> roleCommandsThatMustHaveRefresh = new HashSet<String>();
+      Set<String> roleCommandsThatMustHaveRefresh = new HashSet<>();
       roleCommandsThatMustHaveRefresh.add("SERVICE_CHECK");
       roleCommandsThatMustHaveRefresh.add("RESTART");
       roleCommandsThatMustHaveRefresh.add("ACTIONEXECUTE");
