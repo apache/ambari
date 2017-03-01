@@ -18,4 +18,18 @@
 
 package org.apache.ambari.view.hive20.actor.message.job;
 
-public class NoMoreItems {}
+import java.util.List;
+
+import org.apache.ambari.view.hive20.client.ColumnDescription;
+
+public class NoMoreItems {
+  private final List<ColumnDescription> columns;
+
+  public NoMoreItems(List<ColumnDescription> columns) {
+    this.columns = columns;
+  }
+
+  public List<ColumnDescription> getColumns() {
+    return columns;
+  }
+}
