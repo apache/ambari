@@ -204,7 +204,6 @@
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>yarn-log4j</config-type>
-        <config-type>ams-ssl-client</config-type>
         <config-type>ranger-yarn-plugin-properties</config-type>
         <config-type>ranger-yarn-audit</config-type>
         <config-type>ranger-yarn-policymgr-ssl</config-type>
@@ -336,7 +335,6 @@
         <config-type>mapred-env</config-type>
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>FAKEMAPREDUCE2_widgets.json</widgetsFileName>
