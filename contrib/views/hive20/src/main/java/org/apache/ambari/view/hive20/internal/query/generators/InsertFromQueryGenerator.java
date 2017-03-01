@@ -38,8 +38,8 @@ public class InsertFromQueryGenerator implements QueryGenerator{
 
   @Override
   public Optional<String> getQuery() throws ServiceException {
-    StringBuilder insertQuery = new StringBuilder("INSERT INTO TABLE `").append(insertFromQueryInput.getToDatabase()).append("`.`")
-        .append(insertFromQueryInput.getToTable()).append("`")
+    StringBuilder insertQuery = new StringBuilder("INSERT INTO TABLE `").append(insertFromQueryInput.getToDatabase()).append('`').append(".")
+        .append("`").append(insertFromQueryInput.getToTable()).append("`")
         .append(" SELECT ");
 
     boolean first = true;
@@ -59,7 +59,7 @@ public class InsertFromQueryGenerator implements QueryGenerator{
         insertQuery.append("UNHEX(");
       }
 
-      insertQuery.append(column.getName());
+      insertQuery.append('`').append(column.getName()).append('`');
 
       if(unhex) {
         insertQuery.append(")");
