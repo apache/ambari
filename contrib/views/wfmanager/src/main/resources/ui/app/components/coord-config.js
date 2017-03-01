@@ -220,7 +220,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       },
       timezone : 'UTC',
       dataInputType : 'simple',
-      slainfo : SlaInfo.create({}),
+      slaInfo : SlaInfo.create({}),
       schemaVersions : {
         coordinatorVersion : this.get('schemaVersions').getDefaultVersion('coordinator')
       },
