@@ -32,10 +32,10 @@ export default Ember.Component.extend({
   currentIndex : Ember.computed('tabs.[]', function() {
     return this.get('tabs').length > 0 ? this.get('tabs').length - 1 : 0;
   }),
-  tabsObserver : Ember.observer('tabs.[]', 'tabs.@each.name', 'tabs.@each.filePath', function(){
+  tabsObserver : function(){
     this.get('workspaceManager').saveTabs(this.get('tabs'));
     this.tabManager();
-  }),
+  },
   initialize : function(){
     if (Constants.isProjectManagerEnabled) {
       this.set("isProjectManagerEnabled", "true");
@@ -47,24 +47,29 @@ export default Ember.Component.extend({
     this.get('tabCounter').set('bundle', 0);
     var tabsData = this.get('workspaceManager').restoreTabs();
     tabsData.promise.then(function(tabs){
-        if(tabs){
-          this.set('tabs', tabs);
-        }
-        this.get('tabs').forEach((tab)=>{
-          this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
-        }, this);
-        Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path, type, isImportedFromDesigner, configuration){
-          if(type === 'COORDINATOR'){
-            this.createNewTab('coord', path);
-          }else if(type === 'BUNDLE'){
-            this.createNewTab('bundle', path);
-          }else{
-            this.createNewTab('wf', path, isImportedFromDesigner, configuration);
-          }
-        }.bind(this));
-
-      }.bind(this)).catch(function(data){
-      });
+      if(tabs){
+        this.set('tabs', tabs);
+      }
+      this.get('tabs').forEach((tab)=>{
+        this.get('tabCounter').set(tab.type, (this.get('tabCounter').get(tab.type)) + 1);
+      }, this);
+      Ember.addObserver(this, 'tabs.[]',this, this.tabsObserver);
+      Ember.addObserver(this, 'tabs.@each.name',this, this.tabsObserver);
+      Ember.addObserver(this, 'tabs.@each.filePath',this, this.tabsObserver);
+    }.bind(this)).catch(function(data){
+      Ember.addObserver(this, 'tabs.[]',this, this.tabsObserver);
+      Ember.addObserver(this, 'tabs.@each.name',this, this.tabsObserver);
+      Ember.addObserver(this, 'tabs.@each.filePath',this, this.tabsObserver);
+    });
+    Ember.getOwner(this).lookup('route:design').on('openNewTab', function(path, type, isImportedFromDesigner, configuration){
+      if(type === 'COORDINATOR'){
+        this.createNewTab('coord', path);
+      }else if(type === 'BUNDLE'){
+        this.createNewTab('bundle', path);
+      }else{
+        this.createNewTab('wf', path, isImportedFromDesigner, configuration);
+      }
+    }.bind(this));
   }.on('init'),
   elementsInserted : function(){
     this.tabManager();
@@ -84,6 +89,9 @@ export default Ember.Component.extend({
     }
   }.on('didInsertElement'),
   onDestroy : function(){
+    Ember.removeObserver(this, 'tabs.[]',this, this.tabsObserver);
+    Ember.removeObserver(this, 'tabs.@each.name',this, this.tabsObserver);
+    Ember.removeObserver(this, 'tabs.@each.filePath',this, this.tabsObserver);
     this.get('tabs').clear();
   }.on('willDestroyElement'),
   tabManager(){

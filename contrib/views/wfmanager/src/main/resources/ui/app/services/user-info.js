@@ -44,7 +44,7 @@ export default Ember.Service.extend({
         deferred.reject(data);
       });
     }
-    return deferred;
+    return deferred.promise;
   },
   setUserData(data){
     this.set("data", data);
