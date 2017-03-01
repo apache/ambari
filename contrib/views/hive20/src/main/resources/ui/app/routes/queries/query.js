@@ -44,7 +44,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     this.store.findAll('setting').then((data) => {
       let localStr = '';
       data.forEach(x => {
-        localStr = localStr + 'set '+ x.get('key')+ '='+ x.get('value') + '\n';
+        localStr = localStr + 'set '+ x.get('key')+ '='+ x.get('value') + ';\n';
       });
       this.set('globalSettings', localStr);
     });
@@ -296,12 +296,13 @@ export default Ember.Route.extend(UILoggerMixin, {
 
       let globalSettings = this.get('globalSettings');
 
+      let forcedContent = globalSettings + queryInput;
       this.send('showQueryResultContainer');
 
       let payload ={
         "title":worksheetTitle,
         "dataBase":dbid,
-        "forcedContent":queryInput,
+        "forcedContent":forcedContent,
         "referrer":"job",
         "globalSettings":globalSettings};
 
