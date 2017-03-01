@@ -27,6 +27,8 @@ import org.apache.ambari.server.audit.request.eventcreator.RequestAuditEventCrea
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.audit.request.RequestAuditLoggerImpl;
 import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
@@ -34,14 +36,15 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
 public class AuditLoggerModule extends AbstractModule {
+  private static final Logger LOG = LoggerFactory.getLogger(AuditLoggerModule.class);
 
   /**
    * Selectors identifying objects to be bound.
    *
    * @return a list with interface and annotation types
    */
-  protected List<Class> getSelectors() {
-    List<Class> selectorList = new ArrayList<>();
+  protected List<Class<?>> getSelectors() {
+    List<Class<?>> selectorList = new ArrayList<>();
     selectorList.add(RequestAuditEventCreator.class);
     return selectorList;
   }
@@ -51,7 +54,7 @@ public class AuditLoggerModule extends AbstractModule {
    *
    * @return a list with types to be left out from dynamic bindings
    */
-  protected List<Class> getExclusions() {
+  protected List<Class<?>> getExclusions() {
     return Collections.emptyList();
   }
 
@@ -73,8 +76,10 @@ public class AuditLoggerModule extends AbstractModule {
 
     // binding for audit event creators
     Multibinder<RequestAuditEventCreator> multiBinder = Multibinder.newSetBinder(binder(), RequestAuditEventCreator.class);
-    Set<Class> bindingSet = ClasspathScannerUtils.findOnClassPath(getPackageToScan(), getExclusions(), getSelectors());
+    Set<Class<?>> bindingSet = ClasspathScannerUtils.findOnClassPath(getPackageToScan(), getExclusions(), getSelectors());
+
     for (Class clazz : bindingSet) {
+      LOG.info("Binding audit event creator {}", clazz);
       multiBinder.addBinding().to(clazz).in(Scopes.SINGLETON);
     }
 

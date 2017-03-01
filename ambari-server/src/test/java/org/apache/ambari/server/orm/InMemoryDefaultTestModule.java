@@ -49,7 +49,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   private static class BeanDefinitionsCachingTestControllerModule extends ControllerModule {
 
     // Access should be synchronised to allow concurrent test runs.
-    private static final AtomicReference<Set<BeanDefinition>> foundBeanDefinitions
+    private static final AtomicReference<Set<Class<?>>> matchedAnnotationClasses
         = new AtomicReference<>(null);
 
     private static final AtomicReference<Set<BeanDefinition>> foundNotificationBeanDefinitions
@@ -64,9 +64,9 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     }
 
     @Override
-    protected Set<BeanDefinition> bindByAnnotation(Set<BeanDefinition> beanDefinitions) {
-      Set<BeanDefinition> newBeanDefinitions = super.bindByAnnotation(foundBeanDefinitions.get());
-      foundBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
+    protected Set<Class<?>> bindByAnnotation(Set<Class<?>> matchedClasses) {
+      Set<Class<?>> newMatchedClasses = super.bindByAnnotation(matchedAnnotationClasses.get());
+      matchedAnnotationClasses.compareAndSet(null, Collections.unmodifiableSet(newMatchedClasses));
       return null;
     }
 
