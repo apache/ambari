@@ -20,7 +20,7 @@
   <ul class="worksheet-nav row nav nav-tabs inverse">
     {{#each worksheets as |worksheet| }}
       <li class="{{if worksheet.selected 'active'}}" style="">
-        {{#link-to 'queries.query' worksheet.title }}{{ worksheet.title }}{{/link-to}}
+        {{#link-to 'queries.query' worksheet.id  classBinding='worksheet.selected:active'}}{{ worksheet.title }}{{/link-to}}
       </li>
     {{/each}}
     <li>

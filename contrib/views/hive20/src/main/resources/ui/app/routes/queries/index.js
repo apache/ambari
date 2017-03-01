@@ -24,7 +24,7 @@ export default Ember.Route.extend({
     if(existingWorksheets.get('length') > 0) {
       let selectedWorksheet = existingWorksheets.filterBy('selected', true).get('firstObject');
       this.controllerFor('queries').set('worksheets', existingWorksheets);
-      this.transitionTo('queries.query', selectedWorksheet.get('title'));
+      this.transitionTo('queries.query', selectedWorksheet.get('id'));
     } else {
       this.transitionTo('queries.new');
     }

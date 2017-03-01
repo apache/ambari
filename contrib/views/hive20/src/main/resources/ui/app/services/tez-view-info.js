@@ -24,6 +24,7 @@ export default Ember.Service.extend({
   tezURLPrefix: '/views/TEZ',
   tezDagPath: '?viewPath=/#/dag/',
   getTezViewInfo: function () {
+    this.set('error', null);
     if (this.get('isTezViewAvailable')) {
       return;
     }
@@ -68,16 +69,23 @@ export default Ember.Service.extend({
     // status: 404 => Tev View isn't deployed
     if (data.status && data.status === 404) {
       this.set('error', 'tez.errors.not.deployed');
-      return;
-    }
-
-    // no instance created
-    if (data.instances && !data.instances.length) {
+      this.set('errorMsg', 'Tez view not deployed');
+    } else if (data.instances && !data.instances.length) { // no instance created
       this.set('error', 'tez.errors.no.instance');
-      return;
+      this.set('errorMsg', 'Tez view instance not created');
+    } else {
+      this.set('error', 'error');
+      this.set('errorMsg', 'Error occurred while dispaying TEZ UI');
     }
   },
-  getTezViewURL(){
-    return this.get('tezViewURL') + this.get("tezDagPath");
+  getTezViewData(){
+    let tezData = {};
+    if(this.get('error')){
+      tezData.error = this.get('error');
+      tezData.errorMsg = this.get('errorMsg');
+    } else {
+      tezData.tezUrl = this.get('tezViewURL') + this.get("tezDagPath");
+    }
+    return tezData;
   }
 });
