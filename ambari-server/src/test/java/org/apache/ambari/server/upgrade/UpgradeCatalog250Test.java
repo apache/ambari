@@ -1602,6 +1602,7 @@ public class UpgradeCatalog250Test {
 
   @Test
   public void testUpdateKerberosDescriptorArtifact() throws Exception {
+    final String propertyToRemove = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
     final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
 
     KerberosServiceDescriptor serviceDescriptor;
@@ -1629,8 +1630,7 @@ public class UpgradeCatalog250Test {
     Assert.assertNotNull(serviceDescriptor);
     Assert.assertNotNull(serviceDescriptor.getComponent("NIMBUS"));
 
-    UpgradeCatalog250 upgradeMock = createMockBuilder(UpgradeCatalog250.class).createMock();
-
+    UpgradeCatalog250 upgradeMock = createMockBuilder(UpgradeCatalog250.class).withConstructor(injector).createMock();
 
     ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
     expect(artifactEntity.getArtifactData())
@@ -1639,10 +1639,10 @@ public class UpgradeCatalog250Test {
 
     Capture<Map<String, Object>> updateData = Capture.newInstance(CaptureType.ALL);
     artifactEntity.setArtifactData(capture(updateData));
-    expectLastCall().times(3);
+    expectLastCall().times(4);
 
     ArtifactDAO artifactDAO = createNiceMock(ArtifactDAO.class);
-    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(3);
+    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(4);
 
     replay(artifactEntity, artifactDAO, upgradeMock);
     upgradeMock.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
@@ -1651,6 +1651,7 @@ public class UpgradeCatalog250Test {
     KerberosDescriptor atlasKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(0));
     KerberosDescriptor rangerKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(1));
     KerberosDescriptor stormKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(2));
+    KerberosDescriptor yarnKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(3));
 
     Assert.assertNotNull(atlasKerberosDescriptorUpdated.getIdentity("spnego"));
     Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH"));
@@ -1665,6 +1666,7 @@ public class UpgradeCatalog250Test {
     Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM"));
     Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS"));
     Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS").getIdentity("/STORM/storm_components"));
+    Assert.assertFalse(yarnKerberosDescriptorUpdated.getService("YARN").getConfigurations().get("yarn-site").getProperties().containsKey(propertyToRemove));
   }
 
   @Test

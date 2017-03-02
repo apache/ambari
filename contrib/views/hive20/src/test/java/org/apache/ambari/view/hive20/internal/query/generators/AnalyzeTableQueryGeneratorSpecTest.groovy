@@ -63,7 +63,8 @@ class AnalyzeTableQueryGeneratorSpecTest extends Specification {
     String query = databaseDeleteQuery.get();
 
     then:
-    query == "ANALYZE TABLE `d1`.`t2` PARTITION (col_name4,col_name3) COMPUTE STATISTICS  FOR COLUMNS ;"
+    query == "ANALYZE TABLE `d1`.`t2` PARTITION (`col_name4`,`col_name3`) COMPUTE STATISTICS ;\n" +
+            "ANALYZE TABLE `d1`.`t2` PARTITION (`col_name4`,`col_name3`) COMPUTE STATISTICS  FOR COLUMNS ;"
   }
   def "analyze with partition"() {
     setup:
@@ -105,7 +106,7 @@ class AnalyzeTableQueryGeneratorSpecTest extends Specification {
     String query = databaseDeleteQuery.get();
 
     then:
-    query == "ANALYZE TABLE `d1`.`t2` PARTITION (col_name4,col_name3) COMPUTE STATISTICS ;"
+    query == "ANALYZE TABLE `d1`.`t2` PARTITION (`col_name4`,`col_name3`) COMPUTE STATISTICS ;"
   }
 
   def "analyze without partition"() {
@@ -147,7 +148,8 @@ class AnalyzeTableQueryGeneratorSpecTest extends Specification {
     String query = databaseDeleteQuery.get();
 
     then:
-    query == "ANALYZE TABLE `d1`.`t2` COMPUTE STATISTICS  FOR COLUMNS ;"
+    query == "ANALYZE TABLE `d1`.`t2` COMPUTE STATISTICS ;\n" +
+            "ANALYZE TABLE `d1`.`t2` COMPUTE STATISTICS  FOR COLUMNS ;"
   }
 
   def "analyze for table only"() {

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.orm.dao.Cleanable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
@@ -32,14 +34,15 @@ import com.google.inject.multibindings.Multibinder;
  * Configuration module for the cleanup framework.
  */
 public class CleanupModule extends AbstractModule {
+  private static final Logger LOG = LoggerFactory.getLogger(CleanupModule.class);
 
   /**
    * Selectors identifying objects to be bound.
    *
    * @return a list with interface and annotation types
    */
-  protected List<Class> getSelectors() {
-    List<Class> selectorList = new ArrayList<>();
+  protected List<Class<?>> getSelectors() {
+    List<Class<?>> selectorList = new ArrayList<>();
     selectorList.add(Cleanable.class);
     return selectorList;
   }
@@ -49,7 +52,7 @@ public class CleanupModule extends AbstractModule {
    *
    * @return a list with types to be left out from dynamic bindings
    */
-  protected List<Class> getExclusions() {
+  protected List<Class<?>> getExclusions() {
     return Collections.emptyList();
   }
 
@@ -67,10 +70,12 @@ public class CleanupModule extends AbstractModule {
   protected void configure() {
 
     Multibinder<Cleanable> multiBinder = Multibinder.newSetBinder(binder(), Cleanable.class);
-    Set<Class> bindingSet = ClasspathScannerUtils.findOnClassPath(getPackageToScan(), getExclusions(), getSelectors());
+    Set<Class<?>> bindingSet = ClasspathScannerUtils.findOnClassPath(getPackageToScan(), getExclusions(), getSelectors());
     for (Class clazz : bindingSet) {
+      LOG.info("Binding cleaner {}", clazz);
       multiBinder.addBinding().to(clazz).in(Scopes.SINGLETON);
     }
+
     bind(CleanupServiceImpl.class).in(Scopes.SINGLETON);
   }
 }

@@ -20,7 +20,7 @@ package org.apache.ambari.server.cleanup;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,15 +45,16 @@ public class ClasspathScannerUtils {
    * @param selectors   a list with annotation and interface classes that identify classes to be found (lookup criteria)
    * @return a list of classes from the classpath that match the lookup criteria
    */
-  public static Set<Class> findOnClassPath(String packageName, List<Class> exclusions, List<Class> selectors) {
+  public static Set<Class<?>> findOnClassPath(String packageName, List<Class<?>> exclusions,
+      List<Class<?>> selectors) {
 
-    Set<Class> bindingSet = new HashSet<>();
+    Set<Class<?>> bindingSet = new LinkedHashSet<>();
     try {
       ClassPath classpath = ClassPath.from(ClasspathScannerUtils.class.getClassLoader());
       LOGGER.info("Checking package [{}] for binding candidates.", packageName);
 
       for (ClassPath.ClassInfo classInfo : classpath.getTopLevelClassesRecursive(packageName)) {
-        Class candidate = classInfo.load();
+        Class<?> candidate = classInfo.load();
 
         if (exclusions.contains(candidate)) {
           LOGGER.debug("Candidate [{}] is excluded excluded.", candidate);
@@ -61,7 +62,7 @@ public class ClasspathScannerUtils {
         }
 
         if (isEligible(candidate, selectors)) {
-          LOGGER.info("Found class [{}]", candidate);
+          LOGGER.debug("Found class [{}]", candidate);
           bindingSet.add(candidate);
         } else {
           LOGGER.debug("Candidate [{}] doesn't match.", candidate);
@@ -82,7 +83,7 @@ public class ClasspathScannerUtils {
    * @param candidate the type to be checked
    * @return true if the class matches, false otherwise
    */
-  private static boolean isEligible(Class candidate, List<Class> selectors) {
+  private static boolean isEligible(Class<?> candidate, List<Class<?>> selectors) {
     return checkSubClasses(candidate, selectors) || checkAnnotations(candidate, selectors);
   }
 
@@ -92,11 +93,11 @@ public class ClasspathScannerUtils {
    * @param candidate the type to be checked
    * @return true if the candidate has annotations listed in the selection criteria, false otherwise
    */
-  private static boolean checkAnnotations(Class candidate, List<Class> selectors) {
+  private static boolean checkAnnotations(Class<?> candidate, List<Class<?>> selectors) {
     LOGGER.debug("Checking annotations for: [{}]", candidate);
     boolean ret = false;
     for (Annotation candidateAnn : candidate.getDeclaredAnnotations()) {
-      if (selectors.contains(candidateAnn)) {
+      if (selectors.contains(candidateAnn.annotationType())) {
         ret = true;
         break;
       }
@@ -110,7 +111,7 @@ public class ClasspathScannerUtils {
    * @param candidate the type to be checked
    * @return true if the candidate implements interfaces listed in the selection criteria, false otherwise
    */
-  private static boolean checkSubClasses(Class candidate, List<Class> selectors) {
+  private static boolean checkSubClasses(Class<?> candidate, List<Class<?>> selectors) {
     boolean ret = false;
     LOGGER.debug("Checking interfaces for: [{}]", candidate);
     List interfaces = ClassUtils.getAllInterfaces(candidate);

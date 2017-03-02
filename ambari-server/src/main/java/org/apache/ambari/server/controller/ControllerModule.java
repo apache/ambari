@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import static com.google.inject.matcher.Matchers.annotatedWith;
+import static com.google.inject.matcher.Matchers.any;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
@@ -34,10 +36,9 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_D
 import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
 import java.beans.PropertyVetoException;
-import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
+import org.apache.ambari.server.cleanup.ClasspathScannerUtils;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -91,6 +93,7 @@ import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.notifications.dispatchers.AlertScriptDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.AmbariSNMPDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -102,6 +105,8 @@ import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationInterceptor;
+import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
@@ -144,6 +149,7 @@ import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -153,13 +159,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.reflect.ClassPath;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -395,6 +401,10 @@ public class ControllerModule extends AbstractModule {
     bindNotificationDispatchers(null);
     registerUpgradeChecks(null);
     bind(HookService.class).to(UserHookService.class);
+
+    InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
+    requestInjection(ambariAuthenticationInterceptor);
+    bindInterceptor(any(), annotatedWith(RunWithInternalSecurityContext.class), ambariAuthenticationInterceptor);
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -460,8 +470,8 @@ public class ControllerModule extends AbstractModule {
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
-        ServiceComponent.class, ServiceComponentImpl.class).build(
-        ServiceComponentFactory.class));
+      ServiceComponent.class, ServiceComponentImpl.class).build(
+      ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(
         ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
         ServiceComponentHostFactory.class));
@@ -491,6 +501,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class).build(HookContextFactory.class));
     install(new FactoryModuleBuilder().implement(CollectionPersisterService.class, CsvFilePersisterService.class).build(CollectionPersisterServiceFactory.class));
 
+    install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
   }
 
   /**
@@ -503,50 +514,46 @@ public class ControllerModule extends AbstractModule {
    * A second example of where this is needed is when classes require static
    * members that are available via injection.
    * <p/>
-   * If {@code beanDefinitions} is empty or null this will scan
+   * Although Spring has a nicer API for performing this search, it's dreadfully
+   * slow on annotation processing. This class will use
+   * {@link ClasspathScannerUtils} which in turn uses {@link ClassPath} to
+   * perform the scan.
+   * <p/>
+   * If {@code matchedClasses} is null this will scan
    * {@code org.apache.ambari.server} (currently) for any {@link EagerSingleton}
    * or {@link StaticallyInject} or {@link AmbariService} instances.
    *
-   * @param beanDefinitions the set of bean definitions. If it is empty or
-   *                        {@code null} scan will occur.
-   * @return the set of bean definitions that was found during scan if
-   * {@code beanDefinitions} was null or empty. Else original
-   * {@code beanDefinitions} will be returned.
+   * @param matchedClasses
+   *          the set of previously found classes, or {@code null} to invoke
+   *          scanning.
+   * @return the set of classes that was found.
    */
-  // Method is protected and returns a set of bean definitions for testing convenience.
   @SuppressWarnings("unchecked")
-  protected Set<BeanDefinition> bindByAnnotation(Set<BeanDefinition> beanDefinitions) {
-    List<Class<? extends Annotation>> classes = Arrays.asList(
-        EagerSingleton.class, StaticallyInject.class, AmbariService.class);
+  protected Set<Class<?>> bindByAnnotation(Set<Class<?>> matchedClasses) {
+    // only search if necessary
+    if (null == matchedClasses) {
+      List<Class<?>> classes = new ArrayList<>();
+      classes.add(EagerSingleton.class);
+      classes.add(StaticallyInject.class);
+      classes.add(AmbariService.class);
 
-    if (null == beanDefinitions || beanDefinitions.size() == 0) {
-      ClassPathScanningCandidateComponentProvider scanner =
-          new ClassPathScanningCandidateComponentProvider(false);
+      LOG.info("Searching package {} for annotations matching {}", AMBARI_PACKAGE, classes);
 
-      // match only singletons that are eager listeners
-      for (Class<? extends Annotation> cls : classes) {
-        scanner.addIncludeFilter(new AnnotationTypeFilter(cls));
+      matchedClasses = ClasspathScannerUtils.findOnClassPath(AMBARI_PACKAGE,
+          new ArrayList<Class<?>>(), classes);
+
+      if (null == matchedClasses || matchedClasses.size() == 0) {
+        LOG.warn("No instances of {} found to register", classes);
+        return matchedClasses;
       }
-
-      beanDefinitions = scanner.findCandidateComponents(AMBARI_PACKAGE);
     }
 
-    if (null == beanDefinitions || beanDefinitions.size() == 0) {
-      LOG.warn("No instances of {} found to register", classes);
-      return beanDefinitions;
-    }
+    Set<com.google.common.util.concurrent.Service> services = new HashSet<>();
 
-    Set<com.google.common.util.concurrent.Service> services =
-        new HashSet<com.google.common.util.concurrent.Service>();
-
-    for (BeanDefinition beanDefinition : beanDefinitions) {
-      String className = beanDefinition.getBeanClassName();
-      Class<?> clazz = ClassUtils.resolveClassName(className,
-          ClassUtils.getDefaultClassLoader());
-
+    for (Class<?> clazz : matchedClasses) {
       if (null != clazz.getAnnotation(EagerSingleton.class)) {
         bind(clazz).asEagerSingleton();
-        LOG.debug("Binding singleton {} eagerly", clazz);
+        LOG.debug("Eagerly binding singleton {}", clazz);
       }
 
       if (null != clazz.getAnnotation(StaticallyInject.class)) {
@@ -562,7 +569,7 @@ public class ControllerModule extends AbstractModule {
               "Unable to register service {0} because it is not a Service which can be scheduled",
               clazz);
 
-          LOG.warn(message);
+          LOG.error(message);
           throw new RuntimeException(message);
         }
 
@@ -572,7 +579,7 @@ public class ControllerModule extends AbstractModule {
           service = (com.google.common.util.concurrent.Service) clazz.newInstance();
           bind((Class<com.google.common.util.concurrent.Service>) clazz).toInstance(service);
           services.add(service);
-          LOG.debug("Registering service {} ", clazz);
+          LOG.info("Registering service {} ", clazz);
         } catch (Exception exception) {
           LOG.error("Unable to register {} as a service", clazz, exception);
           throw new RuntimeException(exception);
@@ -583,7 +590,7 @@ public class ControllerModule extends AbstractModule {
     ServiceManager manager = new ServiceManager(services);
     bind(ServiceManager.class).toInstance(manager);
 
-    return beanDefinitions;
+    return matchedClasses;
   }
 
   /**
@@ -599,6 +606,10 @@ public class ControllerModule extends AbstractModule {
     bind(DispatchFactory.class).toInstance(dispatchFactory);
 
     if (null == beanDefinitions || beanDefinitions.isEmpty()) {
+      String packageName = AlertScriptDispatcher.class.getPackage().getName();
+      LOG.info("Searching package {} for dispatchers matching {}", packageName,
+          NotificationDispatcher.class);
+
       ClassPathScanningCandidateComponentProvider scanner =
           new ClassPathScanningCandidateComponentProvider(false);
 
@@ -608,7 +619,7 @@ public class ControllerModule extends AbstractModule {
 
       scanner.addIncludeFilter(filter);
 
-      beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server.notifications.dispatchers");
+      beanDefinitions = scanner.findCandidateComponents(packageName);
     }
 
     // no dispatchers is a problem
@@ -659,13 +670,17 @@ public class ControllerModule extends AbstractModule {
     bind(UpgradeCheckRegistry.class).toInstance(registry);
 
     if (null == beanDefinitions || beanDefinitions.isEmpty()) {
+      String packageName = AbstractCheckDescriptor.class.getPackage().getName();
+      LOG.info("Searching package {} for classes matching {}", packageName,
+          AbstractCheckDescriptor.class);
+
       ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 
       // match all implementations of the base check class
       AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
       scanner.addIncludeFilter(filter);
 
-      beanDefinitions = scanner.findCandidateComponents(AbstractCheckDescriptor.class.getPackage().getName());
+      beanDefinitions = scanner.findCandidateComponents(packageName);
     }
 
     // no dispatchers is a problem
@@ -692,7 +707,7 @@ public class ControllerModule extends AbstractModule {
     // log the order of the pre-upgrade checks
     List<AbstractCheckDescriptor> upgradeChecks = registry.getUpgradeChecks();
     for (AbstractCheckDescriptor upgradeCheck : upgradeChecks) {
-      LOG.debug("Registered pre-upgrade check {}", upgradeCheck.getClass());
+      LOG.info("Registered pre-upgrade check {}", upgradeCheck.getClass());
     }
     return beanDefinitions;
   }

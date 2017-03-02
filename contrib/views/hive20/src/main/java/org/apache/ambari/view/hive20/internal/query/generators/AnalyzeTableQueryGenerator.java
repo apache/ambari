@@ -39,37 +39,40 @@ public class AnalyzeTableQueryGenerator implements QueryGenerator {
     this.shouldAnalyzeColumns = shouldAnalyzeColumns;
   }
 
+
   @Override
   public Optional<String> getQuery() throws ServiceException {
+    String query = getTableStatsQuery() + ";";
+    if(shouldAnalyzeColumns){
+      query += "\n" + getTableStatsQuery() + " FOR COLUMNS ;";
+    }
+
+    return Optional.of(query);
+  }
+
+  private String getTableStatsQuery() {
     StringBuilder query = new StringBuilder("ANALYZE TABLE " );
     query.append("`").append(tableMeta.getDatabase()).append("`").append(".").append("`").append(tableMeta.getTable()).append("`");
 
     if( null != tableMeta.getPartitionInfo() && !isNullOrEmpty(tableMeta.getPartitionInfo().getColumns())){
       query.append(" PARTITION (")
-           .append(Joiner.on(",")
-              .join(FluentIterable.from(tableMeta.getPartitionInfo().getColumns())
-                  .transform(
-                  new Function<ColumnInfo, Object>() {
-                    @Nullable
-                    @Override
-                    public Object apply(@Nullable ColumnInfo columnInfo) {
-                      return columnInfo.getName();
-                    }
-                  })
-              )
-           )
-           .append(")");
+        .append(Joiner.on(",")
+          .join(FluentIterable.from(tableMeta.getPartitionInfo().getColumns())
+            .transform(
+              new Function<ColumnInfo, Object>() {
+                @Nullable
+                @Override
+                public Object apply(@Nullable ColumnInfo columnInfo) {
+                  return "`" + columnInfo.getName() + "`";
+                }
+              })
+          )
+        )
+        .append(")");
     }
 
 
     query.append(" COMPUTE STATISTICS ");
-
-    if(shouldAnalyzeColumns){
-      query.append(" FOR COLUMNS ");
-    }
-
-    query.append(";");
-
-    return Optional.of(query.toString());
+    return query.toString();
   }
 }

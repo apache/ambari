@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
@@ -29,11 +27,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -82,9 +78,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -113,11 +107,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -133,9 +123,6 @@ import com.google.inject.util.Modules;
 /**
  * UpgradeResourceDefinition tests.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AuthorizationHelper.class})
-@PowerMockIgnore({"javax.management.*", "javax.crypto.*"})
 public class UpgradeResourceProviderTest {
 
   private UpgradeDAO upgradeDao = null;
@@ -154,6 +141,9 @@ public class UpgradeResourceProviderTest {
 
   @Before
   public void before() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
     // setup the config helper for placeholder resolution
     configHelper = EasyMock.createNiceMock(ConfigHelper.class);
 
@@ -265,12 +255,6 @@ public class UpgradeResourceProviderTest {
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
     ActionManager.setTopologyManager(topologyManager);
     EasyMock.replay(injector.getInstance(AuditLogger.class));
-
-    Method isAuthorizedMethod = AuthorizationHelper.class.getMethod("isAuthorized", ResourceType.class, Long.class, Set.class);
-    PowerMock.mockStatic(AuthorizationHelper.class, isAuthorizedMethod);
-    expect(AuthorizationHelper.isAuthorized(eq(ResourceType.CLUSTER), anyLong(),
-        eq(EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK)))).andReturn(true).anyTimes();
-    PowerMock.replay(AuthorizationHelper.class);
   }
 
   @After

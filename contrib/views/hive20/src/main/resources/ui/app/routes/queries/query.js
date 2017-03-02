@@ -388,16 +388,14 @@ export default Ember.Route.extend(UILoggerMixin, {
           self.send('showVisualExplain', payloadTitle);
         } else {
           self.get('controller.model').set('visualExplainJson', null);
-        }
 
-        if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() == payloadTitle)){
-          self.transitionTo('queries.query.loading');
+          if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() == payloadTitle)){
+            self.transitionTo('queries.query.loading');
 
-          Ember.run.later(() => {
-            self.transitionTo('queries.query.results');
-          }, 1 * 100);
-
-
+            Ember.run.later(() => {
+              self.transitionTo('queries.query.results');
+            }, 1 * 100);
+          }
         }
 
       }, function(error) {
