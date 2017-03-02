@@ -31,6 +31,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,6 +88,7 @@ public class AutoStartDisabledCheckTest {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
   }
 
   @Test
@@ -101,6 +103,7 @@ public class AutoStartDisabledCheckTest {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertTrue(StringUtils.isBlank(check.getFailReason()));
   }
 
   @Test
@@ -116,6 +119,10 @@ public class AutoStartDisabledCheckTest {
     m_check.perform(check, request);
 
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertTrue(StringUtils.isNotBlank(check.getFailReason()));
+    Assert.assertEquals("Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
+          "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.", check.getFailReason());
+
   }
 
 }
