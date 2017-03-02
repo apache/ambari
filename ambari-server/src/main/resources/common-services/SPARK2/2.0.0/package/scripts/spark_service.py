@@ -41,9 +41,11 @@ def make_tarfile(output_filename, source_dir):
   parent_dir=os.path.dirname(output_filename)
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
+    os.chmod(parent_dir, 0711)
   with closing(tarfile.open(output_filename, "w:gz")) as tar:
     for file in os.listdir(source_dir):
       tar.add(os.path.join(source_dir,file),arcname=file)
+  os.chmod(output_filename, 0644)
 
 
 def spark_service(name, upgrade_type=None, action=None):
