@@ -283,7 +283,6 @@
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.jshintrc</exclude>
             <exclude>**/.editorconfig</exclude>
-            <exclude>**/SMARTSENSE/**</exclude>
             <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>**/*.iml</exclude>
