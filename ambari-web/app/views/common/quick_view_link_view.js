@@ -225,6 +225,10 @@ App.QuickLinksView = Em.View.extend({
   getQuickLinksHosts: function () {
     var masterHosts = App.HostComponent.find().filterProperty('isMaster').mapProperty('hostName').uniq();
 
+    if (masterHosts.length === 0) {
+      return $.Deferred().reject().promise();
+    }
+
     return App.ajax.send({
       name: 'hosts.for_quick_links',
       sender: this,

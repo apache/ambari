@@ -216,7 +216,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       //"itemTotal" present only for Hosts page request
       if (!Em.isNone(json.itemTotal)) {
         App.Host.find().clear();
-        App.HostComponent.find().clear();
+        //App.HostComponent.find contains master components which requested across the app hence it should not be cleared
       }
       App.store.safeLoadMany(App.HostStackVersion, stackVersions);
       App.store.safeLoadMany(App.HostComponentLog, hostComponentLogs);
