@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -59,14 +60,12 @@ public class ConfigureClusterTaskTest {
   @Mock(type = MockType.STRICT)
   private ClusterTopology clusterTopology;
 
-  private TopologyManager.ConfigureClusterTask testSubject;
-
+  private ConfigureClusterTask testSubject;
 
   @Before
   public void before() {
     reset(clusterConfigurationRequest, clusterTopology);
-    testSubject = new TopologyManager.ConfigureClusterTask(clusterTopology, clusterConfigurationRequest);
-
+    testSubject = new ConfigureClusterTask(clusterTopology, clusterConfigurationRequest);
   }
 
   @Test

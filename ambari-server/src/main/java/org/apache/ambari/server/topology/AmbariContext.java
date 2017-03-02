@@ -36,6 +36,7 @@ import javax.inject.Inject;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -187,7 +188,11 @@ public class AmbariContext {
 
     } catch (AmbariException e) {
       LOG.error("Failed to create Cluster resource: ", e);
-      throw new RuntimeException("Failed to create Cluster resource: " + e, e);
+      if (e.getCause() instanceof DuplicateResourceException) {
+        throw new IllegalArgumentException(e);
+      } else {
+        throw new RuntimeException("Failed to create Cluster resource: " + e, e);
+      }
     }
   }
 

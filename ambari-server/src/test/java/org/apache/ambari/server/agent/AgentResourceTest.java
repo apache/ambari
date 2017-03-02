@@ -73,6 +73,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
@@ -346,6 +347,8 @@ public class AgentResourceTest extends RandomPortJerseyTest {
         RequestExecutionImpl.class).build(RequestExecutionFactory.class));
       install(new FactoryModuleBuilder().build(StageFactory.class));
       install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
+      install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
+
 
       bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

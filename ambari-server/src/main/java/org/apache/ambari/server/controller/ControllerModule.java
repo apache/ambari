@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import static com.google.inject.matcher.Matchers.annotatedWith;
+import static com.google.inject.matcher.Matchers.any;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
@@ -103,6 +105,8 @@ import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationInterceptor;
+import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
@@ -145,6 +149,7 @@ import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -396,6 +401,10 @@ public class ControllerModule extends AbstractModule {
     bindNotificationDispatchers(null);
     registerUpgradeChecks(null);
     bind(HookService.class).to(UserHookService.class);
+
+    InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
+    requestInjection(ambariAuthenticationInterceptor);
+    bindInterceptor(any(), annotatedWith(RunWithInternalSecurityContext.class), ambariAuthenticationInterceptor);
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -461,8 +470,8 @@ public class ControllerModule extends AbstractModule {
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
-        ServiceComponent.class, ServiceComponentImpl.class).build(
-        ServiceComponentFactory.class));
+      ServiceComponent.class, ServiceComponentImpl.class).build(
+      ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(
         ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
         ServiceComponentHostFactory.class));
@@ -492,6 +501,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class).build(HookContextFactory.class));
     install(new FactoryModuleBuilder().implement(CollectionPersisterService.class, CsvFilePersisterService.class).build(CollectionPersisterServiceFactory.class));
 
+    install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
   }
 
   /**

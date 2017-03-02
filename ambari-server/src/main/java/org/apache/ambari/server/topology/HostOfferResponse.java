@@ -22,6 +22,7 @@ package org.apache.ambari.server.topology;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,6 @@ final class HostOfferResponse {
         public void run() {
           for (TopologyTask task : tasks) {
             LOG.info("Running task for accepted host offer for hostname = {}, task = {}", hostName, task.getType());
-            task.init(topology, ambariContext);
             task.run();
           }
         }
