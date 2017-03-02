@@ -214,7 +214,6 @@ class HiveServerDefault(HiveServer):
       zkmigrator.set_acls(
         params.hive_zk_namespace if params.hive_zk_namespace.startswith('/') else '/' + params.hive_zk_namespace,
         'world:anyone:crdwa')
-    zkmigrator.set_acls(params.zkdtsm_pattern, 'world:anyone:crdwa')
 
   def get_log_folder(self):
     import params

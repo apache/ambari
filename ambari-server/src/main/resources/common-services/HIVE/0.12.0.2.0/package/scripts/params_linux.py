@@ -691,7 +691,6 @@ if security_enabled:
 
 hive_cluster_token_zkstore = default("/configurations/hive-site/hive.cluster.delegation.token.store.zookeeper.znode", None)
 jaas_file = os.path.join(hive_config_dir, 'zkmigrator_jaas.conf')
-zkdtsm_pattern = '/zkdtsm_*'
 hive_zk_namespace = default("/configurations/hive-site/hive.zookeeper.namespace", None)
 
 # ranger hive plugin section start
