@@ -29,7 +29,7 @@ const DuplicateDataNodeName = BaseValidator.extend({
             return "Node name should not be blank";
           }
           Ember.set(item.data.node, "errors", false);
-          if(nodeNames.get(item.data.node.name)){
+          if(nodeNames.get(item.data.node.name) && item.data.node.type !== 'kill'){
             Ember.set(item.data.node, "errors", true);
             return `${item.data.node.name} : Node name should be unique`;
           }else{
