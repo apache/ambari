@@ -18,6 +18,23 @@
 
 package org.apache.ambari.server.controller;
 
+import static com.google.inject.matcher.Matchers.annotatedWith;
+import static com.google.inject.matcher.Matchers.any;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
+
 import java.beans.PropertyVetoException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -88,13 +105,14 @@ import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationInterceptor;
+import org.apache.ambari.server.security.authorization.internal.RunWithInternalSecurityContext;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.serveraction.users.CollectionPersisterService;
 import org.apache.ambari.server.serveraction.users.CollectionPersisterServiceFactory;
 import org.apache.ambari.server.serveraction.users.CsvFilePersisterService;
-import org.apache.ambari.server.serveraction.users.ShellCommandCallableFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -131,6 +149,7 @@ import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -157,21 +176,6 @@ import com.google.inject.name.Names;
 import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
 /**
  * Used for injection purposes.
@@ -396,6 +400,10 @@ public class ControllerModule extends AbstractModule {
     bindNotificationDispatchers(null);
     registerUpgradeChecks(null);
     bind(HookService.class).to(UserHookService.class);
+
+    InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
+    requestInjection(ambariAuthenticationInterceptor);
+    bindInterceptor(any(), annotatedWith(RunWithInternalSecurityContext.class), ambariAuthenticationInterceptor);
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -461,8 +469,8 @@ public class ControllerModule extends AbstractModule {
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
-        ServiceComponent.class, ServiceComponentImpl.class).build(
-        ServiceComponentFactory.class));
+      ServiceComponent.class, ServiceComponentImpl.class).build(
+      ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(
         ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
         ServiceComponentHostFactory.class));
@@ -492,6 +500,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class).build(HookContextFactory.class));
     install(new FactoryModuleBuilder().implement(CollectionPersisterService.class, CsvFilePersisterService.class).build(CollectionPersisterServiceFactory.class));
 
+    install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
   }
 
   /**

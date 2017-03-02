@@ -7,41 +7,24 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
-package org.apache.ambari.server.topology;
+package org.apache.ambari.server.topology.tasks;
 
-/**
- * Task which is executed by the TopologyManager.
- */
-public interface TopologyTask extends Runnable {
-  /**
-   * Task type.
-   */
-  public enum Type {
-    RESOURCE_CREATION,
-    CONFIGURE,
-    INSTALL,
-    START
-  }
+import org.apache.ambari.server.topology.ClusterConfigurationRequest;
+import org.apache.ambari.server.topology.ClusterTopology;
 
-  /**
-   * injection of topology and ambari context
-   */
-  public void init(ClusterTopology topology, AmbariContext ambariContext);
 
-  /**
-   * Get the task type.
-   *
-   * @return the type of task
-   */
-  public Type getType();
+public interface ConfigureClusterTaskFactory {
+
+   ConfigureClusterTask createConfigureClusterTask(ClusterTopology topology, ClusterConfigurationRequest
+    configRequest);
+
 }

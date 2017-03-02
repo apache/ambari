@@ -78,7 +78,7 @@ import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.TopologyTask;
+import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;

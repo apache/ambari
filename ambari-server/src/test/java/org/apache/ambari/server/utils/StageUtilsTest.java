@@ -80,6 +80,7 @@ import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.easymock.EasyMockSupport;
@@ -130,6 +131,7 @@ public class StageUtilsTest extends EasyMockSupport {
 
         install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
         install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
+        install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
       }
     });
 

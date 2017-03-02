@@ -72,6 +72,8 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +88,9 @@ import com.google.inject.persist.Transactional;
 //todo: cluster isolation
 @Singleton
 public class TopologyManager {
+
+  /** internal token for topology related async tasks */
+  public static final String INTERNAL_AUTH_TOKEN = "internal_topology_token";
 
   public static final String INITIAL_CONFIG_TAG = "INITIAL";
   public static final String TOPOLOGY_RESOLVED_TAG = "TOPOLOGY_RESOLVED";
@@ -120,6 +125,9 @@ public class TopologyManager {
 
   @Inject
   private SecurityConfigurationFactory securityConfigurationFactory;
+
+  @Inject
+  private ConfigureClusterTaskFactory configureClusterTaskFactory;
 
   @Inject
   private AmbariEventPublisher ambariEventPublisher;
@@ -301,7 +309,6 @@ public class TopologyManager {
         }
       }
     );
-
 
     clusterTopologyMap.put(clusterId, topology);
 
@@ -1030,96 +1037,13 @@ public class TopologyManager {
       LOG.debug("No timeout constraints found in configuration. Wired defaults will be applied.");
     }
 
-    ConfigureClusterTask configureClusterTask = new ConfigureClusterTask(topology, configurationRequest);
+    ConfigureClusterTask configureClusterTask = configureClusterTaskFactory.createConfigureClusterTask(topology,
+      configurationRequest);
+
     AsyncCallableService<Boolean> asyncCallableService = new AsyncCallableService<>(configureClusterTask, timeout, delay,
         Executors.newScheduledThreadPool(1));
 
     executor.submit(asyncCallableService);
-  }
-
-  // package protected for testing purposes
-  static class ConfigureClusterTask implements Callable<Boolean> {
-
-    private ClusterConfigurationRequest configRequest;
-    private ClusterTopology topology;
-
-    public ConfigureClusterTask(ClusterTopology topology, ClusterConfigurationRequest configRequest) {
-      this.configRequest = configRequest;
-      this.topology = topology;
-    }
-
-    @Override
-    public Boolean call() throws Exception {
-      LOG.info("TopologyManager.ConfigureClusterTask: Entering");
-
-      Collection<String> requiredHostGroups = getTopologyRequiredHostGroups();
-
-      if (!areRequiredHostGroupsResolved(requiredHostGroups)) {
-        LOG.debug("TopologyManager.ConfigureClusterTask - prerequisites for config request processing not yet " +
-            "satisfied");
-        throw new IllegalArgumentException("TopologyManager.ConfigureClusterTask - prerequisites for config " +
-            "request processing not yet  satisfied");
-      }
-
-      try {
-          LOG.info("TopologyManager.ConfigureClusterTask: All Required host groups are completed, Cluster " +
-              "Configuration can now begin");
-          configRequest.process();
-        } catch (Exception e) {
-          LOG.error("TopologyManager.ConfigureClusterTask: " +
-              "An exception occurred while attempting to process cluster configs and set on cluster: ", e);
-
-        // this will signal an unsuccessful run, retry will be triggered if required
-        throw new Exception(e);
-      }
-
-      LOG.info("TopologyManager.ConfigureClusterTask: Exiting");
-      return true;
-    }
-
-    /**
-     * Return the set of host group names which are required for configuration topology resolution.
-     *
-     * @return set of required host group names
-     */
-    private Collection<String> getTopologyRequiredHostGroups() {
-      Collection<String> requiredHostGroups;
-      try {
-        requiredHostGroups = configRequest.getRequiredHostGroups();
-      } catch (RuntimeException e) {
-        // just log error and allow config topology update
-        LOG.error("TopologyManager.ConfigureClusterTask: An exception occurred while attempting to determine required" +
-            " host groups for config update ", e);
-        requiredHostGroups = Collections.emptyList();
-      }
-      return requiredHostGroups;
-    }
-
-    /**
-     * Determine if all hosts for the given set of required host groups are known.
-     *
-     * @param requiredHostGroups set of required host groups
-     * @return true if all required host groups are resolved
-     */
-    private boolean areRequiredHostGroupsResolved(Collection<String> requiredHostGroups) {
-      boolean configTopologyResolved = true;
-      Map<String, HostGroupInfo> hostGroupInfo = topology.getHostGroupInfo();
-      for (String hostGroup : requiredHostGroups) {
-        HostGroupInfo groupInfo = hostGroupInfo.get(hostGroup);
-        if (groupInfo == null || groupInfo.getHostNames().size() < groupInfo.getRequestedHostCount()) {
-          configTopologyResolved = false;
-          if (groupInfo != null) {
-            LOG.info("TopologyManager.ConfigureClusterTask areHostGroupsResolved: host group name = {} requires {} hosts to be mapped, but only {} are available.",
-                groupInfo.getHostGroupName(), groupInfo.getRequestedHostCount(), groupInfo.getHostNames().size());
-          }
-          break;
-        } else {
-          LOG.info("TopologyManager.ConfigureClusterTask areHostGroupsResolved: host group name = {} has been fully resolved, as all {} required hosts are mapped to {} physical hosts.",
-              groupInfo.getHostGroupName(), groupInfo.getRequestedHostCount(), groupInfo.getHostNames().size());
-        }
-      }
-      return configTopologyResolved;
-    }
   }
 
   /**

@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
@@ -155,6 +156,8 @@ public class ClusterDeployWithStartOnlyTest {
   private ComponentInfo serviceComponentInfo;
   @Mock(type = MockType.NICE)
   private ComponentInfo clientComponentInfo;
+  @Mock(type = MockType.NICE)
+  private ConfigureClusterTaskFactory configureClusterTaskFactory;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;

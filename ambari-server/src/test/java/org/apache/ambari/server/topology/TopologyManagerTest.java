@@ -66,6 +66,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -152,6 +153,8 @@ public class TopologyManagerTest {
   private SettingDAO settingDAO;
   @Mock(type = MockType.NICE)
   private ClusterTopology clusterTopologyMock;
+  @Mock(type = MockType.NICE)
+  private ConfigureClusterTaskFactory configureClusterTaskFactory;
 
 
   @Mock(type = MockType.STRICT)
