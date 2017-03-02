@@ -23,7 +23,7 @@
       <version>1.2.1.2.5</version>
       <credential-store>
         <supported>true</supported>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </credential-store>
       <components>
         <component>

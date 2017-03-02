@@ -28,6 +28,7 @@
       <credential-store>
         <supported>true</supported>
         <enabled>true</enabled>
+        <required>true</required>
       </credential-store>
 
       <components>
