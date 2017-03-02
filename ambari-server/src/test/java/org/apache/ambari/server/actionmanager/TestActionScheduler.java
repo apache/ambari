@@ -330,7 +330,7 @@ public class TestActionScheduler {
         command.setStatus(HostRoleStatus.TIMEDOUT);
         return null;
       }
-    }).when(db).timeoutHostRole(anyString(), anyLong(), anyLong(), anyString(), anyBoolean());
+    }).when(db).timeoutHostRole(anyString(), anyLong(), anyLong(), anyString(), anyBoolean(), eq(false));
 
 
     //Small action timeout to test rescheduling
@@ -409,32 +409,18 @@ public class TestActionScheduler {
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        Long requestId = (Long) invocation.getArguments()[1];
-        for (Stage stage : stages) {
-          if (requestId.equals(stage.getRequestId())) {
-            for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
-              if (command.getStatus() == HostRoleStatus.QUEUED ||
-                command.getStatus() == HostRoleStatus.IN_PROGRESS ||
-                command.getStatus() == HostRoleStatus.PENDING) {
-                command.setStatus(HostRoleStatus.ABORTED);
-              }
-            }
-          }
-        }
-
+        String host = (String) invocation.getArguments()[0];
+        String role = (String) invocation.getArguments()[3];
+        HostRoleCommand command = s.getHostRoleCommand(host, role);
+        command.setStatus(HostRoleStatus.ABORTED);
         return null;
       }
-    }).when(db).abortHostRole(anyString(), anyLong(), anyLong(), anyString(), anyString());
+    }).when(db).timeoutHostRole(anyString(), anyLong(), anyLong(), anyString(), anyBoolean(), eq(true));
 
     //Small action timeout to test rescheduling
     AmbariEventPublisher aep = EasyMock.createNiceMock(AmbariEventPublisher.class);
-    ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class).
-        withConstructor((long) 100, (long) 50, db, aq, fsm, 3,
-            new HostsMap((String) null), unitOfWork, aep, conf, entityManagerProviderMock,
-            mock(HostRoleCommandDAO.class), mock(HostRoleCommandFactory.class)).
-        addMockedMethod("cancelHostRoleCommands").
-        createMock();
-    EasyMock.replay(scheduler);
+    ActionScheduler scheduler = new ActionScheduler(100, 0, db, aq, fsm, 3,
+      new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock, null, null);
     scheduler.setTaskTimeoutAdjustment(false);
 
     int cycleCount=0;
@@ -445,7 +431,7 @@ public class TestActionScheduler {
 
     Assert.assertEquals(HostRoleStatus.ABORTED,stages.get(0).getHostRoleStatus(hostname, "NAMENODE"));
 
-    EasyMock.verify(scheduler, entityManagerProviderMock);
+    EasyMock.verify(entityManagerProviderMock);
   }
 
   @Test
@@ -492,7 +478,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
     final List<Stage> stages = new ArrayList<Stage>();
-    Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
+    final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
       CLUSTER_HOST_INFO, "{\"command_param\":\"param_value\"}", "{\"host_param\":\"param_value\"}");
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.DATANODE,
       RoleCommand.INSTALL, Service.Type.HDFS, 1);
@@ -509,10 +495,21 @@ public class TestActionScheduler {
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
+    doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) throws Throwable {
+        String host = (String) invocation.getArguments()[0];
+        String role = (String) invocation.getArguments()[3];
+        HostRoleCommand command = stage.getHostRoleCommand(host, role);
+        command.setStatus(HostRoleStatus.ABORTED);
+        return null;
+      }
+    }).when(db).timeoutHostRole(anyString(), anyLong(), anyLong(), anyString(), anyBoolean(), eq(true));
+
     doAnswer(new Answer<Collection<HostRoleCommandEntity>>() {
       @Override
-      public Collection<HostRoleCommandEntity>  answer(InvocationOnMock invocation) throws Throwable {
-        Long requestId = (Long) invocation.getArguments()[1];
+      public Collection<HostRoleCommandEntity> answer(InvocationOnMock invocation) throws Throwable {
+        Long requestId = (Long) invocation.getArguments()[0];
         List<HostRoleCommandEntity> abortedCommands = Lists.newArrayList();
 
         for (Stage stage : stages) {
@@ -534,7 +531,7 @@ public class TestActionScheduler {
 
         return abortedCommands;
       }
-    }).when(db).abortHostRole(anyString(), anyLong(), anyLong(), anyString(), anyString());
+    }).when(db).abortOperation(anyLong());
 
     ArgumentCaptor<ServiceComponentHostEvent> eventsCapture1 =
       ArgumentCaptor.forClass(ServiceComponentHostEvent.class);
@@ -940,7 +937,7 @@ public class TestActionScheduler {
 
     boolean taskShouldBeSkipped = stageSupportsAutoSkip && autoSkipFailedTask;
     db.timeoutHostRole(EasyMock.anyString(), EasyMock.anyLong(), EasyMock.anyLong(),
-        EasyMock.anyString(), EasyMock.eq(taskShouldBeSkipped));
+        EasyMock.anyString(), EasyMock.eq(taskShouldBeSkipped), EasyMock.anyBoolean());
 
     EasyMock.expectLastCall();
 

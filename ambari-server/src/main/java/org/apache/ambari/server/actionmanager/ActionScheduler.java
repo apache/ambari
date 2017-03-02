@@ -786,6 +786,7 @@ class ActionScheduler implements Runnable {
         }
 
         // Check that service host component is not deleted
+        boolean isHostStateUnknown = false;
         if (hostDeleted) {
 
           String message = String.format(
@@ -803,9 +804,10 @@ class ActionScheduler implements Runnable {
             processActionDeath(cluster.getClusterName(), c.getHostname(), roleStr);
           }
           status = HostRoleStatus.ABORTED;
-        } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now, commandTimeout)) {
+        } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now, commandTimeout)
+          || (isHostStateUnknown = isHostStateUnknown(s, hostObj, roleStr))) {
           // Process command timeouts
-          if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
+          if (s.getAttemptCount(host, roleStr) >= maxAttempts || isHostStateUnknown) {
             LOG.warn("Host: {}, role: {}, actionId: {} expired and will be failed", host, roleStr,
               s.getActionId());
 
@@ -816,7 +818,7 @@ class ActionScheduler implements Runnable {
               isSkipSupported = hostRoleCommand.isFailureAutoSkipped();
             }
 
-            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), isSkipSupported);
+            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), isSkipSupported, isHostStateUnknown);
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
 
@@ -845,28 +847,6 @@ class ActionScheduler implements Runnable {
             commandsToSchedule.add(c);
             LOG.trace("===> commandsToSchedule(reschedule)=" + commandsToSchedule.size());
           }
-        } else if (isHostStateUnknown(s, hostObj, roleStr)) {
-          String message = "Action was aborted due agent is not heartbeating or was restarted.";
-          LOG.warn("Host: {}, role: {}, actionId: {} . {}", host, roleStr,
-            s.getActionId(), message);
-
-          db.abortHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), message);
-
-          if (null != cluster) {
-            if (!RoleCommand.CUSTOM_COMMAND.equals(c.getRoleCommand())
-              && !RoleCommand.SERVICE_CHECK.equals(c.getRoleCommand())
-              && !RoleCommand.ACTIONEXECUTE.equals(c.getRoleCommand())) {
-              //commands above don't affect host component state (e.g. no in_progress state in process), transition will fail
-              transitionToFailedState(cluster.getClusterName(), c.getServiceName(), roleStr, host, now, false);
-            }
-            if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
-              processActionDeath(cluster.getClusterName(), c.getHostname(), roleStr);
-            }
-          }
-
-          // Dequeue command
-          LOG.info("Removing command from queue, host={}, commandId={} ", host, c.getCommandId());
-          actionQueue.dequeue(host, c.getCommandId());
         } else if (status.equals(HostRoleStatus.PENDING)) {
           // in case of DEPENDENCY_ORDERED stage command can be scheduled only if all of it's dependencies are
           // already finished

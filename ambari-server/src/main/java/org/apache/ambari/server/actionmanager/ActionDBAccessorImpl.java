@@ -238,20 +238,21 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public void timeoutHostRole(String host, long requestId, long stageId,
                               String role) {
-    timeoutHostRole(host, requestId, stageId, role, false);
+    timeoutHostRole(host, requestId, stageId, role, false, false);
   }
 
   @Override
-  public void timeoutHostRole(String host, long requestId, long stageId,
-                              String role, boolean skipSupported) {
+  public void timeoutHostRole(String host, long requestId, long stageId, String role,
+                              boolean skipSupported, boolean hostUnknownState) {
     long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands =
-            hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
+      hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
       if (skipSupported) {
         command.setStatus(HostRoleStatus.SKIPPED_FAILED);
       } else {
-        command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
+        command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT :
+          hostUnknownState ? HostRoleStatus.ABORTED : HostRoleStatus.TIMEDOUT);
       }
 
       command.setEndTime(now);
