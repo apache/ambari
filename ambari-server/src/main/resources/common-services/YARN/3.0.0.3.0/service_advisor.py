@@ -918,8 +918,12 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     else:
       Logger.info("DBG: Used num_llap_nodes for calculations : {0}".format(num_llap_nodes_requested))
 
-    putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', num_llap_nodes)
-    Logger.info("DBG: Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
+    # Safeguard for not adding "num_llap_nodes_for_llap_daemons" if it doesnt exist in hive-interactive-site.
+    # This can happen if we upgrade from Ambari 2.4 (with HDP 2.5) to Ambari 2.5, as this config is from 2.6 stack onwards only.
+    if "hive-interactive-env" in services["configurations"] and \
+        "num_llap_nodes_for_llap_daemons" in services["configurations"]["hive-interactive-env"]["properties"]:
+      putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', num_llap_nodes)
+      Logger.info("DBG: Setting config 'num_llap_nodes_for_llap_daemons' as : {0}".format(num_llap_nodes))
 
     llap_container_size = long(llap_daemon_mem_per_node)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
@@ -980,7 +984,12 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", 1)
     putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", 1)
     putHiveInteractiveEnvProperty('num_llap_nodes', 0)
-    putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', 0)
+
+    # Safeguard for not adding "num_llap_nodes_for_llap_daemons" if it doesnt exist in hive-interactive-site.
+    # This can happen if we upgrade from Ambari 2.4 (with HDP 2.5) to Ambari 2.5, as this config is from 2.6 stack onwards only.
+    if "hive-interactive-env" in services["configurations"] and \
+        "num_llap_nodes_for_llap_daemons" in services["configurations"]["hive-interactive-env"]["properties"]:
+      putHiveInteractiveEnvProperty('num_llap_nodes_for_llap_daemons', 0)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
     putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
