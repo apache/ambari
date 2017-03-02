@@ -98,10 +98,10 @@ var WorkflowGenerator= Ember.Object.extend({
     if (!visitedNodes){
       visitedNodes=[];
     }
-    if (visitedNodes.contains(node.get("id"))){
+    if (visitedNodes.contains(node.get("name"))){
       return;
     }
-    visitedNodes.push(node.get("id"));
+    visitedNodes.push(node.get("name"));
     var self=this;
     var workflowApp=workflowObj["workflow-app"];
     if (node.isPlaceholder()){
