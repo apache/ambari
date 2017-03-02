@@ -42,6 +42,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
@@ -437,6 +438,19 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                 componentDescriptor.removeIdentity("/STORM/NIMBUS/nimbus_server");
                 componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/STORM/storm_components", null, newPrincipalDescriptor, newKeytabDescriptor, null));
 
+                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+                artifactDAO.merge(artifactEntity);
+              }
+            }
+          }
+          KerberosServiceDescriptor yarnKerberosDescriptor = kerberosDescriptor.getService("YARN");
+          if (yarnKerberosDescriptor != null) {
+            Map<String, KerberosConfigurationDescriptor> configs = yarnKerberosDescriptor.getConfigurations();
+            KerberosConfigurationDescriptor yarnSiteConfigDescriptor = configs.get("yarn-site");
+            if (yarnSiteConfigDescriptor != null) {
+              Map<String, String> properties = yarnSiteConfigDescriptor.getProperties();
+              if (properties != null && properties.containsKey(YARN_LCE_CGROUPS_MOUNT_PATH)) {
+                properties.remove(YARN_LCE_CGROUPS_MOUNT_PATH);
                 artifactEntity.setArtifactData(kerberosDescriptor.toMap());
                 artifactDAO.merge(artifactEntity);
               }
