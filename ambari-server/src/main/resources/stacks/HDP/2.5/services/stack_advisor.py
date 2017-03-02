@@ -593,6 +593,27 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       else:
         kafka_broker_port = '6667'
 
+      if 'kafka-broker' in services['configurations'] and 'listeners' in services['configurations']['kafka-broker']['properties']:
+        kafka_server_listeners = services['configurations']['kafka-broker']['properties']['listeners']
+      else:
+        kafka_server_listeners = 'PLAINTEXT://localhost:6667'
+
+      security_enabled = self.isSecurityEnabled(services)
+
+      if ',' in kafka_server_listeners and len(kafka_server_listeners.split(',')) > 1:
+        for listener in kafka_server_listeners.split(','):
+          listener = listener.strip().split(':')
+          if len(listener) == 3:
+            if 'SASL' in listener[0] and security_enabled:
+              kafka_broker_port = listener[2]
+              break
+            elif  'SASL' not in listener[0] and not security_enabled:
+              kafka_broker_port = listener[2]
+      else:
+        listener = kafka_server_listeners.strip().split(':')
+        if len(listener) == 3:
+          kafka_broker_port  = listener[2]
+
       kafka_host_arr = []
       for i in range(len(kafka_hosts)):
         kafka_host_arr.append(kafka_hosts[i] + ':' + kafka_broker_port)
