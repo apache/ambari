@@ -318,7 +318,8 @@ public class CheckDescription {
     "Auto-Start Disabled Check",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-        "Auto-Start must be disabled before performing an Upgrade").build());
+        "Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
+          "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.").build());
 
   public static CheckDescription RANGER_SSL_CONFIG_CHECK = new CheckDescription("RANGER_SSL_CONFIG_CHECK",
     PrereqCheckType.SERVICE,
