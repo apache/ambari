@@ -25,10 +25,4 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
-    <name>tez.history.logging.timeline-cache-plugin.old-num-dags-per-group</name>
-    <value>5</value>
-    <description>DAGs per group</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
 </configuration>
