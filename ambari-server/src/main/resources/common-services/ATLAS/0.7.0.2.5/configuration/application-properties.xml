@@ -148,10 +148,10 @@
     <value/>
     <description>Comma separated list of Kafka broker endpoints in host:port form</description>
     <depends-on>
-      <property>
-        <type>kafka-broker</type>
-        <name>port</name>
-      </property>
+     <property>
+       <type>kafka-broker</type>
+       <name>listeners</name>
+     </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>

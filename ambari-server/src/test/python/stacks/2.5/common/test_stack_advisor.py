@@ -4380,12 +4380,18 @@ class TestHDP25StackAdvisor(TestCase):
         "kafka-broker": {
           "properties": {
             "zookeeper.connect": "c6401.ambari.apache.org",
-            "port": "6667"
+            "port": "6667",
+            "listeners": "PLAINTEXT://localhost:6667"
           }
         },
         'ranger-atlas-plugin-properties': {
           'properties': {
             'ranger-atlas-plugin-enabled':'No'
+          }
+        },
+        "cluster-env": {
+          "properties": {
+            "security_enabled": "false"
           }
         }
       },
@@ -4422,6 +4428,26 @@ class TestHDP25StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+    services['configurations']['kafka-broker']['properties']['listeners'] = '  PLAINTEXT://localhost:5522  ,  PLAINTEXTSASL://localhost:2255   '
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:5522'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+    services['configurations']['cluster-env']['properties']['security_enabled']='true'
+    services['configurations']['kafka-broker']['properties']['listeners'] = '  PLAINTEXT://localhost:5522  ,  PLAINTEXTSASL://localhost:2266   '
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:2266'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+    services['configurations']['kafka-broker']['properties']['listeners'] = '  SASL_PLAINTEXT://localhost:2233   , PLAINTEXT://localhost:5577  '
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:2233'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services['configurations']['cluster-env']['properties']['security_enabled']='false'
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:5577'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
 
   def test_validationAtlasConfigs(self):
     servicesInfo = [
