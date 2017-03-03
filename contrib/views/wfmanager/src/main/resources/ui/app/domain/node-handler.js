@@ -116,7 +116,7 @@ var ActionNodeHandler= NodeHandler.extend({
       }
     });
   },
-  handleImportNode(type,nodeJson,workflow){
+  handleImportNode(type,nodeJson,workflow,xmlDoc){
     var actionType=this.get("actionTypeResolver").getActionType(nodeJson);
 
     var actionNode = this.nodeFactory.createActionNode(actionType,nodeJson._name);
@@ -126,7 +126,7 @@ var ActionNodeHandler= NodeHandler.extend({
     }
     var actionJobHandler=this.get("actionTypeResolver").getActionJobHandler(actionType);
     if(actionJobHandler){
-      actionJobHandler.handleImport(actionNode,nodeJson[actionType]);
+      actionJobHandler.handleImport(actionNode,nodeJson[actionType],xmlDoc);
     }
     if (nodeJson.info && nodeJson.info.__prefix==="sla") {
       actionNode.domain.slaEnabled=true;

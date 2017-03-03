@@ -22,7 +22,7 @@ import CustomMappingHandler from "../domain/custom-mapping-handler";
 
 var WorkflowGenerator= Ember.Object.extend({
   workflowMapper:null,
-  x2js : new X2JS({useDoubleQuotes:true}),
+  x2js : new X2JS({useDoubleQuotes:true,escapeMode:false}),
   workflow:null,
   workflowContext : {},
   nodeVisitor:null,
