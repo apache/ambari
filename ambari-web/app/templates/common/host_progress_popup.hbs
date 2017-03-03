@@ -22,7 +22,7 @@
 {{!-- SERVICES --}}
 
   <div {{bindAttr class="view.parentView.isServiceListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
-    <div class="row">
+    <div class="row top-wrap">
       <div class="table-controls row col-sm-12 pull-right">
         <div class="col-sm-12">
           <div class="btn-group pull-right">
@@ -103,7 +103,7 @@
   {{!-- HOSTS ---}}
 
   <div {{bindAttr class="view.parentView.isHostListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
-    <div class="row">
+    <div class="row top-wrap">
       <h2 class="table-title col-sm-2">{{t common.hosts}}</h2>
       <div class="table-controls row col-sm-10 pull-right">
         <div class="col-sm-12">
@@ -192,7 +192,7 @@
   {{!-- TASKS ---}}
 
   <div {{bindAttr class="view.parentView.isTaskListHidden:hidden :task-list-main-wrap :table-body-wrap"}}>
-    <div class="row">
+    <div class="row top-wrap">
       <h2 class="table-title col-sm-2">{{t common.tasks}}</h2>
       <div class="table-controls row col-sm-10 pull-right">
         <div class="col-sm-12">
@@ -256,7 +256,7 @@
   <!-- TASK DETAILS --->
 
   <div {{bindAttr class="view.parentView.isLogWrapHidden:hidden :task-detail-info view.hostComponentLogsExists:task-detail-info-tabbed"}}>
-    <div class="task-top-wrap">
+    <div class="task-top-wrap top-wrap">
       <div {{bindAttr class="view.hostComponentLogsExists:task-detail-log-nav-actions :row"}}>
         <h2 class="table-title col-sm-5">
           <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>

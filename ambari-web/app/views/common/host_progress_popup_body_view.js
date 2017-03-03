@@ -301,14 +301,14 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    */
   resizeHandler: function() {
     if (this.get('state') === 'destroyed' || !this.get('parentView.isOpen')) return;
-    var headerHeight = 48,
-        modalFooterHeight = 60,
-        taskTopWrapHeight = 40,
-        modalTopOffset = $('.modal').offset().top,
-        contentPaddingBottom = 40,
-        hostsPageBarHeight = 45,
-        tabbedContentNavHeight = 68,
-        logComponentFileNameHeight = 30,
+    var modal = this.get('parentView').$().find('.modal'),
+        headerHeight = $(modal).find('.modal-header').outerHeight(true),
+        modalFooterHeight = $(modal).find('.modal-footer').outerHeight(true),
+        taskTopWrapHeight = $(modal).find('.top-wrap:visible').outerHeight(true),
+        modalTopOffset = $(modal).offset().top,
+        contentPaddingBottom = parseFloat($(modal).find('.modal-dialog').css('marginBottom')) || 0,
+        hostsPageBarHeight = $(modal).find('#host-info tfoot').outerHeight(true),
+        logComponentFileNameHeight = $(modal).find('#host-info tfoot').outerHeight(true),
         levelName = this.get('currentLevelName'),
         boLevelHeightMap = {
           'REQUESTS_LIST': {
@@ -334,9 +334,6 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     if (levelName && levelName in boLevelHeightMap) {
       resizeTarget = boLevelHeightMap[levelName].target;
       currentLevelHeight = boLevelHeightMap[levelName].height;
-      if (levelName === 'TASK_DETAILS' && $('.task-detail-info').hasClass('task-detail-info-tabbed')) {
-        currentLevelHeight -= tabbedContentNavHeight;
-      }
       if (!Em.isArray(resizeTarget)) {
         resizeTarget = [resizeTarget];
       }
