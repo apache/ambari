@@ -356,10 +356,10 @@ var CustomActionJobHandler=ActionJobHandler.extend({
     nodeObj[this.get("actionType")] = customDomain;
   }
 });
-
 var FSActionJobHandler=ActionJobHandler.extend({
   actionType:"fs",
   mapping:null,
+  x2js : new X2JS({escapeMode:false}),
   init(){
     this.mapping=[
       {xml:"name-node",domain:"nameNode"},
@@ -368,7 +368,7 @@ var FSActionJobHandler=ActionJobHandler.extend({
       {xml:"delete"},
       {xml:"mkdir"},
       {xml:"move"},
-	  {xml:"chmod"},
+	    {xml:"chmod"},
       {xml:"touchz"},
       {xml:"chgrp"}
     ];
@@ -378,192 +378,186 @@ var FSActionJobHandler=ActionJobHandler.extend({
     if (!nodeDomain.fsOps){
       return;
     }
+    var $root = Ember.$('<XMLDocument />');
     nodeDomain.fsOps.forEach(function(fsop){
-      if (!nodeObj.fs[fsop.type]){
-        nodeObj.fs[fsop.type]=[];
-      }
       switch (fsop.type) {
-        case "delete":
-        nodeObj.fs["delete"].push({"_path":fsop.path});
-        break;
-        case "mkdir":
-        nodeObj.fs["mkdir"].push({"_path":fsop.path});
-        break;
-        case "move":
-        nodeObj.fs["move"].push({"_source":fsop.source,"_target":fsop.target});
-        break;
-        case "touchz":
-        nodeObj.fs["touchz"].push({"_path":fsop.path});
-        break;
-        case "chmod":
-        var permissions, ownerPerm = 0, groupPerm = 0, othersPerm = 0, dirFiles = fsop.dirfiles;
+        case 'delete':
+          $root.append(Ember.$('<delete/>').attr("path",fsop.path));
+          break;
+        case 'mkdir':
+          $root.append(Ember.$('<mkdir/>').attr("path",fsop.path));
+          break;
+        case 'move':
+          $root.append(Ember.$('<move/>').attr("source",fsop.source).attr("target",fsop.target));
+          break;
+        case 'touchz':
+          $root.append(Ember.$('<touchz/>').attr("path",fsop.path));
+          break;
+        case 'chmod':
+          var permissions, ownerPerm = 0, groupPerm = 0, othersPerm = 0, dirFiles = fsop.dirfiles;
 
-        if(fsop){
-          if(fsop.oread){
-            ownerPerm = 1;
+          if(fsop){
+            if(fsop.oread){
+              ownerPerm = 1;
+            }
+            if(fsop.owrite){
+              ownerPerm = ownerPerm + 2;
+            }
+            if(fsop.oexecute){
+              ownerPerm = ownerPerm + 4;
+            }
+            if(fsop.gread){
+              groupPerm = 1;
+            }
+            if(fsop.gwrite){
+              groupPerm = groupPerm + 2;
+            }
+            if(fsop.gexecute){
+              groupPerm = groupPerm + 4;
+            }
+            if(fsop.rread){
+              othersPerm = 1;
+            }
+            if(fsop.rwrite){
+              othersPerm = othersPerm + 2;
+            }
+            if(fsop.rexecute){
+              othersPerm = othersPerm + 4;
+            }
           }
-          if(fsop.owrite){
-            ownerPerm = ownerPerm + 2;
+          permissions = ownerPerm+""+groupPerm+""+othersPerm;
+          if(dirFiles === undefined){
+            dirFiles = false;
           }
-          if(fsop.oexecute){
-            ownerPerm = ownerPerm + 4;
+          var conf={"_path":fsop.path,"_permissions":permissions,"_dir-files":dirFiles};
+          var chmodElem=Ember.$('<chmod/>').attr("path",fsop.path).attr("permissions",permissions).attr("dir-files",dirFiles);
+          if (fsop.recursive){
+            chmodElem.append('<recursive/>');
           }
-          if(fsop.gread){
-            groupPerm = 1;
+          $root.append(chmodElem);
+          break;
+        case 'chgrp':
+          var dirFiles = fsop.dirfiles;
+          if(dirFiles === undefined){
+            dirFiles = false;
           }
-          if(fsop.gwrite){
-            groupPerm = groupPerm + 2;
+          var chGrpElem=Ember.$('<chgrp/>').attr("path",fsop.path).attr("group",fsop.group).attr("dir-files",dirFiles);
+          if (fsop.recursive){
+            chGrpElem.append('<recursive/>');
           }
-          if(fsop.gexecute){
-            groupPerm = groupPerm + 4;
-          }
-          if(fsop.rread){
-            othersPerm = 1;
-          }
-          if(fsop.rwrite){
-            othersPerm = othersPerm + 2;
-          }
-          if(fsop.rexecute){
-            othersPerm = othersPerm + 4;
-          }
-        }
-        permissions = ownerPerm+""+groupPerm+""+othersPerm;
-        if(dirFiles === undefined){
-          dirFiles = false;
-        }
-        var conf={"_path":fsop.path,"_permissions":permissions,"_dir-files":dirFiles};
-        if (fsop.recursive){
-          conf["recursive"]="";
-        }
-        nodeObj.fs["chmod"].push(conf);
-        break;
-        case "chgrp":
-        var dirFiles = fsop.dirfiles;
-        if(dirFiles === undefined){
-          dirFiles = false;
-        }
-        var conf={"_path":fsop.path,"_group":fsop.group,"_dir-files":dirFiles};
-        if (fsop.recursive){
-          conf["recursive"]="";
-        }
-        nodeObj.fs["chgrp"].push(conf);
-        break;
+          $root.append(chGrpElem);
+          break;
         default:
       }
     });
+    if (nodeObj.fs){
+        nodeObj['fs']=this.x2js.json2xml_str(nodeObj.fs)+$root.html();
+    }else{
+        nodeObj['fs']=$root.html();
+    }
+
+    console.log("generated root=",$root)
   },
-  handleImport(actionNode,json){
+  handleImport(actionNode,json,xmlDoc){
     this._super(actionNode,json);
     var commandKeys=["delete","mkdir","move","chmod","touchz","chgrp"];
+    var fsConfigs=xmlDoc[0].children[0].children;
     var fsOps=actionNode.domain.fsOps=[];
-    Object.keys(json).forEach(function(key){
-      if (commandKeys.contains(key)){
-        var fileOpsJson=null;
-        if (!Ember.isArray(json[key])){
-          fileOpsJson=[json[key]];
-        }else{
-          fileOpsJson=json[key];
-        }
-        fileOpsJson.forEach(function (fileOpJson) {
-          var fsConf={};
-          fsOps.push(fsConf);
-          fsConf.type=key;
-          var settings=fsConf;
-          switch (key) {
-            case "delete":
-            settings.path=fileOpJson._path;
-            break;
-            case "mkdir":
-            settings.path=fileOpJson._path;
-            break;
-            case "touchz":
-            settings.path=fileOpJson._path;
-            break;
-            case "move":
-            settings.source=fileOpJson._source;
-            settings.target=fileOpJson._target;
-            break;
-            case "chmod":
-            settings.path=fileOpJson._path;
-            settings.permissions=fileOpJson._permissions;
-            var perm = settings.permissions.toString();
-            if(isNaN(perm)){
-              var permList = {"-":0,"r":1,"w":2,"x":4}, permissionNumFormat = "", permTokenNum = 0, tempArr = [1,4,7];
-              for(let p=0; p<tempArr.length; p++){
-                  var permToken = perm.slice(tempArr[p],tempArr[p]+3);
-                  for(let q=0; q<permToken.length; q++){
-                    var tok = permList[permToken.slice(q,q+1)]
-                    permTokenNum = permTokenNum + tok;
-                  }
-                  permissionNumFormat = permissionNumFormat +""+ permTokenNum;
-                  permTokenNum = 0;
-              }
-              perm = permissionNumFormat;
+    for (var idx=0,len=fsConfigs.length;idx<len;idx++){
+      var fsCofig=fsConfigs[idx];
+      var tag=fsCofig.tagName;
+      var fsConf={};
+      fsOps.push(fsConf);
+      fsConf.type=tag;
+      var settings=fsConf;
+      switch (tag) {
+        case 'delete':
+          settings.path=fsCofig.getAttribute("path");
+          settings.skipTrash=fsCofig.getAttribute("skip-trash");
+          break;
+        case 'mkdir':
+          settings.path=fsCofig.getAttribute("path");
+          break;
+        case 'touchz':
+          settings.path=fsCofig.getAttribute("path");
+          break;
+        case 'move':
+          settings.source=fsCofig.getAttribute("source");
+          settings.target=fsCofig.getAttribute("target");
+          break;
+        case 'chmod':
+          settings.path=fsCofig.getAttribute("path");
+          settings.permissions=fsCofig.getAttribute("permissions");
+          settings.dirfiles==fsCofig.getAttribute("dir-files");
+          settings.recursive ==fsCofig.children.length===1 && fsCofig.children[0].tagName==="recursive";
+          var perm = settings.permissions.toString();
+          if(isNaN(perm)){
+            var permList = {"-":0,"r":1,"w":2,"x":4}, permissionNumFormat = "", permTokenNum = 0, tempArr = [1,4,7];
+            for(let p=0; p<tempArr.length; p++){
+                var permToken = perm.slice(tempArr[p],tempArr[p]+3);
+                for(let q=0; q<permToken.length; q++){
+                  var tok = permList[permToken.slice(q,q+1)]
+                  permTokenNum = permTokenNum + tok;
+                }
+                permissionNumFormat = permissionNumFormat +""+ permTokenNum;
+                permTokenNum = 0;
             }
-            for(var i=0; i< perm.length; i++){
-              var keyField;
-              if(i===0){
-                keyField = "o";
-              }else if(i===1){
-                keyField = "g";
-              }else if(i===2){
-                keyField = "r";
-              }
-              if(perm.slice(i,i+1) === "0"){
-                settings[keyField+"read"] = 0;
-                settings[keyField+"write"] = 0;
-                settings[keyField+"execute"] = 0;
-              }else if(perm.slice(i,i+1) === "1"){
-                settings[keyField+"read"] = 1;
-                settings[keyField+"write"] = 0;
-                settings[keyField+"execute"] = 0;
-              }else if(perm.slice(i,i+1) === "2"){
-                settings[keyField+"read"] = 0;
-                settings[keyField+"write"] = 2;
-                settings[keyField+"execute"] = 0;
-              }else if (perm.slice(i,i+1) === "3"){
-                settings[keyField+"read"] = 1;
-                settings[keyField+"write"] = 2;
-                settings[keyField+"execute"] = 0;
-              }else if (perm.slice(i,i+1) === "4"){
-                settings[keyField+"read"] = 0;
-                settings[keyField+"write"] = 0;
-                settings[keyField+"execute"] = 4;
-              }else if (perm.slice(i,i+1) === "5"){
-                settings[keyField+"read"] = 1;
-                settings[keyField+"write"] = 0;
-                settings[keyField+"execute"] = 4;
-              }else if (perm.slice(i,i+1) === "6"){
-                settings[keyField+"read"] = 0;
-                settings[keyField+"write"] = 2;
-                settings[keyField+"execute"] = 4;
-              }else if (perm.slice(i,i+1) === "7"){
-                settings[keyField+"read"] = 1;
-                settings[keyField+"write"] = 2;
-                settings[keyField+"execute"] = 4;
-              }
-            }
-            settings.dirfiles=fileOpJson["_dir-files"];
-            if(fileOpJson.hasOwnProperty("recursive")){
-              settings.recursive = true;
-            }else{
-              settings.recursive = false;
-            }
-            break;
-            case "chgrp":
-            settings.path=fileOpJson._path;
-            settings.group=fileOpJson._group;
-            settings.dirfiles=fileOpJson["_dir-files"];
-            if(fileOpJson.hasOwnProperty("recursive")){
-              settings.recursive = true;
-            }else{
-              settings.recursive = false;
-            }
-            break;
+            perm = permissionNumFormat;
           }
-        });
+          for(var i=0; i< perm.length; i++){
+            var keyField;
+            if(i===0){
+              keyField = "o";
+            }else if(i===1){
+              keyField = "g";
+            }else if(i===2){
+              keyField = "r";
+            }
+            if(perm.slice(i,i+1) === "0"){
+              settings[keyField+"read"] = 0;
+              settings[keyField+"write"] = 0;
+              settings[keyField+"execute"] = 0;
+            }else if(perm.slice(i,i+1) === "1"){
+              settings[keyField+"read"] = 1;
+              settings[keyField+"write"] = 0;
+              settings[keyField+"execute"] = 0;
+            }else if(perm.slice(i,i+1) === "2"){
+              settings[keyField+"read"] = 0;
+              settings[keyField+"write"] = 2;
+              settings[keyField+"execute"] = 0;
+            }else if (perm.slice(i,i+1) === "3"){
+              settings[keyField+"read"] = 1;
+              settings[keyField+"write"] = 2;
+              settings[keyField+"execute"] = 0;
+            }else if (perm.slice(i,i+1) === "4"){
+              settings[keyField+"read"] = 0;
+              settings[keyField+"write"] = 0;
+              settings[keyField+"execute"] = 4;
+            }else if (perm.slice(i,i+1) === "5"){
+              settings[keyField+"read"] = 1;
+              settings[keyField+"write"] = 0;
+              settings[keyField+"execute"] = 4;
+            }else if (perm.slice(i,i+1) === "6"){
+              settings[keyField+"read"] = 0;
+              settings[keyField+"write"] = 2;
+              settings[keyField+"execute"] = 4;
+            }else if (perm.slice(i,i+1) === "7"){
+              settings[keyField+"read"] = 1;
+              settings[keyField+"write"] = 2;
+              settings[keyField+"execute"] = 4;
+            }
+          }
+          break;
+        case 'chgrp':
+          settings.path=fsCofig.getAttribute("path");
+          settings.group=fsCofig.getAttribute("group");
+          settings.dirfiles==fsCofig.getAttribute("dir-files");
+          settings.recursive ==fsCofig.children.length===1 && fsCofig.children[0].tagName==="recursive";
+          break;
+        default:
+          break;
       }
-    });
+    }
   }
 });
 export{ActionJobHandler,JavaActionJobHandler,PigActionJobHandler,HiveActionJobHandler,SqoopActionJobHandler,ShellActionJobHandler, EmailActionJobHandler,SparkActionJobHandler,MapRedActionJobHandler, Hive2ActionJobHandler, SubWFActionJobHandler, DistCpJobHandler, SshActionJobHandler, FSActionJobHandler, CustomActionJobHandler};
