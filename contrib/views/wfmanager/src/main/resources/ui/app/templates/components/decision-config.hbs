@@ -29,7 +29,13 @@
       {{#each actionModel as |flow index|}}
       <tr class="{{if (eq flow.condition 'default') 'active'}}">
         <td>{{input type="text" class="form-control" value=flow.condition placeholder="condition"}}</td>
-        <td>{{flow.targetName}}</td>
+        <td>
+          <select id="target-node-select-{{index}}" {{action "onTargetNodeChange" index on="change"}} name="select-node" class="form-control">
+            {{#each targetNodes as |node index|}}
+              <option value={{node.id}} selected={{eq node.name flow.node.name}}>{{node.name}}</option>
+            {{/each}}
+          </select>
+        </td>
       </tr>
       {{/each}}
   </tbody>

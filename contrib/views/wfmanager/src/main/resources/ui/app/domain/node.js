@@ -39,6 +39,9 @@ var Node = Ember.Object.extend(FindNodeMixin,{
       var i=0;
       this.get("domain").forEach(function(tran){
         self.get("transitions")[i].condition=tran.condition;
+        if(self.get("transitions")[i].targetNode.id !== tran.node.id){
+          self.get("transitions")[i].targetNode = tran.node;
+        }
         i++;
       });
     }else if (this.isActionNode()){
@@ -66,7 +69,7 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     if (this.isDecisionNode()){
       var flows=[];
       this.get("transitions").forEach(function(tran){
-        flows.push({condition: tran.condition, targetName: tran.getTargetNode().getName()});
+        flows.push({condition: tran.condition, node: tran.getTargetNode(true)});
       });
       this.set("domain",flows);
       return this.get("domain");
@@ -199,7 +202,7 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     }else{
       target=transitions[0].targetNode;
     }
-    if (target.isPlaceholder()){
+    if (target && target.isPlaceholder()){
       return target.getDefaultTransitionTarget();
     }
     return target;

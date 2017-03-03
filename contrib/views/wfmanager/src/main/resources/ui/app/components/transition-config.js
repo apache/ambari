@@ -62,6 +62,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     okToHandler (name){
       var validOkToNodes = this.get('currentNode.validOkToNodes');
       var node = validOkToNodes.findBy('name',name);
+      if(!node){
+        node = this.get('killNodes').findBy('name',name);
+      }
       if(node.id !== this.get('defaultOkToNode').id){
         this.set('showWarning', true);
       }else{

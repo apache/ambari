@@ -115,6 +115,8 @@ export default Ember.Component.extend( Ember.Evented,{
         }
         if(Ember.isBlank(temp[actionType])){
           this.set('actionModel', {});
+        }else if(typeof temp[actionType] === 'string'){
+          this.get('errors').pushObject({message:'Invalid definition'});
         }else{
           this.set('actionModel', temp[actionType]);
         }
@@ -163,6 +165,7 @@ export default Ember.Component.extend( Ember.Evented,{
       delete this.get('actionModel').slaInfo;
       delete this.get('actionModel').slaEnabled;
     }
+    this.set('errors', Ember.A([]));
   }.on('init'),
   initialize : function(){
     this.$('#action_properties_dialog').modal({
@@ -171,7 +174,7 @@ export default Ember.Component.extend( Ember.Evented,{
     });
     this.$('#action_properties_dialog').modal('show');
     this.$('#action_properties_dialog').modal().on('hidden.bs.modal', function() {
-      this.sendAction('closeActionEditor', this.get('saveClicked'));
+      this.sendAction('closeActionEditor', this.get('saveClicked'), this.get('transition'));
     }.bind(this));
     this.get('fileBrowser').on('fileBrowserOpened',function(context){
       this.get('fileBrowser').setContext(context);
@@ -211,24 +214,23 @@ export default Ember.Component.extend( Ember.Evented,{
       }
     });
   },
-  validateDecisionNode(){
-    let containsOtherNodes = false;
-    this.get('actionModel').forEach((model)=>{
-      if(model.node.type !== 'kill'){
-        containsOtherNodes = true;
-      }
+  validateFlowGraph(){
+    return new Ember.RSVP.Promise((resolve, reject) =>{
+      var deferred = new Ember.RSVP.defer();
+      this.sendAction('validateWorkflow', deferred);
+      deferred.promise.then(()=>{
+        resolve();
+      }).catch(()=>{
+        reject();
+      });
     });
-    if(!containsOtherNodes){
-      this.get('errors').pushObject({message:'Atleast one of the decision branches should transition to a node other than a kill node.'});
-    }else{
-      this.get('errors').clear();
-    }
   },
   actions : {
     closeEditor (){
       this.sendAction('close');
     },
     save () {
+      this.set('validationErrors', Ember.A([]));
       var isChildComponentsValid = this.validateChildrenComponents();
       if(this.get('validations.isInvalid') || !isChildComponentsValid || this.get('errors').length > 0) {
         this.set('showErrorMessage', true);
@@ -240,9 +242,14 @@ export default Ember.Component.extend( Ember.Evented,{
       }
       this.processMultivaluedComponents();
       this.processStaticProps();
-      this.$('#action_properties_dialog').modal('hide');
       this.sendAction('setNodeTransitions', this.get('transition'));
-      this.set('saveClicked', true);
+      this.validateFlowGraph().then(()=>{
+        this.set('saveClicked', true);
+        this.$('#action_properties_dialog').modal('hide');
+      }).catch(()=>{
+        this.set('saveClicked', false);
+        this.get('validationErrors').pushObject({message : "Invalid workflow structure. There is no flow to end node."});
+      });
     },
     openFileBrowser(model, context){
       if(!context){

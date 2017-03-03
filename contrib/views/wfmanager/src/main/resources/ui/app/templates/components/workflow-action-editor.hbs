@@ -31,8 +31,8 @@
       <div class="modal-body">
         <div>
             <form class="form-horizontal" id="action_properties">
+              {{designer-errors errors=errors validationErrors=validationErrors}}
               {{#if (eq nodeType 'decision')}}
-                {{designer-errors errors=errors}}
                 {{#decision-config currentNode=currentNode actionModel=actionModel killNodes=killNodes register="registerChild"}}{{/decision-config}}
               {{/if}}
               {{#if (eq nodeType 'action')}}
