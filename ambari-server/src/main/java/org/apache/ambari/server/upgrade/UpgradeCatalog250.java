@@ -887,9 +887,12 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
           if (logSearchProperties != null) {
             Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("logsearch.auth.external_auth.enabled", logSearchProperties.getProperties().get("logsearch.external.auth.enabled"));
-            newProperties.put("logsearch.auth.external_auth.host_url", logSearchProperties.getProperties().get("logsearch.external.auth.host_url"));
-            newProperties.put("logsearch.auth.external_auth.login_url", logSearchProperties.getProperties().get("logsearch.external.auth.login_url"));
+            if (!logSearchProperties.getProperties().containsKey("logsearch.auth.external_auth.enabled"))
+              newProperties.put("logsearch.auth.external_auth.enabled", logSearchProperties.getProperties().get("logsearch.external.auth.enabled"));
+            if (!logSearchProperties.getProperties().containsKey("logsearch.auth.external_auth.host_url"))
+              newProperties.put("logsearch.auth.external_auth.host_url", logSearchProperties.getProperties().get("logsearch.external.auth.host_url"));
+            if (!logSearchProperties.getProperties().containsKey("logsearch.auth.external_auth.login_url"))
+              newProperties.put("logsearch.auth.external_auth.login_url", logSearchProperties.getProperties().get("logsearch.external.auth.login_url"));
             
             Set<String> removeProperties = new HashSet<>();
             removeProperties.add("logsearch.external.auth.enabled");
