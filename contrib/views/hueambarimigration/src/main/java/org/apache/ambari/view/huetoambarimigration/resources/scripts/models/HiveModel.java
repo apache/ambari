@@ -22,6 +22,13 @@ import java.util.ArrayList;
 
 public class HiveModel {
 
+  //Hive Job Statutes                                                 Hue Corresponding Status
+  private static final String JOB_STATE_INITIALIZED = "INITIALIZED";   //submitted
+  private static final String JOB_STATE_RUNNING = "RUNNING";           //running
+  private static final String JOB_STATE_FINISHED = "SUCCEEDED";        //available
+  private static final String JOB_STATE_ERROR = "ERROR";               //failed
+  private static final String JOB_STATE_UNKNOWN = "UNKNOWN";           //expired
+
   private String database;
   private String query;
   private String queryTitle;
@@ -29,6 +36,7 @@ public class HiveModel {
   private ArrayList<String> udfClasses;
   private ArrayList<String> udfNames;
   private String ownerName;
+  private String jobStatus;
 
 
   public String getDatabase() {
@@ -78,4 +86,29 @@ public class HiveModel {
   public String getOwnerName() { return ownerName; }
 
   public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
+
+  public String getJobStatus() { return jobStatus; }
+
+  public void setJobStatus(int state) {
+    switch (state) {
+      case 0:
+        jobStatus = JOB_STATE_INITIALIZED;
+        break;
+      case 1:
+        jobStatus = JOB_STATE_RUNNING;
+        break;
+      case 2:
+        jobStatus = JOB_STATE_FINISHED;
+        break;
+      case 3:
+        jobStatus = JOB_STATE_ERROR;
+        break;
+      case 4:
+        jobStatus = JOB_STATE_UNKNOWN;
+        break;
+      default:
+        return;
+    }
+
+  }
 }

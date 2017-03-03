@@ -132,16 +132,16 @@ public class HiveHistoryQueryMigrationImplementation {
   }
 
 
-  public void insertRowinAmbaridb(String dirname, int maxcount, long epochtime, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase, String versionName, String username) throws SQLException, IOException {
+  public void insertRowinAmbaridb(String dirname, int maxcount, long epochtime, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase, String versionName, String username, String jobStatus) throws SQLException, IOException {
 
     String maxcount1 = Integer.toString(maxcount);
     String epochtime1 = Long.toString(epochtime);
     PreparedStatement prSt = null;
     String revsql = null;
     if (versionName.contains("1.0")) {
-      prSt = ambaridatabase.insertToHiveHistoryForHive(c, id, maxcount1, epochtime, dirname, username);
+      prSt = ambaridatabase.insertToHiveHistoryForHive(c, id, maxcount1, epochtime, dirname, username, jobStatus);
     } else {
-      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username);
+      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username, jobStatus);
     }
 
     logger.info("The actual insert statement is " + prSt);
@@ -272,7 +272,7 @@ public class HiveHistoryQueryMigrationImplementation {
       Statement statement = connection.createStatement();
       String query, ownerName = "";
       ResultSet rs;
-      int ownerId;
+      int ownerId, jobState;
 
       ResultSet rs1 = null;
       if (username.equals("all")) {
@@ -324,6 +324,7 @@ public class HiveHistoryQueryMigrationImplementation {
 
       while (rs1.next()) {
         HiveModel hivepojo = new HiveModel();
+        jobState = rs1.getInt("last_state");
         ownerId = rs1.getInt("owner_id");
         if(username.equals("all")) {
           prSt = huedatabase.getUserName(connection, ownerId);
@@ -333,6 +334,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
         }
         query = rs1.getString("query");
+        hivepojo.setJobStatus(jobState);
         hivepojo.setOwnerName(ownerName);
         hivepojo.setQuery(query);
         hiveArrayList.add(hivepojo);
