@@ -1874,4 +1874,75 @@ describe('App.MainServiceItemController', function () {
     });
 
   });
+
+  describe('#applyRecommendedValues', function () {
+
+    var controller;
+
+    beforeEach(function () {
+      controller = App.MainServiceItemController.create({
+        stepConfigs: [
+          Em.Object.create({
+            serviceName: 's1',
+            configs: [
+              Em.Object.create({
+                name: 'p1',
+                value: 'v1'
+              }),
+              Em.Object.create({
+                name: 'p2',
+                value: 'v2'
+              })
+            ]
+          }),
+          Em.Object.create({
+            serviceName: 's2',
+            configs: [
+              Em.Object.create({
+                name: 'p3',
+                value: 'v3'
+              }),
+              Em.Object.create({
+                name: 'p4',
+                value: 'v4'
+              })
+            ]
+          })
+        ],
+        changedProperties: [
+          {
+            serviceName: 's1',
+            propertyName: 'p1',
+            recommendedValue: 'r1',
+            initialValue: 'i1',
+            saveRecommended: false
+          },
+          {
+            serviceName: 's1',
+            propertyName: 'p2',
+            recommendedValue: 'r2',
+            initialValue: 'i2',
+            saveRecommended: true
+          },
+          {
+            serviceName: 's2',
+            propertyName: 'p3',
+            recommendedValue: 'r3',
+            initialValue: 'i3',
+            saveRecommended: true
+          }
+        ]
+      });
+    });
+
+    it('should update properties with saveRecommended flag set to true', function () {
+      controller.applyRecommendedValues(controller.get('stepConfigs'));
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs').findProperty('name', 'p1').get('value')).to.equal('i1');
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs').findProperty('name', 'p2').get('value')).to.equal('r2');
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs').findProperty('name', 'p3').get('value')).to.equal('r3');
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs').findProperty('name', 'p4').get('value')).to.equal('v4');
+    });
+
+  });
+
 });
