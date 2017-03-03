@@ -28,7 +28,6 @@ describe('App.MainConfigHistoryView', function() {
     filteredContent: [],
     refresh: Em.K,
     saveFilterConditions: Em.K,
-    saveStartIndex: sinon.spy(),
     controller: Em.Object.create({
       name: 'mainConfigHistoryController',
       paginationProps: [
@@ -184,14 +183,12 @@ describe('App.MainConfigHistoryView', function() {
     beforeEach(function () {
       sinon.stub(view, 'saveFilterConditions', Em.K);
       sinon.stub(view, 'refresh', Em.K);
-      sinon.stub(view, 'resetStartIndex');
       sinon.spy(view, 'updateFilter');
       this.clock = sinon.useFakeTimers();
     });
     afterEach(function () {
       view.saveFilterConditions.restore();
       view.updateFilter.restore();
-      view.resetStartIndex.restore();
       view.refresh.restore();
       this.clock.restore();
     });
@@ -234,20 +231,12 @@ describe('App.MainConfigHistoryView', function() {
   });
 
   describe('#resetStartIndex()', function() {
-    beforeEach(function () {
-      sinon.stub(view, 'updatePagination');
-    });
-    afterEach(function () {
-      view.updatePagination.restore();
-    });
     it('resetStartIndex is false and filteredCount is 0', function() {
       view.set('filteredCount', 0);
       view.set('controller.resetStartIndex', false);
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(0);
-      expect(view.saveStartIndex.called).to.be.false;
-      expect(view.updatePagination.called).to.be.false;
     });
     it('resetStartIndex is true and filteredCount is 0', function() {
       view.set('filteredCount', 0);
@@ -255,8 +244,6 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(0);
-      expect(view.saveStartIndex.called).to.be.false;
-      expect(view.updatePagination.called).to.be.false;
     });
     it('resetStartIndex is false and filteredCount is 5', function() {
       view.set('filteredCount', 5);
@@ -264,8 +251,6 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(0);
-      expect(view.saveStartIndex.called).to.be.false;
-      expect(view.updatePagination.called).to.be.false;
     });
     it('resetStartIndex is true and filteredCount is 5', function() {
       view.set('controller.resetStartIndex', true);
@@ -273,8 +258,6 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(1);
-      expect(view.saveStartIndex.called).to.be.true;
-      expect(view.updatePagination.called).to.be.true;
     });
   });
 

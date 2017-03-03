@@ -66,14 +66,12 @@ describe('App.MainHostView', function () {
       cases.forEach(function (item) {
         sinon.stub(view, item.methodName, Em.K);
       });
-      sinon.stub(view, 'overlayObserver');
     });
 
     afterEach(function () {
       cases.forEach(function (item) {
         view[item.methodName].restore();
       });
-      view.overlayObserver.restore();
     });
 
     cases.forEach(function (item) {
@@ -84,10 +82,6 @@ describe('App.MainHostView', function () {
       });
     });
 
-    it('overlayObserver should be called', function () {
-      view.didInsertElement();
-      expect(view.overlayObserver.calledOnce).to.be.true;
-    });
   });
 
   describe('#HostView', function () {

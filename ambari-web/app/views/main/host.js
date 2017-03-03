@@ -170,10 +170,8 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
-      // filters and start index should be cleared when we enter Hosts page
-      var didClearedFilters = this.clearFilterConditionsFromLocalStorage();
-      var didClearStartIndex = this.clearStartIndex();
-      this.set('controller.filterChangeHappened', didClearedFilters || didClearStartIndex);
+      var didClearedSomething = this.clearFilterConditionsFromLocalStorage();
+      this.set('controller.filterChangeHappened', didClearedSomething);
     }
     this._super();
     this.set('startIndex', this.get('controller.startIndex'));
@@ -196,8 +194,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.addObserver('filteredCount', this, this.updatePaging);
-    // should show overlay even when filtering has begun before observer was added
-    this.overlayObserver();
   },
 
   willDestroyElement: function () {

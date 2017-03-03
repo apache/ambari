@@ -244,8 +244,7 @@ App.UpdateController = Em.Controller.extend({
           {
             key: 'Hosts/host_name',
             value: [hostDetailsFilter],
-            type: 'MULTIPLE',
-            isHostDetails: true
+            type: 'MULTIPLE'
           }
         ]);
       }
