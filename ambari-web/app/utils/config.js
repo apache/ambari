@@ -1165,7 +1165,8 @@ App.config = Em.Object.create({
       'isOriginalSCP': false,
       'overrides': null,
       'group': configGroup,
-      'parentSCP': null
+      'parentSCP': null,
+      isCustomGroupConfig: true
     });
 
     if (!configGroup.get('properties.length')) {

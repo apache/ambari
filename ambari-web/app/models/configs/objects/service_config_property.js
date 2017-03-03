@@ -160,6 +160,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   isConfigIdentity: false,
   copy: '',
 
+  /**
+   * Determines if config exists in the non-default config group but is loaded for default config group
+   *
+   * @type {boolean}
+   */
+  isCustomGroupConfig: false,
+
   error: Em.computed.bool('errorMessage.length'),
   warn: Em.computed.bool('warnMessage.length'),
   hasValidationErrors: Em.computed.bool('validationErrors.length'),

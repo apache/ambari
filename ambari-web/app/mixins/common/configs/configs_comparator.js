@@ -173,6 +173,10 @@ App.ConfigsComparator = Em.Mixin.create({
     Em.set(serviceConfig, 'compareConfigs', []);
     Em.set(serviceConfig, 'isComparison', true);
 
+    if (!Em.get(serviceConfig, 'isCustomGroupConfig')) {
+      Em.set(serviceConfig, 'hasCompareDiffs', false);
+    }
+
     if (compareConfig && selectedConfig) {
       Em.get(serviceConfig, 'compareConfigs').push(this.getComparisonConfig(serviceConfig, compareConfig));
       Em.get(serviceConfig, 'compareConfigs').push(this.getComparisonConfig(serviceConfig, selectedConfig));
@@ -250,16 +254,18 @@ App.ConfigsComparator = Em.Mixin.create({
 
     Em.set(serviceConfig, 'compareConfigs', []);
     Em.set(serviceConfig, 'isComparison', true);
-
     //if config isn't reconfigurable then it can't have changed value to compare
     if (compareConfig) {
       compareObject = this.getComparisonConfig(serviceConfig, compareConfig);
       Em.set(serviceConfig, 'hasCompareDiffs', Em.get(serviceConfig, 'isMock') || this.hasCompareDiffs(serviceConfig, compareObject));
       Em.get(serviceConfig, 'compareConfigs').push(compareObject);
       // user custom property or property that was added during upgrade
-    } else if (Em.get(serviceConfig, 'isUserProperty') || (!isEmptyProp && !compareConfig && Em.get(serviceConfig, 'isRequiredByAgent') !== false)) {
-      Em.get(serviceConfig, 'compareConfigs').push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
-      Em.set(serviceConfig, 'hasCompareDiffs', true);
+    } else {
+      var addToComparison = !Em.get(serviceConfig, 'isCustomGroupConfig') && (Em.get(serviceConfig, 'isUserProperty') || !isEmptyProp && !compareConfig && Em.get(serviceConfig, 'isRequiredByAgent') !== false);
+      if (addToComparison) {
+        Em.get(serviceConfig, 'compareConfigs').push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
+        Em.set(serviceConfig, 'hasCompareDiffs', true);
+      }
     }
 
     return serviceConfig;

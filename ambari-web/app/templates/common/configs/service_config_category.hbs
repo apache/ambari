@@ -76,6 +76,9 @@
                 </div>
               {{/if}}
               {{#if this.isComparison}}
+                {{#unless this.isOriginalSCP}}
+                  {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                {{/unless}}
                 {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
               {{else}}
                 {{#if this.isOverridden}}
