@@ -431,6 +431,12 @@
           <summary>Updating the Atlas Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
+      
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas TLS Exclude Protocols">
+        <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol">
+          <summary>Updating Atlas TLS Exclude Protocols to exclude TLS v1.2</summary>
+        </task>
+      </execute-stage>
 
       <!--KAFKA-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">

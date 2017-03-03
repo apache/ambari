@@ -136,6 +136,18 @@
         </changes>
       </component>
     </service>
+
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <changes>          
+          <definition xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol" summary="Excluding TLS v1.2 Protocol">
+            <type>application-properties</type>
+            <set key="atlas.ssl.exclude.protocols" value="TLSv1.2" if-type="application-properties" if-key="atlas.ssl.exclude.protocols" if-key-state="absent"/>
+          </definition>          
+        </changes>
+      </component>
+    </service>
+
    <service name="OOZIE">
     <component name="OOZIE_SERVER">
       <changes>
