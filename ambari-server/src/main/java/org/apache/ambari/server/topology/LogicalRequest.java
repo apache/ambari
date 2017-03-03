@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -343,7 +344,7 @@ public class LogicalRequest extends Request {
 
         Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
         while (hostRequestIterator.hasNext()) {
-          if (hostRequestIterator.next().getHostName().equals(hostName)) {
+          if (Objects.equals(hostRequestIterator.next().getHostName(), hostName)) {
             hostRequestIterator.remove();
             break;
           }
@@ -352,7 +353,7 @@ public class LogicalRequest extends Request {
         //todo: synchronization
         Iterator<HostRequest> allHostRequesIterator = allHostRequests.iterator();
         while (allHostRequesIterator.hasNext()) {
-          if (allHostRequesIterator.next().getHostName().equals(hostName)) {
+          if (Objects.equals(allHostRequesIterator.next().getHostName(), hostName)) {
             allHostRequesIterator.remove();
             break;
           }
