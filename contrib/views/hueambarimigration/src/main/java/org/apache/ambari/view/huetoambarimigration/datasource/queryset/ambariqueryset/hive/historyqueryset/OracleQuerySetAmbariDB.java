@@ -40,11 +40,11 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
 
   @Override
   protected String getSqlInsertHiveHistoryForHive(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet')";
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','',?,?,'','Worksheet')";
   }
   @Override
   protected String getSqlInsertHiveHistoryForHiveNext(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet')";
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','',?,?,'','Worksheet')";
   }
 
   @Override

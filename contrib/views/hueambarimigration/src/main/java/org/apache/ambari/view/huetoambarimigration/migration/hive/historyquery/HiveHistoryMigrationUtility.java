@@ -193,7 +193,7 @@ public class HiveHistoryMigrationUtility {
 
             String versionName = hiveHistoryQueryImpl.getAllHiveVersionInstance(connectionAmbaridb, ambaridatabase, instance);
 
-            hiveHistoryQueryImpl.insertRowinAmbaridb(dirNameforHiveHistroy, maxCountOfAmbariDb, epochTime, connectionAmbaridb, id, instance, i, ambaridatabase, versionName, username);// inserting in ambari database
+            hiveHistoryQueryImpl.insertRowinAmbaridb(dirNameforHiveHistroy, maxCountOfAmbariDb, epochTime, connectionAmbaridb, id, instance, i, ambaridatabase, versionName, username, dbpojoHiveHistoryQuery.get(i).getJobStatus());// inserting in ambari database
 
             if (view.getProperties().get("KerberoseEnabled").equals("y")) {
 

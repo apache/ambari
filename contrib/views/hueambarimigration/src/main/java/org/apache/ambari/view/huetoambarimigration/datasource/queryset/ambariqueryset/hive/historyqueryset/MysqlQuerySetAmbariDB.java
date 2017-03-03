@@ -34,11 +34,11 @@ public class MysqlQuerySetAmbariDB extends QuerySetAmbariDB {
   }
   @Override
   protected String getSqlInsertHiveHistoryForHive(int id) {
-    return "INSERT INTO DS_JOBIMPL_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet');";
+    return "INSERT INTO DS_JOBIMPL_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','',?,?,'','Worksheet');";
   }
   @Override
   protected String getSqlInsertHiveHistoryForHiveNext(int id) {
-    return "INSERT INTO DS_JOBIMPL_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet');";
+    return "INSERT INTO DS_JOBIMPL_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','',?,?,'','Worksheet');";
   }
 
   @Override
