@@ -369,13 +369,16 @@ var CytoscapeRenderer= Ember.Object.extend({
       return descendantNode.get('type') === 'placeholder' || descendantNode.get('type') === 'kill' || descendantNode.id === node.id;
     }, this);
     errorToNodes = descendantNodes.reject((descendantNode)=>{
-      return descendantNode.get('type') === 'placeholder' || descendantNode.id === node.id;
+      return descendantNode.get('type') === 'placeholder' || descendantNode.get('type') === 'kill' || descendantNode.id === node.id;
     }, this);
     node.set('validOkToNodes', okToNodes);
     node.set('validErrorToNodes', errorToNodes);
   },
+  getGraph(){
+    return this.cy.$('node');
+  },
   isWorkflowValid(){
-    return this.cy.nodes("node[name][type='start']").successors("node[name]").intersection(this.cy.nodes("node[name][type='end']").length > 0);
+    return this.cy.nodes("node[name][type='start']").successors("node[name]").intersection(this.cy.nodes("node[name][type='end']")).length > 0;
   },
   renderWorkflow(workflow){
     this._getCyDataNodes(workflow);

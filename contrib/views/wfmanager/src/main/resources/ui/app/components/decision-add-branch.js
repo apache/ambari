@@ -55,7 +55,8 @@ export default Ember.Component.extend(Validations, FindNodeMixin,{
         self.set("isInsertAction",false);
         this.set("newNodeType",null);
         this.get('flowRenderer').populateOkToandErrorTONodes(node);
-        var descendantNodes= this.get('node.validOkToNodes');
+        var descendantNodes= Ember.A([]);
+        descendantNodes.pushObjects(this.get('node.validOkToNodes'));
         this.set('descendantNodes',descendantNodes);
         self.$("#selector-content").show();
       }
@@ -69,7 +70,7 @@ export default Ember.Component.extend(Validations, FindNodeMixin,{
       this.set("newNodeType",type);
     },
     onTargetNodeChange(value){
-      var node = this.get('descendantNodes').findBy('id',value);
+      var node = this.get('descendantNodes').findBy('id',value) || this.get('killNodes').findBy('id',value);
       this.set('targetNode', node);
     },
     save(){
