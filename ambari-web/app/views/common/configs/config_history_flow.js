@@ -274,6 +274,9 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var type = event.contexts[1],
         controller = this.get('controller'),
         self = this;
+    if (!controller.get('versionLoaded')) {
+      return;
+    }
     // action from right popup of pull down version list will have context[0] == undefined, and use 'hoveredServiceVersion'.
     // refer to AMBARI-19871 for more info
     var configVersion = event.contexts[0] || this.get('hoveredServiceVersion');
