@@ -30,8 +30,13 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.oozie.ambari.view.exception.WfmWebException;
+import org.apache.oozie.ambari.view.model.APIResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WorkflowsManagerResource {
+  private final static Logger LOGGER = LoggerFactory
+    .getLogger(WorkflowsManagerResource.class);
 	private final WorkflowManagerService workflowManagerService;
 	private final ViewContext viewContext;
 	public WorkflowsManagerResource(ViewContext viewContext) {
@@ -47,6 +52,7 @@ public class WorkflowsManagerResource {
       result.put("wfprojects", workflowManagerService.getAllWorkflows(viewContext.getUsername()));
       return Response.ok(result).build();
     } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -58,8 +64,11 @@ public class WorkflowsManagerResource {
                                  @DefaultValue("false") @QueryParam("deleteDefinition") Boolean deleteDefinition){
 	  try{
       workflowManagerService.deleteWorkflow(id,deleteDefinition);
-      return Response.ok().build();
+      APIResult result = new APIResult();
+      result.setStatus(APIResult.Status.SUCCESS);
+      return Response.ok(result).build();
     }catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
 	}
