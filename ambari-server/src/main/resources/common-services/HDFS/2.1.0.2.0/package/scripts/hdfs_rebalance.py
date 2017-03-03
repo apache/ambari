@@ -19,6 +19,10 @@ limitations under the License.
 '''
 
 import re
+import sys
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+
 
 class HdfsParser():
   def __init__(self):
@@ -128,3 +132,28 @@ class HdfsLine():
           }
   def __str__(self):
     return "[ date=%s,iteration=%d, bytesAlreadyMoved=%d, bytesLeftToMove=%d, bytesBeingMoved=%d]"%(self.date, self.iteration, self.bytesAlreadyMoved, self.bytesLeftToMove, self.bytesBeingMoved)
+
+
+
+def is_balancer_running():
+  import params
+  check_balancer_command = "fs -test -e /system/balancer.id"
+  does_hdfs_file_exist = False
+  try:
+    _print("Checking if the balancer is running ...")
+    ExecuteHadoop(check_balancer_command,
+                  user=params.hdfs_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  bin_dir=params.hadoop_bin_dir)
+
+    does_hdfs_file_exist = True
+    _print("Balancer is running. ")
+  except Fail:
+    pass
+
+  return does_hdfs_file_exist
+
+def _print(line):
+  sys.stdout.write(line)
+  sys.stdout.flush()
