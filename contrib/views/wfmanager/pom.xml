@@ -113,27 +113,6 @@
 	</properties>
 	<build>
 		<plugins>
-			<plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${ui.directory}</directory>
-              <followSymlinks>false</followSymlinks>
-              <includes>
-                <include>tmp/**</include>
-                <!--
-                <include>node_modules/**</include>
-                <include>bower_components/**</include>
-                -->
-                <include>node/**</include>
-              </includes>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
 	      <plugin>
 	        <groupId>org.apache.maven.plugins</groupId>
 	        <artifactId>maven-clean-plugin</artifactId>
@@ -215,8 +194,9 @@
 						</goals>
 						<configuration>
 							<workingDirectory>${ui.directory}</workingDirectory>
-							<executable>${ui.directory}/node_modules/.bin/${ember.executable}</executable>
+							<executable>${ui.directory}/node/${node.executable}</executable>
 							<arguments>
+								<argument>${ui.directory}/node_modules/.bin/${ember.executable}</argument>
 								<argument>build</argument>
 								<argument>-prod</argument>
 							</arguments>
