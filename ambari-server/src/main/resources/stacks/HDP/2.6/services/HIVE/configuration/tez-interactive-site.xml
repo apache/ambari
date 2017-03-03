@@ -76,7 +76,7 @@
   </property>
   <property>
     <name>tez.history.logging.taskattempt-filters</name>
-    <value>EXECUTOR_BUSY,EXTERNAL_PREEMPTION</value>
+    <value>SERVICE_BUSY,EXTERNAL_PREEMPTION</value>
     <description>TASK_ATTEMPT events to be ignored.</description>
     <on-ambari-upgrade add="false"/>
   </property>
