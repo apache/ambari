@@ -86,4 +86,12 @@
     <description>Maximum number of dags per group.</description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>tez.am.task.listener.thread-count</name>
+    <value>1</value>
+    <description>Number of IPC server thread for Tez task listener. Should
+      be minimized for LLAP
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
