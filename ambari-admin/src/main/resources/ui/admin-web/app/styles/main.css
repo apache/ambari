@@ -367,8 +367,7 @@ a.gotoinstance{
   width: 14px;
 }
 
-.groups-pane table .search-container .namefilter,
-.users-pane table .search-container .namefilter {
+.namefilter {
   font-weight: normal;
 }
 
@@ -562,27 +561,21 @@ a.gotoinstance{
 .search-container .close{
   position: absolute;
   right: 10px;
-  top: 30px;
+  top: 32px;
 }
 .groups-pane .search-container .close{
-  top: 30px;
+  top: 32px;
 }
-.views-list-table .search-container .close{
-  top: 5px;
+.views-urls-table .search-container .close{
+  top: 7px;
   right: 10px;
   z-index: 10;
 }
 
-.views-list-table .search-container .close-fix{
-  top: 5px;
-  right: 0px;
-  z-index: 10;
-}
-
-.views-list-pane .search-container .close{
+.views-list-table .search-container .close{
   right: 50px;
-  top: 5px;
-  z-index: 100;
+  top: 7px;
+  z-index: 10;
 }
 .groups-pane table thead th{
   border-top: 0;
@@ -689,14 +682,6 @@ table.no-border tr td{
   overflow: hidden;
 }
 
-.views-list-pane{}
-.views-list-pane .panel-body table{
-  margin-bottom: 0;
-}
-.views-list-pane .panel-body table tbody td{
-  border-top: none;
-  vertical-align: middle;
-}
 
 .group-edit .users button.close , .remove-button{
   float: none;
@@ -720,11 +705,6 @@ table.no-border tr td{
 }
 /*.login-message-pane .well {height: 74px;}
 .login-message-pane input {margin-left: 3px;}*/
-
-.views-list-pane accordion .panel-group .panel-heading{
-  cursor: pointer;
-}
-
 
 
 .btn {
@@ -1758,7 +1738,7 @@ thead.view-permission-header > tr > th {
 #stack-versions table .text-search-container .close {
   position: absolute;
   right: 15px;
-  top: 38px;
+  top: 40px;
 }
 .pull-up {
   margin-top: -2px;
