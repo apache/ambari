@@ -46,7 +46,7 @@ public class AssetResource {
   private final AssetService assetService;
   private final ViewContext viewContext;
   private final HDFSFileUtils hdfsFileUtils;
-  private OozieUtils oozieUtils = new OozieUtils();
+  private final OozieUtils oozieUtils = new OozieUtils();
   private final OozieDelegate oozieDelegate;
 
 
@@ -66,8 +66,9 @@ public class AssetResource {
       result.getPaging().setTotal(assets != null ? assets.size() : 0L);
       result.setData(assets);
       return Response.ok(result).build();
-    } catch (Exception e) {
-      throw new WfmWebException(e);
+    } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
 
@@ -81,8 +82,9 @@ public class AssetResource {
       result.getPaging().setTotal(assets != null ? assets.size() : 0L);
       result.setData(assets);
       return Response.ok(result).build();
-    } catch (Exception e) {
-      throw new WfmWebException(e);
+    } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
   @POST
@@ -101,8 +103,10 @@ public class AssetResource {
       result.setStatus(APIResult.Status.SUCCESS);
       return Response.ok(result).build();
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -120,8 +124,9 @@ public class AssetResource {
     String tempWfPath = "/tmp" + "/tmpooziewfs/tempwf_" + Math.round(Math.random() * 100000) + ".xml";
     try {
       hdfsFileUtils.writeToFile(tempWfPath, workflowXml, true);
-    } catch (IOException e) {
-      throw new WfmWebException(e, ErrorCode.FILE_ACCESS_UNKNOWN_ERROR);
+    } catch (IOException ex) {
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex, ErrorCode.FILE_ACCESS_UNKNOWN_ERROR);
     }
     queryParams.put("oozieparam.action", getAsList("dryrun"));
     queryParams.put("oozieconfig.rerunOnFailure", getAsList("false"));
@@ -132,8 +137,9 @@ public class AssetResource {
     LOGGER.info(String.format("resp from validating asset=[%s]", dryRunResp));
     try {
       hdfsFileUtils.deleteFile(tempWfPath);
-    } catch (IOException e) {
-      throw new WfmWebException(e, ErrorCode.FILE_ACCESS_UNKNOWN_ERROR);
+    } catch (IOException ex) {
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex, ErrorCode.FILE_ACCESS_UNKNOWN_ERROR);
     }
     if (dryRunResp != null && dryRunResp.trim().startsWith("{")) {
       JsonElement jsonElement = new JsonParser().parse(dryRunResp);
@@ -157,8 +163,9 @@ public class AssetResource {
     try {
       boolean available = assetService.isAssetNameAvailable(name);
       return Response.ok(available).build();
-    }catch (Exception e){
-      throw new WfmWebException(e);
+    }catch (Exception ex){
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
 
@@ -171,8 +178,9 @@ public class AssetResource {
       result.setStatus(APIResult.Status.SUCCESS);
       result.setData(assetDefinition);
       return Response.ok(result).build();
-    } catch (Exception e) {
-      throw new WfmWebException(e);
+    } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
 
@@ -185,8 +193,9 @@ public class AssetResource {
       result.setStatus(APIResult.Status.SUCCESS);
       result.setData(assetDefinition);
       return Response.ok(result).build();
-    } catch (Exception e) {
-      throw new WfmWebException(e);
+    } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
 
@@ -206,8 +215,10 @@ public class AssetResource {
       result.setStatus(APIResult.Status.SUCCESS);
       return Response.ok(result).build();
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }

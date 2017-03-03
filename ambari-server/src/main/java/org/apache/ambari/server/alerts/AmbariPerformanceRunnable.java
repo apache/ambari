@@ -29,7 +29,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.query.QueryImpl;
-import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.MinimalRenderer;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -162,7 +162,14 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
 
         ClusterController clusterController = ClusterControllerHelper.getClusterController();
         Query query = new QueryImpl(mapIds, new ClusterResourceDefinition(), clusterController);
-        query.setRenderer(new DefaultRenderer());
+        query.setRenderer(new MinimalRenderer());
+        query.addProperty("Clusters/desired_configs", null);
+        query.addProperty("Clusters/credential_store_properties", null);
+        query.addProperty("Clusters/desired_service_config_versions", null);
+        query.addProperty("Clusters/health_report", null);
+        query.addProperty("Clusters/total_hosts", null);
+        query.addProperty("alerts_summary", null);
+        query.addProperty("alerts_summary_hosts", null);
         query.execute();
       }
     };

@@ -397,7 +397,7 @@ App.AddMetricExpressionView = Em.View.extend({
     }
 
     return this.putContextServiceOnTop(result);
-  }.property('controller.filteredMetrics'),
+  }.property('controller.filteredMetrics', 'App.router.clusterController.isComponentsStateLoaded'),
 
   /**
    * returns the input array with the context service (service from which widget browser is launched) as the first element of the array

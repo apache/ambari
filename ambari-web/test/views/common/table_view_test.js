@@ -396,7 +396,6 @@ describe('App.TableView', function () {
   });
 
   describe('#clearStartIndex', function() {
-    var view;
 
     beforeEach(function() {
       view = getView();

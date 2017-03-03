@@ -85,7 +85,11 @@ public class WfmWebException extends WebApplicationException {
     String trace = null;
     Throwable ex = this.getCause();
     if (ex != null) {
-      trace = ExceptionUtils.getStackTrace(ex);
+      if (ex.getStackTrace().length<1){
+        trace = ExceptionUtils.getStackTrace(this);
+      }else{
+        trace = ExceptionUtils.getStackTrace(ex);
+      }
       if (ex instanceof AccessControlException) {
         errorCode = ErrorCode.FILE_ACCESS_ACL_ERROR;
       } else if (ex instanceof IOException) {
@@ -100,7 +104,11 @@ public class WfmWebException extends WebApplicationException {
       response.put("errorCode", errorCode.getErrorCode());
       response.put("message", errorCode.getDescription());
     } else {
-      response.put("message", this.getMessage());
+      if (this.getMessage()!=null){
+        response.put("message", this.getMessage());
+      }else if (this.getCause()!=null){
+        response.put("message", this.getCause().getMessage());
+      }
     }
     if (this.additionalDetail != null) {
       response.put("additionalDetail", additionalDetail);

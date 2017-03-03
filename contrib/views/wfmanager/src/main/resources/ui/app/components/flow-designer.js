@@ -35,6 +35,9 @@ const Validations = buildValidations({
     validators: [
       validator('duplicate-data-node-name', {
         dependentKeys: ['dataNodes.@each.dataNodeName']
+      }),
+      validator('workflow-dag', {
+        dependentKeys: ['dataNodes.@each.source', 'dataNodes.@each.target']
       })
     ]
   },
@@ -79,8 +82,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   globalConfig : {},
   assetConfig : {},
   parameters : {},
-  clonedDomain : {},
-  clonedErrorNode : {},
   validationErrors : Ember.computed('validations.attrs.dataNodes.message', 'validations.attrs.workflow.killNodes.message', {
     get(key){
       var errors = [];
@@ -650,9 +651,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('showActionEditor', true);
     this.set('currentAction', node.actionType);
     var domain = node.getNodeDetail();
-    this.set('clonedDomain', JSOG.stringify(domain));
-    this.set('clonedErrorNode', node.errorNode);
-    this.set('clonedKillMessage',node.get('killMessage'));
+    this.set('flowGraph', this.flowRenderer.getGraph());
     node.set("domain", domain);
     this.set('currentNode', node);
   },
@@ -924,7 +923,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         if(transition.okToNode && trans.condition !== 'error'){
           if(trans.targetNode.id !== transition.okToNode.id){
             trans.targetNode = transition.okToNode;
-            this.showUndo('transition');
           }
         }
       }, this);
@@ -1098,20 +1096,31 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     resetLayout() {
       this.flowRenderer.resetLayout();
     },
+    validateWorkflow(promise){
+      this.currentNode.onSave();
+      this.rerender();
+      if(this.get('flowRenderer').isWorkflowValid()){
+        promise.resolve();
+      }else{
+        promise.reject();
+        this.send('undo');
+        this.rerender();
+      }
+    },
     closeActionEditor (isSaved){
       this.send("hideNotification");
       if(isSaved){
         this.currentNode.onSave();
         this.doValidation();
+        this.rerender();
       }	else {
-        this.set('currentNode.domain',JSOG.parse(this.get('clonedDomain')));
-        this.set('currentNode.errorNode', this.get('clonedErrorNode'));
-        if(this.currentNode.type === 'kill'){
-          this.set('currentNode.killMessage', this.get('clonedKillMessage'));
-        }
+        this.send('undo');
       }
       this.set('showActionEditor', false);
-      this.rerender();
+      var newGraph = this.flowRenderer.getGraph();
+      if(!this.get('flowGraph').same(newGraph)){
+        this.showUndo('transition');
+      }
     },
     saveDraft(){
       this.persistWorkInProgress();

@@ -98,36 +98,36 @@ public abstract class QuerySetHueDB {
   }
 
   protected String fetchHueQueriesNoStartdateNoEnddateSql() {
-    return "select owner_id, query from beeswax_queryhistory where owner_id =?;";
+    return "select last_state, owner_id, query from beeswax_queryhistory where owner_id =?;";
   }
 
   protected String fetchHueQueriesNoStartdateYesEnddateSql() {
-    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date <= date(?);";
+    return "select last_state, owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date <= date(?);";
   }
 
   protected String fetchHueQueriesYesStartdateNoEnddateSql() {
-    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?);";
+    return "select last_state, owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?);";
   }
 
   protected String fetchHueQueriesYesStartdateYesEnddateSql() {
-    return "select owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?) AND submission_date <= date(?);";
+    return "select last_state, owner_id, query from beeswax_queryhistory where owner_id =? AND submission_date >= date(?) AND submission_date <= date(?);";
   }
 
   protected String fetchHueQueriesNoStartdateNoEnddateYesallUserSql() {
-    return "select owner_id, query from beeswax_queryhistory;";
+    return "select last_state, owner_id, query from beeswax_queryhistory;";
   }
 
   protected String fetchHueQueriesNoStartdateYesEnddateYesallUserSql() {
-    return "select owner_id, query from beeswax_queryhistory where submission_date <= date(?);";
+    return "select last_state, owner_id, query from beeswax_queryhistory where submission_date <= date(?);";
   }
 
   protected String fetchHueQueriesYesStartdateNoEnddateYesallUserSql() {
-    return "select owner_id, query from beeswax_queryhistory where submission_date >= date(?);";
+    return "select last_state, owner_id, query from beeswax_queryhistory where submission_date >= date(?);";
 
   }
 
   protected String fetchHueQueriesYesStartdateYesEnddateYesallUserSql() {
-    return "select owner_id, query from beeswax_queryhistory where submission_date >= date(?) AND submission_date <= date(?);";
+    return "select last_state, owner_id, query from beeswax_queryhistory where submission_date >= date(?) AND submission_date <= date(?);";
 
   }
 

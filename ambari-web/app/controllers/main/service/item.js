@@ -1524,8 +1524,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   saveConfigs: function() {
     var data = [],
-      progressPopup = this.get('deleteServiceProgressPopup');
-    this.get('stepConfigs').forEach(function(stepConfig) {
+        progressPopup = this.get('deleteServiceProgressPopup'),
+        stepConfigs = this.get('stepConfigs');
+
+    this.applyRecommendedValues(stepConfigs);
+
+    stepConfigs.forEach(function (stepConfig) {
       var serviceConfig = this.getServiceConfigToSave(stepConfig.get('serviceName'), stepConfig.get('configs'));
 
       if (serviceConfig)  {
@@ -1542,6 +1546,20 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     } else {
       this.confirmServiceDeletion();
     }
+  },
+
+  applyRecommendedValues: function (stepConfigs) {
+    var changedProperties = this.get('changedProperties');
+    changedProperties.forEach(function (property) {
+      var serviceConfigs = stepConfigs.findProperty('serviceName', property.serviceName);
+      if (serviceConfigs) {
+        var prop = serviceConfigs.get('configs').findProperty('name', property.propertyName);
+        if (prop) {
+          prop.set('value', property.saveRecommended ? property.recommendedValue : property.initialValue);
+        }
+      }
+    });
+    return stepConfigs;
   },
 
   confirmServiceDeletion: function() {

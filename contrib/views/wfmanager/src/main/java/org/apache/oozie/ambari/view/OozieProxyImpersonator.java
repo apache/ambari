@@ -120,8 +120,9 @@ public class OozieProxyImpersonator {
     try {
       hdfsFileUtils.hdfsCheck();
       return Response.ok().build();
-    }catch (Exception e){
-      throw new WfmWebException(e);
+    }catch (Exception ex){
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
 
@@ -131,8 +132,9 @@ public class OozieProxyImpersonator {
     try{
       hdfsFileUtils.homeDirCheck();
       return Response.ok().build();
-    }catch (Exception e){
-      throw new WfmWebException(e);
+    }catch (Exception ex){
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
   }
 
@@ -203,10 +205,13 @@ public class OozieProxyImpersonator {
         appPath, ui.getQueryParameters(), jobType);
       return Response.status(Status.OK).entity(response).build();
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch(WfmException ex){
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex,ex.getErrorCode());
     } catch(Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -241,9 +246,11 @@ public class OozieProxyImpersonator {
           viewContext.getUsername(), getWorkflowName(postBody));
       }
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch (Exception ex) {
-       throw new WfmWebException(ex);
+      LOGGER.error(ex.getMessage(),ex);
+      throw new WfmWebException(ex);
     }
     return Response.ok().build();
   }
@@ -298,8 +305,10 @@ public class OozieProxyImpersonator {
       }
       return saveAsset(postBody, uploadPath, overwrite);
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -337,6 +346,7 @@ public class OozieProxyImpersonator {
       };
       return Response.ok(streamer).status(200).build();
     } catch (IOException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -360,6 +370,7 @@ public class OozieProxyImpersonator {
       };
       return Response.ok(streamer).status(200).build();
     } catch (IOException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -372,6 +383,7 @@ public class OozieProxyImpersonator {
       workflowFilesService.discardDraft(workflowPath);
       return Response.ok().build();
     } catch (IOException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -403,8 +415,10 @@ public class OozieProxyImpersonator {
         return getWorkflowResponse(filePath, WorkflowFormat.XML.getValue(), false);
       }
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }
@@ -452,8 +466,10 @@ public class OozieProxyImpersonator {
       };
       return Response.ok(streamer).status(200).build();
     } catch (WfmWebException ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw ex;
     } catch (Exception ex) {
+      LOGGER.error(ex.getMessage(),ex);
       throw new WfmWebException(ex);
     }
   }

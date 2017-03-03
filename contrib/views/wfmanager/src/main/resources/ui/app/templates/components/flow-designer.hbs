@@ -251,7 +251,7 @@
               <i class="fa fa-cloud-upload"></i>
             </span>
           </div>
-          {{decision-add-branch node=node registerAddBranchAction="registerAddBranchAction" addDecisionBranch="addDecisionBranch" workflow=workflow flowRenderer=flowRenderer}}
+          {{decision-add-branch node=node killNodes=workflow.killNodes registerAddBranchAction="registerAddBranchAction" addDecisionBranch="addDecisionBranch" workflow=workflow flowRenderer=flowRenderer}}
         </div>
           {{#if cyOverflow.overflown}}
             <div class="cyScrollMsg"><i class="fa fa-ellipsis-h cyScrollMsgContent" title="Use the pan tool or drag on canvas to see more" aria-hidden="true"></i></div>
@@ -269,7 +269,7 @@
 
 
 {{#if showActionEditor}}
-  {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" setNodeTransitions="setNodeTransitions" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes credentials=workflow.credentials}}
+  {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" setNodeTransitions="setNodeTransitions" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes credentials=workflow.credentials validateWorkflow="validateWorkflow"}}
 {{/if}}
 {{#if showingSaveWorkflow}}
   {{save-wf type='wf' close="closeSaveWorkflow" showSuccessMessage="showSuccessMessage" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}

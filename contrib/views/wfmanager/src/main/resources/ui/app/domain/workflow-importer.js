@@ -33,6 +33,7 @@ var WorkflowImporter= Ember.Object.extend({
     return this.processWorkflowXml(workflowXml,workflow, errors);
   },
   processWorkflowXml(workflowXml,workflow, errors){
+    var xmlDoc= xmlDoc = Ember.$.parseXML( workflowXml );
     var workflowJson= this.get("x2js").xml_str2json(workflowXml);
     if (!workflowJson["workflow-app"]){
       throw "Invalid workflow";
@@ -53,7 +54,7 @@ var WorkflowImporter= Ember.Object.extend({
     }
     this.workflowMapper.handleCredentialImport(workflow,workflowAppJson.credentials);
     this.workflowMapper.handleParametersImport(workflow,workflowAppJson.parameters);
-    var nodeMap=this.setupNodeMap(workflowAppJson,workflow);
+    var nodeMap=this.setupNodeMap(workflowAppJson,workflow,Ember.$(xmlDoc));
     this.setupTransitions(workflowAppJson,nodeMap);
     workflow.set("startNode",nodeMap.get("start").node);
     this.populateKillNodes(workflow,nodeMap);
@@ -96,7 +97,7 @@ var WorkflowImporter= Ember.Object.extend({
     var actionNode=actionMapper.handleImportNode(action);
     nodeMap.set(actionNode.getName(),actionNode);
   },
-  setupNodeMap(workflowAppJson,workflow){
+  setupNodeMap(workflowAppJson,workflow,xmlDoc){
     var self=this;
     workflow.set("name",workflowAppJson["_name"]);
     var nodeMap=new Map();
@@ -109,7 +110,10 @@ var WorkflowImporter= Ember.Object.extend({
             nodeMap.set(jsonObj._name,{json:jsonObj,node:node});
           });
         }else{
-          var node=nodeHandler.handleImportNode(key,workflowAppJson[key],workflow);
+          if ('action'===key){//action handler.
+          	var actionDom=xmlDoc.find("action[name='"+workflowAppJson[key]._name+ "']");
+          }
+          var node=nodeHandler.handleImportNode(key,workflowAppJson[key],workflow,actionDom);
           if (!workflowAppJson[key]._name){
             nodeMap.set(key,{json:workflowAppJson[key],node:node});
           }else{

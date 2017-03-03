@@ -72,8 +72,8 @@ public interface ActionDBAccessor {
   /**
    * Mark the task as to have timed out
    */
-  void timeoutHostRole(String host, long requestId, long stageId,
-                       String role, boolean skipSupported);
+  void timeoutHostRole(String host, long requestId, long stageId, String role,
+                       boolean skipSupported, boolean hostUnknownState);
 
   /**
    * Returns all the pending stages, including queued and not-queued. A stage is

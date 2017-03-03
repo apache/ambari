@@ -1134,7 +1134,8 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'num_llap_nodes':'1'
+              'num_llap_nodes':'1',
+              'num_llap_nodes_for_llap_daemons': '1'
             }
           },
         "hive-interactive-site":
@@ -1336,7 +1337,8 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'num_llap_nodes':'1'
+              'num_llap_nodes':'1',
+              'num_llap_nodes_for_llap_daemons': '1'
             }
           },
         "hive-interactive-site":
@@ -1532,7 +1534,8 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'num_llap_nodes': 1
+              'num_llap_nodes': 1,
+              'num_llap_nodes_for_llap_daemons': '1'
             }
           },
         "hive-interactive-site":
@@ -1737,7 +1740,8 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'num_llap_nodes':'3'
+              'num_llap_nodes':'3',
+              'num_llap_nodes_for_llap_daemons': '1'
             }
           },
         "hive-interactive-site":
@@ -1938,6 +1942,7 @@ class TestHDP25StackAdvisor(TestCase):
             'properties': {
               'enable_hive_interactive': 'true',
               'num_llap_nodes':'3',
+              'num_llap_nodes_for_llap_daemons': '1',
              }
           },
         "hive-interactive-site":
@@ -2337,7 +2342,8 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'num_llap_nodes':'3'
+              'num_llap_nodes':'3',
+              'num_llap_nodes_for_llap_daemons': '1'
             }
           },
         "hive-interactive-site":
@@ -2605,7 +2611,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1.0')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
     self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '36864')
@@ -2806,7 +2812,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
     self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '202554')
@@ -3003,7 +3009,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['capacity-scheduler']['properties'], {'capacity-scheduler': 'yarn.scheduler.capacity.root.accessible-node-labels=*\nyarn.scheduler.capacity.maximum-am-resource-percent=1\nyarn.scheduler.capacity.node-locality-delay=40\nyarn.scheduler.capacity.root.capacity=100\nyarn.scheduler.capacity.root.default.state=RUNNING\nyarn.scheduler.capacity.root.default.maximum-capacity=0.0\nyarn.scheduler.capacity.root.queues=default,llap\nyarn.scheduler.capacity.maximum-applications=10000\nyarn.scheduler.capacity.root.default.user-limit-factor=1\nyarn.scheduler.capacity.root.acl_administer_queue=*\nyarn.scheduler.capacity.root.default.acl_submit_applications=*\nyarn.scheduler.capacity.root.default.capacity=0.0\nyarn.scheduler.capacity.queue-mappings-override.enable=false\nyarn.scheduler.capacity.root.ordering-policy=priority-utilization\nyarn.scheduler.capacity.root.llap.user-limit-factor=1\nyarn.scheduler.capacity.root.llap.state=RUNNING\nyarn.scheduler.capacity.root.llap.ordering-policy=fifo\nyarn.scheduler.capacity.root.llap.priority=10\nyarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\nyarn.scheduler.capacity.root.llap.maximum-capacity=100.0\nyarn.scheduler.capacity.root.llap.capacity=100.0\nyarn.scheduler.capacity.root.llap.acl_submit_applications=hive\nyarn.scheduler.capacity.root.llap.acl_administer_queue=hive\nyarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'})
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
     self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '202752')
@@ -3197,7 +3203,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '202752')
 
@@ -3421,7 +3427,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '4', 'minimum': '1'})
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
-    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204288')
 
@@ -3588,6 +3594,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
+              'num_llap_nodes_for_llap_daemons': '1'
             }
           },
         "hive-interactive-site":
@@ -3960,7 +3967,8 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'num_llap_nodes': '1'
+              'num_llap_nodes': '1',
+              'num_llap_nodes_for_llap_daemons': '0'
             }
           },
         "hive-interactive-site":
@@ -4372,12 +4380,18 @@ class TestHDP25StackAdvisor(TestCase):
         "kafka-broker": {
           "properties": {
             "zookeeper.connect": "c6401.ambari.apache.org",
-            "port": "6667"
+            "port": "6667",
+            "listeners": "PLAINTEXT://localhost:6667"
           }
         },
         'ranger-atlas-plugin-properties': {
           'properties': {
             'ranger-atlas-plugin-enabled':'No'
+          }
+        },
+        "cluster-env": {
+          "properties": {
+            "security_enabled": "false"
           }
         }
       },
@@ -4414,6 +4428,26 @@ class TestHDP25StackAdvisor(TestCase):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+    services['configurations']['kafka-broker']['properties']['listeners'] = '  PLAINTEXT://localhost:5522  ,  PLAINTEXTSASL://localhost:2255   '
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:5522'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+    services['configurations']['cluster-env']['properties']['security_enabled']='true'
+    services['configurations']['kafka-broker']['properties']['listeners'] = '  PLAINTEXT://localhost:5522  ,  PLAINTEXTSASL://localhost:2266   '
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:2266'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+    services['configurations']['kafka-broker']['properties']['listeners'] = '  SASL_PLAINTEXT://localhost:2233   , PLAINTEXT://localhost:5577  '
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:2233'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    services['configurations']['cluster-env']['properties']['security_enabled']='false'
+    expected['application-properties']['properties']['atlas.kafka.bootstrap.servers'] = 'c6401.ambari.apache.org:5577'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
 
   def test_validationAtlasConfigs(self):
     servicesInfo = [

@@ -54,7 +54,7 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
-  public PreparedStatement insertToHiveHistoryForHive(Connection connection, int id, String maxcount, long epochtime, String dirname,String username) throws SQLException {
+  public PreparedStatement insertToHiveHistoryForHive(Connection connection, int id, String maxcount, long epochtime, String dirname,String username, String jobStatus) throws SQLException {
 
     String Logfile=  dirname + "logs";
     String queryHqlFile= dirname + "query.hql";
@@ -66,12 +66,13 @@ public abstract class QuerySetAmbariDB {
     prSt.setString(3, Logfile);
     prSt.setString(4, username);
     prSt.setString(5, queryHqlFile);
-    prSt.setString(6, dirname);
+    prSt.setString(6, jobStatus);
+    prSt.setString(7, dirname);
 
     return prSt;
   }
 
-  public PreparedStatement insertToHiveHistoryForHiveNext(Connection connection, int id, String maxcount, long epochtime, String dirname,String username) throws SQLException {
+  public PreparedStatement insertToHiveHistoryForHiveNext(Connection connection, int id, String maxcount, long epochtime, String dirname,String username, String jobStatus) throws SQLException {
 
     String Logfile=  dirname + "logs";
     String queryHqlFile= dirname + "query.hql";
@@ -83,7 +84,8 @@ public abstract class QuerySetAmbariDB {
     prSt.setString(3, Logfile);
     prSt.setString(4, username);
     prSt.setString(5, queryHqlFile);
-    prSt.setString(6, dirname);
+    prSt.setString(6, jobStatus);
+    prSt.setString(7, dirname);
 
     return prSt;
   }
@@ -110,11 +112,11 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getSqlInsertHiveHistoryForHive(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet');";
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','',?,?,'','Worksheet');";
   }
 
   protected String getSqlInsertHiveHistoryForHiveNext(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet');";
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','',?,?,'','Worksheet');";
   }
 
   protected String getRevSql(int id,String maxcount){

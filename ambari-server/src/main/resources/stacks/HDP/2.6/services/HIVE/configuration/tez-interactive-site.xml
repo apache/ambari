@@ -76,7 +76,7 @@
   </property>
   <property>
     <name>tez.history.logging.taskattempt-filters</name>
-    <value>EXECUTOR_BUSY,EXTERNAL_PREEMPTION</value>
+    <value>SERVICE_BUSY,EXTERNAL_PREEMPTION</value>
     <description>TASK_ATTEMPT events to be ignored.</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -84,6 +84,14 @@
     <name>tez.history.logging.timeline.num-dags-per-group</name>
     <value>5</value>
     <description>Maximum number of dags per group.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.task.listener.thread-count</name>
+    <value>1</value>
+    <description>Number of IPC server thread for Tez task listener. Should
+      be minimized for LLAP
+    </description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

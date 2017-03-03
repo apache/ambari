@@ -37,6 +37,11 @@
   <label class="control-label col-xs-2">Ok To<span class="requiredField">&nbsp;*</span></label>
   <div class=" col-xs-7">
     <select onchange={{action "okToHandler" value="target.value"}} name="select-node" class="form-control" data-show-icon="true">
+      <optgroup label="Kill Nodes"></optgroup>
+      {{#each killNodes as |node index|}}
+      <option value={{node.name}} selected={{eq node.name transition.okToNode.name}}>{{node.name}}</option>
+      {{/each}}
+      <optgroup label="Other Nodes"></optgroup>
       {{#each currentNode.validOkToNodes as |node index|}}
         <option value={{node.name}} selected={{eq node.name transition.okToNode.name}}>{{node.name}}</option>
       {{/each}}

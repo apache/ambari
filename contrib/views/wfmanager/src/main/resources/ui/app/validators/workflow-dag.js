@@ -14,32 +14,30 @@
 *    See the License for the specific language governing permissions and
 *    limitations under the License.
 */
-
 import Ember from 'ember';
-import { validator, buildValidations } from 'ember-cp-validations';
+import BaseValidator from 'ember-cp-validations/validators/base';
 
-const Validations = buildValidations({
-  'actionModel': {
-    validators: [
-      validator('decission-node-validator', {
-        dependentKeys: ['actionModel.@each.condition']
-      })
-    ]
-  }
-});
-
-export default Ember.Component.extend(Validations,{
-  initialize : function(){
-    this.sendAction('register','decision',this);
-    this.set('targetNodes', Ember.A([]));
-    this.get('targetNodes').pushObjects(this.get('currentNode.validOkToNodes'));
-    this.get('targetNodes').pushObjects(this.get('killNodes'));
-  }.on('init'),
-  actions : {
-    onTargetNodeChange(index){
-      var node = this.get('targetNodes').findBy('id', this.$(`#target-node-select-${index}`).find(":selected").val());
-      var config = this.get('actionModel').objectAt(index);
-      Ember.set(config, 'node', node);
+const DuplicateDataNodeName = BaseValidator.extend({
+  validate(value, options, model, attribute) {
+    if (model.get('dataNodes')) {
+      if(!model.get('flowRenderer').isWorkflowValid()){
+        return "Invalid workflow structure. There is no flow to end node."
+      }
     }
   }
 });
+
+DuplicateDataNodeName.reopenClass({
+  /**
+   * Define attribute specific dependent keys for your validator
+   *
+   * @param {String}  attribute   The attribute being evaluated
+   * @param {Unknown} options     Options passed into your validator
+   * @return {Array}
+   */
+  getDependentsFor(/* attribute, options */) {
+    return [];
+  }
+});
+
+export default DuplicateDataNodeName;
