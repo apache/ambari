@@ -522,6 +522,11 @@
             <type>yarn-env</type>
             <set key="service_check.queue.name" value="default" if-type="yarn-env" if-key="service_check.queue.name" if-key-state="absent"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default">
+            <type>yarn-site</type>
+            <set key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" value="15"
+                 if-type="yarn-site" if-key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" if-value="60"/>
+          </definition>
         </changes>
       </component>
     </service>

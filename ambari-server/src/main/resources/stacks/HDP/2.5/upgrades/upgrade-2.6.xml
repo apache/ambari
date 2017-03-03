@@ -688,6 +688,7 @@
           <task xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption" />
           <task xsi:type="configure" id="yarn_site_retained_log_count" />
           <task xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name"/>
+          <task xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

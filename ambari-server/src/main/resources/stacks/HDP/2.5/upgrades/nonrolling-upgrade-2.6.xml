@@ -316,6 +316,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ATS SCAN">
+        <task xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default">
+          <summary>Modifying ATS Scan default</summary>
+        </task>
+      </execute-stage>
+
       <!--Yarn-->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for YARN app log retaintion">
         <task xsi:type="configure" id="yarn_site_retained_log_count">
