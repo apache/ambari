@@ -19,6 +19,20 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
 
+  resetController: function(controller, isExiting, transition) {
+    if (isExiting) {
+      this.usernames = [];
+      this.controller.set('username', null);
+      this.controller.set('instancename', null);
+      this.controller.set('startdate', null);
+      this.controller.set('enddate', null);
+      this.controller.set('jobstatus', null);
+      this.controller.set('progressBar', null);
+      this.controller.set('completionStatus', null);
+      this.controller.set('error', null);
+    }
+  },
+
   usernames: [],
 
   model: function() {
@@ -27,7 +41,6 @@ export default Ember.Route.extend({
       usersdetail: store.findAll('usersdetail'),
       piginstancedetail: store.findAll('piginstancedetail'),
       selections: []
-
     });
 
   },
