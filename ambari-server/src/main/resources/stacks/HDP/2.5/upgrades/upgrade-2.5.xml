@@ -934,6 +934,12 @@
 
     <service name="ATLAS">
       <component name="ATLAS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
+        </pre-upgrade>
+        
+        <pre-downgrade/>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
