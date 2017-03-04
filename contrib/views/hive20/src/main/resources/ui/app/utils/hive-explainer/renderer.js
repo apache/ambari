@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-export default function doRender(data, selector, onRequestDetail) {
+export default function doRender(data, selector, onRequestDetail, draggable) {
 
-  const width = '1600', height = '800';
+  const width = '1570', height = '800';
 
   d3.select(selector).select('*').remove();
+
   const svg =
     d3.select(selector)
       .append('svg')
@@ -34,10 +35,21 @@ export default function doRender(data, selector, onRequestDetail) {
       .scaleExtent([1 / 10, 1])
       .on('zoom', () => {
         container.attr('transform', `translate(${d3.event.translate}) scale(${d3.event.scale})`);
+        draggable.set('zoom' , true);
       });
 
+  const drag = d3.behavior.drag()
+    .on("dragstart", () => {
+      draggable.set('dragstart', true);
+      draggable.set('zoom',false);
+    })
+    .on("dragend", () => {
+      draggable.set('dragend', true);
+    });
+
     svg
-      .call(zoom);
+      .call(zoom)
+      .call(drag);
 
   const root =
     container

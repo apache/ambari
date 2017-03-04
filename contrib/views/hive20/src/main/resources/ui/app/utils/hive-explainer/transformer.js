@@ -20,17 +20,20 @@ import doEnhance from './enhancer';
 import {getProcessedVertices, getEdgesWithCorrectedUnion, getAdjustedVerticesAndEdges} from './processor';
 
 export default function doTransform(data) {
-  const plan = getTezPlan(data);
+  const tez = getTezPlan(data);
   const fetch = getFetchPlan(data);
 
   let vertices = [
-    ...getVertices(plan),
-    getFetchVertex(fetch)
+    ...(tez ? getTezVertices(tez) : []),
+    getFetchVertex(fetch),
   ];
 
-  let edges = getEdges(plan, vertices);
-  edges = getEdgesWithCorrectedUnion(edges);
-  edges = getEdgesWithFetch(edges, vertices);
+  let edges = [];
+  if(tez) {
+    edges = getEdges(tez, vertices);
+    edges = getEdgesWithCorrectedUnion(edges);
+    edges = getEdgesWithFetch(edges, vertices);
+  }
 
   vertices = doEnhance(vertices);
 
@@ -42,7 +45,9 @@ export default function doTransform(data) {
 
   vertices = getVerticesWithIndexOfChildren(vertices);
 
-  let tree = getVertexTree(edges);
+  let tree = (edges.length > 0) ? getVertexTree(edges) : Object.assign({}, vertices[0], {
+    _vertices: []
+  });
 
   const connections = getConnections(vertices, edges);
   tree = getTreeWithOffsetAndHeight(tree, vertices, connections);
@@ -87,25 +92,13 @@ function doGetChildrenWithIndexY(children, cIndex) {
 function getTezPlan(data) {
   const stages = data['STAGE PLANS'];
   const tezStageKey = Object.keys(stages).find(cStageKey => stages[cStageKey].hasOwnProperty('Tez'));
-  return stages[tezStageKey]['Tez'];
+  return stages[tezStageKey] && stages[tezStageKey]['Tez'];
 }
 
 function getFetchPlan(data) {
   const stages = data['STAGE PLANS'];
   const fetchStageKey = Object.keys(stages).find(cStageKey => stages[cStageKey].hasOwnProperty('Fetch Operator'));
-  return stages[fetchStageKey]['Fetch Operator'];
-}
-
-function getFetchVertex(plan) {
-  return ({
-    _vertex: 'Fetch',
-    _children: [
-      Object.assign({}, plan, {
-        _operator: 'Fetch Operator',
-        _children: []
-      })
-    ]
-  });
+  return stages[fetchStageKey] && stages[fetchStageKey]['Fetch Operator'];
 }
 
 function getVertexTree(edges) {
@@ -155,7 +148,45 @@ function getEdgesWithFetch(tezEdges, vertices) {
   ]);
 }
 
-function getVertices(plan) {
+function getFetchVertex(plan) {
+
+  let children = [];
+  if(plan.hasOwnProperty('Processor Tree:')) {
+    const cVertex = plan['Processor Tree:'];
+
+    let root = [{['Processor Tree:']: {}}];
+    //if(cTreeKey) {
+      // children available
+      root = cVertex;
+    //}
+    children = doHarmonize(root);
+  }
+
+  const vertex = {
+    _vertex: 'Fetch',
+    _children: children
+  };
+
+  const lastOperator = getLastOperatorOf(vertex);
+  if(lastOperator._operator === 'ListSink') {
+    Object.assign(lastOperator, {
+      _operator: 'Fetch Operator',
+      _children: []
+    });
+  } else {
+    // append children to last vertex
+    lastOperator._children = [
+      Object.assign({}, plan, {
+        _operator: 'Fetch Operator',
+        _children: []
+      })
+    ]
+  }
+
+  return vertex;
+}
+
+function getTezVertices(plan) {
   const VERTEX_TREE_KEYS = ['Reduce Operator Tree:', 'Map Operator Tree:'];
   const vertexObj = plan['Vertices:'];
 
