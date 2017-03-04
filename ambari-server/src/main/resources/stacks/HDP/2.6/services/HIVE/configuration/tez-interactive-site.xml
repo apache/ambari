@@ -94,4 +94,12 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>tez.container.max.java.heap.fraction</name>
+    <value>-1</value>
+    <description>Setting this to -1 so that Tez can auto determine different
+      Xmx for different container size
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
