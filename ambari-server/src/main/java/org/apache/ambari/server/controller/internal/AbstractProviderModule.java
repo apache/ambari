@@ -175,11 +175,11 @@ public abstract class AbstractProviderModule implements ProviderModule,
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
-    initPropMap.put("HBASE_MASTER", new String[]{"hbase.http.policy"});
+    initPropMap.put("HBASE_MASTER", new String[]{"hbase.ssl.enabled"});
     jmxDesiredProperties.put("HBASE_MASTER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
-    initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.http.policy"});
+    initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.ssl.enabled"});
     jmxDesiredProperties.put("HBASE_REGIONSERVER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -1130,7 +1130,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
               clusterName,
               newSiteConfigVersion, config,
               jmxDesiredProperties.get(componentName));
-          jmxProtocolString = getJMXProtocolString(protocolMap.get(componentName));
+          boolean isHttpsEnabled;
+          String propetyVal = protocolMap.get(componentName);
+          if (service.equals(Service.Type.HBASE)) {
+            isHttpsEnabled = Boolean.valueOf(propetyVal);
+          } else {
+            isHttpsEnabled = PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY.equals(propetyVal);
+          }
+          jmxProtocolString = getJMXProtocolStringFromBool(isHttpsEnabled);
         }
       } else {
         jmxProtocolString = "http";
@@ -1158,12 +1165,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return jmxProtocolString;
   }
 
-  private String getJMXProtocolString(String value) {
-    if (PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY.equals(value)) {
-      return "https";
-    } else {
-      return "http";
-    }
+  private String getJMXProtocolStringFromBool(boolean isHttpsEnabled) {
+    return isHttpsEnabled ? "https" : "http";
   }
 
   @Override
