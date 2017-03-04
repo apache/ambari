@@ -18,9 +18,8 @@
 
 export function isExplainable(data) {
   const stages = data['STAGE PLANS'];
-  const isValidTezStageAvailable = Object.keys(stages).some(cStageKey => stages[cStageKey].hasOwnProperty('Tez'));
   const isValidFetchStageAvailable = Object.keys(stages).find(cStageKey => stages[cStageKey].hasOwnProperty('Fetch Operator'));
-  return isValidTezStageAvailable && isValidFetchStageAvailable;
+  return isValidFetchStageAvailable;
 }
 
 export function doRenderError(selector) {

@@ -406,6 +406,7 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     showVisualExplain(payloadTitle){
        if( this.paramsFor('queries.query').worksheetId && this.paramsFor('queries.query').worksheetId.toLowerCase() === payloadTitle){
+         this.transitionTo('queries.query.loading');
          Ember.run.later(() => {
            this.transitionTo('queries.query.visual-explain');
          }, 1);
