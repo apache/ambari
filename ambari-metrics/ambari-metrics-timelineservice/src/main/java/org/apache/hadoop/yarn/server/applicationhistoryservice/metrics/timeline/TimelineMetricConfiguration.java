@@ -254,6 +254,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_APPS_BLACKLIST =
     "timeline.metrics.apps.blacklist";
 
+  public static final String TIMELINE_METRICS_APPS_WHITELIST =
+    "timeline.metrics.apps.whitelist";
+
   public static final String HBASE_BLOCKING_STORE_FILES =
     "hbase.hstore.blockingStoreFiles";
 

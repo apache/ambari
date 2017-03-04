@@ -43,6 +43,7 @@ public class MetricsLoadSimulator {
       mapArgs.get("hostName"),
       Integer.valueOf(mapArgs.get("numberOfHosts")),
       mapArgs.get("metricsHostName"),
+      mapArgs.get("minHostIndex") == null ? 0 : Integer.valueOf(mapArgs.get("minHostIndex")),
       Integer.valueOf(mapArgs.get("collectInterval")),
       Integer.valueOf(mapArgs.get("sendInterval")),
       Boolean.valueOf(mapArgs.get("master"))
@@ -60,6 +61,7 @@ public class MetricsLoadSimulator {
             mapArgs.get("hostName"),
             Integer.valueOf(mapArgs.get("numberOfHosts")),
             mapArgs.get("metricsHostName"),
+            mapArgs.get("minHostIndex") == null ? 0 : Integer.valueOf(mapArgs.get("minHostIndex")),
             Integer.valueOf(mapArgs.get("collectInterval")),
             Integer.valueOf(mapArgs.get("sendInterval")),
             Boolean.valueOf(mapArgs.get("master"))
