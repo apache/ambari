@@ -147,4 +147,74 @@ public class TimelineMetricsFilterTest {
     Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
   }
 
+  @Test
+  public void testHybridFilter() throws Exception {
+
+    // Whitelist Apps - namenode, nimbus
+    // Blacklist Apps - datanode, kafka_broker
+    // Accept ams-hbase whitelisting.
+    // Reject non whitelisted metrics from non whitelisted Apps (Say hbase)
+
+    TimelineMetricConfiguration configuration = EasyMock.createNiceMock(TimelineMetricConfiguration.class);
+
+    Configuration metricsConf = new Configuration();
+    metricsConf.set("timeline.metrics.apps.whitelist", "namenode,nimbus");
+    metricsConf.set("timeline.metrics.apps.blacklist", "datanode,kafka_broker");
+    URL fileUrl = ClassLoader.getSystemResource("test_data/metric_whitelist.dat");
+    metricsConf.set("timeline.metrics.whitelist.file", fileUrl.getPath());
+    expect(configuration.getMetricsConf()).andReturn(metricsConf).once();
+
+    Set<String> whitelist = new HashSet();
+    whitelist.add("regionserver.Server.Delete_99th_percentile");
+    whitelist.add("regionserver.Server.Delete_max");
+    whitelist.add("regionserver.Server.Delete_mean");
+    expect(configuration.getAmshbaseWhitelist()).andReturn(whitelist).once();
+
+    replay(configuration);
+
+    TimelineMetricsFilter.initializeMetricFilter(configuration);
+
+    TimelineMetric timelineMetric = new TimelineMetric();
+
+    //Test App Whitelisting
+    timelineMetric.setMetricName("metric.a.b.c");
+    timelineMetric.setAppId("namenode");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("metric.d.e.f");
+    timelineMetric.setAppId("nimbus");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    //Test App Blacklisting
+    timelineMetric.setMetricName("metric.d.e.f");
+    timelineMetric.setAppId("datanode");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("metric.d.e.f");
+    timelineMetric.setAppId("kafka_broker");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+
+    //Test ams-hbase Whitelisting
+    timelineMetric.setMetricName("regionserver.Server.Delete_max");
+    timelineMetric.setAppId("ams-hbase");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("regionserver.Server.Delete_min3333");
+    timelineMetric.setAppId("ams-hbase");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("regionserver.Server.Delete_mean");
+    timelineMetric.setAppId("ams-hbase");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    //Test Metric Whitelisting
+    timelineMetric.setMetricName("regionserver.WAL.SyncTime_max");
+    timelineMetric.setAppId("hbase");
+    Assert.assertTrue(TimelineMetricsFilter.acceptMetric(timelineMetric));
+
+    timelineMetric.setMetricName("regionserver.WAL.metric.not.needed");
+    timelineMetric.setAppId("hbase");
+    Assert.assertFalse(TimelineMetricsFilter.acceptMetric(timelineMetric));
+  }
 }
