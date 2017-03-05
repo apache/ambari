@@ -43,6 +43,7 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
 from resource_management.core import utils
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from ambari_commons.constants import SERVICE
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -200,6 +201,12 @@ def hive_interactive(name=None):
                   group=params.user_group,
                   mode=0644)
       else:
+        merged_hive_interactive_site = update_credential_provider_path(merged_hive_interactive_site,
+                                                                  'hive-site',
+                                                                  os.path.join(conf_dir, 'hive-site.jceks'),
+                                                                  params.hive_user,
+                                                                  params.user_group
+        )
         XmlConfig("hive-site.xml",
                   conf_dir=conf_dir,
                   configurations=merged_hive_interactive_site,

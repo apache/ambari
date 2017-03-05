@@ -372,6 +372,7 @@
             "a" : "e"
         },
         "hive-site": {
+            "hadoop.security.credential.provider.path": "jceks://file/var/lib/ambari-agent/data/abc.jceks",
             "hive.enforce.sorting": "true",
             "javax.jdo.option.ConnectionPassword": "!`\"' 1",
             "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver",

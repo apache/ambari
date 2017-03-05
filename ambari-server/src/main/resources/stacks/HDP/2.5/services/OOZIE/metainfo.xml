@@ -22,7 +22,7 @@
       <name>OOZIE</name>
       <credential-store>
         <supported>true</supported>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </credential-store>
       <extends>common-services/OOZIE/4.2.0.2.5</extends>
     </service>
