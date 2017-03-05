@@ -484,8 +484,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('counterMap', {});
     this.set("undoAvailable", false);
     this.set("showingConfirmationNewWorkflow", false);
-    this.set("successMessage", "");
-    this.set("isWFSaveSuccess", false);
     if(this.get('workflow.parameters') !== null){
       this.set('workflow.parameters', {});
     }
@@ -752,17 +750,6 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     }
   },
   actions:{
-    showSuccessMessage(msg, isHideSuccessMsg) {
-      if(isHideSuccessMsg){
-        this.set("isWFSaveSuccess", false);
-      } else {
-        this.set("isWFSaveSuccess", true);
-      }
-      Ember.run.later(()=>{
-      this.$('#successMsg').fadeOut();
-      }, 3000);
-      this.set("successMessage", msg);
-    },
     importWorkflowStream(dataStr){
       this.importWorkflowFromFile(dataStr);
     },
