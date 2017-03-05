@@ -146,7 +146,6 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   importBundle (filePath){
     this.set("bundleFilePath", filePath);
     this.set("isImporting", true);
-    this.hideSuccessMsg();
     filePath = this.appendFileName(filePath, 'bundle');
     var deferred = this.getBundleFromHdfs(filePath);
     deferred.promise.then(function(response){
@@ -250,22 +249,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       return filePath;
     }
   },
-  hideSuccessMsg(){
-    this.set('successMessage', '');
-    this.set('isWFSaveSuccess', false);
-  },
   actions : {
-    showSuccessMessage(msg, isHideSuccessMsg) {
-      if(isHideSuccessMsg){
-        this.set("isWFSaveSuccess", false);
-      } else {
-        this.set("isWFSaveSuccess", true);
-      }
-      Ember.run.later(()=>{
-      this.$('#successMsg').fadeOut();
-      }, 3000);
-      this.set("successMessage", msg);
-    },
     closeFileBrowser(){
       this.set("showingFileBrowser", false);
       this.get('fileBrowser').getContext().trigger('fileSelected', this.get('filePath'));
@@ -324,7 +308,6 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       this.set('showingResetConfirmation', true);
     },
     resetBundle(){
-      this.hideSuccessMsg();
       this.get('errors').clear();
       this.set('showingResetConfirmation', false);
       if(this.get('bundleFilePath')){
