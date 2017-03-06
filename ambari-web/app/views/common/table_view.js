@@ -414,6 +414,14 @@ App.TableView = Em.View.extend(App.UserPref, {
     return result;
   },
 
+  clearStartIndex: function() {
+    if (this.get('controller.startIndex') !== 1) {
+      this.set('controller.resetStartIndex', true);
+      return true;
+    }
+    return false;
+  },
+
   /**
    * Contain filter conditions for each column
    * @type {Array}

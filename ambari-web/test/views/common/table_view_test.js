@@ -25,7 +25,9 @@ require('mixins/common/userPref');
 require('views/common/table_view');
 
 function getView() {
-  return App.TableView.create();
+  return App.TableView.create({
+    controller: Em.Object.create()
+  });
 }
 
 describe('App.TableView', function () {
@@ -391,6 +393,28 @@ describe('App.TableView', function () {
       });
     });
 
+  });
+
+  describe('#clearStartIndex', function() {
+    var view;
+
+    beforeEach(function() {
+      view = getView();
+    });
+
+    it('should reset start index', function() {
+      view.set('controller.resetStartIndex', false);
+      view.set('controller.startIndex', 11);
+      expect(view.clearStartIndex()).to.be.true;
+      expect(view.get('controller.resetStartIndex')).to.be.true;
+    });
+
+    it('should not reset start index', function() {
+      view.set('controller.resetStartIndex', false);
+      view.set('controller.startIndex', 1);
+      expect(view.clearStartIndex()).to.be.false;
+      expect(view.get('controller.resetStartIndex')).to.be.false;
+    });
   });
 
 });

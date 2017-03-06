@@ -140,11 +140,9 @@ App.TableServerViewMixin = Em.Mixin.create({
   updatePagination: function (key) {
     if (!Em.isNone(this.get('displayLength'))) {
       App.db.setDisplayLength(this.get('controller.name'), this.get('displayLength'));
-      this.get('controller.paginationProps').findProperty('name', 'displayLength').value = this.get('displayLength');
     }
     if (!Em.isNone(this.get('startIndex'))) {
       App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
-      this.get('controller.paginationProps').findProperty('name', 'startIndex').value = this.get('startIndex');
     }
 
     if (key !== 'SKIP_REFRESH') {
@@ -157,6 +155,8 @@ App.TableServerViewMixin = Em.Mixin.create({
   resetStartIndex: function () {
     if (this.get('controller.resetStartIndex') && this.get('filteredCount') > 0) {
       this.set('startIndex', 1);
+      this.saveStartIndex();
+      this.updatePagination('SKIP_REFRESH');
     }
   }.observes('controller.resetStartIndex')
 });

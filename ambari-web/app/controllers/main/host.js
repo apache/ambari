@@ -312,17 +312,20 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       }
     }, this);
 
-    if (queryParams.filterProperty('isFilter').length !== oldProperties.filterProperty('isFilter').length) {
-      queryParams.findProperty('key', 'from').value = 0;
-      this.set('resetStartIndex', true);
-    } else {
-      queryParams.filterProperty('isFilter').forEach(function (queryParam) {
-        var oldProperty = oldProperties.filterProperty('isFilter').findProperty('key', queryParam.key);
-        if (!oldProperty || JSON.stringify(oldProperty.value) !== JSON.stringify(queryParam.value)) {
-          queryParams.findProperty('key', 'from').value = 0;
-          this.set('resetStartIndex', true);
-        }
-      }, this);
+    if (!oldProperties.findProperty('isHostDetails')) {
+      // shouldn't reset start index after coming back from Host Details page
+      if (queryParams.filterProperty('isFilter').length !== oldProperties.filterProperty('isFilter').length) {
+        queryParams.findProperty('key', 'from').value = 0;
+        this.set('resetStartIndex', true);
+      } else {
+        queryParams.filterProperty('isFilter').forEach(function (queryParam) {
+          var oldProperty = oldProperties.filterProperty('isFilter').findProperty('key', queryParam.key);
+          if (!oldProperty || JSON.stringify(oldProperty.value) !== JSON.stringify(queryParam.value)) {
+            queryParams.findProperty('key', 'from').value = 0;
+            this.set('resetStartIndex', true);
+          }
+        }, this);
+      }
     }
 
     if (!skipNonFilterProperties) {
