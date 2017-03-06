@@ -259,13 +259,16 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
     String alertLabel = "\"" + SHELL_ESCAPE.escape(definition.getLabel()) + "\"";
     String alertText = "\"" + SHELL_ESCAPE.escape(alertInfo.getAlertText()) + "\"";
 
+    long alertTimestamp = alertInfo.getAlertTimestamp();
+    String hostName = alertInfo.getHostName(); // null if alert do not run against host
+
     Object[] params = new Object[] { script, definitionName, alertLabel, serviceName,
-        alertState.name(), alertText };
+        alertState.name(), alertText, alertTimestamp, hostName};
 
     String foo = StringUtils.join(params, " ");
 
     // sh -c '/foo/sys_logger.py ambari_server_agent_heartbeat "Agent Heartbeat"
-    // AMBARI CRITICAL "Something went wrong with the host"'
+    // AMBARI CRITICAL "Something went wrong with the host" 1111111 host222'
     return new ProcessBuilder(shellCommand, shellCommandOption, foo);
   }
 

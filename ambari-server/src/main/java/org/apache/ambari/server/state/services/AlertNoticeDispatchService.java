@@ -771,6 +771,14 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     }
 
     /**
+     *  Gets the time that the alert was received
+     * @return
+       */
+    public long getAlertTimestamp() {
+      return m_history.getAlertTimestamp();
+    }
+
+    /**
      * Gets the state of the alert.
      *
      * @return
