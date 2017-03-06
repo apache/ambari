@@ -106,6 +106,17 @@ class Master(Script):
               mode=0755
               )
 
+  def create_zeppelin_hdfs_conf_dir(self, env):
+    import params
+    env.set_params(params)
+    Directory([params.external_dependency_conf],
+              owner=params.zeppelin_user,
+              group=params.zeppelin_group,
+              cd_access="a",
+              create_parents=True,
+              mode=0755
+              )
+
   def chown_zeppelin_pid_dir(self, env):
     import params
     env.set_params(params)
@@ -150,17 +161,26 @@ class Master(Script):
     File(format("{params.conf_dir}/log4j.properties"), content=params.log4j_properties_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
+    self.create_zeppelin_hdfs_conf_dir(env)
     # copy hive-site.xml only if Spark 1.x is installed
-    if 'spark-defaults' in params.config['configurations'] and \
-        os.path.exists("/etc/spark/conf/hive-site.xml"):
-        File(format("{params.conf_dir}/hive-site.xml"), content=StaticFile("/etc/spark/conf/hive-site.xml"),
-             owner=params.zeppelin_user, group=params.zeppelin_group)
+    if 'spark-defaults' in params.config['configurations'] and params.is_hive_installed:
+      XmlConfig("hive-site.xml",
+              conf_dir=params.external_dependency_conf,
+              configurations=params.spark_hive_properties,
+              owner=params.zeppelin_user,
+              group=params.zeppelin_group,
+              mode=0644)
 
-    if len(params.hbase_master_hosts) > 0 and \
-        os.path.exists("/etc/hbase/conf/hbase-site.xml"):
+    if len(params.hbase_master_hosts) > 0 and params.is_hbase_installed:
       # copy hbase-site.xml
-      File(format("{params.conf_dir}/hbase-site.xml"), content=StaticFile("/etc/hbase/conf/hbase-site.xml"),
-           owner=params.zeppelin_user, group=params.zeppelin_group)
+      XmlConfig("hbase-site.xml",
+              conf_dir=params.external_dependency_conf,
+              configurations=params.config['configurations']['hbase-site'],
+              configuration_attributes=params.config['configuration_attributes']['hbase-site'],
+              owner=params.zeppelin_user,
+              group=params.zeppelin_group,
+              mode=0644
+              )
 
   def stop(self, env, upgrade_type=None):
     import params

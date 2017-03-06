@@ -18,7 +18,19 @@
 
 var App = require('app');
 
+function getPostFormatLabel(parent) {
+  return function (label) {
+    return `${parent} - ${label}`;
+  }
+}
+
 module.exports = Em.Route.extend(App.RouterRedirections, {
+
+  breadcrumbs: {
+    label: '<span class="glyphicon glyphicon-home"></span>',
+    route: 'dashboard'
+  },
+
   route: '/main',
   enter: function (router) {
     App.db.updateStorage();
@@ -111,6 +123,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   }),
 
   dashboard: Em.Route.extend({
+
+    breadcrumbs: {
+      label: Em.I18n.t('menu.item.dashboard'),
+      route: 'dashboard'
+    },
+
     route: '/dashboard',
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
@@ -191,6 +209,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
 
   hosts: Em.Route.extend({
+
+    breadcrumbs: {
+      label: Em.I18n.t('menu.item.hosts'),
+      route: 'hosts',
+      beforeTransition() {
+        App.router.set('mainHostController.showFilterConditionsFirstLoad', false);
+      }
+    },
+
     route: '/hosts',
     index: Ember.Route.extend({
       route: '/',
@@ -202,6 +229,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
 
     hostDetails: Em.Route.extend({
+
+      breadcrumbs: {
+        labelBindingPath: 'App.router.mainHostDetailsController.content.hostName',
+        disabled: true
+      },
+
       route: '/:host_id',
       connectOutlets: function (router, host) {
         router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
@@ -325,6 +358,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   hostAdd: require('routes/add_host_routes'),
 
   alerts: Em.Route.extend({
+
+    breadcrumbs: {
+      label: Em.I18n.t('menu.item.alerts'),
+      route: 'alerts',
+      beforeTransition() {
+        App.router.set('mainAlertDefinitionsController.showFilterConditionsFirstLoad', false);
+      }
+    },
+
     route: '/alerts',
     index: Em.Route.extend({
       route: '/',
@@ -334,6 +376,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
 
     alertDetails: Em.Route.extend({
+
+      breadcrumbs: {
+        labelBindingPath: 'App.router.mainAlertDefinitionDetailsController.content.label',
+        disabled: true
+      },
 
       route: '/:alert_definition_id',
 
@@ -401,6 +448,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
 
     adminKerberos: Em.Route.extend({
+
+      breadcrumbs: {
+        label: Em.I18n.t('common.kerberos'),
+        labelPostFormat: getPostFormatLabel('Admin')
+      },
+
       route: '/kerberos',
       enter: function (router, transition) {
         if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS')) {
@@ -519,6 +572,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
 
       services: Em.Route.extend({
+
+        breadcrumbs: {
+          label: Em.I18n.t('admin.stackUpgrade.title'),
+          labelPostFormat: getPostFormatLabel('Admin')
+        },
+
         route: '/services',
         connectOutlets: function (router, context) {
           router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackServices');
@@ -556,6 +615,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     }),
     adminServiceAccounts: Em.Route.extend({
+
+      breadcrumbs: {
+        label: Em.I18n.t('common.serviceAccounts'),
+        labelPostFormat: getPostFormatLabel('Admin')
+      },
+
       route: '/serviceAccounts',
       enter: function (router, transition) {
         if (router.get('loggedIn') && !App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS')) {
@@ -570,6 +635,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
 
     adminServiceAutoStart: Em.Route.extend({
+
+      breadcrumbs: {
+        label: Em.I18n.t('admin.serviceAutoStart.title'),
+        labelPostFormat: getPostFormatLabel('Admin')
+      },
+
       route: '/serviceAutoStart',
       enter: function(router, transition) {
         if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START')) {
@@ -653,6 +724,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   editWidget: require('routes/edit_widget'),
 
   services: Em.Route.extend({
+
+    breadcrumbs: {
+      labelBindingPath: 'App.router.mainServiceItemController.content.displayName',
+      labelPostFormat: getPostFormatLabel('Service'),
+      disabled: true
+    },
+
     route: '/services',
     index: Em.Route.extend({
       route: '/',

@@ -95,7 +95,7 @@ appender.DRFA.type = RollingRandomAccessFile
 appender.DRFA.name = DRFA
 appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}
 # Use %pid in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session
-appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}
+appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}_%i
 appender.DRFA.layout.type = PatternLayout
 appender.DRFA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n
 appender.DRFA.policies.type = Policies

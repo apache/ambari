@@ -29,6 +29,8 @@ export default Ember.Component.extend({
 
   explainDetailData: '',
 
+  draggable: Ember.Object.create(),
+
   visualExplainInput: Ember.computed('visualExplainJson', function () {
     return this.get('visualExplainJson');
   }),
@@ -37,24 +39,25 @@ export default Ember.Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
-
     const onRequestDetail = data => this.set('explainDetailData', JSON.stringify( data, null, '  ') );
     const explainData = JSON.parse(this.get('visualExplainInput'));
     // if(explainData) {
-      explain(explainData, '#explain-container', onRequestDetail);
+      explain(explainData, '#explain-container', onRequestDetail, this.get('draggable'));
     // }
 
   },
 
   click(event){
-
-    if(this.get('explainDetailData') === ''){
+    if(this.get('explainDetailData') === '' || this.get('draggable').get('zoom') ){
       return;
     }
 
     Ember.run.later(() => {
       this.set('showDetailsModal', true);
     }, 100);
+    this.get('draggable').set('zoom', false);
+    this.get('draggable').set('dragstart', false);
+    this.get('draggable').set('dragend', false);
   },
 
   actions:{

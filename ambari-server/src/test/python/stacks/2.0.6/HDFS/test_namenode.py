@@ -1205,8 +1205,10 @@ class TestNamenode(RMFTestCase):
                               cd_access='a'
                               )
 
+  @patch("hdfs_rebalance.is_balancer_running")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  def test_rebalance_hdfs(self, pso):
+  def test_rebalance_hdfs(self, pso, hdfs_rebalance_mock):
+      hdfs_rebalance_mock.return_value = False
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                          classname = "NameNode",
                          command = "rebalancehdfs",
@@ -1214,17 +1216,20 @@ class TestNamenode(RMFTestCase):
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
+
       self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf balancer -threshold -1'",
-          logoutput = False,
-          on_new_line = FunctionMock('handle_new_line'),
+                                wait_for_finish=False
       )
+
       self.assertNoMoreResources()
 
+  @patch("hdfs_rebalance.is_balancer_running")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("os.system")
-  def test_rebalance_secured_hdfs(self, pso, system_mock):
+  def test_rebalance_secured_hdfs(self, pso, system_mock, hdfs_rebalance_mock):
 
     system_mock.return_value = -1
+    hdfs_rebalance_mock.return_value = False
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "rebalancehdfs",
@@ -1241,13 +1246,15 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', kinit_cmd,
                               user = 'hdfs',
                               )
+
     self.assertResourceCalled('Execute', rebalance_cmd,
-                              logoutput = False,
-                              on_new_line = FunctionMock('handle_new_line'),
+                              wait_for_finish=False
                               )
+
     self.assertResourceCalled('File', ccache_path,
                               action = ['delete'],
                               )
+
     self.assertNoMoreResources()
 
   @patch("os.path.isfile")

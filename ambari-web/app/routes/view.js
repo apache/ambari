@@ -19,6 +19,11 @@
 var App = require('app');
 
 module.exports = Em.Route.extend({
+
+  breadcrumbs: {
+    labelBindingPath: 'App.router.mainViewsDetailsController.content.label'
+  },
+
   route: '/view',
   enter: function (router) {
     Em.$('body').addClass('contribview');

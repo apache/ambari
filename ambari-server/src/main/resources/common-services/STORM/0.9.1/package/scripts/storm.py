@@ -79,6 +79,13 @@ def storm(name=None):
             cd_access="a",
   )
 
+  File(format("{limits_conf_dir}/storm.conf"),
+       owner='root',
+       group='root',
+       mode=0644,
+       content=Template("storm.conf.j2")
+  )
+
   File(format("{conf_dir}/config.yaml"),
        content=Template("config.yaml.j2"),
        owner=params.storm_user,

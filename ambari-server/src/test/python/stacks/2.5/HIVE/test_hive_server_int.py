@@ -292,7 +292,7 @@ class TestHiveServerInteractive(RMFTestCase):
                               action=['delete'],
                               )
 
-    self.assert_configure_default()
+    self.assert_configure_default(with_cs_enabled=True)
 
     self.assertResourceCalled('Execute',
                               '/home/hive/llap-slider-05Apr2016/run.sh',
@@ -416,7 +416,7 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def assert_configure_default(self, no_tmp=False, default_fs_default=u'hdfs://c6401.ambari.apache.org:8020'):
+  def assert_configure_default(self, no_tmp=False, default_fs_default=u'hdfs://c6401.ambari.apache.org:8020', with_cs_enabled=False):
 
     self.assertResourceCalled('HdfsResource', '/user/hive',
                               immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -533,6 +533,15 @@ class TestHiveServerInteractive(RMFTestCase):
                                     configurations=hive_site_conf_for_client,
           )
         else:
+          if with_cs_enabled:
+            self.assertResourceCalled('File', '/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-site.jceks',
+                                      content=StaticFile('/var/lib/ambari-agent/data/abc.jceks'),
+                                      owner='hive',
+                                      group='hadoop',
+                                      mode = 0640,
+                                      )
+            self.assertTrue('hadoop.security.credential.provider.path' in hive_site_conf)
+            hive_site_conf['hadoop.security.credential.provider.path'] = 'jceks://file/usr/hdp/current/hive-server2-hive2/conf/conf.server/hive-site.jceks'
           self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                                     group='hadoop',
                                     conf_dir=conf_dir,
@@ -542,7 +551,7 @@ class TestHiveServerInteractive(RMFTestCase):
                                                                          u'javax.jdo.option.ConnectionPassword': u'true'}},
                                     owner='hive',
                                     configurations=hive_site_conf,
-          )
+                                    )
 
         if conf_dir == '/usr/hdp/current/hive-server2-hive2/conf/conf.server':
           self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',

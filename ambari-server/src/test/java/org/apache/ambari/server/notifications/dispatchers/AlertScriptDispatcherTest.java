@@ -237,6 +237,8 @@ public class AlertScriptDispatcherTest {
     final String ALERT_SERVICE_NAME = "FOO_SERVICE";
     final String ALERT_TEXT = "Did you know, \"Quotes are hard!!!\"";
     final String ALERT_TEXT_ESCAPED = "Did you know, \\\"Quotes are hard\\!\\!\\!\\\"";
+    final String ALERT_HOST = "mock_host";
+    final long ALERT_TIMESTAMP = 1111111l;
 
     DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
     AlertNotification notification = new AlertNotification();
@@ -253,6 +255,9 @@ public class AlertScriptDispatcherTest {
     history.setAlertText(ALERT_TEXT);
     history.setAlertState(AlertState.OK);
     history.setServiceName(ALERT_SERVICE_NAME);
+    history.setHostName(ALERT_HOST);
+    history.setAlertTimestamp(ALERT_TIMESTAMP);
+
 
     AlertInfo alertInfo = new AlertInfo(history);
     notification.setAlertInfo(alertInfo);
@@ -272,9 +277,30 @@ public class AlertScriptDispatcherTest {
     buffer.append("\"").append(ALERT_DEFINITION_LABEL).append("\"").append(" ");
     buffer.append(ALERT_SERVICE_NAME).append(" ");
     buffer.append(AlertState.OK).append(" ");
-    buffer.append("\"").append(ALERT_TEXT_ESCAPED).append("\"");
+    buffer.append("\"").append(ALERT_TEXT_ESCAPED).append("\"").append(" ");
+    buffer.append(ALERT_TIMESTAMP).append(" ");
+    buffer.append(ALERT_HOST);
 
     Assert.assertEquals(buffer.toString(), commands.get(2));
+
+    //if hostname is null
+    history.setHostName(null);
+    alertInfo = new AlertInfo(history);
+    notification.setAlertInfo(alertInfo);
+
+    processBuilder = dispatcher.getProcessBuilder(SCRIPT_CONFIG_VALUE, notification);
+    commands = processBuilder.command();
+    buffer = new StringBuilder();
+    buffer.append(SCRIPT_CONFIG_VALUE).append(" ");
+    buffer.append(ALERT_DEFINITION_NAME).append(" ");
+    buffer.append("\"").append(ALERT_DEFINITION_LABEL).append("\"").append(" ");
+    buffer.append(ALERT_SERVICE_NAME).append(" ");
+    buffer.append(AlertState.OK).append(" ");
+    buffer.append("\"").append(ALERT_TEXT_ESCAPED).append("\"").append(" ");
+    buffer.append(ALERT_TIMESTAMP).append(" ");
+    buffer.append("");
+    Assert.assertEquals(buffer.toString(), commands.get(2));
+
   }
 
   /**

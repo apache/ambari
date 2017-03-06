@@ -21,10 +21,11 @@ import doRender from './renderer';
 import {isExplainable, doRenderError} from './fallback';
 
 
-export default function draw(data, selector, onRequestDetail){
+export default function draw(data, selector, onRequestDetail, drag){
+
   if(isExplainable(data)) {
     const transformed = doTransform(data);
-    doRender(transformed, selector, onRequestDetail);
+    doRender(transformed, selector, onRequestDetail, drag);
   } else {
     doRenderError(selector);
   }

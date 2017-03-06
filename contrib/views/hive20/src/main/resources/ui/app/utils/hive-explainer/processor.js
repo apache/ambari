@@ -287,7 +287,6 @@ export function getAdjustedVerticesAndEdges(vertices, edges) {
   // cleanup
   const adjustedVertices = vertices.filter(cVertex => cVertex._children.length > 0);
   const cleanedVertices = vertices.filter(cVertex => cVertex._children.length === 0);
-  console.log(cleanedVertices);
 
   const adjustedEdges =
     edges

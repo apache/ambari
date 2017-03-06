@@ -228,10 +228,12 @@ public class JMXHostProviderTest {
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
     String serviceName3 = "MAPREDUCE2";
+    String serviceName4 = "HBASE";
 
     createService(clusterName, serviceName, null);
     createService(clusterName, serviceName2, null);
     createService(clusterName, serviceName3, null);
+    createService(clusterName, serviceName4, null);
 
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
@@ -240,6 +242,8 @@ public class JMXHostProviderTest {
     String componentName5 = "JOURNALNODE";
     String componentName6 = "HISTORYSERVER";
     String componentName7 = "NODEMANAGER";
+    String componentName8 = "HBASE_MASTER";
+    String componentName9 = "HBASE_REGIONSERVER";
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
@@ -254,6 +258,10 @@ public class JMXHostProviderTest {
     createServiceComponent(clusterName, serviceName3, componentName6,
         State.INIT);
     createServiceComponent(clusterName, serviceName2, componentName7,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName4, componentName8,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName4, componentName9,
       State.INIT);
 
     String host1 = "h1";
@@ -291,6 +299,10 @@ public class JMXHostProviderTest {
       host2, null);
     createServiceComponentHost(clusterName, serviceName2, componentName7,
       host2, null);
+    createServiceComponentHost(clusterName, serviceName4, componentName8,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName4, componentName9,
+      host2, null);
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
@@ -312,6 +324,9 @@ public class JMXHostProviderTest {
     mapreduceConfigs.put(MAPREDUCE_HTTPS_PORT, "19889");
     mapreduceConfigs.put(MAPREDUCE_HTTPS_POLICY, "HTTPS_ONLY");
 
+    Map<String, String> hbaseConfigs = new HashMap<String, String>();
+    hbaseConfigs.put("hbase.ssl.enabled", "true");
+
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs, null);
 
@@ -330,6 +345,11 @@ public class JMXHostProviderTest {
     ConfigurationRequest cr3 = new ConfigurationRequest(clusterName,
         "mapred-site", "versionN", mapreduceConfigs, null);
       crReq.setDesiredConfig(Collections.singletonList(cr3));
+      controller.updateClusters(Collections.singleton(crReq), null);
+
+    ConfigurationRequest cr4 = new ConfigurationRequest(clusterName,
+        "hbase-site", "versionN", hbaseConfigs, null);
+      crReq.setDesiredConfig(Collections.singletonList(cr4));
       controller.updateClusters(Collections.singleton(crReq), null);
 
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("yarn-site")
@@ -563,6 +583,19 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "DATANODE"));
     Assert.assertEquals("50475", providerModule.getPort("c1", "DATANODE", "localhost", true));
+  }
+
+  @Test
+  public void testJMXHbaseMasterHttps() throws
+          NoSuchParentResourceException,
+          ResourceAlreadyExistsException, UnsupportedPropertyException,
+          SystemException, AmbariException, NoSuchResourceException {
+    createConfigs();
+    JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
+    providerModule.registerResourceProvider(Resource.Type.Cluster);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "HBASE_MASTER"));
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "HBASE_REGIONSERVER"));
   }
 
   @Test

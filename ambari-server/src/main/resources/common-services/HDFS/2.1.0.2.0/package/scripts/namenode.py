@@ -341,10 +341,16 @@ class NameNodeDefault(NameNode):
         self.put_structured_out({'completePercent' : 1})
         return
 
-    Execute(command,
-            on_new_line = handle_new_line,
-            logoutput = False,
-    )
+    if (not hdfs_rebalance.is_balancer_running()):
+      # As the rebalance may take a long time (haours, days) the process is triggered only
+      # Tracking the progress based on the command output is no longer supported due to this
+      Execute(command, wait_for_finish=False)
+
+      _print("The rebalance process has been triggered")
+    else:
+      _print("There is another balancer running. This means you or another Ambari user may have triggered the "
+             "operation earlier. The process may take a long time to finish (hours, even days). If the problem persists "
+             "please consult with the HDFS administrators if they have triggred or killed the operation.")
 
     if params.security_enabled:
       # Delete the kerberos credentials cache (ccache) file

@@ -41,7 +41,7 @@
  2. Build the ambari-metrics-timelineservice jar.
  3. Invoke the test using the command as follows.
 
-   java -cp lib/*:ambari-metrics-timelineservice-<version>.jar org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.jmeter.AMSJMeterLoadTest -t <S/U>
+   java -cp lib/*:ambari-metrics-timelineservice-<version>.jar org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.jmetertest.jmetertest.AMSJMeterLoadTest -t <S/U>
 
    lib/* -> All the dependency JARs generated for the ambari-metrics-timelineservice JAR.
    -t option => S-Sink simulator or U-UI simulator

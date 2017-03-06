@@ -38,11 +38,13 @@ import java.util.regex.Pattern;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_WHITELIST_FILE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_APPS_BLACKLIST;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_APPS_WHITELIST;
 
 public class TimelineMetricsFilter {
 
   private static Set<String> whitelistedMetrics;
   private static Set<Pattern> whitelistedMetricPatterns;
+  private static Set<String> whitelistedApps;
   private static Set<String> blacklistedApps;
   private static String patternPrefix = "._p_";
   private static Set<String> amshbaseWhitelist;
@@ -62,6 +64,7 @@ public class TimelineMetricsFilter {
     whitelistedMetrics = new HashSet<String>();
     whitelistedMetricPatterns = new HashSet<Pattern>();
     blacklistedApps = new HashSet<>();
+    whitelistedApps = new HashSet<>();
     amshbaseWhitelist = new HashSet<>();
 
     String whitelistFile = metricsConf.get(TIMELINE_METRICS_WHITELIST_FILE, "");
@@ -75,6 +78,14 @@ public class TimelineMetricsFilter {
         blacklistedApps.add(app);
       }
       LOG.info("Blacklisted apps : " + blacklistedApps.toString());
+    }
+
+    String appsWhitelist = metricsConf.get(TIMELINE_METRICS_APPS_WHITELIST, "");
+    if (!StringUtils.isEmpty(appsWhitelist)) {
+      for (String app : appsWhitelist.split(",")) {
+        whitelistedApps.add(app);
+      }
+      LOG.info("Whitelisted apps : " + whitelistedApps.toString());
     }
 
     amshbaseWhitelist = configuration.getAmshbaseWhitelist();
@@ -119,28 +130,36 @@ public class TimelineMetricsFilter {
 
   public static boolean acceptMetric(TimelineMetric metric) {
 
-    // App takes precedence.
-    if (CollectionUtils.isNotEmpty(blacklistedApps) && blacklistedApps.contains(metric.getAppId())) {
+    String appId = metric.getAppId();
+    String metricName = metric.getMetricName();
+    // App Blacklisting
+    if (CollectionUtils.isNotEmpty(blacklistedApps) && blacklistedApps.contains(appId)) {
       return false;
     }
 
     //Special Case appId = ams-hbase whitelisting.
-    if ("ams-hbase".equals(metric.getAppId()) && CollectionUtils.isNotEmpty(amshbaseWhitelist)) {
+    if ("ams-hbase".equals(appId) && CollectionUtils.isNotEmpty(amshbaseWhitelist)) {
       return amshbaseWhitelist.contains(metric.getMetricName());
     }
 
+    // App Whitelisting
+    if (CollectionUtils.isNotEmpty(whitelistedApps) && whitelistedApps.contains(appId)) {
+      return true;
+    }
+
+    // Metric Whitelisting
     if (CollectionUtils.isEmpty(whitelistedMetrics) && CollectionUtils.isEmpty(whitelistedMetricPatterns)) {
       return true;
     }
 
-    if (whitelistedMetrics.contains(metric.getMetricName())) {
+    if (whitelistedMetrics.contains(metricName)) {
       return true;
     }
 
     for (Pattern p : whitelistedMetricPatterns) {
-      Matcher m = p.matcher(metric.getMetricName());
+      Matcher m = p.matcher(metricName);
       if (m.find()) {
-        whitelistedMetrics.add(metric.getMetricName());
+        whitelistedMetrics.add(metricName);
         return true;
       }
     }

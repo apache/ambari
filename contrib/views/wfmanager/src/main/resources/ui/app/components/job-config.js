@@ -227,8 +227,6 @@ export default Ember.Component.extend(Validations, {
           });
         }
         this.set("savingInProgress",false);
-        this.$("#configureJob").modal("hide");
-        this.sendAction("showSuccessMessage", this.get("displayName")+" have been submitted successfully.");
       }.bind(this),
       error: function(response) {
         console.error(response);

@@ -16,18 +16,22 @@
  * limitations under the License.
  */
 
-export function isExplainable(data) {
-  const stages = data['STAGE PLANS'];
-  const isValidFetchStageAvailable = Object.keys(stages).find(cStageKey => stages[cStageKey].hasOwnProperty('Fetch Operator'));
-  return isValidFetchStageAvailable;
-}
+describe('App.BreadcrumbItem', function () {
 
-export function doRenderError(selector) {
-  d3.select(selector).select('*').remove();
+  describe('#createLabel', function () {
 
-  d3.select(selector)
-    .append('div')
-      .attr('class', 'explain--error')
-      .append('div')
-        .text('No valid Tez plan found.');
-}
+    describe('#labelBindingPath', function () {
+
+      beforeEach(function () {
+        this.breadcrumb = App.BreadcrumbItem.create({labelBindingPath: 'App.router.somePath'});
+      });
+
+      it('Observer is added', function () {
+        expect(Em.meta(this.breadcrumb).listeners).to.have.property('App.router.somePath:change');
+      });
+
+    });
+
+  });
+
+});

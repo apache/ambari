@@ -75,10 +75,12 @@ class TestZeppelinMaster(RMFTestCase):
         content = u'log4j.rootLogger = INFO, dailyfile',
         group = u'zeppelin',
     )
-    self.assertResourceCalled('File', '/etc/zeppelin/conf/hive-site.xml',
+    self.assertResourceCalled('Directory', '/etc/zeppelin/conf/external-dependency-conf',
         owner = 'zeppelin',
-        content = StaticFile('/etc/spark/conf/hive-site.xml'),
         group = 'zeppelin',
+        create_parents = True,
+        mode = 0755,
+        cd_access = 'a',
     )
 
   def assert_configure_secured(self):
@@ -125,15 +127,15 @@ class TestZeppelinMaster(RMFTestCase):
         content = u'log4j.rootLogger = INFO, dailyfile',
         group = u'zeppelin',
     )
-    self.assertResourceCalled('File', '/etc/zeppelin/conf/hive-site.xml',
+    self.assertResourceCalled('Directory', '/etc/zeppelin/conf/external-dependency-conf',
         owner = 'zeppelin',
-        content = StaticFile('/etc/spark/conf/hive-site.xml'),
         group = 'zeppelin',
+        create_parents = True,
+        mode = 0755,
+        cd_access = 'a',
     )
 
-  @patch('os.path.exists')
-  def test_configure_default(self, os_path_exists_mock):
-    os_path_exists_mock.side_effect = lambda path: path == '/etc/spark/conf/hive-site.xml'
+  def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "configure",
@@ -144,9 +146,7 @@ class TestZeppelinMaster(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch('os.path.exists')
-  def test_configure_secured(self, os_path_exists_mock):
-    os_path_exists_mock.side_effect = lambda path: path == '/etc/spark/conf/hive-site.xml'
+  def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "configure",
@@ -202,10 +202,8 @@ class TestZeppelinMaster(RMFTestCase):
         user = 'zeppelin',
     )
     self.assertNoMoreResources()
-    
-  @patch('os.path.exists')
-  def test_start_default(self, os_path_exists_mock):
-    os_path_exists_mock.side_effect = lambda path: path == '/etc/spark/conf/hive-site.xml'
+
+  def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/master.py",
                        classname = "Master",
                        command = "start",

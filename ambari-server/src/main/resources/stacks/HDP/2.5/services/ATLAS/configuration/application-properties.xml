@@ -1,3 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,19 +18,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+-->
+<configuration supports_final="false">
 
-export function isExplainable(data) {
-  const stages = data['STAGE PLANS'];
-  const isValidFetchStageAvailable = Object.keys(stages).find(cStageKey => stages[cStageKey].hasOwnProperty('Fetch Operator'));
-  return isValidFetchStageAvailable;
-}
+  <!-- Supported in HDP 2.5.4 -->
+  <property>
+    <name>atlas.ssl.exclude.protocols</name>
+    <display-name>Excluded Wire Encryption Protocols</display-name>
+    <value>TLSv1.2</value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>A comma-separate list of the wire encryption protocols to exclude when TLS is enabled. Some versions of cURL do not work with TLSv1.2.</description>
+    <used-by>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.enableTLS</name>
+      </property>
+    </used-by>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
-export function doRenderError(selector) {
-  d3.select(selector).select('*').remove();
-
-  d3.select(selector)
-    .append('div')
-      .attr('class', 'explain--error')
-      .append('div')
-        .text('No valid Tez plan found.');
-}
+</configuration>

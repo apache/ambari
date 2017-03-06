@@ -316,6 +316,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ATS SCAN">
+        <task xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default">
+          <summary>Modifying ATS Scan default</summary>
+        </task>
+      </execute-stage>
+
       <!--Yarn-->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for YARN app log retaintion">
         <task xsi:type="configure" id="yarn_site_retained_log_count">
@@ -426,6 +432,12 @@
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Parameterizing Atlas Log4J Properties">
         <task xsi:type="configure" id="atlas_log4j_parameterize">
           <summary>Updating the Atlas Log4J properties to include parameterizations</summary>
+        </task>
+      </execute-stage>
+      
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas TLS Exclude Protocols">
+        <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol">
+          <summary>Updating Atlas TLS Exclude Protocols to exclude TLS v1.2</summary>
         </task>
       </execute-stage>
 

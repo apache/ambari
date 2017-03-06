@@ -161,17 +161,18 @@ App.ModalPopup = Ember.View.extend({
 
   fitHeight: function () {
     if (this.get('state') === 'destroyed') return;
-    var popup = this.$().find('#modal');
-    var block = this.$().find('#modal > .modal-body');
-    var wh = $(window).height();
+    var popup = this.$().find('#modal'),
+      wrapper = $(popup).find('.modal-dialog'),
+      block = $(popup).find('.modal-body'),
+      wh = $(window).height(),
+      top = wh * 0.05,
+      newMaxHeight = wh - top * 2 - (wrapper.height() - block.height());
 
-    var top = wh * 0.05;
     popup.css({
       'top': top + 'px',
       'marginTop': 0
     });
 
-    var newMaxHeight = $(window).height() - top * 2 - (popup.height() - block.height());
     newMaxHeight = Math.max(newMaxHeight, 500);
     block.css('max-height', newMaxHeight);
   }

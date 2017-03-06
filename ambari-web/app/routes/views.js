@@ -19,6 +19,13 @@
 var App = require('app');
 
 module.exports = Em.Route.extend({
+
+  breadcrumbs: {
+    transition() {
+      App.router.route('views');
+    }
+  },
+
   route: '/views',
   enter: function (router) {
     router.get('mainViewsController').loadAmbariViews();

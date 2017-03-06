@@ -1926,8 +1926,10 @@ describe('App.MainServiceItemController', function () {
   describe('#applyRecommendedValues', function () {
 
     var controller;
+    var configsS1;
+    var configsS2;
 
-    beforeEach(function () {
+      beforeEach(function () {
       controller = App.MainServiceItemController.create({
         stepConfigs: [
           Em.Object.create({
@@ -1983,12 +1985,17 @@ describe('App.MainServiceItemController', function () {
       });
     });
 
-    it('should update properties with saveRecommended flag set to true', function () {
+    beforeEach(function () {
       controller.applyRecommendedValues(controller.get('stepConfigs'));
-      expect(controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs').findProperty('name', 'p1').get('value')).to.equal('i1');
-      expect(controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs').findProperty('name', 'p2').get('value')).to.equal('r2');
-      expect(controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs').findProperty('name', 'p3').get('value')).to.equal('r3');
-      expect(controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs').findProperty('name', 'p4').get('value')).to.equal('v4');
+      configsS1 = controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs');
+      configsS2 = controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs');
+    });
+
+    it('should update properties with saveRecommended flag set to true', function () {
+      expect(configsS1.findProperty('name', 'p1').get('value')).to.equal('i1');
+      expect(configsS1.findProperty('name', 'p2').get('value')).to.equal('r2');
+      expect(configsS2.findProperty('name', 'p3').get('value')).to.equal('r3');
+      expect(configsS2.findProperty('name', 'p4').get('value')).to.equal('v4');
     });
 
   });
