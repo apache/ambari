@@ -95,6 +95,7 @@ zeppelin_hdfs_user_dir = format("/user/{zeppelin_user}")
 
 zeppelin_dir = os.path.join(*[install_dir, zeppelin_dirname])
 conf_dir = "/etc/zeppelin/conf"
+external_dependency_conf = "/etc/zeppelin/conf/external-dependency-conf"
 notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 
 # zeppelin-env.sh
@@ -121,7 +122,12 @@ hive_metastore_port = None
 hive_server_port = None
 hive_zookeeper_quorum = None
 hive_server2_support_dynamic_service_discovery = None
+is_hive_installed = False
 if 'hive_server_host' in master_configs and len(master_configs['hive_server_host']) != 0:
+  is_hive_installed = True
+  spark_hive_properties = {
+    'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
+  }
   hive_server_host = str(master_configs['hive_server_host'][0])
   hive_metastore_host = str(master_configs['hive_metastore_host'][0])
   hive_metastore_port = str(
@@ -133,7 +139,9 @@ if 'hive_server_host' in master_configs and len(master_configs['hive_server_host
 # detect hbase details if installed
 zookeeper_znode_parent = None
 hbase_zookeeper_quorum = None
+is_hbase_installed = False
 if 'hbase_master_hosts' in master_configs and 'hbase-site' in config['configurations']:
+  is_hbase_installed = True
   zookeeper_znode_parent = config['configurations']['hbase-site']['zookeeper.znode.parent']
   hbase_zookeeper_quorum = config['configurations']['hbase-site']['hbase.zookeeper.quorum']
 
