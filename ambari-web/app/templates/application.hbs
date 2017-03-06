@@ -68,13 +68,7 @@
     <nav class="navbar navbar-default navbar-static-top">
       <div class="container main-container">
         <div class="navbar-header navbar-nav">
-          {{#if view.breadcrumbs.length}}
-            {{#each item in view.breadcrumbs}}
-              <span><a {{bindAttr class="item.disabled:disabled"}} {{action goToSection item.route target="view"}}>
-                {{{item.label}}}</a></span>
-              {{#unless item.lastItem}}&nbsp;/&nbsp;{{/unless}}
-            {{/each}}
-          {{/if}}
+          {{view App.BreadcrumbsView}}
         </div>
 
         {{! right offset. don't delete me! }}
