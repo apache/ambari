@@ -1066,7 +1066,6 @@
       <component name="ATLAS_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="atlas_log4j_parameterize" />
-          <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
