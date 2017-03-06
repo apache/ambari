@@ -257,7 +257,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       hooks_value = ""
 
-
     hive_hooks = [x.strip() for x in hooks_value.split(",")]
     hive_hooks = [x for x in hive_hooks if x != ""]
     is_atlas_present_in_cluster = "ATLAS" in servicesList
@@ -268,11 +267,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putHiveEnvProperty("hive.atlas.hook", "false")
 
-    if ('hive-env' in services['configurations']) and ('hive.atlas.hook' in services['configurations']['hive-env']['properties']):
-      if 'hive-env' in configurations and 'hive.atlas.hook' in configurations['hive-env']['properties']:
-        enable_atlas_hook = configurations['hive-env']['properties']['hive.atlas.hook'] == "true"
-      elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
-        enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'] == "true"
+    if 'hive-env' in configurations and 'hive.atlas.hook' in configurations['hive-env']['properties']:
+      enable_atlas_hook = configurations['hive-env']['properties']['hive.atlas.hook'] == "true"
+    elif 'hive-env' in services['configurations'] and 'hive.atlas.hook' in services['configurations']['hive-env']['properties']:
+      enable_atlas_hook = services['configurations']['hive-env']['properties']['hive.atlas.hook'] == "true"
 
     if enable_atlas_hook:
       # Append atlas hook if not already present.
@@ -852,14 +850,16 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putSqoopEnvProperty("sqoop.atlas.hook", "false")
 
-    if ('sqoop-env' in services['configurations']) and ('sqoop.atlas.hook' in services['configurations']['sqoop-env']['properties']):
-      if 'sqoop-env' in configurations and 'sqoop.atlas.hook' in configurations['sqoop-env']['properties']:
-        enable_atlas_hook = configurations['sqoop-env']['properties']['sqoop.atlas.hook'] == "true"
-      elif 'sqoop-env' in services['configurations'] and 'sqoop.atlas.hook' in services['configurations']['sqoop-env']['properties']:
-        enable_atlas_hook = services['configurations']['sqoop-env']['properties']['sqoop.atlas.hook'] == "true"
+    if 'sqoop-env' in configurations and 'sqoop.atlas.hook' in configurations['sqoop-env']['properties']:
+      enable_atlas_hook = configurations['sqoop-env']['properties']['sqoop.atlas.hook'] == "true"
+    elif 'sqoop-env' in services['configurations'] and 'sqoop.atlas.hook' in services['configurations']['sqoop-env']['properties']:
+      enable_atlas_hook = services['configurations']['sqoop-env']['properties']['sqoop.atlas.hook'] == "true"
 
     if enable_atlas_hook:
       putSqoopSiteProperty('sqoop.job.data.publish.class', 'org.apache.atlas.sqoop.hook.SqoopHook')
+    else:
+      putSqoopSitePropertyAttribute = self.putPropertyAttribute(configurations, "sqoop-site")
+      putSqoopSitePropertyAttribute('sqoop.job.data.publish.class', 'delete', 'true')
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
@@ -887,11 +887,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       else:
         putStormEnvProperty("storm.atlas.hook", "false")
 
-      if ('storm-env' in services['configurations']) and ('storm.atlas.hook' in services['configurations']['storm-env']['properties']):
-        if 'storm-env' in configurations and 'storm.atlas.hook' in configurations['storm-env']['properties']:
-          enable_atlas_hook = configurations['storm-env']['properties']['storm.atlas.hook'] == "true"
-        elif 'storm-env' in services['configurations'] and 'storm.atlas.hook' in services['configurations']['storm-env']['properties']:
-          enable_atlas_hook = services['configurations']['storm-env']['properties']['storm.atlas.hook'] == "true"
+      if 'storm-env' in configurations and 'storm.atlas.hook' in configurations['storm-env']['properties']:
+        enable_atlas_hook = configurations['storm-env']['properties']['storm.atlas.hook'] == "true"
+      elif 'storm-env' in services['configurations'] and 'storm.atlas.hook' in services['configurations']['storm-env']['properties']:
+        enable_atlas_hook = services['configurations']['storm-env']['properties']['storm.atlas.hook'] == "true"
 
       if enable_atlas_hook and not atlas_hook_is_set:
         notifier_plugin_value = atlas_hook_class if notifier_plugin_value == " " else ",".join([notifier_plugin_value, atlas_hook_class])

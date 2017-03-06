@@ -40,6 +40,10 @@
         <type>sqoop-env</type>
         <name>sqoop.atlas.hook</name>
       </property>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.rest.address</name>
+      </property>
     </depends-on>
   </property>
 </configuration>
