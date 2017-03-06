@@ -103,6 +103,11 @@
             <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;\n&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_max_backup_size}}MB&quot; /&gt;"/>
             <replace key="content" find="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;" replace-with="&lt;appender name=&quot;FILE&quot; class=&quot;org.apache.log4j.DailyRollingFileAppender&quot;&gt;\n&lt;param name=&quot;MaxFileSize&quot; value=&quot;{{atlas_log_number_of_backup_files}}&quot; /&gt;"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol" summary="Excluding TLS v1.2 Protocol">
+            <type>application-properties</type>
+            <set key="atlas.ssl.exclude.protocols" value="TLSv1.2" if-type="application-properties" if-key="atlas.ssl.exclude.protocols" if-key-state="absent"/>
+          </definition>
         </changes>
       </component>
       <component name="SPARK_CLIENT">
@@ -136,6 +141,7 @@
         </changes>
       </component>
     </service>
+
    <service name="OOZIE">
     <component name="OOZIE_SERVER">
       <changes>
