@@ -19,6 +19,7 @@ package org.apache.ambari.server.upgrade;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -66,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -192,6 +194,61 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addManageServiceAutoStartPermissions();
     addManageAlertNotificationsPermissions();
     updateKerberosDescriptorArtifacts();
+    fixHBaseMasterCPUUtilizationAlertDefinition();
+  }
+
+  /**
+   * Fix the HBase Master CPU Utilization alert definition by swapping the values for <code>kerberos_keytab</code>
+   * and <code>kerberos_principal</code>.
+   */
+  protected void fixHBaseMasterCPUUtilizationAlertDefinition() {
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+      AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findByName(clusterID, "hbase_master_cpu");
+      if(alertDefinition != null) {
+        LOG.info("Updating alert definition {} in cluster {}", alertDefinition.getDefinitionName(), clusterID);
+        String source = alertDefinition.getSource();
+
+        if(source != null) {
+          JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+          LOG.debug("Source before update : {}", sourceJson);
+
+          JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+          JsonPrimitive primitive;
+
+          // Replace
+          //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
+          // With
+          //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+          primitive = uriJson.getAsJsonPrimitive("kerberos_keytab");
+          if(primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}".equals(primitive.getAsString())) {
+            uriJson.remove("kerberos_keytab");
+            uriJson.addProperty("kerberos_keytab", "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}");
+          }
+
+          // Replace
+          //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+          // With
+          //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
+          primitive = uriJson.getAsJsonPrimitive("kerberos_principal");
+          if(primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}".equals(primitive.getAsString())) {
+            uriJson.remove("kerberos_principal");
+            uriJson.addProperty("kerberos_principal", "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}");
+          }
+
+          LOG.debug("Source after update : {}", sourceJson);
+          alertDefinition.setSource(sourceJson.toString());
+          alertDefinition.setHash(UUID.randomUUID().toString());
+
+          alertDefinitionDAO.merge(alertDefinition);
+        }
+      }
+    }
   }
 
   /**
