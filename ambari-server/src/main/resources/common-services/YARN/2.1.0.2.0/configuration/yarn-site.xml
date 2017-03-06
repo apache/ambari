@@ -265,7 +265,7 @@
       Time in seconds to retain user logs. Only applicable if
       log aggregation is disabled.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.log-aggregation-enable</name>
