@@ -479,7 +479,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       throw new SystemException("No configuration files defined for any component" );
     }
 
-    Integer threadPoolSize = configs.getExternalScriptThreadPoolSize();
+    Integer totalCommands = pythonCompressFilesCmds.size() * 2;
+    Integer threadPoolSize = Math.min(totalCommands,configs.getExternalScriptThreadPoolSize());
     ExecutorService processExecutor = Executors.newFixedThreadPool(threadPoolSize);
 
     // put all threads that starts process to compress each component config files in the executor

@@ -1754,7 +1754,7 @@ public class Configuration {
    */
   @Markdown(description = "The time, in milliseconds, until an external script is killed.")
   public static final ConfigurationProperty<Integer> EXTERNAL_SCRIPT_TIMEOUT = new ConfigurationProperty<>(
-      "server.script.timeout", 5000);
+      "server.script.timeout", 10000);
 
   /**
    * The time, in {@link TimeUnit#MILLISECONDS}, until an external script is killed.
@@ -1762,7 +1762,7 @@ public class Configuration {
    */
   @Markdown(description = "The number of threads that should be allocated to run external script.")
   public static final ConfigurationProperty<Integer> THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT = new ConfigurationProperty<>(
-    "server.script.threads", 4);
+    "server.script.threads", 20);
 
   public static final String DEF_ARCHIVE_EXTENSION;
   public static final String DEF_ARCHIVE_CONTENT_TYPE;
