@@ -523,4 +523,25 @@ describe('validator', function () {
 
   });
 
+  describe('#isValidAlertName', function () {
+
+    [
+      {v: '', e: false},
+      {v: 'a', e: true},
+      {v: 'a b', e: true},
+      {v: '/', e: false},
+      {v: '/>1', e: false},
+      {v: 'a 1%', e: true},
+      {v: 'a (b)', e: true}
+    ].forEach(function (test) {
+
+      it(test.m || test.v, function () {
+        expect(validator.isValidAlertName(test.v)).to.be.equal(test.e);
+      })
+
+    });
+
+
+  });
+
 });
