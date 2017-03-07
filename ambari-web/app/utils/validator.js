@@ -322,7 +322,7 @@ module.exports = {
    * @returns {boolean}
    */
   isValidAlertName: function(value) {
-    var alertNameRegex = /^[\s0-9a-z_\-%]+$/i;
+    var alertNameRegex = /^[\s0-9a-z_\-%\(\)]+$/i;
     return alertNameRegex.test(value);
   },
 
