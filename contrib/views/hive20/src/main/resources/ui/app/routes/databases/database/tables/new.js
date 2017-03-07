@@ -95,13 +95,17 @@ export default Ember.Route.extend(UILoggerMixin, {
   },
 
   _addTableToStoreLocally(database, table) {
-    this.store.createRecord('table', {
-      id: `${database.get('name')}/${table}`,
-      name: `${table}`,
-      type: 'TABLE',
-      selected: true,
-      database: database
-    });
+    // Add only if it has not been added by the auto refresh
+    let existingRecord = this.store.peekRecord('table', `${database.get('name')}/${table}`);
+    if(Ember.isEmpty(existingRecord)) {
+      this.store.createRecord('table', {
+        id: `${database.get('name')}/${table}`,
+        name: `${table}`,
+        type: 'TABLE',
+        selected: true,
+        database: database
+      });
+    }
   },
 
   _resetModelInTablesController(tables) {

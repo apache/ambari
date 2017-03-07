@@ -34,7 +34,9 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
-      SHOULD_PERFORM_SERVICE_CHECK: true
+      SHOULD_PERFORM_SERVICE_CHECK: true,
+      SHOULD_AUTO_REFRESH_TABLES: true,
+      SHOULD_AUTO_REFRESH_DATABASES: true
     }
   };
 
@@ -49,6 +51,8 @@ module.exports = function(environment) {
     // Change the value to false to prevent the service checks. This is required in development mode
     // as service checks take up time and hence increase the overall development time.
     ENV.APP.SHOULD_PERFORM_SERVICE_CHECK = false;
+    ENV.APP.SHOULD_AUTO_REFRESH_TABLES = false;
+    ENV.APP.SHOULD_AUTO_REFRESH_DATABASES = false;
   }
 
   if (environment === 'test') {
