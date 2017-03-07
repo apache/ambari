@@ -94,7 +94,7 @@ export default Ember.Component.extend({
 
     if (editor.getValue() !== query) {
       if(isFinalExplainQuery){
-        editor.setValue(editorQuery || '')
+        editor.setValue(editorQuery || '');
       }else {
         editor.setValue(query || '');
       }

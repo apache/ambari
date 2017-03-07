@@ -34,7 +34,7 @@ export default Ember.Service.extend({
   store: Ember.inject.service(),
 
   generateStatistics(databaseName, tableName, withColumns = false) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').analyseTable(databaseName, tableName, withColumns).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
@@ -45,7 +45,7 @@ export default Ember.Service.extend({
   },
 
   generateColumnStatistics(databaseName, tableName, columnName) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').generateColumnStats(databaseName, tableName, columnName).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
@@ -56,7 +56,7 @@ export default Ember.Service.extend({
   },
 
   waitForStatsGenerationToComplete(job, fetchDummyResult = true) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('jobs').waitForJobToComplete(job.get('id'), 5 * 1000, fetchDummyResult).then((data) => {
         resolve(job);
       }, (err) => {

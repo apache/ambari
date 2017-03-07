@@ -34,13 +34,12 @@ export default Ember.Component.extend({
 
       this.set('fileResourceId', fileResourceId);
 
-      var self = this;
       if(this.get('expanded')) {
         this.set('expanded', false);
       } else {
         this.set('expanded', true);
 
-        let allUdfs = this.get('store').findAll('udf').then((data) => {
+        this.get('store').findAll('udf').then((data) => {
           let selectedUdfList = [];
           data.forEach(x => {
             let localFileResource = {
@@ -58,8 +57,6 @@ export default Ember.Component.extend({
           this.set('selectedUdfList', selectedUdfs);
         });
       }
-
-
 
     },
 

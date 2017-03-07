@@ -37,7 +37,6 @@ export default Ember.Component.extend({
   actions: {
     toggleExpandUdf(fileResourceId) {
 
-      var self = this;
       if(this.get('expanded')) {
         this.set('expanded', false);
       } else {
@@ -120,11 +119,11 @@ export default Ember.Component.extend({
     removeUdf(){
       let self = this;
       this.get('store').find('udf', this.get('udfId')).then(function(resultUdf) {
-        resultUdf.destroyRecord().then(function(data) {
+        resultUdf.destroyRecord().then(function() {
           self.send('cancelUdf');
           self.sendAction('refreshUdfList');
         }, function(response) {
-          console.log('UDF NOT deleted');
+          console.log('UDF NOT deleted', response);
         });
         return false;
       });
@@ -135,7 +134,7 @@ export default Ember.Component.extend({
     },
 
     handleResourceChange(filter){
-      if(filter.action == "addNewFileResource"){
+      if(filter.action === "addNewFileResource"){
         this.get('controller').set('isAddingNewFileResource', true);
         this.set('selectedFileResource',null);
       }else {

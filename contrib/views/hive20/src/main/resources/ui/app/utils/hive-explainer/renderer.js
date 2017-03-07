@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+
+import Ember from 'ember';
+
 export default function doRender(data, selector, onRequestDetail, draggable) {
 
   const width = '1570', height = '800';
@@ -117,7 +120,7 @@ function recurseC(children, onRequestDetail) {
         .attr('data-operator', d => d._operator)
         .attr('class', d => `operator__box operator__box--${d._operator.toString().replace(/[ ]/g, '_')}`)
         .attr('height', d => d._operator === 'Fetch Operator' ? 150 : 55)
-        .attr('width', 140)
+        .attr('width', 140);
 
       children
           .append('foreignObject')
@@ -204,9 +207,9 @@ function getOperatorIcon(operator) {
     case 'Filter Operator':
       return 'fa-filter';
     case 'Dynamic Partitioning Event Operator':
-      return 'fa-columns'
+      return 'fa-columns';
     case 'Map Join Operator':
-      return 'fa-code-fork'
+      return 'fa-code-fork';
     case 'Limit':
     case 'Group By Operator':
     case 'Select Operator':
@@ -220,7 +223,7 @@ function getOperatorIcon(operator) {
 function getIcon (type, subtype) {
   switch(type) {
     case 'join':
-      return 'fa-code-fork'
+      return 'fa-code-fork';
     case 'vectorization':
     case 'job':
       return;
@@ -233,7 +236,8 @@ function getIcon (type, subtype) {
     case 'select':
       return 'fa-table';
   }
-};
+}
+
 function abbreviate(value) {
   let newValue = value;
   if (value >= 1000) {
@@ -241,11 +245,11 @@ function abbreviate(value) {
     const suffixNum = Math.floor(("" + value).length / 3);
     let shortValue = '';
     for (var precision = 2; precision >= 1; precision--) {
-      shortValue = parseFloat( (suffixNum != 0 ? (value / Math.pow(1000,suffixNum) ) : value).toPrecision(precision));
+      shortValue = parseFloat( (suffixNum !== 0 ? (value / Math.pow(1000,suffixNum) ) : value).toPrecision(precision));
       const dotLessShortValue = (shortValue + '').replace(/[^a-zA-Z 0-9]+/g,'');
       if (dotLessShortValue.length <= 2) { break; }
     }
-    if (shortValue % 1 != 0) {
+    if (shortValue % 1 !== 0) {
       const  shortNum = shortValue.toFixed(1);
     }
     newValue = shortValue+suffixes[suffixNum];
@@ -271,7 +275,7 @@ function reset(zoom, svg, container) {
   const height = Math.max(...bounds.map(cBound => cBound.bottom)) - top;
   const midX = left + width / 2;
   const midY = top + height / 2;
-  if (width == 0 || height == 0){
+  if (width === 0 || height === 0){
     // nothing to fit
     return;
   }
@@ -291,10 +295,10 @@ function getConnectionPathFF(connector, svg, container) {
   const target = container.select(`#${connector._target._uuid}`).node();
   const rSource = d3.select(source).data()[0];
   const rTarget = d3.select(target).data()[0];
-  const rSourceVertex = d3.select($(source).closest('.vertex').get(0)).data()[0];
-  const rTargetVertex = d3.select($(target).closest('.vertex').get(0)).data()[0];
+  const rSourceVertex = d3.select(Ember.$(source).closest('.vertex').get(0)).data()[0];
+  const rTargetVertex = d3.select(Ember.$(target).closest('.vertex').get(0)).data()[0];
 
-  const offsetBox = $(container.node()).children('.vertex').get(0).getBoundingClientRect();
+  const offsetBox = Ember.$(container.node()).children('.vertex').get(0).getBoundingClientRect();
 
 
   const pSource = {
@@ -322,9 +326,9 @@ function getConnectionPathFF(connector, svg, container) {
   const offsetY = svg.node().getBoundingClientRect().top;
   return path.reduce((accumulator, cPoint, index) => {
     if(index === 0) {
-      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`
+      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     } else {
-      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`
+      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     }
   }, '');
 }
@@ -361,9 +365,9 @@ function getConnectionPath(connector, svg, container){
   const offsetY = svg.node().getBoundingClientRect().top;
   return path.reduce((accumulator, cPoint, index) => {
     if(index === 0) {
-      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`
+      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     } else {
-      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`
+      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     }
   }, '');
 }

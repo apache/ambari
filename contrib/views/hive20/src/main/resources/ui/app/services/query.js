@@ -23,7 +23,7 @@ export default Ember.Service.extend({
   store: Ember.inject.service(),
 
   createJob(payload){
-    return new Promise( (resolve, reject) => {
+    return new Ember.RSVP.Promise( (resolve, reject) => {
       this.get('store').adapterFor('query').createJob(payload).then(function(data) {
         resolve(data);
       }, function(err) {
@@ -32,8 +32,7 @@ export default Ember.Service.extend({
     });
   },
   getJob(jobId, firstCall){
-    let self = this;
-    return new Promise( (resolve, reject) => {
+    return new Ember.RSVP.Promise( (resolve, reject) => {
       this.get('store').adapterFor('query').getJob(jobId, firstCall).then(function(data) {
         resolve(data);
       }, function(err) {
@@ -47,13 +46,11 @@ export default Ember.Service.extend({
   },
 
   downloadAsCsv(jobId, path){
-    let self = this;
     return this.get('store').adapterFor('job').downloadAsCsv(jobId, path);
   },
 
   retrieveQueryLog(logFile){
-    let self = this;
-    return new Promise( (resolve, reject) => {
+    return new Ember.RSVP.Promise( (resolve, reject) => {
       this.get('store').adapterFor('query').retrieveQueryLog(logFile).then(function(data) {
         resolve(data);
       }, function(err) {
@@ -63,8 +60,7 @@ export default Ember.Service.extend({
   },
 
   getVisualExplainJson(jobId){
-    let self = this;
-    return new Promise( (resolve, reject) => {
+    return new Ember.RSVP.Promise( (resolve, reject) => {
       this.get('store').adapterFor('query').getVisualExplainJson(jobId).then(function(data) {
           resolve(data);
         }, function(err) {

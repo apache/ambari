@@ -83,11 +83,11 @@ export default ApplicationAdapter.extend({
 
   previewFromHDFS : function(previewFromHdfsData){
     console.log("preview from hdfs with info : ", previewFromHdfsData);
-    return this.doPost("previewFromHdfs",previewFromHdfsData)
+    return this.doPost("previewFromHdfs",previewFromHdfsData);
   },
 
   uploadFromHDFS : function(uploadFromHdfsData){
     console.log("upload from hdfs with info : ", uploadFromHdfsData);
-    return this.doPost("uploadFromHDFS",uploadFromHdfsData)
+    return this.doPost("uploadFromHDFS",uploadFromHdfsData);
   }
 });

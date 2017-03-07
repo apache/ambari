@@ -68,15 +68,7 @@
           <div class="col-md-6">
             {{input type="text" class="form-control" value=settings.location}}
           </div>
-          <button class="btn btn-success" {{action "toggleDirectoryViewer"}}>Select HDFS Directory</button>
         </div>
-        {{#if showDirectoryViewer}}
-          {{hdfs-viewer-modal
-            showSelectedPath=true
-            close="closeHdfsModal"
-            selected="hdfsPathSelected"
-          }}
-        {{/if}}
       </div>
     {{/if}}
   </div>

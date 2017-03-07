@@ -125,11 +125,11 @@ export default Ember.Component.extend({
     },
 
     toggleFileFormat() {
-      this.toggleProperty('showFileFormatInput')
+      this.toggleProperty('showFileFormatInput');
     },
 
     toggleRowFormat() {
-      this.toggleProperty('showRowFormatInput')
+      this.toggleProperty('showRowFormatInput');
     },
 
     fileFormatSelected(format) {

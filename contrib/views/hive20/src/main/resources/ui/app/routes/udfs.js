@@ -64,7 +64,7 @@ export default Ember.Route.extend({
 
         this.controllerFor('udfs').set('udflist',udfList);
         this.transitionTo('udfs');
-      })
+      });
 
     }
 

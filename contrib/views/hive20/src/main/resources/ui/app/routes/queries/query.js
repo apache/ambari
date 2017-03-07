@@ -93,7 +93,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         'dbname': selectedDb ,
         'tables': this.store.query('table', {databaseId: selectedDb}),
         'isSelected': true
-      })
+      });
       selectedMultiDb.pushObject(selectedDb);
     }
 
@@ -208,7 +208,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             'tables':self.store.query('table', {databaseId: db}),
             'isSelected': (index === 0) ? true :false
           }
-        )
+        );
         selectedMultiDb.pushObject(db);
       });
 
@@ -224,7 +224,6 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     showTables(db){
-      let self = this;
       Ember.$('#' + db).toggle();
       this.get('controller.model').set('selectedDb', db);
     },
@@ -267,11 +266,13 @@ export default Ember.Route.extend(UILoggerMixin, {
       if (isVisualExplainQuery) {
         queryInput = "";
         let queries = this.get('controller').get('currentQuery').split(";").filter(function (query) {
-          if (query && query.trim()) return true;
+          if (query && query.trim()) {
+            return true;
+          }
         });
 
         for (let i = 0; i < queries.length; i++) {
-          if (i == queries.length - 1) {
+          if (i === queries.length - 1) {
             if(queries[i].toLowerCase().startsWith("explain formatted ")){
               queryInput += queries[i] + ";";
             } else{
@@ -398,7 +399,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         } else {
           self.get('controller.model').set('visualExplainJson', null);
 
-          if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() == payloadTitle)){
+          if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() === payloadTitle)){
             self.transitionTo('queries.query.loading');
 
             Ember.run.later(() => {
@@ -572,7 +573,7 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     saveWorksheetModal(){
       console.log('I am in saveWorksheetModal');
-      let newTitle = $('#worksheet-title').val();
+      let newTitle = Ember.$('#worksheet-title').val();
 
       let currentQuery = this.get('controller.model').get('query');
       let selectedDb = this.get('controller.model').get('selectedDb');
@@ -652,7 +653,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     adjustPanelSize(){
-      let isFullHeight = ($(window).height() ==(parseInt(Ember.$('.ember-light-table').css('height'), 10)) ) || false;
+      let isFullHeight = (Ember.$(window).height() ===(parseInt(Ember.$('.ember-light-table').css('height'), 10)) ) || false;
       if(!isFullHeight){
         Ember.$('.ember-light-table').css('height', '100vh');
       }else {

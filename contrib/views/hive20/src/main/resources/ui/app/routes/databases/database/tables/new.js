@@ -81,7 +81,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
     toggleCSVFormat: function() {
       console.log("inside new route toggleCSVFormat");
-      this.toggleProperty('showCSVFormatInput')
+      this.toggleProperty('showCSVFormatInput');
     },
 
     create(settings) {

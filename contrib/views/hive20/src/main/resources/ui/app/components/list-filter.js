@@ -31,7 +31,7 @@ export default Ember.Component.extend({
   filteredItems: Ember.computed('filterText', 'items.@each', function() {
     return this.get('items').filter((item) => {
       let filterText = this.get('caseInsensitive') ? this.get('filterText').toLowerCase() : this.get('filterText');
-      let itemName = this.get('caseInsensitive') ? item.get('name').toLowerCase() : item.get('name')
+      let itemName = this.get('caseInsensitive') ? item.get('name').toLowerCase() : item.get('name');
       return itemName.indexOf(filterText) !== -1;
     });
   }),

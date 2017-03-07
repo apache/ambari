@@ -45,7 +45,7 @@ export default Ember.Component.extend({
     var regExp = new RegExp(regStr, "g");
     if (this.get("inputValue")) {
       var arr = this.get("inputValue").match(regExp);
-      if (arr != null && arr.length == 1) {
+      if (arr != null && arr.length === 1) {
         this.setValid();
       }
       else {

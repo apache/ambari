@@ -44,7 +44,7 @@ export default Ember.Route.extend({
     return this.store.query('job', params);
   },
 
-  setupController(controller, model) {
+  setupController(controller) {
     if(!(Ember.isEmpty(this.get('startInitTo')) || Ember.isEmpty(this.get('endInitTo')))) {
 
       controller.set('endTime', this.get('endInitTo'));
@@ -60,8 +60,8 @@ export default Ember.Route.extend({
 
   actions: {
     dateFilterChanged(startTime, endTime) {
-      this.controller.set('startTime', this.get('moment').moment(startTime, 'YYYY-MM-DD').startOf('day').valueOf())
-      this.controller.set('endTime', this.get('moment').moment(endTime, 'YYYY-MM-DD').endOf('day').valueOf())
+      this.controller.set('startTime', this.get('moment').moment(startTime, 'YYYY-MM-DD').startOf('day').valueOf());
+      this.controller.set('endTime', this.get('moment').moment(endTime, 'YYYY-MM-DD').endOf('day').valueOf());
       this.refresh();
     }
   }

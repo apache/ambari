@@ -26,7 +26,7 @@ export function formatColumnSize(params/*, hash*/) {
   }
   let sizeString = '( ';
   if (precision) {
-    sizeString = `${sizeString}${precision}`
+    sizeString = `${sizeString}${precision}`;
   }
   if (scale) {
     sizeString = `${sizeString}, ${scale}`;
