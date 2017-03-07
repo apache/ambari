@@ -1004,6 +1004,10 @@ public class AmbariServer {
       ComponentSSLConfiguration.instance().init(server.configs);
       server.run();
     } catch (Throwable t) {
+      // Writing to system console is needed because loggers may not get flushed on exit and diagnostic information
+      // may get lost.
+      System.err.println("An unexpected error occured during starting Ambari Server.");
+      t.printStackTrace();
       LOG.error("Failed to run the Ambari Server", t);
       if (server != null) {
         server.stop();

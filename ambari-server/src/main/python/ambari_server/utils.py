@@ -122,7 +122,10 @@ def save_pid(pid, pidfile):
 
 def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
   """
-    Save pid which is not included to exclude_list to pidfile.
+    Saves and returns the first (and supposingly only) pid from the list of pids
+    which is not included in the exclude_list.
+
+    pidfile is the name of the file to save the pid to
 
     exclude_list contains list of full executable paths which should be excluded
   """
@@ -133,7 +136,7 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
       for item in pids:
         if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
           pfile.write("%s\n" % item["pid"])
-          pid_saved = True
+          pid_saved = item["pid"]
           logger.info("Ambari server started with PID " + str(item["pid"]))
         if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
           try:
@@ -157,7 +160,7 @@ def get_live_pids_count(pids):
   """
   return len([pid for pid in pids if pid_exists(pid)])
 
-def wait_for_ui_start(ambari_server_ui_port, timeout=1):
+def wait_for_ui_start(ambari_server_ui_port, pid, timeout=1):
 
   tstart = time.time()
   while int(time.time()-tstart) <= timeout:
@@ -173,7 +176,10 @@ def wait_for_ui_start(ambari_server_ui_port, timeout=1):
 
     sys.stdout.write('.')
     sys.stdout.flush()
-    time.sleep(1)
+    if pid_exists(pid):
+      time.sleep(1)
+    else:
+      break
 
   return False
 
