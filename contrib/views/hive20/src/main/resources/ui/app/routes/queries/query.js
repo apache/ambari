@@ -80,7 +80,6 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     this._super(...arguments);
     this.get("tezViewInfo").getTezViewInfo();
-
     let self = this, selectedDb;
     let alldatabases = this.store.peekAll('database');
     controller.set('alldatabases',alldatabases);
@@ -127,7 +126,6 @@ export default Ember.Route.extend(UILoggerMixin, {
 
 
     controller.set('worksheet', model);
-
     controller.set('selectedTablesModels',model.get('selectedTablesModels') || selectedTablesModels );
     controller.set('selectedMultiDb', model.get('selectedMultiDb') || selectedMultiDb);
 
@@ -173,6 +171,12 @@ export default Ember.Route.extend(UILoggerMixin, {
     }
     else if(selectedDBs.length === 0) {
       this.get('controller.model').set('selectedDb', null);
+    }
+  },
+  closeWorksheetAfterSave(){
+    let tabDataToClose = this.get('controller.model').get('tabDataToClose');
+    if(tabDataToClose) {
+      this.send('closeWorksheet', tabDataToClose.index, tabDataToClose.id);
     }
   },
   actions: {
@@ -230,8 +234,13 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     updateQuery(query){
-      this.get('controller').set('currentQuery', query);
       this.get('controller.model').set('query', query);
+      if(Ember.isBlank(query)){
+        this.get('controller.model').set('isQueryDirty', false);
+      } else if(this.get('controller').get('currentQuery').indexOf(query) !== 0){
+        this.get('controller.model').set('isQueryDirty', true);
+      }
+      this.get('controller').set('currentQuery', query);
     },
 
     executeQuery(isVisualExplainQuery){
@@ -492,8 +501,72 @@ export default Ember.Route.extend(UILoggerMixin, {
         this.transitionTo('queries.query.results', myWs);
       }, 1 * 100);
     },
+    confirmWorksheetClose(index, id) {
+      let existingWorksheets = this.store.peekAll('worksheet');
+      let selectedWorksheet = existingWorksheets.filterBy('id', id.toLowerCase()).get('firstObject');
+      if(selectedWorksheet.get("isQueryDirty")){
+        this.transitionTo('queries.query', id);
+      }
+      Ember.run.later(() => {
+
+      if(this.get('controller.model').get('isQueryDirty')) {
+        this.get('controller.model').set('tabDataToClose', {index:index, id:id})
+        this.send('openWorksheetModal');
+      } else {
+         this.send('closeWorksheet', index, id);
+      }
+      }, 1 * 100);
+    },
+    closeWorksheet(index, id) {
+      let existingWorksheets = this.store.peekAll('worksheet');
+      let selectedWorksheet = existingWorksheets.filterBy('id', id.toLowerCase()).get('firstObject');
+      this.store.unloadRecord(selectedWorksheet);
+      this.controllerFor('queries').set('worksheets', this.store.peekAll('worksheet'));
+      let idToTransition = 0;
+      if(selectedWorksheet.get('selected')) {
+        if(index){
+          idToTransition = existingWorksheets.get('content')[parseInt(index)-1].id;
+        } else {
+          idToTransition = existingWorksheets.get('content')[1].id;
+        }
+        this.transitionTo('queries.query', idToTransition);
+      } else {
+        idToTransition = existingWorksheets.get('content')[existingWorksheets.get('length')-1].id;
+      }
+    },
+    openWorksheetRenameModal(title){
+      let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
+      this.get('controller').set('worksheetTitle', title);
+      this.get('controller').set('showWorksheetRenameModal', true);
+      this.get('controller').set('renameWorksheetModalSuccess', false);
+    },
+    closeRenameWorksheetModal() {
+      this.get('controller').set('showWorksheetRenameModal', false);
+    },
+    renameWorksheetModal(){
+      let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
+      let newTitle = Ember.$('#worksheet-title').val();
+      if(wf) {
+        wf.set('title', newTitle);
+        this.get('controller').set('renameWorksheetModalSuccess', true);
+     } else {
+        this.get('controller').set('renameWorksheetModalFail', true);
+      }
+
+      Ember.run.later(() => {
+        this.get('controller').set('showWorksheetRenameModal', false);
+      }, 2 * 1000);
+    },
 
     openWorksheetModal(){
+      let originalQuery = this.get('controller').get('currentQuery');
+      if(Ember.isBlank(originalQuery)) {
+        this.get('logger').danger('Query cannot be empty.');
+        this.send('resetDefaultWorksheet');
+        return;
+      }
+      let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
+      this.get('controller').set('worksheetTitle', wf.get('title'));
       this.get('controller').set('showWorksheetModal', true);
     },
 
@@ -527,10 +600,12 @@ export default Ember.Route.extend(UILoggerMixin, {
         console.log('saved query saved');
 
         this.get('controller.model').set('title', newTitle);
+        this.get('controller.model').set('isQueryDirty', false);
         this.get('controller').set('worksheetModalSuccess', true);
 
         Ember.run.later(() => {
           this.get('controller').set('showWorksheetModal', false);
+          this.closeWorksheetAfterSave();
         }, 2 * 1000);
 
       });
@@ -539,7 +614,9 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     closeWorksheetModal(){
       this.get('controller').set('showWorksheetModal', false);
-    },
+      this.closeWorksheetAfterSave();
+      this.get('controller.model').set('tabDataToClose', null)
+  },
 
     expandQueryEdidorPanel(){
       if(!this.get('isQueryEdidorPaneExpanded')){

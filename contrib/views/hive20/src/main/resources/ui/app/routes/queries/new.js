@@ -21,11 +21,18 @@ import Ember from 'ember';
 export default Ember.Route.extend({
   beforeModel() {
     let existingWorksheets = this.store.peekAll('worksheet');
-    let newWorksheetName = `worksheet${existingWorksheets.get('length') + 1}`;
+    let newWorksheetName = 'worksheet';
+    if(!this.controllerFor("queries").worksheetCount) {
+      newWorksheetName = newWorksheetName + 1;
+    } else {
+      let id = parseInt(this.controllerFor("queries").worksheetCount);
+      newWorksheetName = newWorksheetName + id;
+    }
     let newWorksheetTitle = newWorksheetName.capitalize();
     this.store.createRecord('worksheet', {
       id: newWorksheetName,
       title: newWorksheetTitle,
+      isQueryDirty: false,
       //query: 'select 1;',
       //owner: 'admin',
       selected: true

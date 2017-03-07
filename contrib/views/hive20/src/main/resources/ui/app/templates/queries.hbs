@@ -18,9 +18,14 @@
 
 <div class="worksheet-container">
   <ul class="worksheet-nav row nav nav-tabs inverse">
-    {{#each worksheets as |worksheet| }}
-      <li class="{{if worksheet.selected 'active'}}" style="">
-        {{#link-to 'queries.query' worksheet.id  classBinding='worksheet.selected:active'}}{{ worksheet.title }}{{/link-to}}
+    {{#each worksheets as |worksheet index| }}
+      <li class="{{if worksheet.selected 'active'}}" style="" {{action "openWorksheetRenameModal" wf.title on="doubleClick"}}>
+        {{#link-to 'queries.query' worksheet.id  classBinding='worksheet.selected:active' }}{{ worksheet.title }}
+          {{#if worksheet.isQueryDirty}}*{{/if}}
+          {{#if (gt worksheets.length 1)}}
+            <span class="closeTab" {{action "confirmWorksheetClose" index worksheet.id bubbles=false }}>{{fa-icon "times"}}</span>
+          {{/if}}
+        {{/link-to}}
       </li>
     {{/each}}
     <li>

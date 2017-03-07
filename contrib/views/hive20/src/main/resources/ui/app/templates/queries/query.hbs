@@ -116,7 +116,7 @@
           <div class="form-group">
             <label for="title" class="col-sm-2 control-label">Title</label>
             <div class="col-sm-10">
-              {{input type="text" class="form-control" id="worksheet-title" placeholder="Title" value=worksheet.title }}
+              {{input type="text" class="form-control" id="worksheet-title" placeholder="Title" value=worksheetTitle }}
             </div>
           </div>
           {{#if worksheetModalSuccess }}
@@ -129,7 +129,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" {{action "saveWorksheetModal"}}>{{fa-icon "check"}} Save</button>
+        <button type="button" class="btn btn-default" disabled={{not worksheetTitle}} {{action "saveWorksheetModal"}}>{{fa-icon "check"}} Save</button>
         <button type="button" class="btn btn-default" {{action "closeWorksheetModal"}}>{{fa-icon "close"}}Cancel
         </button>
       </div>
@@ -137,3 +137,34 @@
   {{/modal-dialog}}
 {{/if}}
 
+{{#if showWorksheetRenameModal}}
+  {{#modal-dialog translucentOverlay=true clickOutsideToClose=true container-class="modal-dialog  modal-sm"}}
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Renaming worksheet</h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-horizontal">
+          <div class="form-group">
+            <label for="title" class="col-sm-2 control-label">Title</label>
+            <div class="col-sm-10">
+              {{input type="text" class="form-control" id="worksheet-title" placeholder="Title" value=worksheetTitle }}
+            </div>
+          </div>
+          {{#if renameWorksheetModalSuccess }}
+            <div class="text-success">Renamed successfully.</div>
+          {{/if}}
+          {{#if renameWorksheetModalFail }}
+            <div class="text-danger">Error while renaming.</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" disabled={{not worksheetTitle}} {{action "renameWorksheetModal"}}>{{fa-icon "check"}} Save</button>
+        <button type="button" class="btn btn-default" {{action "closeRenameWorksheetModal"}}>{{fa-icon "close"}}Cancel
+        </button>
+      </div>
+    </div>
+  {{/modal-dialog}}
+{{/if}}

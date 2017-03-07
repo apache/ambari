@@ -19,9 +19,12 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
-
+  'worksheetCount': 1,
   actions: {
     createNewWorksheet(){
+      let id = this.get('worksheetCount');
+      this.get('controller').set('worksheetCount',parseInt(id)+1);
+      this.set('worksheetCount',parseInt(id)+1);
       this.transitionTo('queries.new');
     }
   }
