@@ -21,6 +21,7 @@ import os
 import subprocess
 import sys
 import logging
+import time
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, set_debug_mode_from_options
@@ -115,6 +116,8 @@ CHECK_DATABASE_SKIPPED_PROPERTY = "check_database_skipped"
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
 AMBARI_SERVER_NOT_STARTED_MSG = "Ambari Server java process hasn't been started or can't be determined."
+AMBARI_SERVER_STOPPED = "Ambari Server java process has stopped. Please check the logs for more information."
+AMBARI_SERVER_UI_TIMEOUT = "Server not yet listening on http port {0} after {1} seconds. Exiting."
 AMBARI_SERVER_STARTED_SUCCESS_MSG = "Ambari Server has started successfully"
 
 # linux open-file limit
@@ -211,27 +214,32 @@ def wait_for_server_start(pidFile, scmStatus):
   sys.stdout.write('Waiting for server start...')
   sys.stdout.flush()
   pids = []
-  server_started = False
+  pid = None
   # looking_for_pid() might return partrial pid list on slow hardware
   for i in range(1, SERVER_START_RETRIES):
     pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_START_TIMEOUT)
-    if save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
-                        locate_all_file_paths('bash', '/bin') +
-                        locate_all_file_paths('dash', '/bin'), IS_FOREGROUND):
-      server_started = True
+    pid = save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
+                           locate_all_file_paths('bash', '/bin') +
+                           locate_all_file_paths('dash', '/bin'), IS_FOREGROUND)
+    if pid:
       break
     else:
       sys.stdout.write("Unable to determine server PID. Retrying...\n")
       sys.stdout.flush()
 
   exception = None
-  if server_started:
+  if pid:
     ambari_server_ui_port = get_ambari_server_ui_port(properties)
     web_server_startup_timeout = get_web_server_startup_timeout(properties)
-
-    if not wait_for_ui_start(int(ambari_server_ui_port), web_server_startup_timeout):
-      exception = FatalException(1, "Server not yet listening on http port " + ambari_server_ui_port + \
-                                 " after " + str(web_server_startup_timeout) + " seconds. Exiting.")
+    waitStart = time.time()
+    if not wait_for_ui_start(int(ambari_server_ui_port), pid, web_server_startup_timeout):
+      waitTime = int(time.time()-waitStart)
+      # Java process stopped, due to a DB check or other startup issue
+      if waitTime < web_server_startup_timeout:
+        exception = FatalException(-1, AMBARI_SERVER_STOPPED)
+      # UI didn't come up on time
+      else:
+        exception = FatalException(1, AMBARI_SERVER_UI_TIMEOUT.format(ambari_server_ui_port, web_server_startup_timeout))
   elif get_live_pids_count(pids) <= 0:
     exitcode = check_exitcode(os.path.join(configDefaults.PID_DIR, EXITCODE_NAME))
     exception = FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
