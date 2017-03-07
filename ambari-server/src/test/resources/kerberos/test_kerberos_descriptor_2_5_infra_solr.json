@@ -71,6 +71,153 @@
       ]
     },
     {
+      "components": [
+        {
+          "identities": [
+            {
+              "keytab": {
+                "configuration": "ranger-hbase-audit/xasecure.audit.jaas.Client.option.keyTab",
+                "file": "${keytab_dir}/ams-hbase.master.keytab"
+              },
+              "name": "/HBASE/HBASE_MASTER/hbase_master_hbase",
+              "principal": {
+                "configuration": "ranger-hbase-audit/xasecure.audit.jaas.Client.option.principal",
+                "local_username": null,
+                "type": null,
+                "value": "amshbase/_HOST@${realm}"
+              }
+            },
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "keytab": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.keytab",
+                "file": "${keytab_dir}/spnego.service.keytab"
+              },
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal",
+                "local_username": null,
+                "type": null,
+                "value": "HTTP/_HOST@${realm}"
+              }
+            },
+            {
+              "keytab": {
+                "configuration": "hbase-site/hbase.master.keytab.file",
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "group": {
+                  "access": "",
+                  "name": "${cluster-env/user_group}"
+                },
+                "owner": {
+                  "access": "r",
+                  "name": "${hbase-env/hbase_user}"
+                }
+              },
+              "name": "hbase_master_hbase",
+              "principal": {
+                "configuration": "hbase-site/hbase.master.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}",
+                "type": "service",
+                "value": "hbase/_HOST@${realm}"
+              }
+            }
+          ],
+          "name": "HBASE_MASTER"
+        },
+        {
+          "identities": [
+            {
+              "keytab": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.keytab",
+                "file": "${keytab_dir}/spnego.service.keytab"
+              },
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal",
+                "local_username": null,
+                "type": null,
+                "value": "HTTP/_HOST@${realm}"
+              }
+            },
+            {
+              "keytab": {
+                "configuration": "hbase-site/hbase.regionserver.keytab.file",
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "group": {
+                  "access": "",
+                  "name": "${cluster-env/user_group}"
+                },
+                "owner": {
+                  "access": "r",
+                  "name": "${hbase-env/hbase_user}"
+                }
+              },
+              "name": "hbase_regionserver_hbase",
+              "principal": {
+                "configuration": "hbase-site/hbase.regionserver.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}",
+                "type": "service",
+                "value": "hbase/_HOST@${realm}"
+              }
+            }
+          ],
+          "name": "HBASE_REGIONSERVER"
+        },
+        {
+          "identities": [
+            {
+              "keytab": {
+                "configuration": "hbase-site/phoenix.queryserver.keytab.file",
+                "file": null
+              },
+              "name": "phoenix_spnego",
+              "principal": {
+                "configuration": "hbase-site/phoenix.queryserver.kerberos.principal",
+                "local_username": null,
+                "type": null,
+                "value": null
+              },
+              "reference": "/spnego"
+            }
+          ],
+          "name": "PHOENIX_QUERY_SERVER"
+        }
+      ],
+      "identities": [
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "/spnego"
+        },
+        {
+          "keytab": {
+            "configuration": "hbase-env/hbase_user_keytab",
+            "file": "${keytab_dir}/hbase.headless.keytab",
+            "group": {
+              "access": "r",
+              "name": "${cluster-env/user_group}"
+            },
+            "owner": {
+              "access": "r",
+              "name": "${hbase-env/hbase_user}"
+            }
+          },
+          "name": "hbase",
+          "principal": {
+            "configuration": "hbase-env/hbase_principal_name",
+            "local_username": "${hbase-env/hbase_user}",
+            "type": "user",
+            "value": "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}"
+          }
+        }
+      ],
+      "name": "HBASE"
+    },
+    {
       "name": "LOGSEARCH",
       "identities": [
         {
@@ -114,7 +261,6 @@
         }
       ]
     },
-    ,
     {
       "components": [
         {
