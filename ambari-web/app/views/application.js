@@ -48,11 +48,14 @@ App.ApplicationView = Em.View.extend({
    */
   initNavigationBar: function () {
     if (App.get('router.mainController.isClusterDataLoaded')) {
-      Em.run.next(() => $('.navigation-bar').navigationBar({
-        fitHeight: true,
-        collapseNavBarClass: 'icon-double-angle-left',
-        expandNavBarClass: 'icon-double-angle-right'
-      }));
+      $('body').on('DOMNodeInserted', '.navigation-bar', () => {
+        $('.navigation-bar').navigationBar({
+          fitHeight: true,
+          collapseNavBarClass: 'icon-double-angle-left',
+          expandNavBarClass: 'icon-double-angle-right'
+        });
+        $('body').off('DOMNodeInserted', '.navigation-bar');
+      });
     }
   }.observes('App.router.mainController.isClusterDataLoaded')
 
