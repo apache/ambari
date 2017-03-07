@@ -170,12 +170,18 @@ def setup_ranger_admin(upgrade_type=None):
   if default("/configurations/ranger-admin-site/ranger.authentication.method", "") == 'PAM':
     d = '/etc/pam.d'
     if os.path.isdir(d):
+      if os.path.isfile(os.path.join(d, 'ranger-admin')):
+        Logger.info('ranger-admin PAM file already exists.')
+      else:
         File(format('{d}/ranger-admin'),
             content=Template('ranger_admin_pam.j2'),
             owner = params.unix_user,
             group = params.unix_group,
             mode=0644
             )
+      if os.path.isfile(os.path.join(d, 'ranger-remote')):
+        Logger.info('ranger-remote PAM file already exists.')
+      else:
         File(format('{d}/ranger-remote'),
             content=Template('ranger_remote_pam.j2'),
             owner = params.unix_user,
