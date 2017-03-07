@@ -93,7 +93,8 @@
               }
             },
             {
-              "name": "/FAKEHBASE/FAKEHBASE_MASTER/hbase_master_hbase",
+              "name": "ranger_hbase_audit",
+              "reference": "/FAKEHBASE/FAKEHBASE_MASTER/hbase_master_hbase",
               "principal": {
                 "configuration": "ranger-hbase-audit/xasecure.audit.jaas.Client.option.principal"
               },

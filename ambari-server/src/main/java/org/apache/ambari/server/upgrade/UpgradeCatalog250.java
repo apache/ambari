@@ -469,6 +469,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
           addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, logSearchKerberosDescriptor, "LOGSEARCH_SERVER");
           addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, rangerKerberosDescriptor, "RANGER_ADMIN");
           KerberosServiceDescriptor stormKerberosDescriptor = kerberosDescriptor.getService("STORM");
+
           if (stormKerberosDescriptor != null) {
             KerberosComponentDescriptor componentDescriptor = stormKerberosDescriptor.getComponent("NIMBUS");
             if (componentDescriptor != null) {
@@ -476,27 +477,24 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               if (origIdentityDescriptor != null) {
                 KerberosPrincipalDescriptor origPrincipalDescriptor = origIdentityDescriptor.getPrincipalDescriptor();
                 KerberosPrincipalDescriptor newPrincipalDescriptor = new KerberosPrincipalDescriptor(
-                  null,
-                  null,
-                  (origPrincipalDescriptor == null) ?
-                    "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal" : origPrincipalDescriptor.getConfiguration(),
-                  null
+                    null,
+                    null,
+                    (origPrincipalDescriptor == null) ?
+                        "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal" : origPrincipalDescriptor.getConfiguration(),
+                    null
                 );
                 KerberosKeytabDescriptor origKeytabDescriptor = origIdentityDescriptor.getKeytabDescriptor();
                 KerberosKeytabDescriptor newKeytabDescriptor = new KerberosKeytabDescriptor(
-                  null,
-                  null,
-                  null,
-                  null,
-                  null,
-                  (origKeytabDescriptor == null) ?
-                    "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab" : origKeytabDescriptor.getConfiguration(),
-                  false);
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    (origKeytabDescriptor == null) ?
+                        "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab" : origKeytabDescriptor.getConfiguration(),
+                    false);
                 componentDescriptor.removeIdentity("/STORM/NIMBUS/nimbus_server");
                 componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/STORM/storm_components", null, newPrincipalDescriptor, newKeytabDescriptor, null));
-
-                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-                artifactDAO.merge(artifactEntity);
               }
             }
           }
@@ -508,11 +506,32 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               Map<String, String> properties = yarnSiteConfigDescriptor.getProperties();
               if (properties != null && properties.containsKey(YARN_LCE_CGROUPS_MOUNT_PATH)) {
                 properties.remove(YARN_LCE_CGROUPS_MOUNT_PATH);
-                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-                artifactDAO.merge(artifactEntity);
               }
             }
           }
+
+          // Fix HBASE_MASTER Kerberos identity for Ranger audit by clearing out any keytab file or principal name values.
+          KerberosServiceDescriptor hbaseKerberosDescriptor = kerberosDescriptor.getService("HBASE");
+          if (hbaseKerberosDescriptor != null) {
+            KerberosComponentDescriptor hbaseMasterKerberosDescriptor = hbaseKerberosDescriptor.getComponent("HBASE_MASTER");
+            if (hbaseMasterKerberosDescriptor != null) {
+              KerberosIdentityDescriptor identityDescriptor = hbaseMasterKerberosDescriptor.getIdentity("/HBASE/HBASE_MASTER/hbase_master_hbase");
+
+              if (identityDescriptor != null) {
+                KerberosPrincipalDescriptor principalDescriptor = identityDescriptor.getPrincipalDescriptor();
+                KerberosKeytabDescriptor keytabDescriptor = identityDescriptor.getKeytabDescriptor();
+
+                identityDescriptor.setReference(identityDescriptor.getName());
+                identityDescriptor.setName("ranger_hbase_audit");
+
+                principalDescriptor.setValue(null);
+                keytabDescriptor.setFile(null);
+              }
+            }
+          }
+
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
         }
       }
     }
@@ -532,8 +551,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         } else {
           Predicate predicate = ContainsPredicate.fromMap(Collections.<String, Object>singletonMap(ContainsPredicate.NAME, Arrays.asList("services", "AMBARI_INFRA")));
           componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/AMBARI_INFRA/INFRA_SOLR/infra-solr",null, null, null, predicate));
-          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-          artifactDAO.merge(artifactEntity);
         }
       }
     }

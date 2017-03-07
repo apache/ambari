@@ -56,8 +56,13 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -1682,34 +1687,34 @@ public class UpgradeCatalog250Test {
 
     Capture<Map<String, Object>> updateData = Capture.newInstance(CaptureType.ALL);
     artifactEntity.setArtifactData(capture(updateData));
-    expectLastCall().times(4);
+    expectLastCall().times(1);
 
     ArtifactDAO artifactDAO = createNiceMock(ArtifactDAO.class);
-    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(4);
+    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(1);
 
     replay(artifactEntity, artifactDAO, upgradeMock);
     upgradeMock.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
     verify(artifactEntity, artifactDAO, upgradeMock);
 
-    KerberosDescriptor atlasKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(0));
-    KerberosDescriptor rangerKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(1));
-    KerberosDescriptor stormKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(2));
-    KerberosDescriptor yarnKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(3));
+    KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValue());
 
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getIdentity("spnego"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
-    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER"));
-    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN"));
-    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
-    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM"));
-    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS"));
-    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS").getIdentity("/STORM/storm_components"));
-    Assert.assertFalse(yarnKerberosDescriptorUpdated.getService("YARN").getConfigurations().get("yarn-site").getProperties().containsKey(propertyToRemove));
+    getIdentity(kerberosDescriptorUpdated,null, null, "spnego");
+    getIdentity(kerberosDescriptorUpdated,"LOGSEARCH", "LOGSEARCH_SERVER", "/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+    getIdentity(kerberosDescriptorUpdated,"ATLAS", "ATLAS_SERVER", "/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+    getIdentity(kerberosDescriptorUpdated,"RANGER", "RANGER_ADMIN", "/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+    getIdentity(kerberosDescriptorUpdated,"STORM", "NIMBUS", "/STORM/storm_components");
+
+    Assert.assertFalse(kerberosDescriptorUpdated.getService("YARN").getConfigurations().get("yarn-site").getProperties().containsKey(propertyToRemove));
+
+    KerberosIdentityDescriptor rangerHbaseAuditIdentityDescriptor = getIdentity(kerberosDescriptorUpdated,"HBASE", "HBASE_MASTER", "ranger_hbase_audit");
+
+    KerberosPrincipalDescriptor rangerHbaseAuditPrincipalDescriptor = rangerHbaseAuditIdentityDescriptor.getPrincipalDescriptor();
+    Assert.assertNotNull(rangerHbaseAuditPrincipalDescriptor);
+    Assert.assertNull(rangerHbaseAuditPrincipalDescriptor.getValue());
+
+    KerberosKeytabDescriptor rangerHbaseAuditKeytabDescriptor = rangerHbaseAuditIdentityDescriptor.getKeytabDescriptor();
+    Assert.assertNotNull(rangerHbaseAuditKeytabDescriptor);
+    Assert.assertNull(rangerHbaseAuditKeytabDescriptor.getFile());
   }
 
   @Test
@@ -1935,5 +1940,29 @@ public class UpgradeCatalog250Test {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     });
+  }
+
+  private KerberosIdentityDescriptor getIdentity(KerberosDescriptor kerberosDescriptor, String serviceName, String componentName, String identityName) {
+    KerberosIdentityDescriptor identityDescriptor = null;
+    AbstractKerberosDescriptorContainer container = kerberosDescriptor;
+
+    if(serviceName != null) {
+      KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
+      Assert.assertNotNull(serviceDescriptor);
+      container = serviceDescriptor;
+
+      if(componentName != null) {
+        KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
+        Assert.assertNotNull(componentDescriptor);
+        container = componentDescriptor;
+      }
+    }
+
+    if(identityName != null) {
+      identityDescriptor = container.getIdentity(identityName);
+      Assert.assertNotNull(identityDescriptor);
+    }
+
+    return identityDescriptor;
   }
 }
