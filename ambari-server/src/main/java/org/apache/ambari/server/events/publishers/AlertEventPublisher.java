@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.events.publishers;
 
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.inject.Inject;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.events.AlertEvent;
 
 import com.google.common.eventbus.AsyncEventBus;
@@ -53,13 +53,18 @@ public final class AlertEventPublisher {
    */
   @Inject
   public AlertEventPublisher(Configuration config) {
-    // create a fixed executor that is unbounded for now and will run rejected
-    // requests in the calling thread to prevent loss of alert handling
-    int poolsize = config.getAlertEventPublisherPoolSize();
-    ThreadPoolExecutor executor = new ThreadPoolExecutor(2, poolsize, 0L,
-        TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),
-        new AlertEventBusThreadFactory(),
-        new ThreadPoolExecutor.CallerRunsPolicy());
+    // create an executor which will scale with the number of queued work items
+    // when handling incoming alerts
+    int corePoolSize = config.getAlertEventPublisherCorePoolSize();
+    int maxPoolSize = config.getAlertEventPublisherMaxPoolSize();
+    int workerQueueSize = config.getAlertEventPublisherWorkerQueueSize();
+
+    ThreadPoolExecutor executor = new ScalingThreadPoolExecutor(corePoolSize, maxPoolSize, 0L,
+        TimeUnit.SECONDS, workerQueueSize);
+
+    executor.allowCoreThreadTimeOut(false);
+    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardOldestPolicy());
+    executor.setThreadFactory(new AlertEventBusThreadFactory());
 
     m_eventBus = new AsyncEventBus(executor);
   }

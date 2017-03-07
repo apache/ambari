@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import static org.easymock.EasyMock.expect;
+
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -274,7 +276,9 @@ public class AlertsDAOCachedTest {
 
       // required for since the configuration is being mocked
       Configuration configuration = EasyMock.createNiceMock(Configuration.class);
-      EasyMock.expect(configuration.getAlertEventPublisherPoolSize()).andReturn(2).anyTimes();
+      EasyMock.expect(configuration.getAlertEventPublisherCorePoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_CORE_SIZE.getDefaultValue())).anyTimes();
+      EasyMock.expect(configuration.getAlertEventPublisherMaxPoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_MAX_SIZE.getDefaultValue())).anyTimes();
+      EasyMock.expect(configuration.getAlertEventPublisherWorkerQueueSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_WORKER_QUEUE_SIZE.getDefaultValue())).anyTimes();
       EasyMock.expect(configuration.isAlertCacheEnabled()).andReturn(Boolean.TRUE).anyTimes();
       EasyMock.expect(configuration.getAlertCacheSize()).andReturn(100).anyTimes();
       EasyMock.replay(configuration);
