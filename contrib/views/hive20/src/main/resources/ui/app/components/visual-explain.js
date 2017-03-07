@@ -47,7 +47,7 @@ export default Ember.Component.extend({
 
   },
 
-  click(event){
+  click(){
     if(this.get('explainDetailData') === '' || this.get('draggable').get('zoom') ){
       return;
     }

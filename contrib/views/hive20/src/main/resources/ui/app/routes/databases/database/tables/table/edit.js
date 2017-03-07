@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import Ember from 'ember';
 import TableMetaRouter from './table-meta-router';
 import tabs from '../../../../../configs/edit-table-tabs';
 import UILoggerMixin from '../../../../../mixins/ui-logger';

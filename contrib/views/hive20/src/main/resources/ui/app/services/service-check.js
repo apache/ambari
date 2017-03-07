@@ -104,7 +104,7 @@ export default Ember.Service.extend({
         this.set(statusVar, STATUS.errored);
         let finalData = (typeof errorFn === 'function') ? errorFn(err) : err;
         reject(finalData);
-      })
+      });
     });
 
   },

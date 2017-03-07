@@ -40,7 +40,7 @@ export default Ember.Service.extend({
               }
               resolve(status);
             } else if (status === 'error') {
-              reject(status)
+              reject(status);
             } else {
               resolve(this.waitForJobToComplete(jobId, after, fetchDummyResult));
             }
@@ -65,7 +65,7 @@ export default Ember.Service.extend({
 
   stopJob : function(jobId) {
     return this.get('store').findRecord('job', jobId)
-      .then(job => job.destroyRecord())
+      .then(job => job.destroyRecord());
   },
 
   _fetchDummyResult(jobId) {
@@ -73,6 +73,6 @@ export default Ember.Service.extend({
   },
 
   getJob: function (jobId) {
-    return this.get('store').findRecord('job', jobId, {reload: true})
+    return this.get('store').findRecord('job', jobId, {reload: true});
   }
 });

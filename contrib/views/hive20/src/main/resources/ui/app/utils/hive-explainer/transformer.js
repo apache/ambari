@@ -79,14 +79,14 @@ function doGetChildrenWithIndexX(children, cIndex) {
   return children.map(cChild => Object.assign({}, cChild, {
     _indexX: cIndex,
     _children: doGetChildrenWithIndexX(cChild._children, cIndex + 1)
-  }))
+  }));
 }
 
 function doGetChildrenWithIndexY(children, cIndex) {
   return children.map((cChild, index) => Object.assign({}, cChild, {
     _indexY: cIndex + index,
     _children: doGetChildrenWithIndexY(cChild._children, cIndex + index)
-  }))
+  }));
 }
 
 function getTezPlan(data) {
@@ -133,7 +133,7 @@ function getEdgesWithFetch(tezEdges, vertices) {
       .filter(cEdge => tezEdges.every(tcEdge => cEdge._target !== tcEdge._source))
       .map(cRootEdge => cRootEdge._target);
 
-  const uniqueRootKeys = [...new Set(rootKeys)]
+  const uniqueRootKeys = [...new Set(rootKeys)];
 
   const fetchVertex = vertices.find(cVertex => cVertex._vertex === 'Fetch');
 
@@ -180,7 +180,7 @@ function getFetchVertex(plan) {
         _operator: 'Fetch Operator',
         _children: []
       })
-    ]
+    ];
   }
 
   return vertex;
@@ -436,7 +436,7 @@ function getConnections(vertices, edges) {
         _source: cOperator,
         _target: targetOperator,
       });
-    })
+    });
   });
 
   return connections;

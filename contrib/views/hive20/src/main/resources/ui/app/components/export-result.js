@@ -43,7 +43,7 @@ export default Ember.Component.extend({
 
   actions: {
     confirm() {
-      let pathName = $("input.path-name").val();
+      let pathName = Ember.$("input.path-name").val();
       this.sendAction('confirm', this.get('jobId'), pathName);
     },
 

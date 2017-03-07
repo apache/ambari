@@ -18,7 +18,7 @@
 
 import Ember from 'ember';
 
-export function extractValue(params,/*, hash*/) {
+export function extractValue(params /*, hash*/) {
   let map = params[0];
   let key = params[1];
   return map[key];

@@ -60,7 +60,7 @@ export default Ember.Route.extend({
 
   fetchLogs(model){
     let logFile = model.get('logFile');
-    return new Promise( (resolve, reject) => {
+    return new Ember.RSVP.Promise( (resolve, reject) => {
       this.get('query').retrieveQueryLog(logFile).then(function(data) {
         resolve(data.file.fileContent);
       }, function(error){
@@ -70,7 +70,7 @@ export default Ember.Route.extend({
   },
 
   jobStatus(jobId){
-    return new Promise( (resolve, reject) => {
+    return new Ember.RSVP.Promise( (resolve, reject) => {
       this.get('jobs').waitForJobStatus(jobId).then(function(status) {
         resolve(status);
       }, function(error){

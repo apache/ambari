@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
 import ApplicationAdapter from './application';
 
 export default ApplicationAdapter.extend({
@@ -38,7 +37,7 @@ export default ApplicationAdapter.extend({
       url = this.buildURL() + jobId + '/results';
     }
 
-    return this.ajax(url, 'GET')
+    return this.ajax(url, 'GET');
   },
 
   getVisualExplainJson(jobId){
@@ -49,7 +48,7 @@ export default ApplicationAdapter.extend({
   retrieveQueryLog(logFile){
     let url = '';
     url = this.buildURL().replace('/jobs','') + 'files' + logFile;
-    return this.ajax(url, 'GET')
+    return this.ajax(url, 'GET');
   }
 
 });

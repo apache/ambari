@@ -31,10 +31,10 @@ export default Ember.Controller.extend({
   }),
 
   hasError: Ember.computed('hdfsError', 'userHomeError', 'atsError', 'hiveError', function() {
-    return !(Ember.isEmpty(this.get('hdfsError'))
-      && Ember.isEmpty(this.get('userHomeError'))
-      && Ember.isEmpty(this.get('atsError'))
-      && Ember.isEmpty(this.get('hiveError')));
+    return !(Ember.isEmpty(this.get('hdfsError')) &&
+      Ember.isEmpty(this.get('userHomeError')) &&
+      Ember.isEmpty(this.get('atsError')) &&
+      Ember.isEmpty(this.get('hiveError')));
   }),
 
   transitioner: Ember.observer('serviceCheck.transitionToApplication', function() {

@@ -22,7 +22,7 @@ import DDLAdapter from './ddl';
 export default DDLAdapter.extend({
   buildURL(modelName, id, snapshot, requestType, query) {
     // Check if the query is to find all tables for a particular database
-    if (Ember.isEmpty(id) && (requestType === 'query' || requestType == 'queryRecord')) {
+    if (Ember.isEmpty(id) && (requestType === 'query' || requestType === 'queryRecord')) {
       let dbId = query.databaseId;
       let tableName = query.tableName;
       let origFindAllUrl = this._super(...arguments);
