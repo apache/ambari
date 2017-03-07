@@ -39,6 +39,7 @@ class SliderServiceCheck(Script):
   def service_check(self, env):
     import params
     env.set_params(params)
+    environment={'HADOOP_CONF_DIR': '/usr/hdp/2.4.3.0-227/hadoop/conf'}
 
     if params.stack_version_formatted and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted):
       copy_to_hdfs("slider", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
@@ -52,7 +53,8 @@ class SliderServiceCheck(Script):
             tries=3,
             try_sleep=5,
             user=params.smokeuser,
-            logoutput=True
+            logoutput=True,
+            environment=environment
     )
 
 
