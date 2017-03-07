@@ -48,7 +48,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 @TableGenerator(name = "alert_notice_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_notice_id_seq", initialValue = 0)
 @NamedQueries({
   @NamedQuery(name = "AlertNoticeEntity.findAll", query = "SELECT notice FROM AlertNoticeEntity notice"),
-  @NamedQuery(name = "AlertNoticeEntity.findByState", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.notifyState = :notifyState"),
+  @NamedQuery(name = "AlertNoticeEntity.findByState", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.notifyState = :notifyState  ORDER BY  notice.notificationId"),
   @NamedQuery(name = "AlertNoticeEntity.findByUuid", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.uuid = :uuid"),
   @NamedQuery(name = "AlertNoticeEntity.findByHistoryIds", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.historyId IN :historyIds"),
   // The remove query can be handled by a simpler JPQL query,
