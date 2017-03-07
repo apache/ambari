@@ -20,6 +20,7 @@
   <div class="col-md-3">
     <div class="row">
       <div class="hv-dropdown tables-dropdown">
+        <a href="#" {{action "refreshTable"}} class="btn btn-default">{{fa-icon "refresh" spin=tableRefreshing}}</a>
         {{#link-to "databases.database.tables.new" class="btn btn-success"}}{{fa-icon "plus"}}{{/link-to}}
       </div>
 

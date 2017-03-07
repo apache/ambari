@@ -18,9 +18,32 @@
 
 import Ember from 'ember';
 import UILoggerMixin from '../mixins/ui-logger';
+import ENV from 'ui/config/environment';
 
 export default Ember.Route.extend(UILoggerMixin, {
   tableOperations: Ember.inject.service(),
+  autoRefresh: Ember.inject.service(),
+
+  activate() {
+    if(ENV.APP.SHOULD_AUTO_REFRESH_DATABASES) {
+      this.get('autoRefresh').startDatabasesAutoRefresh(() => {
+        console.log("Databases AutoRefresh started");
+      }, this._databasesRefreshed.bind(this));
+    }
+
+  },
+
+  deactivate() {
+    this.get('autoRefresh').stopDatabasesAutoRefresh();
+  },
+
+  _databasesRefreshed() {
+    let model = this.store.peekAll('database');
+    if(this.controller) {
+      console.log(model.get('length'));
+      this.setupController(this.controller, model);
+    }
+  },
 
   model() {
     return this.store.findAll('database', {reload: true});
