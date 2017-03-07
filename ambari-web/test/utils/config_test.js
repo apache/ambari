@@ -534,6 +534,36 @@ describe('App.config', function () {
       });
 
     });
+
+    describe('overrides with empty string values', function () {
+
+      beforeEach(function () {
+        configProperty.set('overrides', [
+          {
+            savedValue: null,
+            savedIsFinal: true
+          },
+          {
+            savedValue: '',
+            savedIsFinal: false
+          },
+          {
+            savedValue: '1',
+            savedIsFinal: false
+          }
+        ]);
+        App.config.createOverride(configProperty, null, group);
+      });
+
+      it('values', function () {
+        expect(configProperty.get('overrideValues')).to.eql(['', '1']);
+      });
+
+      it('isFinal', function () {
+        expect(configProperty.get('overrideIsFinalValues')).to.eql([false, false]);
+      });
+
+    });
   });
 
   describe('#getIsSecure', function() {
