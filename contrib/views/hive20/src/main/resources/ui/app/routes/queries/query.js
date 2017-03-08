@@ -133,9 +133,9 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('currentQuery', model.get('query'));
     controller.set('currentJobId', null);
     controller.set('queryResult', model.get('queryResult'));
-    controller.set('isJobSuccess', false);
-    controller.set('isJobCancelled', false);
-    controller.set('isJobCreated', false);
+    controller.set('isJobSuccess', model.get('isJobSuccess'));
+    controller.set('isJobCancelled', model.get('isJobCancelled'));
+    controller.set('isJobCreated', model.get('isJobCreated'));
 
     controller.set('isExportResultSuccessMessege', false);
     controller.set('isExportResultFailureMessege', false);
@@ -181,19 +181,22 @@ export default Ember.Route.extend(UILoggerMixin, {
   },
   actions: {
 
-    resetDefaultWorksheet(){
-      this.get('controller.model').set('queryResult',{'schema' :[], 'rows' :[]});
-      this.get('controller.model').set('currentPage',0);
-      this.get('controller.model').set('previousPage',-1);
-      this.get('controller.model').set('nextPage',1);
+    resetDefaultWorksheet(currModel){
+      if(!currModel) {
+        currModel = this.get('controller.model');
+      }
+      currModel.set('queryResult',{'schema' :[], 'rows' :[]});
+      currModel.set('currentPage',0);
+      currModel.set('previousPage',-1);
+      currModel.set('nextPage',1);
       //this.get('controller.model').set('selected',false);
-      this.get('controller.model').set('jobData',[]);
-      this.get('controller.model').set('currentJobData',null);
-      this.get('controller.model').set('queryFile',"");
-      this.get('controller.model').set('logFile',"");
-      this.get('controller.model').set('logResults',"");
-      this.get('controller.model').set('isQueryRunning',false);
-      this.get('controller.model').set('isQueryResultContainer',false);
+      currModel.set('jobData',[]);
+      currModel.set('currentJobData',null);
+      currModel.set('queryFile',"");
+      currModel.set('logFile',"");
+      currModel.set('logResults',"");
+      currModel.set('isQueryRunning',false);
+      currModel.set('isQueryResultContainer',false);
     },
 
     changeDbHandler(selectedDBs){
@@ -244,9 +247,8 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     executeQuery(isVisualExplainQuery){
 
-      let self = this;
+      let self = this, ctrlr = self.get('controller'), ctrlrModel = self.get('controller.model');
       this.get('controller').set('currentJobId', null);
-
       if(!Ember.isEmpty(isVisualExplainQuery)){
         isVisualExplainQuery = true;
         this.get('controller').set('isVisualExplainQuery', true);
@@ -258,7 +260,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       let originalQuery = this.get('controller').get('currentQuery');
       if(Ember.isBlank(originalQuery)) {
         this.get('logger').danger('Query cannot be empty.');
-        this.send('resetDefaultWorksheet');
+        this.send('resetDefaultWorksheet', ctrlrModel);
         return;
       }
       let queryInput = originalQuery;
@@ -299,7 +301,8 @@ export default Ember.Route.extend(UILoggerMixin, {
 
 
       this.get('controller.model').set('isQueryRunning', true);
-      this.get('controller.model').set('isJobCreated',false);
+      ctrlrModel.set('isJobCreated',false);
+      ctrlr.set('isJobCreated',false);
 
       //this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
       //this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
@@ -323,31 +326,38 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('controller.model').set('queryFile', data.job.queryFile);
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
-        self.get('controller').set('isJobCreated',true);
+        ctrlrModel.set('isJobCreated',true);
+        ctrlr.set('isJobCreated',true);
 
         self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
-            self.get('controller').set('isJobSuccess', true);
-            self.get('controller').set('isJobCancelled', false);
-            self.get('controller').set('isJobCreated', false);
+            ctrlrModel.set('isJobSuccess', true);
+            ctrlrModel.set('isJobCancelled', false);
+            ctrlrModel.set('isJobCreated', false);
+            ctrlr.set('isJobSuccess', true);
+            ctrlr.set('isJobCancelled', false);
+            ctrlr.set('isJobCreated', false);
             let jobDetails = self.store.peekRecord('job', data.job.id);
             console.log(jobDetails);
-            self.send('getJobResult', data, payload.id, jobDetails);
+            self.send('getJobResult', data, payload.id, jobDetails, ctrlrModel);
             self.get('logger').success('Query has been submitted.');
 
           }, (error) => {
             console.log('error', error);
-            self.get('controller').set('isJobSuccess', false);
-            self.get('controller').set('isJobCancelled', false);
-            self.get('controller').set('isJobCreated', false);
+            ctrlrModel.set('isJobSuccess', false);
+            ctrlrModel.set('isJobCancelled', false);
+            ctrlrModel.set('isJobCreated', false);
+            ctrlr.set('isJobSuccess', false);
+            ctrlr.set('isJobCancelled', false);
+            ctrlr.set('isJobCreated', false);
             self.get('logger').danger('Failed to execute query.', self.extractError(error));
-            self.send('resetDefaultWorksheet');
+            self.send('resetDefaultWorksheet', ctrlrModel);
           });
 
       }, function(error) {
         console.log(error);
         self.get('logger').danger('Failed to execute query.', self.extractError(error));
-        self.send('resetDefaultWorksheet');
+        self.send('resetDefaultWorksheet', ctrlrModel);
       });
     },
 
@@ -357,7 +367,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         .then( data => this.get('controller').set('isJobCancelled', true));
     },
 
-    getJobResult(data, payloadTitle, jobDetails){
+    getJobResult(data, payloadTitle, jobDetails, ctrlrModel){
       let self = this;
 
       let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
@@ -411,6 +421,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       }, function(error) {
         console.log('error' , error);
         self.get('logger').danger('Failed to execute query.', self.extractError(error));
+        self.send('resetDefaultWorksheet', ctrlrModel);
       });
     },
 
@@ -563,7 +574,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       let originalQuery = this.get('controller').get('currentQuery');
       if(Ember.isBlank(originalQuery)) {
         this.get('logger').danger('Query cannot be empty.');
-        this.send('resetDefaultWorksheet');
+        this.send('resetDefaultWorksheet', this.get('controller.model'));
         return;
       }
       let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
