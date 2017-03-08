@@ -50,7 +50,7 @@ export default Ember.Service.extend({
       databaseRefreshStartingCallback();
       let oldDatabases = this.get('store').peekAll('database').mapBy('name');
       this.get('store').query('database', {}).then((data) => {
-        let deletedDbCount = 0
+        let deletedDbCount = 0;
         let newDatabases = data.mapBy('name');
         oldDatabases.forEach((oldDB) => {
           if (!newDatabases.contains(oldDB)) {
