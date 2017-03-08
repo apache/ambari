@@ -150,6 +150,11 @@
           {{/if}}
         </div>
       {{/if}}
+      {{#if showStatus}}
+        <div id="status-message" class="processing-message">
+          <span class="label label-info">Processing...</span>
+        </div>
+      {{/if}}
       {{#if isWorkflowImporting}}
       <div id="loader">
           <div id="alert"class="alert alert-info alert-dismissible workflow-error" role="alert">
