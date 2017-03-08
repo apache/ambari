@@ -19,9 +19,6 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
-
-  showDeleteUdfModal: false,
-
   model() {
     return this.store.findAll('udf').then(udfs => udfs.toArray());
   },
@@ -51,6 +48,7 @@ export default Ember.Route.extend({
   actions:{
 
     refreshUdfList(){
+
       this.get('store').findAll('udf').then((data) => {
         let udfList = [];
         data.forEach(x => {
@@ -67,20 +65,8 @@ export default Ember.Route.extend({
         this.controllerFor('udfs').set('udflist',udfList);
         this.transitionTo('udfs');
       });
-    },
 
-    removeUdf(udfId){
-      var self = this;
-      let record = this.get('store').peekRecord('udf', udfId );
-      if(record){
-        record.destroyRecord().then(function(){
-          self.send('cancelUdf');
-          self.send('refreshUdfList');
-        })}
-    },
-
-    cancelUdf(){
-      this.set('showDeleteUdfModal', false);
     }
+
   }
 });

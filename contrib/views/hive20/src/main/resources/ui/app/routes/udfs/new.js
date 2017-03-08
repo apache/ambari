@@ -25,26 +25,6 @@ export default Ember.Route.extend(UILoggerMixin, {
 
   },
 
-  validateUDF(udfName, udfClassName){
-    if (Ember.isEmpty(udfName)) {
-      this.get('logger').danger('UDF Name can not be empty.');
-      return false;
-    }
-    if (Ember.isEmpty(udfClassName)) {
-      this.get('logger').danger('UDF Class Name can not be empty.');
-      return false;
-    }
-    return true;
-  },
-
-  validateFileResource(resourceName, resourcePath){
-    if (Ember.isEmpty(resourceName) || Ember.isEmpty(resourcePath)) {
-      this.get('logger').danger('File Resource can not be empty.');
-      return false;
-    }
-    return true;
-  },
-
   udf: Ember.inject.service(),
   store: Ember.inject.service(),
 
@@ -61,7 +41,7 @@ export default Ember.Route.extend(UILoggerMixin, {
                                 };
         fileResourceList.push(localFileResource);
       });
-      fileResourceList.push({'name':'Add New File Resource', 'action':'addNewFileResource'});
+      fileResourceList.push({'name':'Add New File Resource', 'action':'addNewFileResource'})
       controller.set('fileResourceList', fileResourceList);
 
     });
@@ -80,19 +60,52 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.get('controller').set('udfName', udfName);
       this.get('controller').set('udfClassName', udfClassName);
 
-
-
-
       if(!Ember.isEmpty( this.get('controller').get('resourceId'))){
 
-        if (this.validateUDF(udfName, udfClassName)) {
+        let newUDF = this.get('store').createRecord('udf',
+          {name:udfName,
+           classname:udfClassName,
+           fileResource: this.get('controller').get('resourceId')
+          });
 
 
+        newUDF.save().then((data) => {
+          console.log('udf saved');
+
+          this.get('store').findAll('udf').then((data) => {
+            let udfList = [];
+            data.forEach(x => {
+              let localUdf = {
+                'id': x.get('id'),
+                'name': x.get('name'),
+                'classname': x.get('classname'),
+                'fileResource': x.get('fileResource'),
+                'owner': x.get('owner')
+              };
+              udfList.pushObject(localUdf);
+            });
+
+            this.controllerFor('udfs').set('udflist',udfList);
+            this.transitionTo('udfs');
+          })
+
+        });
+
+      } else {
+
+        let resourcePayload = {"name":resourceName,"path":resourcePath};
+
+        var newFileResource = this.get('store').createRecord('file-resource',
+          {name:resourceName,
+            path:resourcePath
+          });
+
+        newFileResource.save().then((data) => {
+          console.log('fileResource is', data.get('id'));
           let newUDF = this.get('store').createRecord('udf',
-            {
-              name: udfName,
-              classname: udfClassName,
-              fileResource: this.get('controller').get('resourceId')
+            {name:udfName,
+              classname:udfClassName,
+              fileResource: data.get('id')
             });
 
           newUDF.save().then((data) => {
@@ -111,66 +124,20 @@ export default Ember.Route.extend(UILoggerMixin, {
                 udfList.pushObject(localUdf);
               });
 
-              this.controllerFor('udfs').set('udflist', udfList);
+              this.controllerFor('udfs').set('udflist',udfList);
               this.transitionTo('udfs');
-            });
-
-          });
-
-        }
-
-      } else {
-
-        let resourcePayload = {"name":resourceName,"path":resourcePath};
-
-        var newFileResource = this.get('store').createRecord('file-resource',
-          {name:resourceName,
-            path:resourcePath
-          });
-
-
-        if (this.validateFileResource(resourceName, resourcePath) && this.validateUDF(udfName, udfClassName)) {
-
-          newFileResource.save().then((data) => {
-              console.log('fileResource is', data.get('id'));
-              let newUDF = this.get('store').createRecord('udf',
-                {name:udfName,
-                  classname:udfClassName,
-                  fileResource: data.get('id')
-                });
-
-              newUDF.save().then((data) => {
-                  console.log('udf saved');
-
-                  this.get('store').findAll('udf').then((data) => {
-                    let udfList = [];
-                    data.forEach(x => {
-                      let localUdf = {
-                        'id': x.get('id'),
-                        'name': x.get('name'),
-                        'classname': x.get('classname'),
-                        'fileResource': x.get('fileResource'),
-                        'owner': x.get('owner')
-                      };
-                      udfList.pushObject(localUdf);
-                    });
-
-                    this.controllerFor('udfs').set('udflist',udfList);
-                    this.transitionTo('udfs');
-                  });
-                })
-                .catch((error) => {
-                  this.get('logger').danger('Failed to create UDF.', this.extractError(error));
-                  this.transitionTo('udfs');
-
-                });
             })
-            .catch((error) => {
-              this.get('logger').danger('Failed to create File Resource.', this.extractError(error));
-              this.transitionTo('udfs');
-            });
+          })
+          .catch((error) => {
+            this.get('logger').danger('Failed to create UDF.', this.extractError(error));
+            this.transitionTo('udfs');
 
-        }
+          });
+        })
+        .catch((error) => {
+          this.get('logger').danger('Failed to create File Resource.', this.extractError(error));
+          this.transitionTo('udfs');
+        });
 
       }
     },
@@ -186,11 +153,10 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     handleFileResourceChange(filter){
       console.log('filter', filter);
-      if(filter.action === "addNewFileResource"){
+      if(filter.action == "addNewFileResource"){
         this.get('controller').set('isAddingNewFileResource', true);
         this.get('controller').set('resourceName','');
         this.get('controller').set('resourcePath','');
-        this.get('controller').set('resourceId', null);
         this.get('controller').set('selectedFileResource',null);
 
       }else {

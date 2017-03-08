@@ -17,9 +17,8 @@
  */
 
 import Ember from 'ember';
-import UILoggerMixin from '../mixins/ui-logger';
 
-export default Ember.Component.extend(UILoggerMixin, {
+export default Ember.Component.extend({
 
   store: Ember.inject.service(),
 
@@ -31,42 +30,9 @@ export default Ember.Component.extend(UILoggerMixin, {
   showDeleteUdfModal: false,
   expandedValue: null,
   udfId: null,
-  editUdfId: Ember.computed('udf', function () {
-    return this.get('udf.id');
-  }),
-  editUdfName: Ember.computed('udf', function () {
-    return this.get('udf.name');
-  }),
-  editUdfClassName: Ember.computed('udf', function () {
-    return this.get('udf.classname');
-  }),
-  editOwner: Ember.computed('udf', function () {
-    return this.get('udf.owner');
-  }),
-  editFileResource: Ember.computed('udf', function () {
-    return this.get('udf.fileResource');
-  }),
   fileResourceList:[],
   selectedFileResource: null,
   isAddingNewFileResource: false,
-
-  validate(udfName, udfClassName, resourceName, resourcePath){
-    if (Ember.isEmpty(udfName)) {
-      this.get('logger').danger('UDF Name can not be empty.');
-      return false;
-    }
-
-    if (Ember.isEmpty(udfClassName)) {
-      this.get('logger').danger('UDF Class Name can not be empty.');
-      return false;
-    }
-
-    if (Ember.isEmpty(resourceName) || Ember.isEmpty(resourcePath)) {
-      this.get('logger').danger('File Resource can not be empty.');
-      return false;
-    }
-    return true;
-  },
 
   actions: {
     toggleExpandUdf(fileResourceId) {
@@ -93,30 +59,14 @@ export default Ember.Component.extend(UILoggerMixin, {
         this.set('expandedEdit', true);
         this.set('valueLoading', true);
 
-        this.get('store').findAll('file-resource').then((data) => {
-          let fileResourceList = [];
-          data.forEach(x => {
-            let localFileResource = {'id': x.get('id'),
-              'name': x.get('name'),
-              'path': x.get('path'),
-              'owner': x.get('owner')
-            };
-            fileResourceList.push(localFileResource);
-          });
-
-          fileResourceList.filterBy('id', fileResourceId).map((data) => {
-            this.set('udfFileResourceName', data.name);
-            this.set('udfFileResourcePath', data.path);
-
-                    this.get('store').find('udf', udfId).then((data) => {
-                        this.set('editUdfId', udfId);
-                        this.set('editUdfName', data.get('name'));
-                        this.set('editUdfClassName', data.get('classname'));
-                        this.set('editOwner', data.get('owner'));
-                      });
-          });
+        this.get('store').find('fileResource', fileResourceId).then((data) => {
+          this.set('udfFileResourceName', data.get('name'));
+          this.set('udfFileResourcePath', data.get('path'));
         });
+
+
         this.send('setFileResource', fileResourceId);
+
       }
     },
 
@@ -125,38 +75,39 @@ export default Ember.Component.extend(UILoggerMixin, {
     },
 
     saveUDf(name, classname, udfid, udfFileResourceName, udfFileResourcePath){
+
       let self = this;
-      if (this.validate(name, classname, udfFileResourceName, udfFileResourcePath)) {
-        if (!Ember.isEmpty(this.get('selectedFileResource'))) {
-          this.get('store').findRecord('udf', udfid).then(function (resultUdf) {
-            resultUdf.set('name', name);
-            resultUdf.set('classname', classname);
-            resultUdf.set('fileResource', self.get('selectedFileResource').id);
-            resultUdf.save();
-            self.set('expandedEdit', false);
-          });
-        }
-        else {
 
-          let resourcePayload = {"name": udfFileResourceName, "path": udfFileResourcePath};
+      if(!Ember.isEmpty(this.get('selectedFileResource'))){
+        this.get('store').findRecord('udf', udfid).then(function(resultUdf) {
+          resultUdf.set('name', name);
+          resultUdf.set('classname', classname);
+          resultUdf.set('fileResource', self.get('selectedFileResource').id);
+          resultUdf.save();
+          self.set('expandedEdit', false);
+        });
+      } else {
 
-          this.get('udfService').savefileResource(resourcePayload)
-            .then((data) => {
-              console.log('fileResource is', data.fileResource.id);
-              self.get('store').findRecord('udf', udfid).then(function (resultUdf) {
+        let resourcePayload = {"name":udfFileResourceName,"path":udfFileResourcePath};
 
-                resultUdf.set('name', name);
-                resultUdf.set('classname', classname);
-                resultUdf.set('fileResource', data.fileResource.id);
-                resultUdf.save();
-                self.set('expandedEdit', false);
-              });
-            }, (error) => {
-              console.log("Error encountered", error);
+        this.get('udfService').savefileResource(resourcePayload)
+          .then((data) => {
+            console.log('fileResource is', data.fileResource.id);
+            self.get('store').findRecord('udf', udfid).then(function(resultUdf) {
+
+              resultUdf.set('name', name);
+              resultUdf.set('classname', classname);
+              resultUdf.set('fileResource', data.fileResource.id);
+              resultUdf.save();
+              self.set('expandedEdit', false);
             });
-        }
+          }, (error) => {
+            console.log("Error encountered", error);
+          });
       }
+
       this.set('isAddingNewFileResource', false);
+
     },
 
     showRemoveUdfModal(udfId){
@@ -166,7 +117,16 @@ export default Ember.Component.extend(UILoggerMixin, {
     },
 
     removeUdf(){
-      this.sendAction('removeUdf', this.get('udfId') );
+      let self = this;
+      this.get('store').find('udf', this.get('udfId')).then(function(resultUdf) {
+        resultUdf.destroyRecord().then(function() {
+          self.send('cancelUdf');
+          self.sendAction('refreshUdfList');
+        }, function(response) {
+          console.log('UDF NOT deleted', response);
+        });
+        return false;
+      });
     },
 
     cancelUdf(){
@@ -184,22 +144,10 @@ export default Ember.Component.extend(UILoggerMixin, {
     },
 
     setFileResource(fileResourceId){
-      this.get('store').findAll('file-resource').then((data) => {
-        let fileResourceList = [];
-        data.forEach(x => {
-          let localFileResource = {'id': x.get('id'),
-            'name': x.get('name'),
-            'path': x.get('path'),
-            'owner': x.get('owner')
-          };
-          fileResourceList.push(localFileResource);
-        });
-
-        let localSelectedFileResource =  fileResourceList.filterBy('id', fileResourceId);
-        this.set('selectedFileResource',localSelectedFileResource.get('firstObject'));
-      });
-
+      let localSelectedFileResource = this.get('fileResourceList').filterBy('id', fileResourceId);
+      this.set('selectedFileResource',localSelectedFileResource[0]);
     }
+
   }
 
 });
