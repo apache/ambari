@@ -37,8 +37,8 @@
               <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li>
-                  <a class="pointer" title="Import workflow from HDFS" {{action "showFileBrowser"}}>
-                      <i class="fa fa-download marginright5"></i>Import from HDFS
+                  <a class="pointer" title="Import Workflow from Shared File System" {{action "showFileBrowser"}}>
+                      <i class="fa fa-download marginright5"></i>Import from Shared File System
                   </a>
                   <a class="pointer" title="Import workflow from Local File System">
                     {{#file-picker fileLoaded="fileLoaded" preview=false}}
@@ -231,16 +231,16 @@
                 {{/file-picker}}
               </div>
             </span>
-            <span class="overlay-asset-import-icon" title="Import Asset" {{action "showAssetList" true}}>
+            <span class="overlay-asset-import-icon" title="Import Asset from Local Ambari Database" {{action "showAssetList" true}}>
                 <i class="fa fa-download"></i>
             </span>
-            <span class="overlay-hdfs-asset-import-icon" title="Import asset from HDFS" {{action "showActionSettingsFileBrowser"}}>
+            <span class="overlay-hdfs-asset-import-icon" title="Import Asset from Shared File System" {{action "showActionSettingsFileBrowser"}}>
               <i class="fa fa-cloud-download"></i>
             </span>
-            <span class="overlay-asset-export-icon" title="Publish Asset" {{action "showAssetConfig" true}}>
+            <span class="overlay-asset-export-icon" title="Save Asset to Local Ambari Database" {{action "showAssetConfig" true}}>
                 <i class="fa fa-upload"></i>
             </span>
-            <span class="overlay-hdfs-asset-export-icon" title="Publish Asset to HDFS" {{action "showExportActionNodeFileBrowser"}}>
+            <span class="overlay-hdfs-asset-export-icon" title="Save Asset to Shared File System" {{action "showExportActionNodeFileBrowser"}}>
               <i class="fa fa-cloud-upload"></i>
             </span>
           </div>
