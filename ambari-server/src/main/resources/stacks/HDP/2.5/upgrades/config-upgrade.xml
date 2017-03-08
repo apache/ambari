@@ -224,6 +224,11 @@
           <type>hadoop-env</type>
           <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
         </definition>
+        <definition xsi:type="configure" id="hdfs_securitylogger_additivity" summary="Set additivity of SecurityLogger to false">
+          <type>hdfs-log4j</type>
+          <regex-replace  key="content" find="hadoop.security.log.file=SecurityAuth.audit" replace-with="hadoop.security.log.file=SecurityAuth.audit&#10;log4j.additivity.SecurityLogger=false"/>
+          <regex-replace  key="content" find="log4j.additivity.SecurityLogger=true" replace-with="log4j.additivity.SecurityLogger=false"/>
+        </definition>
       </changes>
     </component>
   </service>

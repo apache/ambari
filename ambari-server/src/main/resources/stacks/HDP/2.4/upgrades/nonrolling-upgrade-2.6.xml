@@ -265,6 +265,11 @@
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
 
+      <!--HDFS-->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs NameNode">
+        <task xsi:type="configure" id="hdfs_securitylogger_additivity"/>
+      </execute-stage>
+
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">

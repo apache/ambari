@@ -158,6 +158,7 @@ hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB
 hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}
 log4j.category.SecurityLogger=${hadoop.security.logger}
 hadoop.security.log.file=SecurityAuth.audit
+log4j.additivity.SecurityLogger=false
 log4j.appender.DRFAS=org.apache.log4j.DailyRollingFileAppender
 log4j.appender.DRFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
 log4j.appender.DRFAS.layout=org.apache.log4j.PatternLayout

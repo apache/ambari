@@ -677,6 +677,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db" />
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
           <task xsi:type="configure" id="hadoop_env_zkfc_security_opts" />
+          <task xsi:type="configure" id="hdfs_securitylogger_additivity" />
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->

@@ -293,6 +293,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs NameNode">
+        <task xsi:type="configure" id="hdfs_securitylogger_additivity"/>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig">
