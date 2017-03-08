@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import static org.easymock.EasyMock.expect;
-
 import java.util.List;
 
 import javax.persistence.EntityManager;
