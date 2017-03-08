@@ -23,9 +23,12 @@
         {{input type="text" class="form-control" name="appPath" focus-out="showCoordinatorName" value=coordinator.appPath placeholder="Path of the coordinator file"}}
         <span class="input-group-btn">
           <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "coordinator.appPath"}}>Browse</button>
-          <button class="btn btn-default" type="button" {{action "openTab" 'coord' coordinator.appPath}} name="button"><i class="fa fa-external-link"></i></button>
+          <button class="btn btn-default" type="button" disabled={{containsParameteriedPaths}} title={{parameterizedPathWarning}} {{action "openTab" 'coord' coordinator.appPath}} name="button"><i class="fa fa-external-link"></i></button>
         </span>
       </div>
+      {{#if coordNameFetchingInProgress}}
+        {{spin-spinner lines=8 length=5 width=3 radius=5 top=16 left=440}}
+      {{/if}}
       {{#field-error model=this field='coordinator.appPath' showErrorMessage=showErrorMessage}}{{/field-error}}
     </div>
   </div>

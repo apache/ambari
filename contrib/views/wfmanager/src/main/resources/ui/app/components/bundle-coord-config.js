@@ -26,6 +26,7 @@ const Validations = buildValidations({
   })
 });
 export default Ember.Component.extend(Validations, {
+  propertyExtractor : Ember.inject.service('property-extractor'),
   initialize : function(){
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
@@ -52,8 +53,8 @@ export default Ember.Component.extend(Validations, {
       }
     }).done(function(data){
       deferred.resolve(data);
-    }).fail(function(){
-      deferred.reject();
+    }).fail(function(data){
+      deferred.reject(data);
     });
     return deferred;
   },
@@ -95,13 +96,32 @@ export default Ember.Component.extend(Validations, {
     },
     showCoordinatorName(){
       this.set('coordinatorName', null);
-      var deferred = this.readFromHdfs(this.get('coordinator.appPath'));
+      this.set('errorMsg', '');
+      if (this.get('coordinator.appPath') === '') {
+        return;
+      }
+      var path = this.get('appendFileName')(this.get('coordinator.appPath'), 'coord');
+      if (this.get('propertyExtractor').containsParameters(path)) {
+        this.set('containsParameteriedPaths', true);
+        this.set('parameterizedPathWarning', 'Coordinator path contains variables');
+        return;
+      } else {
+        this.set('containsParameteriedPaths', false);
+        this.set('parameterizedPathWarning', '');
+      }
+      this.set('coordNameFetchingInProgress', true);
+      var deferred = this.readFromHdfs(path);
       deferred.promise.then(function(data){
         var x2js = new X2JS();
         var coordJson = x2js.xml_str2json(data);
         this.set('coordinator.name', coordJson["coordinator-app"]._name);
-      }.bind(this)).catch(function(){
+        this.set('coordNameFetchingInProgress', false);
+      }.bind(this)).catch(function(data){
+        console.error(data);
         this.set('coordinatorName', null);
+        this.set('errorMsg', 'There is some problem while fetching coordinator name.');
+        this.set('data', data);
+        this.set('coordNameFetchingInProgress', false);
       }.bind(this));
     }
   }
