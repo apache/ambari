@@ -508,6 +508,39 @@ public class UpgradeCatalog250Test {
   }
 
   @Test
+  public void testFixHBaseMasterCPUUtilizationAlertDefinitionMissingKerberosInfo() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity hbaseMasterCPUAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    String brokenSource = "{\"uri\":{\"http\":\"{{hbase-site/hbase.master.info.port}}\",\"default_port\":60010,\"connection_timeout\":5.0},\"jmx\":{\"property_list\":[\"java.lang:type\\u003dOperatingSystem/SystemCpuLoad\",\"java.lang:type\\u003dOperatingSystem/AvailableProcessors\"],\"value\":\"{0} * 100\"},\"type\":\"METRIC\",\"reporting\":{\"ok\":{\"text\":\"{1} CPU, load {0:.1%}\"},\"warning\":{\"text\":\"{1} CPU, load {0:.1%}\",\"value\":200.0},\"critical\":{\"text\":\"{1} CPU, load {0:.1%}\",\"value\":250.0},\"units\":\"%\",\"type\":\"PERCENT\"}}";
+
+    Capture<String> capturedFixedSource = newCapture();
+
+    final Injector mockInjector = createInjector(mockAmbariManagementController, mockClusters, mockAlertDefinitionDAO);
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(Collections.singletonMap("normal", mockClusterExpected)).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("hbase_master_cpu"))).andReturn(hbaseMasterCPUAlertMock).atLeastOnce();
+    expect(hbaseMasterCPUAlertMock.getDefinitionName()).andReturn("hbase_master_cpu").once();
+    expect(hbaseMasterCPUAlertMock.getSource()).andReturn(brokenSource).once();
+
+    expect(mockAlertDefinitionDAO.merge(hbaseMasterCPUAlertMock)).andReturn(hbaseMasterCPUAlertMock).anyTimes();
+
+    easyMockSupport.replayAll();
+
+    mockInjector.getInstance(UpgradeCatalog250.class).fixHBaseMasterCPUUtilizationAlertDefinition();
+    easyMockSupport.verifyAll();
+
+    Assert.assertFalse(capturedFixedSource.hasCaptured());
+  }
+
+  @Test
   public void testUpdateYarnSite() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
