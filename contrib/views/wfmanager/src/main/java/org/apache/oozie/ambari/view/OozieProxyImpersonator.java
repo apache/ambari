@@ -23,7 +23,6 @@ import static org.apache.oozie.ambari.view.Constants.STATUS_OK;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +36,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -335,15 +333,7 @@ public class OozieProxyImpersonator {
     }
     try {
       final InputStream is = workflowFilesService.readAssset(assetPath);
-      StreamingOutput streamer = new StreamingOutput() {
-        @Override
-        public void write(OutputStream os) throws IOException,
-                WebApplicationException {
-          IOUtils.copy(is, os);
-          is.close();
-          os.close();
-        }
-      };
+      StreamingOutput streamer = utils.streamResponse(is);
       return Response.ok(streamer).status(200).build();
     } catch (IOException ex) {
       LOGGER.error(ex.getMessage(),ex);
@@ -359,15 +349,7 @@ public class OozieProxyImpersonator {
     }
     try {
       final InputStream is = workflowFilesService.readDraft(workflowPath);
-      StreamingOutput streamer = new StreamingOutput() {
-        @Override
-        public void write(OutputStream os) throws IOException,
-          WebApplicationException {
-          IOUtils.copy(is, os);
-          is.close();
-          os.close();
-        }
-      };
+      StreamingOutput streamer = utils.streamResponse(is);
       return Response.ok(streamer).status(200).build();
     } catch (IOException ex) {
       LOGGER.error(ex.getMessage(),ex);
@@ -426,15 +408,7 @@ public class OozieProxyImpersonator {
   private Response getWorkflowResponse(String filePath, String responseType,
                                        boolean olderFormatDraftIngored) throws IOException {
     final InputStream is = workflowFilesService.readWorkflowXml(filePath);
-    StreamingOutput streamer = new StreamingOutput() {
-      @Override
-      public void write(OutputStream os) throws IOException,
-        WebApplicationException {
-        IOUtils.copy(is, os);
-        is.close();
-        os.close();
-      }
-    };
+    StreamingOutput streamer = utils.streamResponse(is);
     Response.ResponseBuilder responseBuilder = Response.ok(streamer).header(RESPONSE_TYPE, responseType);
     if (olderFormatDraftIngored) {
       responseBuilder.header(OLDER_FORMAT_DRAFT_INGORED, Boolean.TRUE.toString());
@@ -455,15 +429,7 @@ public class OozieProxyImpersonator {
         throw new WfmWebException(ErrorCode.WORKFLOW_XML_DOES_NOT_EXIST);
       }
       final InputStream is = workflowFilesService.readWorkflowXml(workflowPath);
-      StreamingOutput streamer = new StreamingOutput() {
-        @Override
-        public void write(OutputStream os) throws IOException,
-          WebApplicationException {
-          IOUtils.copy(is, os);
-          is.close();
-          os.close();
-        }
-      };
+      StreamingOutput streamer = utils.streamResponse(is);
       return Response.ok(streamer).status(200).build();
     } catch (WfmWebException ex) {
       LOGGER.error(ex.getMessage(),ex);
