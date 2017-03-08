@@ -250,7 +250,12 @@ var CytoscapeRenderer= Ember.Object.extend({
       }else{
         this.get("context").$(".overlay-trash-transition-icon").hide();
       }
-      this.get("context").$(".overlay-transition-content").data("sourceNode",event.cyTarget.source().data("node"));
+      let srcNode = event.cyTarget.source().data("node");
+      if(srcNode.type === 'placeholder'){
+        let originalSource = event.cyTarget.source().incomers("node").jsons()[0].data.node;
+        this.get("context").$(".overlay-transition-content").data("originalSource", originalSource);
+      }
+      this.get("context").$(".overlay-transition-content").data("sourceNode", srcNode);
       this.get("context").$(".overlay-transition-content").data("targetNode",event.cyTarget.target().data("node"));
       this.get("context").$(".overlay-transition-content").data("transition",event.cyTarget.data().transition);
 
@@ -271,6 +276,7 @@ var CytoscapeRenderer= Ember.Object.extend({
       this.get("context").setCurrentTransition({
         transition : this.get("context").$(".overlay-transition-content").data("transition"),
         source : this.get("context").$(".overlay-transition-content").data("sourceNode"),
+        originalSource : this.get("context").$(".overlay-transition-content").data("originalSource"),
         target : this.get("context").$(".overlay-transition-content").data("targetNode")
       });
       Ember.run.later(this, function() {
