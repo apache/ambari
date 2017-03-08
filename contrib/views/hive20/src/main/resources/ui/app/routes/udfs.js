@@ -19,6 +19,7 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+
   model() {
     return this.store.findAll('udf').then(udfs => udfs.toArray());
   },
@@ -48,7 +49,6 @@ export default Ember.Route.extend({
   actions:{
 
     refreshUdfList(){
-
       this.get('store').findAll('udf').then((data) => {
         let udfList = [];
         data.forEach(x => {
@@ -65,8 +65,6 @@ export default Ember.Route.extend({
         this.controllerFor('udfs').set('udflist',udfList);
         this.transitionTo('udfs');
       });
-
     }
-
   }
 });
