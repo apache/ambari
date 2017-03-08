@@ -72,15 +72,16 @@ class StaticFile(Source):
       basedir = self.env.config.basedir
       path = os.path.join(basedir, "files", self.name)
       
-    if not os.path.isfile(path) and not os.path.islink(path):
+    if not sudo.path_isfile(path) and not sudo.path_lexists(path):
       raise Fail("{0} Source file {1} is not found".format(repr(self), path))
 
     return self.read_file(path)
 
+
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def read_file(self, path):
-    from resource_management.core import sudo
     return sudo.read_file(path)
+
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def read_file(self, path):

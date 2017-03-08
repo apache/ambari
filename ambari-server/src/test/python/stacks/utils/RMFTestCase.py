@@ -325,6 +325,7 @@ def StaticFile(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import StaticFile
     from resource_management.core import sudo
+    sudo.path_isfile = lambda path: True
     sudo.read_file = lambda path: 'dummy_output'
     return StaticFile(name, **kwargs)
   
