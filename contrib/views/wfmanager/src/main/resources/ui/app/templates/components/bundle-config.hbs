@@ -103,10 +103,10 @@
                 {{#field-error model=this field='bundle.coordinators' showErrorMessage=showErrorMessage}}{{/field-error}}
 
               {{#if coordinatorCreateMode}}
-              {{#bundle-coord-config coordinator=currentCoordinator openTab="openTab" openFileBrowser="openFileBrowser" add="addCoordinator" cancel="cancelCoordinatorOperation" createMode=coordinatorCreateMode}}{{/bundle-coord-config}}
+              {{#bundle-coord-config coordinator=currentCoordinator openTab="openTab" openFileBrowser="openFileBrowser" add="addCoordinator" cancel="cancelCoordinatorOperation" createMode=coordinatorCreateMode errorMsg=errorMsg data=data appendFileName=appendFileName}}{{/bundle-coord-config}}
               {{/if}}
               {{#if coordinatorEditMode}}
-              {{#bundle-coord-config coordinator=currentCoordinator openTab="openTab" openFileBrowser="openFileBrowser" update="updateCoordinator" cancel="cancelCoordinatorOperation" editMode=coordinatorEditMode}}{{/bundle-coord-config}}
+              {{#bundle-coord-config coordinator=currentCoordinator openTab="openTab" openFileBrowser="openFileBrowser" update="updateCoordinator" cancel="cancelCoordinatorOperation" editMode=coordinatorEditMode errorMsg=errorMsg data=data appendFileName=appendFileName}}{{/bundle-coord-config}}
               {{/if}}
             </div>
           </div>
