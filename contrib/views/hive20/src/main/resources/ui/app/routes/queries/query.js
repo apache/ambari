@@ -522,7 +522,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       Ember.run.later(() => {
 
       if(this.get('controller.model').get('isQueryDirty')) {
-        this.get('controller.model').set('tabDataToClose', {index:index, id:id});
+        this.get('controller.model').set('tabDataToClose', {index:index, id:id})
         this.send('openWorksheetModal');
       } else {
          this.send('closeWorksheet', index, id);
@@ -627,7 +627,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     closeWorksheetModal(){
       this.get('controller').set('showWorksheetModal', false);
       this.closeWorksheetAfterSave();
-      this.get('controller.model').set('tabDataToClose', null);
+      this.get('controller.model').set('tabDataToClose', null)
   },
 
     expandQueryEdidorPanel(){
