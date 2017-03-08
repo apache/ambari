@@ -216,36 +216,46 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
         if(source != null) {
           JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
-          LOG.debug("Source before update : {}", sourceJson);
 
-          JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
-          JsonPrimitive primitive;
+          if(sourceJson != null) {
+            boolean changesExist = false;
+            LOG.debug("Source before update : {}", sourceJson);
 
-          // Replace
-          //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
-          // With
-          //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
-          primitive = uriJson.getAsJsonPrimitive("kerberos_keytab");
-          if(primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}".equals(primitive.getAsString())) {
-            uriJson.remove("kerberos_keytab");
-            uriJson.addProperty("kerberos_keytab", "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}");
+            JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+            JsonPrimitive primitive;
+
+            if (uriJson != null) {
+              // Replace
+              //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
+              // With
+              //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+              primitive = uriJson.getAsJsonPrimitive("kerberos_keytab");
+              if ((primitive != null) && primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}".equals(primitive.getAsString())) {
+                uriJson.remove("kerberos_keytab");
+                uriJson.addProperty("kerberos_keytab", "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}");
+                changesExist = true;
+              }
+
+              // Replace
+              //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+              // With
+              //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
+              primitive = uriJson.getAsJsonPrimitive("kerberos_principal");
+              if ((primitive != null) && primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}".equals(primitive.getAsString())) {
+                uriJson.remove("kerberos_principal");
+                uriJson.addProperty("kerberos_principal", "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}");
+                changesExist = true;
+              }
+            }
+
+            LOG.debug("Source after update : {}", sourceJson);
+            if(changesExist) {
+              alertDefinition.setSource(sourceJson.toString());
+              alertDefinition.setHash(UUID.randomUUID().toString());
+
+              alertDefinitionDAO.merge(alertDefinition);
+            }
           }
-
-          // Replace
-          //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
-          // With
-          //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
-          primitive = uriJson.getAsJsonPrimitive("kerberos_principal");
-          if(primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}".equals(primitive.getAsString())) {
-            uriJson.remove("kerberos_principal");
-            uriJson.addProperty("kerberos_principal", "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}");
-          }
-
-          LOG.debug("Source after update : {}", sourceJson);
-          alertDefinition.setSource(sourceJson.toString());
-          alertDefinition.setHash(UUID.randomUUID().toString());
-
-          alertDefinitionDAO.merge(alertDefinition);
         }
       }
     }
