@@ -369,7 +369,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.summary.alerts.popup.header').format(context.get('displayName')),
       autoHeight: false,
-      classNames: ['forty-percent-width-modal'],
+      classNames: ['sixty-percent-width-modal'],
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/service_alert_popup'),
         classNames: ['service-alerts'],
@@ -377,43 +377,36 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         didInsertElement: function () {
           Em.run.next(this, function () {
             App.tooltip(this.$(".timeago"));
+            App.tooltip(this.$(".definition-latest-text"), {placement: 'bottom'});
           });
         },
         willDestroyElement:function () {
           this.$(".timeago").tooltip('destroy');
+          this.$(".definition-latest-text").tooltip('destroy');
         },
         alerts: function () {
           var property = context.get('componentName') ? 'componentName' : 'serviceName';
           var serviceDefinitions = this.get('controller.content').filterProperty(property, context.get(property));
           // definitions should be sorted in order: critical, warning, ok, unknown, other
-          var definitionTypes = {
-            "isCritical": [],
-            "isWarning": [],
-            "isOK": [],
-            "isUnknown": []
-          };
-          var others = [];
+          var criticalDefinitions = [], warningDefinitions = [], okDefinitions = [], unknownDefinitions = [];
           serviceDefinitions.forEach(function (definition) {
-            definition.set('isCollapsed', true);
-            var pushed = false; // make sure each definition gets pushed only one time
-            Object.keys(definitionTypes).forEach(function (type) {
-              if (!pushed && definition.get(type)) {
-                definitionTypes[type].push(definition);
-                pushed = true;
-              }
-            });
-            if (!pushed) {
-              others.push(definition);
+            if (definition.get('isCritical')) {
+              criticalDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
+            } else if (definition.get('isWarning')) {
+              warningDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
+            } else if (definition.get('isOK')) {
+              okDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
+            } else if (definition.get('isUnknown')) {
+              unknownDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
             }
           });
-          serviceDefinitions = definitionTypes.isCritical.concat(definitionTypes.isWarning, definitionTypes.isOK, definitionTypes.isUnknown, others);
-
+          serviceDefinitions = criticalDefinitions.concat(warningDefinitions, okDefinitions, unknownDefinitions, serviceDefinitions);
           return serviceDefinitions;
         }.property('controller.content'),
-        onToggleBlock: function (alert) {
-          this.$('#' + alert.context.clientId).toggle('blind', 500);
-          alert.context.toggleProperty('isCollapsed');
-        },
         gotoAlertDetails: function (e) {
           if (e && e.context) {
             this.get('parentView').hide();
