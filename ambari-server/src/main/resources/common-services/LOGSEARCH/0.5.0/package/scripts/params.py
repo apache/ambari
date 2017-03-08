@@ -336,7 +336,7 @@ logfeeder_custom_config_file_names = ['input.config-%s.json' % (tag.replace('-lo
                                       for tag, content in logfeeder_metadata.iteritems() if any(logfeeder_metadata)]
 
 if logfeeder_system_log_enabled:
-  default_config_files = ','.join(['output.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names
+  default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names
                                   + ['input.config-system_messages.json', 'input.config-secure_log.json'])
 else:
   default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names)

@@ -1006,6 +1006,13 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               newProperties.put("content", content);
             }
             
+            if ("http".equals(logsearchEnvProperties.getProperties().get("logsearch_ui_protocol")) &&
+                "/etc/security/serverKeys/logsearch.trustStore.jks".equals(logsearchEnvProperties.getProperties().get("logsearch_truststore_location")) &&
+                "/etc/security/serverKeys/logsearch.keyStore.jks".equals(logsearchEnvProperties.getProperties().get("logsearch_keystore_location"))) {
+              newProperties.put("logsearch_truststore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks");
+              newProperties.put("logsearch_keystore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks");
+            }
+            
             Set<String> removeProperties = new HashSet<>();
             removeProperties.add("logsearch_solr_audit_logs_use_ranger");
             removeProperties.add("logsearch_solr_audit_logs_zk_node");

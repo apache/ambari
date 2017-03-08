@@ -1235,13 +1235,19 @@ public class UpgradeCatalog250Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
-    Map<String, String> oldLogSearchEnv = ImmutableMap.of(
-        "logsearch_solr_audit_logs_use_ranger", "false",
-        "logsearch_solr_audit_logs_zk_node", "zk_node",
-        "logsearch_solr_audit_logs_zk_quorum", "zk_quorum",
-        "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
+    Map<String, String> oldLogSearchEnv = new HashMap<>();
+    oldLogSearchEnv.put("logsearch_solr_audit_logs_use_ranger", "false");
+    oldLogSearchEnv.put("logsearch_solr_audit_logs_zk_node", "zk_node");
+    oldLogSearchEnv.put("logsearch_solr_audit_logs_zk_quorum", "zk_quorum");
+    oldLogSearchEnv.put("logsearch_ui_protocol", "http");
+    oldLogSearchEnv.put("logsearch_truststore_location", "/etc/security/serverKeys/logsearch.trustStore.jks");
+    oldLogSearchEnv.put("logsearch_keystore_location", "/etc/security/serverKeys/logsearch.keyStore.jks");
+    oldLogSearchEnv.put("content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
 
     Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
+        "logsearch_ui_protocol", "http",
+        "logsearch_truststore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks",
+        "logsearch_keystore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks",
         "content", "logsearch_use_ssl");
 
     Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
