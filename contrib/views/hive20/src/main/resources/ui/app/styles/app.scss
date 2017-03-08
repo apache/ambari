@@ -956,5 +956,7 @@ rect.operator__box {
 
 .closeTab {
   cursor: pointer;
-  padding-left:10px;
+  position:relative;
+  bottom:10px;
+  right:-15px;
 }
