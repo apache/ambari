@@ -18,6 +18,10 @@
 package org.apache.oozie.ambari.view;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -26,9 +30,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.StreamingOutput;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -163,4 +169,28 @@ public class Utils {
 			return false;
 		}
   }
+	public StreamingOutput streamResponse(final InputStream is) {
+		return new StreamingOutput() {
+			@Override
+			public void write(OutputStream os) throws IOException,
+				WebApplicationException {
+				BufferedInputStream bis=new BufferedInputStream(is);
+				BufferedOutputStream bos=new BufferedOutputStream(os);
+				try {
+					int data;
+					while ((data = bis.read()) != -1) {
+						bos.write(data);
+					}
+					is.close();
+					os.close();
+				}catch (IOException e){
+					LOGGER.error(e.getMessage(),e);
+					throw e;
+				}catch (Exception e){
+					LOGGER.error(e.getMessage(),e);
+					throw new RuntimeException(e);
+				}
+			}
+		};
+	}
 }
