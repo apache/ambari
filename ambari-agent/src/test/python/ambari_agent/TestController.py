@@ -44,7 +44,6 @@ import ambari_commons
 
 @not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-@patch.object(Controller.Controller, "spawnStatusCommandsExecutorProcess", new = MagicMock())
 class TestController(unittest.TestCase):
 
   logger = logging.getLogger()
@@ -119,10 +118,8 @@ class TestController(unittest.TestCase):
     self.assertEqual({"responseId":1}, self.controller.registerWithServer())
 
     self.controller.sendRequest.return_value = {"responseId":1, "statusCommands": "commands", "log":"", "exitstatus":"0"}
-    self.controller.addToStatusQueue = MagicMock(name="addToStatusQueue")
     self.controller.isRegistered = False
     self.assertEqual({'exitstatus': '0', 'responseId': 1, 'log': '', 'statusCommands': 'commands'}, self.controller.registerWithServer())
-    self.controller.addToStatusQueue.assert_called_with("commands")
 
     calls = []
 

@@ -76,10 +76,6 @@ class ActionQueue(threading.Thread):
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = None # the queue this field points to is re-created whenever
-                                   # a new StatusCommandExecutor child process is spawned
-                                   # by Controller
-    # multiprocessing.Queue()
     self.statusCommandResultQueue = multiprocessing.Queue() # this queue is filled by StatuCommandsExecutor.
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
@@ -102,25 +98,7 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put_status(self, commands):
-    if not self.statusCommandQueue.empty():
-      #Clear all status commands. Was supposed that we got all set of statuses, we don't need to keep old ones
-      statusCommandQueueSize = 0
-      try:
-        while not self.statusCommandQueue.empty():
-          self.statusCommandQueue.get(False)
-          statusCommandQueueSize = statusCommandQueueSize + 1
-      except Queue.Empty:
-        pass
-
-      logger.info("Number of status commands removed from queue : " + str(statusCommandQueueSize))
-
-    for command in commands:
-      logger.info("Adding " + command['commandType'] + " for component " + \
-                  command['componentName'] + " of service " + \
-                  command['serviceName'] + " of cluster " + \
-                  command['clusterName'] + " to the queue.")
-      self.statusCommandQueue.put(command)
-      logger.debug(pprint.pformat(command))
+    self.controller.statusCommandsExecutor.put_commands(commands)
 
   def put(self, commands):
     for command in commands:
@@ -167,8 +145,8 @@ class ActionQueue(threading.Thread):
   def run(self):
     try:
       while not self.stopped():
-        self.processBackgroundQueueSafeEmpty();
-        self.processStatusCommandResultQueueSafeEmpty();
+        self.processBackgroundQueueSafeEmpty()
+        self.process_status_command_results()
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
@@ -212,23 +190,13 @@ class ActionQueue(threading.Thread):
       except Queue.Empty:
         pass
 
-  def processStatusCommandResultQueueSafeEmpty(self):
-    try:
-      while not self.statusCommandResultQueue.empty():
-        try:
-          result = self.statusCommandResultQueue.get(False)
-          self.process_status_command_result(result)
-        except Queue.Empty:
-          pass
-        except IOError:
-          # on race condition in multiprocessing.Queue if get/put and thread kill are executed at the same time.
-          # During queue.close IOError will be thrown (this prevents from permanently dead-locked get).
-          pass
-        except UnicodeDecodeError:
-          pass
-    except IOError:
-      # queue.empty() may also throw IOError
-      pass
+  def process_status_command_results(self):
+    self.controller.statusCommandsExecutor.process_logs()
+    for result in self.controller.statusCommandsExecutor.get_results():
+      try:
+        self.process_status_command_result(result)
+      except UnicodeDecodeError:
+        pass
 
   def createCommandHandle(self, command):
     if command.has_key('__handle'):

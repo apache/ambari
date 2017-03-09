@@ -40,7 +40,6 @@ import AmbariConfig
 from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.Register import Register
 from ambari_agent.ActionQueue import ActionQueue
-from ambari_agent.StatusCommandsExecutor import StatusCommandsExecutor
 from ambari_agent.FileCache import FileCache
 from ambari_agent.NetUtil import NetUtil
 from ambari_agent.LiveStatus import LiveStatus
@@ -49,6 +48,7 @@ from ambari_agent.ClusterConfiguration import  ClusterConfiguration
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
+from ambari_agent.StatusCommandsExecutor import StatusCommandsExecutor
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_utils import get_used_ram
 
@@ -86,9 +86,6 @@ class Controller(threading.Thread):
     self.max_reconnect_retry_delay = int(config.get('server','max_reconnect_retry_delay', default=30))
     self.hasMappedComponents = True
     self.statusCommandsExecutor = None
-
-    # this lock is used control which thread spawns/kills the StatusCommandExecutor child process
-    self.spawnKillStatusCommandExecutorLock = threading.RLock()
 
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
@@ -205,7 +202,7 @@ class Controller(threading.Thread):
 
         # Start StatusCommandExecutor child process or restart it if already running
         # in order to receive up to date agent config.
-        self.spawnStatusCommandsExecutorProcess()
+        self.statusCommandsExecutor.relaunch("REGISTER_WITH_SERVER")
 
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
@@ -476,51 +473,11 @@ class Controller(threading.Thread):
 
       logger.log(logging_level, "Wait for next heartbeat over")
 
-  def spawnStatusCommandsExecutorProcess(self):
-    '''
-    Starts a new StatusCommandExecutor child process. In case there is a running instance
-     already restarts it by simply killing it and starting new one.
-     This function is thread-safe.
-    '''
-    with self.getSpawnKillStatusCommandExecutorLock():
-      # if there is already an instance of StatusCommandExecutor kill it first
-      self.killStatusCommandsExecutorProcess()
-
-      # Re-create the status command queue as in case the consumer
-      # process is killed the queue may deadlock (see http://bugs.python.org/issue20527).
-      # The queue must be re-created by the producer process.
-      statusCommandQueue = self.actionQueue.statusCommandQueue
-      self.actionQueue.statusCommandQueue = multiprocessing.Queue()
-
-      if statusCommandQueue is not None:
-        statusCommandQueue.close()
-
-      logger.info("Spawning statusCommandsExecutor")
-      self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
-      self.statusCommandsExecutor.start()
-
-  def killStatusCommandsExecutorProcess(self):
-    '''
-    Kills the StatusExecutorChild process if exists. This function is thread-safe.
-    '''
-    with self.getSpawnKillStatusCommandExecutorLock():
-      if self.statusCommandsExecutor is not None and self.statusCommandsExecutor.is_alive():
-        logger.info("Terminating statusCommandsExecutor.")
-        self.statusCommandsExecutor.kill()
-
-  def getSpawnKillStatusCommandExecutorLock(self):
-    '''
-    Re-entrant lock to be used to synchronize the spawning or killing of
-    StatusCommandExecutor child process in multi-thread environment.
-    '''
-    return self.spawnKillStatusCommandExecutorLock;
-
-  def getStatusCommandsExecutor(self):
-    return self.statusCommandsExecutor
-
   def run(self):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
+      self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
+      ExitHelper().register(self.statusCommandsExecutor.kill, "CLEANUP_KILLING")
       self.actionQueue.start()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
@@ -612,6 +569,9 @@ class Controller(threading.Thread):
     logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
     logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
     logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
+
+  def get_status_commands_executor(self):
+    return self.statusCommandsExecutor
 
   def move_data_dir_mount_file(self):
     """

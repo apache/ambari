@@ -1329,7 +1329,7 @@ class TestActionQueue(TestCase):
     execute_command = copy.deepcopy(self.background_command)
     actionQueue.put([execute_command])
     actionQueue.processBackgroundQueueSafeEmpty();
-    actionQueue.processStatusCommandResultQueueSafeEmpty();
+    actionQueue.process_status_command_results();
     
     #assert that python execturor start
     self.assertTrue(runCommand_mock.called)
@@ -1373,7 +1373,7 @@ class TestActionQueue(TestCase):
                                                                  None, command_complete_w)
     actionQueue.put([self.background_command])
     actionQueue.processBackgroundQueueSafeEmpty();
-    actionQueue.processStatusCommandResultQueueSafeEmpty();
+    actionQueue.process_status_command_results();
     
     with lock:
       complete_done.wait(0.1)
