@@ -30,7 +30,7 @@ public interface Result {
   /**
    * Obtain the results of the request invocation as a Tree structure.
    *
-   * @return the results of the request a a Tree structure
+   * @return the results of the request as a Tree structure
    */
   TreeNode<Resource> getResultTree();
 
