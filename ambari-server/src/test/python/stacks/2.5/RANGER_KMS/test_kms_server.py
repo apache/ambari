@@ -151,6 +151,10 @@ class TestRangerKMS(RMFTestCase):
       mode = 0640
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
+      action = ['delete'],
+    )
+
     self.assertResourceCalled('Directory', '/tmp/jce_dir',
       create_parents = True,
     )
@@ -412,6 +416,10 @@ class TestRangerKMS(RMFTestCase):
       content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/core-site.xml',
+      action = ['delete'],
+    )
+
   @patch("os.path.isfile")
   def test_configure_secured(self, isfile_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kms_server.py",
@@ -527,6 +535,10 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
+      action = ['delete'],
     )
 
     self.assertResourceCalled('Directory', '/tmp/jce_dir',

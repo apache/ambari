@@ -342,6 +342,8 @@ def kms(upgrade_type=None):
         group=params.kms_group,
         mode=0644
       )
+    else:
+      File(format('{kms_conf_dir}/core-site.xml'), action="delete")
 
 def copy_jdbc_connector(stack_version=None):
   import params
@@ -503,6 +505,19 @@ def enable_kms_plugin():
       group = params.kms_group,
       mode = 0640
       )
+
+    if params.xa_audit_hdfs_is_enabled and len(params.namenode_host) > 1:
+      Logger.info('Audit to Hdfs enabled in NameNode HA environment, creating hdfs-site.xml')
+      XmlConfig("hdfs-site.xml",
+        conf_dir=params.kms_conf_dir,
+        configurations=params.config['configurations']['hdfs-site'],
+        configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+        owner=params.kms_user,
+        group=params.kms_group,
+        mode=0644
+      )
+    else:
+      File(format('{kms_conf_dir}/hdfs-site.xml'), action="delete")
 
 def setup_kms_jce():
   import params
