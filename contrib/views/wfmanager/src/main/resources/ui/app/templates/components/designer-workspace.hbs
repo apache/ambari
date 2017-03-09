@@ -160,7 +160,7 @@
     {{#asset-manager showAssetManager="showAssetManager"}}{{/asset-manager}}
   {{/if}}
   {{#if isProjManagerVisible}}
-    {{recent-projects recentFiles=recentFiles routeToDesigner="routeToDesigner" editWorkflow="editWorkflow" deleteWorkflow="deleteWorkflow" close="hideProjectManagerList" deleteWorkflowJob="deleteWorkflowJob" currentDraft=currentDraft}}
+    {{recent-projects recentFiles=recentFiles routeToDesigner="routeToDesigner" editWorkflow="editWorkflow" deleteWorkflow="deleteWorkflow" close="hideProjectManagerList" deleteWorkflowJob="deleteWorkflowJob" currentDraft=currentDraft showProjectManagerList="showProjectManagerList"}}
   {{/if}}
   {{#if showingWarning}}
   {{#confirmation-dialog title="Confirm workflow reset"
