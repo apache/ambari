@@ -182,7 +182,9 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
    * @param event
    */
   setActiveSubTab: function(event) {
-    if (!event.context) return;
+    if (!event.context || !event.context.get('isVisible')) {
+      return false;
+    }
     try {
       event.context.get('subSection.subSectionTabs').setEach('isActive', false);
       event.context.set('isActive', true);
