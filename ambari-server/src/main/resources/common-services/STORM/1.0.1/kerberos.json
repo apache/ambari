@@ -120,24 +120,8 @@
           "name": "DRPC_SERVER",
           "identities": [
             {
-              "name": "nimbus_server",
-              "principal": {
-                "value": "nimbus/_HOST@${realm}",
-                "type": "service",
-                "configuration": "storm-env/nimbus_principal_name"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/nimbus.service.keytab",
-                "owner": {
-                  "name": "${storm-env/storm_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                },
-                "configuration": "storm-env/nimbus_keytab"
-              }
+              "name": "drpc_server",
+              "reference": "/STORM/NIMBUS/nimbus_server"
             }
           ]
         },

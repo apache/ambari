@@ -2444,25 +2444,8 @@
             {
               "identities" : [
                 {
-                  "principal" : {
-                    "configuration" : "storm-env/nimbus_principal_name",
-                    "type" : "service",
-                    "local_username" : null,
-                    "value" : "nimbus/_HOST@${realm}"
-                  },
-                  "name" : "nimbus_server",
-                  "keytab" : {
-                    "owner" : {
-                      "access" : "r",
-                      "name" : "${storm-env/storm_user}"
-                    },
-                    "file" : "${keytab_dir}/nimbus.service.keytab",
-                    "configuration" : "storm-env/nimbus_keytab",
-                    "group" : {
-                      "access" : "",
-                      "name" : "${cluster-env/user_group}"
-                    }
-                  }
+                  "name": "drpc_server",
+                  "reference": "/STORM/NIMBUS/nimbus_server"
                 }
               ],
               "name" : "DRPC_SERVER"
