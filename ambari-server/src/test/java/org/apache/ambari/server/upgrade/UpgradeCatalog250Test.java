@@ -707,6 +707,93 @@ public class UpgradeCatalog250Test {
   }
 
   @Test
+  public void testAmsGrafanaIniUpdateConfigs() throws Exception {
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("content", "[security]\n" +
+          "# default admin user, created on startup\n" +
+          "admin_user = {{ams_grafana_admin_user}}\n" +
+          "\n" +
+          "# default admin password, can be changed before first start of grafana,  or in profile settings\n" +
+          "admin_password = {{ams_grafana_admin_pwd}}\n" +
+          "\n" +
+          "# used for signing\n" +
+          ";secret_key = SW2YcwTIb9zpOOhoPsMm\n" +
+          "\n" +
+          "# Auto-login remember days\n" +
+          ";login_remember_days = 7\n" +
+          ";cookie_username = grafana_user\n" +
+          ";cookie_remember_name = grafana_remember\n" +
+          "\n" +
+          "# disable gravatar profile images\n" +
+          ";disable_gravatar = false\n" +
+          "\n" +
+          "# data source proxy whitelist (ip_or_domain:port seperated by spaces)\n" +
+          ";data_source_proxy_whitelist =\n");
+      }
+    };
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("content", "[security]\n" +
+          "# default admin user, created on startup\n" +
+          "admin_user = {{ams_grafana_admin_user}}\n" +
+          "\n" +
+          "# default admin password, can be changed before first start of grafana,  or in profile settings\n" +
+          ";admin_password =\n" +
+          "\n" +
+          "# used for signing\n" +
+          ";secret_key = SW2YcwTIb9zpOOhoPsMm\n" +
+          "\n" +
+          "# Auto-login remember days\n" +
+          ";login_remember_days = 7\n" +
+          ";cookie_username = grafana_user\n" +
+          ";cookie_remember_name = grafana_remember\n" +
+          "\n" +
+          "# disable gravatar profile images\n" +
+          ";disable_gravatar = false\n" +
+          "\n" +
+          "# data source proxy whitelist (ip_or_domain:port seperated by spaces)\n" +
+          ";data_source_proxy_whitelist =\n");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Config mockAmsGrafanaIni = easyMockSupport.createNiceMock(Config.class);
+
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-grafana-ini")).andReturn(mockAmsGrafanaIni).atLeastOnce();
+    expect(mockAmsGrafanaIni.getProperties()).andReturn(oldProperties).anyTimes();
+
+    replay(clusters, mockAmsGrafanaIni, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[]{})
+      .addMockedMethod("createConfig")
+      .withConstructor(actionManager, clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog250(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
+  }
+
+  @Test
   public void testAmsHbaseSiteUpdateConfigs() throws Exception {
 
     Map<String, String> newProperties = new HashMap<String, String>() {
