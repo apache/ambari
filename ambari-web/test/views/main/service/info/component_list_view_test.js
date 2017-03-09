@@ -33,9 +33,11 @@ describe('App.SummaryMasterComponentsView', function () {
   describe("#mastersCompWillChange", function() {
 
     beforeEach(function() {
+      sinon.stub(Em.run, 'next', Em.clb);
       sinon.stub(view, 'removeTooltips');
     });
     afterEach(function() {
+      Em.run.next.restore();
       view.removeTooltips.restore();
     });
 
@@ -48,9 +50,11 @@ describe('App.SummaryMasterComponentsView', function () {
   describe("#mastersCompDidChange", function() {
 
     beforeEach(function() {
+      sinon.stub(Em.run, 'next', Em.clb);
       sinon.stub(view, 'attachTooltip');
     });
     afterEach(function() {
+      Em.run.next.restore();
       view.attachTooltip.restore();
     });
 
@@ -76,7 +80,10 @@ describe('App.SummaryMasterComponentsView', function () {
   });
 
   describe("#willDestroyElement", function() {
-    var mock = {tooltip: Em.K};
+    var mock = {
+      tooltip: Em.K,
+      remove: Em.K
+    };
 
     beforeEach(function() {
       sinon.spy(mock, 'tooltip');
@@ -95,7 +102,8 @@ describe('App.SummaryMasterComponentsView', function () {
 
   describe("#removeTooltips", function() {
     var mock = {
-      tooltip: Em.K
+      tooltip: Em.K,
+      remove: Em.K
     };
 
     beforeEach(function() {
@@ -108,21 +116,15 @@ describe('App.SummaryMasterComponentsView', function () {
     });
 
     it("tooltip should be called", function() {
-      mock.length = 1;
       view.removeTooltips();
       expect(mock.tooltip.calledWith('destroy')).to.be.true;
-    });
-
-    it("tooltip should not be called", function() {
-      mock.length = 0;
-      view.removeTooltips();
-      expect(mock.tooltip.called).to.be.false;
     });
   });
 
   describe("#attachTooltip", function() {
     var mock = {
-      tooltip: Em.K
+      tooltip: Em.K,
+      remove: Em.K
     };
 
     beforeEach(function() {
@@ -135,15 +137,8 @@ describe('App.SummaryMasterComponentsView', function () {
     });
 
     it("tooltip should be called", function() {
-      mock.length = 1;
       view.attachTooltip();
       expect(App.tooltip.calledOnce).to.be.true;
-    });
-
-    it("tooltip should not be called", function() {
-      mock.length = 0;
-      view.attachTooltip();
-      expect(App.tooltip.called).to.be.false;
     });
   });
 

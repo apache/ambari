@@ -60,7 +60,11 @@ describe('App.MainDashboardServiceHdfsView', function () {
 
     beforeEach(function() {
       dashboardMasterComponentView = view.get('dashboardMasterComponentView').create({
-        parentView: Em.Object.create()
+        parentView: Em.Object.create({
+          service: Em.Object.create({
+            hostComponents: []
+          })
+        })
       });
     });
 
@@ -88,40 +92,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
       });
     });
 
-    describe("#didInsertElement()", function() {
-
-      beforeEach(function() {
-        sinon.stub(App, 'tooltip');
-      });
-      afterEach(function() {
-        App.tooltip.restore();
-      });
-
-      it("App.tooltip should be called", function() {
-        dashboardMasterComponentView.didInsertElement();
-        expect(App.tooltip.calledOnce).to.be.true;
-      });
-    });
-
-    describe("#willDestroyElement()", function() {
-      var mock = {
-        tooltip: Em.K
-      };
-
-      beforeEach(function() {
-        sinon.stub(mock, 'tooltip');
-        sinon.stub(window, '$').returns(mock);
-      });
-      afterEach(function() {
-        mock.tooltip.restore();
-        window.$.restore();
-      });
-
-      it("tooltip destroy should be called", function() {
-        dashboardMasterComponentView.willDestroyElement();
-        expect(mock.tooltip.calledWith('destroy')).to.be.true;
-      });
-    });
   });
 
   describe("#metricsNotAvailableObserver()", function() {
