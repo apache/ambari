@@ -53,7 +53,7 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
   },
 
   isComponentStateFacet: function(facet) {
-    return App.HostComponent.find().filterProperty('componentName', facet).length > 0;
+    return App.StackServiceComponent.find(facet).get('isLoaded');
   },
 
   isComplexHealthStatusFacet: function(facet) {
