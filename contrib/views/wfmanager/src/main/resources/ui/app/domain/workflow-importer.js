@@ -106,7 +106,7 @@ var WorkflowImporter= Ember.Object.extend({
       if (nodeHandler){
         if (Ember.isArray(workflowAppJson[key])){
           workflowAppJson[key].forEach(function(jsonObj){
-            var node=nodeHandler.handleImportNode(key,jsonObj,workflow);
+            var node=nodeHandler.handleImportNode(key,jsonObj,workflow,xmlDoc);
             nodeMap.set(jsonObj._name,{json:jsonObj,node:node});
           });
         }else{
