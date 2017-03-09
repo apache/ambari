@@ -213,7 +213,6 @@ export default Ember.Component.extend({
     },
     editWorkflow(path, type){
       this.sendAction('editWorkflow', path, type);
-      this.send('hideProjectManagerList');
     },
     showProjectManagerList(){
       var deferred = Ember.RSVP.defer();
