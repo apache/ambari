@@ -319,10 +319,15 @@ class Master(Script):
       config_id = livy2_config["id"]
       interpreter_settings[config_id] = livy2_config
 
+    hive_interactive_properties_key = 'hive_interactive'
     for setting_key in interpreter_settings.keys():
       interpreter = interpreter_settings[setting_key]
       if interpreter['group'] == 'jdbc':
         interpreter['dependencies'] = []
+
+        if not params.hive_server_host and params.hive_server_interactive_hosts:
+          hive_interactive_properties_key = 'hive'
+
         if params.hive_server_host:
           interpreter['properties']['hive.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties']['hive.user'] = 'hive'
@@ -330,17 +335,33 @@ class Master(Script):
           if params.hive_server2_support_dynamic_service_discovery:
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_zookeeper_quorum + \
-                                                 '/;' + 'serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2'
+                                                 '/;' + 'serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=' + \
+                                                    params.hive_zookeeper_namespace
           else:
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_server_host + \
                                                      ':' + params.hive_server_port
+        if params.hive_server_interactive_hosts:
+          interpreter['properties'][hive_interactive_properties_key + '.driver'] = 'org.apache.hive.jdbc.HiveDriver'
+          interpreter['properties'][hive_interactive_properties_key + '.user'] = 'hive'
+          interpreter['properties'][hive_interactive_properties_key + '.password'] = ''
+          if params.hive_server2_support_dynamic_service_discovery:
+            interpreter['properties'][hive_interactive_properties_key + '.url'] = 'jdbc:hive2://' + \
+                                                    params.hive_zookeeper_quorum + \
+                                                    '/;' + 'serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=' + \
+                                                    params.hive_interactive_zookeeper_namespace
+          else:
+            interpreter['properties'][hive_interactive_properties_key + '.url'] = 'jdbc:hive2://' + \
+                                                    params.hive_server_interactive_hosts + \
+                                                    ':' + params.hive_server_port
+
+        if params.hive_server_host or params.hive_server_interactive_hosts:
           interpreter['dependencies'].append(
-              {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
+            {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
           interpreter['dependencies'].append(
-              {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
+            {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
           interpreter['dependencies'].append(
-              {"groupArtifactVersion": "org.apache.hive.shims:hive-shims-0.23:2.1.0", "local": "false"})
+            {"groupArtifactVersion": "org.apache.hive.shims:hive-shims-0.23:2.1.0", "local": "false"})
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
