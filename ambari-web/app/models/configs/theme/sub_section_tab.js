@@ -81,7 +81,10 @@ App.SubSectionTab = DS.Model.extend({
    * If there is no configs, subsection can't be hidden
    * @type {boolean}
    */
-  isHiddenByFilter: Em.computed.everyBy('visibleProperties', 'isHiddenByFilter', true),
+  isHiddenByFilter: function () {
+    var configs = this.get('visibleProperties');
+    return configs.length ? configs.everyProperty('isHiddenByFilter', true) : false;
+  }.property('configs.@each.isHiddenByFilter').volatile(),
 
   /**
    * @type {boolean}
@@ -92,7 +95,9 @@ App.SubSectionTab = DS.Model.extend({
    * Determines if subsection is visible
    * @type {boolean}
    */
-  isVisible: Em.computed.and('!isHiddenByFilter', '!isHiddenByConfig', 'someConfigIsVisible')
+  isVisible: function() {
+    return !this.get('isHiddenByFilter') && !this.get('isHiddenByConfig') && this.get('someConfigIsVisible');
+  }.property('isHiddenByFilter', 'isHiddenByConfig', 'someConfigIsVisible').volatile()
 
 });
 
