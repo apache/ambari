@@ -2396,6 +2396,7 @@ Em.I18n.translations = {
   'services.reassign.step6.tasks.installPxf.title': 'Install PXF on NameNode',
   'services.reassign.step6.tasks.stopMysqlService.title': 'Stop Mysql Server',
   'services.reassign.step6.tasks.stopHostComponentsInMaintenanceMode.title': 'Stop {0}',
+  'services.reassign.step6.tasks.startDatanodes.title': 'Start DataNodes',
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',
