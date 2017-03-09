@@ -352,9 +352,14 @@ public interface DBAccessor {
   void dropSequence(String sequenceName) throws SQLException;
 
   /**
-   * Drop a FK constraint from table
-   * @param tableName name of the table
-   * @param constraintName name of the constraint
+   * Drops a FK constraint from a table. In the case of
+   * {@link DatabaseType#MYSQL}, this will also ensure that any associated
+   * indexes are also dropped.
+   *
+   * @param tableName
+   *          name of the table
+   * @param constraintName
+   *          name of the constraint
    * @throws SQLException
    */
   void dropFKConstraint(String tableName, String constraintName) throws SQLException;
