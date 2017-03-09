@@ -79,6 +79,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String GROUPS_TABLE = "groups";
   protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
+  private static final String AMS_GRAFANA_INI = "ams-grafana-ini";
   private static final String AMS_SITE = "ams-site";
   private static final String AMS_LOG4J = "ams-log4j";
   private static final String AMS_HBASE_LOG4J = "ams-hbase-log4j";
@@ -455,6 +456,15 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster,AMS_HBASE_LOG4J,newProperties,true,true);
           }
 
+          Config amsGrafanaIni = cluster.getDesiredConfigByType(AMS_GRAFANA_INI);
+          if (amsGrafanaIni != null) {
+            Map<String, String> amsGrafanaIniProperties = amsGrafanaIni.getProperties();
+            String content = amsGrafanaIniProperties.get("content");
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("content", updateAmsGrafanaIniContent(content));
+            updateConfigurationPropertiesForCluster(cluster, AMS_GRAFANA_INI, newProperties, true, true);
+          }
+
         }
       }
     }
@@ -596,6 +606,17 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected String updateAmsGrafanaIniContent(String content) {
+    if (content == null) {
+      return null;
+    }
+
+    String toReplace = "admin_password = {{ams_grafana_admin_pwd}}";
+    String replaceWith = ";admin_password =";
+    content = content.replace(toReplace, replaceWith);
+    return content;
   }
 
   protected String updateAmsEnvContent(String content) {

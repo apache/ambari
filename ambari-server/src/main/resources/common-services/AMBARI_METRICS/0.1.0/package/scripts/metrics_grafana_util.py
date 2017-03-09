@@ -38,6 +38,7 @@ GRAFANA_CONNECT_TRIES = 15
 GRAFANA_CONNECT_TIMEOUT = 20
 GRAFANA_SEARCH_BUILTIN_DASHBOARDS = "/api/search?tag=builtin"
 GRAFANA_DATASOURCE_URL = "/api/datasources"
+GRAFANA_USER_URL = "/api/user"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
 METRICS_GRAFANA_DATASOURCE_NAME = "AMBARI_METRICS"
 
@@ -221,6 +222,48 @@ def do_ams_collector_post(metric_collector_host, params):
 
     post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, params.metric_collector_port, params.metric_collector_https_enabled,
                                 metric_json, headers, ca_certs)
+
+def create_grafana_admin_pwd():
+  import params
+
+  serverCall1 = Server(protocol = params.ams_grafana_protocol.strip(),
+                   host = params.ams_grafana_host.strip(),
+                   port = params.ams_grafana_port,
+                   user = params.ams_grafana_admin_user,
+                   password = params.ams_grafana_admin_pwd)
+
+  response = perform_grafana_get_call(GRAFANA_USER_URL, serverCall1)
+  if response and response.status != 200:
+
+    serverCall2 = Server(protocol = params.ams_grafana_protocol.strip(),
+                     host = params.ams_grafana_host.strip(),
+                     port = params.ams_grafana_port,
+                     user = params.ams_grafana_admin_user,
+                     password = 'admin')
+
+    Logger.debug("Setting grafana admin password")
+    pwd_data = {  "oldPassword": "admin",
+                     "newPassword": params.ams_grafana_admin_pwd,
+                     "confirmNew": params.ams_grafana_admin_pwd
+                     }
+    password_json = json.dumps(pwd_data)
+
+    (response, data) = perform_grafana_put_call(GRAFANA_USER_URL, 'password', password_json, serverCall2)
+
+    if response.status == 200:
+      Logger.info("Ambari Metrics Grafana password updated.")
+
+    elif response.status == 500:
+      Logger.info("Ambari Metrics Grafana password update failed. Not retrying.")
+      raise Fail("Ambari Metrics Grafana password update failed. PUT request status: %s %s \n%s" %
+                 (response.status, response.reason, data))
+    else:
+      raise Fail("Ambari Metrics Grafana password creation failed. "
+                 "PUT request status: %s %s \n%s" % (response.status, response.reason, data))
+  else:
+    Logger.info("Grafana password update not required.")
+  pass
+
 def create_ams_datasource():
   import params
   server = Server(protocol = params.ams_grafana_protocol.strip(),
