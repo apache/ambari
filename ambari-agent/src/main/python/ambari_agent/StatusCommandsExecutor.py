@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,80 +15,279 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
-import os
-import signal
-import threading
+import Queue
 import logging
 import multiprocessing
-from ambari_agent.PythonReflectiveExecutor import PythonReflectiveExecutor
+import os
+import pprint
+import threading
+
+import time
+
+import signal
 from ambari_agent.RemoteDebugUtils import bind_debug_signal_handlers
-from ambari_agent.ExitHelper import ExitHelper
 
 logger = logging.getLogger(__name__)
 
-class StatusCommandsExecutor(multiprocessing.Process):
-  """
-  A process which executes status/security status commands.
 
-  It dies and respawns itself on timeout of the command. Which is the most graceful way to end the currently running status command.
-  """
+class StatusCommandsExecutor(object):
   def __init__(self, config, actionQueue):
-    multiprocessing.Process.__init__(self)
-
     self.config = config
     self.actionQueue = actionQueue
 
-    self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 5)) # in seconds
-    self.hasTimeoutedEvent = multiprocessing.Event()
-    ExitHelper().register(self.kill)
+    # used to prevent queues from been used during creation of new one to prevent threads messing up with combination of
+    # old and new queues
+    self.usage_lock = threading.RLock()
 
-  def run(self):
-    try:
-      bind_debug_signal_handlers()
-      logger.info("StatusCommandsExecutor starting")
+    self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 5))
+    self.customServiceOrchestrator = self.actionQueue.customServiceOrchestrator
+
+    self.worker_process = None
+    self.mustDieEvent = multiprocessing.Event()
+    self.timedOutEvent = multiprocessing.Event()
+
+    # multiprocessing stuff that need to be cleaned every time
+    self.mp_result_queue = multiprocessing.Queue()
+    self.mp_result_logs = multiprocessing.Queue()
+    self.mp_task_queue = multiprocessing.Queue()
+
+  def _log_message(self, level, message, exception=None):
+    """
+    Put log message to logging queue. Must be used only for logging from child process(in _worker_process_target).
+
+    :param level:
+    :param message:
+    :param exception:
+    :return:
+    """
+    result_message = "StatusCommandExecutor reporting at {0}: ".format(time.time()) + message
+    self.mp_result_logs.put((level, result_message, exception))
+
+  def get_log_messages(self):
+    """
+    Returns list of (level, message, exception) log messages.
+
+    :return: list of (level, message, exception)
+    """
+    results = []
+    with self.usage_lock:
+      try:
+        while not self.mp_result_logs.empty():
+          try:
+            results.append(self.mp_result_logs.get(False))
+          except Queue.Empty:
+            pass
+          except IOError:
+            pass
+          except UnicodeDecodeError:
+            pass
+      except IOError:
+        pass
+    return results
+
+  def process_logs(self):
+    """
+    Get all available at this moment logs and prints them to logger.
+    """
+    for level, message, exception in self.get_log_messages():
+      if level == logging.ERROR:
+        logger.debug(message, exc_info=exception)
+      if level == logging.WARN:
+        logger.warn(message)
+      if level == logging.INFO:
+        logger.info(message)
+
+  def _worker_process_target(self):
+    """
+    Internal method that running in separate process.
+    """
+    bind_debug_signal_handlers()
+    self._log_message(logging.INFO, "StatusCommandsExecutor process started")
+
+    # region StatusCommandsExecutor process internals
+    internal_in_queue = Queue.Queue()
+    internal_out_queue = Queue.Queue()
+
+    def _internal_worker():
+      """
+      thread that actually executes status commands
+      """
       while True:
-        command = self.actionQueue.statusCommandQueue.get(True) # blocks until status status command appears
-        logger.debug("Running status command for {0}".format(command['componentName']))
-        
-        timeout_timer = threading.Timer( self.status_command_timeout, self.respawn, [command])
-        timeout_timer.start()
+        _cmd = internal_in_queue.get()
+        component_status_result = self.customServiceOrchestrator.requestComponentStatus(_cmd)
+        component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(_cmd)
+        internal_out_queue.put((_cmd, component_status_result, component_security_status_result))
 
-        self.process_status_command(command)
+    worker = threading.Thread(target=_internal_worker)
+    worker.daemon = True
+    worker.start()
 
-        timeout_timer.cancel()
-        logger.debug("Completed status command for {0}".format(command['componentName']))
-    except:
-      logger.exception("StatusCommandsExecutor process failed with exception:")
-      raise
+    def _internal_process_command(_command):
+      internal_in_queue.put(_command)
+      start_time = time.time()
+      result = None
+      while not self.mustDieEvent.is_set() and not result and time.time() - start_time < self.status_command_timeout:
+        try:
+          result = internal_out_queue.get(timeout=1)
+        except Queue.Empty:
+          pass
 
-    logger.warn("StatusCommandsExecutor process has finished")
+      if result:
+        self.mp_result_queue.put(result)
+        return True
+      else:
+        # do not set timed out event twice
+        if not self.timedOutEvent.is_set():
+          self._set_timed_out(_command)
+        return False
 
-  def process_status_command(self, command):
-    component_status_result = self.actionQueue.customServiceOrchestrator.requestComponentStatus(command)
-    component_security_status_result = self.actionQueue.customServiceOrchestrator.requestComponentSecurityState(command)
-    result = (command, component_status_result, component_security_status_result)
+    # endregion
 
-    self.actionQueue.statusCommandResultQueue.put(result)
-
-  def respawn(self, command):
     try:
-      if hasattr(PythonReflectiveExecutor, "last_context"):
-        # Force context to reset to normal. By context we mean sys.path, imports, etc. They are set by specific status command, and are not relevant to ambari-agent.
-        PythonReflectiveExecutor.last_context.revert()
+      while not self.mustDieEvent.is_set():
+        try:
+          command = self.mp_task_queue.get(False)
+        except Queue.Empty:
+          # no command, lets try in other loop iteration
+          time.sleep(.1)
+          continue
 
-      logger.warn("Command {0} for {1} is running for more than {2} seconds. Terminating it due to timeout.".format(command['commandType'], command['componentName'], self.status_command_timeout))
+        self._log_message(logging.DEBUG, "Running status command for {0}".format(command['componentName']))
 
-      self.hasTimeoutedEvent.set()
-    except:
-      logger.exception("StatusCommandsExecutor.finish thread failed with exception:")
+        if _internal_process_command(command):
+          self._log_message(logging.DEBUG, "Completed status command for {0}".format(command['componentName']))
+
+    except Exception as e:
+      self._log_message(logging.ERROR, "StatusCommandsExecutor process failed with exception:", e)
       raise
 
-  def kill(self):
-    os.kill(self.pid, signal.SIGKILL)
+    self._log_message(logging.WARN, "StatusCommandsExecutor subprocess finished")
 
-    # prevent queue from ending up with non-freed semaphores, locks during put. Which would result in dead-lock in process executing get.
-    self.actionQueue.statusCommandResultQueue.close()
-    self.actionQueue.statusCommandResultQueue.join_thread()
-    self.actionQueue.statusCommandResultQueue = multiprocessing.Queue()
+  def _set_timed_out(self, command):
+    """
+    Set timeout event and adding log entry for given command.
+
+    :param command:
+    :return:
+    """
+    msg = "Command {0} for {1} is running for more than {2} seconds. Terminating it due to timeout.".format(
+        command['commandType'],
+        command['componentName'],
+        self.status_command_timeout
+    )
+    self._log_message(logging.WARN, msg)
+    self.timedOutEvent.set()
+
+  def put_commands(self, commands):
+    """
+    Put given commands to command executor.
+
+    :param commands: status commands to execute
+    :return:
+    """
+    with self.usage_lock:
+      if not self.mp_task_queue.empty():
+        status_command_queue_size = 0
+        try:
+          while not self.mp_task_queue.empty():
+            self.mp_task_queue.get(False)
+            status_command_queue_size += 1
+        except Queue.Empty:
+          pass
+
+        logger.info("Number of status commands removed from queue : " + str(status_command_queue_size))
+      for command in commands:
+        logger.info("Adding " + command['commandType'] + " for component " + \
+                    command['componentName'] + " of service " + \
+                    command['serviceName'] + " of cluster " + \
+                    command['clusterName'] + " to the queue.")
+        self.mp_task_queue.put(command)
+        logger.debug(pprint.pformat(command))
+
+  def get_results(self):
+    """
+    Get all available results for status commands.
+
+    :return: list of results
+    """
+    results = []
+    with self.usage_lock:
+      try:
+        while not self.mp_result_queue.empty():
+          try:
+            results.append(self.mp_result_queue.get(False))
+          except Queue.Empty:
+            pass
+          except IOError:
+            pass
+          except UnicodeDecodeError:
+            pass
+      except IOError:
+        pass
+    return results
+
+  @property
+  def need_relaunch(self):
+    """
+    Indicates if process need to be relaunched due to timeout or it is dead or even was not created.
+    """
+    return self.timedOutEvent.is_set() or not self.worker_process or not self.worker_process.is_alive()
+
+  def relaunch(self, reason=None):
+    """
+    Restart status command executor internal process.
+
+    :param reason: reason of restart
+    :return:
+    """
+    self.kill(reason)
+    self.worker_process = multiprocessing.Process(target=self._worker_process_target)
+    self.worker_process.start()
+    logger.info("Started process with pid {0}".format(self.worker_process.pid))
+
+  def kill(self, reason=None):
+    """
+    Tries to stop command executor internal process for sort time, otherwise killing it. Closing all possible queues to
+    unblock threads that probably blocked on read or write operations to queues. Must be called from threads different
+    from threads that calling read or write methods(get_log_messages, get_results, put_commands).
+
+    :param reason: reason of killing
+    :return:
+    """
+    # try graceful stop, otherwise hard-kill
+    if self.worker_process and self.worker_process.is_alive():
+      logger.info("Killing child process reason:" + str(reason))
+      self.mustDieEvent.set()
+      self.worker_process.join(timeout=3)
+      if self.worker_process.is_alive():
+        os.kill(self.worker_process.pid, signal.SIGKILL)
+        logger.info("Child process killed by -9")
+      else:
+        # get log messages only if we died gracefully, otherwise we will have chance to block here forever, in most cases
+        # this call will do nothing, as all logs will be processed in ActionQueue loop
+        self.process_logs()
+        logger.info("Child process died gracefully")
+    else:
+      logger.info("Child process already dead")
+
+    # close queues and acquire usage lock
+    # closing both sides of pipes here, we need this hack in case of blocking on recv() call
+    self.mp_result_queue.close()
+    self.mp_result_queue._writer.close()
+    self.mp_result_logs.close()
+    self.mp_result_logs._writer.close()
+    self.mp_task_queue.close()
+    self.mp_task_queue._writer.close()
+
+    with self.usage_lock:
+      self.mp_result_queue.join_thread()
+      self.mp_result_queue = multiprocessing.Queue()
+      self.mp_task_queue.join_thread()
+      self.mp_task_queue = multiprocessing.Queue()
+      self.mp_result_logs.join_thread()
+      self.mp_result_logs = multiprocessing.Queue()
+      self.customServiceOrchestrator = self.actionQueue.customServiceOrchestrator
+      self.mustDieEvent.clear()
+      self.timedOutEvent.clear()

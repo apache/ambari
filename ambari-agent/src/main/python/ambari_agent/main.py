@@ -311,18 +311,14 @@ def run_threads(server_hostname, heartbeat_stop_callback):
   # Launch Controller communication
   controller = Controller(config, server_hostname, heartbeat_stop_callback)
   controller.start()
+  time.sleep(2) # in order to get controller.statusCommandsExecutor initialized
   while controller.is_alive():
     time.sleep(0.1)
 
-    with controller.getSpawnKillStatusCommandExecutorLock():
-      # We need to lock as Controller.py may try to spawn StatusCommandExecutor child in parallel as well
-      if controller.getStatusCommandsExecutor() is not None \
-          and (not controller.getStatusCommandsExecutor().is_alive()
-              or controller.getStatusCommandsExecutor().hasTimeoutedEvent.is_set()):
-        controller.spawnStatusCommandsExecutorProcess()
+    if controller.get_status_commands_executor().need_relaunch:
+      controller.get_status_commands_executor().relaunch("COMMAND_TIMEOUT_OR_KILLED")
 
-
-  controller.killStatusCommandsExecutorProcess()
+  controller.get_status_commands_executor().kill()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
