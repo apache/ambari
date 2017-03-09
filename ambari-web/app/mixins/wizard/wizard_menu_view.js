@@ -16,8 +16,19 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
+
+function isStepDisabled(index) {
+  return Em.computed('controller.isStepDisabled.@each.{step,value}', function () {
+    return this.isStepDisabled(index);
+  }).cacheable();
+}
+
+function isStepCompleted(index) {
+  return Em.computed('controller.{currentStep,isStepDisabled.@each.value}', function () {
+    return this.isStepCompleted(index);
+  }).cacheable();
+}
 
 App.WizardMenuMixin = Em.Mixin.create({
 
@@ -25,92 +36,32 @@ App.WizardMenuMixin = Em.Mixin.create({
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   },
 
-  isStep0Disabled: function () {
-    return this.isStepDisabled(0);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
+  isStepCompleted(index) {
+    return this.get('controller.currentStep') > index;
+  },
 
-  isStep1Disabled: function () {
-    return this.isStepDisabled(1);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
+  isStep0Disabled: isStepDisabled(0),
+  isStep1Disabled: isStepDisabled(1),
+  isStep2Disabled: isStepDisabled(2),
+  isStep3Disabled: isStepDisabled(3),
+  isStep4Disabled: isStepDisabled(4),
+  isStep5Disabled: isStepDisabled(5),
+  isStep6Disabled: isStepDisabled(6),
+  isStep7Disabled: isStepDisabled(7),
+  isStep8Disabled: isStepDisabled(8),
+  isStep9Disabled: isStepDisabled(9),
+  isStep10Disabled: isStepDisabled(10),
 
-  isStep2Disabled: function () {
-    return this.isStepDisabled(2);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Disabled: function () {
-    return this.isStepDisabled(3);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Disabled: function () {
-    return this.isStepDisabled(4);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep5Disabled: function () {
-    return this.isStepDisabled(5);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep6Disabled: function () {
-    return this.isStepDisabled(6);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep7Disabled: function () {
-    return this.isStepDisabled(7);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep8Disabled: function () {
-    return this.isStepDisabled(8);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep9Disabled: function () {
-    return this.isStepDisabled(9);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep10Disabled: function () {
-    return this.isStepDisabled(10);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep0Completed: function () {
-    return this.get('controller.currentStep') > 0;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep1Completed: function () {
-    return this.get('controller.currentStep') > 1;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep2Completed: function () {
-    return this.get('controller.currentStep') > 2;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep3Completed: function () {
-    return this.get('controller.currentStep') > 3;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep4Completed: function () {
-    return this.get('controller.currentStep') > 4;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep5Completed: function () {
-    return this.get('controller.currentStep') > 5;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep6Completed: function () {
-    return this.get('controller.currentStep') > 6;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep7Completed: function () {
-    return this.get('controller.currentStep') > 7;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep8Completed: function () {
-    return this.get('controller.currentStep') > 8;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep9Completed: function () {
-    return this.get('controller.currentStep') > 9;
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep10Completed: function () {
-    return this.get('controller.currentStep') > 10;
-  }.property('controller.isStepDisabled.@each.value').cacheable()
+  isStep0Completed: isStepCompleted(0),
+  isStep1Completed: isStepCompleted(1),
+  isStep2Completed: isStepCompleted(2),
+  isStep3Completed: isStepCompleted(3),
+  isStep4Completed: isStepCompleted(4),
+  isStep5Completed: isStepCompleted(5),
+  isStep6Completed: isStepCompleted(6),
+  isStep7Completed: isStepCompleted(7),
+  isStep8Completed: isStepCompleted(8),
+  isStep9Completed: isStepCompleted(9),
+  isStep10Completed: isStepCompleted(10)
 
 });
