@@ -139,7 +139,7 @@ has_spark_thriftserver = not len(spark_thriftserver_hosts) == 0
 
 # hive-site params
 spark_hive_properties = {
-  'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
+  'hive.metastore.uris': default('/configurations/hive-site/hive.metastore.uris', '')
 }
 
 # security settings
