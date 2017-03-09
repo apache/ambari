@@ -292,22 +292,21 @@ module.exports = App.WizardRoute.extend({
 
     next: function (router) {
       var controller = router.get('reassignMasterController');
-      var reassignMasterWizardStep6 = router.get('reassignMasterWizardStep6Controller');
-      if (!reassignMasterWizardStep6.get('isSubmitDisabled')) {
-        controller.finish();
-        controller.get('popup').hide();
-        App.clusterStatus.setClusterStatus({
-          clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        }, {alwaysCallback: function () {
+      controller.finish();
+      controller.get('popup').hide();
+      App.clusterStatus.setClusterStatus({
+        clusterName: router.get('reassignMasterController.content.cluster.name'),
+        clusterState: 'DEFAULT',
+        localdb: App.db.data
+      }, {
+        alwaysCallback: function () {
           controller.get('popup').hide();
           router.transitionTo('main.index');
-          Em.run.next(function() {
+          Em.run.next(function () {
             location.reload();
           });
-        }});
-      }
+        }
+      });
     },
 
     unroutePath: function () {
@@ -331,18 +330,12 @@ module.exports = App.WizardRoute.extend({
 
     next: function (router) {
       var controller = router.get('reassignMasterController');
-      var reassignMasterWizardStep7 = router.get('reassignMasterWizardStep7Controller');
-      if (!reassignMasterWizardStep7.get('isSubmitDisabled')) {
-        controller.resetOnClose(controller, 'main.index');
-      }
+      controller.resetOnClose(controller, 'main.index');
     },
 
     complete: function (router) {
       var controller = router.get('reassignMasterController');
-      var reassignMasterWizardStep7 = router.get('reassignMasterWizardStep7Controller');
-      if (!reassignMasterWizardStep7.get('isSubmitDisabled')) {
-        controller.resetOnClose(controller, 'main.index');
-      }
+      controller.resetOnClose(controller, 'main.index');
     },
 
     unroutePath: function () {
