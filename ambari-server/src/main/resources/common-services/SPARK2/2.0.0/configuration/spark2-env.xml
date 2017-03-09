@@ -22,7 +22,7 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>spark_user</name>
-    <display-name>Spark User</display-name>
+    <display-name>Spark2 User</display-name>
     <value>spark</value>
     <property-type>USER</property-type>
     <value-attributes>
@@ -33,10 +33,10 @@
   </property>
   <property>
     <name>spark_group</name>
-    <display-name>Spark Group</display-name>
+    <display-name>Spark2 Group</display-name>
     <value>spark</value>
     <property-type>GROUP</property-type>
-    <description>spark group</description>
+    <description>spark2 group</description>
     <value-attributes>
       <type>user</type>
     </value-attributes>
