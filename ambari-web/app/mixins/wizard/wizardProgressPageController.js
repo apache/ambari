@@ -604,14 +604,14 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * Update component status on selected hosts.
    *
    * @param {string} componentName
-   * @param {(string|string[])} hostName
+   * @param {(string|string[]|null)} hostName - use null to update components on all hosts
    * @param {string} serviceName
    * @param {string} context
    * @param {number} taskNum
    * @returns {$.ajax}
    */
   updateComponent: function (componentName, hostName, serviceName, context, taskNum) {
-    if (!(hostName instanceof Array)) {
+    if (hostName && !(hostName instanceof Array)) {
       hostName = [hostName];
     }
     var state = context.toLowerCase() == "start" ? "STARTED" : "INSTALLED";
@@ -622,7 +622,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
         HostRoles: {
           state: state
         },
-        query: 'HostRoles/component_name=' + componentName + '&HostRoles/host_name.in(' + hostName.join(',') + ')&HostRoles/maintenance_state=OFF',
+        query: 'HostRoles/component_name=' + componentName + (hostName ? '&HostRoles/host_name.in(' + hostName.join(',') + ')' : '') + '&HostRoles/maintenance_state=OFF',
         context: context + " " + App.format.role(componentName, false),
         hostName: hostName,
         taskNum: taskNum || 1,

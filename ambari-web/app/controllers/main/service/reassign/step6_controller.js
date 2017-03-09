@@ -27,6 +27,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     'putHostComponentsInMaintenanceMode',
     'stopHostComponentsInMaintenanceMode',
     'deleteHostComponents',
+    'startDatanodes',
     'startAllServices'
   ],
 
@@ -96,6 +97,9 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
       }
     } else {
       this.removeTasks(['stopHostComponentsInMaintenanceMode']);
+    }
+    if (!(this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled'))) {
+      this.removeTasks(['startDatanodes']);
     }
   },
 
@@ -200,5 +204,10 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
       success: 'startPolling',
       error: 'onTaskError'
     });
+  },
+
+  startDatanodes: function () {
+    this.updateComponent('DATANODE', null, 'HDFS', 'Start');
   }
+
 });
