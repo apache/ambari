@@ -1563,6 +1563,60 @@ public class UpgradeResourceProviderTest {
     assertEquals("UNKNOWN", hostComponent.getVersion());
   }
 
+  /**
+   * Ensures that stages created with an HOU are sequential and do not skip any
+   * IDs. When there are stages with IDs like (1,2,3,5,6,7,10), the request will
+   * get stuck in a PENDING state. This affects HOU specifically since they can
+   * potentially try to create empty stages which won't get persisted (such as a
+   * STOP on client-only hosts).
+   *
+   * @throws Exception
+   */
+  @Test()
+  public void testEmptyGroupingsDoNotSkipStageIds() throws Exception {
+
+    StageDAO stageDao = injector.getInstance(StageDAO.class);
+    Assert.assertEquals(0, stageDao.findAll().size());
+
+    // strip out all non-client components - clients don't have STOP commands
+    Cluster cluster = clusters.getCluster("c1");
+    List<ServiceComponentHost> schs = cluster.getServiceComponentHosts("h1");
+    for (ServiceComponentHost sch : schs) {
+      if (sch.isClientComponent()) {
+        continue;
+      }
+
+      cluster.removeServiceComponentHost(sch);
+    }
+
+    // define host order
+    Set<Map<String, List<String>>> hostsOrder = new LinkedHashSet<>();
+    Map<String, List<String>> hostGrouping = new HashMap<>();
+    hostGrouping = new HashMap<>();
+    hostGrouping.put("hosts", Lists.newArrayList("h1"));
+    hostsOrder.add(hostGrouping);
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_host_ordered");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.HOST_ORDERED.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS,Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS, hostsOrder);
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<StageEntity> stages = stageDao.findByRequestId(cluster.getUpgradeEntity().getRequestId());
+    Assert.assertEquals(3, stages.size());
+
+    long expectedStageId = 1L;
+    for (StageEntity stage : stages) {
+      Assert.assertEquals(expectedStageId++, stage.getStageId().longValue());
+    }
+  }
 
   private String parseSingleMessage(String msgStr){
     JsonParser parser = new JsonParser();
