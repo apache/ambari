@@ -65,6 +65,9 @@ export default Ember.Component.extend({
     },
     closeStackTrace(){
       this.set("showingStackTrace", false);
+    },
+    dismissError(idx){
+      this.get("errors").removeAt(idx);
     }
   }
 });

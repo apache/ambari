@@ -123,6 +123,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     this.set('workflow',Workflow.create({}));
     CommonUtils.setTestContext(this);
     this.set('dataNodes', Ember.A([]));
+    this.set('errors', Ember.A([]));
     this.set('validationErrors', Ember.A([]));
   }.on('init'),
   elementsInserted :function(){
@@ -334,7 +335,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   importWorkflow(filePath){
     var self = this;
     this.set("isWorkflowImporting", true);
-    this.resetDesigner();
+
     var workflowXmlDefered=this.getWorkflowFromHdfs(filePath);
     workflowXmlDefered.promise.then(function(response){
       if(response.type === 'xml'){
@@ -353,13 +354,18 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   importWorkflowFromString(data){
     var wfObject=this.get("workflowImporter").importWorkflow(data);
+    this.set("errors", wfObject.errors);
+    if (wfObject.workflow === null) {
+      this.rerender();
+      return;
+    }
+    this.resetDesigner();
     if(this.get('workflow')){
       this.resetDesigner();
       this.set("workflow",wfObject.workflow);
       this.initAndRenderWorkflow();
       this.rerender();
       this.doValidation();
-      this.set("errors", wfObject.errors);
     }else{
       this.workflow.initialize();
       this.set("workflow",wfObject.workflow);
@@ -513,7 +519,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
       cache:false,
       success: function(data) {
         var wfObject=this.get("workflowImporter").importWorkflow(data);
-        deferred.resolve(wfObject.workflow);
+        deferred.resolve(wfObject);
       }.bind(this),
       failure : function(data){
         deferred.reject(data);
@@ -976,12 +982,19 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     importWorkflowTest(){
       var deferred = this.importSampleWorkflow();
       deferred.promise.then(function(data){
+        this.get("errors").clear();
+        this.get("errors").pushObjects(data.errors);
+        if (data.workflow === null) {
+          return;
+        }
         this.resetDesigner();
-        this.set("workflow",data);
+        this.set("workflow",data.workflow);
         this.rerender();
         this.doValidation();
-      }.bind(this)).catch(function(e){
-        console.error(e);
+      }.bind(this)).catch(function(data){
+        console.error(data);
+        this.set("errorMsg", "There is some problem while importing.");
+        this.set("data", data);
       });
     },
     closeFileBrowser(){

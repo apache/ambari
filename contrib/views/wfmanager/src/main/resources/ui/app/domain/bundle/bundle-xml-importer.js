@@ -40,6 +40,10 @@ var BundleXmlImporter= Ember.Object.extend({
         bundleVersion : this.get("schemaVersions").getDefaultVersion('bundle')
       }
     });
+    if (!bundleJson || !bundleJson["bundle-app"]){
+      errors.push({message: "Could not import invalid bundle",dismissable:true});
+      return {bundle:null, errors: errors};
+    }
     var bundleApp=bundleJson["bundle-app"];
     bundle.name = bundleApp._name;
     var bundleVersion=CommonUtils.extractSchemaVersion(bundleApp._xmlns);

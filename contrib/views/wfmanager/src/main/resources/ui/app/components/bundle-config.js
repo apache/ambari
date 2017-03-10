@@ -144,9 +144,12 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     return deferred;
   },
   importBundle (filePath){
-    this.set("bundleFilePath", filePath);
+    if (!filePath) {
+      return;
+    }
     this.set("isImporting", true);
     filePath = this.appendFileName(filePath, 'bundle');
+    this.set("bundleFilePath", filePath);
     var deferred = this.getBundleFromHdfs(filePath);
     deferred.promise.then(function(response){
       if(response.type === 'xml'){
@@ -209,9 +212,11 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   getBundleFromXml(bundleXml){
     var bundleXmlImporter = BundleXmlImporter.create();
     var bundleObj = bundleXmlImporter.importBundle(bundleXml);
-    this.set("bundle", bundleObj.bundle);
     this.get("errors").clear();
     this.get("errors").pushObjects(bundleObj.errors);
+    if (bundleObj.bundle) {
+      this.set("bundle", bundleObj.bundle);
+    }
   },
   getJobProperties(coordinatorPath){
     var deferred = Ember.RSVP.defer();
@@ -386,8 +391,10 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
       var deferred = this.importSampleBundle();
       deferred.promise.then(function(data){
         this.getBundleFromXml(data);
-      }.bind(this)).catch(function(e){
-        throw new Error(e);
+      }.bind(this)).catch(function(data){
+        console.error(data);
+        this.set("errorMsg", "There is some problem while importing.");
+        this.set("data", data);
       });
     },
     openTab(type, path){
