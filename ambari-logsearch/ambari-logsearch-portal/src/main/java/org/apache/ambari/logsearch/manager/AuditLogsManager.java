@@ -39,6 +39,7 @@ import freemarker.template.TemplateException;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
@@ -62,6 +63,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.solr.core.query.SimpleFacetQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
@@ -195,5 +197,11 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   @Override
   protected AuditLogResponse createLogSearchResponse() {
     return new AuditLogResponse();
+  }
+
+  public StatusMessage deleteLogs(AuditLogRequest request) {
+    SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
+    UpdateResponse updateResponse = auditSolrDao.deleteByQuery(solrQuery, "/audit/logs");
+    return new StatusMessage(updateResponse.getStatus());
   }
 }

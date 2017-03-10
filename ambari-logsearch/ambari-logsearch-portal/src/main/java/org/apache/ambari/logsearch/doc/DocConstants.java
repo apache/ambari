@@ -50,6 +50,7 @@ public class DocConstants {
   public class AuditOperationDescriptions {
     public static final String GET_AUDIT_SCHEMA_FIELD_LIST_OD = "Get list of schema fields in audit collection";
     public static final String GET_AUDIT_LOGS_OD = "Get the list of logs details";
+    public static final String PURGE_AUDIT_LOGS_OD = "Purge service logs based by criteria";
     public static final String GET_AUDIT_COMPONENTS_OD = "Get the list of audit components currently active or having data in Solr";
     public static final String GET_AUDIT_LINE_GRAPH_DATA_OD = "Get the data required for line graph";
     public static final String GET_TOP_AUDIT_RESOURCES_OD = "Get the top audit resource count (grouped by type)";
@@ -76,6 +77,7 @@ public class DocConstants {
 
   public class ServiceOperationDescriptions {
     public static final String SEARCH_LOGS_OD = "Searching logs entry";
+    public static final String PURGE_LOGS_OD = "Purge service logs based by criteria";
     public static final String GET_HOSTS_OD = "Get the list of service hosts currently active or having data in Solr";
     public static final String GET_COMPONENTS_OD = "Get the list of service components currently active or having data in Solr";
     public static final String GET_AGGREGATED_INFO_OD = "not required";
