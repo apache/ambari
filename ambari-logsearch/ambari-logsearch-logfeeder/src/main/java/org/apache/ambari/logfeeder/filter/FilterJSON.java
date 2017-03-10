@@ -20,6 +20,7 @@ package org.apache.ambari.logfeeder.filter;
 
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
@@ -48,6 +49,7 @@ public class FilterJSON extends Filter {
     if (timeStampStr != null && !timeStampStr.isEmpty()) {
       String logtime = DateUtil.getDate(timeStampStr);
       jsonMap.put("logtime", logtime);
+      jsonMap.put(LogFeederConstants.IN_MEMORY_TIMESTAMP, Long.parseLong(timeStampStr));
     }
     super.apply(jsonMap, inputMarker);
   }
