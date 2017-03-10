@@ -88,7 +88,7 @@ from NetUtil import NetUtil
 from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
-from ExitHelper import ExitHelper
+from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
@@ -318,7 +318,7 @@ def run_threads(server_hostname, heartbeat_stop_callback):
     if controller.get_status_commands_executor().need_relaunch:
       controller.get_status_commands_executor().relaunch("COMMAND_TIMEOUT_OR_KILLED")
 
-  controller.get_status_commands_executor().kill()
+  controller.get_status_commands_executor().kill("AGENT_STOPPED", can_relaunch=False)
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available

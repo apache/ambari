@@ -37,6 +37,9 @@ class StatusCommandsExecutor(object):
     self.config = config
     self.actionQueue = actionQueue
 
+    self._can_relaunch_lock = threading.RLock()
+    self._can_relaunch = True
+
     # used to prevent queues from been used during creation of new one to prevent threads messing up with combination of
     # old and new queues
     self.usage_lock = threading.RLock()
@@ -52,6 +55,16 @@ class StatusCommandsExecutor(object):
     self.mp_result_queue = multiprocessing.Queue()
     self.mp_result_logs = multiprocessing.Queue()
     self.mp_task_queue = multiprocessing.Queue()
+
+  @property
+  def can_relaunch(self):
+    with self._can_relaunch_lock:
+      return self._can_relaunch
+
+  @can_relaunch.setter
+  def can_relaunch(self, value):
+    with self._can_relaunch_lock:
+      self._can_relaunch = value
 
   def _log_message(self, level, message, exception=None):
     """
@@ -163,7 +176,7 @@ class StatusCommandsExecutor(object):
       self._log_message(logging.ERROR, "StatusCommandsExecutor process failed with exception:", e)
       raise
 
-    self._log_message(logging.WARN, "StatusCommandsExecutor subprocess finished")
+    self._log_message(logging.INFO, "StatusCommandsExecutor subprocess finished")
 
   def _set_timed_out(self, command):
     """
@@ -242,23 +255,32 @@ class StatusCommandsExecutor(object):
     :param reason: reason of restart
     :return:
     """
-    self.kill(reason)
-    self.worker_process = multiprocessing.Process(target=self._worker_process_target)
-    self.worker_process.start()
-    logger.info("Started process with pid {0}".format(self.worker_process.pid))
+    if self.can_relaunch:
+      self.kill(reason)
+      self.worker_process = multiprocessing.Process(target=self._worker_process_target)
+      self.worker_process.start()
+      logger.info("Started process with pid {0}".format(self.worker_process.pid))
+    else:
+      logger.debug("Relaunch does not allowed, can not relaunch")
 
-  def kill(self, reason=None):
+  def kill(self, reason=None, can_relaunch=True):
     """
     Tries to stop command executor internal process for sort time, otherwise killing it. Closing all possible queues to
     unblock threads that probably blocked on read or write operations to queues. Must be called from threads different
     from threads that calling read or write methods(get_log_messages, get_results, put_commands).
 
+    :param can_relaunch: indicates if StatusCommandsExecutor can be relaunched after this kill
     :param reason: reason of killing
     :return:
     """
+    logger.info("Killing child process reason:" + str(reason))
+    self.can_relaunch = can_relaunch
+
+    if not self.can_relaunch:
+      logger.info("Killing without possibility to relaunch...")
+
     # try graceful stop, otherwise hard-kill
     if self.worker_process and self.worker_process.is_alive():
-      logger.info("Killing child process reason:" + str(reason))
       self.mustDieEvent.set()
       self.worker_process.join(timeout=3)
       if self.worker_process.is_alive():
