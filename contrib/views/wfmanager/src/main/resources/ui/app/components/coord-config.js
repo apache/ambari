@@ -76,7 +76,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
   }.on('willDestroyElement'),
   initialize : function(){
     var self = this;
-
+    this.set('errors', Ember.A([]));
     this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id')).promise.then(function(draftCoordinator){
       self.loadCoordinator(draftCoordinator);
     }.bind(this)).catch(function(data){
@@ -262,9 +262,12 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     return deferred;
   },
   importCoordinator (filePath){
+    if (!filePath) {
+      return;
+    }
+    this.set("isImporting", true);
     filePath = this.appendFileName(filePath, 'coord');
     this.set("coordinatorFilePath", filePath);
-    this.set("isImporting", false);
     var deferred = this.readCoordinatorFromHdfs(filePath);
     deferred.promise.then(function(response){
       if(response.type === 'xml'){
@@ -344,10 +347,13 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
   getCoordinatorFromXml(coordinatorXml){
     var coordinatorXmlImporter = CoordinatorXmlImporter.create({});
     var coordinatorObj = coordinatorXmlImporter.importCoordinator(coordinatorXml);
-    var coordinator = coordinatorObj.coordinator;
-    this.set("coordinator", coordinator);
     this.get("errors").clear();
     this.get("errors").pushObjects(coordinatorObj.errors);
+    var coordinator = coordinatorObj.coordinator;
+    if (coordinator === null) {
+      return;
+    }
+    this.set("coordinator", coordinator);
     this.$('input[name="dataInputType"][value="'+ coordinator.get('dataInputType')+'"]').prop('checked', true);
     if(coordinator.get('dataInputType') === 'logical'){
       this.set('conditionalDataInExists', true);
@@ -581,15 +587,20 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
     importCoordinatorTest(){
       var deferred = this.importSampleCoordinator();
       deferred.promise.then(function(data){
-        this.set("coordinator", data.coordinator);
         this.get("errors").clear();
         this.get("errors").pushObjects(data.errors);
+        if (data.coordinator === null) {
+          return;
+        }
+        this.set("coordinator", data.coordinator);
         this.$('input[name="dataInputType"][value="'+ data.coordinator.get('dataInputType')+'"]').prop('checked', true);
         if(data.coordinator.get('dataInputType') === 'logical'){
           this.set('conditionalDataInExists', true);
         }
-      }.bind(this)).catch(function(e){
-        throw new Error(e);
+      }.bind(this)).catch(function(data){
+        console.error(data);
+        this.set("errorMsg", "There is some problem while importing.");
+        this.set("data", data);
       });
     },
     openTab(type, path){

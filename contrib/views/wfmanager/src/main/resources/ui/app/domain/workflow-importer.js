@@ -20,6 +20,7 @@ import CommonUtils from "../utils/common-utils";
 import {Workflow} from '../domain/workflow';
 import {WorkflowXmlMapper} from '../domain/workflow_xml_mapper';
 import SchemaVersions from '../domain/schema-versions';
+import Constants from '../utils/constants';
 
 var WorkflowImporter= Ember.Object.extend({
   workflowMapper:null,
@@ -33,10 +34,15 @@ var WorkflowImporter= Ember.Object.extend({
     return this.processWorkflowXml(workflowXml,workflow, errors);
   },
   processWorkflowXml(workflowXml,workflow, errors){
-    var xmlDoc= xmlDoc = Ember.$.parseXML( workflowXml );
+    var xmlDoc=  Ember.$.parseXML( workflowXml );
+    if (xmlDoc && xmlDoc.getElementsByTagName('action').length>Constants.flowGraphMaxNodeCount){
+      errors.push({message: "Workflow is too large to be imported",dismissable:true});
+      return {workflow:null, errors: errors};
+    }
     var workflowJson= this.get("x2js").xml_str2json(workflowXml);
-    if (!workflowJson["workflow-app"]){
-      throw "Invalid workflow";
+    if (!workflowJson || !workflowJson["workflow-app"]){
+      errors.push({message: "Could not import invalid workflow",dismissable:true});
+      return {workflow:null, errors: errors};
     }
     var workflowAppJson=workflowJson["workflow-app"];
     var workflowVersion=CommonUtils.extractSchemaVersion(workflowAppJson._xmlns);

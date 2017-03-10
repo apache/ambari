@@ -71,6 +71,10 @@ var CoordinatorXmlImporter= Ember.Object.extend({
   },
   processCoordinatorXML(coordinatorJson){
     var errors=Ember.A([]);
+    if (!coordinatorJson || !coordinatorJson["coordinator-app"]){
+      errors.push({message: "Could not import invalid coordinator",dismissable:true});
+      return {coordinator:null, errors: errors};
+    }
     var coordinatorApp = coordinatorJson["coordinator-app"];
     var coordinator = this.createNewCoordinator();
     coordinator.name = coordinatorApp._name;
