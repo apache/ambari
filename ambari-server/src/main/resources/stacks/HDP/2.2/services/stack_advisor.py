@@ -1008,36 +1008,54 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putLogsearchEnvAttribute = self.putPropertyAttribute(configurations, "logsearch-env")
     putLogfeederEnvAttribute = self.putPropertyAttribute(configurations, "logfeeder-env")
 
-    infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
-
-    if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
-      replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
-      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
+    logSearchServerHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SERVER")
+    if logSearchServerHosts is None or len(logSearchServerHosts) == 0:
+      for key in services['configurations']['logsearch-env']['properties']:
+        putLogsearchEnvAttribute(key, 'visible', 'false')
+      for key in services['configurations']['logsearch-properties']['properties']:
+        if key not in ['logsearch.collection.service.logs.numshards', 'logsearch.collection.audit.logs.numshards',
+                       'logsearch.solr.collection.service.logs', 'logsearch.solr.collection.audit.logs',
+                       'logsearch.service.logs.split.interval.mins', 'logsearch.audit.logs.split.interval.mins']:
+          putLogsearchAttribute(key, 'visible', 'false')
+      for key in services['configurations']['logsearch-audit_logs-solrconfig']['properties']:
+        self.putPropertyAttribute(configurations, "logsearch-audit_logs-solrconfig")(key, 'visible', 'false')
+      for key in services['configurations']['logsearch-service_logs-solrconfig']['properties']:
+        self.putPropertyAttribute(configurations, "logsearch-service_logs-solrconfig")(key, 'visible', 'false')
+      for key in services['configurations']['logsearch-log4j']['properties']:
+        self.putPropertyAttribute(configurations, "logsearch-log4j")(key, 'visible', 'false')
       
-      recommendedMinShards = len(infraSolrHosts)
-      recommendedShards = 2 * len(infraSolrHosts)
-      recommendedMaxShards = 3 * len(infraSolrHosts)
+      putLogsearchProperty("logsearch.collection.service.logs.numshards", 2)
+      putLogsearchProperty("logsearch.collection.audit.logs.numshards", 2)
     else:
-      recommendedReplicationFactor = 2
+      infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
+      if infraSolrHosts is not None and len(infraSolrHosts) > 0 and "logsearch-properties" in services["configurations"]:
+        replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
+        recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
+        
+        recommendedMinShards = len(infraSolrHosts)
+        recommendedShards = 2 * len(infraSolrHosts)
+        recommendedMaxShards = 3 * len(infraSolrHosts)
+      else:
+        recommendedReplicationFactor = 2
+        
+        recommendedMinShards = 1
+        recommendedShards = 1
+        recommendedMaxShards = 100
+        
+        putLogsearchCommonEnvProperty('logsearch_use_external_solr', 'true')
+        
+      # recommend number of shard
+      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
+      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
+      putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
       
-      recommendedMinShards = 1
-      recommendedShards = 1
-      recommendedMaxShards = 100
+      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
+      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
+      putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
+      # recommend replication factor
+      putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
+      putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
       
-      putLogsearchCommonEnvProperty('logsearch_use_external_solr', 'true')
-
-    # recommend number of shard
-    putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
-    putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
-    putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
-
-    putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
-    putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
-    putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
-    # recommend replication factor
-    putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
-    putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
-    
     kerberos_authentication_enabled = self.isSecurityEnabled(services)
     if not kerberos_authentication_enabled:
        putLogsearchCommonEnvProperty('logsearch_external_solr_kerberos_enabled', 'false')
