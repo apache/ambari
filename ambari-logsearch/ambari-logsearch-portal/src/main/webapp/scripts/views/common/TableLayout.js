@@ -392,7 +392,7 @@ define(['require',
 			this.collection.state.pageSize = parseInt(pagesize,10);
 
 			this.collection.state.currentPage = this.collection.state.firstPage;
-			delete this.collection.queryParams.isLastPage;
+			delete this.collection.queryParams.lastPage;
 			this.collection.fetch({
 				sort: false,
 				reset: true,

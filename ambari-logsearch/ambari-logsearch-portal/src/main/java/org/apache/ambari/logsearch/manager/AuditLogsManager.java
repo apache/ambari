@@ -58,6 +58,7 @@ import org.apache.ambari.logsearch.solr.model.SolrAuditLogData;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.util.DownloadUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.ambari.logsearch.common.VResponse;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -87,8 +88,23 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   @Inject
   private SolrSchemaFieldDao solrSchemaFieldDao;
 
-  public AuditLogResponse getLogs(AuditLogRequest auditLogRequest) {
-    return getLogAsPaginationProvided(conversionService.convert(auditLogRequest, SimpleQuery.class), auditSolrDao, "/audit/logs");
+  public AuditLogResponse getLogs(AuditLogRequest request) {
+    String event = "/audit/logs";
+    SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
+    if (request.isLastPage()) {
+      return getLastPage(auditSolrDao, solrQuery, event);
+    } else {
+      AuditLogResponse response = getLogAsPaginationProvided(solrQuery, auditSolrDao, event);
+      if (response.getTotalCount() > 0 && CollectionUtils.isEmpty(response.getLogList())) {
+        request.setLastPage(true);
+        solrQuery = conversionService.convert(request, SimpleQuery.class);
+        AuditLogResponse lastResponse = getLastPage(auditSolrDao, solrQuery, event);
+        if (lastResponse != null){
+          response = lastResponse;
+        }
+      }
+      return response;
+    }
   }
 
   private List<LogData> getComponents(AuditComponentRequest request) {
