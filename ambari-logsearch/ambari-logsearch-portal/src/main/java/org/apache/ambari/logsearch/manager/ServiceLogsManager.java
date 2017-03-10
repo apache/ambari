@@ -43,6 +43,7 @@ import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
@@ -85,6 +86,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
@@ -588,5 +590,11 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse queryResponse = serviceLogsSolrDao.process(facetQuery, "/service/logs/hostlogfiles");
     return responseDataGenerator.generateHostLogFilesResponse(queryResponse);
+  }
+
+  public StatusMessage deleteLogs(ServiceLogRequest request) {
+    SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
+    UpdateResponse updateResponse = serviceLogsSolrDao.deleteByQuery(solrQuery, "/service/logs");
+    return new StatusMessage(updateResponse.getStatus());
   }
 }

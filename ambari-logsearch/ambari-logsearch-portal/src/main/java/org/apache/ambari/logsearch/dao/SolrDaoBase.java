@@ -34,6 +34,8 @@ import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.SolrResponseBase;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.springframework.data.solr.core.DefaultQueryParser;
 import org.springframework.data.solr.core.SolrCallback;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -64,11 +66,7 @@ public abstract class SolrDaoBase {
       solrQuery.remove("event");
       try {
         QueryResponse queryResponse = getSolrClient().query(solrQuery, METHOD.POST);
-        if (event != null) {
-          LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Event :- " + event + " SolrQuery :- " +
-            solrQuery + "\nQuery Time Execution :- " + queryResponse.getQTime() + " Total Time Elapsed is :- " +
-            queryResponse.getElapsedTime());
-        }
+        logSolrEvent(event, solrQuery, queryResponse);
         return queryResponse;
       } catch (Exception e){
         LOG.error("Error during solrQuery=" + e);
@@ -78,6 +76,28 @@ public abstract class SolrDaoBase {
       throw RESTErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() +" logs",
           MessageEnums.ERROR_SYSTEM);
     }
+  }
+
+  public UpdateResponse deleteByQuery(SolrQuery solrQuery, String event) {
+    SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
+    LOG.info("Solr delete query will be processed: " + solrQuery);
+    if (getSolrClient() != null) {
+      try {
+        UpdateResponse updateResponse = getSolrClient().deleteByQuery(solrQuery.getQuery());
+        logSolrEvent(event, solrQuery, updateResponse);
+        return updateResponse;
+      } catch (Exception e) {
+        LOG.error("Error during delete solrQuery=" + e);
+        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      }
+    } else {
+      throw RESTErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() + " logs",
+        MessageEnums.ERROR_SYSTEM);
+    }
+  }
+
+  public UpdateResponse deleteByQuery(SolrDataQuery solrDataQuery, String event) {
+    return deleteByQuery(new DefaultQueryParser().doConstructSolrQuery(solrDataQuery), event);
   }
 
   public QueryResponse process(SolrQuery solrQuery) {
@@ -107,6 +127,14 @@ public abstract class SolrDaoBase {
 
   public QueryResponse process(SolrDataQuery solrDataQuery, String event) {
     return process(new DefaultQueryParser().doConstructSolrQuery(solrDataQuery), event);
+  }
+
+  private void logSolrEvent(String event, SolrQuery solrQuery, SolrResponseBase solrResponseBase) {
+    if (event != null) {
+      LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Event :- " + event + " SolrQuery :- " +
+        solrQuery + "\nQuery Time Execution :- " + solrResponseBase.getQTime() + " Total Time Elapsed is :- " +
+        solrResponseBase.getElapsedTime());
+    }
   }
 
   public CloudSolrClient getSolrClient() {

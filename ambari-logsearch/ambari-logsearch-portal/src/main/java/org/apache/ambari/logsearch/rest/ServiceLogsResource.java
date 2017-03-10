@@ -23,6 +23,7 @@ import javax.inject.Named;
 import javax.validation.Valid;
 import javax.validation.executable.ValidateOnExecution;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
@@ -67,8 +69,15 @@ public class ServiceLogsResource {
   @GET
   @Produces({"application/json"})
   @ApiOperation(SEARCH_LOGS_OD)
-  public ServiceLogResponse searchSolrData(@BeanParam ServiceLogRequest request) {
+  public ServiceLogResponse searchServiceLogs(@BeanParam ServiceLogRequest request) {
     return serviceLogsManager.searchLogs(request);
+  }
+
+  @DELETE
+  @Produces({"application/json"})
+  @ApiOperation(PURGE_LOGS_OD)
+  public StatusMessage deleteServiceLogs(@BeanParam ServiceLogRequest request) {
+    return serviceLogsManager.deleteLogs(request);
   }
 
   @GET
