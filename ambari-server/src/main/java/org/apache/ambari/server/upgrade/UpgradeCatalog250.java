@@ -180,6 +180,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
     updateStormAlerts();
+    updateLogSearchAlert();
     removeAlertDuplicates();
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
@@ -333,6 +334,38 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         LOG.debug("Source after update : " + sourceJson);
         stormWebAlert.setSource(sourceJson.toString());
         alertDefinitionDAO.merge(stormWebAlert);
+      }
+    }
+  }
+
+  protected void updateLogSearchAlert() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+      LOG.info("Updating Log Search web ui alert definitions on cluster : " + cluster.getClusterName());
+
+      final AlertDefinitionEntity logSearchWebAlert = alertDefinitionDAO.findByName(
+        clusterID, "logsearch_ui");
+
+      if (logSearchWebAlert != null) {
+        LOG.info("Updating alert definition : " + logSearchWebAlert.getDefinitionName());
+        String source = logSearchWebAlert.getSource();
+        JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+        LOG.debug("Source before update : " + sourceJson);
+
+        JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+        uriJson.remove("https_property");
+        uriJson.remove("https_property_value");
+        uriJson.addProperty("https_property", "{{logsearch-env/logsearch_ui_protocol}}");
+        uriJson.addProperty("https_property_value", "https");
+
+        LOG.debug("Source after update : " + sourceJson);
+        logSearchWebAlert.setSource(sourceJson.toString());
+        alertDefinitionDAO.merge(logSearchWebAlert);
       }
     }
   }
