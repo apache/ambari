@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -52,6 +53,7 @@ public class MapperDateTest {
 
     assertEquals("Value wasn't matched properly", d, mappedValue);
     assertEquals("Value wasn't put into jsonObj", d, jsonObj.remove("someField"));
+    assertEquals("Value wasn't put into jsonObj", d.getTime(), jsonObj.remove(LogFeederConstants.IN_MEMORY_TIMESTAMP));
     assertTrue("jsonObj is not empty", jsonObj.isEmpty());
   }
 
@@ -73,6 +75,7 @@ public class MapperDateTest {
 
     assertEquals("Value wasn't matched properly", d, mappedValue);
     assertEquals("Value wasn't put into jsonObj", d, jsonObj.remove("someField"));
+    assertEquals("Value wasn't put into jsonObj", d.getTime(), jsonObj.remove(LogFeederConstants.IN_MEMORY_TIMESTAMP));
     assertTrue("jsonObj is not empty", jsonObj.isEmpty());
   }
 
