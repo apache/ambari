@@ -169,28 +169,31 @@ public class Utils {
 			return false;
 		}
   }
-	public StreamingOutput streamResponse(final InputStream is) {
-		return new StreamingOutput() {
-			@Override
-			public void write(OutputStream os) throws IOException,
-				WebApplicationException {
-				BufferedInputStream bis=new BufferedInputStream(is);
-				BufferedOutputStream bos=new BufferedOutputStream(os);
-				try {
-					int data;
-					while ((data = bis.read()) != -1) {
-						bos.write(data);
-					}
-					is.close();
-					os.close();
-				}catch (IOException e){
-					LOGGER.error(e.getMessage(),e);
-					throw e;
-				}catch (Exception e){
-					LOGGER.error(e.getMessage(),e);
-					throw new RuntimeException(e);
-				}
-			}
-		};
-	}
+
+  public StreamingOutput streamResponse(final InputStream is) {
+    return new StreamingOutput() {
+      @Override
+      public void write(OutputStream os) throws IOException,
+        WebApplicationException {
+        BufferedInputStream bis = new BufferedInputStream(is);
+        BufferedOutputStream bos = new BufferedOutputStream(os);
+        try {
+          int data;
+          while ((data = bis.read()) != -1) {
+            bos.write(data);
+          }
+          bos.flush();
+          is.close();
+        } catch (IOException e) {
+          LOGGER.error(e.getMessage(), e);
+          throw e;
+        } catch (Exception e) {
+          LOGGER.error(e.getMessage(), e);
+          throw new RuntimeException(e);
+        } finally {
+          bis.close();
+        }
+      }
+    };
+  }
 }
