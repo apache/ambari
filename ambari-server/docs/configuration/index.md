@@ -162,6 +162,7 @@ The following are the properties which can be used to configure Ambari.
 | mpacks.staging.path | The Ambari Management Pack staging directory on the Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/mpacks`</ul> | | 
 | packages.pre.installed | Determines whether Ambari Agent instances have already have the necessary stack software installed |`false` | 
 | pam.configuration | The PAM configuration file. | | 
+| property.mask.file | The path of the file which lists the properties that should be masked from the api that returns ambari.properties | | 
 | proxy.allowed.hostports | A comma-separated whitelist of host and port values which Ambari Server can use to determine if a proxy value is valid. |`*:*` | 
 | recommendations.artifacts.lifetime | The amount of time that Recommendation API data is kept on the Ambari Server file system. This is specified using a `hdwmy` syntax for pairing the value with a time unit (hours, days, weeks, months, years)<br/><br/>The following are examples of valid values:<ul><li>`8h`<li>`2w`<li>`1m`</ul> |`1w` | 
 | recommendations.artifacts.rollover.max | Maximum number of recommendations artifacts at a given time<br/><br/>The following are examples of valid values:<ul><li>`50`<li>`10`<li>`100`</ul> |`100` | 

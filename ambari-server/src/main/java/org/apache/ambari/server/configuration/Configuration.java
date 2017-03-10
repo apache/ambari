@@ -35,6 +35,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -866,6 +867,12 @@ public class Configuration {
   @Markdown(description = "The timeout, used by the `timeout` command in linux, when checking mounts for free capacity.")
   public static final ConfigurationProperty<String> CHECK_MOUNTS_TIMEOUT = new ConfigurationProperty<>(
       "agent.check.mounts.timeout", "0");
+  /**
+   * The path of the file which lists the properties that should be masked from the api that returns ambari.properties
+   */
+  @Markdown(description = "The path of the file which lists the properties that should be masked from the api that returns ambari.properties")
+  public static final ConfigurationProperty<String> PROPERTY_MASK_FILE = new ConfigurationProperty<>(
+      "property.mask.file", null);
 
   /**
    * The name of the database.
@@ -2685,6 +2692,7 @@ public class Configuration {
 
   private Properties properties;
   private Properties log4jProperties = new Properties();
+  private Set<String> propertiesToMask = null;
   private String ambariUpgradeConfigUpdatesFilePath;
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
@@ -4067,6 +4075,9 @@ public class Configuration {
   public String getJCEName() {
     return getProperty(JCE_NAME);
   }
+  public String getAmbariBlacklistFile() {
+    return getProperty(PROPERTY_MASK_FILE);
+  }
 
   public String getServerDBName() {
     return getProperty(SERVER_DB_NAME);
@@ -4328,6 +4339,37 @@ public class Configuration {
    */
   public int getHttpResponseHeaderSize() {
     return Integer.parseInt(getProperty(SERVER_HTTP_RESPONSE_HEADER_SIZE));
+  }
+
+  /**
+   * @return the set of properties to mask in the api that
+   * returns ambari.properties
+   */
+  public Set<String> getPropertiesToBlackList()
+  {
+    if (propertiesToMask != null) {
+      return propertiesToMask;
+    }
+    Properties blacklistProperties = new Properties();
+    String blacklistFile = getAmbariBlacklistFile();
+    propertiesToMask = new HashSet<String>();
+    if(blacklistFile != null) {
+      File propertiesMaskFile = new File(blacklistFile);
+      InputStream inputStream = null;
+      if(propertiesMaskFile.exists()) {
+        try {
+          inputStream = new FileInputStream(propertiesMaskFile);
+	  blacklistProperties.load(inputStream);
+	  propertiesToMask = blacklistProperties.stringPropertyNames();
+        } catch (Exception e) {
+	  String message = String.format("Blacklist properties file %s cannot be read", blacklistFile);
+          LOG.error(message);
+        } finally {
+	  IOUtils.closeQuietly(inputStream);
+        }
+      }
+    }
+    return propertiesToMask;
   }
 
   public Map<String, String> getAmbariProperties() {

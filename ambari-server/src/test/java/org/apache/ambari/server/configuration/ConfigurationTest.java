@@ -299,6 +299,17 @@ public class ConfigurationTest {
     Assert.assertEquals("value", props.get("name"));
   }
 
+  @Test
+  public void testGetAmbariBlacklistFile() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertEquals(null, conf.getAmbariBlacklistFile());
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.PROPERTY_MASK_FILE.getKey(), "ambari-blacklist.properties");
+    conf = new Configuration(ambariProperties);
+    Assert.assertEquals("ambari-blacklist.properties", conf.getAmbariBlacklistFile());
+  }
+
   @Rule
   public ExpectedException exception = ExpectedException.none();
 
