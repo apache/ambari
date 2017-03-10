@@ -392,6 +392,13 @@
       </service>
     </group>
 
+    <group name="SLIDER" title="Slider">
+      <skippable>true</skippable>
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
+    </group>
+
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -457,13 +464,6 @@
         <component>SUPERVISOR</component>
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
-      </service>
-    </group>
-
-    <group name="SLIDER" title="Slider">
-      <skippable>true</skippable>
-      <service name="SLIDER">
-        <component>SLIDER</component>
       </service>
     </group>
 
