@@ -61,6 +61,7 @@ public class DocConstants {
   public class ServiceDescriptions {
     public static final String LEVEL_D = "filter for log level";
     public static final String BUNDLE_ID = "filter for host";
+    public static final String CLUSTER_D = "filter for clusters (comma separated list)";
     public static final String FILE_NAME_D = "File name filter which is supported from browser url";
     public static final String HOST_NAME_D = "Host name filter which is supported from browser url";
     public static final String COMPONENT_NAME_D = "Component name filter which is supported from browser url";

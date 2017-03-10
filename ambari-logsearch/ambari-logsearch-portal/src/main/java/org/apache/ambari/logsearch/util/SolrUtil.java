@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Splitter;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
 import org.apache.lucene.analysis.path.PathHierarchyTokenizerFactory;
@@ -177,6 +178,18 @@ public class SolrUtil {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  public static SolrQuery addListFilterToSolrQuery(SolrQuery solrQuery, String fieldName, String fieldValue) {
+    if (org.apache.commons.lang.StringUtils.isNotEmpty(fieldValue)) {
+      List<String> clusters = Splitter.on(",").splitToList(fieldValue);
+      if (clusters.size() > 1) {
+        solrQuery.addFilterQuery(String.format("%s:(%s)", fieldName, org.apache.commons.lang.StringUtils.join(clusters, " OR ")));
+      } else {
+        solrQuery.addFilterQuery(String.format("%s:%s", fieldName, clusters.get(0)));
+      }
+    }
+    return solrQuery;
   }
   
   private static Map<String, Object> getFieldTypeInfoMap(String fieldTypeMetaData) {

@@ -27,6 +27,7 @@ import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrTokenizer;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.Query;
 import org.springframework.data.solr.core.query.SimpleFilterQuery;
@@ -141,6 +142,10 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
       }
     }
     return query;
+  }
+
+  public SolrQuery addListFilterToSolrQuery(SolrQuery solrQuery, String fieldName, String fieldValue) {
+    return SolrUtil.addListFilterToSolrQuery(solrQuery, fieldName, fieldValue);
   }
 
   public abstract LogType getLogType();

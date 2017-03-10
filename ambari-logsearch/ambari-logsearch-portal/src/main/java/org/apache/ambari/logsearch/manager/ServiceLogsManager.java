@@ -34,6 +34,7 @@ import javax.inject.Named;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -98,6 +99,7 @@ import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ID;
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.SEQUENCE_ID;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
@@ -146,12 +148,12 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public GroupListResponse getHosts() {
-    return getFields(HOST, SolrHostLogData.class);
+  public GroupListResponse getHosts(String clusters) {
+    return getFields(HOST, clusters, SolrHostLogData.class);
   }
 
-  public GroupListResponse getComponents() {
-    return getFields(COMPONENT, SolrComponentTypeLogData.class);
+  public GroupListResponse getComponents(String clusters) {
+    return getFields(COMPONENT, clusters, SolrComponentTypeLogData.class);
   }
 
   public GraphDataListResponse getAggregatedInfo(ServiceLogAggregatedInfoRequest request) {
@@ -164,16 +166,21 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return responseDataGenerator.generateSimpleGraphResponse(response, hierarchy);
   }
 
-  public CountDataListResponse getFieldCount(String field) {
-    return responseDataGenerator.generateCountResponseByField(serviceLogsSolrDao.process(conversionService.convert(field, SimpleFacetQuery.class)), field);
+  public CountDataListResponse getFieldCount(String field, String clusters) {
+    SimpleFacetQuery facetQuery = conversionService.convert(field, SimpleFacetQuery.class);
+    if (StringUtils.isEmpty(clusters)) {
+      List<String> clusterFilterList = Splitter.on(",").splitToList(clusters);
+      facetQuery.addFilterQuery(new SimpleFilterQuery(new Criteria(CLUSTER).in(clusterFilterList)));
+    }
+    return responseDataGenerator.generateCountResponseByField(serviceLogsSolrDao.process(facetQuery), field);
   }
 
-  public CountDataListResponse getComponentsCount() {
-    return getFieldCount(COMPONENT);
+  public CountDataListResponse getComponentsCount(String clusters) {
+    return getFieldCount(COMPONENT, clusters);
   }
 
-  public CountDataListResponse getHostsCount() {
-    return getFieldCount(HOST);
+  public CountDataListResponse getHostsCount(String clusters) {
+    return getFieldCount(HOST, clusters);
   }
 
   public NodeListResponse getTreeExtension(ServiceLogHostComponentRequest request) {
@@ -525,9 +532,10 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  private <T extends LogData> GroupListResponse getFields(String field, Class<T> clazz) {
+  private <T extends LogData> GroupListResponse getFields(String field, String clusters, Class<T> clazz) {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
+    SolrUtil.addListFilterToSolrQuery(solrQuery, CLUSTER, clusters);
     GroupListResponse collection = new GroupListResponse();
     SolrUtil.setFacetField(solrQuery,
       field);

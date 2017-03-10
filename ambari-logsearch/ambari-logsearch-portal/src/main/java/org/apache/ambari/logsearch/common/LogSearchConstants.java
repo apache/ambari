@@ -71,6 +71,7 @@ public class LogSearchConstants {
   public static final String REQUEST_PARAM_STACK_BY = "stackBy";
   public static final String REQUEST_PARAM_UNIT = "unit";
   public static final String REQUEST_PARAM_TOP = "top";
+  public static final String REQUEST_PARAM_CLUSTER_NAMES = "clusters";
   public static final String REQUEST_PARAM_BUNDLE_ID = "bundle_id";
   public static final String REQUEST_PARAM_START_INDEX = "startIndex";
   public static final String REQUEST_PARAM_PAGE = "page";

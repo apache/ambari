@@ -44,10 +44,10 @@ public class ServiceLogLevelDateRangeRequestQueryConverterTest extends AbstractR
     // WHEN
     SolrQuery query = underTest.convert(request);
     // THEN
-    assertEquals("?q=*%3A*&facet=true&facet.pivot=%7B%21range%3Dr1%7Dlevel&facet.mincount=1&facet.limit=-1" +
-      "&facet.sort=index&facet.range=%7B%21tag%3Dr1%7Dlogtime&f.logtime.facet.range.start=2016-09-13T22%3A00%3A01.000Z" +
-      "&f.logtime.facet.range.end=2016-09-14T22%3A00%3A01.000Z&f.logtime.facet.range.gap=%2B1HOUR&rows=0&start=0&fq=level%3A%28WARN+OR+ERROR+OR+FATAL%29",
-      query.toQueryString());
+    assertEquals("?q=*%3A*&facet=true&facet.pivot=%7B%21range%3Dr1%7Dlevel&facet.mincount=1&facet.limit=-1&facet.sort=index" +
+      "&facet.range=%7B%21tag%3Dr1%7Dlogtime&f.logtime.facet.range.start=2016-09-13T22%3A00%3A01.000Z" +
+      "&f.logtime.facet.range.end=2016-09-14T22%3A00%3A01.000Z&f.logtime.facet.range.gap=%2B1HOUR&rows=0&start=0" +
+      "&fq=level%3A%28WARN+OR+ERROR+OR+FATAL%29&fq=cluster%3Acl1", query.toQueryString());
   }
 
   @Test
