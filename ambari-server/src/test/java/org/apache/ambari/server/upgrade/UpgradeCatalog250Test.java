@@ -343,6 +343,39 @@ public class UpgradeCatalog250Test {
     easyMockSupport.verifyAll();
   }
 
+  @Test
+  public void testUpdateAlerts_LogSearchUIWebAlert() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity logSearchWebUIAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final Injector mockInjector = createInjector(mockAmbariManagementController, mockClusters, mockAlertDefinitionDAO);
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("logsearch_ui")))
+      .andReturn(logSearchWebUIAlertMock).atLeastOnce();
+    expect(logSearchWebUIAlertMock.getSource()).andReturn("{\"uri\": {\n" +
+      "            \"http\": \"{{logsearch-env/logsearch_ui_port}}\",\n" +
+      "            \"https\": \"{{logsearch-env/logsearch_ui_port}}\"\n" +
+      "          } }");
+
+    logSearchWebUIAlertMock.setSource("{\"uri\":{\"http\":\"{{logsearch-env/logsearch_ui_port}}\",\"https\":\"{{logsearch-env/logsearch_ui_port}}\",\"https_property\":\"{{logsearch-env/logsearch_ui_protocol}}\",\"https_property_value\":\"https\"}}");
+
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog250.class).updateLogSearchAlert();
+    easyMockSupport.verifyAll();
+  }
+
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
@@ -358,6 +391,7 @@ public class UpgradeCatalog250Test {
     Method updateZeppelinConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateZeppelinConfigs");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateLogSearchAlert = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchAlert");
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
@@ -383,6 +417,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateRangerUrlConfigs)
         .addMockedMethod(updateYarnSite)
         .addMockedMethod(updateAlerts)
+        .addMockedMethod(updateLogSearchAlert)
         .addMockedMethod(removeAlertDuplicates)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(fixHBaseMasterCPUUtilizationAlertDefinition)
@@ -434,6 +469,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateStormAlerts();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateLogSearchAlert();
     expectLastCall().once();
 
     upgradeCatalog250.removeAlertDuplicates();
