@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.rest;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.Valid;
@@ -27,11 +28,13 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
@@ -84,16 +87,16 @@ public class ServiceLogsResource {
   @Path("/hosts")
   @Produces({"application/json"})
   @ApiOperation(GET_HOSTS_OD)
-  public GroupListResponse getHosts() {
-    return serviceLogsManager.getHosts();
+  public GroupListResponse getHosts(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+    return serviceLogsManager.getHosts(clusters);
   }
 
   @GET
   @Path("/components")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENTS_OD)
-  public GroupListResponse getComponents() {
-    return serviceLogsManager.getComponents();
+  public GroupListResponse getComponents(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+    return serviceLogsManager.getComponents(clusters);
   }
 
   @GET
@@ -108,16 +111,16 @@ public class ServiceLogsResource {
   @Path("/components/count")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENTS_COUNT_OD)
-  public CountDataListResponse getComponentsCount() {
-    return serviceLogsManager.getComponentsCount();
+  public CountDataListResponse getComponentsCount(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+    return serviceLogsManager.getComponentsCount(clusters);
   }
 
   @GET
   @Path("/hosts/count")
   @Produces({"application/json"})
   @ApiOperation(GET_HOSTS_COUNT_OD)
-  public CountDataListResponse getHostsCount() {
-    return serviceLogsManager.getHostsCount();
+  public CountDataListResponse getHostsCount(@QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES) @Nullable String clusters) {
+    return serviceLogsManager.getHostsCount(clusters);
   }
 
   @GET

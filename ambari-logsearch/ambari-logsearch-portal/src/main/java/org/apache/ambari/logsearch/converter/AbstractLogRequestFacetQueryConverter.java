@@ -30,6 +30,7 @@ import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
 import java.util.List;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
 
@@ -56,6 +57,7 @@ public abstract class AbstractLogRequestFacetQueryConverter<SOURCE extends BaseL
     facetQuery.setRows(0);
     addComponentFilters(facetQuery, request);
     appendFacetQuery(facetQuery, request);
+    addInFilterQuery(facetQuery, CLUSTER, splitValueAsList(request.getClusters(), ","));
     return facetQuery;
   }
 

@@ -22,6 +22,8 @@ import org.apache.ambari.logsearch.model.request.impl.BaseLogRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.data.solr.core.query.Query;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
+
 public abstract class AbstractLogRequestQueryConverter<REQUEST_TYPE extends BaseLogRequest, QUERY_TYPE extends Query>
   extends AbstractSearchRequestQueryConverter<REQUEST_TYPE, QUERY_TYPE> {
 
@@ -30,6 +32,7 @@ public abstract class AbstractLogRequestQueryConverter<REQUEST_TYPE extends Base
     addComponentFilters(request, query);
     addIncludeFieldValues(query, StringEscapeUtils.unescapeXml(request.getIncludeQuery()));
     addExcludeFieldValues(query, StringEscapeUtils.unescapeXml(request.getExcludeQuery()));
+    addInFilterQuery(query, CLUSTER, splitValueAsList(request.getClusters(), ","));
     return extendLogQuery(request, query);
   }
 

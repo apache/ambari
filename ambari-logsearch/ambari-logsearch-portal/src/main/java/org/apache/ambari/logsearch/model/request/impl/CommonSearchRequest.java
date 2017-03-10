@@ -24,6 +24,7 @@ import org.apache.ambari.logsearch.model.request.SearchRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.QueryParam;
 
 public class CommonSearchRequest implements SearchRequest, CommonSearchParamDefinition {
@@ -48,6 +49,10 @@ public class CommonSearchRequest implements SearchRequest, CommonSearchParamDefi
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_END_TIME)
   private String endTime;
+
+  @Nullable
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES)
+  private String clusters;
 
   @Override
   public String getStartIndex() {
@@ -118,7 +123,17 @@ public class CommonSearchRequest implements SearchRequest, CommonSearchParamDefi
   public void setEndTime(String endTime) {
     this.endTime = endTime;
   }
-  
+
+  @Override
+  public String getClusters() {
+    return clusters;
+  }
+
+  @Override
+  public void setClusters(String clusters) {
+    this.clusters = clusters;
+  }
+
   @Override
   public String toString() {
     return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);

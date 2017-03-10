@@ -18,5 +18,15 @@
  */
 package org.apache.ambari.logsearch.model.request;
 
-public interface SearchRequest extends ClustersParamDefinition {
+import io.swagger.annotations.ApiParam;
+import org.apache.ambari.logsearch.common.LogSearchConstants;
+
+import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.CLUSTER_D;
+
+public interface ClustersParamDefinition {
+
+  String getClusters();
+
+  @ApiParam(value = CLUSTER_D, name = LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES)
+  void setClusters(String cluster);
 }

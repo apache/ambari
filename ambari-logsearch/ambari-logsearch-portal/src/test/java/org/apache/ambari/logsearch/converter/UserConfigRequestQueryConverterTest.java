@@ -40,10 +40,11 @@ public class UserConfigRequestQueryConverterTest extends AbstractRequestConverte
     UserConfigRequest request = new UserConfigRequest();
     request.setRowType("myRowType"); // TODO: validate these 3 fields @Valid on UserConfigRequest object -> not null
     request.setFilterName("myFilterName");
+    request.setClusters("cl1,cl2");
     // WHEN
     SolrQuery queryResult = underTest.convert(request);
     // THEN
-    assertEquals("?q=*%3A*&fq=rowtype%3AmyRowType&fq=filtername%3A*myFilterName*&start=0&rows=10&sort=filtername+asc",
+    assertEquals("?q=*%3A*&fq=rowtype%3AmyRowType&fq=filtername%3A*myFilterName*&fq=cluster%3A%28cl1+OR+cl2%29&start=0&rows=10&sort=filtername+asc",
       queryResult.toQueryString());
   }
 }

@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.QueryParam;
 
@@ -33,6 +34,10 @@ public class HostLogFilesRequest implements HostComponentParamDefinition, Search
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_COMPONENT_NAME)
   private String componentName;
+
+  @Nullable
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_CLUSTER_NAMES)
+  private String clusters;
 
   @Override
   public String getHostName() {
@@ -52,5 +57,15 @@ public class HostLogFilesRequest implements HostComponentParamDefinition, Search
   @Override
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  @Override
+  public String getClusters() {
+    return clusters;
+  }
+
+  @Override
+  public void setClusters(String clusters) {
+    this.clusters = clusters;
   }
 }
