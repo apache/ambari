@@ -36,9 +36,10 @@ class TestMetricsGrafana(RMFTestCase):
   sys.path.append(file_path)
   global metrics_grafana_util
 
+  @patch("metrics_grafana_util.create_grafana_admin_pwd")
   @patch("metrics_grafana_util.create_ams_datasource")
   @patch("metrics_grafana_util.create_ams_dashboards")
-  def test_start(self, create_ams_datasource_mock, create_ams_dashboards_mock):
+  def test_start(self, create_grafana_admin_pwd, create_ams_datasource_mock, create_ams_dashboards_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/metrics_grafana.py",
                        classname = "AmsGrafana",
                        command = "start",
@@ -75,6 +76,7 @@ class TestMetricsGrafana(RMFTestCase):
         not_if = "ambari-sudo.sh su ams -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/run/ambari-metrics-grafana/grafana-server.pid && ps -p `cat /var/run/ambari-metrics-grafana/grafana-server.pid`'",
         user = 'ams',
     )
+    create_grafana_admin_pwd.assertCalled()
     create_ams_datasource_mock.assertCalled()
     create_ams_dashboards_mock.assertCalled()
     self.assertNoMoreResources()
