@@ -139,12 +139,21 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
       }
     } else if (isLastPage) {
       ServiceLogResponse logResponse = getLastPage(serviceLogsSolrDao, solrQuery, event);
-      if(logResponse == null){
+      if (logResponse == null){
         logResponse = new ServiceLogResponse();
       }
       return logResponse;
     } else {
-      return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao, event);
+      ServiceLogResponse response = getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao, event);
+      if (response.getTotalCount() > 0 && CollectionUtils.isEmpty(response.getLogList())) {
+        request.setLastPage(true);
+        solrQuery = conversionService.convert(request, SimpleQuery.class);
+        ServiceLogResponse lastResponse = getLastPage(serviceLogsSolrDao, solrQuery, event);
+        if (lastResponse != null){
+          response = lastResponse;
+        }
+      }
+      return response;
     }
   }
 
