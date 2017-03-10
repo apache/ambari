@@ -477,7 +477,7 @@ class Controller(threading.Thread):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
       self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
-      ExitHelper().register(self.statusCommandsExecutor.kill, "CLEANUP_KILLING")
+      ExitHelper().register(self.statusCommandsExecutor.kill, "CLEANUP_KILLING", can_relaunch=False)
       self.actionQueue.start()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
