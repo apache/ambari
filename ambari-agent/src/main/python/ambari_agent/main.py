@@ -45,23 +45,32 @@ def fix_subprocess_racecondition():
 
 def fix_subprocess_popen():
   '''
-  http://bugs.python.org/issue19809
+  Workaround for race condition in starting subprocesses concurrently from
+  multiple threads via the subprocess and multiprocessing modules.
+  See http://bugs.python.org/issue19809 for details and repro script.
   '''
   import os
   import sys
 
   if os.name == 'posix' and sys.version_info[0] < 3:
+    from multiprocessing import forking
     import subprocess
     import threading
 
-    original_init = subprocess.Popen.__init__
-    lock = threading.RLock()
+    sp_original_init = subprocess.Popen.__init__
+    mp_original_init = forking.Popen.__init__
+    lock = threading.RLock() # guards subprocess creation
 
-    def locked_init(self, *a, **kw):
+    def sp_locked_init(self, *a, **kw):
       with lock:
-        original_init(self, *a, **kw)
+        sp_original_init(self, *a, **kw)
 
-    subprocess.Popen.__init__ = locked_init
+    def mp_locked_init(self, *a, **kw):
+      with lock:
+        mp_original_init(self, *a, **kw)
+
+    subprocess.Popen.__init__ = sp_locked_init
+    forking.Popen.__init__ = mp_locked_init
 
 
 fix_subprocess_popen()
