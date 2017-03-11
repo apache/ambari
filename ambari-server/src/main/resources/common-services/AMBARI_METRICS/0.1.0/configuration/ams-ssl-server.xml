@@ -34,6 +34,9 @@
     <value>bigdata</value>
     <property-type>PASSWORD</property-type>
     <description>Password to open the trust store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -59,6 +62,9 @@
     <value>bigdata</value>
     <property-type>PASSWORD</property-type>
     <description>Password to open the keystore file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -66,6 +72,9 @@
     <value>bigdata</value>
     <property-type>PASSWORD</property-type>
     <description>Password for private key in keystore file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
