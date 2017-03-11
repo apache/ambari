@@ -89,6 +89,7 @@ public class StackUpgradeFinishListenerTest extends EasyMockSupport {
     expect(cluster.getServices()).andReturn(services);
     expect(service.getServiceComponents()).andReturn(components);
     serviceComponent.updateComponentInfo();
+    service.updateServiceInfo();
   }
 
   @Test

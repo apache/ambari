@@ -66,18 +66,20 @@ public class StackUpgradeFinishListener {
 
     Cluster cluster = event.getCluster();
 
-    //update component info due to new stack
     for (Service service : cluster.getServices().values()) {
-      for (ServiceComponent sc : service.getServiceComponents().values()) {
-        try {
+      try {
+        //update service info due to new stack
+        service.updateServiceInfo();
+        //update component info due to new stack
+        for (ServiceComponent sc : service.getServiceComponents().values()) {
           sc.updateComponentInfo();
-        } catch (AmbariException e) {
+        }
+      } catch (AmbariException e) {
           if (LOG.isErrorEnabled()) {
             LOG.error("Caught AmbariException when update component info", e);
           }
         }
       }
     }
-  }
 
-}
+  }

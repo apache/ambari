@@ -79,7 +79,8 @@ def hive_interactive(name=None):
                   'hive.enforce.sorting']
 
   # List of configs to be excluded from hive2 client, but present in Hive2 server.
-  exclude_list_for_hive2_client = ['javax.jdo.option.ConnectionPassword']
+  exclude_list_for_hive2_client = ['javax.jdo.option.ConnectionPassword',
+                                   'hadoop.security.credential.provider.path']
 
   # Copy Tarballs in HDFS.
   if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):

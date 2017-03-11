@@ -28,6 +28,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
@@ -69,9 +70,10 @@ public class ServiceImpl implements Service {
 
   private final Cluster cluster;
   private final ConcurrentMap<String, ServiceComponent> components = new ConcurrentHashMap<>();
-  private final boolean isClientOnlyService;
-  private final boolean isCredentialStoreSupported;
-  private final boolean isCredentialStoreRequired;
+  private boolean isClientOnlyService;
+  private boolean isCredentialStoreSupported;
+  private boolean isCredentialStoreRequired;
+  private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
@@ -110,6 +112,7 @@ public class ServiceImpl implements Service {
     this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
     this.serviceName = serviceName;
+    this.ambariMetaInfo = ambariMetaInfo;
 
     ClusterServiceEntity serviceEntity = new ClusterServiceEntity();
     serviceEntity.setClusterId(cluster.getClusterId());
@@ -153,6 +156,7 @@ public class ServiceImpl implements Service {
     this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
     serviceName = serviceEntity.getServiceName();
+    this.ambariMetaInfo = ambariMetaInfo;
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
@@ -181,6 +185,29 @@ public class ServiceImpl implements Service {
     isClientOnlyService = sInfo.isClientOnlyService();
     isCredentialStoreSupported = sInfo.isCredentialStoreSupported();
     isCredentialStoreRequired = sInfo.isCredentialStoreRequired();
+  }
+
+
+  /***
+   * Refresh Service info due to current stack
+   * @throws AmbariException
+   */
+  @Override
+  public void updateServiceInfo() throws AmbariException {
+    try {
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(cluster.getDesiredStackVersion().getStackName(),
+              cluster.getDesiredStackVersion().getStackVersion(), getName());
+      isClientOnlyService = serviceInfo.isClientOnlyService();
+      isCredentialStoreSupported = serviceInfo.isCredentialStoreSupported();
+      isCredentialStoreRequired = serviceInfo.isCredentialStoreRequired();
+
+    } catch (ObjectNotFoundException e) {
+      throw new RuntimeException("Trying to create a ServiceInfo"
+              + " not recognized in stack info"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", serviceName=" + getName()
+              + ", stackInfo=" + cluster.getDesiredStackVersion().getStackName());
+    }
   }
 
   @Override
