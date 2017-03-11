@@ -49,7 +49,7 @@
         $navigationContainer.find('li a').each(function (index, link) {
           var $link = $(link);
           var href = $link.attr('data-href') || $link.attr('href');
-          if (path.indexOf(href) !== -1 && !['', '#'].includes(href)) {
+          if (path.indexOf(href) !== -1 && !['', '#'].contains(href)) {
             $link.parent().addClass('active');
           } else {
             $link.parent().removeClass('active');

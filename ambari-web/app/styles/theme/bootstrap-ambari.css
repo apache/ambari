@@ -750,6 +750,7 @@ input.radio:checked + label:after {
   width: 190px;
   background-color: #323544;
   padding: 0;
+  -ms-overflow-style: none;
 }
 .navigation-bar-container ul.nav.side-nav-header {
   width: 190px;
