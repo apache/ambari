@@ -201,7 +201,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   /**
    * Parses input Stings array of format "host1,host2" into Collection of hostnames
    */
-  protected Collection<String> parseHostsStringArrayIntoCollection(String[] hostStrings) {
+  protected Collection<String>  parseHostsStringArrayIntoCollection(String[] hostStrings) {
     Collection<String> result = new HashSet<>();
     if (hostStrings == null) return result;
     for (String s : hostStrings) {
@@ -429,9 +429,20 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       LOG.error("Unable to parse container metrics ", e);
     }
     if (jsonData != null) {
-      // TODO: Container metrics should be able to utilize failover mechanism
+      String collectorHost = getCurrentCollectorHost();
+      containerMetricsUri = constructContainerMetricUri(protocol, collectorHost, port);
       emitMetricsJson(containerMetricsUri, jsonData);
     }
+  }
+
+  protected String constructContainerMetricUri(String protocol, String host, String port) {
+    StringBuilder sb = new StringBuilder(protocol);
+    sb.append("://");
+    sb.append(host);
+    sb.append(":");
+    sb.append(port);
+    sb.append(WS_V1_CONTAINER_METRICS);
+    return sb.toString();
   }
 
   // Taken as is from Ganglia30 implementation

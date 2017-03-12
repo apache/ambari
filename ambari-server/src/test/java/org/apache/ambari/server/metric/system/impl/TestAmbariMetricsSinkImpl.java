@@ -40,7 +40,7 @@ public class TestAmbariMetricsSinkImpl extends AbstractTimelineMetricsSink imple
 
   @Override
   protected String getCollectorUri(String host) {
-    return constructContainerMetricUri(getCollectorProtocol(), host, getCollectorPort());
+    return constructTimelineMetricUri(getCollectorProtocol(), host, getCollectorPort());
   }
 
   @Override

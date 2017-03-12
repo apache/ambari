@@ -246,7 +246,7 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
    */
   @Override
   protected String getCollectorUri(String host) {
-    return constructContainerMetricUri(protocol, host, port);
+    return constructTimelineMetricUri(protocol, host, port);
   }
 
   @Override
