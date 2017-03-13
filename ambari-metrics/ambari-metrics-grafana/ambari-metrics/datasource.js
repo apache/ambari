@@ -41,8 +41,9 @@ define([
 
         //We get a list of components and their associated metrics.
         AmbariMetricsDatasource.prototype.initMetricAppidMapping = function () {
-          return backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
+          return this.doAmbariRequest({ url: '/ws/v1/timeline/metrics/metadata' })
             .then(function (items) {
+              items = items.data;
               allMetrics = {};
               appIds = [];
               _.forEach(items, function (metric,app) {
@@ -101,6 +102,7 @@ define([
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "kafka-topics") {
             alias = alias + ' on ' + target.kbTopic; }
             return function (res) {
+              res = res.data;
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
                 return $q.when(emptyData(target));
@@ -143,6 +145,7 @@ define([
               alias = alias.replace('$druidDataSource', target.sDataSource);
             }
             return function (res) {
+              res = res.data;
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
                 return $q.when(emptyData(target));
@@ -217,9 +220,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
                 metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
-                '&endTime=' + to + precision + seriesAggregator).then(
+                '&endTime=' + to + precision + seriesAggregator }).then(
                 getMetricsData(target)
             );
           };
@@ -239,9 +242,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
@@ -261,9 +264,9 @@ define([
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
-              '&endTime=' + to + precision + topN + seriesAggregator).then(
+              '&endTime=' + to + precision + topN + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
@@ -273,9 +276,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
               + metricAggregator + '&appId=resourcemanager&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
@@ -283,8 +286,8 @@ define([
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime=' 
-            + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime='
+            + from + '&endTime=' + to + precision + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
@@ -295,9 +298,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
               + metricAggregator + '&appId=kafka_broker&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
@@ -307,8 +310,8 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
-            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
+            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
@@ -320,8 +323,8 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform
-                + metricAggregator + '&appId=nimbus&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform
+                + metricAggregator + '&appId=nimbus&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
                 allHostMetricsData(target)
             );
           };
@@ -333,8 +336,8 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.sDataSourceMetric + metricTransform
-                          + metricAggregator + '&appId=druid&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sDataSourceMetric + metricTransform
+                          + metricAggregator + '&appId=druid&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
                           allHostMetricsData(target)
             );
           };
@@ -895,8 +898,8 @@ define([
          * Datasources page if incorrect info is passed on.
          */
         AmbariMetricsDatasource.prototype.testDatasource = function () {
-          return backendSrv.datasourceRequest({
-            url: this.url + '/ws/v1/timeline/metrics/metadata',
+          return this.doAmbariRequest({
+            url: '/ws/v1/timeline/metrics/metadata',
             method: 'GET'
           }).then(function(response) {
             console.log(response);
