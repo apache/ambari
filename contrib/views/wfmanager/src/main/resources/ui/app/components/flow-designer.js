@@ -222,10 +222,14 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
     });
   },
   workflowXmlDownload(workflowXml){
-      var link = document.createElement("a");
+    let link = document.createElement("a"), val = this.get('workflow.name');
+    if(Ember.isBlank(val)) {
       link.download = "workflow.xml";
-      link.href = "data:text/xml,"+encodeURIComponent(vkbeautify.xml(workflowXml));
-      link.click();
+    } else {
+      link.download = val.replace(/\s/g, '_');
+    }
+    link.href = "data:text/xml,"+encodeURIComponent(vkbeautify.xml(workflowXml));
+    link.click();
   },
   nodeRendered: function(){
     if (this.get("isNew")){
