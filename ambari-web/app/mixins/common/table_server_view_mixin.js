@@ -149,6 +149,12 @@ App.TableServerViewMixin = Em.Mixin.create({
       this.refresh();
     }
   },
+
+  /**
+   * Placeholder for `saveStartIndex`
+   */
+  saveStartIndex: Em.K,
+
   /**
    * when new filter applied page index should be reset to first page
    */

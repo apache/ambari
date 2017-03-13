@@ -28,7 +28,6 @@ describe('App.MainConfigHistoryView', function() {
     filteredContent: [],
     refresh: Em.K,
     saveFilterConditions: Em.K,
-    saveStartIndex: sinon.spy(),
     controller: Em.Object.create({
       name: 'mainConfigHistoryController',
       paginationProps: [
@@ -212,8 +211,10 @@ describe('App.MainConfigHistoryView', function() {
   describe('#resetStartIndex()', function() {
     beforeEach(function () {
       sinon.stub(view, 'updatePagination');
+      sinon.spy(view, 'saveStartIndex');
     });
     afterEach(function () {
+      view.saveStartIndex.restore();
       view.updatePagination.restore();
     });
     it('resetStartIndex is false and filteredCount is 0', function() {

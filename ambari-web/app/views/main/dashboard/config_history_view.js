@@ -231,6 +231,10 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     App.loadTimer.finish('Config History Page');
   },
 
+  saveStartIndex: function() {
+    App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
+  }.observes('startIndex'),
+
   /**
    * associations between host property and column index
    * @type {Array}
