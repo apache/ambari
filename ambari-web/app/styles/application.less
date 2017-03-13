@@ -5983,6 +5983,10 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 @config-dependency-t-group-width: 140px;
 @config-dependency-t-filename-width: 150px;
 @config-dependency-t-value-width: 230px;
+@diff-background-insert: #eaffea;
+@diff-background-delete: #ffecec;
+@diff-background-equal: #fff;
+@diff-background-empty: #ddd;
 
 #config-dependencies {
   max-height: 500px;
@@ -6017,17 +6021,18 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         &.empty {
           width: 50%;
         }
-        &.delete, &.insert, &.replace {
-          color: #fff;
-        }
         &.delete {
-          background-color: @health-status-red !important;
+          background-color: @diff-background-delete !important;
         }
         &.insert {
-          background-color: @health-status-green !important;
+          background-color: @diff-background-insert !important;
         }
-        &.replace {
-          background-color: @health-status-orange !important;
+        &.equal, &.not-defined:last-of-type, &.is-removed:first-of-type {
+          background-color: @diff-background-equal;
+        }
+        &.not-defined:first-of-type, &.is-removed:last-of-type {
+          background-color: @diff-background-empty;
+          font-style: italic;
         }
       }
     }

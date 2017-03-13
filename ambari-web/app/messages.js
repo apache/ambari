@@ -463,7 +463,8 @@ Em.I18n.translations = {
   'popup.dependent.configs.table.currentValue': 'Current Value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
   'popup.dependent.configs.table.newValue': 'New Value',
-  'popup.dependent.configs.table.not.defined': 'Not Defined',
+  'popup.dependent.configs.table.undefined': 'Property undefined',
+  'popup.dependent.configs.table.removed': 'Property removed',
 
 
   'popup.dependent.configs.select.config.group.header': 'Select Config Group',
