@@ -316,6 +316,7 @@ class ActionQueue(threading.Thread):
         retryDuration -= delay  # allow one last attempt
         commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
         logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
+        command['commandBeingRetried'] = "true"
         time.sleep(delay)
         continue
       else:

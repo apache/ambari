@@ -370,7 +370,11 @@ class CustomServiceOrchestrator():
         credentialStoreEnabled = (command['credentialStoreEnabled'] == "true")
 
       if credentialStoreEnabled == True:
-        self.generateJceks(command)
+        if 'commandBeingRetried' not in command or command['commandBeingRetried'] != "true":
+          self.generateJceks(command)
+        else:
+          logger.info("Skipping generation of jceks files as this is a retry of the command")
+
 
       json_path = self.dump_command_to_json(command, retry)
       pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
