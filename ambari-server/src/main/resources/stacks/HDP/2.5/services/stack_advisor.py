@@ -1504,10 +1504,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if is_cluster_create_opr or enable_hive_interactive_1st_invocation:
       if total_cluster_capacity <= 4096:
         calculated_tez_am_resource_memory_mb = 256
-      elif total_cluster_capacity > 4096 and total_cluster_capacity <= 73728:
-        calculated_tez_am_resource_memory_mb = 512
-      elif total_cluster_capacity > 73728:
-        calculated_tez_am_resource_memory_mb = 1536
+      elif total_cluster_capacity > 4096 and total_cluster_capacity <= 98304:
+        calculated_tez_am_resource_memory_mb = 1024
+      elif total_cluster_capacity > 98304:
+        calculated_tez_am_resource_memory_mb = 4096
 
       Logger.info("DBG: Calculated and returning 'tez_am_resource_memory_mb' as : {0}".format(calculated_tez_am_resource_memory_mb))
       return float(calculated_tez_am_resource_memory_mb)
