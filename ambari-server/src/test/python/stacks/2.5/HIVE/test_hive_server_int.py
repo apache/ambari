@@ -517,6 +517,8 @@ class TestHiveServerInteractive(RMFTestCase):
     # from there.
     hive_site_conf_for_client = hive_site_conf.copy()
     del hive_site_conf_for_client['javax.jdo.option.ConnectionPassword']
+    if 'hadoop.security.credential.provider.path' in hive_site_conf_for_client:
+      del hive_site_conf_for_client['hadoop.security.credential.provider.path']
 
     for conf_dir in hive_conf_dirs_list:
         # if 'conf_dir' is '/usr/hdp/current/hive-server2-hive2/conf', we don't expect 'javax.jdo.option.ConnectionPassword' config
