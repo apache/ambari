@@ -207,7 +207,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         name: 'common.batch.request_schedules',
         sender: this,
         data: {
-          intervalTimeSeconds: 1,
+          intervalTimeSeconds: 60,
           tolerateSize: 0,
           batches: batches
         }
