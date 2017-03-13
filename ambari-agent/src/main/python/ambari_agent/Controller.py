@@ -48,7 +48,7 @@ from ambari_agent.ClusterConfiguration import  ClusterConfiguration
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
-from ambari_agent.StatusCommandsExecutor import StatusCommandsExecutor
+from ambari_agent.StatusCommandsExecutor import MultiProcessStatusCommandsExecutor, SingleProcessStatusCommandsExecutor
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_utils import get_used_ram
 
@@ -476,7 +476,10 @@ class Controller(threading.Thread):
   def run(self):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
-      self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
+      if self.config.get_multiprocess_status_commands_executor_enabled():
+        self.statusCommandsExecutor = MultiProcessStatusCommandsExecutor(self.config, self.actionQueue)
+      else:
+        self.statusCommandsExecutor = SingleProcessStatusCommandsExecutor(self.config, self.actionQueue)
       ExitHelper().register(self.statusCommandsExecutor.kill, "CLEANUP_KILLING", can_relaunch=False)
       self.actionQueue.start()
       self.register = Register(self.config)
