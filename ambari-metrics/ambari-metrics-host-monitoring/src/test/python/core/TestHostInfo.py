@@ -18,13 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import logging
-from host_info import HostInfo
-import platform
-from unittest import TestCase
-from mock.mock import patch, MagicMock
-from core.config_reader import Configuration
 import collections
+import logging
+import platform
+from host_info import HostInfo
+from mock.mock import patch, MagicMock
+from unittest import TestCase
 
 logger = logging.getLogger()
 
@@ -204,6 +203,146 @@ class TestHostInfo(TestCase):
     self.assertEqual(disk_counter_per_disk['sdisk_sdb1_busy_time'], 15)
     self.assertEqual(disk_counter_per_disk['sdisk_sdb1_read_merged_count'], 16)
     self.assertEqual(disk_counter_per_disk['sdisk_sdb1_write_merged_count'], 17)
+
+  @patch.object(HostInfo, "get_virtual_network_interfaces", new = MagicMock(return_value = ['etc11', 'etc2']))
+  @patch("psutil.net_io_counters")
+  def test_get_network_info_virtual_devices(self, net_io_counters):
+    Stats = collections.namedtuple('interface', ['bytes_sent', 'bytes_recv',
+                                                  'packets_sent', 'packets_recv'
+                                                  ])
+
+    net_stats = Stats(bytes_sent = 0, bytes_recv = 1,
+                          packets_sent = 2, packets_recv = 3
+    )
+
+    all_net_stats = { 'etc11' : net_stats, 'etc2' : net_stats }
+    net_io_counters.return_value = all_net_stats
+
+    c = MagicMock()
+
+    #skip virtual devices
+    c.get_virtual_interfaces_skip.return_value = 'True'
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    self.assertEqual(network_info, {})
+
+    #do not skip virtual devices
+    c.get_virtual_interfaces_skip.return_value = 'False'
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    #len({'bytes_in': ..., 'pkts_in': ..., 'pkts_out': ..., 'bytes_out': ...}) == 4
+    self.assertEqual(len(network_info), 4)
+
+  @patch("psutil.net_io_counters")
+  def test_get_network_info_skip_by_pattern(self, net_io_counters):
+    Stats = collections.namedtuple('interface', ['bytes_sent', 'bytes_recv',
+                                                  'packets_sent', 'packets_recv'
+                                                  ])
+
+    net_stats = Stats(bytes_sent = 0, bytes_recv = 1,
+                          packets_sent = 2, packets_recv = 3
+    )
+
+    all_net_stats = { 'etc11' : net_stats, 'etc2' : net_stats }
+    net_io_counters.return_value = all_net_stats
+
+    c = MagicMock()
+
+    #skip all by pattern
+    c.get_virtual_interfaces_skip.return_value = 'False'
+    c.get_network_interfaces_skip_pattern.return_value = "^etc\d*$"
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    self.assertEqual(network_info, {})
+
+    #skip one by pattern
+    c.get_network_interfaces_skip_pattern.return_value = "^etc\d{1}$"
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    self.assertEqual(len(network_info), 4)
+
+    all_net_stats = { 'etc2' : net_stats }
+    net_io_counters.return_value = all_net_stats
+    c.get_network_interfaces_skip_pattern.return_value = "^etc\d{1}$"
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    self.assertEqual(network_info, {})
+
+    #skip by 'None' pattern
+    c.get_network_interfaces_skip_pattern.return_value = "None"
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    self.assertEqual(len(network_info), 4)
+
+  @patch.object(HostInfo, "get_virtual_network_interfaces", new = MagicMock(return_value = ['etc11', 'etc2']))
+  @patch("psutil.net_io_counters")
+  def test_get_network_info_skip_by_pattern_and_virtual(self, net_io_counters):
+    Stats = collections.namedtuple('interface', ['bytes_sent', 'bytes_recv',
+                                                  'packets_sent', 'packets_recv'
+                                                  ])
+
+    net_stats = Stats(bytes_sent = 0, bytes_recv = 1,
+                          packets_sent = 2, packets_recv = 3
+    )
+
+    all_net_stats = { 'etc11' : net_stats, 'etc2' : net_stats, 'etc333' : net_stats }
+    net_io_counters.return_value = all_net_stats
+
+    c = MagicMock()
+
+    #skip only one by pattern and other as virtual
+    c.get_virtual_interfaces_skip.return_value = 'True'
+    c.get_network_interfaces_skip_pattern.return_value = "^etc\d{3}$"
+    hostinfo = HostInfo(c)
+    network_info = hostinfo.get_network_info()
+
+    self.assertEqual(network_info, {})
+
+  @patch("os.path.isdir")
+  @patch("os.listdir")
+  @patch("os.readlink")
+  @patch("os.path.islink")
+  def test_get_virtual_network_interfaces(self, islink, readlink, listdir, isdir):
+    hostinfo = HostInfo(MagicMock())
+
+    #virtual net device is present
+    isdir.return_value = True
+    listdir.return_value = ['virtual_net_dev']
+    readlink.return_value = "../..devices/virtual/int6"
+    islink.return_value = True
+
+    virtual_net_devices = hostinfo.get_virtual_network_interfaces()
+    self.assertEqual(virtual_net_devices, ['virtual_net_dev'])
+
+    #virtual net device is not present
+    isdir.return_value = True
+    listdir.return_value = ['virtual_net_dev']
+    readlink.return_value = "../..devices/pp01.000/virtio1/int6"
+    islink.return_value = True
+
+    virtual_net_devices = hostinfo.get_virtual_network_interfaces()
+    self.assertEqual(virtual_net_devices, [])
+
+    #symlinks not present
+    isdir.return_value = True
+    listdir.return_value = ['virtual_net_dev']
+    readlink.return_value = "../..devices/virtual/int6"
+    islink.return_value = False
+
+    virtual_net_devices = hostinfo.get_virtual_network_interfaces()
+    self.assertEqual(virtual_net_devices, [])
+
+    #sysfs not available
+    isdir.return_value = False
+    virtual_net_devices = hostinfo.get_virtual_network_interfaces()
+
+    self.assertEqual(virtual_net_devices, [])
 
 
 
