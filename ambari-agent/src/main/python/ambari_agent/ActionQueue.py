@@ -146,7 +146,7 @@ class ActionQueue(threading.Thread):
     try:
       while not self.stopped():
         self.processBackgroundQueueSafeEmpty()
-        self.process_status_command_results()
+        self.controller.get_status_commands_executor().process_results() # process status commands
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
@@ -188,14 +188,6 @@ class ActionQueue(threading.Thread):
         if command.has_key('__handle') and command['__handle'].status == None:
           self.process_command(command)
       except Queue.Empty:
-        pass
-
-  def process_status_command_results(self):
-    self.controller.statusCommandsExecutor.process_logs()
-    for result in self.controller.statusCommandsExecutor.get_results():
-      try:
-        self.process_status_command_result(result)
-      except UnicodeDecodeError:
         pass
 
   def createCommandHandle(self, command):
@@ -502,6 +494,12 @@ class ActionQueue(threading.Thread):
     })
 
     self.commandStatuses.put_command_status(handle.command, roleResult)
+
+  def execute_status_command_and_security_status(self, command):
+    component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+    component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(command)
+
+    return command, component_status_result, component_security_status_result
 
   def process_status_command_result(self, result):
     '''

@@ -304,6 +304,9 @@ class AmbariConfig:
     self.set('agent', self.ULIMIT_OPEN_FILES_KEY, value)
 
 
+  def get_multiprocess_status_commands_executor_enabled(self):
+    return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 1)))
+
   def update_configuration_from_registration(self, reg_resp):
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
       if not self.has_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY):
