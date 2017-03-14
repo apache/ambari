@@ -443,6 +443,10 @@ Em.I18n.translations = {
   'popup.clusterCheck.Upgrade.configsMerge.resultingValue': 'Resulting Value',
   'popup.clusterCheck.Upgrade.configsMerge.deprecated': 'Property is deprecated',
   'popup.clusterCheck.Upgrade.configsMerge.willBeRemoved': 'Will be removed',
+  'popup.clusterCheck.Upgrade.configsRecommend.alert': 'We\'ve detected the need to update the following properties,' +
+  ' but cannot do so automatically since they have been customized.  Please review these properties manually,' +
+  ' and update the properties manually where necessary.',
+  'popup.clusterCheck.Upgrade.configsRecommend.title': 'Recommended Configuration Changes: Manual Review',
   'popup.clusterCheck.Security.header': 'Enable Security',
   'popup.clusterCheck.Security.title': 'Security Requirements Not Met',
   'popup.clusterCheck.Security.alert': 'You must meet the following requirements before you can enable security.',

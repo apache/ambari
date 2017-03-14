@@ -938,12 +938,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         configs = configsMergeCheckData.reduce(function (allConfigs, item) {
           var isDeprecated = Em.isNone(item.new_stack_value),
             willBeRemoved = Em.isNone(item.result_value);
-          if (!isDeprecated && !willBeRemoved && Em.compare(item.current, item.result_value) === 0) {
-            return allConfigs;
-          }
+
           return allConfigs.concat({
             type: item.type,
             name: item.property,
+            wasModified: (!isDeprecated && !willBeRemoved && Em.compare(item.current, item.result_value) === 0),
             currentValue: item.current,
             recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
             isDeprecated: isDeprecated,
@@ -1077,7 +1076,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
                 type: event.context.get('type')
               });
             }
-          }, configs, version.get('displayName'));
+          }, configs);
         }
       }),
 
