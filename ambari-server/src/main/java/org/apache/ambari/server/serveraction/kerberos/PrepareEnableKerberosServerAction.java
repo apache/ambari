@@ -79,9 +79,22 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    Map<String, Set<String>> propertiesToBeRemoved = new HashMap<>();
+    KerberosHelper kerberosHelper = getKerberosHelper();
+    Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
+    Map<String, Set<String>> propertiesToRemove = new HashMap<>();
+    Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
+    Set<String> services = cluster.getServices().keySet();
+
+    // Calculate the current host-specific configurations. These will be used to replace
+    // variables within the Kerberos descriptor data
+    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
+
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-      kerberosConfigurations, null, propertiesToBeRemoved, true, true);
+        configurations, kerberosConfigurations, true, propertiesToIgnore);
+
+    kerberosHelper.applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations,
+          propertiesToIgnore, propertiesToRemove, true);
+
     processAuthToLocalRules(cluster, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters));
 
     // Ensure the cluster-env/security_enabled flag is set properly
@@ -92,7 +105,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
     }
     clusterEnvProperties.put(KerberosHelper.SECURITY_ENABLED_PROPERTY_NAME, "true");
 
-    processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToBeRemoved);
+    processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToRemove);
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }

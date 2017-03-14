@@ -293,8 +293,6 @@ public interface KerberosHelper {
    * @param existingConfigurations the cluster's existing configurations
    * @param kerberosConfigurations the configuration updates to make
    * @param propertiesToIgnore     the configuration properties that should be ignored when applying recommendations
-   * @param propertiesToInsert     the configuration properties that must be inserted to cluster config are inserted
-   *                               into this map in case if provided (not null) and kerberosEnabled = false
    * @param propertiesToRemove     the configuration properties that must be removed from cluster config are inserted
    *                               into this map in case if provided (not null) and kerberosEnabled
    * @param kerberosEnabled        true if kerberos is (to be) enabled; otherwise false
@@ -305,7 +303,6 @@ public interface KerberosHelper {
                                                             Map<String, Map<String, String>> existingConfigurations,
                                                             Map<String, Map<String, String>> kerberosConfigurations,
                                                             Map<String, Set<String>> propertiesToIgnore,
-                                                            Map<String, Map<String, String>> propertiesToInsert,
                                                             Map<String, Set<String>> propertiesToRemove,
                                                             boolean kerberosEnabled)
       throws AmbariException;
