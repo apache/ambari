@@ -175,6 +175,13 @@ describe('App.AlertDefinition', function () {
     RECOVERY: 'glyphicon glyphicon-oil'
   }});
 
+  describe('#lastTriggeredFormatted', function () {
+    it('should be empty', function () {
+      model.set('lastTriggered', 0);
+      expect(model.get('lastTriggeredFormatted')).to.be.equal('');
+    });
+  });
+
   describe('REOPEN', function () {
 
     describe('#getSortDefinitionsByStatus', function () {

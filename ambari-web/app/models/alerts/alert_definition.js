@@ -100,7 +100,8 @@ App.AlertDefinition = DS.Model.extend({
    * @type {string}
    */
   lastTriggeredFormatted: function () {
-    return dateUtils.dateFormat(this.get('lastTriggered'));
+    let lastTriggered = this.get('lastTriggered');
+    return lastTriggered ? dateUtils.dateFormat(lastTriggered) : '';
   }.property('lastTriggered'),
 
   /**
@@ -159,6 +160,16 @@ App.AlertDefinition = DS.Model.extend({
     });
     return text;
   }.property('summary'),
+
+  latestTextSummary: function () {
+    var latestText = this.get('latestText');
+    var ellipsis = '...';
+    var summaryLength = 400;
+    if(latestText.length > summaryLength) {
+      latestText = latestText.substring(0, summaryLength - ellipsis.length) + ellipsis;
+    }
+    return latestText;
+  }.property('latestText'),
 
   isAmbariService: Em.computed.equal('service._id', 'AMBARI'),
 

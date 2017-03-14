@@ -104,11 +104,10 @@
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Pre Upgrade Ranger Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database.
-                If audit database size is too large( > 3GB ) then follow the below instructions:
-                1. Backup the audit table from audit database.
-                2. Truncate audit table.
-                3. Follow upgrade process and once completed then restore audit data to audit table.</message>
+          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database. If audit database size is too large( > 3GB ) then follow the below instructions:</message>
+          <message>1. Backup the audit table from audit database.</message>
+          <message>2. Truncate audit table.</message>
+          <message>3. Follow upgrade process and once completed then restore audit data to audit table.</message>
         </task>
       </execute-stage>
 
@@ -403,6 +402,13 @@
       </service>
     </group>
 
+    <group name="SLIDER" title="Slider">
+      <skippable>true</skippable>
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
+    </group>
+
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -468,13 +474,6 @@
         <component>SUPERVISOR</component>
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
-      </service>
-    </group>
-
-    <group name="SLIDER" title="Slider">
-      <skippable>true</skippable>
-      <service name="SLIDER">
-        <component>SLIDER</component>
       </service>
     </group>
 
@@ -672,6 +671,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db" />
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
           <task xsi:type="configure" id="hadoop_env_zkfc_security_opts" />
+          <task xsi:type="configure" id="hdfs_securitylogger_additivity" />
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->

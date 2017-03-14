@@ -160,10 +160,39 @@ describe('App.SubSectionTab', function () {
 
   });
 
-  App.TestAliases.testAsComputedEveryBy(getModel(), 'isHiddenByFilter', 'visibleProperties', 'isHiddenByFilter', true);
+  describe('#isHiddenByFilter', function () {
 
-  App.TestAliases.testAsComputedGt(getModel(), 'someConfigIsVisible', 'visibleProperties.length', 0);
+    Em.A([
+      {
+        configs: [],
+        e: false,
+        m: 'Can\'t be hidden if there is no configs'
+      },
+      {
+        configs: [Em.Object.create({isHiddenByFilter: true, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})],
+        e: true,
+        m: 'All configs are hidden'
+      },
+      {
+        configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})],
+        e: false,
+        m: 'Some configs are hidden'
+      },
+      {
+        configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})],
+        e: false,
+        m: 'Some configs are hidden'
+      },
+      {
+        configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: false, isVisible: true})],
+        e: false,
+        m: 'No configs are hidden'
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        subSectionTab.set('configs', test.configs);
+        expect(subSectionTab.get('isHiddenByFilter')).to.equal(test.e);
+      })
+    });
 
-  App.TestAliases.testAsComputedAnd(getModel(), 'isVisible', ['!isHiddenByFilter', '!isHiddenByConfig', 'someConfigIsVisible']);
-
-});
+  });});

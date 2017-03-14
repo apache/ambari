@@ -55,7 +55,7 @@ Router.map(function() {
           this.route('ddl');
           this.route('stats');
           this.route('auth');
-        })
+        });
       });
     });
   });

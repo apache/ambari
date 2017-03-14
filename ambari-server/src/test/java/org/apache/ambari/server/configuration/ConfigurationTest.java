@@ -299,6 +299,17 @@ public class ConfigurationTest {
     Assert.assertEquals("value", props.get("name"));
   }
 
+  @Test
+  public void testGetAmbariBlacklistFile() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertEquals(null, conf.getAmbariBlacklistFile());
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.PROPERTY_MASK_FILE.getKey(), "ambari-blacklist.properties");
+    conf = new Configuration(ambariProperties);
+    Assert.assertEquals("ambari-blacklist.properties", conf.getAmbariBlacklistFile());
+  }
+
   @Rule
   public ExpectedException exception = ExpectedException.none();
 
@@ -866,7 +877,7 @@ public class ConfigurationTest {
     Assert.assertTrue(completionServiceTimeout >= SMALLEST_COMPLETION_SERIVCE_TIMEOUT_MS);
     Assert.assertTrue(completionServiceTimeout <= LARGEST_COMPLETION_SERIVCE_TIMEOUT_MS);
     Assert.assertTrue(corePoolSize <= maxPoolSize);
-    Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
+    Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 128);
     Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= processorCount * 4);
     Assert.assertTrue(workerQueueSize > processorCount * 10);
   }
@@ -1019,7 +1030,7 @@ public class ConfigurationTest {
     Assert.assertTrue(priority > Thread.MIN_PRIORITY);
 
     Assert.assertTrue(cacheTimeout >= LOWEST_CACHE_TIMEOUT_MINUTES);
-    Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
+    Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 128);
     Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= processorCount * 4);
     Assert.assertTrue(workerQueueSize >= processorCount * 10);
   }

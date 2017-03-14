@@ -19,14 +19,14 @@ limitations under the License.
 '''
 
 import logging
-import psutil
+import operator
 import os
 import platform
-import time
-import threading
-import socket
-import operator
+import psutil
 import re
+import socket
+import threading
+import time
 from collections import namedtuple
 
 logger = logging.getLogger()
@@ -153,13 +153,22 @@ class HostInfo():
 
     net_stats = psutil.net_io_counters(True)
     new_net_stats = {}
+
+    skip_virtual_interfaces = self.get_virtual_network_interfaces() if self.__config.get_virtual_interfaces_skip() == 'True' else []
+    skip_network_patterns = self.__config.get_network_interfaces_skip_pattern()
+    skip_network_patterns_list = skip_network_patterns.split(',') if skip_network_patterns and skip_network_patterns != 'None' else []
     for interface, values in net_stats.iteritems():
-      if interface != 'lo':
-        new_net_stats = {'bytes_out': new_net_stats.get('bytes_out', 0) + values.bytes_sent,
-                         'bytes_in': new_net_stats.get('bytes_in', 0) + values.bytes_recv,
-                         'pkts_out': new_net_stats.get('pkts_out', 0) + values.packets_sent,
-                         'pkts_in': new_net_stats.get('pkts_in', 0) + values.packets_recv
-        }
+      if interface != 'lo' and not interface in skip_virtual_interfaces:
+        ignore_network = False
+        for p in skip_network_patterns_list:
+          if re.match(p, interface):
+            ignore_network = True
+        if not ignore_network:
+          new_net_stats = {'bytes_out': new_net_stats.get('bytes_out', 0) + values.bytes_sent,
+                           'bytes_in': new_net_stats.get('bytes_in', 0) + values.bytes_recv,
+                           'pkts_out': new_net_stats.get('pkts_out', 0) + values.packets_sent,
+                           'pkts_in': new_net_stats.get('pkts_in', 0) + values.packets_recv
+          }
 
     with self.__last_network_lock:
       result = dict((k, (v - self.__last_network_data.get(k, 0)) / delta) for k, v in new_net_stats.iteritems())
@@ -354,3 +363,13 @@ class HostInfo():
 
   def get_ip_address(self):
     return socket.gethostbyname(socket.getfqdn())
+
+  def get_virtual_network_interfaces(self):
+    sys_net_path = "/sys/class/net"
+    net_devices = []
+    if os.path.isdir(sys_net_path):
+      links = [f for f in os.listdir(sys_net_path) if os.path.islink(os.path.join(sys_net_path, f))]
+      for link in links:
+        if "devices/virtual" in os.readlink(os.path.join(sys_net_path, link)):
+          net_devices.append(link)
+    return net_devices

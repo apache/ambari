@@ -76,7 +76,7 @@ class Superset(Script):
     # Initialize DB and create admin user.
     Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset db upgrade"),
             user=params.druid_user)
-    Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/fabmanager create-admin --app superset --username {params.superset_admin_user} --password {params.superset_admin_password} --firstname {params.superset_admin_firstname} --lastname {params.superset_admin_lastname} --email {params.superset_admin_email}"),
+    Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/fabmanager create-admin --app superset --username '{params.superset_admin_user}' --password '{params.superset_admin_password}' --firstname '{params.superset_admin_firstname}' --lastname '{params.superset_admin_lastname}' --email '{params.superset_admin_email}'"),
             user=params.druid_user)
     Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset init"),
             user=params.druid_user)

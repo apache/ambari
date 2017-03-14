@@ -638,8 +638,9 @@ public class BlueprintConfigurationProcessor {
       for (Map.Entry<String, ValueAttributesInfo> valueAttrEntry :
         advisedConfig.getPropertyValueAttributes().entrySet()) {
         if ("true".equalsIgnoreCase(valueAttrEntry.getValue().getDelete())) {
-          configuration.removeProperty(configType, valueAttrEntry.getKey());
-          configTypesUpdated.add(configType);
+          if(null != configuration.removeProperty(configType, valueAttrEntry.getKey())) {
+            configTypesUpdated.add(configType);
+          }
         }
       }
     }

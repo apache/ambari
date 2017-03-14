@@ -1197,7 +1197,9 @@ App.config = Em.Object.create({
 
     serviceConfigProperty.get('overrides').pushObject(newOverride);
 
-    var savedOverrides = serviceConfigProperty.get('overrides').filterProperty('savedValue');
+    var savedOverrides = serviceConfigProperty.get('overrides').filter(function (override) {
+      return !Em.isNone(Em.get(override, 'savedValue'));
+    });
     serviceConfigProperty.set('overrideValues', savedOverrides.mapProperty('savedValue'));
     serviceConfigProperty.set('overrideIsFinalValues', savedOverrides.mapProperty('savedIsFinal'));
 

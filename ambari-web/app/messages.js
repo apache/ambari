@@ -477,7 +477,8 @@ Em.I18n.translations = {
   'popup.dependent.configs.table.currentValue': 'Current Value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended Value',
   'popup.dependent.configs.table.newValue': 'New Value',
-  'popup.dependent.configs.table.not.defined': 'Not Defined',
+  'popup.dependent.configs.table.undefined': 'Property undefined',
+  'popup.dependent.configs.table.removed': 'Property removed',
 
 
   'popup.dependent.configs.select.config.group.header': 'Select Config Group',
@@ -1152,7 +1153,7 @@ Em.I18n.translations = {
   'alerts.definition.name': 'Alert Definition Name',
   'alerts.saveChanges': 'You have unsaved changes',
 
-  'alert.definition.name.invalid': 'Invalid input. Only alphanumerics, underscores, hyphens, percentage and spaces are allowed.',
+  'alert.definition.name.invalid': 'Invalid input. Only alphanumerics, underscores, hyphens, percentage, brackets and spaces are allowed. Value should be less than 255 symbols.',
   'alerts.definition.details.enable': 'Enable',
   'alerts.definition.details.disable': 'Disable',
   'alerts.definition.details.enableDisable': 'Enable / Disable',
@@ -2429,6 +2430,7 @@ Em.I18n.translations = {
   'services.reassign.step6.tasks.installPxf.title': 'Install PXF on NameNode',
   'services.reassign.step6.tasks.stopMysqlService.title': 'Stop Mysql Server',
   'services.reassign.step6.tasks.stopHostComponentsInMaintenanceMode.title': 'Stop {0}',
+  'services.reassign.step6.tasks.startDatanodes.title': 'Start DataNodes',
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',

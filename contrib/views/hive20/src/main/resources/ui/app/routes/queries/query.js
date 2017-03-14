@@ -80,7 +80,6 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     this._super(...arguments);
     this.get("tezViewInfo").getTezViewInfo();
-
     let self = this, selectedDb;
     let alldatabases = this.store.peekAll('database');
     controller.set('alldatabases',alldatabases);
@@ -94,7 +93,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         'dbname': selectedDb ,
         'tables': this.store.query('table', {databaseId: selectedDb}),
         'isSelected': true
-      })
+      });
       selectedMultiDb.pushObject(selectedDb);
     }
 
@@ -127,7 +126,6 @@ export default Ember.Route.extend(UILoggerMixin, {
 
 
     controller.set('worksheet', model);
-
     controller.set('selectedTablesModels',model.get('selectedTablesModels') || selectedTablesModels );
     controller.set('selectedMultiDb', model.get('selectedMultiDb') || selectedMultiDb);
 
@@ -135,9 +133,9 @@ export default Ember.Route.extend(UILoggerMixin, {
     controller.set('currentQuery', model.get('query'));
     controller.set('currentJobId', null);
     controller.set('queryResult', model.get('queryResult'));
-    controller.set('isJobSuccess', false);
-    controller.set('isJobCancelled', false);
-    controller.set('isJobCreated', false);
+    controller.set('isJobSuccess', model.get('isJobSuccess'));
+    controller.set('isJobCancelled', model.get('isJobCancelled'));
+    controller.set('isJobCreated', model.get('isJobCreated'));
 
     controller.set('isExportResultSuccessMessege', false);
     controller.set('isExportResultFailureMessege', false);
@@ -175,21 +173,30 @@ export default Ember.Route.extend(UILoggerMixin, {
       this.get('controller.model').set('selectedDb', null);
     }
   },
+  closeWorksheetAfterSave(){
+    let tabDataToClose = this.get('controller.model').get('tabDataToClose');
+    if(tabDataToClose) {
+      this.send('closeWorksheet', tabDataToClose.index, tabDataToClose.id);
+    }
+  },
   actions: {
 
-    resetDefaultWorksheet(){
-      this.get('controller.model').set('queryResult',{'schema' :[], 'rows' :[]});
-      this.get('controller.model').set('currentPage',0);
-      this.get('controller.model').set('previousPage',-1);
-      this.get('controller.model').set('nextPage',1);
+    resetDefaultWorksheet(currModel){
+      if(!currModel) {
+        currModel = this.get('controller.model');
+      }
+      currModel.set('queryResult',{'schema' :[], 'rows' :[]});
+      currModel.set('currentPage',0);
+      currModel.set('previousPage',-1);
+      currModel.set('nextPage',1);
       //this.get('controller.model').set('selected',false);
-      this.get('controller.model').set('jobData',[]);
-      this.get('controller.model').set('currentJobData',null);
-      this.get('controller.model').set('queryFile',"");
-      this.get('controller.model').set('logFile',"");
-      this.get('controller.model').set('logResults',"");
-      this.get('controller.model').set('isQueryRunning',false);
-      this.get('controller.model').set('isQueryResultContainer',false);
+      currModel.set('jobData',[]);
+      currModel.set('currentJobData',null);
+      currModel.set('queryFile',"");
+      currModel.set('logFile',"");
+      currModel.set('logResults',"");
+      currModel.set('isQueryRunning',false);
+      currModel.set('isQueryResultContainer',false);
     },
 
     changeDbHandler(selectedDBs){
@@ -204,7 +211,7 @@ export default Ember.Route.extend(UILoggerMixin, {
             'tables':self.store.query('table', {databaseId: db}),
             'isSelected': (index === 0) ? true :false
           }
-        )
+        );
         selectedMultiDb.pushObject(db);
       });
 
@@ -220,7 +227,6 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     showTables(db){
-      let self = this;
       Ember.$('#' + db).toggle();
       this.get('controller.model').set('selectedDb', db);
     },
@@ -230,15 +236,19 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     updateQuery(query){
-      this.get('controller').set('currentQuery', query);
       this.get('controller.model').set('query', query);
+      if(Ember.isBlank(query)){
+        this.get('controller.model').set('isQueryDirty', false);
+      } else if(this.get('controller').get('currentQuery').indexOf(query) !== 0){
+        this.get('controller.model').set('isQueryDirty', true);
+      }
+      this.get('controller').set('currentQuery', query);
     },
 
     executeQuery(isVisualExplainQuery){
 
-      let self = this;
+      let self = this, ctrlr = self.get('controller'), ctrlrModel = self.get('controller.model');
       this.get('controller').set('currentJobId', null);
-
       if(!Ember.isEmpty(isVisualExplainQuery)){
         isVisualExplainQuery = true;
         this.get('controller').set('isVisualExplainQuery', true);
@@ -250,7 +260,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       let originalQuery = this.get('controller').get('currentQuery');
       if(Ember.isBlank(originalQuery)) {
         this.get('logger').danger('Query cannot be empty.');
-        this.send('resetDefaultWorksheet');
+        this.send('resetDefaultWorksheet', ctrlrModel);
         return;
       }
       let queryInput = originalQuery;
@@ -258,11 +268,13 @@ export default Ember.Route.extend(UILoggerMixin, {
       if (isVisualExplainQuery) {
         queryInput = "";
         let queries = this.get('controller').get('currentQuery').split(";").filter(function (query) {
-          if (query && query.trim()) return true;
+          if (query && query.trim()) {
+            return true;
+          }
         });
 
         for (let i = 0; i < queries.length; i++) {
-          if (i == queries.length - 1) {
+          if (i === queries.length - 1) {
             if(queries[i].toLowerCase().startsWith("explain formatted ")){
               queryInput += queries[i] + ";";
             } else{
@@ -289,7 +301,8 @@ export default Ember.Route.extend(UILoggerMixin, {
 
 
       this.get('controller.model').set('isQueryRunning', true);
-      this.get('controller.model').set('isJobCreated',false);
+      ctrlrModel.set('isJobCreated',false);
+      ctrlr.set('isJobCreated',false);
 
       //this.get('controller').set('queryResult', self.get('controller').get('queryResult'));
       //this.get('controller.model').set('queryResult', self.get('controller').get('queryResult'));
@@ -313,31 +326,38 @@ export default Ember.Route.extend(UILoggerMixin, {
         self.get('controller.model').set('queryFile', data.job.queryFile);
         self.get('controller.model').set('logFile', data.job.logFile);
         self.get('controller').set('currentJobId', data.job.id);
-        self.get('controller').set('isJobCreated',true);
+        ctrlrModel.set('isJobCreated',true);
+        ctrlr.set('isJobCreated',true);
 
         self.get('jobs').waitForJobToComplete(data.job.id, 2 * 1000, false)
           .then((status) => {
-            self.get('controller').set('isJobSuccess', true);
-            self.get('controller').set('isJobCancelled', false);
-            self.get('controller').set('isJobCreated', false);
+            ctrlrModel.set('isJobSuccess', true);
+            ctrlrModel.set('isJobCancelled', false);
+            ctrlrModel.set('isJobCreated', false);
+            ctrlr.set('isJobSuccess', true);
+            ctrlr.set('isJobCancelled', false);
+            ctrlr.set('isJobCreated', false);
             let jobDetails = self.store.peekRecord('job', data.job.id);
             console.log(jobDetails);
-            self.send('getJobResult', data, payload.id, jobDetails);
+            self.send('getJobResult', data, payload.id, jobDetails, ctrlrModel);
             self.get('logger').success('Query has been submitted.');
 
           }, (error) => {
             console.log('error', error);
-            self.get('controller').set('isJobSuccess', false);
-            self.get('controller').set('isJobCancelled', false);
-            self.get('controller').set('isJobCreated', false);
+            ctrlrModel.set('isJobSuccess', false);
+            ctrlrModel.set('isJobCancelled', false);
+            ctrlrModel.set('isJobCreated', false);
+            ctrlr.set('isJobSuccess', false);
+            ctrlr.set('isJobCancelled', false);
+            ctrlr.set('isJobCreated', false);
             self.get('logger').danger('Failed to execute query.', self.extractError(error));
-            self.send('resetDefaultWorksheet');
+            self.send('resetDefaultWorksheet', ctrlrModel);
           });
 
       }, function(error) {
         console.log(error);
         self.get('logger').danger('Failed to execute query.', self.extractError(error));
-        self.send('resetDefaultWorksheet');
+        self.send('resetDefaultWorksheet', ctrlrModel);
       });
     },
 
@@ -347,7 +367,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         .then( data => this.get('controller').set('isJobCancelled', true));
     },
 
-    getJobResult(data, payloadTitle, jobDetails){
+    getJobResult(data, payloadTitle, jobDetails, ctrlrModel){
       let self = this;
 
       let isVisualExplainQuery = this.get('controller').get('isVisualExplainQuery');
@@ -389,7 +409,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         } else {
           self.get('controller.model').set('visualExplainJson', null);
 
-          if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() == payloadTitle)){
+          if( self.paramsFor('queries.query').worksheetId && (self.paramsFor('queries.query').worksheetId.toLowerCase() === payloadTitle)){
             self.transitionTo('queries.query.loading');
 
             Ember.run.later(() => {
@@ -401,6 +421,7 @@ export default Ember.Route.extend(UILoggerMixin, {
       }, function(error) {
         console.log('error' , error);
         self.get('logger').danger('Failed to execute query.', self.extractError(error));
+        self.send('resetDefaultWorksheet', ctrlrModel);
       });
     },
 
@@ -492,14 +513,78 @@ export default Ember.Route.extend(UILoggerMixin, {
         this.transitionTo('queries.query.results', myWs);
       }, 1 * 100);
     },
+    confirmWorksheetClose(index, id) {
+      let existingWorksheets = this.store.peekAll('worksheet');
+      let selectedWorksheet = existingWorksheets.filterBy('id', id.toLowerCase()).get('firstObject');
+      if(selectedWorksheet.get("isQueryDirty")){
+        this.transitionTo('queries.query', id);
+      }
+      Ember.run.later(() => {
+
+      if(this.get('controller.model').get('isQueryDirty')) {
+        this.get('controller.model').set('tabDataToClose', {index:index, id:id});
+        this.send('openWorksheetModal');
+      } else {
+         this.send('closeWorksheet', index, id);
+      }
+      }, 1 * 100);
+    },
+    closeWorksheet(index, id) {
+      let existingWorksheets = this.store.peekAll('worksheet');
+      let selectedWorksheet = existingWorksheets.filterBy('id', id.toLowerCase()).get('firstObject');
+      this.store.unloadRecord(selectedWorksheet);
+      this.controllerFor('queries').set('worksheets', this.store.peekAll('worksheet'));
+      let idToTransition = 0;
+      if(selectedWorksheet.get('selected')) {
+        if(index){
+          idToTransition = existingWorksheets.get('content')[parseInt(index)-1].id;
+        } else {
+          idToTransition = existingWorksheets.get('content')[1].id;
+        }
+        this.transitionTo('queries.query', idToTransition);
+      } else {
+        idToTransition = existingWorksheets.get('content')[existingWorksheets.get('length')-1].id;
+      }
+    },
+    openWorksheetRenameModal(title){
+      let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
+      this.get('controller').set('worksheetTitle', title);
+      this.get('controller').set('showWorksheetRenameModal', true);
+      this.get('controller').set('renameWorksheetModalSuccess', false);
+    },
+    closeRenameWorksheetModal() {
+      this.get('controller').set('showWorksheetRenameModal', false);
+    },
+    renameWorksheetModal(){
+      let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
+      let newTitle = Ember.$('#worksheet-title').val();
+      if(wf) {
+        wf.set('title', newTitle);
+        this.get('controller').set('renameWorksheetModalSuccess', true);
+     } else {
+        this.get('controller').set('renameWorksheetModalFail', true);
+      }
+
+      Ember.run.later(() => {
+        this.get('controller').set('showWorksheetRenameModal', false);
+      }, 2 * 1000);
+    },
 
     openWorksheetModal(){
+      let originalQuery = this.get('controller').get('currentQuery');
+      if(Ember.isBlank(originalQuery)) {
+        this.get('logger').danger('Query cannot be empty.');
+        this.send('resetDefaultWorksheet', this.get('controller.model'));
+        return;
+      }
+      let wf = this.store.peekAll('worksheet').filterBy('id', this.paramsFor('queries.query').worksheetId.toLowerCase()).get('firstObject');
+      this.get('controller').set('worksheetTitle', wf.get('title'));
       this.get('controller').set('showWorksheetModal', true);
     },
 
     saveWorksheetModal(){
       console.log('I am in saveWorksheetModal');
-      let newTitle = $('#worksheet-title').val();
+      let newTitle = Ember.$('#worksheet-title').val();
 
       let currentQuery = this.get('controller.model').get('query');
       let selectedDb = this.get('controller.model').get('selectedDb');
@@ -527,10 +612,12 @@ export default Ember.Route.extend(UILoggerMixin, {
         console.log('saved query saved');
 
         this.get('controller.model').set('title', newTitle);
+        this.get('controller.model').set('isQueryDirty', false);
         this.get('controller').set('worksheetModalSuccess', true);
 
         Ember.run.later(() => {
           this.get('controller').set('showWorksheetModal', false);
+          this.closeWorksheetAfterSave();
         }, 2 * 1000);
 
       });
@@ -539,7 +626,9 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     closeWorksheetModal(){
       this.get('controller').set('showWorksheetModal', false);
-    },
+      this.closeWorksheetAfterSave();
+      this.get('controller.model').set('tabDataToClose', null);
+  },
 
     expandQueryEdidorPanel(){
       if(!this.get('isQueryEdidorPaneExpanded')){
@@ -575,7 +664,7 @@ export default Ember.Route.extend(UILoggerMixin, {
     },
 
     adjustPanelSize(){
-      let isFullHeight = ($(window).height() ==(parseInt(Ember.$('.ember-light-table').css('height'), 10)) ) || false;
+      let isFullHeight = (Ember.$(window).height() ===(parseInt(Ember.$('.ember-light-table').css('height'), 10)) ) || false;
       if(!isFullHeight){
         Ember.$('.ember-light-table').css('height', '100vh');
       }else {

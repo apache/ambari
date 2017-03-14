@@ -205,10 +205,6 @@ public class HostOrderGrouping extends Grouping {
           continue;
         }
 
-        // build the single STOP stage
-        StageWrapper stopWrapper = new StageWrapper(StageWrapper.Type.STOP, String.format("Stop on %s", hostName),
-            stopTasks.toArray(new TaskWrapper[stopTasks.size()]));
-
         // now process the HRCs created so that we can create the appropriate
         // stage/task wrappers for the RESTARTs
         RoleGraphFactory roleGraphFactory = upgradeContext.getRoleGraphFactory();
@@ -267,10 +263,19 @@ public class HostOrderGrouping extends Grouping {
         structuredOut.addProperty(HOST, hostName);
         mt.structuredOut = structuredOut.toString();
 
+        // build the single STOP stage, but only if there are components to
+        // stop; client-only hosts have no components which need stopping
+        if (!stopTasks.isEmpty()) {
+          StageWrapper stopWrapper = new StageWrapper(StageWrapper.Type.STOP,
+              String.format("Stop on %s", hostName),
+              stopTasks.toArray(new TaskWrapper[stopTasks.size()]));
+
+          wrappers.add(stopWrapper);
+        }
+
         StageWrapper manualWrapper = new StageWrapper(StageWrapper.Type.SERVER_SIDE_ACTION, "Manual Confirmation",
             new TaskWrapper(null, null, Collections.<String>emptySet(), mt));
 
-        wrappers.add(stopWrapper);
         wrappers.add(manualWrapper);
 
         // !!! TODO install_packages for hdp and conf-select changes.  Hopefully these will no-op.

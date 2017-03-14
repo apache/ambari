@@ -19,6 +19,7 @@
 var App = require('app');
 var uiEffects = require('utils/ui_effects');
 var numberUtils = require('utils/number_utils');
+require('views/main/service/info/components_list_view');
 
 App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings: ["healthStatus", "healthStatusClass"],
@@ -131,15 +132,8 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     return this.get('controller.data.' + this.get('serviceName'));
   }.property('controller.data'),
 
-  dashboardMasterComponentView: Em.View.extend({
-    didInsertElement: function() {
-      App.tooltip($('[rel=SummaryComponentHealthTooltip]'));
-    },
-    templateName: require('templates/main/service/info/summary/master_components'),
-    mastersComp: Em.computed.alias('parentView.parentView.mastersObj'),
-    willDestroyElement: function() {
-      $('[rel=SummaryComponentHealthTooltip]').tooltip('destroy');
-    }
+  dashboardMasterComponentView: App.SummaryMasterComponentsView.extend({
+    mastersComp: Em.computed.alias('parentView.parentView.mastersObj')
   }),
 
   alertsCount: Em.computed.alias('service.alertsCount'),

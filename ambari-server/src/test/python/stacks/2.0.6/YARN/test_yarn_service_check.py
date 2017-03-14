@@ -99,4 +99,4 @@ class TestServiceCheck(RMFTestCase):
         self.assertNoMoreResources()
 
   def assertCurlCallForwardsCredentialsOnRedirect(self, mock_curl_call):
-    self.assertIn('--location-trusted', mock_curl_call.call_args[0][0])
+    self.assertTrue('--location-trusted' in mock_curl_call.call_args[0][0])

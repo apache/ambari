@@ -26,14 +26,6 @@ export default ApplicationAdapter.extend({
 
   buildURL(){
     return this._super(...arguments).replace('/resources','');
-  },
-
-  fileResourceURL(){
-    this.buildURL()+ '/fileResources';
-  },
-
-  udfURL(){
-    this.buildURL()+ '/udfs';
   }
 
 });

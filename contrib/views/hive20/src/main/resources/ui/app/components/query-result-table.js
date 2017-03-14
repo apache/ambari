@@ -31,12 +31,11 @@ export default Ember.Component.extend({
 
   columnFilterDebounced: Ember.observer('columnFilterText', function() {
     Ember.run.debounce(this, () => {
-      this.set('columnFilter', this.get('columnFilterText'))
+      this.set('columnFilter', this.get('columnFilterText'));
     }, 500);
   }),
 
   columns: Ember.computed('queryResult', function() {
-    let queryResult = this.get('queryResult');
     let columnArr =[];
 
     this.get('queryResult').schema.forEach(function(column){
@@ -56,11 +55,11 @@ export default Ember.Component.extend({
     let rowArr = [], self = this;
 
     if(self.get('columns').length > 0) {
-      self.get('queryResult').rows.forEach(function(row, rowindex){
+      self.get('queryResult').rows.forEach(function(row){
         var mylocalObject = {};
         self.get('columns').forEach(function(column, index){
           mylocalObject[self.get('columns')[index].valuePath] = row[index];
-        })
+        });
         rowArr.push(mylocalObject);
       });
       return rowArr;
@@ -90,7 +89,7 @@ export default Ember.Component.extend({
     },
 
     onColumnClick(column) {
-      //console.log('I am in onColumnClick');
+      console.log('column',column);
     },
     goNextPage(payloadTitle){
       this.sendAction('goNextPage', payloadTitle);

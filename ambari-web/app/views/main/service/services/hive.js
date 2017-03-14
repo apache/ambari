@@ -23,22 +23,22 @@ App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   serviceName: 'HIVE',
 
   viewsToShow: {
-  'AUTO_HIVE_INSTANCE': {},
+  'AUTO_HIVE20_INSTANCE': {},
   'TEZ_CLUSTER_INSTANCE': {
     overwriteLabel: 'app.debugHiveQuery'
   }},
   viewLinks: function() {
     var viewsToShow = this.get('viewsToShow');
     var links = [];
-    App.router.get('mainViewsController.ambariViews').forEach(function(item) {
-      var view = viewsToShow[item.get('instanceName')];
-      if (view) {
+    App.router.get('mainViewsController.ambariViews').forEach(function(viewInstance) {
+      var viewMeta = viewsToShow[viewInstance.get('instanceName')];
+      if (viewMeta) {
         var link = {
-          href: item.href,
-          label: item.label
+          viewInstance: viewInstance,
+          label: viewInstance.get('label')
         };
-        if (view.overwriteLabel) {
-          link.label = Em.I18n.t(view.overwriteLabel);
+        if (viewMeta.overwriteLabel) {
+          link.label = Em.I18n.t(viewMeta.overwriteLabel);
         }
         links.push(link);
       }

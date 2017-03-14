@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import Ember from 'ember';
 import ApplicationAdapter from './application';
 
 export default ApplicationAdapter.extend({
@@ -45,7 +46,7 @@ export default ApplicationAdapter.extend({
       }, (error) => {
         reject(error);
       });
-    })
+    });
 
   },
 
@@ -58,7 +59,7 @@ export default ApplicationAdapter.extend({
         if (response.status.toLowerCase() !== "TERMINATED".toLowerCase()) {
           Ember.run.later( () => {
             this.pollSaveToHDFS(response)
-              .then((data) => { resolve(data)}, (error) => {
+              .then((data) => { resolve(data); }, (error) => {
                 reject(error);
               });
           }, 2000);

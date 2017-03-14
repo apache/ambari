@@ -70,8 +70,13 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -155,6 +160,8 @@ public class UpgradeCatalog250Test {
   @Mock(type = MockType.NICE)
   private Injector injector;
 
+  private UpgradeCatalog250 upgradeCatalog250;
+
   @Before
   public void init() {
     reset(entityManagerProvider, injector);
@@ -166,6 +173,8 @@ public class UpgradeCatalog250Test {
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper).anyTimes();
 
     replay(entityManagerProvider, injector);
+
+    upgradeCatalog250 = new UpgradeCatalog250(injector);
   }
 
   @After
@@ -338,6 +347,39 @@ public class UpgradeCatalog250Test {
     easyMockSupport.verifyAll();
   }
 
+  @Test
+  public void testUpdateAlerts_LogSearchUIWebAlert() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity logSearchWebUIAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final Injector mockInjector = createInjector(mockAmbariManagementController, mockClusters, mockAlertDefinitionDAO);
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("logsearch_ui")))
+      .andReturn(logSearchWebUIAlertMock).atLeastOnce();
+    expect(logSearchWebUIAlertMock.getSource()).andReturn("{\"uri\": {\n" +
+      "            \"http\": \"{{logsearch-env/logsearch_ui_port}}\",\n" +
+      "            \"https\": \"{{logsearch-env/logsearch_ui_port}}\"\n" +
+      "          } }");
+
+    logSearchWebUIAlertMock.setSource("{\"uri\":{\"http\":\"{{logsearch-env/logsearch_ui_port}}\",\"https\":\"{{logsearch-env/logsearch_ui_port}}\",\"https_property\":\"{{logsearch-env/logsearch_ui_protocol}}\",\"https_property_value\":\"https\"}}");
+
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog250.class).updateLogSearchAlert();
+    easyMockSupport.verifyAll();
+  }
+
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
@@ -353,8 +395,10 @@ public class UpgradeCatalog250Test {
     Method updateZeppelinConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateZeppelinConfigs");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
+    Method updateLogSearchAlert = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchAlert");
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
+    Method updateTezHistoryUrlBase = UpgradeCatalog250.class.getDeclaredMethod("updateTezHistoryUrlBase");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
     Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
@@ -378,9 +422,11 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateRangerUrlConfigs)
         .addMockedMethod(updateYarnSite)
         .addMockedMethod(updateAlerts)
+        .addMockedMethod(updateLogSearchAlert)
         .addMockedMethod(removeAlertDuplicates)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(fixHBaseMasterCPUUtilizationAlertDefinition)
+        .addMockedMethod(updateTezHistoryUrlBase)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -425,10 +471,16 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.addManageAlertNotificationsPermissions();
     expectLastCall().once();
 
+    upgradeCatalog250.updateTezHistoryUrlBase();
+    expectLastCall().once();
+
     upgradeCatalog250.updateYarnSite();
     expectLastCall().once();
 
     upgradeCatalog250.updateStormAlerts();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateLogSearchAlert();
     expectLastCall().once();
 
     upgradeCatalog250.removeAlertDuplicates();
@@ -500,6 +552,39 @@ public class UpgradeCatalog250Test {
     primitive = uriJson.getAsJsonPrimitive("kerberos_principal");
     Assert.assertTrue(primitive.isString());
     Assert.assertEquals("{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}", primitive.getAsString());
+  }
+
+  @Test
+  public void testFixHBaseMasterCPUUtilizationAlertDefinitionMissingKerberosInfo() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final AlertDefinitionEntity hbaseMasterCPUAlertMock = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    String brokenSource = "{\"uri\":{\"http\":\"{{hbase-site/hbase.master.info.port}}\",\"default_port\":60010,\"connection_timeout\":5.0},\"jmx\":{\"property_list\":[\"java.lang:type\\u003dOperatingSystem/SystemCpuLoad\",\"java.lang:type\\u003dOperatingSystem/AvailableProcessors\"],\"value\":\"{0} * 100\"},\"type\":\"METRIC\",\"reporting\":{\"ok\":{\"text\":\"{1} CPU, load {0:.1%}\"},\"warning\":{\"text\":\"{1} CPU, load {0:.1%}\",\"value\":200.0},\"critical\":{\"text\":\"{1} CPU, load {0:.1%}\",\"value\":250.0},\"units\":\"%\",\"type\":\"PERCENT\"}}";
+
+    Capture<String> capturedFixedSource = newCapture();
+
+    final Injector mockInjector = createInjector(mockAmbariManagementController, mockClusters, mockAlertDefinitionDAO);
+    long clusterId = 1;
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(Collections.singletonMap("normal", mockClusterExpected)).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("hbase_master_cpu"))).andReturn(hbaseMasterCPUAlertMock).atLeastOnce();
+    expect(hbaseMasterCPUAlertMock.getDefinitionName()).andReturn("hbase_master_cpu").once();
+    expect(hbaseMasterCPUAlertMock.getSource()).andReturn(brokenSource).once();
+
+    expect(mockAlertDefinitionDAO.merge(hbaseMasterCPUAlertMock)).andReturn(hbaseMasterCPUAlertMock).anyTimes();
+
+    easyMockSupport.replayAll();
+
+    mockInjector.getInstance(UpgradeCatalog250.class).fixHBaseMasterCPUUtilizationAlertDefinition();
+    easyMockSupport.verifyAll();
+
+    Assert.assertFalse(capturedFixedSource.hasCaptured());
   }
 
   @Test
@@ -666,6 +751,93 @@ public class UpgradeCatalog250Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesAmsEnv, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testAmsGrafanaIniUpdateConfigs() throws Exception {
+
+    Map<String, String> oldProperties = new HashMap<String, String>() {
+      {
+        put("content", "[security]\n" +
+          "# default admin user, created on startup\n" +
+          "admin_user = {{ams_grafana_admin_user}}\n" +
+          "\n" +
+          "# default admin password, can be changed before first start of grafana,  or in profile settings\n" +
+          "admin_password = {{ams_grafana_admin_pwd}}\n" +
+          "\n" +
+          "# used for signing\n" +
+          ";secret_key = SW2YcwTIb9zpOOhoPsMm\n" +
+          "\n" +
+          "# Auto-login remember days\n" +
+          ";login_remember_days = 7\n" +
+          ";cookie_username = grafana_user\n" +
+          ";cookie_remember_name = grafana_remember\n" +
+          "\n" +
+          "# disable gravatar profile images\n" +
+          ";disable_gravatar = false\n" +
+          "\n" +
+          "# data source proxy whitelist (ip_or_domain:port seperated by spaces)\n" +
+          ";data_source_proxy_whitelist =\n");
+      }
+    };
+    Map<String, String> newProperties = new HashMap<String, String>() {
+      {
+        put("content", "[security]\n" +
+          "# default admin user, created on startup\n" +
+          "admin_user = {{ams_grafana_admin_user}}\n" +
+          "\n" +
+          "# default admin password, can be changed before first start of grafana,  or in profile settings\n" +
+          ";admin_password =\n" +
+          "\n" +
+          "# used for signing\n" +
+          ";secret_key = SW2YcwTIb9zpOOhoPsMm\n" +
+          "\n" +
+          "# Auto-login remember days\n" +
+          ";login_remember_days = 7\n" +
+          ";cookie_username = grafana_user\n" +
+          ";cookie_remember_name = grafana_remember\n" +
+          "\n" +
+          "# disable gravatar profile images\n" +
+          ";disable_gravatar = false\n" +
+          "\n" +
+          "# data source proxy whitelist (ip_or_domain:port seperated by spaces)\n" +
+          ";data_source_proxy_whitelist =\n");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Config mockAmsGrafanaIni = easyMockSupport.createNiceMock(Config.class);
+
+    reset(clusters, cluster);
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-grafana-ini")).andReturn(mockAmsGrafanaIni).atLeastOnce();
+    expect(mockAmsGrafanaIni.getProperties()).andReturn(oldProperties).anyTimes();
+
+    replay(clusters, mockAmsGrafanaIni, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[]{})
+      .addMockedMethod("createConfig")
+      .withConstructor(actionManager, clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map<String, String>> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog250(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 
   @Test
@@ -1197,13 +1369,19 @@ public class UpgradeCatalog250Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
-    Map<String, String> oldLogSearchEnv = ImmutableMap.of(
-        "logsearch_solr_audit_logs_use_ranger", "false",
-        "logsearch_solr_audit_logs_zk_node", "zk_node",
-        "logsearch_solr_audit_logs_zk_quorum", "zk_quorum",
-        "content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
+    Map<String, String> oldLogSearchEnv = new HashMap<>();
+    oldLogSearchEnv.put("logsearch_solr_audit_logs_use_ranger", "false");
+    oldLogSearchEnv.put("logsearch_solr_audit_logs_zk_node", "zk_node");
+    oldLogSearchEnv.put("logsearch_solr_audit_logs_zk_quorum", "zk_quorum");
+    oldLogSearchEnv.put("logsearch_ui_protocol", "http");
+    oldLogSearchEnv.put("logsearch_truststore_location", "/etc/security/serverKeys/logsearch.trustStore.jks");
+    oldLogSearchEnv.put("logsearch_keystore_location", "/etc/security/serverKeys/logsearch.keyStore.jks");
+    oldLogSearchEnv.put("content", "infra_solr_ssl_enabled or logsearch_ui_protocol == 'https'");
 
     Map<String, String> expectedLogSearchEnv = ImmutableMap.of(
+        "logsearch_ui_protocol", "http",
+        "logsearch_truststore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks",
+        "logsearch_keystore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks",
         "content", "logsearch_use_ssl");
 
     Config mockLogSearchEnv = easyMockSupport.createNiceMock(Config.class);
@@ -1682,34 +1860,34 @@ public class UpgradeCatalog250Test {
 
     Capture<Map<String, Object>> updateData = Capture.newInstance(CaptureType.ALL);
     artifactEntity.setArtifactData(capture(updateData));
-    expectLastCall().times(4);
+    expectLastCall().times(1);
 
     ArtifactDAO artifactDAO = createNiceMock(ArtifactDAO.class);
-    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(4);
+    expect(artifactDAO.merge(anyObject(ArtifactEntity.class))).andReturn(artifactEntity).times(1);
 
     replay(artifactEntity, artifactDAO, upgradeMock);
     upgradeMock.updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
     verify(artifactEntity, artifactDAO, upgradeMock);
 
-    KerberosDescriptor atlasKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(0));
-    KerberosDescriptor rangerKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(1));
-    KerberosDescriptor stormKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(2));
-    KerberosDescriptor yarnKerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValues().get(3));
+    KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updateData.getValue());
 
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getIdentity("spnego"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("LOGSEARCH").getComponent("LOGSEARCH_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER"));
-    Assert.assertNotNull(atlasKerberosDescriptorUpdated.getService("ATLAS").getComponent("ATLAS_SERVER").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
-    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER"));
-    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN"));
-    Assert.assertNotNull(rangerKerberosDescriptorUpdated.getService("RANGER").getComponent("RANGER_ADMIN").getIdentity("/AMBARI_INFRA/INFRA_SOLR/infra-solr"));
-    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM"));
-    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS"));
-    Assert.assertNotNull(stormKerberosDescriptorUpdated.getService("STORM").getComponent("NIMBUS").getIdentity("/STORM/storm_components"));
-    Assert.assertFalse(yarnKerberosDescriptorUpdated.getService("YARN").getConfigurations().get("yarn-site").getProperties().containsKey(propertyToRemove));
+    getIdentity(kerberosDescriptorUpdated,null, null, "spnego");
+    getIdentity(kerberosDescriptorUpdated,"LOGSEARCH", "LOGSEARCH_SERVER", "/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+    getIdentity(kerberosDescriptorUpdated,"ATLAS", "ATLAS_SERVER", "/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+    getIdentity(kerberosDescriptorUpdated,"RANGER", "RANGER_ADMIN", "/AMBARI_INFRA/INFRA_SOLR/infra-solr");
+    getIdentity(kerberosDescriptorUpdated,"STORM", "NIMBUS", "/STORM/storm_components");
+
+    Assert.assertFalse(kerberosDescriptorUpdated.getService("YARN").getConfigurations().get("yarn-site").getProperties().containsKey(propertyToRemove));
+
+    KerberosIdentityDescriptor rangerHbaseAuditIdentityDescriptor = getIdentity(kerberosDescriptorUpdated,"HBASE", "HBASE_MASTER", "ranger_hbase_audit");
+
+    KerberosPrincipalDescriptor rangerHbaseAuditPrincipalDescriptor = rangerHbaseAuditIdentityDescriptor.getPrincipalDescriptor();
+    Assert.assertNotNull(rangerHbaseAuditPrincipalDescriptor);
+    Assert.assertNull(rangerHbaseAuditPrincipalDescriptor.getValue());
+
+    KerberosKeytabDescriptor rangerHbaseAuditKeytabDescriptor = rangerHbaseAuditIdentityDescriptor.getKeytabDescriptor();
+    Assert.assertNotNull(rangerHbaseAuditKeytabDescriptor);
+    Assert.assertNull(rangerHbaseAuditKeytabDescriptor.getFile());
   }
 
   @Test
@@ -1811,6 +1989,17 @@ public class UpgradeCatalog250Test {
     easyMockSupport.verifyAll();
 
     Assert.assertEquals(2, ambariAdministratorPermissionEntity.getAuthorizations().size());
+  }
+
+  @Test(expected = AmbariException.class)
+  public void shouldThrowExceptionWhenOldTezViewUrlIsInvalid() throws Exception {
+    upgradeCatalog250.getUpdatedTezHistoryUrlBase("Invalid URL");
+  }
+
+  @Test
+  public void shouldCreateRightTezAutoUrl() throws Exception {
+    String newUrl = upgradeCatalog250.getUpdatedTezHistoryUrlBase("http://hostname:8080/#/main/views/TEZ/0.7.0.2.6.0.0-561/tez1");
+    Assert.assertEquals("incorrect tez view url create.", "http://hostname:8080/#/main/view/TEZ/tez_cluster_instance", newUrl);
   }
 
   @Test
@@ -1933,5 +2122,29 @@ public class UpgradeCatalog250Test {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     });
+  }
+
+  private KerberosIdentityDescriptor getIdentity(KerberosDescriptor kerberosDescriptor, String serviceName, String componentName, String identityName) {
+    KerberosIdentityDescriptor identityDescriptor = null;
+    AbstractKerberosDescriptorContainer container = kerberosDescriptor;
+
+    if(serviceName != null) {
+      KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
+      Assert.assertNotNull(serviceDescriptor);
+      container = serviceDescriptor;
+
+      if(componentName != null) {
+        KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
+        Assert.assertNotNull(componentDescriptor);
+        container = componentDescriptor;
+      }
+    }
+
+    if(identityName != null) {
+      identityDescriptor = container.getIdentity(identityName);
+      Assert.assertNotNull(identityDescriptor);
+    }
+
+    return identityDescriptor;
   }
 }

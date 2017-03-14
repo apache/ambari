@@ -48,7 +48,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         record.destroyRecord().then(function(data) {
           self.send('deleteSavedQueryDeclined');
           self.send('refreshSavedQueryList');
-        })
+        });
       }, (error) => {
         console.log('error', error);
       });
@@ -70,7 +70,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         });
 
         this.get('controller').set('savedQuerylist',savedQueryList);
-      })
+      });
     },
 
     deleteSavedQueryDeclined(){

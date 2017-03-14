@@ -63,7 +63,7 @@ export default Ember.Component.extend({
   _transformColumns() {
     let columns = [];
     columns.pushObjects(this.get('table.columns').map((item) => {
-      return this._getColumnEntry(item, false, this._isClustered(this.get('table'), item.name))
+      return this._getColumnEntry(item, false, this._isClustered(this.get('table'), item.name));
     }));
 
     if (!Ember.isEmpty(this.get('table.partitionInfo'))) {
@@ -113,7 +113,7 @@ export default Ember.Component.extend({
             editing: false,
             newProperty: false
           });
-        })
+        });
     } else {
       return [];
     }
@@ -135,7 +135,7 @@ export default Ember.Component.extend({
 
     // Find if already clustered, then set number of buckets
     if (!Ember.isEmpty(tableInfo.get('storageInfo.bucketCols'))) {
-      settings.numBuckets = parseInt(tableInfo.get('storageInfo.numBuckets'))
+      settings.numBuckets = parseInt(tableInfo.get('storageInfo.numBuckets'));
       this.set('shouldAddBuckets', true);
     }
 

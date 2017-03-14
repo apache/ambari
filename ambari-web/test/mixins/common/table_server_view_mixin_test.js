@@ -28,7 +28,6 @@ describe('App.MainConfigHistoryView', function() {
     filteredContent: [],
     refresh: Em.K,
     saveFilterConditions: Em.K,
-    saveStartIndex: sinon.spy(),
     controller: Em.Object.create({
       name: 'mainConfigHistoryController',
       paginationProps: [
@@ -100,12 +99,6 @@ describe('App.MainConfigHistoryView', function() {
       it('setDisplayLength is called with correct arguments', function () {
         expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '50')).to.be.true;
       });
-      it('paginationProps.startIndex = 0', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(0);
-      });
-      it('paginationProps.displayLength = 50', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
-      });
     });
 
     describe('startIndex is correct', function() {
@@ -123,12 +116,6 @@ describe('App.MainConfigHistoryView', function() {
       });
       it('setDisplayLength is not called', function () {
         expect(App.db.setDisplayLength.called).to.be.false;
-      });
-      it('paginationProps.startIndex = 10', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(10);
-      });
-      it('paginationProps.displayLength = 50', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
       });
     });
 
@@ -148,12 +135,6 @@ describe('App.MainConfigHistoryView', function() {
       it('setDisplayLength is called with valid arguments', function () {
         expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '100')).to.be.true;
       });
-      it('paginationProps.startIndex = 20', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
-      });
-      it('paginationProps.displayLength = 100', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
-      });
     });
 
     describe('displayLength and startIndex are null', function() {
@@ -170,12 +151,6 @@ describe('App.MainConfigHistoryView', function() {
       });
       it('setDisplayLength is not called', function () {
       expect(App.db.setDisplayLength.called).to.be.false;
-      });
-      it('paginationProps.startIndex = 20', function () {
-      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
-      });
-      it('paginationProps.displayLength = 100', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
       });
     });
   });
@@ -236,8 +211,10 @@ describe('App.MainConfigHistoryView', function() {
   describe('#resetStartIndex()', function() {
     beforeEach(function () {
       sinon.stub(view, 'updatePagination');
+      sinon.spy(view, 'saveStartIndex');
     });
     afterEach(function () {
+      view.saveStartIndex.restore();
       view.updatePagination.restore();
     });
     it('resetStartIndex is false and filteredCount is 0', function() {

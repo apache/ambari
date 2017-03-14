@@ -253,7 +253,7 @@
     <parameter>
         <name>use.hive.interactive.mode</name>
         <description>Connects to the hive interactive server if set true</description>
-        <label>Use Interactive Mode(Tech Preview)</label>
+        <label>Use Interactive Mode</label>
         <default-value>false</default-value>
         <required>true</required>
     </parameter>
@@ -395,5 +395,12 @@
         <services>
             <service>HIVE</service>
         </services>
+        <roles>
+            <role>CLUSTER.ADMINISTRATOR</role>
+            <role>CLUSTER.OPERATOR</role>
+            <role>SERVICE.ADMINISTRATOR</role>
+            <role>SERVICE.OPERATOR</role>
+            <role>CLUSTER.USER</role>
+        </roles>
     </auto-instance>
 </view>

@@ -125,7 +125,7 @@
           {{else}}
           <i class="fa fa-th marginright5"></i>
           {{/if}}
-          {{tab.name}}
+          <div class="tab-name">{{tab.name}}</div>
           <span class="closeTab" {{action "showWarning" index bubbles=false }}>x</span>
         </a>
       </li>
@@ -160,7 +160,7 @@
     {{#asset-manager showAssetManager="showAssetManager"}}{{/asset-manager}}
   {{/if}}
   {{#if isProjManagerVisible}}
-    {{recent-projects recentFiles=recentFiles routeToDesigner="routeToDesigner" editWorkflow="editWorkflow" deleteWorkflow="deleteWorkflow" close="hideProjectManagerList" deleteWorkflowJob="deleteWorkflowJob" currentDraft=currentDraft}}
+    {{recent-projects recentFiles=recentFiles routeToDesigner="routeToDesigner" editWorkflow="editWorkflow" deleteWorkflow="deleteWorkflow" close="hideProjectManagerList" deleteWorkflowJob="deleteWorkflowJob" currentDraft=currentDraft showProjectManagerList="showProjectManagerList"}}
   {{/if}}
   {{#if showingWarning}}
   {{#confirmation-dialog title="Confirm workflow reset"

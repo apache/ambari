@@ -1274,6 +1274,7 @@ class TestActionQueue(TestCase):
     }
 
     command = copy.deepcopy(self.retryable_command)
+    self.assertFalse('commandBeingRetried' in command)
     with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
       runCommand_mock.side_effect = [execution_result_fail_dict, execution_result_succ_dict]
       actionQueue.execute_command(command)
@@ -1282,6 +1283,7 @@ class TestActionQueue(TestCase):
     self.assertTrue(runCommand_mock.called)
     self.assertEqual(2, runCommand_mock.call_count)
     self.assertEqual(1, sleep_mock.call_count)
+    self.assertEqual(command['commandBeingRetried'], "true")
     sleep_mock.assert_any_call(2)
 
   @not_for_platform(PLATFORM_LINUX)
@@ -1329,7 +1331,7 @@ class TestActionQueue(TestCase):
     execute_command = copy.deepcopy(self.background_command)
     actionQueue.put([execute_command])
     actionQueue.processBackgroundQueueSafeEmpty();
-    actionQueue.processStatusCommandResultQueueSafeEmpty();
+    actionQueue.controller.statusCommandExecutor.process_results();
     
     #assert that python execturor start
     self.assertTrue(runCommand_mock.called)
@@ -1373,7 +1375,7 @@ class TestActionQueue(TestCase):
                                                                  None, command_complete_w)
     actionQueue.put([self.background_command])
     actionQueue.processBackgroundQueueSafeEmpty();
-    actionQueue.processStatusCommandResultQueueSafeEmpty();
+    actionQueue.controller.statusCommandExecutor.process_results();
     
     with lock:
       complete_done.wait(0.1)

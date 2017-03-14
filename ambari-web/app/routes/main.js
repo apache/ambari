@@ -71,14 +71,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                         if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
                         } else {
+                          App.router.get('clusterController').set('isLoaded', true);
                           Em.run.next(function () {
                             App.router.transitionTo('main.views.index');
                           });
                         }
+                      } else {
+                        App.router.get('clusterController').set('isLoaded', true);
                       }
                     });
                   });
-                  App.router.get('clusterController').set('isLoaded', true);
                 }
               }
             });

@@ -953,3 +953,10 @@ rect.operator__box {
   margin-top: auto !important;
   top: 200px !important;
 }
+
+.closeTab {
+  cursor: pointer;
+  position:relative;
+  bottom:10px;
+  right:-15px;
+}

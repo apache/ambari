@@ -31,4 +31,4 @@ export default [
   {label: "DECIMAL", hasPrecision: true, hasScale: true},
   {label: "VARCHAR", hasPrecision: true, hasScale: false},
   {label: "CHAR", hasPrecision: true, hasScale: false},
-]
+];

@@ -38,6 +38,7 @@ export default DS.Model.extend({
   logFile: DS.attr('string', {defaultValue: ""}),
   logResults: DS.attr('string', {defaultValue: ""}),
   isQueryRunning: DS.attr('boolean', {defaultValue: false}),
+  isQueryDirty: DS.attr('boolean', {defaultValue: false}),
   isQueryResultContainer: DS.attr('boolean', {defaultValue: false}),
   visualExplainJson: DS.attr({defaultValue: null}),
   lastResultRoute: DS.attr({defaultValue: ""}),

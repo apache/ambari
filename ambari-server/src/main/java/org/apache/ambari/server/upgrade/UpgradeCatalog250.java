@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
@@ -59,6 +61,7 @@ import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.view.ViewArchiveUtility;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +82,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String GROUPS_TABLE = "groups";
   protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
+  private static final String AMS_GRAFANA_INI = "ams-grafana-ini";
   private static final String AMS_SITE = "ams-site";
   private static final String AMS_LOG4J = "ams-log4j";
   private static final String AMS_HBASE_LOG4J = "ams-hbase-log4j";
@@ -105,6 +109,9 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
   protected static final String HOST_COMPONENT_DESIREDSTATE_ID_COL = "id";
   protected static final String HOST_COMPONENT_DESIREDSTATE_INDEX = "UQ_hcdesiredstate_name";
+
+  @Inject
+  protected ViewArchiveUtility archiveUtility;
 
   /**
    * Logger.
@@ -179,6 +186,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
     updateStormAlerts();
+    updateLogSearchAlert();
     removeAlertDuplicates();
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
@@ -195,6 +203,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addManageAlertNotificationsPermissions();
     updateKerberosDescriptorArtifacts();
     fixHBaseMasterCPUUtilizationAlertDefinition();
+    updateTezHistoryUrlBase();
   }
 
   /**
@@ -216,36 +225,46 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
         if(source != null) {
           JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
-          LOG.debug("Source before update : {}", sourceJson);
 
-          JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
-          JsonPrimitive primitive;
+          if(sourceJson != null) {
+            boolean changesExist = false;
+            LOG.debug("Source before update : {}", sourceJson);
 
-          // Replace
-          //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
-          // With
-          //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
-          primitive = uriJson.getAsJsonPrimitive("kerberos_keytab");
-          if(primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}".equals(primitive.getAsString())) {
-            uriJson.remove("kerberos_keytab");
-            uriJson.addProperty("kerberos_keytab", "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}");
+            JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+            JsonPrimitive primitive;
+
+            if (uriJson != null) {
+              // Replace
+              //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
+              // With
+              //  "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+              primitive = uriJson.getAsJsonPrimitive("kerberos_keytab");
+              if ((primitive != null) && primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}".equals(primitive.getAsString())) {
+                uriJson.remove("kerberos_keytab");
+                uriJson.addProperty("kerberos_keytab", "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}");
+                changesExist = true;
+              }
+
+              // Replace
+              //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+              // With
+              //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
+              primitive = uriJson.getAsJsonPrimitive("kerberos_principal");
+              if ((primitive != null) && primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}".equals(primitive.getAsString())) {
+                uriJson.remove("kerberos_principal");
+                uriJson.addProperty("kerberos_principal", "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}");
+                changesExist = true;
+              }
+            }
+
+            LOG.debug("Source after update : {}", sourceJson);
+            if(changesExist) {
+              alertDefinition.setSource(sourceJson.toString());
+              alertDefinition.setHash(UUID.randomUUID().toString());
+
+              alertDefinitionDAO.merge(alertDefinition);
+            }
           }
-
-          // Replace
-          //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
-          // With
-          //  "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}"
-          primitive = uriJson.getAsJsonPrimitive("kerberos_principal");
-          if(primitive.isString() && "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}".equals(primitive.getAsString())) {
-            uriJson.remove("kerberos_principal");
-            uriJson.addProperty("kerberos_principal", "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}");
-          }
-
-          LOG.debug("Source after update : {}", sourceJson);
-          alertDefinition.setSource(sourceJson.toString());
-          alertDefinition.setHash(UUID.randomUUID().toString());
-
-          alertDefinitionDAO.merge(alertDefinition);
         }
       }
     }
@@ -324,6 +343,98 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         alertDefinitionDAO.merge(stormWebAlert);
       }
     }
+  }
+
+  protected void updateLogSearchAlert() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+      LOG.info("Updating Log Search web ui alert definitions on cluster : " + cluster.getClusterName());
+
+      final AlertDefinitionEntity logSearchWebAlert = alertDefinitionDAO.findByName(
+        clusterID, "logsearch_ui");
+
+      if (logSearchWebAlert != null) {
+        LOG.info("Updating alert definition : " + logSearchWebAlert.getDefinitionName());
+        String source = logSearchWebAlert.getSource();
+        JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
+        LOG.debug("Source before update : " + sourceJson);
+
+        JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
+        uriJson.remove("https_property");
+        uriJson.remove("https_property_value");
+        uriJson.addProperty("https_property", "{{logsearch-env/logsearch_ui_protocol}}");
+        uriJson.addProperty("https_property_value", "https");
+
+        LOG.debug("Source after update : " + sourceJson);
+        logSearchWebAlert.setSource(sourceJson.toString());
+        alertDefinitionDAO.merge(logSearchWebAlert);
+      }
+    }
+  }
+
+  /**
+   * This will check if previous value of 'tez.tez-ui.history-url.base' contains tez view's url.
+   * If yes then it will point it to fixed url of tez view auto view as introduced in ambari-2.5.0.0.
+   * else it will log an error and move ahead.
+   */
+  protected void updateTezHistoryUrlBase() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+          if (installedServices.contains("TEZ")) {
+            Config tezSite = cluster.getDesiredConfigByType("tez-site");
+            if (tezSite != null) {
+              String currentTezHistoryUrlBase = tezSite.getProperties().get("tez.tez-ui.history-url.base");
+              if (!StringUtils.isEmpty(currentTezHistoryUrlBase)) {
+                LOG.info("Current Tez History URL base: {} ", currentTezHistoryUrlBase);
+                String newTezHistoryUrlBase = null;
+                try {
+                  newTezHistoryUrlBase = getUpdatedTezHistoryUrlBase(currentTezHistoryUrlBase);
+                } catch (AmbariException e) {
+                  LOG.error("Error occurred while creating updated URL of tez view using value in property tez.tez-ui.history-url.base." +
+                    "The current value {} is not of standard format expected by Ambari. Skipping the updation of tez.tez-ui.history-url.base." +
+                    "Please check validity of this property manually in tez site after upgrade.", currentTezHistoryUrlBase, e);
+                  return;
+                }
+                LOG.info("New Tez History URL base: {} ", newTezHistoryUrlBase);
+                updateConfigurationProperties("tez-site", Collections.singletonMap("tez.tez-ui.history-url.base", newTezHistoryUrlBase), true, false);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Transforms the existing tez history url base to the fixed short url for tez auto instance
+   * @param currentTezHistoryUrlBase Existing value of the tez history url base
+   * @return the updated tez history url base
+   * @throws AmbariException if currentTezHistoryUrlBase is malformed or is not compatible with the Tez View url REGEX
+   */
+  protected String getUpdatedTezHistoryUrlBase(String currentTezHistoryUrlBase) throws AmbariException{
+    String pattern = "(.*)(\\/views\\/TEZ\\/)(.*)";
+    Pattern regex = Pattern.compile(pattern);
+    Matcher matcher = regex.matcher(currentTezHistoryUrlBase);
+    String prefix;
+    if (matcher.find()) {
+      prefix = matcher.group(1);
+    } else {
+      throw new AmbariException("Cannot prepare the new value for property: 'tez.tez-ui.history-url.base' using the old value: '" + currentTezHistoryUrlBase + "'");
+    }
+
+    // adding the auto tez instance short url name instead of the tez version and tez view instance name
+    return prefix + "/view/TEZ/tez_cluster_instance";
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -501,6 +612,15 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster,AMS_HBASE_LOG4J,newProperties,true,true);
           }
 
+          Config amsGrafanaIni = cluster.getDesiredConfigByType(AMS_GRAFANA_INI);
+          if (amsGrafanaIni != null) {
+            Map<String, String> amsGrafanaIniProperties = amsGrafanaIni.getProperties();
+            String content = amsGrafanaIniProperties.get("content");
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("content", updateAmsGrafanaIniContent(content));
+            updateConfigurationPropertiesForCluster(cluster, AMS_GRAFANA_INI, newProperties, true, true);
+          }
+
         }
       }
     }
@@ -525,6 +645,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
           addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, logSearchKerberosDescriptor, "LOGSEARCH_SERVER");
           addInfrSolrDescriptor(artifactDAO, artifactEntity, kerberosDescriptor, rangerKerberosDescriptor, "RANGER_ADMIN");
           KerberosServiceDescriptor stormKerberosDescriptor = kerberosDescriptor.getService("STORM");
+
           if (stormKerberosDescriptor != null) {
             KerberosComponentDescriptor componentDescriptor = stormKerberosDescriptor.getComponent("NIMBUS");
             if (componentDescriptor != null) {
@@ -532,27 +653,24 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               if (origIdentityDescriptor != null) {
                 KerberosPrincipalDescriptor origPrincipalDescriptor = origIdentityDescriptor.getPrincipalDescriptor();
                 KerberosPrincipalDescriptor newPrincipalDescriptor = new KerberosPrincipalDescriptor(
-                  null,
-                  null,
-                  (origPrincipalDescriptor == null) ?
-                    "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal" : origPrincipalDescriptor.getConfiguration(),
-                  null
+                    null,
+                    null,
+                    (origPrincipalDescriptor == null) ?
+                        "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal" : origPrincipalDescriptor.getConfiguration(),
+                    null
                 );
                 KerberosKeytabDescriptor origKeytabDescriptor = origIdentityDescriptor.getKeytabDescriptor();
                 KerberosKeytabDescriptor newKeytabDescriptor = new KerberosKeytabDescriptor(
-                  null,
-                  null,
-                  null,
-                  null,
-                  null,
-                  (origKeytabDescriptor == null) ?
-                    "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab" : origKeytabDescriptor.getConfiguration(),
-                  false);
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    (origKeytabDescriptor == null) ?
+                        "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab" : origKeytabDescriptor.getConfiguration(),
+                    false);
                 componentDescriptor.removeIdentity("/STORM/NIMBUS/nimbus_server");
                 componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/STORM/storm_components", null, newPrincipalDescriptor, newKeytabDescriptor, null));
-
-                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-                artifactDAO.merge(artifactEntity);
               }
             }
           }
@@ -564,11 +682,32 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               Map<String, String> properties = yarnSiteConfigDescriptor.getProperties();
               if (properties != null && properties.containsKey(YARN_LCE_CGROUPS_MOUNT_PATH)) {
                 properties.remove(YARN_LCE_CGROUPS_MOUNT_PATH);
-                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-                artifactDAO.merge(artifactEntity);
               }
             }
           }
+
+          // Fix HBASE_MASTER Kerberos identity for Ranger audit by clearing out any keytab file or principal name values.
+          KerberosServiceDescriptor hbaseKerberosDescriptor = kerberosDescriptor.getService("HBASE");
+          if (hbaseKerberosDescriptor != null) {
+            KerberosComponentDescriptor hbaseMasterKerberosDescriptor = hbaseKerberosDescriptor.getComponent("HBASE_MASTER");
+            if (hbaseMasterKerberosDescriptor != null) {
+              KerberosIdentityDescriptor identityDescriptor = hbaseMasterKerberosDescriptor.getIdentity("/HBASE/HBASE_MASTER/hbase_master_hbase");
+
+              if (identityDescriptor != null) {
+                KerberosPrincipalDescriptor principalDescriptor = identityDescriptor.getPrincipalDescriptor();
+                KerberosKeytabDescriptor keytabDescriptor = identityDescriptor.getKeytabDescriptor();
+
+                identityDescriptor.setReference(identityDescriptor.getName());
+                identityDescriptor.setName("ranger_hbase_audit");
+
+                principalDescriptor.setValue(null);
+                keytabDescriptor.setFile(null);
+              }
+            }
+          }
+
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
         }
       }
     }
@@ -588,8 +727,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         } else {
           Predicate predicate = ContainsPredicate.fromMap(Collections.<String, Object>singletonMap(ContainsPredicate.NAME, Arrays.asList("services", "AMBARI_INFRA")));
           componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/AMBARI_INFRA/INFRA_SOLR/infra-solr",null, null, null, predicate));
-          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-          artifactDAO.merge(artifactEntity);
         }
       }
     }
@@ -625,6 +762,17 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected String updateAmsGrafanaIniContent(String content) {
+    if (content == null) {
+      return null;
+    }
+
+    String toReplace = "admin_password = {{ams_grafana_admin_pwd}}";
+    String replaceWith = ";admin_password =";
+    content = content.replace(toReplace, replaceWith);
+    return content;
   }
 
   protected String updateAmsEnvContent(String content) {
@@ -984,6 +1132,13 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               newProperties.put("content", content);
             }
             
+            if ("http".equals(logsearchEnvProperties.getProperties().get("logsearch_ui_protocol")) &&
+                "/etc/security/serverKeys/logsearch.trustStore.jks".equals(logsearchEnvProperties.getProperties().get("logsearch_truststore_location")) &&
+                "/etc/security/serverKeys/logsearch.keyStore.jks".equals(logsearchEnvProperties.getProperties().get("logsearch_keystore_location"))) {
+              newProperties.put("logsearch_truststore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks");
+              newProperties.put("logsearch_keystore_location", "/etc/ambari-logsearch-portal/conf/keys/logsearch.jks");
+            }
+            
             Set<String> removeProperties = new HashSet<>();
             removeProperties.add("logsearch_solr_audit_logs_use_ranger");
             removeProperties.add("logsearch_solr_audit_logs_zk_node");
@@ -1032,7 +1187,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               content = content.replace("<priority value=\"warn\"/>", "<priority value=\"info\"/>");
             }
             
-            
+
             content = SchemaUpgradeUtil.extractProperty(content, "logsearch_log_maxfilesize", "logsearch_log_maxfilesize",
                 "    <param name=\"file\" value=\"\\{\\{logsearch_log_dir}}/logsearch.log\" />\n" +
                 "    <param name=\"Threshold\" value=\"info\" />\n" +

@@ -70,15 +70,15 @@ export default Ember.Route.extend(UILoggerMixin, {
         }
       }, err => {
         this.get('logger').danger(`Failed to delete setting with key: '${setting.get('key')}`, this.extractError(err));
-      })
+      });
     },
 
     updateAction(newSetting) {
       newSetting.save().then(data => {
         data.set('editMode', false);
       }, error => {
-        this.get('logger').danger(`Failed to update setting with key: '${setting.get('key')}`, this.extractError(error));
-      })
+        this.get('logger').danger(`Failed to update setting with key: '${newSetting.get('key')}`, this.extractError(error));
+      });
     },
 
     cancelAction(newSetting) {

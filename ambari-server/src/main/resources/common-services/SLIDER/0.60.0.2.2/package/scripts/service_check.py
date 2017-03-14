@@ -54,7 +54,7 @@ class SliderServiceCheck(Script):
             tries=3,
             try_sleep=5,
             user=params.smokeuser,
-            logoutput=True
+            logoutput=True,
     )
 
 

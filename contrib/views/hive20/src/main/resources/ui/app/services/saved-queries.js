@@ -24,40 +24,40 @@ export default Ember.Service.extend({
 
   getAllQueries(){
     let url = this.get('store').adapterFor('saved-query').buildURL();
-    return $.ajax(url, 'GET')
+    return Ember.$.ajax(url, 'GET');
   },
 
   saveQuery(payload){
-    return $.ajax({
+    return Ember.$.ajax({
       type: "POST",
       url: this.get('store').adapterFor('saved-query').buildURL() + '/savedQueries/',
       data: JSON.stringify({savedQuery: payload}) ,
       contentType:"application/json; charset=utf-8",
       dataType:"json",
       headers: {'X-Requested-By': 'ambari'}
-    })
+    });
   },
 
   deleteSaveQuery(id){
     let deletURL = this.get('store').adapterFor('saved-query').buildURL()+ '/savedQueries/' + id;
 
-    return $.ajax({
+    return Ember.$.ajax({
       type: "DELETE",
       url: deletURL,
       contentType:"application/json; charset=utf-8",
       dataType:"json",
       headers: {'X-Requested-By': 'ambari'}
-    })
+    });
   },
 
   fetchSavedQuery(path) {
     let url = this.get('store').adapterFor('application').buildURL()+ '/files/' + encodeURIComponent(path);
 
-    return $.ajax({
+    return Ember.$.ajax({
       type: "GET",
       url: url,
       headers: {'X-Requested-By': 'ambari'}
-    })
+    });
   }
 
 });

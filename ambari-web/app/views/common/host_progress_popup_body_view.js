@@ -105,6 +105,15 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   hostInfoLoaded: true,
 
   /**
+   * Clipboard for task logs
+   * Used when user click "Copy" and textarea with task stderr and stdout is shown
+   * Should be destroyed (call `destroy`) when used is moved out from task logs level or when BG-ops modal is closed
+   *
+   * @type {?Clipboard}
+   */
+  taskLogsClipboard: null,
+
+  /**
    * Alias for <code>controller.hosts</code>
    *
    * @type {wrappedHost[]}
@@ -933,6 +942,13 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   toggleTaskLog: function (event) {
     var taskInfo = event.context;
     this.set("parentView.isLogWrapHidden", false);
+    const self = this;
+    var taskLogsClipboard = new Clipboard('.btn.copy-clipboard', {
+      text: function() {
+        return self.get('textAreaValue');
+      }
+    });
+    this.set('taskLogsClipboard', taskLogsClipboard);
     if (this.get('isClipBoardActive')) {
       this.destroyClipBoard();
     }
@@ -978,6 +994,10 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     var logElement = this.get('isLogComponentActive') ? $('.log-component-tab.active .log-tail-content'): $(".task-detail-log-maintext");
     logElement.css('display', 'block');
     this.set('isClipBoardActive', false);
+    const taskLogsClipboard = this.get('taskLogsClipboard');
+    if (taskLogsClipboard) {
+      Em.tryInvoke(taskLogsClipboard, 'destroy');
+    }
   },
 
   /**

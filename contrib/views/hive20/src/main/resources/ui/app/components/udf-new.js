@@ -25,7 +25,7 @@ export default Ember.Component.extend({
 
   actions:{
     handleFileResourceChange(filter){
-      this.sendAction('handleFileResourceChange', filter)
+      this.sendAction('handleFileResourceChange', filter);
     },
 
     cancelSaveUDf(){

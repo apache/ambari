@@ -19,8 +19,9 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_core_site_for_required_plugins
-
-
+from resource_management.core.resources import File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
 
 def setup_ranger_knox(upgrade_type=None):
   import params
@@ -55,6 +56,19 @@ def setup_ranger_knox(upgrade_type=None):
                            recursive_chmod=True
         )
         params.HdfsResource(None, action="execute")
+
+        if params.namenode_hosts is not None and len(params.namenode_hosts) > 1:
+          Logger.info('Ranger Knox plugin is enabled in NameNode HA environment along with audit to Hdfs enabled, creating hdfs-site.xml')
+          XmlConfig("hdfs-site.xml",
+            conf_dir=params.knox_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            owner=params.knox_user,
+            group=params.knox_group,
+            mode=0644
+          )
+        else:
+          File(format('{knox_conf_dir}/hdfs-site.xml'), action="delete")
 
     if params.xml_configurations_supported:
       api_version=None

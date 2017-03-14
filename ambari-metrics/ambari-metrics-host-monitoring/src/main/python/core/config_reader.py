@@ -22,7 +22,6 @@ import ConfigParser
 import StringIO
 import json
 import os
-import ast
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -254,3 +253,9 @@ class Configuration:
 
   def get_disk_metrics_skip_pattern(self):
     return self.get("default", "skip_disk_patterns")
+
+  def get_virtual_interfaces_skip(self):
+    return self.get("default", "skip_virtual_interfaces")
+
+  def get_network_interfaces_skip_pattern(self):
+    return self.get("default", "skip_network_interfaces_patterns")

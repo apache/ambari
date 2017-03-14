@@ -101,6 +101,22 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>timeline.metrics.skip.network.interfaces.patterns</name>
+    <value>None</value>
+    <description>
+      Comma separated list of network interfaces to be ignored while collecting network metrics
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.skip.virtual.interfaces</name>
+    <value>false</value>
+    <description>
+      Skips virtual network interfaces while collecting network metrics
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>ams-env template</display-name>
     <value>

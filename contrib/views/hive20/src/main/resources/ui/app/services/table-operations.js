@@ -59,7 +59,7 @@ export default Ember.Service.extend({
       detailedInfo: detailedInfo,
       storageInfo: storageInfo
     });
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').editTable(tableInfo).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
@@ -77,40 +77,40 @@ export default Ember.Service.extend({
       }, (err) => {
         reject(err);
       });
-    })
+    });
   },
 
   renameTable(databaseName, newTableName, oldTableName ) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('table').renameTable(databaseName, newTableName, oldTableName).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
       }, (err) => {
         reject(err);
       });
-    })
+    });
   },
 
   deleteDatabase(database) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('database').deleteDatabase(database.get('name')).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
       }, (err) => {
         reject(err);
       });
-    })
+    });
   },
 
   createDatabase(database) {
-    return new Promise((resolve, reject) => {
+    return new Ember.RSVP.Promise((resolve, reject) => {
       this.get('store').adapterFor('database').createDatabase(database).then((data) => {
         this.get('store').pushPayload(data);
         resolve(this.get('store').peekRecord('job', data.job.id));
       }, (err) => {
         reject(err);
       });
-    })
+    });
   },
 
   waitForJobToComplete(jobId, after) {
@@ -123,7 +123,7 @@ export default Ember.Service.extend({
               this._fetchDummyResult(jobId);
               resolve();
             } else if (status === 'error') {
-              reject()
+              reject();
             } else {
               resolve(this.waitForJobToComplete(jobId, after));
             }
@@ -215,7 +215,7 @@ export default Ember.Service.extend({
         comment: column.get('comment'),
         precision: column.get('precision'),
         scale: column.get('scale')
-      }
+      };
     });
   },
 
@@ -227,7 +227,7 @@ export default Ember.Service.extend({
         comment: column.get('comment'),
         precision: column.get('precision'),
         scale: column.get('scale')
-      }
+      };
     });
   },
 

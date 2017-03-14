@@ -20,25 +20,24 @@ var App = require('app');
 
 App.SummaryMasterComponentsView = Em.View.extend({
   templateName: require('templates/main/service/info/summary/master_components'),
-  mastersCurrentLength: 0,
+
   mastersComp: [],
+
   mastersCompWillChange: function() {
-    this.removeTooltips();
+    Em.run.next(() => this.removeTooltips());
   }.observesBefore('mastersComp.length'),
+
   mastersCompDidChange: function() {
-    this.attachTooltip();
+    Em.run.next(() => this.attachTooltip());
   }.observes('mastersComp.length'),
 
   removeTooltips: function() {
-    if ($('[rel=SummaryComponentHealthTooltip]').length) {
-      $('[rel=SummaryComponentHealthTooltip]').tooltip('destroy');
-    }
+    $('.tooltip').remove();
+    $(App.SummaryMasterComponentsView.tooltipsSelector).tooltip('destroy');
   },
 
   attachTooltip: function() {
-    if ($('[rel=SummaryComponentHealthTooltip]').length) {
-      App.tooltip($('[rel=SummaryComponentHealthTooltip]'));
-    }
+    App.tooltip($(App.SummaryMasterComponentsView.tooltipsSelector));
   },
 
   didInsertElement: function() {
@@ -46,8 +45,12 @@ App.SummaryMasterComponentsView = Em.View.extend({
   },
 
   willDestroyElement: function() {
-    $('[rel=SummaryComponentHealthTooltip]').tooltip('destroy');
+    this.removeTooltips();
   }
+});
+
+App.SummaryMasterComponentsView.reopenClass({
+  tooltipsSelector: '[rel=SummaryComponentHealthTooltip], [rel=UsageTooltip]'
 });
 
 App.SummaryClientComponentsView = Em.View.extend({

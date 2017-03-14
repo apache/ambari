@@ -103,6 +103,13 @@ public interface Service {
   MaintenanceState getMaintenanceState();
 
   /**
+   * Refresh Service info due to current stack
+   * @throws AmbariException
+   */
+  void updateServiceInfo() throws AmbariException;
+
+
+  /**
    * Get a true or false value specifying
    * whether credential store is supported by this service.
    * @return true or false

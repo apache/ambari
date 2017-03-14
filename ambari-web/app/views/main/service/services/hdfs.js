@@ -49,16 +49,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
-  dashboardMasterComponentView: Em.View.extend({
-    didInsertElement: function() {
-      App.tooltip($('[rel=healthTooltip]'));
-    },
-    templateName: require('templates/main/service/info/summary/master_components'),
+  dashboardMasterComponentView: App.SummaryMasterComponentsView.extend({
     mastersComp: function() {
       var masterComponents = [];
-      var zkfcs = this.get('parentView.service.hostComponents').filterProperty('componentName', 'ZKFC');
+      var hostComponents = this.get('parentView.service.hostComponents');
+      var zkfcs = hostComponents.filterProperty('componentName', 'ZKFC');
 
-      this.get('parentView.service.hostComponents').forEach(function (comp) {
+      hostComponents.forEach(function (comp) {
         if (comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE') {
           masterComponents.push(comp);
           var zkfc = zkfcs.findProperty('hostName', comp.get('hostName'));
@@ -69,10 +66,8 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
         }
       });
       return masterComponents;
-    }.property('parentView.service.hostComponents.length'),
-    willDestroyElement: function() {
-      $('[rel=healthTooltip]').tooltip('destroy')
-    }
+    }.property('parentView.service.hostComponents.length')
+
   }),
   
   metricsNotAvailableObserver: function () {

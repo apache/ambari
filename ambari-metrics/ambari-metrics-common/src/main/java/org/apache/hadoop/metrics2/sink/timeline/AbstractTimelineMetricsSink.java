@@ -209,7 +209,7 @@ public abstract class AbstractTimelineMetricsSink {
     }
   }
 
-  protected boolean emitMetrics(TimelineMetrics metrics) {
+  protected String getCurrentCollectorHost() {
     String collectorHost;
     // Get cached target
     if (targetCollectorHostSupplier != null) {
@@ -232,11 +232,14 @@ public abstract class AbstractTimelineMetricsSink {
       } else {
         nullCollectorCounter.compareAndSet(NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS, 0);
       }
-      return false;
     } else {
       nullCollectorCounter.set(0);
     }
+    return collectorHost;
+  }
 
+  protected boolean emitMetrics(TimelineMetrics metrics) {
+    String collectorHost = getCurrentCollectorHost();
     String connectUrl = getCollectorUri(collectorHost);
     String jsonData = null;
     LOG.debug("EmitMetrics connectUrl = "  + connectUrl);
@@ -499,15 +502,6 @@ public abstract class AbstractTimelineMetricsSink {
     return sb.toString();
   }
 
-  protected String constructContainerMetricUri(String protocol, String host, String port) {
-    StringBuilder sb = new StringBuilder(protocol);
-    sb.append("://");
-    sb.append(host);
-    sb.append(":");
-    sb.append(port);
-    sb.append(WS_V1_TIMELINE_METRICS);
-    return sb.toString();
-  }
   /**
    * Parses input Sting of format "host1,host2" into Collection of hostnames
    */

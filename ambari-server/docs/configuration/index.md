@@ -54,7 +54,9 @@ The following are the properties which can be used to configure Ambari.
 | alerts.cache.enabled | Determines whether current alerts should be cached. Enabling this can increase performance on large cluster, but can also result in lost alert data if the cache is not flushed frequently. |`false` | 
 | alerts.cache.flush.interval | The time, in minutes, after which cached alert information is flushed to the database<br/><br/> This property is related to `alerts.cache.enabled`. |`10` | 
 | alerts.cache.size | The size of the alert cache.<br/><br/> This property is related to `alerts.cache.enabled`. |`50000` | 
-| alerts.execution.scheduler.maxThreads | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
+| alerts.execution.scheduler.threadpool.size.core | The core number of threads used to process incoming alert events. The value should be increased as the size of the cluster increases. |`2` | 
+| alerts.execution.scheduler.threadpool.size.max | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
+| alerts.execution.scheduler.threadpool.worker.size | The number of queued alerts allowed before discarding old alerts which have not been handled. The value should be increased as the size of the cluster increases. |`2000` | 
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
 | alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
@@ -160,6 +162,7 @@ The following are the properties which can be used to configure Ambari.
 | mpacks.staging.path | The Ambari Management Pack staging directory on the Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/mpacks`</ul> | | 
 | packages.pre.installed | Determines whether Ambari Agent instances have already have the necessary stack software installed |`false` | 
 | pam.configuration | The PAM configuration file. | | 
+| property.mask.file | The path of the file which lists the properties that should be masked from the api that returns ambari.properties | | 
 | proxy.allowed.hostports | A comma-separated whitelist of host and port values which Ambari Server can use to determine if a proxy value is valid. |`*:*` | 
 | recommendations.artifacts.lifetime | The amount of time that Recommendation API data is kept on the Ambari Server file system. This is specified using a `hdwmy` syntax for pairing the value with a time unit (hours, days, weeks, months, years)<br/><br/>The following are examples of valid values:<ul><li>`8h`<li>`2w`<li>`1m`</ul> |`1w` | 
 | recommendations.artifacts.rollover.max | Maximum number of recommendations artifacts at a given time<br/><br/>The following are examples of valid values:<ul><li>`50`<li>`10`<li>`100`</ul> |`100` | 
@@ -251,8 +254,8 @@ The following are the properties which can be used to configure Ambari.
 | server.requestlogs.namepattern | The pattern of request log file name |`ambari-access-yyyy_mm_dd.log` | 
 | server.requestlogs.path | The location on the Ambari Server where request logs can be created. | | 
 | server.requestlogs.retaindays | The number of days that request log would be retained. |`15` | 
-| server.script.threads | The number of threads that should be allocated to run external script. |`4` | 
-| server.script.timeout | The time, in milliseconds, until an external script is killed. |`5000` | 
+| server.script.threads | The number of threads that should be allocated to run external script. |`20` | 
+| server.script.timeout | The time, in milliseconds, until an external script is killed. |`10000` | 
 | server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
 | server.stages.parallel | Determines whether operations in different execution requests can be run concurrently. |`true` | 
 | server.startup.web.timeout | The time, in seconds, that the ambari-server Python script will wait for Jetty to startup before returning an error code. |`50` | 
@@ -314,7 +317,9 @@ As the size of a cluster grows, some of the default property values may no longe
 ####Alerts & Notifications
 | Property Name | 10 Hosts | ~50 Hosts | ~100 Hosts | 500+ Hosts | 
 | --- | --- | --- | --- | --- |
-| alerts.execution.scheduler.maxThreads | 2 | 2 | 4 | 4 | 
+| alerts.execution.scheduler.threadpool.size.core | 2 | 2 | 4 | 4 | 
+| alerts.execution.scheduler.threadpool.size.max | 2 | 2 | 8 | 8 | 
+| alerts.execution.scheduler.threadpool.worker.size | 400 | 2000 | 4000 | 20000 | 
 | alerts.cache.enabled | false | false | false | true | 
 | alerts.cache.flush.interval | 10 | 10 | 10 | 10 | 
 | alerts.cache.size | 50000 | 50000 | 100000 | 100000 | 

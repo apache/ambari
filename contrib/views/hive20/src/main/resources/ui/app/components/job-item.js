@@ -34,6 +34,7 @@ export default Ember.Component.extend({
           this.set('queryFile', queryFile);
           this.set('valueLoading', false);
         }).catch((err) => {
+          console.log('err', err);
           this.set('valueLoading', false);
         });
       }

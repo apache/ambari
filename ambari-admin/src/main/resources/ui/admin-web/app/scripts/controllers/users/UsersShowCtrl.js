@@ -146,7 +146,11 @@ angular.module('ambariAdminConsole')
           status: newStatus
         })
       ).then(function() {
-        User.setActive($scope.user.user_name, $scope.user.active);
+        User.setActive($scope.user.user_name, $scope.user.active)
+          .catch(function(data) {
+            Alert.error($t('common.alerts.cannotUpdateStatus'), data.data.message);
+            $scope.user.active = !$scope.user.active;
+          });
       })
       .catch(function() {
         $scope.user.active = !$scope.user.active;
@@ -166,6 +170,10 @@ angular.module('ambariAdminConsole')
         User.setAdmin($scope.user.user_name, $scope.user.admin)
         .then(function() {
           loadPrivileges();
+        })
+        .catch(function (data) {
+          Alert.error($t('common.alerts.cannotUpdateAdminStatus'), data.data.message);
+          $scope.user.admin = !$scope.user.admin;
         });
       })
       .catch(function() {

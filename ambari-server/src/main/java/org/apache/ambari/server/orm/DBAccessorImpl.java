@@ -285,7 +285,7 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public boolean tableHasColumn(String tableName, String... columnName) throws SQLException {
-    List<String> columnsList = new ArrayList<String>(Arrays.asList(columnName));
+    List<String> columnsList = new ArrayList<>(Arrays.asList(columnName));
     DatabaseMetaData metaData = getDatabaseMetaData();
 
     CustomStringUtils.toUpperCase(columnsList);
@@ -376,11 +376,11 @@ public class DBAccessorImpl implements DBAccessor {
     ResultSet rs = metaData.getCrossReference(null, dbSchema, convertObjectName(referenceTableName),
             null, dbSchema, convertObjectName(tableName));
 
-    List<String> pkColumns = new ArrayList<String>(referenceColumns.length);
+    List<String> pkColumns = new ArrayList<>(referenceColumns.length);
     for (String referenceColumn : referenceColumns) {
       pkColumns.add(convertObjectName(referenceColumn));
     }
-    List<String> fkColumns = new ArrayList<String>(keyColumns.length);
+    List<String> fkColumns = new ArrayList<>(keyColumns.length);
     for (String keyColumn : keyColumns) {
       fkColumns.add(convertObjectName(keyColumn));
     }
@@ -888,23 +888,26 @@ public class DBAccessorImpl implements DBAccessor {
     dropFKConstraint(tableName, constraintName, false);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void dropFKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
-    // ToDo: figure out if name of index and constraint differs
     String checkedConstraintName = getCheckedForeignKey(convertObjectName(tableName), constraintName);
     if (checkedConstraintName != null) {
       String query = dbmsHelper.getDropFKConstraintStatement(tableName, checkedConstraintName);
       executeQuery(query, ignoreFailure);
-
-      // MySQL also adds indexes in addition to the FK which should be dropped
-      Configuration.DatabaseType databaseType = configuration.getDatabaseType();
-      if (databaseType == DatabaseType.MYSQL) {
-        query = dbmsHelper.getDropIndexStatement(constraintName, tableName);
-        executeQuery(query, true);
-      }
-
     } else {
-      LOG.warn("Constraint {} from {} table not found, nothing to drop", constraintName, tableName);
+      LOG.warn("Foreign key {} from {} table does not exist and will not be dropped",
+          constraintName, tableName);
+    }
+
+    // even if the FK didn't exist, the index constraint might, so check it
+    // indepedently of the FK (but only on MySQL)
+    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+    if (databaseType == DatabaseType.MYSQL && tableHasIndex(tableName, false, constraintName)) {
+        String query = dbmsHelper.getDropIndexStatement(constraintName, tableName);
+        executeQuery(query, true);
     }
   }
 
@@ -1125,7 +1128,7 @@ public class DBAccessorImpl implements DBAccessor {
   public List<String> getIndexesList(String tableName, boolean unique)
     throws SQLException{
     ResultSet rs = getDatabaseMetaData().getIndexInfo(null, dbSchema, convertObjectName(tableName), unique, false);
-    List<String> indexList = new ArrayList<String>();
+    List<String> indexList = new ArrayList<>();
     if (rs != null){
       try{
         while (rs.next()) {

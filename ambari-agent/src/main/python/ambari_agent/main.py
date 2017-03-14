@@ -45,23 +45,32 @@ def fix_subprocess_racecondition():
 
 def fix_subprocess_popen():
   '''
-  http://bugs.python.org/issue19809
+  Workaround for race condition in starting subprocesses concurrently from
+  multiple threads via the subprocess and multiprocessing modules.
+  See http://bugs.python.org/issue19809 for details and repro script.
   '''
   import os
   import sys
 
   if os.name == 'posix' and sys.version_info[0] < 3:
+    from multiprocessing import forking
     import subprocess
     import threading
 
-    original_init = subprocess.Popen.__init__
-    lock = threading.RLock()
+    sp_original_init = subprocess.Popen.__init__
+    mp_original_init = forking.Popen.__init__
+    lock = threading.RLock() # guards subprocess creation
 
-    def locked_init(self, *a, **kw):
+    def sp_locked_init(self, *a, **kw):
       with lock:
-        original_init(self, *a, **kw)
+        sp_original_init(self, *a, **kw)
 
-    subprocess.Popen.__init__ = locked_init
+    def mp_locked_init(self, *a, **kw):
+      with lock:
+        mp_original_init(self, *a, **kw)
+
+    subprocess.Popen.__init__ = sp_locked_init
+    forking.Popen.__init__ = mp_locked_init
 
 
 fix_subprocess_popen()
@@ -89,7 +98,7 @@ from NetUtil import NetUtil
 from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
-from ExitHelper import ExitHelper
+from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
@@ -329,18 +338,14 @@ def run_threads(server_hostname, heartbeat_stop_callback):
   # Launch Controller communication
   controller = Controller(config, server_hostname, heartbeat_stop_callback)
   controller.start()
+  time.sleep(2) # in order to get controller.statusCommandsExecutor initialized
   while controller.is_alive():
     time.sleep(0.1)
 
-    with controller.getSpawnKillStatusCommandExecutorLock():
-      # We need to lock as Controller.py may try to spawn StatusCommandExecutor child in parallel as well
-      if controller.getStatusCommandsExecutor() is not None \
-          and (not controller.getStatusCommandsExecutor().is_alive()
-              or controller.getStatusCommandsExecutor().hasTimeoutedEvent.is_set()):
-        controller.spawnStatusCommandsExecutorProcess()
+    if controller.get_status_commands_executor().need_relaunch:
+      controller.get_status_commands_executor().relaunch("COMMAND_TIMEOUT_OR_KILLED")
 
-
-  controller.killStatusCommandsExecutorProcess()
+  controller.get_status_commands_executor().kill("AGENT_STOPPED", can_relaunch=False)
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available

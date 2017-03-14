@@ -51,8 +51,9 @@ export default NewTable.extend(UILoggerMixin, {
   showCSVFormatInput: false,
   uploadProgressInfo : Ember.computed("uploadProgressInfos.[]",function(){
     var info = "";
-    for( var i = 0 ; i < this.get('uploadProgressInfos').length ; i++)
+    for( var i = 0 ; i < this.get('uploadProgressInfos').length ; i++) {
       info += this.get('uploadProgressInfos').objectAt(i);
+    }
 
     return new Ember.Handlebars.SafeString(info);
   }),
@@ -87,8 +88,9 @@ export default NewTable.extend(UILoggerMixin, {
     var text = "";
     var possible = "abcdefghijklmnopqrstuvwxyz";
 
-    for (var i = 0; i < 30; i++)
+    for (var i = 0; i < 30; i++) {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
 
     return text;
   },
@@ -100,10 +102,10 @@ export default NewTable.extend(UILoggerMixin, {
     fetchJobPromise.then(function (data) {
       var job = JSON.parse(JSON.stringify(data));
       var status = job.status;
-      if (status == constants.statuses.succeeded ) {
+      if (status === constants.statuses.succeeded ) {
         console.log("resolving waitForJobStatus with : " , status);
         resolve(job);
-      } else if (status == constants.statuses.canceled || status == constants.statuses.closed || status == constants.statuses.error) {
+      } else if (status === constants.statuses.canceled || status === constants.statuses.closed || status === constants.statuses.error) {
         console.log("rejecting waitForJobStatus with : " + status);
         reject(new Error(job.statusMessage));
       } else {
@@ -115,7 +117,7 @@ export default NewTable.extend(UILoggerMixin, {
     }, function (error) {
       console.log("rejecting waitForJobStatus with : " + error);
       reject(error);
-    })
+    });
   },
 
   uploadForPreview: function (sourceObject) {
@@ -184,7 +186,7 @@ export default NewTable.extend(UILoggerMixin, {
   waitForGeneratingPreview: function () {
     console.log("waitForGeneratingPreview");
     this.showUploadModal();
-    this.pushUploadProgressInfos(this.formatMessage('hive.messages.generatingPreview'))
+    this.pushUploadProgressInfos(this.formatMessage('hive.messages.generatingPreview'));
   },
 
   previewTable: function (data) {
@@ -211,7 +213,7 @@ export default NewTable.extend(UILoggerMixin, {
       name: column.name,
       type: datatypes.findBy("label", column.type),
       editing: true
-    })
+    });
   },
   onGeneratePreviewSuccess: function (data) {
     console.log("onGeneratePreviewSuccess");
@@ -396,7 +398,7 @@ export default NewTable.extend(UILoggerMixin, {
       return self.rollBackActualTableCreation();
     },function(err){
       return self.rollBackActualTableCreation();
-    })
+    });
   },
 
   onUploadingFileFailure: function (error) {
@@ -490,10 +492,14 @@ export default NewTable.extend(UILoggerMixin, {
     this.setError(this.formatMessage('hive.messages.manuallyDeleteTable',{databaseName:this.get('databaseName'), tableName: this.get("tempTableName")}));
   },
   validateHDFSPath: function (hdfsPath) {
-    if (null == hdfsPath || hdfsPath == "") throw new Error(this.translate('hive.errors.emptyHdfsPath'));
+    if (null === hdfsPath || hdfsPath === "") {
+      throw new Error(this.translate('hive.errors.emptyHdfsPath'));
+    }
     var hdfsRegex = new RegExp(this.get("HDFS_PATH_REGEX"), "g");
     var mArr = hdfsPath.match(hdfsRegex);
-    if (mArr == null || mArr.length != 1) throw new Error(this.translate('hive.errors.illegalHdfPath', {"hdfsPath": hdfsPath} ));
+    if (mArr === null || mArr.length !== 1) {
+      throw new Error(this.translate('hive.errors.illegalHdfPath', {"hdfsPath": hdfsPath} ));
+    }
   },
   createTableAndUploadFile: function (tableData) {
     let databaseModel = this.controllerFor('databases.database').get('model');
@@ -606,24 +612,36 @@ export default NewTable.extend(UILoggerMixin, {
   },
   validateInput: function (headers,tableName,databaseName,isFirstRowHeader) {
     // throw exception if invalid.
-    if(!headers || headers.length == 0) throw new Error(this.translate('hive.errors.emptyHeaders'));
+    if(!headers || headers.length === 0) {
+      throw new Error(this.translate('hive.errors.emptyHeaders'));
+    }
 
     var regex = new RegExp(this.get("COLUMN_NAME_REGEX"),"g");
 
     headers.forEach(function(column,index){
-      if( !column  ) throw new Error(this.translate('hive.errors.emptyColumnName'));
+      if( !column  ) {
+        throw new Error(this.translate('hive.errors.emptyColumnName'));
+      }
       var matchArr = column.name.match(regex);
-      if(matchArr == null || matchArr.length != 1 ) throw new Error(this.translate('hive.errors.illegalColumnName',{ columnName : column.name, index : (index + 1)}));
+      if(matchArr === null || matchArr.length !== 1 ) {
+        throw new Error(this.translate('hive.errors.illegalColumnName',{ columnName : column.name, index : (index + 1)}));
+      }
     },this);
 
-    if(!tableName) throw new Error(this.translate('hive.errors.emptyTableName', {tableNameField : this.translate('hive.ui.tableName')}));
+    if(!tableName) {
+      throw new Error(this.translate('hive.errors.emptyTableName', {tableNameField : this.translate('hive.ui.tableName')}));
+    }
     var tableRegex = new RegExp(this.get("TABLE_NAME_REGEX"),"g");
     var mArr = tableName.match(tableRegex);
-    if(mArr == null || mArr.length != 1 ) throw new Error(this.translate('hive.errors.illegalTableName', {tableNameField:this.translate('hive.ui.tableName'),tableName:tableName}) );
+    if(mArr === null || mArr.length !== 1 ) {
+      throw new Error(this.translate('hive.errors.illegalTableName', {tableNameField:this.translate('hive.ui.tableName'),tableName:tableName}) );
+    }
 
-    if(!databaseName) throw new Error(this.translate('hive.errors.emptyDatabase', {database:this.translate('hive.words.database')}));
+    if(!databaseName) {
+      throw new Error(this.translate('hive.errors.emptyDatabase', {database:this.translate('hive.words.database')}));
+    }
 
-    if (null == isFirstRowHeader || typeof isFirstRowHeader === 'undefined') { //this can be true or false. so explicitly checking for null/ undefined.
+    if (null === isFirstRowHeader || typeof isFirstRowHeader === 'undefined') { //this can be true or false. so explicitly checking for null/ undefined.
       throw new Error(this.translate('hive.errors.emptyIsFirstRow', {isFirstRowHeaderField:this.translate('hive.ui.isFirstRowHeader')}));
     }
   },
@@ -689,8 +707,8 @@ export default NewTable.extend(UILoggerMixin, {
   validateInputs: function(tableData){
     let tableMeta = tableData.get("tableMeta");
     let containsEndlines = tableData.get("fileFormatInfo.containsEndlines");
-    if(containsEndlines == true && tableMeta.settings && tableMeta.settings.fileFormat
-      && tableMeta.settings.fileFormat.type && tableMeta.settings.fileFormat.type === "TEXTFILE"){
+    if(containsEndlines === true && tableMeta.settings && tableMeta.settings.fileFormat &&
+      tableMeta.settings.fileFormat.type && tableMeta.settings.fileFormat.type === "TEXTFILE"){
       throw new Error(`Cannot support endlines in fields when the  File Format is TEXTFILE. Please uncheck '${this.translate('hive.ui.csvFormatParams.containsEndlines')}'`);
     }
   },
@@ -701,7 +719,7 @@ export default NewTable.extend(UILoggerMixin, {
       this.clearFields();
 
       this.set('previewObject', previewObject);
-      return this.generatePreview(previewObject)
+      return this.generatePreview(previewObject);
     },
     uploadTable: function (tableData) {
       console.log("tableData", tableData);

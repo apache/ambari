@@ -18,23 +18,24 @@ limitations under the License.
 
 """
 
+import ConfigParser
+import os
+
+from ambari_commons import OSCheck
+from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
+from resource_management.core.logger import Logger
+from resource_management.libraries import functions
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.substitute_vars import substitute_vars
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+
+import status_params
 from functions import calc_xmn_from_xms
 from functions import check_append_heap_property
 from functions import trim_heap_property
-from resource_management.core.logger import Logger
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries import functions
-from resource_management.libraries.functions.expect import expect
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.substitute_vars import substitute_vars
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
-import status_params
-from ambari_commons import OSCheck
-import ConfigParser
-import os
 
 if OSCheck.is_windows_family():
   from params_windows import *
@@ -204,6 +205,8 @@ metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 skip_disk_metrics_patterns = default("/configurations/ams-env/timeline.metrics.skip.disk.metrics.patterns", None)
+skip_network_interfaces_patterns = default("/configurations/ams-env/timeline.metrics.skip.network.interfaces.patterns", None)
+skip_virtual_interfaces = default("/configurations/ams-env/timeline.metrics.skip.virtual.interfaces", False)
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
 hbase_classpath_additional = default("/configurations/ams-hbase-env/hbase_classpath_additional", None)

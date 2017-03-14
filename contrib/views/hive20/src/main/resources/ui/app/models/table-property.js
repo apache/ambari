@@ -51,4 +51,4 @@ export default Ember.Object.extend({
 
     return this.get('errors.length') === 0;
   }
-})
+});

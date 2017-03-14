@@ -22,7 +22,7 @@ from resource_management import Script, Execute
 from resource_management.libraries.functions import format
 from status import check_service_status
 from ams import ams
-from metrics_grafana_util import create_ams_datasource, create_ams_dashboards
+from metrics_grafana_util import create_ams_datasource, create_ams_dashboards, create_grafana_admin_pwd
 from resource_management.core.logger import Logger
 from resource_management.core import sudo
 
@@ -54,6 +54,8 @@ class AmsGrafana(Script):
     else:
       Logger.info("Grafana Server has started with pid: {0}".format(sudo.read_file(pidfile).strip()))
 
+    #Set Grafana admin pwd
+    create_grafana_admin_pwd()
     # Create datasource
     create_ams_datasource()
     # Create pre-built dashboards

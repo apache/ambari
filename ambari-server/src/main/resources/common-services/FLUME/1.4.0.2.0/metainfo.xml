@@ -35,6 +35,10 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <bulkCommands>
+            <displayName>Flume Agents</displayName>
+            <masterComponent>FLUME_HANDLER</masterComponent>
+          </bulkCommands>
           <logs>
             <log>
               <logId>flume_handler</logId>

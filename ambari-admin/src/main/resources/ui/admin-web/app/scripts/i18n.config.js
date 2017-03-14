@@ -158,7 +158,9 @@ angular.module('ambariAdminConsole')
         'onlyText': 'Only lowercase alphanumeric characters are allowed.',
         'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view',
         'passwordRequired':'Password Required',
-        'unsavedChanges': 'You have unsaved changes. Save changes or discard?'
+        'unsavedChanges': 'You have unsaved changes. Save changes or discard?',
+        'cannotUpdateStatus': 'Cannot update User status',
+        'cannotUpdateAdminStatus': 'Cannot update User Admin status'
       }
     },
 

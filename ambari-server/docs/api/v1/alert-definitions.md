@@ -165,7 +165,7 @@ AGGREGATE definitions are used to combine the results of another alert definitio
     - http - a property that contains the plaintext endpoint to test
     - https - a property that contains the SSL endpoint to test
     - https_property - a property that contains the value which can be used to determine if the component is SSL protected
-    - http_property_value - a constant value to compare with `https_property` in order to determine if the component is protected by SSL
+    - https_property_value - a constant value to compare with `https_property` in order to determine if the component is protected by SSL
     - kerberos_keytab - a property that contains the Kerberos keytab if security is enabled
     - kerberos_principal - a property that contains the Kerberos principal if security is enabled
     - default_port - a default port which can be used if none of the above properties can be realized

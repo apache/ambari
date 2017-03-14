@@ -35,6 +35,10 @@ App.NumLlapNodesWidgetMixin = Em.Mixin.create({
    * @type {boolean}
    */
   doNotShowWidget: function () {
+    var self = this;
+    Em.run.next(function () {
+      self.handleReadOnlyAttribute();
+    });
     if (this.get('readOnly')) {
       return false;
     }
@@ -42,12 +46,12 @@ App.NumLlapNodesWidgetMixin = Em.Mixin.create({
   }.property('isPropertyUndefined', 'config.showAsTextBox', 'readOnly'),
 
   handleReadOnlyAttribute: function () {
-    var readOnly = this.get('readOnly');
+    var readOnly = this.get('readOnly') || false;
     this.set('disabled', readOnly);
     this.set('supportSwitchToTextBox', !readOnly);
     var action = readOnly ? 'disable' : 'enable';
     this.toggleSlider(action);
-  }.observes('readOnly'),
+  },
 
   toggleWidgetView: function() {
     this._super();

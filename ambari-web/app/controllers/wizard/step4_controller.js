@@ -168,7 +168,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   validate: function () {
     var result;
     var self = this;
-    this.set('errorStack', []);
 
     // callback function to reset `isAccepted` needs to be called everytime when a popup from errorStack is dismissed/proceed by user action
     var callback = function (id) {
@@ -209,6 +208,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var dependent = this.findProperty('serviceName', dependentService);
     if (selected && selected.get('isSelected') && dependent && !dependent.get('isSelected')) {
       this.serviceValidation(callback, dependentService, checkId);
+    } else {
+      var unNeededError = this.get('errorStack').filterProperty('id', checkId);
+      if (unNeededError) {
+        this.get('errorStack').removeObject(unNeededError[0]);
+      }
     }
   },
 

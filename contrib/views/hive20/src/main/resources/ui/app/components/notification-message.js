@@ -24,7 +24,7 @@ export default Ember.Component.extend({
   }),
 
   displayBody: Ember.computed('notification', function() {
-    return !(Ember.isBlank(this.get('notification.responseMessage'))
-    && Ember.isBlank(this.get('notification.trace')));
+    return !(Ember.isBlank(this.get('notification.responseMessage')) &&
+      Ember.isBlank(this.get('notification.trace')));
   })
 });

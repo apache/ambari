@@ -35,6 +35,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,6 +43,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +56,7 @@ import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -864,6 +867,12 @@ public class Configuration {
   @Markdown(description = "The timeout, used by the `timeout` command in linux, when checking mounts for free capacity.")
   public static final ConfigurationProperty<String> CHECK_MOUNTS_TIMEOUT = new ConfigurationProperty<>(
       "agent.check.mounts.timeout", "0");
+  /**
+   * The path of the file which lists the properties that should be masked from the api that returns ambari.properties
+   */
+  @Markdown(description = "The path of the file which lists the properties that should be masked from the api that returns ambari.properties")
+  public static final ConfigurationProperty<String> PROPERTY_MASK_FILE = new ConfigurationProperty<>(
+      "property.mask.file", null);
 
   /**
    * The name of the database.
@@ -1779,7 +1788,7 @@ public class Configuration {
    */
   @Markdown(description = "The time, in milliseconds, until an external script is killed.")
   public static final ConfigurationProperty<Integer> EXTERNAL_SCRIPT_TIMEOUT = new ConfigurationProperty<>(
-      "server.script.timeout", 5000);
+      "server.script.timeout", 10000);
 
   /**
    * The time, in {@link TimeUnit#MILLISECONDS}, until an external script is killed.
@@ -1787,7 +1796,7 @@ public class Configuration {
    */
   @Markdown(description = "The number of threads that should be allocated to run external script.")
   public static final ConfigurationProperty<Integer> THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT = new ConfigurationProperty<>(
-    "server.script.threads", 4);
+    "server.script.threads", 20);
 
   public static final String DEF_ARCHIVE_EXTENSION;
   public static final String DEF_ARCHIVE_CONTENT_TYPE;
@@ -2231,7 +2240,7 @@ public class Configuration {
       "alerts.template.file", null);
 
   /**
-   * The maximum number of threads which will handle published alert events.
+   * The core number of threads which will handle published alert events.
    */
   @ConfigurationMarkdown(
       group = ConfigurationGrouping.ALERTS,
@@ -2241,9 +2250,40 @@ public class Configuration {
           @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "4"),
           @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "4") },
       markdown = @Markdown(
+          description = "The core number of threads used to process incoming alert events. The value should be increased as the size of the cluster increases."))
+  public static final ConfigurationProperty<Integer> ALERTS_EXECUTION_SCHEDULER_THREADS_CORE_SIZE = new ConfigurationProperty<>(
+      "alerts.execution.scheduler.threadpool.size.core", 2);
+
+  /**
+   * The maximum number of threads which will handle published alert events.
+   */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.ALERTS,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "2"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "2"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "8"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "8") },
+      markdown = @Markdown(
           description = "The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases."))
-  public static final ConfigurationProperty<Integer> ALERTS_EXECUTION_SCHEDULER_THREADS = new ConfigurationProperty<>(
-      "alerts.execution.scheduler.maxThreads", 2);
+  public static final ConfigurationProperty<Integer> ALERTS_EXECUTION_SCHEDULER_THREADS_MAX_SIZE = new ConfigurationProperty<>(
+      "alerts.execution.scheduler.threadpool.size.max", 2);
+
+  /**
+   * The size of the {@link BlockingQueue} used to control the
+   * {@link ScalingThreadPoolExecutor} when handling incoming alert events.
+   */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.ALERTS,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "400"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "2000"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "4000"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "20000") },
+      markdown = @Markdown(
+          description = "The number of queued alerts allowed before discarding old alerts which have not been handled. The value should be increased as the size of the cluster increases."))
+  public static final ConfigurationProperty<Integer> ALERTS_EXECUTION_SCHEDULER_WORKER_QUEUE_SIZE = new ConfigurationProperty<>(
+      "alerts.execution.scheduler.threadpool.worker.size", 2000);
 
   /**
    * If {@code true} then alert information is cached and not immediately
@@ -2652,6 +2692,7 @@ public class Configuration {
 
   private Properties properties;
   private Properties log4jProperties = new Properties();
+  private Set<String> propertiesToMask = null;
   private String ambariUpgradeConfigUpdatesFilePath;
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
@@ -4034,6 +4075,9 @@ public class Configuration {
   public String getJCEName() {
     return getProperty(JCE_NAME);
   }
+  public String getAmbariBlacklistFile() {
+    return getProperty(PROPERTY_MASK_FILE);
+  }
 
   public String getServerDBName() {
     return getProperty(SERVER_DB_NAME);
@@ -4295,6 +4339,37 @@ public class Configuration {
    */
   public int getHttpResponseHeaderSize() {
     return Integer.parseInt(getProperty(SERVER_HTTP_RESPONSE_HEADER_SIZE));
+  }
+
+  /**
+   * @return the set of properties to mask in the api that
+   * returns ambari.properties
+   */
+  public Set<String> getPropertiesToBlackList()
+  {
+    if (propertiesToMask != null) {
+      return propertiesToMask;
+    }
+    Properties blacklistProperties = new Properties();
+    String blacklistFile = getAmbariBlacklistFile();
+    propertiesToMask = new HashSet<String>();
+    if(blacklistFile != null) {
+      File propertiesMaskFile = new File(blacklistFile);
+      InputStream inputStream = null;
+      if(propertiesMaskFile.exists()) {
+        try {
+          inputStream = new FileInputStream(propertiesMaskFile);
+	  blacklistProperties.load(inputStream);
+	  propertiesToMask = blacklistProperties.stringPropertyNames();
+        } catch (Exception e) {
+	  String message = String.format("Blacklist properties file %s cannot be read", blacklistFile);
+          LOG.error(message);
+        } finally {
+	  IOUtils.closeQuietly(inputStream);
+        }
+      }
+    }
+    return propertiesToMask;
   }
 
   public Map<String, String> getAmbariProperties() {
@@ -4713,10 +4788,24 @@ public class Configuration {
   }
 
   /**
+   * @return core thread pool size for AlertEventPublisher, default 2
+   */
+  public int getAlertEventPublisherCorePoolSize() {
+    return Integer.parseInt(getProperty(ALERTS_EXECUTION_SCHEDULER_THREADS_CORE_SIZE));
+  }
+
+  /**
    * @return max thread pool size for AlertEventPublisher, default 2
    */
-  public int getAlertEventPublisherPoolSize() {
-    return Integer.parseInt(getProperty(ALERTS_EXECUTION_SCHEDULER_THREADS));
+  public int getAlertEventPublisherMaxPoolSize() {
+    return Integer.parseInt(getProperty(ALERTS_EXECUTION_SCHEDULER_THREADS_MAX_SIZE));
+  }
+
+  /**
+   * @return the size of the queue for unhandled alert events
+   */
+  public int getAlertEventPublisherWorkerQueueSize() {
+    return Integer.parseInt(getProperty(ALERTS_EXECUTION_SCHEDULER_WORKER_QUEUE_SIZE));
   }
 
   /**

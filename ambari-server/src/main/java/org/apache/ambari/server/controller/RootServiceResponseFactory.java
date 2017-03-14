@@ -149,6 +149,7 @@ public class RootServiceResponseFactory extends
   private Map<String, String> getComponentProperties(String componentName){
     
     Map<String, String> response;
+    Set<String> propertiesToHideInResponse;
     Components component = null;
 
     if (componentName != null) {
@@ -159,6 +160,10 @@ public class RootServiceResponseFactory extends
         response = configs.getAmbariProperties();
         response.put(JDK_LOCATION, managementController.getJdkResourceUrl());
         response.put("java.version", System.getProperty("java.specification.version"));
+        propertiesToHideInResponse = configs.getPropertiesToBlackList();
+        for(String key : propertiesToHideInResponse) {
+      	  response.remove(key);
+      	}
         break;
 
       default:

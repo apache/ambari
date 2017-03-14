@@ -35,7 +35,7 @@ export default Ember.Component.extend({
 
   didReceiveAttrs() {
     this.get('tabs').setEach('active', false);
-    let firstTab = this.get('tabs.firstObject')
+    let firstTab = this.get('tabs.firstObject');
     firstTab.set('active', true);
   },
 

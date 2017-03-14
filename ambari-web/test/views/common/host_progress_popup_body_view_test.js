@@ -24,6 +24,7 @@ describe('App.HostProgressPopupBodyView', function () {
   beforeEach(function () {
     view = App.HostProgressPopupBodyView.create({
       controller: Em.Object.create({
+        setSelectCount: Em.K,
         dataSourceController: Em.Object.create({}),
         setBackgroundOperationHeader: Em.K,
         hosts: []
@@ -303,4 +304,37 @@ describe('App.HostProgressPopupBodyView', function () {
       expect(view.rerender.calledOnce).to.be.true;
     });
   });
+
+  describe('#toggleTaskLog', function () {
+
+    var task = {};
+
+    beforeEach(function() {
+      view.toggleTaskLog({context: task});
+    });
+
+    it('clipboard created', function () {
+      expect(view.get('taskLogsClipboard')).to.be.instanceOf(Clipboard);
+    });
+
+  });
+
+  describe('#destroyClipBoard', function () {
+
+    beforeEach(function () {
+      view.toggleTaskLog({context: {}});
+      sinon.spy(view.get('taskLogsClipboard'), 'destroy');
+      view.destroyClipBoard();
+    });
+
+    afterEach(function () {
+      view.get('taskLogsClipboard').destroy.restore();
+    });
+
+    it('should destroy clipboard', function () {
+      expect(view.get('taskLogsClipboard').destroy.calledOnce).to.be.true;
+    });
+
+  });
+
 });

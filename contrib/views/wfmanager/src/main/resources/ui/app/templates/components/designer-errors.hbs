@@ -19,11 +19,16 @@
   {{#if (or (gt errors.length 0) (gt validationErrors.length 0))}}
     <div id="alert"class="alert alert-danger alert-dismissible fade in workflow-error" role="alert">
       {{#if (gt errors.length 0)}}
-        {{#each errors as |error|}}
+        {{#each errors as |error index|}}
           {{#if error.node}}
-          <div>{{error.node.name}} : {{error.message}}</div>
+            <div>{{error.node.name}} : {{error.message}}</div>
           {{else}}
-          <div>{{error.message}}</div>
+            <div>
+              {{error.message}}
+              {{#if error.dismissable}}
+                <button type="button" class="dismissable-error-close" {{action "dismissError" index}}><span aria-hidden="true">&times;</span></button>
+              {{/if}}
+            </div>
           {{/if}}
         {{/each}}
       {{/if}}

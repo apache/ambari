@@ -14,20 +14,19 @@
 *    See the License for the specific language governing permissions and
 *    limitations under the License.
 */
-import Ember from 'ember';
 import BaseValidator from 'ember-cp-validations/validators/base';
 
-const DuplicateDataNodeName = BaseValidator.extend({
+const WorkflowDag = BaseValidator.extend({
   validate(value, options, model, attribute) {
-    if (model.get('dataNodes')) {
+    if (model.get('dataNodes') && model.get('dataNodes').length) {
       if(!model.get('flowRenderer').isWorkflowValid()){
-        return "Invalid workflow structure. There is no flow to end node."
+        return "Invalid workflow structure. There is no flow to end node.";
       }
     }
   }
 });
 
-DuplicateDataNodeName.reopenClass({
+WorkflowDag.reopenClass({
   /**
    * Define attribute specific dependent keys for your validator
    *
@@ -40,4 +39,4 @@ DuplicateDataNodeName.reopenClass({
   }
 });
 
-export default DuplicateDataNodeName;
+export default WorkflowDag;

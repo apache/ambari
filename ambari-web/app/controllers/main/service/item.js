@@ -191,6 +191,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   loadConfigs: function(){
     this.set('isServiceConfigsLoaded', false);
+    this.set('stepConfigs', []);
     App.ajax.send({
       name: 'config.tags',
       sender: this,
@@ -1317,6 +1318,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         isDefault: true
       })
     });
+    this.loadConfigs();
     App.get('router.mainController.isLoading').call(this, 'isServiceConfigsLoaded').done(callback);
     return App.ModalPopup.show({
       controller: self,

@@ -6352,6 +6352,8 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> dummySiteMap = new HashMap<String, String>();
     properties.put("dummy-site", dummySiteMap);
     dummySiteMap.put("dummy.prop", "dummyValue");
+    Map<String, String> dummy2SiteMap = new HashMap<String, String>();
+    properties.put("dummy2-site", dummy2SiteMap);
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
 
@@ -6389,8 +6391,9 @@ public class BlueprintConfigurationProcessorTest {
     assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
     // verify that fs.notStackDefault is not filtered out
     assertNotNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
-    assertEquals(2, topology.getAdvisedConfigurations().size());
+    assertEquals(3, topology.getAdvisedConfigurations().size());
     assertFalse(configTypes.contains("dummy-site"));
+    assertFalse(configTypes.contains("dummy2-site"));
   }
 
   @Test
@@ -7981,6 +7984,11 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> dummyConfProp = new HashMap<String, String>();
     dummyConfProp.put("dummy.prop", "dummyValue");
     advMap.put("dummy-site", new AdvisedConfiguration(dummyConfProp, new HashMap<String, ValueAttributesInfo>()));
+    Map<String, ValueAttributesInfo> dummy2attrMap = new HashMap<String, ValueAttributesInfo>();
+    ValueAttributesInfo dummy2valInfo = new ValueAttributesInfo();
+    dummy2valInfo.setDelete("true");
+    dummy2attrMap.put("dummy2.property", dummy2valInfo);
+    advMap.put("dummy2-site", new AdvisedConfiguration(new HashMap<String, String>(), dummy2attrMap));
     return advMap;
   }
 

@@ -750,6 +750,7 @@ input.radio:checked + label:after {
   width: 190px;
   background-color: #323544;
   padding: 0;
+  -ms-overflow-style: none;
 }
 .navigation-bar-container ul.nav.side-nav-header {
   width: 190px;
@@ -1147,13 +1148,21 @@ input.radio:checked + label:after {
   top: 0;
 }
 .navigation-bar-fit-height .side-nav-menu {
-  position: fixed;
+  position: absolute;
   top: 55px;
   bottom: 50px;
 }
 .navigation-bar-fit-height .side-nav-footer {
-  position: fixed;
+  position: absolute;
   bottom: 0;
+}
+.navigation-bar-fit-height .more-actions .dropdown-menu {
+  position: fixed;
+  top: auto;
+  left: auto;
+}
+.navigation-bar-fit-height .navigation-bar-container {
+  height: 100%;
 }
 .navigation-bar-fit-height .navigation-bar-container:not(.collapsed) .side-nav-menu {
   overflow-y: auto;
