@@ -1309,7 +1309,7 @@ class TestHDP23StackAdvisor(TestCase):
     for host in hosts["items"]:
       if server_host == host["Hosts"]["host_name"]:
         server_host = host["Hosts"]["public_host_name"]
-    tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
+    tez_ui_url =  "http://" + server_host + ":8080/#/main/view/TEZ/tez_cluster_instance"
 
     # Test JDK1.7
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}

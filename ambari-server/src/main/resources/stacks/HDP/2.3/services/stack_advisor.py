@@ -122,6 +122,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     server_protocol = 'http'
     views_dir = '/var/lib/ambari-server/resources/views/'
 
+    has_tez_view = False
     if serverProperties:
       if 'client.api.port' in serverProperties:
         server_port = serverProperties['client.api.port']
@@ -134,20 +135,16 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       views_work_dir = os.path.join(views_dir, 'work')
 
       if os.path.exists(views_work_dir) and os.path.isdir(views_work_dir):
-        last_version = '0.0.0'
         for file in os.listdir(views_work_dir):
           if fnmatch.fnmatch(file, 'TEZ{*}'):
-            current_version = file.lstrip("TEZ{").rstrip("}") # E.g.: TEZ{0.7.0.2.3.0.0-2154}
-            if self.versionCompare(current_version.replace("-", "."), last_version.replace("-", ".")) >= 0:
-              latest_tez_jar_version = current_version
-              last_version = current_version
-            pass
+            has_tez_view = True # now used just to verify if the tez view exists
+          pass
         pass
       pass
     pass
 
-    if latest_tez_jar_version:
-      tez_url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(server_protocol, server_host, server_port, latest_tez_jar_version)
+    if has_tez_view:
+      tez_url = '{0}://{1}:{2}/#/main/view/TEZ/tez_cluster_instance'.format(server_protocol, server_host, server_port)
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 

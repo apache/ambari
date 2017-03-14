@@ -162,7 +162,7 @@ class TestHDP22StackAdvisor(TestCase):
     for host in hosts["items"]:
       if server_host == host["Hosts"]["host_name"]:
         server_host = host["Hosts"]["public_host_name"]
-    tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
+    tez_ui_url =  "http://" + server_host + ":8080/#/main/view/TEZ/tez_cluster_instance"
 
     services['ambari-server-properties'] = {'api.ssl': 'false'}
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
@@ -3479,19 +3479,19 @@ class TestHDP22StackAdvisor(TestCase):
                            'tez.runtime.io.sort.mb' : '256',
                            'tez.runtime.unordered.output.buffer.size-mb' : '256',
                            'tez.am.resource.memory.mb' : '1024',
-                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
+                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/view/TEZ/tez_cluster_instance'}
 
     properties = {'tez.task.resource.memory.mb': '2050',
                   'tez.runtime.io.sort.mb' : '256',
                   'tez.runtime.unordered.output.buffer.size-mb' : '256',
                   'tez.am.resource.memory.mb' : '2050',
-                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
+                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/view/TEZ/tez_cluster_instance'}
 
 
     res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
                      'config-type': 'tez-site',
                      'level': 'WARN',
-                     'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
+                     'message': "It is recommended to set value https://host:8443/#/main/view/TEZ/tez_cluster_instance for property tez.tez-ui.history-url.base",
                      'type': 'configuration'},
                     {'config-name': 'tez.am.resource.memory.mb',
                      'config-type': 'tez-site',

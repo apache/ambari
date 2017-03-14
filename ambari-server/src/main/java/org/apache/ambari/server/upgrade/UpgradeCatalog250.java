@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.view.ViewArchiveUtility;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Upgrade catalog for version 2.5.0.
@@ -106,6 +109,9 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
   protected static final String HOST_COMPONENT_DESIREDSTATE_ID_COL = "id";
   protected static final String HOST_COMPONENT_DESIREDSTATE_INDEX = "UQ_hcdesiredstate_name";
+
+  @Inject
+  protected ViewArchiveUtility archiveUtility;
 
   /**
    * Logger.
@@ -197,6 +203,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addManageAlertNotificationsPermissions();
     updateKerberosDescriptorArtifacts();
     fixHBaseMasterCPUUtilizationAlertDefinition();
+    updateTezHistoryUrlBase();
   }
 
   /**
@@ -368,6 +375,66 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         alertDefinitionDAO.merge(logSearchWebAlert);
       }
     }
+  }
+
+  /**
+   * This will check if previous value of 'tez.tez-ui.history-url.base' contains tez view's url.
+   * If yes then it will point it to fixed url of tez view auto view as introduced in ambari-2.5.0.0.
+   * else it will log an error and move ahead.
+   */
+  protected void updateTezHistoryUrlBase() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+          if (installedServices.contains("TEZ")) {
+            Config tezSite = cluster.getDesiredConfigByType("tez-site");
+            if (tezSite != null) {
+              String currentTezHistoryUrlBase = tezSite.getProperties().get("tez.tez-ui.history-url.base");
+              if (!StringUtils.isEmpty(currentTezHistoryUrlBase)) {
+                LOG.info("Current Tez History URL base: {} ", currentTezHistoryUrlBase);
+                String newTezHistoryUrlBase = null;
+                try {
+                  newTezHistoryUrlBase = getUpdatedTezHistoryUrlBase(currentTezHistoryUrlBase);
+                } catch (AmbariException e) {
+                  LOG.error("Error occurred while creating updated URL of tez view using value in property tez.tez-ui.history-url.base." +
+                    "The current value {} is not of standard format expected by Ambari. Skipping the updation of tez.tez-ui.history-url.base." +
+                    "Please check validity of this property manually in tez site after upgrade.", currentTezHistoryUrlBase, e);
+                  return;
+                }
+                LOG.info("New Tez History URL base: {} ", newTezHistoryUrlBase);
+                updateConfigurationProperties("tez-site", Collections.singletonMap("tez.tez-ui.history-url.base", newTezHistoryUrlBase), true, false);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Transforms the existing tez history url base to the fixed short url for tez auto instance
+   * @param currentTezHistoryUrlBase Existing value of the tez history url base
+   * @return the updated tez history url base
+   * @throws AmbariException if currentTezHistoryUrlBase is malformed or is not compatible with the Tez View url REGEX
+   */
+  protected String getUpdatedTezHistoryUrlBase(String currentTezHistoryUrlBase) throws AmbariException{
+    String pattern = "(.*)(\\/views\\/TEZ\\/)(.*)";
+    Pattern regex = Pattern.compile(pattern);
+    Matcher matcher = regex.matcher(currentTezHistoryUrlBase);
+    String prefix;
+    if (matcher.find()) {
+      prefix = matcher.group(1);
+    } else {
+      throw new AmbariException("Cannot prepare the new value for property: 'tez.tez-ui.history-url.base' using the old value: '" + currentTezHistoryUrlBase + "'");
+    }
+
+    // adding the auto tez instance short url name instead of the tez version and tez view instance name
+    return prefix + "/view/TEZ/tez_cluster_instance";
   }
 
   protected void updateHostVersionTable() throws SQLException {
