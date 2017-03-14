@@ -23,7 +23,7 @@ App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   serviceName: 'HIVE',
   isFullWidth: true,
   viewsToShow: {
-  'AUTO_HIVE_INSTANCE': {},
+  'AUTO_HIVE20_INSTANCE': {},
   'TEZ_CLUSTER_INSTANCE': {
     overwriteLabel: 'app.debugHiveQuery'
   }},
