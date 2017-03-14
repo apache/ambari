@@ -100,7 +100,8 @@ App.AlertDefinition = DS.Model.extend({
    * @type {string}
    */
   lastTriggeredFormatted: function () {
-    return dateUtils.dateFormat(this.get('lastTriggered'));
+    let lastTriggered = this.get('lastTriggered');
+    return lastTriggered ? dateUtils.dateFormat(lastTriggered) : '';
   }.property('lastTriggered'),
 
   /**
