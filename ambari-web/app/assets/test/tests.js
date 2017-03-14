@@ -386,6 +386,7 @@ var files = [
   'test/models/stack_test',
   'test/models/stack_service_test',
   'test/models/user_test',
+  'test/models/view_instance_test',
   'test/models/widget_test',
   'test/models/widget_property_test',
   'test/models/host_stack_version_test',

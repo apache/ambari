@@ -78,19 +78,20 @@ App.MainViewsController = Em.Controller.extend({
     data.items.forEach(function (view) {
       view.versions.forEach(function (version) {
         version.instances.forEach(function (instance) {
-          var current_instance = Em.Object.create({
-            iconPath: instance.ViewInstanceInfo.icon_path || "/img/ambari-view-default.png",
-            label: instance.ViewInstanceInfo.label || version.ViewVersionInfo.label || instance.ViewInstanceInfo.view_name,
-            visible: instance.ViewInstanceInfo.visible || false,
-            version: instance.ViewInstanceInfo.version,
-            description: instance.ViewInstanceInfo.description || Em.I18n.t('views.main.instance.noDescription'),
-            viewName: instance.ViewInstanceInfo.view_name,
-            shortUrl:instance.ViewInstanceInfo.short_url,
-            instanceName: instance.ViewInstanceInfo.instance_name,
-            href: instance.ViewInstanceInfo.context_path + "/"
+          var info = instance.ViewInstanceInfo;
+          var currentInstance = App.ViewInstance.create({
+            iconPath: info.icon_path || '/img/ambari-view-default.png',
+            label: info.label || version.ViewVersionInfo.label || info.view_name,
+            visible: info.visible || false,
+            version: info.version,
+            description: info.description || Em.I18n.t('views.main.instance.noDescription'),
+            viewName: info.view_name,
+            shortUrl:info.short_url,
+            instanceName: info.instance_name,
+            href: info.context_path + '/'
           });
-          if (current_instance.visible) {
-            instances.push(current_instance);
+          if (currentInstance.visible) {
+            instances.push(currentInstance);
           }
         }, this);
       }, this);
@@ -106,10 +107,7 @@ App.MainViewsController = Em.Controller.extend({
 
   setView: function (event) {
     if (event.context) {
-      if(event.context.shortUrl){
-        App.router.route('main/view/' + event.context.viewName + '/' + event.context.shortUrl);
-      } else {
-      App.router.route('main/views/' + event.context.viewName + '/' + event.context.version + '/' + event.context.instanceName);
-    }}
+      App.router.route(event.context.get('internalAmbariUrl'));
+    }
   }
 });

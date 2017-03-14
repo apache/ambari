@@ -40,7 +40,7 @@
     <tr>
         <td class="summary-label">{{link.label}}</td>
         <td class="summary-value" >
-            <a href="#" target="_blank" {{action goToView link target="controller"}}>{{t app.goToView}}</a>
+            <a href="#" target="_blank" {{action goToView link.viewInstance target="controller"}}>{{t app.goToView}}</a>
         </td>
     </tr>
 {{/each}}
