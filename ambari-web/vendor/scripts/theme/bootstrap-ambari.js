@@ -49,7 +49,7 @@
         $navigationContainer.find('li a').each(function (index, link) {
           var $link = $(link);
           var href = $link.attr('data-href') || $link.attr('href');
-          if (path.indexOf(href) !== -1 && !['', '#'].contains(href)) {
+          if (path.indexOf(href) !== -1 && ['', '#'].indexOf(href) === -1) {
             $link.parent().addClass('active');
           } else {
             $link.parent().removeClass('active');
@@ -123,16 +123,6 @@
       });
       $moreActions.hover(function () {
         $(this).css('display', 'inline-block');
-      });
-      $moreActions.on('click', function () {
-        if (settings.fitHeight) {
-          // set actions submenu position
-          var $moreIcon = $(this);
-          var $header = $('.side-nav-header');
-          $moreIcon.children('.dropdown-menu').css('position', 'fixed');
-          $moreIcon.children('.dropdown-menu').css('top', $moreIcon.offset().top - $header.offset().top  + 20 + 'px');
-          $moreIcon.children('.dropdown-menu').css('left', $moreIcon.offset().left);
-        }
       });
       $moreActions.children('.dropdown-menu').on('click', function () {
         // some action was triggered, should hide this icon
