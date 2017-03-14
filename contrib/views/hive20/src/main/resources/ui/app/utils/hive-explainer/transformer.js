@@ -206,6 +206,7 @@ function getTezVertices(plan) {
 
         return Object.assign({}, doCloneAndOmit(cVertex, VERTEX_TREE_KEYS), {
           _vertex: cVertexKey,
+          _execution: vertexObj['Execution mode:'] || 'Unavailable',
           _children: children,
         });
       });
