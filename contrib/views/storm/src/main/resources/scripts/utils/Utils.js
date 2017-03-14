@@ -38,7 +38,7 @@ define(['require',
             success: function(response){
                 var props = response.ViewInstanceInfo.properties;
                 if(props['storm.host'] && props['storm.port']){
-                    url += "http://"+props['storm.host']+":"+props['storm.port'];
+                    url += (props['storm.sslEnabled'] === "true" ? "https://" : "http://")+props['storm.host']+":"+props['storm.port'];
                 } else {
                     Utils.notifyError("Failed to get storm hostname and port.");
                 }
