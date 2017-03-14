@@ -309,12 +309,12 @@ class Master(Script):
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
-    if 'spark2-env' in params.config['configurations']:
+    if 'spark2-defaults' in params.config['configurations']:
       spark2_config = self.get_spark2_interpreter_config()
       config_id = spark2_config["id"]
       interpreter_settings[config_id] = spark2_config
 
-    if 'livy2-env' in params.config['configurations']:
+    if 'livy2-defaults' in params.config['configurations']:
       livy2_config = self.get_livy2_interpreter_config()
       config_id = livy2_config["id"]
       interpreter_settings[config_id] = livy2_config
