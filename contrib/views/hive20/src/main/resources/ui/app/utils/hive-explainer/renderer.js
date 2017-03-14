@@ -132,7 +132,10 @@ function recurseC(children, onRequestDetail) {
           .append('xhtml:body')
         .style('margin', 0)
           .html(d => getRenderer(d._operator)(d))
-        .on('click', d => onRequestDetail(doClean(d)));
+        .on('click', d => {
+          const vertex = d3.select(Ember.$(d3.select(this).node()).closest('.vertex').get(0)).data()[0];
+          onRequestDetail(doClean(d), vertex);
+        });
 
       children
         .call(recurseC, onRequestDetail);

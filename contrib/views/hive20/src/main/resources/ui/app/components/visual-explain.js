@@ -29,6 +29,8 @@ export default Ember.Component.extend({
 
   explainDetailData: '',
 
+  vectorizedInfo: null,
+
   draggable: Ember.Object.create(),
 
   visualExplainInput: Ember.computed('visualExplainJson', function () {
@@ -39,8 +41,13 @@ export default Ember.Component.extend({
 
   didInsertElement() {
     this._super(...arguments);
-    const onRequestDetail = data => this.set('explainDetailData', JSON.stringify( data, null, '  ') );
     const explainData = JSON.parse(this.get('visualExplainInput'));
+    const onRequestDetail = (data, vectorized) => {
+      this.set('explainDetailData', JSON.stringify( data, null, '  ') );
+      console.log('vectorizedInfo', vectorized['Execution mode:']);
+      this.set('vectorizedInfo', vectorized['Execution mode:']);
+    };
+
     // if(explainData) {
       explain(explainData, '#explain-container', onRequestDetail, this.get('draggable'));
     // }
@@ -68,6 +75,7 @@ export default Ember.Component.extend({
     closeModal(){
       this.set('showDetailsModal', false);
       this.set('explainDetailData', '');
+      this.set('vectorizedInfo', '');
       return false;
     }
 

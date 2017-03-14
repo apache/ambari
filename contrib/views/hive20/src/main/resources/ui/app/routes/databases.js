@@ -34,7 +34,9 @@ export default Ember.Route.extend(UILoggerMixin, {
   },
 
   deactivate() {
-    this.get('autoRefresh').stopDatabasesAutoRefresh();
+    if(ENV.APP.SHOULD_AUTO_REFRESH_DATABASES) {
+      this.get('autoRefresh').stopDatabasesAutoRefresh();
+    }
   },
 
   _databasesRefreshed() {
