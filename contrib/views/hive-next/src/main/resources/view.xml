@@ -226,7 +226,7 @@
     <parameter>
         <name>use.hive.interactive.mode</name>
         <description>Connects to the hive interactive server if set true</description>
-        <label>Use Interactive Mode(Tech Preview)</label>
+        <label>Use Interactive Mode</label>
         <default-value>false</default-value>
         <required>true</required>
     </parameter>
