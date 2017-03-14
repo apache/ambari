@@ -164,6 +164,12 @@ class MultiProcessStatusCommandsExecutor(StatusCommandsExecutor):
     """
     Internal method that running in separate process.
     """
+    # cleanup monkey-patching results in child process, as it causing problems
+    import subprocess
+    reload(subprocess)
+    import multiprocessing
+    reload(multiprocessing)
+
     bind_debug_signal_handlers()
     self._log_message(logging.INFO, "StatusCommandsExecutor process started")
 
