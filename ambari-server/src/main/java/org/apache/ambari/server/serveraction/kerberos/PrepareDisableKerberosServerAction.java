@@ -18,7 +18,15 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.Inject;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -33,16 +41,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-import java.util.regex.Matcher;
+import com.google.inject.Inject;
 
 /**
  * PrepareEnableKerberosServerAction is a ServerAction implementation that prepares metadata needed
@@ -51,18 +50,8 @@ import java.util.regex.Matcher;
 public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(PrepareDisableKerberosServerAction.class);
 
-  /**
-   * KerberosHelper
-   */
-  @Inject
-  private KerberosHelper kerberosHelper;
-
   @Inject
   private ConfigHelper configHelper;
-
-  @Inject
-  private KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory;
-
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -87,6 +76,8 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       throw new AmbariException("Missing cluster object");
     }
 
+    KerberosHelper kerberosHelper = getKerberosHelper();
+
     KerberosDescriptor kerberosDescriptor = kerberosHelper.getKerberosDescriptor(cluster);
     Collection<String> identityFilter = getIdentityFilter();
     List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster,
@@ -96,7 +87,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
         new KerberosHelper.Command<Boolean, ServiceComponentHost>() {
           @Override
           public Boolean invoke(ServiceComponentHost sch) throws AmbariException {
-            return (sch.getDesiredSecurityState() == SecurityState.UNSECURED) &&  (sch.getSecurityState() != SecurityState.UNSECURED);
+            return (sch.getDesiredSecurityState() == SecurityState.UNSECURED) && (sch.getSecurityState() != SecurityState.UNSECURED);
           }
         });
 
@@ -113,13 +104,21 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    Map<String, Map<String, String>> propertiesToInsert = new HashMap<>();
+    Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
+    Set<String> services = cluster.getServices().keySet();
+    boolean includeAmbariIdentity = "true".equalsIgnoreCase(getCommandParameterValue(commandParameters, KerberosServerAction.INCLUDE_AMBARI_IDENTITY));
+    Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
+
+    // Calculate the current host-specific configurations. These will be used to replace
+    // variables within the Kerberos descriptor data
+    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
+
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-      kerberosConfigurations, propertiesToInsert, null, false, true);
+        configurations, kerberosConfigurations, includeAmbariIdentity, propertiesToIgnore);
 
     // Add auth-to-local configurations to the set of changes
     Set<String> authToLocalProperties = kerberosDescriptor.getAllAuthToLocalProperties();
-    if(authToLocalProperties != null) {
+    if (authToLocalProperties != null) {
       for (String authToLocalProperty : authToLocalProperties) {
         Matcher m = KerberosDescriptor.AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
 
@@ -152,15 +151,13 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
     // If there are configurations to set, create a (temporary) data file to store the configuration
     // updates and fill it will the relevant configurations.
     if (!kerberosConfigurations.isEmpty()) {
-      if(dataDirectory == null) {
+      if (dataDirectory == null) {
         String message = "The data directory has not been set.  Generated data can not be stored.";
         LOG.error(message);
         throw new AmbariException(message);
       }
 
-      Map<String, Collection<String>> configurationsToRemove = new HashMap<String, Collection<String>>();
-      File configFile = new File(dataDirectory, KerberosConfigDataFileWriter.DATA_FILE_NAME);
-      KerberosConfigDataFileWriter kerberosConfDataFileWriter = null;
+      Map<String, Set<String>> configurationsToRemove = new HashMap<String, Set<String>>();
 
       // Fill the configurationsToRemove map with all Kerberos-related configurations.  Values
       // needed to be kept will have new values from the stack definition and thus pruned from
@@ -172,21 +169,6 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       // Remove cluster-env from the set of configurations to remove since it has no default set
       // or properties and the logic below will remove all from this set - which is not desirable.
       configurationsToRemove.remove("cluster-env");
-
-      // Update kerberosConfigurations with properties recommended by stack advisor
-      for (Map.Entry<String, Map<String, String>> typeEntry : propertiesToInsert.entrySet()) {
-        String configType = typeEntry.getKey();
-        Map<String, String> propertiesMap = typeEntry.getValue();
-
-        Map<String, String> kerberosPropertiesMap = kerberosConfigurations.get(configType);
-        if (kerberosPropertiesMap == null) {
-          kerberosConfigurations.put(configType, propertiesMap);
-        } else {
-          for (Map.Entry<String, String> propertyEntry : propertiesMap.entrySet()) {
-            kerberosPropertiesMap.put(propertyEntry.getKey(), propertyEntry.getValue());
-          }
-        }
-      }
 
       if (!schToProcess.isEmpty()) {
         Set<String> visitedServices = new HashSet<String>();
@@ -228,61 +210,10 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
         }
       }
 
-      actionLog.writeStdOut(String.format("Writing configuration changes metadata file to %s", configFile.getAbsolutePath()));
-      try {
-        kerberosConfDataFileWriter = kerberosConfigDataFileWriterFactory.createKerberosConfigDataFileWriter(configFile);
+      kerberosHelper.applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations,
+          propertiesToIgnore, configurationsToRemove, false);
 
-        for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
-          String type = entry.getKey();
-          Map<String, String> properties = entry.getValue();
-          Collection<String> propertiesToRemove = configurationsToRemove.get(type);
-
-          if (properties != null) {
-            for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
-              String propertyName = configTypeEntry.getKey();
-
-              // Ignore properties that should be removed
-              if ((propertiesToRemove == null) || !propertiesToRemove.contains(propertyName)) {
-                String value = configTypeEntry.getValue();
-                String operation = (value == null)
-                    ? KerberosConfigDataFileWriter.OPERATION_TYPE_REMOVE
-                    : KerberosConfigDataFileWriter.OPERATION_TYPE_SET;
-
-                kerberosConfDataFileWriter.addRecord(type, propertyName, value, operation);
-              }
-            }
-          }
-        }
-
-        // Declare which properties to remove from the configurations
-        for (Map.Entry<String, Collection<String>> entry : configurationsToRemove.entrySet()) {
-          String type = entry.getKey();
-          Collection<String> properties = entry.getValue();
-
-          if (properties != null) {
-            for (String propertyName : properties) {
-              kerberosConfDataFileWriter.addRecord(type, propertyName, null, KerberosConfigDataFileWriter.OPERATION_TYPE_REMOVE);
-            }
-          }
-        }
-      } catch (IOException e) {
-        String message = String.format("Failed to write kerberos configurations file - %s", configFile.getAbsolutePath());
-        LOG.error(message, e);
-        actionLog.writeStdOut(message);
-        actionLog.writeStdErr(message + "\n" + e.getLocalizedMessage());
-        throw new AmbariException(message, e);
-      } finally {
-        if (kerberosConfDataFileWriter != null) {
-          try {
-            kerberosConfDataFileWriter.close();
-          } catch (IOException e) {
-            String message = "Failed to close the kerberos configurations file writer";
-            LOG.warn(message, e);
-            actionLog.writeStdOut(message);
-            actionLog.writeStdErr(message + "\n" + e.getLocalizedMessage());
-          }
-        }
-      }
+      processConfigurationChanges(dataDirectory, kerberosConfigurations, configurationsToRemove);
     }
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());

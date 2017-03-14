@@ -364,7 +364,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     // If Ambari is managing it own identities then add AMBARI to the set of installed servcie so
     // that its Kerberos descriptor entries will be included.
-    if(createAmbariIdentities(existingConfigurations.get("kerberos-env"))) {
+    if (createAmbariIdentities(existingConfigurations.get("kerberos-env"))) {
       installedServices = new HashMap<String, Set<String>>(installedServices);
       installedServices.put("AMBARI", Collections.singleton("AMBARI_SERVER"));
     }
@@ -415,7 +415,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     return (applyStackAdvisorUpdates)
         ? applyStackAdvisorUpdates(cluster, installedServices.keySet(), configurations, kerberosConfigurations, propertiesToIgnore,
-        null, new HashMap<String, Set<String>>(), kerberosEnabled)
+        new HashMap<String, Set<String>>(), kerberosEnabled)
         : kerberosConfigurations;
   }
 
@@ -473,7 +473,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                                    Map<String, Map<String, String>> existingConfigurations,
                                                                    Map<String, Map<String, String>> kerberosConfigurations,
                                                                    Map<String, Set<String>> propertiesToIgnore,
-                                                                   Map<String, Map<String, String>> propertiesToInsert,
                                                                    Map<String, Set<String>> propertiesToRemove,
                                                                    boolean kerberosEnabled) throws AmbariException {
 
@@ -564,14 +563,12 @@ public class KerberosHelperImpl implements KerberosHelper {
             Map<String, String> kerberosConfigProperties = kerberosConfigurations.get(configType);
             Set<String> ignoreProperties = (propertiesToIgnore == null) ? null : propertiesToIgnore.get(configType);
 
-            addRecommendedPropertiesForConfigType(kerberosEnabled, kerberosConfigurations, configType,
-                recommendedConfigProperties,
-                existingConfigProperties, kerberosConfigProperties, ignoreProperties, propertiesToInsert);
+            addRecommendedPropertiesForConfigType(kerberosConfigurations, configType, recommendedConfigProperties,
+                existingConfigProperties, kerberosConfigProperties, ignoreProperties);
+
             if (recommendedConfigPropertyAttributes != null) {
-              removeRecommendedPropertiesForConfigType(kerberosEnabled, configType,
-                  recommendedConfigPropertyAttributes,
-                  existingConfigProperties,
-                  kerberosConfigurations, ignoreProperties, propertiesToRemove);
+              removeRecommendedPropertiesForConfigType(configType, recommendedConfigPropertyAttributes,
+                  existingConfigProperties, kerberosConfigurations, ignoreProperties, propertiesToRemove);
             }
           }
         }
@@ -585,71 +582,46 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   /*
-   * Recommended property will be added to kerberosConfigurations if kerberosEnabled or to propertiesToInsert
-   * otherwise.
+   * Recommended property will be updated in or added to kerberosConfigurationS.
    */
-  private void addRecommendedPropertiesForConfigType(boolean kerberosEnabled, Map<String, Map<String, String>> kerberosConfigurations,
+  private void addRecommendedPropertiesForConfigType(Map<String, Map<String, String>> kerberosConfigurations,
                                                      String configType, Map<String, String> recommendedConfigProperties,
                                                      Map<String, String> existingConfigProperties,
                                                      Map<String, String> kerberosConfigProperties,
-                                                     Set<String> ignoreProperties,
-                                                     Map<String, Map<String, String>> propertiesToInsert) {
+                                                     Set<String> ignoreProperties) {
 
     for (Map.Entry<String, String> property : recommendedConfigProperties.entrySet()) {
       String propertyName = property.getKey();
 
       if ((ignoreProperties == null) || !ignoreProperties.contains(propertyName)) {
         String recommendedValue = property.getValue();
-        if (kerberosEnabled) {
-          if (kerberosConfigProperties == null) {
-            // There is no explicit update for this property from the Kerberos Descriptor...
-            // add the config and property if it also does not exist in the existing configurations
-            if ((existingConfigProperties == null) || !existingConfigProperties.containsKey(propertyName)) {
-              LOG.debug("Adding Kerberos configuration based on StackAdvisor recommendation:" +
-                      "\n\tConfigType: {}\n\tProperty: {}\n\tValue: {}",
-                  configType, propertyName, recommendedValue);
 
-              HashMap<String, String> properties = new HashMap<String, String>();
-              properties.put(propertyName, recommendedValue);
-              kerberosConfigurations.put(configType, properties);
+        if ((kerberosConfigProperties == null) || !kerberosConfigProperties.containsKey(propertyName)) {
+          // There is no explicit update for this property from the Kerberos Descriptor...
+          // add the config and property if it also does not exist in the existing configurations
+          if ((existingConfigProperties == null) || !existingConfigProperties.containsKey(propertyName)) {
+            LOG.debug("Adding Kerberos configuration based on StackAdvisor recommendation:" +
+                    "\n\tConfigType: {}\n\tProperty: {}\n\tValue: {}",
+                configType, propertyName, recommendedValue);
+
+            if(kerberosConfigProperties == null) {
+              kerberosConfigProperties = new HashMap<String, String>();
+              kerberosConfigurations.put(configType, kerberosConfigProperties);
             }
-          } else {
-            String value = kerberosConfigProperties.get(propertyName);
-            if (value == null) {
-              // There is no explicit update for this property from the Kerberos Descriptor...
-              // add the property if it also does not exist in the existing configurations
-              if ((existingConfigProperties == null) || !existingConfigProperties.containsKey(propertyName)) {
-                LOG.debug("Adding Kerberos configuration based on StackAdvisor recommendation:" +
-                        "\n\tConfigType: {}\n\tProperty: {}\n\tValue: {}",
-                    configType, propertyName, recommendedValue);
 
-                kerberosConfigProperties.put(propertyName, recommendedValue);
-              }
-            } else if (!value.equals(recommendedValue)) {
-              // If the recommended value is a change, automatically change it.
-              LOG.debug("Updating Kerberos configuration based on StackAdvisor recommendation:" +
-                      "\n\tConfigType: {}\n\tProperty: {}\n\tOld Value: {}\n\tNew Value: {}",
-                  configType, propertyName, value, recommendedValue);
-
-              kerberosConfigProperties.put(propertyName, recommendedValue);
-            }
+            kerberosConfigProperties.put(propertyName, recommendedValue);
           }
-        } else if (propertiesToInsert != null && ((existingConfigProperties == null) || !existingConfigProperties
-            .containsKey(propertyName))) {
-          Map<String, String> properties = propertiesToInsert.get(configType);
-          if (properties == null) {
-            properties = new HashMap<>();
-            propertiesToInsert.put(configType, properties);
+        } else {
+          String value = kerberosConfigProperties.get(propertyName);
+          if ((value == null) ? (recommendedValue != null) : !value.equals(recommendedValue)) {
+            // If the recommended value is a change, automatically change it.
+            LOG.debug("Updating Kerberos configuration based on StackAdvisor recommendation:" +
+                    "\n\tConfigType: {}\n\tProperty: {}\n\tOld Value: {}\n\tNew Value: {}",
+                configType, propertyName, (value == null) ? "" : value, (recommendedValue == null) ? "" : recommendedValue);
+
+            kerberosConfigProperties.put(propertyName, recommendedValue);
           }
-
-          LOG.debug("Property to add to configuration based on StackAdvisor recommendation:" +
-                  "\n\tConfigType: {}\n\tProperty: {}\n\tValue: {}",
-              configType, propertyName, recommendedValue);
-
-          properties.put(propertyName, recommendedValue);
         }
-
-
       }
     }
   }
@@ -657,14 +629,14 @@ public class KerberosHelperImpl implements KerberosHelper {
   /**
    * If property is marked with delete flag in recommendedConfigPropertyAttributes map and is not found in
    * ignoreProperties, nor in kerberosConfigProperties but exits in existingConfigProperties add to
-   * propertiesToRemove map if kerberosEnabled or kerberosConfigurations otherwise.
+   * propertiesToRemove map.
    */
-  private void removeRecommendedPropertiesForConfigType(boolean kerberosEnabled, String configType,
+  private void removeRecommendedPropertiesForConfigType(String configType,
                                                         Map<String, ValueAttributesInfo> recommendedConfigPropertyAttributes,
                                                         Map<String, String> existingConfigProperties,
                                                         Map<String, Map<String, String>> kerberosConfigurations,
-                                                        Set<String> ignoreProperties, Map<String, Set<String>>
-                                                            propertiesToRemove) {
+                                                        Set<String> ignoreProperties,
+                                                        Map<String, Set<String>> propertiesToRemove) {
 
     for (Map.Entry<String, ValueAttributesInfo> property : recommendedConfigPropertyAttributes.entrySet()) {
       String propertyName = property.getKey();
@@ -681,7 +653,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               configType, propertyName);
 
           // kerberosEnabled add property to propertiesToRemove, otherwise to kerberosConfigurations map
-          if (kerberosEnabled && propertiesToRemove != null) {
+          if (propertiesToRemove != null) {
             Set<String> properties = propertiesToRemove.get(configType);
             if (properties == null) {
               properties = new HashSet<String>();
@@ -2442,9 +2414,10 @@ public class KerberosHelperImpl implements KerberosHelper {
    *                           services
    * @param componentName      the name of a component for which to find results, null indicates all
    *                           components
-   * @param kerberosDescriptor the relevant Kerberos Descriptor     @return a list of KerberosIdentityDescriptors representing the active identities for the
-   *                           requested service component
+   * @param kerberosDescriptor the relevant Kerberos Descriptor
    * @param filterContext      the context to use for filtering identities based on the state of the cluster
+   * @return a list of KerberosIdentityDescriptors representing the active identities for the
+   * requested service component
    * @throws AmbariException if an error occurs processing the cluster's active identities
    */
   private List<KerberosIdentityDescriptor> getActiveIdentities(Cluster cluster,
@@ -3278,6 +3251,8 @@ public class KerberosHelperImpl implements KerberosHelper {
       commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATION_NOTE, "Enabling Kerberos");
       commandParameters.put(KerberosServerAction.UPDATE_CONFIGURATIONS, "true");
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
+      commandParameters.put(KerberosServerAction.INCLUDE_AMBARI_IDENTITY, (kerberosDetails.createAmbariPrincipal()) ? "true" : "false");
+
       if (dataDirectory != null) {
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       }

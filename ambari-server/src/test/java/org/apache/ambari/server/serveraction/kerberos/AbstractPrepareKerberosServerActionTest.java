@@ -38,10 +38,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.easymock.Capture;
-import org.easymock.CaptureType;
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,8 +48,6 @@ import com.google.inject.Injector;
 
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -114,8 +109,7 @@ public class AbstractPrepareKerberosServerActionTest {
 
     Collection<String> identityFilter = new ArrayList<>();
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
-    Map<String, Map<String, String>> propertiesToInsert = new HashMap<>();
-    Map<String, Set<String>> propertiesToRemove = new HashMap<>();
+    Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
     Map<String, String> descriptorProperties = new HashMap<>();
     Map<String, Map<String, String>> configurations = new HashMap<>();
 
@@ -128,10 +122,7 @@ public class AbstractPrepareKerberosServerActionTest {
       put(zookeeperService, null);
     }};
 
-    Capture<Set<String>> serviceCapture = Capture.newInstance(CaptureType.LAST);
-
     expect(kerberosDescriptor.getProperties()).andReturn(descriptorProperties).atLeastOnce();
-    expect(kerberosHelper.calculateConfigurations((Cluster)anyObject(), anyString(), (Map<String,String>)anyObject())).andReturn(configurations).atLeastOnce();
     expect(kerberosIdentityDataFileWriterFactory.createKerberosIdentityDataFileWriter((File)anyObject())).andReturn(kerberosIdentityDataFileWriter);
     // it's important to pass a copy of clusterServices
     expect(cluster.getServices()).andReturn(new HashMap<>(clusterServices)).atLeastOnce();
@@ -149,16 +140,6 @@ public class AbstractPrepareKerberosServerActionTest {
     expect(serviceDescriptor.getComponent(hdfsComponent)).andReturn(componentDescriptor).once();
     expect(componentDescriptor.getConfigurations(anyBoolean())).andReturn(null);
 
-    expect(kerberosHelper.applyStackAdvisorUpdates(
-      (Cluster)anyObject(),
-      capture(serviceCapture),
-      (Map<String, Map<String, String>>)anyObject(),
-      (Map<String, Map<String, String>>)anyObject(),
-      (Map<String, Set<String>>)anyObject(),
-      (Map<String, Map<String, String>>)anyObject(),
-      (Map<String, Set<String>>)anyObject(),
-      anyBoolean())).andReturn(null).atLeastOnce();
-
     replay(kerberosDescriptor, kerberosHelper, kerberosIdentityDataFileWriterFactory,
       cluster, serviceComponentHostHDFS, serviceComponentHostZK, serviceDescriptor, componentDescriptor);
 
@@ -167,15 +148,10 @@ public class AbstractPrepareKerberosServerActionTest {
       serviceComponentHosts,
       identityFilter,
       "",
-      kerberosConfigurations,
-      propertiesToInsert,
-      propertiesToRemove,
-      false, false);
+        configurations, kerberosConfigurations,
+        false, propertiesToIgnore);
 
     verify(kerberosHelper);
-
-    Set<String> resultServices = serviceCapture.getValue();
-    Assert.assertEquals(clusterServices.keySet(), resultServices);
   }
 
 }
