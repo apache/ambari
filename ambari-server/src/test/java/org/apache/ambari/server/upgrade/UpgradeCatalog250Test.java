@@ -160,6 +160,8 @@ public class UpgradeCatalog250Test {
   @Mock(type = MockType.NICE)
   private Injector injector;
 
+  private UpgradeCatalog250 upgradeCatalog250;
+
   @Before
   public void init() {
     reset(entityManagerProvider, injector);
@@ -171,6 +173,8 @@ public class UpgradeCatalog250Test {
     expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper).anyTimes();
 
     replay(entityManagerProvider, injector);
+
+    upgradeCatalog250 = new UpgradeCatalog250(injector);
   }
 
   @After
@@ -394,6 +398,7 @@ public class UpgradeCatalog250Test {
     Method updateLogSearchAlert = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchAlert");
     Method updateAmbariInfraConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAmbariInfraConfigs");
     Method updateRangerUrlConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateRangerUrlConfigs");
+    Method updateTezHistoryUrlBase = UpgradeCatalog250.class.getDeclaredMethod("updateTezHistoryUrlBase");
     Method updateYarnSite = UpgradeCatalog250.class.getDeclaredMethod("updateYarnSite");
     Method updateAlerts = UpgradeCatalog250.class.getDeclaredMethod("updateStormAlerts");
     Method removeAlertDuplicates = UpgradeCatalog250.class.getDeclaredMethod("removeAlertDuplicates");
@@ -421,6 +426,7 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(removeAlertDuplicates)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(fixHBaseMasterCPUUtilizationAlertDefinition)
+        .addMockedMethod(updateTezHistoryUrlBase)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
@@ -463,6 +469,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.addManageAlertNotificationsPermissions();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateTezHistoryUrlBase();
     expectLastCall().once();
 
     upgradeCatalog250.updateYarnSite();
@@ -1980,6 +1989,17 @@ public class UpgradeCatalog250Test {
     easyMockSupport.verifyAll();
 
     Assert.assertEquals(2, ambariAdministratorPermissionEntity.getAuthorizations().size());
+  }
+
+  @Test(expected = AmbariException.class)
+  public void shouldThrowExceptionWhenOldTezViewUrlIsInvalid() throws Exception {
+    upgradeCatalog250.getUpdatedTezHistoryUrlBase("Invalid URL");
+  }
+
+  @Test
+  public void shouldCreateRightTezAutoUrl() throws Exception {
+    String newUrl = upgradeCatalog250.getUpdatedTezHistoryUrlBase("http://hostname:8080/#/main/views/TEZ/0.7.0.2.6.0.0-561/tez1");
+    Assert.assertEquals("incorrect tez view url create.", "http://hostname:8080/#/main/view/TEZ/tez_cluster_instance", newUrl);
   }
 
   @Test
