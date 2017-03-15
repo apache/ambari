@@ -13,88 +13,52 @@
 [](WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.)
 [](See the License for the specific language governing permissions and)
 [](limitations under the License.)
-# HAWQ Monitoring View for Ambari
-This view provides a UI to monitor HAWQ queries.
 
-### Overview and Examples
-You may find instructive the [Ambari Views Overview], which demonstrates how Ambari uses third-party views and how to create your own view. [Here][view example] you may find a view example.
+# HAWQ View
 
-### Build All Views (must be done at least once)
+**HAWQ View** provides a **Query Monitor** for HAWQ which displays the current running queries.
+
+The HAWQ View frontend is built based on EmberJS framework. The Java backend extends the framework provided by the ambari-views project.
+
+The frontend polls the REST API periodically (5 seconds). The REST endpoint is responsible for querying the data from the *pg_stat_activity* table for every ```GET``` request on ```/queries``` resource.
+
+
+## Building and Deploying HAWQ View
+
+#### Building
+
+The HAWQ View is dependent on the ambari-views artifact. As a pre-requisite, build the *ambari-views* project.
+
+```$AMBARI_DIR``` refers to the top-level directory for Ambari source code.
+
 ```sh
-cd $AMBARI_DIR/contrib/views
-mvn install -DskipTests
-```
-
-### Build HAWQ View
-```sh
+# Build ambari-views project
+cd $AMBARI_DIR/ambari-views
+mvn install [-DskipTests]
+# Build HAWQ View
 cd $AMBARI_DIR/contrib/views/hawq
 mvn install [-DskipTests]
 ```
 
-### Setting-Up The Enviornment
-In order to prepare a vagrant environment, firstly follow the instructions in the [Ambari Dev Quick Start Guide].
+#### Deploying
 
-### Deploy JAR file
+Copy the hawq-view jar to the ambari-server host and restart ambari-server.
 ```sh
-vagrant ssh <Ambari Server Host>
-sudo -i
-ln -s /vagrant/ambari/contrib/views/hawq/target/hawq-view-X.Y.Z.Q-SNAPSHOT.jar /var/lib/ambari-server/resources/views/hawq-view-X.Y.Z.Q-SNAPSHOT.jar
-ambari-server restart
-```
-- Create an instance of view from “Manage Ambari” category in Ambari.
-
-If you wish to overwrite an installation of a view, then enter the vagrant box as root and
-```sh
-rm -rf /var/lib/ambari-server/resources/views/work/HAWQ\{X.Y.Z\}
-```
-(note that there is no trailing `/`) before restarting the Ambari server.  If you have made changes to the view, and those changes have not been reflected in the UI, then create a temporary throwaway view.  This may prompt Ambari to remove any stale references to the old view JAR in place of what you have just uploaded.
-
-### Ember Development
-The Hawq Monitoring View has been implemented using Ember 2.4.2; the tooling framework relies on Node 4.3.2.  There are a number of tools which you may need to install locally, starting with `nvm` (Node Version Manager).  You may wish to install the following tools while located in `$AMBARI_DIR`:
-
-```sh
-nvm install 4.3.2
-nvm use 4.3.2
-npm install ember-cli
-```
-
-This set of tools should allow you to use the Ember CLI tools for creating stub-files for controllers, routes, models, etc., in addition to `ember` for compiling and testing.  At the moment, `npm build`, `npm start`, and `npm test` all invoke the `ember` CLI tool.
-
-### Local Javascript testing without the overhead of Maven
-To do iterative unit testing while coding, firstly make a build using maven.  Afterward,
-```sh
-cd $AMBARI_DIR/contrib/views/hawq/src/main/resources/ui/
-npm start # To continuously test that your code compiles
-```
-and, when you want to test the code, open another terminal and
-```sh
-npm test
-```
-
-### Ambari Versions
-Be careful when moving this code from branch to branch:  the Ambari version referenced in pom.xml must match the branch.  You may have to reference other views (e.g. hive or pig) in the destination branch to get some idea of what you must change.
-
-### Debug Setup
-On the machine hosting vagrant:
-```sh
-vagrant ssh <Ambari Server Host>
-sudo -i
-cd /var/lib/ambari-server/resources/views/work  # if this directory does not exist, you have not started ambari-server; run "ambari-server start" to start it
-rm -rf HAWQ\{X.Y.Z\}
-ln -s /vagrant/ambari/contrib/views/hawq/src/main/resources/ui/dist HAWQ\{X.Y.Z\}
-ln -s /vagrant/ambari/contrib/views/hawq/target/classes/org/ HAWQ\{X.Y.Z\}/org
-ln -s /vagrant/ambari/contrib/views/hawq/target/classes/WEB-INF/ HAWQ\{X.Y.Z\}/WEB-INF
-ln -s /vagrant/ambari/contrib/views/hawq/src/main/resources/view.xml HAWQ\{X.Y.Z\}/view.xml
+scp $AMBARI_DIR/contrib/views/hawq/target/hawq-view-${version}.jar ambari.server.host:/var/lib/ambari-server/resources/views/
 ambari-server restart
 ```
 
-Note:  if you want to remove the symbolic link `/var/lib/ambari-server/resources/views/work/HAWQ\{X.Y.Z\}`, use `rm` and not `rm -rf`.
+## Creating an Instance of HAWQ View
 
-### Incremental Builds For Java Proxy
-The symbolic links generated in the Debug Setup section allow for the incremental updating of the Java proxy.  Each build with `mvn` deletes the symlinks from Debug Setup.  They must be recreated, and then the Ambari server must be restarted.  Additionally, each invocation of `npm start` or `ember serve` will destroy the links and require them to be recreated using the instructions in Debug Setup.  However, while the local Ember server is runnig, the links will not be removed by the server.
+The HAWQ View instance connects to the HAWQ Master through JDBC. Ssh into the HAWQ Master host and update *pg_hba.conf* to allow connections from the ambari-server host for the user which has access to the *pg_stat_activity* table.
 
-[//]: #
+By default the *gpadmin* user has aceess to the *pg_stat_activity* table. Restart HAWQ Master from Ambari dashboard for changes to take effect.
 
-[ambari views overview]: <http://www.slideshare.net/hortonworks/ambari-views-overview>
-[view example]: <https://github.com/apache/ambari/blob/trunk/ambari-views/examples/helloworld-view/docs/index.md>
-[ambari dev quick start guide]: <https://cwiki.apache.org/confluence/display/AMBARI/Quick+Start+Guide>
+Example of entry in *pg_hba.conf*, where ```192.168.64.101``` is my ambari-server host:
+```
+host  all	gpadmin 	192.168.64.101/32       trust
+```
+
+Navigate to the *Views* tab on *Manage Ambari* page. Click on *Create Instance* under *HAWQ* tab. Under *Settings* section, provide the HAWQ database username and password of the user who has access to the *pg_stat_activity* table. (The same user that was added to the *pg_hba.conf* for the ambari-server host entry)
+
+Upon clicking *Save*, the view will be created.

@@ -74,6 +74,9 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
@@ -108,6 +111,8 @@ public class StageUtilsTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
+        bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
+
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ClusterFactory.class).toInstance(createNiceMock(ClusterFactory.class));

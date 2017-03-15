@@ -259,7 +259,6 @@ class TestServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
 
-
   def test_service_check_during_upgrade(self, socket_mock):
     config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/hive-upgrade.json"
     with open(config_file, 'r') as f:
@@ -289,3 +288,45 @@ class TestServiceCheck(RMFTestCase):
         tries = 3,
         user = 'ambari-qa',
         try_sleep = 5)
+
+
+  def test_service_check_during_upgrade_for_llap(self, socket_mock):
+    config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/hive-upgrade.json"
+    with open(config_file, 'r') as f:
+      json_content = json.load(f)
+
+    # populate version and an LLAP instance to trigger the LLAP service check
+    json_content['commandParams']['version'] = "2.3.0.0-1234"
+    json_content['clusterHostInfo']['hive_server_interactive_hosts'] = ["c6402.ambari.apache.org"]
+    json_content['configurations']['hive-interactive-env'] = {}
+    json_content['configurations']['hive-interactive-env']['enable_hive_interactive'] = True
+
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
+      classname = "HiveServiceCheck",
+      command = "service_check",
+      config_dict = json_content,
+      stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled('Execute',
+      "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10010/;transportMode=binary' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+      path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+      timeout = 30,
+      user = 'ambari-qa')
+
+    self.assertResourceCalled('Execute',
+      "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10500/;transportMode=binary' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+      path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+      timeout = 30,
+      user = 'ambari-qa')
+
+    # LLAP call
+    self.assertResourceCalled('Execute',
+      "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10500/;transportMode=binary' --hiveconf \"hiveLlapServiceCheck=\" -f /usr/hdp/current/hive-server2-hive2/scripts/llap/sql/serviceCheckScript.sql -e '' 2>&1| awk '{print}'|grep -i -e 'Invalid status\|Invalid URL\|command not found\|Connection refused'",
+      path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', '/bin:/usr/hdp/current/hadoop-client/bin:/usr/hdp/2.3.0.0-1234/hive2/bin'],
+      tries = 1,
+      stderr = -1,
+      wait_for_finish = True,
+      logoutput = True,
+      user = 'hive')

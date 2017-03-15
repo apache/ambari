@@ -45,6 +45,7 @@ import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -134,6 +135,8 @@ public class ClustersImpl implements Clusters {
   private RequestOperationLevelDAO requestOperationLevelDAO;
   @Inject
   private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+  @Inject
+  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
   @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
   @Inject
@@ -861,113 +864,124 @@ public class ClustersImpl implements Clusters {
    */
   @Override
   public void deleteHost(String hostname) throws AmbariException {
-    // unmapping hosts from a cluster modifies the collections directly; keep
-    // a copy of this to ensure that we can pass in the original set of
-    // clusters that the host belonged to to the host removal event
-    Set<Cluster> clusters = hostClusterMap.get(hostname);
-    if (clusters == null) {
-      throw new HostNotFoundException(hostname);
-    }
-
-    Set<Cluster> hostsClusters = new HashSet<>(clusters);
-
-    deleteHostEntityRelationships(hostname);
-
-    // Publish the event, using the original list of clusters that the host
-    // belonged to
-    HostRemovedEvent event = new HostRemovedEvent(hostname, hostsClusters);
-    eventPublisher.publish(event);
+    deleteHosts(Collections.singletonList(hostname));
   }
 
-  /***
-   * Deletes all of the JPA relationships between a host and other entities.
-   * This method will not fire {@link HostRemovedEvent} since it is performed
-   * within an {@link Transactional} and the event must fire after the
-   * transaction is successfully committed.
-   *
-   * @param hostname
-   * @throws AmbariException
-   */
-  @Transactional
-  void deleteHostEntityRelationships(String hostname) throws AmbariException {
+  @Override
+  public void deleteHosts(Collection<String> hostnames) throws AmbariException {
     checkLoaded();
-
-    if (!hosts.containsKey(hostname)) {
-      throw new HostNotFoundException("Could not find host " + hostname);
-    }
-
     w.lock();
-
     try {
-      HostEntity entity = hostDAO.findByName(hostname);
-
-      if (entity == null) {
-        return;
-      }
-      // Remove from all clusters in the cluster_host_mapping table.
-      // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping
-      Set<Cluster> clusters = hostClusterMap.get(hostname);
-      Set<Long> clusterIds = Sets.newHashSet();
-      for (Cluster cluster: clusters) {
-        clusterIds.add(cluster.getClusterId());
-      }
-
-
-
-
-      unmapHostFromClusters(hostname, clusters);
-      hostDAO.refresh(entity);
-
-      hostVersionDAO.removeByHostName(hostname);
-
-      // Remove blueprint tasks before hostRoleCommands
-      // TopologyLogicalTask owns the OneToOne relationship but Cascade is on HostRoleCommandEntity
-      if (entity.getHostRoleCommandEntities() != null) {
-        for (HostRoleCommandEntity hrcEntity : entity.getHostRoleCommandEntities()) {
-          TopologyLogicalTaskEntity topologyLogicalTaskEnity = hrcEntity.getTopologyLogicalTaskEntity();
-          if (topologyLogicalTaskEnity != null) {
-            topologyLogicalTaskDAO.remove(topologyLogicalTaskEnity);
-            hrcEntity.setTopologyLogicalTaskEntity(null);
-          }
-        }
-      }
-      for (Long clusterId: clusterIds) {
-        for (TopologyRequestEntity topologyRequestEntity: topologyRequestDAO.findByClusterId(clusterId)) {
-          TopologyLogicalRequestEntity topologyLogicalRequestEntity = topologyRequestEntity.getTopologyLogicalRequestEntity();
-
-          for (TopologyHostRequestEntity topologyHostRequestEntity: topologyLogicalRequestEntity.getTopologyHostRequestEntities()) {
-            if (hostname.equals(topologyHostRequestEntity.getHostName())) {
-              topologyHostRequestDAO.remove(topologyHostRequestEntity);
-            }
-          }
+      for (String hostname : hostnames) {
+        if (!hosts.containsKey(hostname)) {
+          throw new HostNotFoundException("Could not find host " + hostname);
         }
       }
 
+      deleteHostEntities(hostnames);
 
-      entity.setHostRoleCommandEntities(null);
-      hostRoleCommandDAO.removeByHostId(entity.getHostId());
+      for (String hostname : hostnames) {
+        //cleanup in-memory maps after transaction commit
+        Set<Cluster> clusters = new HashSet<>(hostClusterMap.get(hostname));
 
-      entity.setHostStateEntity(null);
-      hostStateDAO.removeByHostId(entity.getHostId());
-      hostConfigMappingDAO.removeByHostId(entity.getHostId());
-      serviceConfigDAO.removeHostFromServiceConfigs(entity.getHostId());
-      requestOperationLevelDAO.removeByHostId(entity.getHostId());
-      topologyHostInfoDAO.removeByHost(entity);
 
-      // Remove from dictionaries
-      hosts.remove(hostname);
-      hostsById.remove(entity.getHostId());
+        Host host = hosts.get(hostname);
+        hosts.remove(hostname);
+        hostsById.remove(host.getHostId()); //hostentity is not retrieved from session implicitly so we can use this
 
-      hostDAO.remove(entity);
+        for (Cluster cluster : clusters) {
+          hostClusterMap.get(hostname).remove(cluster);
+          clusterHostMap.get(cluster.getClusterName()).remove(host);
+        }
 
-      // Note, if the host is still heartbeating, then new records will be re-inserted
-      // into the hosts and hoststate tables
-    } catch (Exception e) {
-      throw new AmbariException("Could not remove host", e);
+        deleteConfigGroupHostMapping(host.getHostId());
+
+        // Publish the event, using the original list of clusters that the host
+        // belonged to
+        HostRemovedEvent event = new HostRemovedEvent(hostname, clusters);
+        eventPublisher.publish(event);
+      }
+
     } finally {
       w.unlock();
     }
   }
+
+  @Transactional
+  //do not do in-memory modifications in this method, to safely rollback in case of failure
+  void deleteHostEntities(Collection<String> hostnames) throws AmbariException {
+    checkLoaded();
+    for (String hostname : hostnames) {
+      try {
+        HostEntity entity = hostDAO.findByName(hostname);
+
+        if (entity == null) {
+          return;
+        }
+        // Remove from all clusters in the cluster_host_mapping table.
+        // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping
+        Set<Cluster> clusters = hostClusterMap.get(hostname);
+        Set<Long> clusterIds = Sets.newHashSet();
+        for (Cluster cluster: clusters) {
+          clusterIds.add(cluster.getClusterId());
+        }
+
+        for (Long clusterId : clusterIds) {
+          unmapHostClusterEntities(hostname, clusterId);
+        }
+
+        hostVersionDAO.removeByHostName(hostname);
+
+        // Remove blueprint tasks before hostRoleCommands
+        // TopologyLogicalTask owns the OneToOne relationship but Cascade is on HostRoleCommandEntity
+        if (entity.getHostRoleCommandEntities() != null) {
+          for (HostRoleCommandEntity hrcEntity : entity.getHostRoleCommandEntities()) {
+            TopologyLogicalTaskEntity topologyLogicalTaskEnity = hrcEntity.getTopologyLogicalTaskEntity();
+            if (topologyLogicalTaskEnity != null) {
+              topologyLogicalTaskDAO.remove(topologyLogicalTaskEnity);
+              hrcEntity.setTopologyLogicalTaskEntity(null);
+            }
+          }
+        }
+
+        for (Long clusterId: clusterIds) {
+          for (TopologyRequestEntity topologyRequestEntity: topologyRequestDAO.findByClusterId(clusterId)) {
+            TopologyLogicalRequestEntity topologyLogicalRequestEntity = topologyRequestEntity.getTopologyLogicalRequestEntity();
+
+            for (TopologyHostRequestEntity topologyHostRequestEntity: topologyLogicalRequestEntity.getTopologyHostRequestEntities()) {
+              if (hostname.equals(topologyHostRequestEntity.getHostName())) {
+                topologyHostRequestDAO.remove(topologyHostRequestEntity);
+              }
+            }
+          }
+        }
+
+        entity.setHostRoleCommandEntities(null);
+        hostRoleCommandDAO.removeByHostId(entity.getHostId());
+
+        entity.setHostStateEntity(null);
+        hostStateDAO.removeByHostId(entity.getHostId());
+        hostConfigMappingDAO.removeByHostId(entity.getHostId());
+        serviceConfigDAO.removeHostFromServiceConfigs(entity.getHostId());
+        requestOperationLevelDAO.removeByHostId(entity.getHostId());
+        topologyHostInfoDAO.removeByHost(entity);
+
+        kerberosPrincipalHostDAO.removeByHost(entity.getHostId());
+
+        configGroupHostMappingDAO.removeAllByHost(entity.getHostId());
+
+        hostDAO.remove(entity);
+
+        // Note, if the host is still heartbeating, then new records will be re-inserted
+        // into the hosts and hoststate tables
+      } catch (Exception e) {
+        throw new AmbariException("Could not remove host", e);
+      }
+
+    }
+
+  }
+
 
   @Override
   public boolean checkPermission(String clusterName, boolean readOnly) {

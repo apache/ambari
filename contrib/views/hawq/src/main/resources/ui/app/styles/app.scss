@@ -17,7 +17,7 @@
  */
 @import './../../bower_components/bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
-$border-grey: #DDD;
+$border-grey: #dddddd;
 
 .container-fluid {
   font-size: 14px;
@@ -48,10 +48,14 @@ $border-grey: #DDD;
   font-weight: bold;
 }
 
+.beta {
+  color: #12526e;
+}
+
 .green {
-  color: #6CC16F
+  color: #6cc16f;
 }
 
 .orange {
-  color: #FB7F00
+  color: #fb7f00;
 }

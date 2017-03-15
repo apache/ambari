@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -241,6 +242,12 @@ public interface Clusters {
    */
   void deleteHost(String hostname)
       throws AmbariException;
+
+  /**
+   * Deletes hosts in bulk
+   * @param hostnames list of hostnames to delete
+   */
+  void deleteHosts(Collection<String> hostnames) throws AmbariException;
 
   /**
    * Determine whether or not access to the cluster resource identified

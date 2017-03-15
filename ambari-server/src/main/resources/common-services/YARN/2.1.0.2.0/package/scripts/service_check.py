@@ -129,13 +129,13 @@ class ServiceCheckDefault(ServiceCheck):
     for rm_webapp_address in params.rm_webapp_addresses_list:
       info_app_url = params.scheme + "://" + rm_webapp_address + "/ws/v1/cluster/apps/" + application_name
 
-      get_app_info_cmd = "curl --negotiate -u : -ksL --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
+      get_app_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
 
       return_code, stdout, _ = get_user_call_output(get_app_info_cmd,
                                             user=params.smokeuser,
                                             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
                                             )
-      
+
       # Handle HDP<2.2.8.1 where RM doesn't do automatic redirection from standby to active
       if stdout.startswith("This is standby RM. Redirecting to the current active RM:"):
         Logger.info(format("Skipped checking of {rm_webapp_address} since returned '{stdout}'"))

@@ -63,7 +63,7 @@ hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
 
 # HAWQ-PXF check params
 PXF_PORT = "51200"
-pxf_hdfs_test_dir = "/user/{0}/hawq_pxf_hdfs_service_check".format(hawq_user)
+pxf_hdfs_test_dir = "/tmp/hawq_pxf_hdfs_service_check"
 
 # Timeouts
 default_exec_timeout = 600

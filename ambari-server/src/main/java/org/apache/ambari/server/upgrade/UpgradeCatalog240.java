@@ -19,8 +19,6 @@
 package org.apache.ambari.server.upgrade;
 
 import com.google.common.collect.Lists;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -48,7 +46,6 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -64,7 +61,6 @@ import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
@@ -87,8 +83,6 @@ import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
-import org.apache.ambari.server.state.stack.WidgetLayout;
-import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.view.DefaultMasker;
 import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.MaskException;
@@ -100,9 +94,6 @@ import org.springframework.jdbc.support.JdbcUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import java.io.File;
-import java.io.FileReader;
-import java.lang.reflect.Type;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -2216,10 +2207,17 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       // Update the kerberos-env properties to change kdc_host to kdc_hosts
       config = cluster.getDesiredConfigByType("kerberos-env");
       if (config != null) {
+        Map<String, String> updates = new HashMap<String, String>();
+        Set<String> removes = new HashSet<String>();
+
         // Rename kdc_host to kdc_hosts
         String value = config.getProperties().get("kdc_host");
-        Map<String, String> updates = Collections.singletonMap("kdc_hosts", value);
-        Set<String> removes = Collections.singleton("kdc_host");
+        updates.put("kdc_hosts", value);
+        removes.add("kdc_host");
+
+        // Ensure create_ambari_principal is set to "false" since it is expected that Ambari's
+        // principal, keytab file, and JAAS file has already been manually configured.
+        updates.put("create_ambari_principal", "false");
 
         updateConfigurationPropertiesForCluster(cluster, "kerberos-env", updates, removes, true, false);
       }

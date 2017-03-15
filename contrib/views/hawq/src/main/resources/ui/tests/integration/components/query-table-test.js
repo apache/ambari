@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
-import { moduleForComponent, test } from 'ember-qunit';
+import {moduleForComponent, test} from 'ember-qunit';
 import hbs from 'htmlbars-inline-precompile';
-import { makeQueryObjects } from 'hawq-view/tests/helpers/test-helper';
+import {makeQueryObjects} from 'hawq-view/tests/helpers/test-helper';
 
 /*jshint node:true*/
 
@@ -54,8 +53,8 @@ test('it renders a table with mock data', function (assert) {
   assert.ok(statusDOM.attr('class').match(model[0].get('statusClass')));
   assert.equal(this.$('td#query-table-row0-username').text(), model[0].get('userName'));
   assert.equal(this.$('td#query-table-row0-databasename').text(), model[0].get('databaseName'));
-  assert.equal(this.$('td#query-table-row0-submittime').text(), model[0].get('formattedQueryStartTime'));
-  assert.equal(this.$('td#query-table-row0-duration').text(), model[0].get('duration'));
+  assert.equal(this.$('td#query-table-row0-submittime').text(), model[0].get('queryStartTime'));
+  assert.equal(this.$('td#query-table-row0-duration').text(), model[0].get('formattedDuration'));
   assert.equal(this.$('td#query-table-row0-clientaddress').text(), model[0].get('clientAddress'));
 
   assert.equal(this.$('tr#query-table-row1').length, 1);
@@ -67,46 +66,50 @@ test('it renders a table with mock data', function (assert) {
   assert.equal(this.$('tr#query-table-row3').length, 0);
 });
 
-function testColumnSort(_this, assert, columnHeaderSelector, expectedRows) {
-  let model = makeQueryObjects();
-  _this.set('model', model);
-
-  _this.render(hbs`{{query-table queries=model}}`);
-  Ember.$.bootstrapSortable(false);
-
-  // Ascending order
-  _this.$(columnHeaderSelector).click();
-  let ascendingRows = this.$('tbody').find('tr');
-
-  assert.equal(expectedRows.length, ascendingRows.length);
-
-  for (let i = 0, ii = expectedRows.length; i < ii; ++i) {
-    assert.equal(ascendingRows[i].getAttribute('id'), expectedRows[i]);
-  }
-
-  // Descending order
-  _this.$(columnHeaderSelector).click();
-  let descendingRows = this.$('tbody').find('tr');
-
-  assert.equal(expectedRows.length, ascendingRows.length);
-
-  for (let i = 0, ii = expectedRows.length; i < ii; ++i) {
-    assert.equal(descendingRows[i].getAttribute('id'), expectedRows[ii - i - 1]);
-  }
-}
-
-test('Clicking on the "Duration" column header toggles the sorting order of the elements of the column', function (assert) {
-  let expectedRows = [
-    'query-table-row2',
-    'query-table-row1',
-    'query-table-row0'
-  ];
-
-  testColumnSort(this, assert, 'th#query-table-header-duration', expectedRows);
-});
-
 test('Display text if there are no queries', function (assert) {
   this.render(hbs`{{query-table}}`);
 
   assert.equal(this.$('tr#no-queries').length, 1);
 });
+
+/*
+ TESTS DISABLED UNTIL SORTING FEATURE IS IMPLEMENTED
+
+ function testColumnSort(_this, assert, columnHeaderSelector, expectedRows) {
+ let model = makeQueryObjects();
+ _this.set('model', model);
+
+ _this.render(hbs`{{query-table queries=model}}`);
+ Ember.$.bootstrapSortable(false);
+
+ // Ascending order
+ _this.$(columnHeaderSelector).click();
+ let ascendingRows = this.$('tbody').find('tr');
+
+ assert.equal(expectedRows.length, ascendingRows.length);
+
+ for (let i = 0, ii = expectedRows.length; i < ii; ++i) {
+ assert.equal(ascendingRows[i].getAttribute('id'), expectedRows[i]);
+ }
+
+ // Descending order
+ _this.$(columnHeaderSelector).click();
+ let descendingRows = this.$('tbody').find('tr');
+
+ assert.equal(expectedRows.length, ascendingRows.length);
+
+ for (let i = 0, ii = expectedRows.length; i < ii; ++i) {
+ assert.equal(descendingRows[i].getAttribute('id'), expectedRows[ii - i - 1]);
+ }
+ }
+
+ test('Clicking on the "Duration" column header toggles the sorting order of the elements of the column', function (assert) {
+ let expectedRows = [
+ 'query-table-row2',
+ 'query-table-row1',
+ 'query-table-row0'
+ ];
+
+ testColumnSort(this, assert, 'th#query-table-header-duration', expectedRows);
+ });
+ */

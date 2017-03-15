@@ -106,8 +106,6 @@ hive_user_home_dir = "/home/hive"
 hive_server2_hive2_dir = None
 hive_server2_hive2_lib = None
 
-version = default("/commandParams/version", None)
-
 if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, version_for_stack_feature_checks):
   # the name of the hiveserver2-hive2 component
   hive_server2_hive2_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER_INTERACTIVE"]

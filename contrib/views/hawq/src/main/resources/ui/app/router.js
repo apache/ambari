@@ -23,8 +23,8 @@ const Router = Ember.Router.extend({
   location: config.locationType
 });
 
-Router.map(function() {
-  this.route('main', { path: '/' });
+Router.map(function () {
+  this.route('main', {path: '/'});
 });
 
 export default Router;

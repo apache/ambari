@@ -65,15 +65,15 @@ def kafka(upgrade_type=None):
         kafka_server_config['listeners'] = listeners.replace("6667", port)
         Logger.info(format("Kafka listeners after the port update: {listeners}"))
         del kafka_server_config['port']
-      
-      
+
+
     if effective_version is not None and effective_version != "" and \
       check_stack_feature(StackFeature.CREATE_KAFKA_BROKER_ID, effective_version):
       if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
         brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
         kafka_server_config['broker.id'] = brokerid
         Logger.info(format("Calculating broker.id as {brokerid}"))
-      
+
     # listeners and advertised.listeners are only added in 2.3.0.0 onwards.
     if effective_version is not None and effective_version != "" and \
        check_stack_feature(StackFeature.KAFKA_LISTENERS, effective_version):
@@ -215,9 +215,15 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
   if backup_folder_path:
     # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
     for file in os.listdir(backup_folder_path):
-      File(os.path.join(kafka_managed_dir,file),
-           owner=params.kafka_user,
-           content = StaticFile(os.path.join(backup_folder_path,file)))
+      if os.path.isdir(os.path.join(backup_folder_path, file)):
+        Execute(('cp', '-r', os.path.join(backup_folder_path, file), kafka_managed_dir),
+                sudo=True)
+        Execute(("chown", "-R", format("{kafka_user}:{user_group}"), os.path.join(kafka_managed_dir, file)),
+                sudo=True)
+      else:
+        File(os.path.join(kafka_managed_dir,file),
+             owner=params.kafka_user,
+             content = StaticFile(os.path.join(backup_folder_path,file)))
 
     # Clean up backed up folder
     Directory(backup_folder_path,
@@ -239,7 +245,13 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
   )
   # Safely copy top-level contents to backup folder
   for file in os.listdir(dir_path):
-    File(os.path.join(backup_destination_path, file),
+    if os.path.isdir(os.path.join(dir_path, file)):
+      Execute(('cp', '-r', os.path.join(dir_path, file), backup_destination_path),
+              sudo=True)
+      Execute(("chown", "-R", format("{kafka_user}:{user_group}"), os.path.join(backup_destination_path, file)),
+              sudo=True)
+    else:
+      File(os.path.join(backup_destination_path, file),
          owner=params.kafka_user,
          content = StaticFile(os.path.join(dir_path,file)))
 

@@ -21,7 +21,7 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>2.4.1.0.0</version>
+  <version>2.4.2.0.0</version>
   <description>Ambari</description>
   <url>http://ambari.apache.org/</url>
   <scm>
@@ -47,11 +47,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
-    <deb.publisher>Arenadata</deb.publisher>
+    <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-    <stack.distribution>ADH</stack.distribution>
+    <stack.distribution>HDP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>

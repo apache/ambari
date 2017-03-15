@@ -32,6 +32,7 @@ import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
+import org.easymock.IMockBuilder;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -122,10 +123,11 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosPrincipalDoesNotExistException.class)
   public void testSetPrincipalPasswordPrincipalDoesNotExist() throws Exception {
+
     MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
         .addMockedMethod(methodExecuteCommand)
         .createNiceMock();
-
+    injector.injectMembers(handler);
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
@@ -187,9 +189,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosPrincipalAlreadyExistsException.class)
   public void testCreatePrincipalPrincipalAlreadyNotExists() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -254,9 +254,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testTestAdministratorCredentialsIncorrectAdminPassword() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -287,9 +285,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testTestAdministratorCredentialsIncorrectAdminPrincipal() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -320,9 +316,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosRealmException.class)
   public void testTestAdministratorCredentialsInvalidRealm() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -353,9 +347,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosRealmException.class)
   public void testTestAdministratorCredentialsInvalidRealm2() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -386,9 +378,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosKDCConnectionException.class)
   public void testTestAdministratorCredentialsKDCConnectionException() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -419,9 +409,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test(expected = KerberosKDCConnectionException.class)
   public void testTestAdministratorCredentialsKDCConnectionException2() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -452,9 +440,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test
   public void testTestAdministratorCredentialsNotFound() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -485,9 +471,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   @Test
   public void testTestAdministratorCredentialsSuccess() throws Exception {
-    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
-        .addMockedMethod(methodExecuteCommand)
-        .createNiceMock();
+    MITKerberosOperationHandler handler = createMock();
 
     expect(handler.executeCommand(anyObject(String[].class), anyObject(Map.class), anyObject(MITKerberosOperationHandler.InteractivePasswordHandler.class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -561,5 +545,22 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     handler.open(credentials, realm, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
+  }
+
+  private MITKerberosOperationHandler createMock(){
+    return createMock(false);
+  }
+
+  private MITKerberosOperationHandler createMock(boolean strict) {
+    IMockBuilder<MITKerberosOperationHandler> mockBuilder = createMockBuilder(MITKerberosOperationHandler.class)
+        .addMockedMethod(methodExecuteCommand);
+    MITKerberosOperationHandler result;
+    if(strict){
+      result = mockBuilder.createStrictMock();
+    } else {
+      result = mockBuilder.createNiceMock();
+    }
+    injector.injectMembers(result);
+    return result;
   }
 }

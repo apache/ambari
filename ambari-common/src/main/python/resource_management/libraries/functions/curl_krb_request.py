@@ -176,11 +176,11 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
 
   try:
     if return_only_http_code:
-      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-L', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
+      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '--location-trusted', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
                              '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
                              user=user, env=kerberos_env)
     else:
-      curl_command = ['curl', '-L', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+      curl_command = ['curl', '--location-trusted', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
                       url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)]
       # returns response body
       if len(method) > 0 and len(body) == 0 and len(header) == 0:

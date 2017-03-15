@@ -19,19 +19,16 @@
 /*jshint node:true*/
 /* global sinon */
 
-import { moduleFor, test } from 'ember-qunit';
+import {moduleFor, test} from 'ember-qunit';
 import Utils from 'hawq-view/utils/utils';
 
-moduleFor('adapter:query', 'Unit | Adapter | query', {
-  // Specify the other units that are required for this test.
-  // needs: ['serializer:foo']
-});
+moduleFor('adapter:query', 'Unit | Adapter | query', {});
 
-test('has the right namespace for testing', function(assert) {
+test('has the right namespace for testing', function (assert) {
   assert.expect(0);
   let spy = sinon.spy(Utils, 'getNamespace');
   let adapter = this.subject();
-  adapter.get('namespace');
+  adapter.buildURL();
 
   sinon.assert.calledOnce(spy);
   Utils.getNamespace.restore();

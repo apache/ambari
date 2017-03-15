@@ -17,11 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import imp
-import os
-import re
 import socket
-import traceback
+import re
 
 class StackAdvisor(object):
   """
@@ -299,6 +296,10 @@ class StackAdvisor(object):
     pass
 
 
+
+
+
+
 class DefaultStackAdvisor(StackAdvisor):
   """
   Default stack advisor implementation.
@@ -308,63 +309,13 @@ class DefaultStackAdvisor(StackAdvisor):
   implement
   """
 
-  def __init__(self):
-    self.services = None
-    # Dictionary that maps serviceName or componentName to serviceAdvisor
-    self.serviceAdvisorsDict = {}
-
-
-  def getActiveHosts(self, hosts):
-    """ Filters the list of specified hosts object and returns
-        a list of hosts which are not in maintenance mode. """
-    hostsList = []
-    if hosts is not None:
-      hostsList = [host['host_name'] for host in hosts
-                   if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
-    return hostsList
-
-  def getServiceAdvisor(self, key):
-    if len(self.serviceAdvisorsDict) == 0:
-      self.loadServiceAdvisors()
-    return self.serviceAdvisorsDict[key]
-
-  def loadServiceAdvisors(self):
-    for service in self.services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      self.serviceAdvisorsDict[serviceName] = self.instantiateServiceAdvisor(service)
-      for component in service["components"]:
-        componentName = self.getComponentName(component)
-        self.serviceAdvisorsDict[componentName] = self.serviceAdvisorsDict[serviceName]
-
-  def instantiateServiceAdvisor(self, service):
-
-    serviceName = service["StackServices"]["service_name"]
-    className = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
-    path = service["StackServices"]["advisor_path"] if "advisor_path" in service["StackServices"] else None
-
-    if path is not None and os.path.exists(path) and className is not None:
-      try:
-        with open(path, 'rb') as fp:
-          serviceAdvisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
-        if hasattr(serviceAdvisor, className):
-          print "ServiceAdvisor implementation for service {0} was loaded".format(serviceName)
-          return getattr(serviceAdvisor, className)()
-        else:
-          print "Failed to load or create ServiceAdvisor implementation for service {0}: " \
-                "Expecting class name {1} but it was not found.".format(serviceName, className)
-      except Exception as e:
-        traceback.print_exc()
-        print "Failed to load or create ServiceAdvisor implementation for service {0}".format(serviceName)
-
-    return None
-
   def recommendComponentLayout(self, services, hosts):
     """Returns Services object with hostnames array populated for components"""
 
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
-    hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
-    servicesList = self.getServiceNames(services)
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     layoutRecommendations = self.createComponentLayoutRecommendations(services, hosts)
 
@@ -378,7 +329,6 @@ class DefaultStackAdvisor(StackAdvisor):
     return recommendations
 
   def createComponentLayoutRecommendations(self, services, hosts):
-    self.services = services
 
     recommendations = {
       "blueprint": {
@@ -389,31 +339,41 @@ class DefaultStackAdvisor(StackAdvisor):
       }
     }
 
-    hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
-
-    # for fast lookup
-    hostsSet = set(hostsList)
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
 
     hostsComponentsMap = {}
     for hostName in hostsList:
       if hostName not in hostsComponentsMap:
         hostsComponentsMap[hostName] = []
 
-    #extend hostsComponentsMap' with MASTER components
+    #extend 'hostsComponentsMap' with MASTER components
     for service in services["services"]:
       masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
-        advisor = serviceAdvisor if serviceAdvisor is not None else self
-        hostsForComponent = advisor.getHostsForMasterComponent(services, hosts, component, hostsList)
+
+        if self.isComponentHostsPopulated(component):
+          hostsForComponent = component["StackServiceComponents"]["hostnames"]
+        else:
+
+          if len(hostsList) > 1 and self.isMasterComponentWithMultipleInstances(component):
+            hostsCount = self.getMinComponentCount(component)
+            if hostsCount > 1: # get first 'hostsCount' available hosts
+              hostsForComponent = []
+              hostIndex = 0
+              while hostsCount > len(hostsForComponent) and hostIndex < len(hostsList):
+                currentHost = hostsList[hostIndex]
+                if self.isHostSuitableForComponent(currentHost, component):
+                  hostsForComponent.append(currentHost)
+                hostIndex += 1
+            else:
+              hostsForComponent = [self.getHostForComponent(component, hostsList)]
+          else:
+            hostsForComponent = [self.getHostForComponent(component, hostsList)]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
-          if hostName in hostsSet:
-            hostsComponentsMap[hostName].append( { "name":componentName } )
-
+          hostsComponentsMap[hostName].append( { "name":componentName } )
     #extend 'hostsComponentsMap' with Slave and Client Components
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
@@ -424,27 +384,46 @@ class DefaultStackAdvisor(StackAdvisor):
     for service in services["services"]:
       slaveClientComponents = [component for component in service["components"]
                                if self.isSlaveComponent(component) or self.isClientComponent(component)]
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
-        advisor = serviceAdvisor if serviceAdvisor is not None else self
-        hostsForComponent = advisor.getHostsForSlaveComponent(services, hosts, component, hostsList, freeHosts)
+
+        if component["StackServiceComponents"]["cardinality"] == "ALL":
+          hostsForComponent = hostsList
+        else:
+          componentIsPopulated = self.isComponentHostsPopulated(component)
+          if componentIsPopulated:
+            hostsForComponent = component["StackServiceComponents"]["hostnames"]
+          else:
+            hostsForComponent = []
+
+          if self.isSlaveComponent(component):
+            cardinality = str(component["StackServiceComponents"]["cardinality"])
+            if self.isComponentUsingCardinalityForLayout(componentName) and cardinality:
+              # cardinality types: 1+, 1-2, 1, ALL
+              if "+" in cardinality:
+                hostsMin = int(cardinality[:-1])
+              elif "-" in cardinality:
+                nums = cardinality.split("-")
+                hostsMin = int(nums[0])
+              else:
+                hostsMin = int(cardinality)
+              if hostsMin > len(hostsForComponent):
+                hostsForComponent.extend(freeHosts[0:hostsMin-len(hostsForComponent)])
+            else:
+              hostsForComponent.extend(freeHosts)
+              if not hostsForComponent:  # hostsForComponent is empty
+                hostsForComponent = hostsList[-1:]
+            hostsForComponent = list(set(hostsForComponent))  # removing duplicates
+          elif self.isClientComponent(component) and not componentIsPopulated:
+            hostsForComponent = freeHosts[0:1]
+            if not hostsForComponent:  # hostsForComponent is empty
+              hostsForComponent = hostsList[-1:]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
-          if hostName not in hostsComponentsMap and hostName in hostsSet:
+          if hostName not in hostsComponentsMap:
             hostsComponentsMap[hostName] = []
-          if hostName in hostsSet:
-            hostsComponentsMap[hostName].append( { "name": componentName } )
-
-    #colocate custom services
-    for service in services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
-      if serviceAdvisor is not None:
-        serviceComponents = [component for component in service["components"]]
-        serviceAdvisor.colocateService(hostsComponentsMap, serviceComponents)
+          hostsComponentsMap[hostName].append( { "name": componentName } )
 
     #prepare 'host-group's from 'hostsComponentsMap'
     host_groups = recommendations["blueprint"]["host_groups"]
@@ -457,57 +436,7 @@ class DefaultStackAdvisor(StackAdvisor):
       bindings.append( { "name": host_group_name, "hosts": [{ "fqdn": key }] } )
 
     return recommendations
-
-  def getHostsForMasterComponent(self, services, hosts, component, hostsList):
-    if self.isComponentHostsPopulated(component):
-      return component["StackServiceComponents"]["hostnames"]
-
-    if len(hostsList) > 1 and self.isMasterComponentWithMultipleInstances(component):
-      hostsCount = self.getMinComponentCount(component)
-      if hostsCount > 1: # get first 'hostsCount' available hosts
-        hostsForComponent = []
-        hostIndex = 0
-        while hostsCount > len(hostsForComponent) and hostIndex < len(hostsList):
-          currentHost = hostsList[hostIndex]
-          if self.isHostSuitableForComponent(currentHost, component):
-            hostsForComponent.append(currentHost)
-          hostIndex += 1
-        return hostsForComponent
-
-    return [self.getHostForComponent(component, hostsList)]
-
-  def getHostsForSlaveComponent(self, services, hosts, component, hostsList, freeHosts):
-    if component["StackServiceComponents"]["cardinality"] == "ALL":
-      return hostsList
-
-    if self.isComponentHostsPopulated(component):
-      return component["StackServiceComponents"]["hostnames"]
-
-    hostsForComponent = []
-    componentName = component["StackServiceComponents"]["component_name"]
-    if self.isSlaveComponent(component):
-      cardinality = str(component["StackServiceComponents"]["cardinality"])
-      hostsMin, hostsMax = self.parseCardinality(cardinality, len(hostsList))
-      hostsMin, hostsMax = (0 if hostsMin is None else hostsMin, len(hostsList) if hostsMax is None else hostsMax)
-      if self.isComponentUsingCardinalityForLayout(componentName) and cardinality:
-        if hostsMin > len(hostsForComponent):
-          hostsForComponent.extend(freeHosts[0:hostsMin-len(hostsForComponent)])
-
-      else:
-        hostsForComponent.extend(freeHosts)
-        if not hostsForComponent:  # hostsForComponent is empty
-          hostsForComponent = hostsList[-1:]
-      hostsForComponent = list(set(hostsForComponent))  # removing duplicates
-      if len(hostsForComponent) < hostsMin:
-        hostsForComponent = list(set(hostsList))[0:hostsMin]
-      elif len(hostsForComponent) > hostsMax:
-        hostsForComponent = list(set(hostsList))[0:hostsMax]
-    elif self.isClientComponent(component):
-      hostsForComponent = freeHosts[0:1]
-      if not hostsForComponent:  # hostsForComponent is empty
-        hostsForComponent = hostsList[-1:]
-
-    return hostsForComponent
+  pass
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return False
@@ -531,121 +460,17 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def validateConfigurations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    self.services = services
-
     validationItems = self.getConfigurationsValidationItems(services, hosts)
     return self.createValidationResponse(services, validationItems)
 
   def getComponentLayoutValidations(self, services, hosts):
-    self.services = services
-
-    items = []
-    if services is None:
-      return items
-
-    for service in services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      serviceAdvisor = self.getServiceAdvisor(serviceName)
-      if serviceAdvisor is not None:
-        items.extend(serviceAdvisor.getServiceComponentLayoutValidations(services, hosts))
-
-    return items
-
-  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
-    return {}
-
-  def validateClusterConfigurations(self, configurations, services, hosts):
-    validationItems = []
-
-    return self.toConfigurationValidationProblems(validationItems, "")
-
-  def toConfigurationValidationProblems(self, validationProblems, siteName):
-    result = []
-    for validationProblem in validationProblems:
-      validationItem = validationProblem.get("item", None)
-      if validationItem is not None:
-        problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
-                   "config-type": siteName, "config-name": validationProblem["config-name"] }
-        result.append(problem)
-    return result
-
-  def validateServiceConfigurations(self, serviceName):
-    return self.getServiceConfigurationValidators().get(serviceName, None)
-
-  def getServiceConfigurationValidators(self):
-    return {}
-
-  def validateMinMax(self, items, recommendedDefaults, configurations):
-
-    # required for casting to the proper numeric type before comparison
-    def convertToNumber(number):
-      try:
-        return int(number)
-      except ValueError:
-        return float(number)
-
-    for configName in configurations:
-      validationItems = []
-      if configName in recommendedDefaults and "property_attributes" in recommendedDefaults[configName]:
-        for propertyName in recommendedDefaults[configName]["property_attributes"]:
-          if propertyName in configurations[configName]["properties"]:
-            if "maximum" in recommendedDefaults[configName]["property_attributes"][propertyName] and \
-                propertyName in recommendedDefaults[configName]["properties"]:
-              userValue = convertToNumber(configurations[configName]["properties"][propertyName])
-              maxValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["maximum"])
-              if userValue > maxValue:
-                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is greater than the recommended maximum of {0} ".format(maxValue))}])
-            if "minimum" in recommendedDefaults[configName]["property_attributes"][propertyName] and \
-                    propertyName in recommendedDefaults[configName]["properties"]:
-              userValue = convertToNumber(configurations[configName]["properties"][propertyName])
-              minValue = convertToNumber(recommendedDefaults[configName]["property_attributes"][propertyName]["minimum"])
-              if userValue < minValue:
-                validationItems.extend([{"config-name": propertyName, "item": self.getWarnItem("Value is less than the recommended minimum of {0} ".format(minValue))}])
-      items.extend(self.toConfigurationValidationProblems(validationItems, configName))
-    pass
-
-
-  def getConfigurationsValidationItems(self, services, hosts):
-    """Returns array of Validation objects about issues with configuration values provided in services"""
-    items = []
-
-    recommendations = self.recommendConfigurations(services, hosts)
-    recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
-    configurations = services["configurations"]
-
-    for service in services["services"]:
-      items.extend(self.getConfigurationsValidationItemsForService(configurations, recommendedDefaults, service, services, hosts))
-
-    clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
-    items.extend(clusterWideItems)
-    self.validateMinMax(items, recommendedDefaults, configurations)
-    return items
-
-  def validateConfigurationsForSite(self, configurations, recommendedDefaults, services, hosts, siteName, method):
-    if siteName in recommendedDefaults:
-      siteProperties = self.getSiteProperties(configurations, siteName)
-      if siteProperties is not None:
-        siteRecommendations = recommendedDefaults[siteName]["properties"]
-        print("SiteName: %s, method: %s" % (siteName, method.__name__))
-        print("Site properties: %s" % str(siteProperties))
-        print("Recommendations: %s" % str(siteRecommendations))
-        return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []
 
-  def getConfigurationsValidationItemsForService(self, configurations, recommendedDefaults, service, services, hosts):
-    items = []
-    serviceName = service["StackServices"]["service_name"]
-    validator = self.validateServiceConfigurations(serviceName)
-    if validator is not None:
-      for siteName, method in validator.items():
-        resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
-        items.extend(resultItems)
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
+    pass
 
-    serviceAdvisor = self.getServiceAdvisor(serviceName)
-    if serviceAdvisor is not None:
-      items.extend(serviceAdvisor.getServiceConfigurationsValidationItems(configurations, recommendedDefaults, services, hosts))
-
-    return items
+  def getConfigurationsValidationItems(self, services, hosts):
+    return []
 
   def recommendConfigGroupsConfigurations(self, recommendations, services, components, hosts,
                             servicesList):
@@ -674,20 +499,10 @@ class DefaultStackAdvisor(StackAdvisor):
 
       configurations = {}
 
-      # there can be dependencies between service recommendations which require special ordering
-      # for now, make sure custom services (that have service advisors) run after standard ones
-      serviceAdvisors = []
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        calculation = self.getServiceConfigurationRecommender(serviceName)
+      for service in servicesList:
+        calculation = self.getServiceConfigurationRecommender(service)
         if calculation is not None:
           calculation(configurations, cgClusterSummary, cgServices, cgHosts)
-        else:
-          serviceAdvisor = self.getServiceAdvisor(serviceName)
-          if serviceAdvisor is not None:
-            serviceAdvisors.append(serviceAdvisor)
-      for serviceAdvisor in serviceAdvisors:
-        serviceAdvisor.getServiceConfigurationRecommendations(configurations, cgClusterSummary, cgServices, cgHosts)
 
       cgRecommendation = {
         "configurations": {},
@@ -716,8 +531,6 @@ class DefaultStackAdvisor(StackAdvisor):
                 configElement][property] = value
 
   def recommendConfigurations(self, services, hosts):
-    self.services = services
-
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
@@ -750,20 +563,10 @@ class DefaultStackAdvisor(StackAdvisor):
     else:
       configurations = recommendations["recommendations"]["blueprint"]["configurations"]
 
-      # there can be dependencies between service recommendations which require special ordering
-      # for now, make sure custom services (that have service advisors) run after standard ones
-      serviceAdvisors = []
-      for service in services["services"]:
-        serviceName = service["StackServices"]["service_name"]
-        calculation = self.getServiceConfigurationRecommender(serviceName)
+      for service in servicesList:
+        calculation = self.getServiceConfigurationRecommender(service)
         if calculation is not None:
           calculation(configurations, clusterSummary, services, hosts)
-        else:
-          serviceAdvisor = self.getServiceAdvisor(serviceName)
-          if serviceAdvisor is not None:
-            serviceAdvisors.append(serviceAdvisor)
-      for serviceAdvisor in serviceAdvisors:
-        serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
 
     return recommendations
 
@@ -817,13 +620,10 @@ class DefaultStackAdvisor(StackAdvisor):
     return self.getCardinalitiesDict().get(componentName, {"min": 1, "max": 1})
 
   def getHostForComponent(self, component, hostsList):
-    if len(hostsList) == 0:
-      return None
-
     componentName = self.getComponentName(component)
 
     if len(hostsList) != 1:
-      scheme = self.getComponentLayoutSchemes().get(componentName, None)
+      scheme = self.getComponentLayoutScheme(componentName)
       if scheme is not None:
         hostIndex = next((index for key, index in scheme.iteritems() if isinstance(key, ( int, long )) and len(hostsList) < key), scheme['else'])
       else:
@@ -833,11 +633,22 @@ class DefaultStackAdvisor(StackAdvisor):
           return host
     return hostsList[0]
 
+  def getComponentLayoutScheme(self, componentName):
+    """
+    Provides a scheme for laying out given component on different number of hosts.
+    """
+    return self.getComponentLayoutSchemes().get(componentName, None)
+
   def getComponentName(self, component):
     return self.getComponentAttribute(component, "component_name")
 
+  def isComponentNotPreferableOnAmbariServerHost(self, component):
+    componentName = self.getComponentName(component)
+    service = self.getNotPreferableOnServerComponents()
+    return componentName in service
+
   def isHostSuitableForComponent(self, host, component):
-    return not (self.getComponentName(component) in self.getNotPreferableOnServerComponents() and self.isLocalHost(host))
+    return not (self.isComponentNotPreferableOnAmbariServerHost(component) and self.isLocalHost(host))
 
   def getMastersWithMultipleInstances(self):
     return []
@@ -860,24 +671,13 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     return {}
 
-  """
-  Utility method used for validation warnings.
-  """
-  def getWarnItem(self, message):
-    return {"level": "WARN", "message": message}
-
-  """
-  Utility method used for validation errors.
-  """
-  def getErrorItem(self, message):
-    return {"level": "ERROR", "message": message}
-
   def getComponentHostNames(self, servicesDict, serviceName, componentName):
     for service in servicesDict["services"]:
       if service["StackServices"]["service_name"] == serviceName:
         for component in service['components']:
           if component["StackServiceComponents"]["component_name"] == componentName:
             return component["StackServiceComponents"]["hostnames"]
+  pass
 
   def recommendConfigurationDependencies(self, services, hosts):
     result = self.recommendConfigurations(services, hosts)
@@ -897,14 +697,13 @@ class DefaultStackAdvisor(StackAdvisor):
 
     filteredConfigs = {}
     for type, names in configs.items():
-      if 'properties' in names.keys():
-        for name in names['properties']:
-          if type in requestedProperties.keys() and \
-                  name in requestedProperties[type]:
-            if type not in filteredConfigs.keys():
-              filteredConfigs[type] = {'properties': {}}
-            filteredConfigs[type]['properties'][name] = \
-              configs[type]['properties'][name]
+      for name in names['properties']:
+        if type in requestedProperties.keys() and \
+                name in requestedProperties[type]:
+          if type not in filteredConfigs.keys():
+            filteredConfigs[type] = {'properties': {}}
+          filteredConfigs[type]['properties'][name] = \
+            configs[type]['properties'][name]
       if 'property_attributes' in names.keys():
         for name in names['property_attributes']:
           if type in requestedProperties.keys() and \
@@ -965,122 +764,3 @@ class DefaultStackAdvisor(StackAdvisor):
       return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
     return cmp(normalize(version1), normalize(version2))
   pass
-
-  def getSiteProperties(self, configurations, siteName):
-    siteConfig = configurations.get(siteName)
-    if siteConfig is None:
-      return None
-    return siteConfig.get("properties")
-
-  def putProperty(self, config, configType, services=None):
-    userConfigs = {}
-    changedConfigs = []
-    # if services parameter, prefer values, set by user
-    if services:
-      if 'configurations' in services.keys():
-        userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
-        changedConfigs = services["changed-configurations"]
-
-    if configType not in config:
-      config[configType] = {}
-    if"properties" not in config[configType]:
-      config[configType]["properties"] = {}
-    def appendProperty(key, value):
-      # If property exists in changedConfigs, do not override, use user defined property
-      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
-        config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
-      else:
-        config[configType]["properties"][key] = str(value)
-    return appendProperty
-
-  def __isPropertyInChangedConfigs(self, configType, propertyName, changedConfigs):
-    for changedConfig in changedConfigs:
-      if changedConfig['type']==configType and changedConfig['name']==propertyName:
-        return True
-    return False
-
-  def updateProperty(self, config, configType, services=None):
-    userConfigs = {}
-    changedConfigs = []
-    # if services parameter, prefer values, set by user
-    if services:
-      if 'configurations' in services.keys():
-        userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
-        changedConfigs = services["changed-configurations"]
-
-    if configType not in config:
-      config[configType] = {}
-    if "properties" not in config[configType]:
-      config[configType]["properties"] = {}
-
-    def updatePropertyWithCallback(key, value, callback):
-      # If property exists in changedConfigs, do not override, use user defined property
-      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
-        config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
-      else:
-        # Give the callback an empty string if the mapping doesn't exist
-        current_value = ""
-        if key in config[configType]["properties"]:
-          current_value = config[configType]["properties"][key]
-
-        config[configType]["properties"][key] = callback(current_value, value)
-
-    return updatePropertyWithCallback
-
-  def putPropertyAttribute(self, config, configType):
-    if configType not in config:
-      config[configType] = {}
-    def appendPropertyAttribute(key, attribute, attributeValue):
-      if "property_attributes" not in config[configType]:
-        config[configType]["property_attributes"] = {}
-      if key not in config[configType]["property_attributes"]:
-        config[configType]["property_attributes"][key] = {}
-      config[configType]["property_attributes"][key][attribute] = attributeValue if isinstance(attributeValue, list) else str(attributeValue)
-    return appendPropertyAttribute
-
-
-  """
-  Returns the hosts which are running the given component.
-  """
-  def getHosts(self, componentsList, componentName):
-    hostNamesList = [component["hostnames"] for component in componentsList if component["component_name"] == componentName]
-    return hostNamesList[0] if len(hostNamesList) > 0 else []
-
-  def isSecurityEnabled(self, services):
-    """
-    Determines if security is enabled by testing the value of cluster-env/security enabled.
-
-    If the property exists and is equal to "true", then is it enabled; otherwise is it assumed to be
-    disabled.
-
-    :param services: the services structure containing the current configurations
-    :return: true if security is enabled; otherwise false
-    """
-    return "cluster-env" in services["configurations"] \
-           and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
-           and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
-
-  def parseCardinality(self, cardinality, hostsCount):
-    """
-    Cardinality types: 1+, 1-2, 1, ALL
-    @return: a tuple: (minHosts, maxHosts) or (None, None) if cardinality string is invalid
-    """
-    if not cardinality:
-      return (None, None)
-
-    if "+" in cardinality:
-      return (int(cardinality[:-1]), int(hostsCount))
-    elif "-" in cardinality:
-      nums = cardinality.split("-")
-      return (int(nums[0]), int(nums[1]))
-    elif "ALL" == cardinality:
-      return (int(hostsCount), int(hostsCount))
-    elif cardinality.isdigit():
-      return (int(cardinality),int(cardinality))
-
-    return (None, None)
-
-  def getServiceNames(self, services):
-    return [service["StackServices"]["service_name"] for service in services["services"]]
