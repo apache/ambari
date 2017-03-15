@@ -1009,8 +1009,11 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer .more-actions {
   display: none;
   position: absolute;
-  top: 20px;
-  right: 35px;
+  top: 14px;
+  right: 33px;
+  line-height: 25px;
+  width: 20px;
+  text-align: center;
   line-height: 14px;
   font-size: 14px;
   cursor: pointer;
