@@ -143,6 +143,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   isWizardRestricted: false,
 
   /**
+   * @type {string}
+   */
+  wizardModalTitle: function () {
+    if (this.get('isDowngrade')) {
+      return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(this.get('upgradeVersion'));
+    }
+    return Em.I18n.t('admin.stackUpgrade.dialog.header').format(this.get('upgradeTypeDisplayName'), this.get('upgradeVersion'));
+  }.property('upgradeTypeDisplayName', 'upgradeVersion', 'isDowngrade'),
+
+  /**
    * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
    * by stack upgrade path
    * @type {Array}

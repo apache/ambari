@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: 'stack/upgrade',
 
+  breadcrumbs: {
+    label: 'App.router.mainAdminStackAndUpgradeController.wizardModalTitle'
+  },
+
   enter: function (router) {
     if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
       router.get('mainController').dataLoading().done(function () {
@@ -36,14 +40,7 @@ module.exports = App.WizardRoute.extend({
           return App.ModalPopup.show({
             classNames: ['upgrade-wizard-modal'],
             modalDialogClasses: ['modal-xlg'],
-            header: function () {
-              var controller = App.router.get('mainAdminStackAndUpgradeController');
-              if (controller.get('isDowngrade')) {
-                return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(controller.get('upgradeVersion'));
-              } else {
-                return Em.I18n.t('admin.stackUpgrade.dialog.header').format(controller.get('upgradeTypeDisplayName'), controller.get('upgradeVersion'));
-              }
-            }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion', 'App.router.mainAdminStackAndUpgradeController.isDowngrade'),
+            header: Em.computed.alias('App.router.mainAdminStackAndUpgradeController.wizardModalTitle'),
             bodyClass: App.upgradeWizardView,
             primary: Em.I18n.t('common.dismiss'),
             secondary: null,

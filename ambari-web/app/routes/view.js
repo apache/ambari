@@ -46,6 +46,7 @@ module.exports = Em.Route.extend({
 
   shortViewDetails: Em.Route.extend({
     route: '/:viewName/:shortName',
+    breadcrumbs: null,
     connectOutlets: function (router, params) {
       var viewPath = this.parseViewPath(window.location.href.slice(window.location.href.indexOf('?')));
       var slicedShortName = params.shortName;

@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/Hawq/activate',
 
+  breadcrumbs: {
+    label: Em.I18n.t('admin.activateHawqStandby.wizard.header')
+  },
+
   enter: function (router, transition) {
     var activateHawqStandbyWizardController = router.get('activateHawqStandbyWizardController');
     activateHawqStandbyWizardController.dataLoading().done(function () {

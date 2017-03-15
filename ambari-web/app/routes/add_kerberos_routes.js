@@ -19,6 +19,7 @@ var App = require('app');
 
 module.exports = App.WizardRoute.extend({
   route: '/enable',
+  breadcrumbs: null,
   enter: function (router) {
     router.get('mainController').dataLoading().done(function() {
       return App.clusterStatus.updateFromServer();
