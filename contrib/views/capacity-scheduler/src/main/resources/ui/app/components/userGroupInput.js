@@ -24,7 +24,7 @@ App.UserGroupInputComponent = Em.Component.extend({
   ug:'',
 
   users:function (key, value, previousValue) {
-    if (value) {
+    if (value || value === "") {
       this.set('ug',[value,this.get('groups')].join(' '));
     }
     var ug = this.get('ug');
@@ -32,7 +32,7 @@ App.UserGroupInputComponent = Em.Component.extend({
   }.property('ug'),
 
   groups:function (key, value, previousValue) {
-    if (value) {
+    if (value || value === "") {
       this.set('ug',[this.get('users'),value].join(' '));
     }
     var ug = this.get('ug');
