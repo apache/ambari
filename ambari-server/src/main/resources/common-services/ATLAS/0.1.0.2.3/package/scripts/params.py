@@ -33,12 +33,13 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
 
 
-def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
+def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_protocol):
   """
   Return a dictionary of additional configs to merge if Atlas HA is enabled.
   :param atlas_hosts: List of hostnames that contain Atlas
   :param metadata_port: Port number
   :param is_atlas_ha_enabled: None, True, or False
+  :param metadata_protocol: http or https
   :return: Dictionary with additional configs to merge to application-properties if HA is enabled.
   """
   additional_props = {}
@@ -59,6 +60,11 @@ def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
     prop_name = "atlas.server.address." + id
     prop_value = curr_hostname + ":" + metadata_port
     additional_props[prop_name] = prop_value
+    if "atlas.rest.address" in additional_props:
+      additional_props["atlas.rest.address"] += "," + metadata_protocol + "://" + prop_value
+    else:
+      additional_props["atlas.rest.address"] = metadata_protocol + "://" + prop_value
+
     i += 1
 
   # This may override the existing property
@@ -162,7 +168,7 @@ else:
 # User should not have to modify this property, but still allow overriding it to False if multiple Atlas servers exist
 # This can be None, True, or False
 is_atlas_ha_enabled = default("/configurations/application-properties/atlas.server.ha.enabled", None)
-additional_ha_props = configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled)
+additional_ha_props = configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_protocol)
 for k,v in additional_ha_props.iteritems():
   application_properties[k] = v
 
