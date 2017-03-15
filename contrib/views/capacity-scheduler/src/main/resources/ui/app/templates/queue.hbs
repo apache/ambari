@@ -265,7 +265,7 @@
               }}
               {{#if isOperator}}
                 <div class="col-xs-6 control-value">
-                  {{int-input value=content.user_limit_factor maxlength=10 class="input-sm input-int" defaultVal=1 placeholder=1}}
+                  {{decimal-input value=content.user_limit_factor maxlength=10 class="input-sm input-int" defaultVal=1 placeholder=1}}
                   {{#if queueDirtyFilelds.user_limit_factor}}
                   <div class="btn-group btn-group-xs" >
                     <a {{action 'rollbackProp' 'user_limit_factor' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
