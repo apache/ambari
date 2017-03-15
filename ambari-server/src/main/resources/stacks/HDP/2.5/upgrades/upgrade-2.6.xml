@@ -216,10 +216,10 @@
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
-        <service>YARN</service>
         <service>HBASE</service>
       </priority>
       <exclude>
+        <service>YARN</service>
         <service>AMBARI_METRICS</service>
         <service>LOGSEARCH</service>
       </exclude>
