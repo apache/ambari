@@ -68,7 +68,7 @@ var WorkflowImporter= Ember.Object.extend({
   },
   processWorkflowActionVersions(workflowAppJson, workflow, errors) {
     var importedWfActionVersions = Ember.Map.create();
-    var actions=workflowAppJson.action.length?workflowAppJson.action:[workflowAppJson.action];
+    var actions=workflowAppJson.action ? (workflowAppJson.action.length?workflowAppJson.action:[workflowAppJson.action]):[];
     actions.forEach(function(wfAction) {
       var wfActionType = Object.keys(wfAction)[0];
       var wfActionXmlns = wfAction[wfActionType]._xmlns;

@@ -1325,7 +1325,9 @@ input:invalid {
 
 .cy-note {
   color: #777;
-  padding-right: 10px;
+  padding-right: 40px;
+  position: absolute;
+  width: 100%;
 }
 
 .overlay_node_editor {
@@ -1799,4 +1801,18 @@ input:invalid {
   cursor: pointer;
   filter: alpha(opacity=50);
   opacity: .5;
+}
+
+#actions-list-header, #actions-list-body {
+  margin-bottom: 0px;
+}
+
+#actions-list-header-conatiner {
+  padding-right: 16px;
+}
+
+#actions-list-body-conatiner {
+  max-height: 150px;
+  overflow-y: scroll;
+  margin-bottom: 10px;
 }
