@@ -237,7 +237,7 @@ class ResourceFilesKeeper():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-      os.chmod(hash_file, 0o666)
+      os.chmod(hash_file, 0o755)
     except Exception, err:
       raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
                                                                    str(err)))
@@ -267,7 +267,7 @@ class ResourceFilesKeeper():
                                         arcname))
             zf.write(absname, arcname)
       zf.close()
-      os.chmod(zip_file_path, 0o666)
+      os.chmod(zip_file_path, 0o755)
     except Exception, err:
       raise KeeperException("Can not create zip archive of "
                             "directory {0} : {1}".format(directory, str(err)))

@@ -66,6 +66,8 @@ public class CertificateManager {
       "-keyfile {0}" + File.separator + "{4} -cert {0}" + File.separator + "{5}"; /**
        * Verify that root certificate exists, generate it otherwise.
        */
+  private static final String SET_PERMISSIONS = "find %s -type f -exec chmod 700 {} +";
+
   public void initRootCert() {
     LOG.info("Initialization of root certificate");
     boolean certExists = isCertExists();
@@ -161,6 +163,8 @@ public class CertificateManager {
     command = MessageFormat.format(EXPRT_KSTR,scriptArgs);
     runCommand(command);
 
+    command = String.format(SET_PERMISSIONS,srvrKstrDir);
+    runCommand(command);
   }
 
   /**
