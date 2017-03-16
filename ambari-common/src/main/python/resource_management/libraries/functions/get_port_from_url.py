@@ -30,9 +30,9 @@ def get_port_from_url(address):
   If address is UnknownConfiguration, UnknownConfiguration will be returned. 
   If no port was found, Fail will be raised.
   """
-  if is_empty(address):
-    return address
-  
+  if address is None or address.strip() == "":
+    return ""
+  address = address.strip()
   if isinstance(address, (int, long)):
     return address  
   

@@ -1513,6 +1513,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setRestartRequired(boolean restartRequired) {
     LOG.debug("Set RestartRequired on serviceName = {} componentName = {} hostName = {} to {}",
         getServiceName(), getServiceComponentName(), getHostName(), restartRequired);

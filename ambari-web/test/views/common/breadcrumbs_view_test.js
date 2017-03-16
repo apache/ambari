@@ -35,3 +35,78 @@ describe('App.BreadcrumbItem', function () {
   });
 
 });
+
+function getCurrentState(parentStateProps, currentStateProps) {
+  var parentState = Em.Route.create(parentStateProps);
+  var currentState = Em.Route.create(currentStateProps);
+  currentState.set('parentState', parentState);
+  currentState.set('parentState.parentState', null);
+  return currentState;
+}
+
+var view;
+describe('App.BreadcrumbsView', function () {
+
+  beforeEach(function () {
+    view = App.BreadcrumbsView.create();
+  });
+
+  describe('#items', function () {
+    var currentState;
+
+    beforeEach(function () {
+      sinon.stub(App, 'get', function (key) {
+        if (key === 'router.currentState') {
+          return currentState;
+        }
+        return Em.get(App, key);
+      });
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    it('predefined label', function () {
+      currentState = getCurrentState({}, {name: '', breadcrumbs: {label: 'abc'}});
+      expect(view.get('items.firstObject.formattedLabel')).to.be.equal('abc');
+    });
+
+    it('`name` as label', function () {
+      currentState = getCurrentState({}, {name: 'abc abc', breadcrumbs: {}});
+      expect(view.get('items.firstObject.formattedLabel')).to.be.equal('Abc abc');
+    });
+
+    it('label binding', function () {
+      App.set('somePath', 'abc');
+      currentState = getCurrentState({}, {name: '', breadcrumbs: {labelBindingPath: 'App.somePath'}});
+      expect(view.get('items.firstObject.formattedLabel')).to.be.equal('abc');
+      App.set('somePath', 'cba');
+      expect(view.get('items.firstObject.formattedLabel')).to.be.equal('cba');
+    });
+
+    it('`index` route is ignored', function () {
+      currentState = getCurrentState({}, {name: 'index'});
+      expect(view.get('items')).to.be.empty;
+    });
+
+    it('`root` route is ignored', function () {
+      currentState = getCurrentState({}, {name: 'root'});
+      expect(view.get('items')).to.be.empty;
+    });
+
+    it('last item is disabled by default', function () {
+      currentState = getCurrentState({breadcrumbs: {label: 'parent'}}, {breadcrumbs: {label: 'child'}});
+      expect(view.get('items.length')).to.be.equal(2);
+      expect(view.get('items.lastObject.disabled')).to.be.true;
+    });
+
+    it('last item `isLast` is true', function () {
+      currentState = getCurrentState({breadcrumbs: {label: 'parent'}}, {breadcrumbs: {label: 'child'}});
+      expect(view.get('items.length')).to.be.equal(2);
+      expect(view.get('items.lastObject.isLast')).to.be.true;
+    });
+
+  });
+
+});

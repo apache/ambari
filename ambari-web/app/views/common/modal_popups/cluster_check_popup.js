@@ -28,14 +28,14 @@ function mapUpgradeChecks(items) {
  * @param data
  * @param popup
  * @param configs
- * @param upgradeVersion
  * @returns {*|void}
  */
-App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
+App.showClusterCheckPopup = function (data, popup, configs) {
   var fails = data.items.filterProperty('UpgradeChecks.status', 'FAIL'),
     warnings = data.items.filterProperty('UpgradeChecks.status', 'WARNING'),
     bypass = data.items.filterProperty('UpgradeChecks.status', 'BYPASS'),
-    hasConfigsMergeConflicts = !!(configs && configs.length),
+    configsMergeConflicts = configs ? configs.filterProperty('wasModified', false) : [],
+    configsRecommendations = configs ? configs.filterProperty('wasModified', true) : [],
     primary,
     secondary;
   popup = popup || {};
@@ -68,17 +68,12 @@ App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
       warnings: mapUpgradeChecks(warnings),
       fails: mapUpgradeChecks(fails),
       bypass: mapUpgradeChecks(bypass), // errors that can be bypassed
-      hasConfigsMergeConflicts: hasConfigsMergeConflicts,
-      isAllPassed: !fails.length && !warnings.length && !bypass.length && !hasConfigsMergeConflicts,
-      configsMergeTable: Em.View.extend({
-        templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
-        configs: configs,
-        didInsertElement: function () {
-          App.tooltip($('.recommended-value'), {
-            title: upgradeVersion
-          });
-        }
-      })
+      hasConfigsMergeConflicts: configsMergeConflicts.length > 0,
+      hasConfigsRecommendations: configsRecommendations.length > 0,
+      configsMergeTable: App.getMergeConflictsView(configsMergeConflicts),
+      configsRecommendTable: App.getNewStackRecommendationsView(configsRecommendations),
+      isAllPassed: !fails.length && !warnings.length && !bypass.length
+      && !configsMergeConflicts.length && !configsRecommendations.length
     }),
     onPrimary: function () {
       this._super();
@@ -90,5 +85,19 @@ App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
       this._super();
       this.fitHeight();
     }
+  });
+};
+
+App.getMergeConflictsView = function (configs) {
+  return Em.View.extend({
+    templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
+    configs: configs
+  });
+};
+
+App.getNewStackRecommendationsView = function (configs) {
+  return Em.View.extend({
+    templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_recommend_table'),
+    configs: configs
   });
 };

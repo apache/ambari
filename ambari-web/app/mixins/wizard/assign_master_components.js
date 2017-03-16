@@ -256,6 +256,12 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   isLoaded: false,
 
   /**
+   * Is back from the next step
+   * @type {bool}
+   */
+  backFromNextStep: false,
+
+  /**
    * Validation error messages which don't related with any master
    */
   generalErrorMessages: [],
@@ -479,6 +485,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     this.setProperties({
       hosts: [],
       isLoaded: false,
+      backFromNextStep: false,
       selectedServicesMasters: [],
       servicesMasters: []
     });
@@ -498,6 +505,11 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
       this._additionalClearSteps();
     }
     this.renderHostInfo();
+    //when returning from step Assign Slaves and Clients, recommendations are already available
+    //set the flag so that recommendations AJAX call is not made unnecessarily
+    if (this.get('recommendations')) {
+      this.set('backFromNextStep',true);
+    }
     this.getRecommendedHosts({
       hosts: this.get('hosts').mapProperty('host_name')
     }).then(function() {
@@ -613,7 +625,8 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   loadComponentsRecommendationsFromServer: function(recommendationBlueprint) {
     var self = this;
 
-    if (this.get('recommendations')) {
+    //when returning from step Assign Slaves and Clients, backFromNextStep will be true
+    if (this.get('recommendations') && this.get('backFromNextStep')) {
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
       return $.Deferred().resolve().promise();

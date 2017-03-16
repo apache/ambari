@@ -129,12 +129,12 @@ hive_interactive_zookeeper_namespace = None
 if 'hive_server_host' in master_configs and len(master_configs['hive_server_host']) != 0:
   is_hive_installed = True
   spark_hive_properties = {
-    'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
+    'hive.metastore.uris': default('/configurations/hive-site/hive.metastore.uris', '')
   }
   hive_server_host = str(master_configs['hive_server_host'][0])
   hive_metastore_host = str(master_configs['hive_metastore_host'][0])
   hive_metastore_port = str(
-    get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']))
+    get_port_from_url(default('/configurations/hive-site/hive.metastore.uris', '')))
   hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])
   hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
   hive_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
@@ -145,6 +145,8 @@ if 'hive_server_interactive_hosts' in master_configs and len(master_configs['hiv
     hive_server_interactive_hosts = str(master_configs['hive_server_interactive_hosts'][0])
     hive_interactive_zookeeper_namespace = config['configurations']['hive-interactive-site']['hive.server2.zookeeper.namespace']
     hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])
+    hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
+    hive_server2_support_dynamic_service_discovery = config['configurations']['hive-site']['hive.server2.support.dynamic.service.discovery']
 
 # detect hbase details if installed
 zookeeper_znode_parent = None

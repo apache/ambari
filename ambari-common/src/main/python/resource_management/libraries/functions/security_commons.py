@@ -159,8 +159,13 @@ def get_params_from_filesystem(conf_dir, config_files):
   for config_file, file_type in config_files.iteritems():
     file_name, file_ext = os.path.splitext(config_file)
 
+    config_filepath = conf_dir + os.sep + config_file
+
+    if not os.path.isfile(config_filepath):
+      continue
+
     if file_type == FILE_TYPE_XML:
-      configuration = ET.parse(conf_dir + os.sep + config_file)
+      configuration = ET.parse(config_filepath)
       props = configuration.getroot().getchildren()
       config_file_id = file_name if file_name else config_file
       result[config_file_id] = {}
@@ -168,7 +173,7 @@ def get_params_from_filesystem(conf_dir, config_files):
         result[config_file_id].update({prop[0].text: prop[1].text})
 
     elif file_type == FILE_TYPE_PROPERTIES:
-      with open(conf_dir + os.sep + config_file, 'r') as f:
+      with open(config_filepath, 'r') as f:
         config_string = '[root]\n' + f.read()
       ini_fp = StringIO.StringIO(re.sub(r'\\\s*\n', '\\\n ', config_string))
       config = ConfigParser.RawConfigParser()
@@ -184,7 +189,7 @@ def get_params_from_filesystem(conf_dir, config_files):
       section_footer = re.compile('^\}\s*;?\s*$')
       section_name = "root"
       result[file_name] = {}
-      with open(conf_dir + os.sep + config_file, 'r') as f:
+      with open(config_filepath, 'r') as f:
         for line in f:
           if line:
             line = line.strip()

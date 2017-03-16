@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/JournalNode/manage',
 
+  breadcrumbs: {
+    label: Em.I18n.t('admin.manageJournalNode.wizard.header')
+  },
+
   enter: function (router) {
     var manageJournalNodeWizardController = router.get('manageJournalNodeWizardController');
     manageJournalNodeWizardController.dataLoading().done(function () {

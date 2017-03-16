@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/ResourceManager/enable',
 
+  breadcrumbs: {
+    label: Em.I18n.t('admin.rm_highAvailability.wizard.header')
+  },
+
   enter: function (router, transition) {
     var rMHighAvailabilityWizardController = router.get('rMHighAvailabilityWizardController');
     rMHighAvailabilityWizardController.dataLoading().done(function () {

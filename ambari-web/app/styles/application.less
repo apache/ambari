@@ -2318,9 +2318,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     .diff {
       td {
-        &.empty {
-          width: 50%;
-        }
+        width: 50%;
         &.delete {
           background-color: @diff-background-delete !important;
         }
@@ -2333,6 +2331,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         &.not-defined:first-of-type, &.is-removed:last-of-type {
           background-color: @diff-background-empty;
           font-style: italic;
+          word-break: normal;
         }
       }
     }

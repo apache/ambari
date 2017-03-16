@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/RangerAdmin/enable',
 
+  breadcrumbs: {
+    label: Em.I18n.t('admin.ra_highAvailability.wizard.header')
+  },
+
   enter: function (router) {
     var rAHighAvailabilityWizardController = router.get('rAHighAvailabilityWizardController');
     rAHighAvailabilityWizardController.dataLoading().done(function () {

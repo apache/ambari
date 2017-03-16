@@ -15,13 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<td class="pointer action-link" {{action 'getActionDetails' actionInfo}}>{{actionInfo.name}}</td>
-<td>{{actionInfo.type}}</td>
-<td>{{actionInfo.status}}</td>
-<td>{{actionInfo.transition}}</td>
-<td>{{actionInfo.startTime}}</td>
-<td>{{actionInfo.endTime}}</td>
-<td>
+<td class="pointer action-link col-xs-2" {{action 'getActionDetails' actionInfo}}>{{actionInfo.name}}</td>
+<td class="col-xs-1">{{actionInfo.type}}</td>
+<td class="col-xs-1">{{actionInfo.status}}</td>
+<td class="col-xs-2">{{actionInfo.transition}}</td>
+<td class="col-xs-2">{{actionInfo.startTime}}</td>
+<td class="col-xs-2">{{actionInfo.endTime}}</td>
+<td class="col-xs-1">
   {{#if validTrackerUrl}}
     <a target="_blank" href="{{actionInfo.consoleUrl}}"><i class="fa fa-external-link action-link" aria-hidden="true"></i></a>
   {{else}}

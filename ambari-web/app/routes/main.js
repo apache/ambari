@@ -18,12 +18,6 @@
 
 var App = require('app');
 
-function getPostFormatLabel(parent) {
-  return function (label) {
-    return `${parent} - ${label}`;
-  }
-}
-
 module.exports = Em.Route.extend(App.RouterRedirections, {
 
   breadcrumbs: {
@@ -148,6 +142,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
     widgets: Em.Route.extend({
       route: '/metrics',
+      breadcrumbs: {
+        label: Em.I18n.t('common.metrics')
+      },
       connectOutlets: function (router, context) {
         App.loadTimer.start('Dashboard Metrics Page');
         router.set('mainDashboardController.selectedCategory', 'widgets');
@@ -156,6 +153,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
     charts: Em.Route.extend({
       route: '/charts',
+      breadcrumbs: null,
       connectOutlets: function (router, context) {
         App.loadTimer.start('Heatmaps Page');
         router.set('mainDashboardController.selectedCategory', 'charts');
@@ -233,8 +231,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     hostDetails: Em.Route.extend({
 
       breadcrumbs: {
-        labelBindingPath: 'App.router.mainHostDetailsController.content.hostName',
-        disabled: true
+        labelBindingPath: 'App.router.mainHostDetailsController.content.hostName'
       },
 
       route: '/:host_id',
@@ -308,6 +305,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
 
       stackVersions: Em.Route.extend({
+        breadcrumbs: {
+          label: Em.I18n.t('common.versions')
+        },
         route: '/stackVersions',
         connectOutlets: function (router, context) {
           if (App.get('stackVersionsAvailable')) {
@@ -414,6 +414,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   admin: Em.Route.extend({
     route: '/admin',
+    breadcrumbs: {
+      disabled: true
+    },
     enter: function (router, transition) {
       if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, SERVICE.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
         && !(App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
@@ -452,8 +455,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     adminKerberos: Em.Route.extend({
 
       breadcrumbs: {
-        label: Em.I18n.t('common.kerberos'),
-        labelPostFormat: getPostFormatLabel('Admin')
+        label: Em.I18n.t('common.kerberos')
       },
 
       route: '/kerberos',
@@ -562,6 +564,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     stackAndUpgrade: Em.Route.extend({
       route: '/stack',
+      breadcrumbs: null,
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "stackAndUpgrade");
         router.set('mainAdminController.categoryLabel', Em.I18n.t('admin.stackUpgrade.title'));
@@ -576,8 +579,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       services: Em.Route.extend({
 
         breadcrumbs: {
-          label: Em.I18n.t('admin.stackUpgrade.title'),
-          labelPostFormat: getPostFormatLabel('Admin')
+          label: Em.I18n.t('common.stack')
         },
 
         route: '/services',
@@ -587,6 +589,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
 
       versions: Em.Route.extend({
+        breadcrumbs: {
+          label: Em.I18n.t('common.versions')
+        },
         route: '/versions',
         connectOutlets: function (router, context) {
           router.get('mainAdminStackAndUpgradeController').connectOutlet('MainAdminStackVersions');
@@ -594,6 +599,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }),
 
       upgradeHistory: Em.Route.extend({
+
+        breadcrumbs: {
+          label: Em.I18n.t('common.upgrade.history')
+        },
+
         route: '/history',
         connectOutlets: function (router, context) {
           router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackUpgradeHistory');
@@ -619,8 +629,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     adminServiceAccounts: Em.Route.extend({
 
       breadcrumbs: {
-        label: Em.I18n.t('common.serviceAccounts'),
-        labelPostFormat: getPostFormatLabel('Admin')
+        label: Em.I18n.t('common.serviceAccounts')
       },
 
       route: '/serviceAccounts',
@@ -639,8 +648,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     adminServiceAutoStart: Em.Route.extend({
 
       breadcrumbs: {
-        label: Em.I18n.t('admin.serviceAutoStart.title'),
-        labelPostFormat: getPostFormatLabel('Admin')
+        label: Em.I18n.t('admin.serviceAutoStart.title')
       },
 
       route: '/serviceAutoStart',
@@ -728,8 +736,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   services: Em.Route.extend({
 
     breadcrumbs: {
-      labelBindingPath: 'App.router.mainServiceItemController.content.displayName',
-      labelPostFormat: getPostFormatLabel('Service'),
       disabled: true
     },
 
@@ -762,6 +768,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
     service: Em.Route.extend({
       route: '/:service_id',
+      breadcrumbs: {
+        labelBindingPath: 'App.router.mainServiceItemController.content.displayName',
+        disabled: true
+      },
       connectOutlets: function (router, service) {
         router.get('mainServiceController').connectOutlet('mainServiceItem', service);
         if (service.get('isLoaded')) {

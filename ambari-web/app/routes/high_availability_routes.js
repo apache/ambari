@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/NameNode/enable',
 
+  breadcrumbs: {
+    label: Em.I18n.t('admin.highAvailability.wizard.header')
+  },
+
   enter: function (router) {
     var highAvailabilityWizardController = router.get('highAvailabilityWizardController');
     highAvailabilityWizardController.dataLoading().done(function () {

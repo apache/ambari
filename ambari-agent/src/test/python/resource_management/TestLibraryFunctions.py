@@ -22,6 +22,8 @@ from resource_management.core.exceptions import Fail
 class TestLibraryFunctions(TestCase):
 
   def test_get_port_from_url(self):
+    self.assertEqual("", get_port_from_url(None))
+    self.assertEqual("", get_port_from_url(""))
     self.assertEqual("8080",get_port_from_url("protocol://host:8080"))
     self.assertEqual("8080",get_port_from_url("protocol://host:8080/"))
     self.assertEqual("8080",get_port_from_url("host:8080"))

@@ -20,11 +20,7 @@ var App = require('app');
 
 module.exports = Em.Route.extend({
 
-  breadcrumbs: {
-    transition() {
-      App.router.route('views');
-    }
-  },
+  breadcrumbs: null,
 
   route: '/views',
   enter: function (router) {
@@ -46,6 +42,10 @@ module.exports = Em.Route.extend({
 
     enter: function (router) {
       Em.$('body').addClass('contribview');
+    },
+
+    breadcrumbs: {
+      labelBindingPath: 'App.router.mainViewsDetailsController.content.label'
     },
 
     exit:function (router) {

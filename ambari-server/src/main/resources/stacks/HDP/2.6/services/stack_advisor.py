@@ -167,6 +167,19 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     else:
       ranger_yarn_plugin_enabled = False
 
+    #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
+    if "yarn-site" in services["configurations"] and \
+                    "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"] and \
+                    "yarn.http.policy" in services["configurations"]["yarn-site"]["properties"] and \
+                    "yarn.log.server.web-service.url" in services["configurations"]["yarn-site"]["properties"]:
+        if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+            webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+            webservice_url = "http://"+webapp_address+"/ws/v1/applicationhistory"
+        else:
+            webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+            webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
+        putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url )
+
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
       Logger.info("Setting Yarn Repo user for Ranger.")
       putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
@@ -234,7 +247,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
           "DRUID": {"druid-env": self.validateDruidEnvConfigurations,
                     "druid-historical": self.validateDruidHistoricalConfigurations,
                     "druid-broker": self.validateDruidBrokerConfigurations},
-          "RANGER": {"ranger-ugsync-site": self.validateRangerUsersyncConfigurations}
+          "RANGER": {"ranger-ugsync-site": self.validateRangerUsersyncConfigurations},
+          "YARN" : {"yarn-site": self.validateYarnSiteConfigurations}
       }
       self.mergeValidators(parentValidators, childValidators)
       return parentValidators
@@ -259,6 +273,22 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
                    })
       return self.toConfigurationValidationProblems(validationItems, "druid-env")
 
+  def validateYarnSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+      validationItems = []
+      siteProperties = services["configurations"]["yarn-site"]["properties"]
+      if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+         webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+         propertyValue = "http://"+webapp_address+"/ws/v1/applicationhistory"
+      else:
+         webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+         propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
+      Logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
+      if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
+         validationItems = [
+              {"config-name": "yarn.log.server.web-service.url",
+               "item": self.getWarnItem("Value should be %s" % propertyValue)}]
+      return self.toConfigurationValidationProblems(validationItems, "yarn-site")
+
   def validateDruidHistoricalConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
       validationItems = [
           {"config-name": "druid.processing.numThreads",
@@ -268,12 +298,12 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       return self.toConfigurationValidationProblems(validationItems, "druid-historical")
 
   def validateDruidBrokerConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-      validationItems = [
-          {"config-name": "druid.processing.numThreads",
-           "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults,
-                                                         "druid.processing.numThreads")}
-      ]
-      return self.toConfigurationValidationProblems(validationItems, "druid-broker")
+        validationItems = [
+            {"config-name": "druid.processing.numThreads",
+             "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults,
+                                                           "druid.processing.numThreads")}
+        ]
+        return self.toConfigurationValidationProblems(validationItems, "druid-broker")
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)

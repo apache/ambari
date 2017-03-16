@@ -207,13 +207,14 @@ describe('App.showClusterCheckPopup', function () {
           },
           configs: [
             {
-              name: 'c0'
+              name: 'c0',
+              wasModified: false
             },
             {
-              name: 'c1'
+              name: 'c1',
+              wasModified: true
             }
-          ],
-          upgradeVersion: 'HDP-2.3.0.0'
+          ]
         },
         result: {
           primary: 'ok',
@@ -228,14 +229,19 @@ describe('App.showClusterCheckPopup', function () {
           fails: [],
           warnings: [],
           hasConfigsMergeConflicts: true,
+          hasConfigsRecommendations: true,
           isAllPassed: false
         },
         configsResult: [
           {
-            name: 'c0'
-          },
+            name: 'c0',
+            wasModified: false
+          }
+        ],
+        configRecommendResult: [
           {
-            name: 'c1'
+            name: 'c1',
+            wasModified: true
           }
         ],
         isCallbackExecuted: false,
@@ -260,7 +266,7 @@ describe('App.showClusterCheckPopup', function () {
       var popupBody;
 
       beforeEach(function () {
-        popup = App.showClusterCheckPopup(item.inputData.data, item.inputData.popup, item.inputData.configs, item.inputData.upgradeVersion);
+        popup = App.showClusterCheckPopup(item.inputData.data, item.inputData.popup, item.inputData.configs);
         popupBody = popup.bodyClass.create();
         popup.onPrimary();
       });
@@ -288,15 +294,14 @@ describe('App.showClusterCheckPopup', function () {
       if (item.bodyResult.hasConfigsMergeConflicts) {
         it('hasConfigsMergeConflicts = true', function () {
           var configsMergeTable = popupBody.configsMergeTable.create();
-          configsMergeTable.didInsertElement();
           expect(configsMergeTable.configs).to.eql(item.configsResult);
-          expect(App.tooltip.calledOnce).to.be.true;
-          expect(App.tooltip.firstCall.args[1].title).to.equal(item.inputData.upgradeVersion);
         });
       }
-      else {
-        it('App.tooltip is not called', function () {
-          expect(App.tooltip.called).to.be.false;
+
+      if (item.bodyResult.hasConfigsRecommendations) {
+        it('hasConfigsRecommendations = true', function () {
+          var configsRecommendTable = popupBody.configsRecommendTable.create();
+          expect(configsRecommendTable.configs).to.eql(item.configRecommendResult);
         });
       }
 

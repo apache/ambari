@@ -33,9 +33,9 @@ App.ExperimentalController = Em.Controller.extend(App.UserPref, {
     return this.getUserPref('user-pref-' + App.router.get('loginName') + '-supports');
   },
 
-  getUserPrefSuccessCallback: function (response, request, data) {
+  getUserPrefSuccessCallback: function (response) {
     if (response) {
-      App.set('supports', $.extend(App.get('supports'), response));
+      App.set('supports', $.extend({}, App.get('supports'), response));
     }
   },
 
