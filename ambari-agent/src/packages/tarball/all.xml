@@ -140,6 +140,16 @@
   -->
   <files>
     <file>
+      <fileMode>644</fileMode>
+      <source>${basedir}/target/zkmigrator.jar</source>
+      <outputDirectory>/var/lib/ambari-agent/tools</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${basedir}/target/jcepolicyinfo.jar</source>
+      <outputDirectory>/var/lib/ambari-agent/tools</outputDirectory>
+    </file>
+    <file>
       <fileMode>755</fileMode>
       <source>conf/unix/ambari-sudo.sh</source>
       <outputDirectory>/var/lib/ambari-agent/</outputDirectory>
