@@ -293,7 +293,7 @@ class AmbariConfig:
     return int(self.get('agent', 'parallel_execution', 0))
 
   def get_multiprocess_status_commands_executor_enabled(self):
-    return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 1)))
+    return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 0)))
 
   def update_configuration_from_registration(self, reg_resp):
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
