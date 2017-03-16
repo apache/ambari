@@ -85,7 +85,7 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getSqlinsertToPigJob(int id) {
-    return "INSERT INTO ds_pigjob_" + id + " values (?,?,0,'',0,'','',?,0,?,'',?,'','',?,?,'',?);";
+    return "INSERT INTO ds_pigjob_" + id + " values (?,?,0,'','0','','',?,0,?,'',?,'','',?,?,'',?);";
   }
 
   protected String getRevSql(int id, String maxcount) {
