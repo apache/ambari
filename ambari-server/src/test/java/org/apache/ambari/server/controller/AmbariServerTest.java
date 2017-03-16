@@ -23,10 +23,12 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.servlet.DispatcherType;
 import javax.servlet.SessionCookieConfig;
+import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.partialMockBuilder;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -55,6 +57,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.velocity.app.Velocity;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -162,6 +165,7 @@ public class AmbariServerTest {
     EasyMock.expectLastCall().once();
     EasyMock.expect(handler.addFilter(GzipFilter.class, "/*",
         EnumSet.of(DispatcherType.REQUEST))).andReturn(filter).once();
+    EasyMock.expect(handler.getMimeTypes()).andReturn(new MimeTypes()).anyTimes();
     replay(handler, filter);
 
     injector.getInstance(AmbariServer.class).configureRootHandler(handler);
@@ -183,6 +187,20 @@ public class AmbariServerTest {
 
     injector.getInstance(AmbariServer.class).configureHandlerCompression(handler);
 
+    EasyMock.verify(handler);
+  }
+
+  @Test
+  public void testConfigureContentTypes() throws Exception {
+    ServletContextHandler handler = EasyMock.createNiceMock(ServletContextHandler.class);
+    FilterHolder filter = EasyMock.createNiceMock(FilterHolder.class);
+    MimeTypes expectedMimeTypes = new MimeTypes();
+    EasyMock.expect(handler.getMimeTypes()).andReturn(expectedMimeTypes).anyTimes();
+    EasyMock.expect(handler.addFilter(isA(Class.class), anyString(), isA(EnumSet.class))).andReturn(filter).anyTimes();
+    replay(handler, filter);
+    injector.getInstance(AmbariServer.class).configureRootHandler(handler);
+    assertEquals("application/font-woff", expectedMimeTypes.getMimeByExtension("/file.woff").toString());
+    assertEquals("application/font-sfnt", expectedMimeTypes.getMimeByExtension("/file.ttf").toString());
     EasyMock.verify(handler);
   }
 

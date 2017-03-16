@@ -782,6 +782,7 @@ public class AmbariServer {
    */
   protected void configureRootHandler(ServletContextHandler root) {
     configureHandlerCompression(root);
+    configureAdditionalContentTypes(root);
     root.setContextPath(CONTEXT_PATH);
     root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
     root.setMaxFormContentSize(-1);
@@ -809,6 +810,11 @@ public class AmbariServer {
           "application/javascript,application/json");
       gzipFilter.setInitParameter("minGzipSize", configs.getApiGzipMinSize());
     }
+  }
+
+  private void configureAdditionalContentTypes(ServletContextHandler root) {
+    root.getMimeTypes().addMimeMapping("woff", "application/font-woff");
+    root.getMimeTypes().addMimeMapping("ttf", "application/font-sfnt");
   }
 
   /**
