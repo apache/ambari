@@ -140,6 +140,12 @@ public class ShellCommandUtil {
   public static final String MASK_OWNER_ONLY_RW = "600";
 
   /**
+   * Permission mask 700 allows only owner to read, modify and execute file.
+   * Other users (except root) can't read/modify/execute file
+   */
+  public static final String MASK_OWNER_ONLY_RWX = "700";
+
+  /**
    * Permission mask 777 allows everybody to read/modify/execute file
    */
   public static final String MASK_EVERYBODY_RWX = "777";
