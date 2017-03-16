@@ -76,7 +76,7 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getSqlinsertToPigScript(int id) {
-    return "INSERT INTO ds_pigscript_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00',0,?,?,'','',?);";
+    return "INSERT INTO ds_pigscript_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00','0',?,?,'','',?);";
   }
 
   protected String getRevSql(int id, String maxcount) {
