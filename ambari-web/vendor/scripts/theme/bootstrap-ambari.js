@@ -26,6 +26,7 @@
       var firstLvlMenuItemsSelector = '.side-nav-menu>li';
       var secondLvlMenuItemsSelector = '.side-nav-menu>li>ul>li';
       var $moreActions = $(this).find('.more-actions');
+      var $dropdownMenu = $moreActions.children('.dropdown-menu');
 
       $subMenuToggler.each(function (index, toggler) {
         return $(toggler).parent().addClass('has-sub-menu');
@@ -124,7 +125,18 @@
       $moreActions.hover(function () {
         $(this).css('display', 'inline-block');
       });
-      $moreActions.children('.dropdown-menu').on('click', function () {
+      if (settings.fitHeight) {
+        $moreActions.on('click', function () {
+          // set actions submenu position
+          var $moreIcon = $(this);
+          var $header = $('.side-nav-header');
+          $dropdownMenu.css({
+            top: $moreIcon.offset().top - $header.offset().top + 20 + 'px',
+            left: $moreIcon.offset().left + 'px'
+          });
+        });
+      }
+      $dropdownMenu.on('click', function () {
         // some action was triggered, should hide this icon
         var moreIcon = $(this).parent();
         setTimeout(function(){ moreIcon.hide(); }, 1000);
