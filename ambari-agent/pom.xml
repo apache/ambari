@@ -152,43 +152,6 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
-        <executions>
-          <execution>
-            <id>shade-zkmigrator</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.apache.ambari.tools.zk.ZkMigrator</mainClass>
-                </transformer>
-              </transformers>
-              <outputFile>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent/tools/zkmigrator.jar</outputFile>
-            </configuration>
-          </execution>
-          <execution>
-            <id>shade-jce</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.apache.ambari.tools.jce.JcePolicyInfo</mainClass>
-                </transformer>
-              </transformers>
-              <outputFile>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent/tools/jcepolicyinfo.jar</outputFile>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
@@ -349,7 +312,6 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent</location>
-
                 </source>
               </sources>
             </mapping>
@@ -423,6 +385,43 @@
             </data>
           </dataSet>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.3</version>
+        <executions>
+          <execution>
+            <id>shade-zkmigrator</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>org.apache.ambari.tools.zk.ZkMigrator</mainClass>
+                </transformer>
+              </transformers>
+              <outputFile>${project.build.directory}${dirsep}zkmigrator.jar</outputFile>
+            </configuration>
+          </execution>
+          <execution>
+            <id>shade-jce</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>org.apache.ambari.tools.jce.JcePolicyInfo</mainClass>
+                </transformer>
+              </transformers>
+              <outputFile>${project.build.directory}${dirsep}jcepolicyinfo.jar</outputFile>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
