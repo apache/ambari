@@ -86,4 +86,36 @@ describe('App.ExperimentalController', function () {
 
   });
 
+  describe('#getUserPrefSuccessCallback', function () {
+
+    var receivedSupports = {
+        sup0: false,
+        sup2: true
+      },
+      expectedResult = {
+        sup0: false,
+        sup1: false,
+        sup2: true
+      };
+
+    beforeEach(function () {
+      sinon.spy(App, 'set');
+    });
+
+    afterEach(function () {
+      App.set.restore();
+    });
+
+    it('no data received', function () {
+      controller.getUserPrefSuccessCallback(null);
+      expect(App.set.called).to.be.false;
+    });
+
+    it('some data received', function () {
+      controller.getUserPrefSuccessCallback(receivedSupports);
+      expect(App.set.calledWith('supports', expectedResult)).to.be.true;
+    });
+
+  });
+
 });
