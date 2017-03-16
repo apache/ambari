@@ -268,6 +268,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
   startStopPopupErrorCallback: function(request, ajaxOptions, error, opt, params){
+    App.ajax.defaultErrorHandler(request, opt.url, opt.type, request.status);
     params.query.set('status', 'FAIL');
   },
   /**
