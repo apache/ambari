@@ -18,10 +18,14 @@
   },
   "author": "",
   "license": "MIT",
+  "peerDependencies": {
+    "async-disk-cache": "~1.0.0"
+  },
   "devDependencies": {
     "bower": "^1.7.7",
     "broccoli-asset-rev": "^2.2.0",
     "ember-ajax": "0.7.1",
+    "async-disk-cache": "~1.0.0",
     "ember-cli": "2.3.0",
     "ember-cli-app-version": "^1.0.0",
     "ember-cli-babel": "^5.1.5",
