@@ -57,7 +57,7 @@ then
 
    
   # all stacks get the same url
-  for ver in '1.3' '2.0' '2.1' '2.2' '2.3' '2.4' '2.5'; do
+  for ver in '1.3' '2.0' '2.1' '2.2' '2.3' '2.4' '2.5' '2.6'; do
     HDPREPO=target/classes/stacks/HDP/$ver/repos
     if [ -d $HDPREPO ]; then
       echo "Replacing $ver latest lookup url to '$LATEST_URL'"
