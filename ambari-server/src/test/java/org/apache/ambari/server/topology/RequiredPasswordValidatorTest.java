@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
