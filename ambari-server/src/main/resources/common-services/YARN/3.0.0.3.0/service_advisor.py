@@ -474,11 +474,11 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
          else:
            Logger.error("Required config yarn.timeline-service.webapp.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
       else:
-        if "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"]:
-          webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
-          webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
-        else:
-          Logger.error("Required config yarn.timeline-service.webapp.https.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
+         if "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"]:
+           webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+           webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
+         else:
+           Logger.error("Required config yarn.timeline-service.webapp.https.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
       putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url )
 
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
