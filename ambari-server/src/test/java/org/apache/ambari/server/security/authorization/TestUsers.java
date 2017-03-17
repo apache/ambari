@@ -240,17 +240,13 @@ public class TestUsers {
     // get user if unique
     Assert.assertNotNull(users.getUserIfUnique("user"));
 
-    users.createUser("user", "user", UserType.LDAP, true, false);
-
-    Assert.assertNull(users.getUserIfUnique("user"));
-
     //remove user
-    Assert.assertEquals(4, users.getAllUsers().size());
+    Assert.assertEquals(3, users.getAllUsers().size());
 
     users.removeUser(users.getAnyUser("user1"));
 
     Assert.assertNull(users.getAnyUser("user1"));
-    Assert.assertEquals(3, users.getAllUsers().size());
+    Assert.assertEquals(2, users.getAllUsers().size());
   }
 
   @Test

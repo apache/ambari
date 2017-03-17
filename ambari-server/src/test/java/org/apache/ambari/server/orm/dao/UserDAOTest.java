@@ -18,31 +18,121 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import org.junit.Before;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.Arrays;
+
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.UserType;
+import org.junit.Test;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+
+
 
 /**
  * UserDAO unit tests.
  */
 public class UserDAOTest {
 
-  @Inject
-  DaoUtils daoUtils;
+  private static String SERVICEOP_USER_NAME = "serviceopuser";
+  private UserDAO userDAO;
 
-  Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
-  EntityManager entityManager = createStrictMock(EntityManager.class);
+  public void init(UserEntity... usersInDB) {
+    final EntityManager entityManager = createStrictMock(EntityManager.class);
+    final DaoUtils daoUtils = createNiceMock(DaoUtils.class);
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManagerProvider.class);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(DBAccessor.class).toInstance(dbAccessor);
+        bind(DaoUtils.class).toInstance(daoUtils);
+      }
+    });
+    userDAO = mockInjector.getInstance(UserDAO.class);
 
-  @Before
-  public void init() {
-    reset(entityManagerProvider);
-    expect(entityManagerProvider.get()).andReturn(entityManager).atLeastOnce();
-    replay(entityManagerProvider);
+    TypedQuery<UserEntity> userQuery = createNiceMock(TypedQuery.class);
+    expect(userQuery.getResultList()).andReturn(Arrays.asList(usersInDB));
+    expect(entityManager.createNamedQuery(anyString(), anyObject(Class.class))).andReturn(userQuery);
+    replay(entityManager, daoUtils, dbAccessor, userQuery);
+  }
+
+  @Test
+  public void testFindSingleUserByName_NoUsers() {
+    init();
+    assertNull(userDAO.findSingleUserByName(SERVICEOP_USER_NAME));
+  }
+
+  @Test
+  public void testFindSingleUserByName_SingleUser() {
+    init(user(UserType.PAM));
+    assertEquals(UserType.PAM, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
+  }
+
+  @Test
+  public void testFindSingleUserByName_LocalIsFirstPrecedence() {
+    init(user(UserType.LOCAL),
+        user(UserType.LDAP),
+        user(UserType.JWT),
+        user(UserType.PAM));
+    assertEquals(UserType.LOCAL, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
+  }
+
+  @Test
+  public void testFindSingleUserByName_LdapIsSecondPrecedence() {
+    init(user(UserType.LDAP),
+        user(UserType.JWT),
+        user(UserType.PAM));
+    assertEquals(UserType.LDAP, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
+  }
+
+  @Test
+  public void testFindSingleUserByName_JwtIsThirdPrecedence() {
+    init(user(UserType.JWT),
+        user(UserType.PAM));
+    assertEquals(UserType.JWT, userDAO.findSingleUserByName(SERVICEOP_USER_NAME).getUserType());
+  }
+
+  private static final UserEntity user(UserType type) {
+    return user(SERVICEOP_USER_NAME, type);
+  }
+
+  private static final UserEntity user(String name, UserType type) {
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUserName(name);
+    userEntity.setUserType(type);
+    return userEntity;
+  }
+
+  static class EntityManagerProvider implements Provider<EntityManager> {
+    private final EntityManager entityManager;
+
+    @Inject
+    public EntityManagerProvider(EntityManager entityManager) {
+      this.entityManager = entityManager;
+    }
+
+    @Override
+    public EntityManager get() {
+      return entityManager;
+    }
   }
 
 }

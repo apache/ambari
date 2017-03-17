@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -31,6 +32,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -73,6 +75,42 @@ public class UserDAO {
       return null;
     }
   }
+
+  /**
+   * <p>Finds user by name. If duplicate users exists (with different type), the returned one will be chosen by this user
+   * type precedence: LOCAL -> LDAP -> JWT -> PAM</p>
+   * <p>In Ambari 3.0, user management will be rethought hence the deprecation</p>
+   * @param userName the user name
+   * @return The corresponding user or {@code null} if none is found. If multiple users exist with different types, user
+   *   type precedence (see above) will decide.
+   */
+   @RequiresSession
+   @Deprecated
+   @Nullable
+   public UserEntity findSingleUserByName(String userName) {
+     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("userByName", UserEntity.class);
+     query.setParameter("username", userName.toLowerCase());
+     List<UserEntity> resultList = query.getResultList();
+     switch (resultList.size()) {
+       case 0:
+         return null;
+       case 1:
+         return resultList.get(0);
+       default:
+         ImmutableMap.Builder<UserType, UserEntity> mapBuilder = ImmutableMap.<UserType, UserEntity>builder();
+         for (UserEntity user: resultList) {
+           mapBuilder.put(user.getUserType(), user);
+         }
+         ImmutableMap<UserType, UserEntity> usersByType = mapBuilder.build();
+         UserEntity user =
+             usersByType.containsKey(UserType.LOCAL) ? usersByType.get(UserType.LOCAL) :
+                 usersByType.containsKey(UserType.LOCAL.LDAP) ? usersByType.get(UserType.LDAP) :
+                     usersByType.containsKey(UserType.JWT) ? usersByType.get(UserType.JWT) :
+                         usersByType.get(UserType.PAM);
+         return user;
+     }
+   }
+
 
   @RequiresSession
   public UserEntity findUserByNameAndType(String userName, UserType userType) {

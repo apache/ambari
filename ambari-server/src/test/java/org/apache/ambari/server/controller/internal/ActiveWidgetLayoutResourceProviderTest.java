@@ -171,7 +171,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
     UserEntity userEntity = createMockUserEntity(requestedUsername);
 
     UserDAO userDAO = injector.getInstance(UserDAO.class);
-    expect(userDAO.findUserByName(requestedUsername)).andReturn(userEntity).atLeastOnce();
+    expect(userDAO.findSingleUserByName(requestedUsername)).andReturn(userEntity).atLeastOnce();
 
     WidgetLayoutDAO widgetLayoutDAO = injector.getInstance(WidgetLayoutDAO.class);
     expect(widgetLayoutDAO.findById(1L)).andReturn(createMockWidgetLayout(1L, requestedUsername)).atLeastOnce();
