@@ -261,10 +261,12 @@ App.ConfigsComparator = Em.Mixin.create({
       Em.get(serviceConfig, 'compareConfigs').push(compareObject);
       // user custom property or property that was added during upgrade
     } else {
-      var addToComparison = !Em.get(serviceConfig, 'isCustomGroupConfig') && (Em.get(serviceConfig, 'isUserProperty') || !isEmptyProp && !compareConfig && Em.get(serviceConfig, 'isRequiredByAgent') !== false);
-      if (addToComparison) {
-        Em.get(serviceConfig, 'compareConfigs').push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
-        Em.set(serviceConfig, 'hasCompareDiffs', true);
+      if (Em.get(serviceConfig, 'value') !== 'Undefined') {
+        var addToComparison = !Em.get(serviceConfig, 'isCustomGroupConfig') && (Em.get(serviceConfig, 'isUserProperty') || !isEmptyProp && !compareConfig && Em.get(serviceConfig, 'isRequiredByAgent') !== false);
+        if (addToComparison) {
+          Em.get(serviceConfig, 'compareConfigs').push(this.getMockComparisonConfig(serviceConfig, this.get('compareServiceVersion.version')));
+          Em.set(serviceConfig, 'hasCompareDiffs', true);
+        }
       }
     }
 
