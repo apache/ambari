@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -50,7 +51,6 @@ import java.util.jar.JarInputStream;
 
 import javax.xml.bind.JAXBException;
 
-import com.google.inject.Provider;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -59,6 +59,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.MemberDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -78,7 +79,6 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -99,13 +99,16 @@ import org.apache.ambari.view.events.Listener;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.inject.Provider;
 
 /**
  * ViewRegistry tests.
@@ -212,6 +215,7 @@ public class ViewRegistryTest {
   private static final UserDAO userDAO = createNiceMock(UserDAO.class);
   private static final MemberDAO memberDAO = createNiceMock(MemberDAO.class);
   private static final PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
+  private static final PermissionDAO permissionDAO = createNiceMock(PermissionDAO.class);
   private static final ResourceDAO resourceDAO = createNiceMock(ResourceDAO.class);
   private static final ResourceTypeDAO resourceTypeDAO = createNiceMock(ResourceTypeDAO.class);
   private static final SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
@@ -224,7 +228,7 @@ public class ViewRegistryTest {
   @Before
   public void resetGlobalMocks() {
     ViewRegistry.initInstance(getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, ambariMetaInfo, clusters));
+        permissionDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, ambariMetaInfo, clusters));
 
     reset(viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
         privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo,
@@ -444,7 +448,7 @@ public class ViewRegistryTest {
     TestViewArchiveUtility archiveUtility =
         new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, badArchive);
 
-    ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
+    ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
         resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo, clusters);
 
     registry.readViewArchives();
@@ -633,7 +637,7 @@ public class ViewRegistryTest {
 
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, false);
 
-    ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
+    ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
         resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo);
 
     registry.readViewArchives();
@@ -1627,6 +1631,72 @@ public class ViewRegistryTest {
         libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
   }
 
+  @Test
+  public void testSetViewInstanceRoleAccess() throws Exception {
+
+    final Map<String, PermissionEntity> permissions = new HashMap<>();
+    permissions.put("CLUSTER.ADMINISTRATOR", TestAuthenticationFactory.createClusterAdministratorPermission());
+    permissions.put("CLUSTER.OPERATOR", TestAuthenticationFactory.createClusterOperatorPermission());
+    permissions.put("SERVICE.ADMINISTRATOR", TestAuthenticationFactory.createServiceAdministratorPermission());
+    permissions.put("SERVICE.OPERATOR", TestAuthenticationFactory.createServiceOperatorPermission());
+    permissions.put("CLUSTER.USER", TestAuthenticationFactory.createClusterUserPermission());
+
+    PermissionEntity permissionViewUser = TestAuthenticationFactory.createViewUserPermission();
+
+    ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
+    ResourceEntity resourceEntity = viewInstanceEntity.getResource();
+
+    // Expected PrivilegeEntity items to be created...
+    Map<String, PrivilegeEntity> expectedPrivileges = new HashMap<>();
+    for (Map.Entry<String, PermissionEntity> entry : permissions.entrySet()) {
+      if(!entry.getKey().equals("CLUSTER.ADMINISTRATOR")) {
+        expectedPrivileges.put(entry.getKey(), TestAuthenticationFactory.createPrivilegeEntity(resourceEntity, permissionViewUser, entry.getValue().getPrincipal()));
+      }
+    }
+
+    Capture<PrivilegeEntity> captureCreatedPrivilegeEntity = Capture.newInstance(CaptureType.ALL);
+
+    for (Map.Entry<String, PermissionEntity> entry : permissions.entrySet()) {
+      expect(permissionDAO.findByName(entry.getKey())).andReturn(entry.getValue()).atLeastOnce();
+    }
+    expect(permissionDAO.findViewUsePermission()).andReturn(permissionViewUser).atLeastOnce();
+
+    // The CLUSTER.ADMINISTRATOR privilege for this View instance already exists...
+    expect(privilegeDAO.exists(EasyMock.anyObject(PrincipalEntity.class), eq(resourceEntity), eq(permissionViewUser)))
+        .andAnswer(new IAnswer<Boolean>() {
+          @Override
+          public Boolean answer() throws Throwable {
+            return EasyMock.getCurrentArguments()[0] == permissions.get("CLUSTER.ADMINISTRATOR").getPrincipal();
+          }
+        })
+        .anyTimes();
+
+    privilegeDAO.create(capture(captureCreatedPrivilegeEntity));
+    expectLastCall().times(expectedPrivileges.size());
+
+    replay(privilegeDAO, permissionDAO);
+
+    ViewRegistry viewRegistry = ViewRegistry.getInstance();
+
+    viewRegistry.setViewInstanceRoleAccess(viewInstanceEntity, permissions.keySet());
+
+    verify(privilegeDAO, permissionDAO);
+
+    Assert.assertTrue(expectedPrivileges.size() != permissions.size());
+
+    Assert.assertTrue(captureCreatedPrivilegeEntity.hasCaptured());
+
+    List<PrivilegeEntity> capturedValues = captureCreatedPrivilegeEntity.getValues();
+    Assert.assertNotNull( capturedValues);
+
+    Set<PrivilegeEntity> uniqueCapturedValues = new HashSet<>(capturedValues);
+    Assert.assertEquals(expectedPrivileges.size(), uniqueCapturedValues.size());
+
+    for(PrivilegeEntity capturedValue: uniqueCapturedValues) {
+      Assert.assertTrue(expectedPrivileges.containsValue(capturedValue));
+    }
+  }
+
   public static class TestViewModule extends ViewRegistry.ViewModule {
 
     private final ViewExtractor extractor;
@@ -1732,20 +1802,23 @@ public class ViewRegistryTest {
 
   public static ViewRegistry getRegistry(ViewDAO viewDAO, ViewInstanceDAO viewInstanceDAO,
                                          UserDAO userDAO, MemberDAO memberDAO,
-                                         PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO,
+                                         PrivilegeDAO privilegeDAO, PermissionDAO permissionDAO,
+                                         ResourceDAO resourceDAO,
                                          ResourceTypeDAO resourceTypeDAO, SecurityHelper securityHelper,
                                          ViewInstanceHandlerList handlerList,
                                          ViewExtractor viewExtractor,
                                          ViewArchiveUtility archiveUtility,
                                          AmbariMetaInfo ambariMetaInfo) {
-    return getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO,
-        securityHelper, handlerList, viewExtractor, archiveUtility, ambariMetaInfo, null);
+    return getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, viewExtractor, archiveUtility,
+        ambariMetaInfo, null);
   }
 
   public static ViewRegistry getRegistry(ViewDAO viewDAO, ViewInstanceDAO viewInstanceDAO,
                                          UserDAO userDAO, MemberDAO memberDAO,
-                                         PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO,
-                                         ResourceTypeDAO resourceTypeDAO, SecurityHelper securityHelper,
+                                         PrivilegeDAO privilegeDAO, PermissionDAO permissionDAO,
+                                         ResourceDAO resourceDAO, ResourceTypeDAO resourceTypeDAO,
+                                         SecurityHelper securityHelper,
                                          ViewInstanceHandlerList handlerList,
                                          ViewExtractor viewExtractor,
                                          ViewArchiveUtility archiveUtility,
@@ -1767,6 +1840,7 @@ public class ViewRegistryTest {
     instance.memberDAO = memberDAO;
     instance.privilegeDAO = privilegeDAO;
     instance.resourceTypeDAO = resourceTypeDAO;
+    instance.permissionDAO = permissionDAO;
     instance.securityHelper = securityHelper;
     instance.configuration = configuration;
     instance.handlerList = handlerList;
@@ -1796,7 +1870,7 @@ public class ViewRegistryTest {
                                      ClassLoader cl, String archivePath) throws Exception{
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null);
+        permissionDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null);
 
     ViewEntity viewDefinition = new ViewEntity(viewConfig, ambariConfig, archivePath);
 
@@ -1808,7 +1882,7 @@ public class ViewRegistryTest {
   public static ViewInstanceEntity getViewInstanceEntity(ViewEntity viewDefinition, InstanceConfig instanceConfig) throws Exception {
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null);
+        permissionDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null);
 
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);

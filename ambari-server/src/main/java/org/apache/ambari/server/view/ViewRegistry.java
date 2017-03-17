@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import javax.xml.bind.JAXBException;
-
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +38,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.xml.bind.JAXBException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
@@ -127,6 +125,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -1977,7 +1977,7 @@ public class ViewRegistry {
             if (principalRole == null) {
               LOG.warn("Missing principal ID for role {} encountered while setting access to view {}. Ignoring.",
                 role, viewInstanceEntity.getName());
-            } else {
+            } else if (!privilegeDAO.exists(principalRole, resourceEntity, permissionViewUser)) {
               PrivilegeEntity privilegeEntity = new PrivilegeEntity();
               privilegeEntity.setPermission(permissionViewUser);
               privilegeEntity.setPrincipal(principalRole);
