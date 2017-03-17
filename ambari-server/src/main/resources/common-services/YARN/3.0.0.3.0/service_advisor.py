@@ -462,6 +462,25 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     else:
       ranger_yarn_plugin_enabled = False
 
+     #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
+    if "yarn-site" in services["configurations"] and \
+         "yarn.http.policy" in services["configurations"]["yarn-site"]["properties"] and \
+          "yarn.log.server.web-service.url" in services["configurations"]["yarn-site"]["properties"]:
+      webservice_url = ''
+      if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+         if "yarn.timeline-service.webapp.address" in services["configurations"]["yarn-site"]["properties"]:
+           webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+           webservice_url = "http://"+webapp_address+"/ws/v1/applicationhistory"
+         else:
+           Logger.error("Required config yarn.timeline-service.webapp.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
+      else:
+        if "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"]:
+          webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+          webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
+        else:
+          Logger.error("Required config yarn.timeline-service.webapp.https.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
+      putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url )
+
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
       Logger.info("Setting Yarn Repo user for Ranger.")
       putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
@@ -1693,6 +1712,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
 
     self.validators = [("yarn-site", self.validateYARNSiteConfigurationsFromHDP206),
                        ("yarn-site", self.validateYARNSiteConfigurationsFromHDP25),
+                       ("yarn-ste" , self.validateYarnSiteConfigurationsFromHDP26),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP206),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP22),
                        ("ranger-yarn-plugin-properties", self.validateYARNRangerPluginConfigurationsFromHDP22)]
@@ -1748,6 +1768,22 @@ class YARNValidator(service_advisor.ServiceAdvisor):
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-site")
     return validationProblems
+
+  def validateYarnSiteConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    siteProperties = services["configurations"]["yarn-site"]["properties"]
+    if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+      webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+      propertyValue = "http://"+webapp_address+"/ws/v1/applicationhistory"
+    else:
+      webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+      propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
+      Logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
+    if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
+      validationItems = [
+                      {"config-name": "yarn.log.server.web-service.url",
+                       "item": self.getWarnItem("Value should be %s" % propertyValue)}]
+    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateYARNEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     """
