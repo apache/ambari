@@ -18,11 +18,12 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,12 +32,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.verify;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for RequiredPasswordValidator.
