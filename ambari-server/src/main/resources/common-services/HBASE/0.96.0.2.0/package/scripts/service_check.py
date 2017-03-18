@@ -46,7 +46,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
     env.set_params(params)
     
     output_file = "/apps/hbase/data/ambarismoketest"
-    smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};") if params.security_enabled else ""
+    smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal} &&") if params.security_enabled else ""
     hbase_servicecheck_file = format("{exec_tmp_dir}/hbase-smoke.sh")
     hbase_servicecheck_cleanup_file = format("{exec_tmp_dir}/hbase-smoke-cleanup.sh")
 
@@ -78,6 +78,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
       
       Execute( grantprivelegecmd,
         user = params.hbase_user,
+        logoutput = True
       )
 
     servicecheckcmd = format("{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_file}")
