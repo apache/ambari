@@ -85,8 +85,9 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; /usr/lib/hbase/bin/hbase shell /tmp/hbase_grant_permissions.sh',
       user = 'hbase',
+      logoutput = True
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase && /usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke-cleanup.sh',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM && /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase && /usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM && /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke-cleanup.sh',
       logoutput = True,
       tries = 6,
       user = 'ambari-qa',
