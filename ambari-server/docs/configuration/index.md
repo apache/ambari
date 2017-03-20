@@ -314,7 +314,7 @@ The following are the properties which can be used to configure Ambari.
 ## Baseline Values
 As the size of a cluster grows, some of the default property values may no longer be sufficient. The below tables offer recommendations on the values of some configuration properties based on the size and usage of the cluster.
 
-####Alerts & Notifications
+#### Alerts & Notifications
 | Property Name | 10 Hosts | ~50 Hosts | ~100 Hosts | 500+ Hosts | 
 | --- | --- | --- | --- | --- |
 | alerts.execution.scheduler.threadpool.size.core | 2 | 2 | 4 | 4 | 
@@ -323,11 +323,13 @@ As the size of a cluster grows, some of the default property values may no longe
 | alerts.cache.enabled | false | false | false | true | 
 | alerts.cache.flush.interval | 10 | 10 | 10 | 10 | 
 | alerts.cache.size | 50000 | 50000 | 100000 | 100000 | 
-####Jetty API & Agent Thread Pools
+
+#### Jetty API & Agent Thread Pools
 | Property Name | 10 Hosts | ~50 Hosts | ~100 Hosts | 500+ Hosts | 
 | --- | --- | --- | --- | --- |
 | client.threadpool.size.max | 25 | 35 | 50 | 65 | 
 | agent.threadpool.size.max | 25 | 35 | 75 | 100 | 
+
 
 
 <a name="db-persistence"></a>
