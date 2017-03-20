@@ -137,7 +137,7 @@ else:
       self.template = self.template_env.get_template(self.name)     
     
     def get_content(self):
-      default_variables = { 'env':self.env, 'repr':repr, 'str':str, 'bool':bool }
+      default_variables = { 'env':self.env, 'repr':repr, 'str':str, 'bool':bool, 'unicode':unicode }
       variables = checked_unite(default_variables, self.imports_dict)
       self.context.update(variables)
       
