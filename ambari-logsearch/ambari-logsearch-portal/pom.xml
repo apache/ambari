@@ -70,29 +70,6 @@
               <target>1.7</target>
             </configuration>
           </plugin>
-          <!-- copying resources UI -->
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>copy-resources</id>
-                <phase>process-resources</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <outputDirectory>${basedir}/target/classes/webapps/app</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>src/main/webapp</directory>
-                      <filtering>false</filtering>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
           <!-- Exec main class plugin -->
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
@@ -117,6 +94,24 @@
             <version>2.8</version>
             <executions>
               <execution>
+                <id>unpack</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.apache.ambari</groupId>
+                      <artifactId>ambari-logsearch-web</artifactId>
+                      <version>${project.version}</version>
+                      <outputDirectory>${project.build.outputDirectory}/</outputDirectory>
+                      <includes>webapps/**</includes>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+              <execution>
                 <id>copy-dependencies</id>
                 <phase>package</phase>
                 <goals>
@@ -124,6 +119,7 @@
                 </goals>
                 <configuration>
                   <artifactItems>*</artifactItems>
+                  <excludeArtifactIds>ambari-logsearch-web</excludeArtifactIds>
                   <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <outputDirectory>${basedir}/target/libs</outputDirectory>
                   <overWriteReleases>false</overWriteReleases>
@@ -161,14 +157,9 @@
             <artifactId>apache-rat-plugin</artifactId>
             <configuration>
               <excludes>
-                <exclude>src/main/webapp/libs/**/*</exclude>
-                <exclude>production/r.js</exclude>
                 <exclude>src/main/configsets/hadoop_logs/conf/managed-schema</exclude>
-                <exclude>src/main/webapp/robots.txt</exclude>
-                <exclude>src/main/webapp/styles/animate.css</exclude>
-                <exclude>**/*.json</exclude>
-                <exclude>src/main/webapp/styles/visualsearch.css</exclude>
                 <exclude>**/*.log</exclude>
+                <exclude>**/*.json</exclude>
               </excludes>
             </configuration>
             <executions>
@@ -211,29 +202,6 @@
               <source>1.7</source>
               <target>1.7</target>
             </configuration>
-          </plugin>
-          <!-- copying resources UI -->
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>copy-resources</id>
-                <phase>process-resources</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <outputDirectory>${basedir}/target/classes/webapps/app</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>target/webapp-build</directory>
-                      <filtering>false</filtering>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
           <!-- Exec main class plugin -->
           <plugin>
@@ -375,29 +343,6 @@
               <source>1.7</source>
               <target>1.7</target>
             </configuration>
-          </plugin>
-          <!-- copying resources UI -->
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>copy-resources</id>
-                <phase>process-resources</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <outputDirectory>${basedir}/target/classes/webapps/app</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>target/webapp-build</directory>
-                      <filtering>false</filtering>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
           <!-- Exec main class plugin -->
           <plugin>
@@ -790,6 +735,11 @@
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
       <version>1.55</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-web</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>
