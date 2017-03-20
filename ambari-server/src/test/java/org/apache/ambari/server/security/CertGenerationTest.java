@@ -208,7 +208,7 @@ public class CertGenerationTest {
     if (ShellCommandUtil.LINUX) {
       String permissions = ShellCommandUtil.
         getUnixFilePermissions(passFile.getAbsolutePath());
-      Assert.assertEquals(ShellCommandUtil.MASK_OWNER_ONLY_RWX, permissions);
+      Assert.assertEquals(ShellCommandUtil.MASK_OWNER_ONLY_RW, permissions);
     }
 
   }
