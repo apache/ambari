@@ -20,7 +20,8 @@ import Ember from 'ember';
 
 export default Ember.Service.extend({
   tezViewURL: null,
-  tezApiURL: '/api/v1/views/TEZ',
+  // replace used to avoid slash duplication by proxy
+  tezApiURL: '/api/v1/views/TEZ'.replace(/^\/\//, '/'),
   tezURLPrefix: '/views/TEZ',
   tezDagPath: '?viewPath=/#/dag/',
   getTezViewInfo: function () {
