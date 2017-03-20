@@ -26,33 +26,11 @@
   <target name="init">
   </target>
   <target name="build"/>
-
   <target name="package">
-    <delete dir="target/package"/>
-    <copy todir="target/package/libs" includeEmptyDirs="no">
-      <fileset dir="target/libs"/>
+    <copy todir="${app.target.dir}" includeEmptyDirs="no">
+      <fileset dir="src/main/webapp"/>
     </copy>
-    <copy todir="target/package/classes" includeEmptyDirs="no">
-      <fileset dir="target/classes"/>
-    </copy>
-    <copy todir="target/package/solr_configsets" includeEmptyDirs="yes">
-      <fileset dir="src/main/configsets"/>
-    </copy>
-    <copy todir="target/package" includeEmptyDirs="no">
-      <fileset file="src/main/scripts/*"/>
-    </copy>
-    <chmod file="target/package/*.sh" perm="755"/>
-    <tar compression="gzip" destfile="target/ambari-logsearch-portal.tar.gz">
-      <tarfileset mode="755" dir="target/package">
-        <include name="*.sh"/>
-      </tarfileset>
-      <tarfileset mode="664" dir="target/package">
-        <exclude name="*.sh"/>
-      </tarfileset>
-    </tar>
-
   </target>
-
 
   <target description="Build all projects which reference this project. Useful to propagate changes."
           name="build-refprojects"/>

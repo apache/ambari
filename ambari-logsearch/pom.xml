@@ -32,6 +32,7 @@
     <module>ambari-logsearch-assembly</module>
     <module>ambari-logsearch-appender</module>
     <module>ambari-logsearch-portal</module>
+    <module>ambari-logsearch-web</module>
     <module>ambari-logsearch-logfeeder</module>
     <module>ambari-logsearch-solr-client</module>
     <module>ambari-logsearch-it</module>
