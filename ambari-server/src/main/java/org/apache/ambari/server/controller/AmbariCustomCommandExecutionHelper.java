@@ -448,16 +448,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
         // Service check command is not custom command
-        CommandScriptDefinition script = null;
-
-        if (customCommandDefinition != null) {
-          LOG.debug("Getting command script for custom command {}", customCommandDefinition.getName());
-          script = customCommandDefinition.getCommandScript();
-        } else {
-          LOG.debug("Getting command script for component {}", componentInfo.getDisplayName());
-          // Service check command is not custom command
-          script = componentInfo.getCommandScript();
-        }
+        CommandScriptDefinition script = componentInfo.getCommandScript();
 
         if (script != null) {
           commandParams.put(SCRIPT, script.getScript());

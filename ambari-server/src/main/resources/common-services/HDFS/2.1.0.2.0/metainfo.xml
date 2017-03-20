@@ -102,7 +102,6 @@
               <commandScript>
                 <script>scripts/namenode.py</script>
                 <scriptType>PYTHON</scriptType>
-                <timeout>1</timeout>
               </commandScript>
             </customCommand>
           </customCommands>
