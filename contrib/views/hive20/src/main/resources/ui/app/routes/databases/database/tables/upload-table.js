@@ -38,6 +38,7 @@ export default NewTable.extend(UILoggerMixin, {
   setupController(controller, model) {
     this._super(controller, model);
     this.controller.set("showUploadTableModal", false);
+    this.controller.set("options", { 'isDeleteColumnDisabled' : true});
   },
   getCharOptionByCharCode: function(charCode){
     return Helpers.getAllTerminationCharacters().findBy("id", charCode + "");
