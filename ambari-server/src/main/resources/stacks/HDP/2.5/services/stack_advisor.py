@@ -468,17 +468,25 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     storm_site = self.getServicesSiteProperties(services, "storm-site")
+    storm_env = self.getServicesSiteProperties(services, "storm-env")
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
-    security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
+    security_enabled = self.isSecurityEnabled(services)
 
-    if security_enabled:
-      _storm_principal_name = services['configurations']['storm-env']['properties']['storm_principal_name']
-      storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
-      if 'nimbus.impersonation.acl' in storm_site:
-        storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"]
-        storm_nimbus_impersonation_acl.replace('{{storm_bare_jaas_principal}}', storm_bare_jaas_principal)
-        putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+    if storm_env and storm_site:
+      if security_enabled:
+        _storm_principal_name = storm_env['storm_principal_name'] if 'storm_principal_name' in storm_env else None
+        storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
+        if 'nimbus.impersonation.acl' in storm_site:
+          storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"]
+          storm_nimbus_impersonation_acl.replace('{{storm_bare_jaas_principal}}', storm_bare_jaas_principal)
+          putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+      else:
+        if 'nimbus.impersonation.acl' in storm_site:
+          putStormSiteAttributes('nimbus.impersonation.acl', 'delete', 'true')
+        if 'nimbus.impersonation.authorizer' in storm_site:
+          putStormSiteAttributes('nimbus.impersonation.authorizer', 'delete', 'true')
+
     rangerPluginEnabled = ''
     if 'ranger-storm-plugin-properties' in configurations and 'ranger-storm-plugin-enabled' in  configurations['ranger-storm-plugin-properties']['properties']:
       rangerPluginEnabled = configurations['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']

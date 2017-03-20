@@ -5369,6 +5369,11 @@ class TestHDP25StackAdvisor(TestCase):
         "stack_version": "2.5"
       },
       "configurations": {
+        "cluster-env": {
+          "properties": {
+            "security_enabled" : "true"
+          }
+        },
         "storm-site": {
           "properties": {
             "nimbus.authorizer" : "org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer",
