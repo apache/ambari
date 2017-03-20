@@ -759,25 +759,7 @@
                       <arg value="${basedir}/set-hdp-repo-url.sh" />
                       <arg value="${hdpUrlForCentos6}" />
                       <arg value="${hdpLatestUrl}" />
-                    </exec>
-                  </target>
-                </configuration>
-              </execution>
-              <execution>
-                <id>set-hdp-url-packages</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="ambari-server-compile">
-                    <exec dir="${basedir}" executable="bash"
-                      failonerror="true">
-                      <arg value="${basedir}/set-hdp-repo-url.sh" />
-                      <arg value="${hdpUrlForCentos6}" />
-                      <arg value="${hdpLatestUrl}" />
-                      <arg
-                        value="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}" />
+                      <arg value="${basedir}" />
                     </exec>
                   </target>
                 </configuration>
