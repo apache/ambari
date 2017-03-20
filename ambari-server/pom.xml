@@ -46,6 +46,7 @@
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
     <hadoop.version>2.7.2</hadoop.version>
+    <swagger.version>1.5.10</swagger.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
     <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
     <xlint>none</xlint> <!-- passed to Java compiler -Xlint: flag -->
@@ -308,6 +309,7 @@
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
+            <exclude>docs/api/asciidoc/**</exclude>
             <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
@@ -347,6 +349,58 @@
             <phase>test</phase>
             <goals>
               <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.kongchen</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <version>3.1.4</version>
+        <configuration>
+          <apiSources>
+            <apiSource>
+              <springmvc>false</springmvc>
+              <locations>org.apache.ambari.server.api.services</locations>
+              <schemes>http,https</schemes>
+              <basePath>/api/v1</basePath>
+              <info>
+                <title>Swagger spec for Ambari REST API</title>
+                <version>v1</version>
+                <description>Ambari REST APIs has inherent support for querying, sorting and pagination</description>
+                <license>
+                  <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+                  <name>Apache License, Version 2.0</name>
+                </license>
+              </info>
+              <swaggerDirectory>${ambari-web-dir}/api-docs</swaggerDirectory>
+            </apiSource>
+          </apiSources>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.github.robwin</groupId>
+        <artifactId>swagger2markup-maven-plugin</artifactId>
+        <version>0.9.3</version>
+        <configuration>
+          <inputDirectory>${ambari-web-dir}/api-docs</inputDirectory>
+          <swaggerFile>swagger.json</swaggerFile>
+          <outputDirectory>docs/api/asciidoc</outputDirectory>
+          <markupLanguage>asciidoc</markupLanguage>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>process-swagger</goal>
             </goals>
           </execution>
         </executions>
@@ -1308,6 +1362,33 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-jaxrs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-core</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-jaxrs</artifactId>
+      <version>${swagger.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- Because it is already in the jersey one and causes the shade plugin to be confused -->
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>jsr311-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-models</artifactId>
+      <version>${swagger.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>

@@ -17,9 +17,13 @@
  */
 package org.apache.ambari.server.controller;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Represents a user maintenance request.
  */
+@ApiModel
 public class UserRequest {
   private String userName;
   private String password;
@@ -27,14 +31,16 @@ public class UserRequest {
   private Boolean active;
   private Boolean admin;
 
-  public UserRequest(String name) {
-    this.userName = name;
-  }
-
+  @ApiModelProperty(name = "Users/user_name",hidden = true)
   public String getUsername() {
     return userName;
   }
 
+  public UserRequest(String name) {
+    this.userName = name;
+  }
+
+  @ApiModelProperty(name = "Users/password")
   public String getPassword() {
     return password;
   }
@@ -43,6 +49,7 @@ public class UserRequest {
     password = userPass;
   }
 
+  @ApiModelProperty(name = "Users/old_password")
   public String getOldPassword() {
     return oldPassword;
   }
@@ -51,6 +58,7 @@ public class UserRequest {
     oldPassword = oldUserPass;
   }
 
+  @ApiModelProperty(name = "Users/active")
   public Boolean isActive() {
     return active;
   }
@@ -59,6 +67,7 @@ public class UserRequest {
     this.active = active;
   }
 
+  @ApiModelProperty(name = "Users/admin")
   public Boolean isAdmin() {
     return admin;
   }

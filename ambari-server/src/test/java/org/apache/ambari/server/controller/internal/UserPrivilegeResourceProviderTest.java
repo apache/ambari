@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.UserPrivilegeResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -142,7 +143,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
 
@@ -195,7 +197,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
     Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
@@ -254,7 +257,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
     Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
@@ -315,7 +319,8 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
     UserPrivilegeResourceProvider provider = new UserPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, "jdoe", provider.getPropertyIds());
+    UserPrivilegeResponse response = provider.getResponse(privilegeEntity, "jdoe");
+    Resource resource = provider.toResource(response, provider.getPropertyIds());
 
     Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
     Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));

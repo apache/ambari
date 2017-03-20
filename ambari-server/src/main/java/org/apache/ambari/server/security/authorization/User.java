@@ -28,10 +28,14 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.springframework.security.core.GrantedAuthority;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 
 /**
  * Describes user of web-services
  */
+@ApiModel
 public class User {
   final int userId;
   final String userName;
@@ -61,34 +65,42 @@ public class User {
     }
   }
 
+  @ApiModelProperty(hidden = true)
   public int getUserId() {
     return userId;
   }
 
+  @ApiModelProperty(name = "Users/user_name",required = true, access = "public", notes = "username containing only lowercase letters")
   public String getUserName() {
     return userName;
   }
 
+  @ApiModelProperty(name = "Users/ldap_user")
   public boolean isLdapUser() {
     return ldapUser;
   }
 
+  @ApiModelProperty(name = "Users/user_type")
   public UserType getUserType() {
     return userType;
   }
 
+  @ApiModelProperty(hidden = true)
   public Date getCreateTime() {
     return createTime;
   }
 
+  @ApiModelProperty(name = "Users/active")
   public boolean isActive() {
     return active;
   }
 
+  @ApiModelProperty(name = "Users/admin")
   public boolean isAdmin() {
     return admin;
   }
 
+  @ApiModelProperty(name = "Users/groups")
   public Collection<String> getGroups() {
     return groups;
   }
