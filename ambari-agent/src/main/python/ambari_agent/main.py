@@ -106,6 +106,7 @@ import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
+
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
@@ -124,10 +125,17 @@ IS_LINUX = platform.system() == "Linux"
 SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
+_file_logging_handlers ={}
+
 def setup_logging(logger, filename, logging_level):
   formatter = logging.Formatter(formatstr)
-  rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
-  rotateLog.setFormatter(formatter)
+
+  if filename in _file_logging_handlers:
+    rotateLog = _file_logging_handlers[filename]
+  else:
+    rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
+    rotateLog.setFormatter(formatter)
+    _file_logging_handlers[filename] = rotateLog
   logger.addHandler(rotateLog)
       
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
