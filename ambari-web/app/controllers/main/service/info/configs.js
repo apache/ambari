@@ -46,6 +46,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   groupsStore: App.ServiceConfigGroup.find(),
 
   /**
+   * Configs tab for current service
+   *
+   * @type {App.Tab[]}
+   */
+  activeServiceTabs: function () {
+    var selectedServiceName = this.get('selectedService.serviceName');
+    return selectedServiceName ? App.Tab.find().filterProperty('serviceName', selectedServiceName) : [];
+  }.property('selectedService.serviceName'),
+
+  /**
+   * Currently opened configs tab
+   *
+   * @type {App.Tab}
+   */
+  activeTab: Em.computed.findBy('activeServiceTabs', 'isActive', true),
+
+  /**
    * config groups for current service
    * @type {App.ConfigGroup[]}
    */

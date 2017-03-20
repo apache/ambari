@@ -20,13 +20,17 @@ var App = require('app');
 
 var lazyLoading = require('utils/lazy_loading');
 
-App.ConfigCategoryContainerView = Em.ContainerView.extend({
+App.ConfigCategoryContainerView = Em.ContainerView.extend(App.LoadingOverlaySupport, {
 
   lazyLoading: null,
 
   categories: [],
 
   classNames: ['accordion'],
+
+  fieldToObserve: 'controller.recommendationsInProgress',
+
+  handleFieldChangesOnDidInsert: false,
 
   didInsertElement: function () {
     this.pushViews();
@@ -35,16 +39,32 @@ App.ConfigCategoryContainerView = Em.ContainerView.extend({
 
   willDestroyElement: function () {
     if (this.get('lazyLoading')) {
-      lazyLoading.terminate(this.get('lazyLoading'))
+      lazyLoading.terminate(this.get('lazyLoading'));
     }
     this._super();
   },
 
+  /**
+   * extra calls for <code>handleFieldChanges</code>:
+   * <ul>
+   *  <li>child views are pushed to this (lazy loading is used)</li>
+   *  <li>tab is switched</li>
+   * </ul>
+   */
+  checkOverlay: function () {
+    this.handleFieldChanges();
+  }.observes('isLoaded', 'controller.activeTab.id', 'controller.activeTab.isRendered'),
+
   pushViews: function () {
     var self = this;
-    var categoriesViews = [];
+    // Create view with loading-overlay. For some unknown reasons overlay can't be added to the container view
+    var categoriesViews = [
+      Em.View.extend({
+        template: Em.Handlebars.compile('<div class="loading-overlay"></div>')
+      }).create()
+    ];
     var categories = this.get('categories');
-    if (!categories) return false;
+    if (!categories) return;
     categories.forEach(function (category) {
       var viewClass = category.isCustomView ? category.customView : App.ServiceConfigsByCategoryView;
       categoriesViews.push(viewClass.create({

@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
+App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, App.LoadingOverlaySupport, {
 
   /**
    * Determines if view is editable
@@ -42,6 +42,8 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   service: Em.computed.alias('controller.selectedService'),
 
   templateName: require('templates/common/configs/service_config_layout_tab'),
+
+  fieldToObserve: 'controller.recommendationsInProgress',
 
   classNames: ['enhanced-config-tab-content'],
   /**
@@ -70,6 +72,10 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   configNameWidgetMixinMap: {
     num_llap_nodes: App.NumLlapNodesWidgetMixin
   },
+
+  checkOverlay: function () {
+    this.handleFieldChanges();
+  }.observes('controller.activeTab.id', 'controller.activeTab.isRendered'),
 
   /**
    * Prepare configs for render
@@ -203,6 +209,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     }
     this.set('content.isConfigsPrepared', true);
     this.set('dataIsReady', true);
+    this._super(...arguments);
   }
 
 });

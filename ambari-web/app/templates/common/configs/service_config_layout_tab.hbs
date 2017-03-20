@@ -19,6 +19,7 @@
 {{#if view.dataIsReady}}
   {{#unless tab.isHiddenByFilter}}
   <div class="section-layout-container">
+    <div class="loading-overlay"></div>
     <table class="config-section-table">
       {{#each row in tab.sectionRows}}
         <tr>
