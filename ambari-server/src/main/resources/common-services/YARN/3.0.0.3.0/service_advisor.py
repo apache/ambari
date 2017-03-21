@@ -275,30 +275,9 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
-    nodemanagerMinRam = 1048576 # 1TB in mb
-    if "referenceNodeManagerHost" in clusterData:
-      nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
 
-    callContext = self.getCallContext(services)
-    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    # read from the supplied config
-    #if 'recommendConfigurations' != callContext and \
-    #        "yarn-site" in services["configurations"] and \
-    #        "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
-    #    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
-    if 'recommendConfigurations' == callContext:
-      putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    else:
-      # read from the supplied config
-      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
-        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
-      else:
-        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-      pass
-    pass
+    self.calculateYarnAllocationSizes(configurations, services, hosts)
 
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['yarnMinContainerSize']))
-    putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
     yarn_mount_properties = [
@@ -349,8 +328,6 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
       putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'maximum', nodeManagerHost["Hosts"]["cpu_count"] * 2)
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
-      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
       kerberos_authentication_enabled = self.isSecurityEnabled(services)
       if kerberos_authentication_enabled:
