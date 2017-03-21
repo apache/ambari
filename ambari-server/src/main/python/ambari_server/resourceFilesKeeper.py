@@ -76,7 +76,7 @@ class ResourceFilesKeeper():
 
   def _iter_update_directory_archive(self, subdirs_list):
     for subdir in subdirs_list:
-      for root, dirs, _ in os.walk(subdir):
+      for root, dirs, _ in os.walk(subdir, followlinks=True):
         for d in dirs:
           if d in self.ARCHIVABLE_DIRS:
             full_path = os.path.abspath(os.path.join(root, d))
