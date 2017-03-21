@@ -67,6 +67,7 @@
 }
 
 .swagger-section .operation {
+    padding-top: 55px;
     margin: 0
 }
 
@@ -1078,7 +1079,7 @@
 
 .swagger-section .sticky-nav.fixed {
     position: fixed;
-    top: 0;
+    top: 55px;
     left: 0;
     width: 100%;
     z-index: 600
@@ -1495,10 +1496,6 @@ body {
 
 .swagger-section .implementation-notes {
     padding: 0 20px
-}
-
-.swagger-section .endpoint {
-    margin: 0 0 100px
 }
 
 @media (min-width: 992px) {

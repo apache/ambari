@@ -17,7 +17,6 @@ header.site-header li * {
     -webkit-backface-visibility: hidden !important;
 }
 header.site-header nav {
-    background: none;
     border: 0;
     margin: 0;
 }

@@ -139,7 +139,7 @@
         function i(n) {
           n.hasClass("fixed") || (navOffset = n.offset().top);
           e();
-          $(window).scrollTop() > navOffset ? $(".modal.in").length || n.addClass("fixed") : n.removeClass("fixed")
+          //$(window).scrollTop() > navOffset ? $(".modal.in").length || n.addClass("fixed") : n.removeClass("fixed")
         }
 
         function r(e) {
@@ -209,7 +209,7 @@
 
 <body class="page-docs" style="zoom: 1;">
 <header class="site-header">
-  <nav role="navigation" class="navbar navbar-default">
+  <nav role="navigation" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
       <div class="navbar-header">
         <button type="button" data-toggle="collapse" data-target="#navbar-collapse" class="navbar-toggle"><span
