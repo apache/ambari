@@ -390,6 +390,8 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       context.toggleProperty('controller.forceUpdateBoundaries');
       var configActionComponent = self.get('configActionComponent');
       var componentHostName = self.getSelectedHostName(configActionComponent.componentName);
+      var config = self.get('configWidgetContext.config');
+      var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
       if (self.get('content.controllerName')) {
         self.saveMasterComponentHosts();
         self.saveRecommendationsHostGroups();
@@ -399,7 +401,12 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       }
 
       configActionComponent.hostName = componentHostName;
-      self.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
+      config.set('configActionComponent', configActionComponent);
+      context.get('controller').loadConfigRecommendations([{
+        type: App.config.getConfigTagFromFileName(config.get('fileName')),
+        name: config.get('name'),
+        old_value: config.get(oldValueKey)
+      }]);
     });
   },
 
