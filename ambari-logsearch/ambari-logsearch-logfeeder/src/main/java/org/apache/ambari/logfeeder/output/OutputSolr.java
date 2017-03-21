@@ -159,7 +159,6 @@ public class OutputSolr extends Output {
   SolrClient getSolrClient(String solrUrl, String zkConnectString, int count) throws Exception, MalformedURLException {
     SolrClient solrClient = createSolrClient(solrUrl, zkConnectString);
     pingSolr(solrUrl, zkConnectString, count, solrClient);
-    waitForConfig();
 
     return solrClient;
   }
@@ -219,25 +218,6 @@ public class OutputSolr extends Output {
       LOG.warn(String.format(
           "Ping to Solr server failed. It would check again. worker=%d, " + "solrUrl=%s, zkConnectString=%s, collection=%s",
           count, solrUrl, zkConnectString, collection), t);
-    }
-  }
-
-  private void waitForConfig() throws SolrServerException, IOException {
-    if (!LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false)) {
-      return;
-    }
-    
-    while (true) {
-      LOG.info("Checking if config is available");
-      if (LogConfigHandler.isFilterAvailable()) {
-        LOG.info("Config is available");
-        return;
-      }
-      try {
-        Thread.sleep(RETRY_INTERVAL * 1000);
-      } catch (InterruptedException e) {
-        LOG.error(e);
-      }
     }
   }
 
@@ -346,6 +326,8 @@ public class OutputSolr extends Output {
       LOG.info("SolrWorker thread started");
       long lastDispatchTime = System.currentTimeMillis();
 
+      waitForConfig();
+      
       while (true) {
         long currTimeMS = System.currentTimeMillis();
         OutputData outputData = null;
@@ -387,6 +369,26 @@ public class OutputSolr extends Output {
 
       resetLocalBuffer();
       LOG.info("Exiting Solr worker thread. output=" + getShortDescription());
+    }
+    
+
+    private void waitForConfig() {
+      if (!LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false)) {
+        return;
+      }
+      
+      while (true) {
+        LOG.info("Checking if config is available");
+        if (LogConfigHandler.isFilterAvailable()) {
+          LOG.info("Config is available");
+          return;
+        }
+        try {
+          Thread.sleep(RETRY_INTERVAL * 1000);
+        } catch (InterruptedException e) {
+          LOG.error(e);
+        }
+      }
     }
 
     /**
