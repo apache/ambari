@@ -325,7 +325,8 @@ describe('App.AssignMasterOnStep7Controller', function () {
       mock = {
         saveMasterComponentHosts: Em.K,
         loadMasterComponentHosts: Em.K,
-        setDBProperty: Em.K
+        setDBProperty: Em.K,
+        loadConfigRecommendations: Em.K
       },
       config = Em.Object.create({
         filename: 'file1',
@@ -338,6 +339,10 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(mock, 'saveMasterComponentHosts');
       sinon.stub(mock, 'loadMasterComponentHosts');
       sinon.stub(mock, 'setDBProperty');
+      sinon.stub(mock, 'loadConfigRecommendations');
+      sinon.stub(App.config, 'getConfigTagFromFileName', function (value) {
+        return value;
+      });
       view.reopen({
         content: Em.Object.create({
           controllerName: 'ctrl1',
@@ -355,16 +360,16 @@ describe('App.AssignMasterOnStep7Controller', function () {
         },
         configWidgetContext: Em.Object.create({
           config: Em.Object.create({
-            configAction: {
-              hostComponentConfig: {
-                fileName: 'file1',
-                configName: 'conf1'
-              }
-            },
+            fileName: 'file1',
+            name: 'conf1',
             serviceName: 'S1',
+            savedValue: 'val1',
             toggleProperty: Em.K
           }),
           controller: Em.Object.create({
+            wizardController: {
+              name: 'ctrl'
+            },
             stepConfigs: [
               Em.Object.create({
                 serviceName: 'S1',
@@ -386,6 +391,8 @@ describe('App.AssignMasterOnStep7Controller', function () {
       mock.saveMasterComponentHosts.restore();
       mock.loadMasterComponentHosts.restore();
       mock.setDBProperty.restore();
+      mock.loadConfigRecommendations.restore();
+      App.config.getConfigTagFromFileName.restore();
     });
 
     it("saveMasterComponentHosts should be called", function() {
@@ -401,6 +408,18 @@ describe('App.AssignMasterOnStep7Controller', function () {
         componentName: 'C1',
         hostName: 'host1'
       });
+    });
+
+    it("loadConfigRecommendations should be called once", function () {
+      expect(mock.loadConfigRecommendations.calledOnce).to.be.true;
+    });
+
+    it("loadConfigRecommendations should be called with correct arguments", function () {
+      expect(mock.loadConfigRecommendations.calledWith([{
+        type: 'file1',
+        name: 'conf1',
+        old_value: 'val1'
+      }])).to.be.true;
     });
   });
 });
