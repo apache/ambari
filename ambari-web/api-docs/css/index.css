@@ -15470,13 +15470,12 @@ header.site-header.site-header nav .navbar-brand {
     width: 120px;
 }
 header.site-header.site-header nav .navbar-brand a {
-    background: url("../images/senodio.png") center left no-repeat;
-    /*background-size: 76%;*/
+    background: url("/img/ambari-logo.png") center left no-repeat;
     width: 130px;
-    height: 40px;
+    height: 32px;
     display: block;
-    margin-top: 5px;
-    background-size: 48%;
+    margin-top: 10px;
+    background-size: 32px;
 }
 header.site-header.site-header nav .navbar-brand img {
     position: relative;
