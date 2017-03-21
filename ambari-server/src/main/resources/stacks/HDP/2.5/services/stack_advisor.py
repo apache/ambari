@@ -499,7 +499,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if security_enabled:
       if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putStormSiteProperty('nimbus.authorizer',ranger_authorizer_class)
-      elif rangerPluginEnabled and (rangerPluginEnabled.lower() == 'No'.lower()) and (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == ranger_authorizer_class):
+      else:
         putStormSiteProperty('nimbus.authorizer', storm_authorizer_class)
     else:
       putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
