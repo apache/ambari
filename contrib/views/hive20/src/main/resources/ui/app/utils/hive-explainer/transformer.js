@@ -405,21 +405,6 @@ function getConnections(vertices, edges) {
     });
   });
 
-  // iterate over edges to build connections
-  edges.forEach(cEdge => {
-    // get source uuid from source vertex
-    const sourceVertex = vertices.find(cVertex => cVertex._vertex === cEdge._source);
-    const sourceOperator = getLastOperatorOf(sourceVertex);
-    // get target uuid from target vertex
-    const targetVertex = vertices.find(cVertex => cVertex._vertex === cEdge._target);
-    const targetOperator = findVertexAsInputInNode(targetVertex, cEdge._source) || getFirstOperatorOf(targetVertex);
-    // push connection
-    connections.push({
-      _source: sourceOperator,
-      _target: targetOperator,
-    });
-  });
-
   // iterate over vertices to find dynamic partitioning event operator
   // - build connection from dpp to tablescan of target vertex
   vertices.forEach(cVertex => {
@@ -439,6 +424,38 @@ function getConnections(vertices, edges) {
       });
     });
   });
+
+  // iterate over edges to build connections
+  edges.forEach(cEdge => {
+    // get source uuid from source vertex
+    const sourceVertex = vertices.find(cVertex => cVertex._vertex === cEdge._source);
+    // get target uuid from target vertex
+    const targetVertex = vertices.find(cVertex => cVertex._vertex === cEdge._target);
+
+    const sourceOperator = getLastOperatorOf(sourceVertex);
+    const targetOperator = findVertexAsInputInNode(targetVertex, cEdge._source) || getFirstOperatorOf(targetVertex);
+
+    let sourceOperatorList = [], targetOperatorList = [], srcNode = {}, targNode = {}, sourceVertexDef = undefined, targetVertexDef = undefined;
+    findAllOperatorsInSourceVertex(sourceVertex, sourceOperatorList, srcNode);
+    findAllOperatorsInTargetVertex(targetVertex, targetOperatorList, targNode);
+
+    if(sourceOperatorList.length && targetOperatorList.length) {
+      sourceOperatorList.forEach(function(item){
+        if(targetOperatorList.indexOf(item)>-1) {
+          sourceVertexDef = srcNode[item];
+          targetVertexDef = targNode[item];
+          console.log(sourceVertexDef, targetVertexDef)
+        }
+      });
+    }
+
+    connections.push({
+      _source: sourceVertexDef?sourceVertexDef:sourceOperator,
+      _target: targetVertexDef?targetVertexDef:targetOperator,
+    });
+  });
+
+
 
   return connections;
 }
@@ -474,6 +491,30 @@ function findVertexAsInputInNode(node, vertexId) {
   }
 
   return false;
+}
+
+function findAllOperatorsInTargetVertex(node, resultsAggregator, targetNode) {
+  let outputOperator = node["OperatorId:"];
+  if(outputOperator) {
+    resultsAggregator.push(outputOperator);
+    targetNode[outputOperator] = node;
+  }
+  node._children.forEach(cChild => findAllOperatorsInTargetVertex(cChild, resultsAggregator, targetNode));
+  if(!node._children) {
+    return resultsAggregator;
+  }
+}
+
+function findAllOperatorsInSourceVertex(node, resultsAggregator, srcNode) {
+  let outputOperator = node["OutputOperators:"];
+  if(outputOperator) {
+    resultsAggregator.push(outputOperator.substring(1, outputOperator.length-1));
+    srcNode[outputOperator.substring(1, outputOperator.length-1)] = node;
+  }
+  node._children.forEach(cChild => findAllOperatorsInSourceVertex(cChild, resultsAggregator, srcNode));
+  if(!node._children) {
+    return resultsAggregator;
+  }
 }
 
 function getLastOperatorOf(vertex) {
