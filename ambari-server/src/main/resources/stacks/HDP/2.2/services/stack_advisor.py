@@ -864,7 +864,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
     storm_site = getServicesSiteProperties(services, "storm-site")
-    security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
+    security_enabled = self.isSecurityEnabled(services)
     if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
         "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putStormRangerPluginProperty = self.putProperty(configurations, "ranger-storm-plugin-properties", services)
@@ -891,7 +891,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if security_enabled:
       if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putStormSiteProperty('nimbus.authorizer',rangerClass)
-      elif (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == rangerClass):
+      else:
         putStormSiteProperty('nimbus.authorizer', nonRangerClass)
     else:
       putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
