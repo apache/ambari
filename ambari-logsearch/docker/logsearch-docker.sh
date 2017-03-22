@@ -40,9 +40,9 @@ function start_logsearch_container() {
   docker run -d --name logsearch --hostname logsearch.apache.org \
     -v $AMBARI_LOCATION:/root/ambari -v $MAVEN_REPOSITORY_LOCATION:/root/.m2 $LOGSEARCH_EXPOSED_PORTS $LOGSEARCH_ENV_OPTS $LOGSEARCH_EXTRA_OPTS $LOGSEARCH_VOLUME_OPTS \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-portal/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/src/main/webapp:/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes/webapps/app \
-    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/target/libs:/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes/webapps/app/libs/bower \
+    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes \
+    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/src/main/webapp:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app \
+    -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/target/libs:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app/libs/bower \
     ambari-logsearch:v1.0
   ip_address=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' logsearch)
   echo "Log Search container started on $ip_address (for Mac OSX route to boot2docker/docker-machine VM address, e.g.: 'sudo route add -net 172.17.0.0/16 192.168.59.103')"
