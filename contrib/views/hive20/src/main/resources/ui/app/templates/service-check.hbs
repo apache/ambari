@@ -22,21 +22,31 @@
     </div>
   </div>
 
+  {{#if serviceCheckPolicy.checkHdfs}}
   {{service-check-entry label="HDFS Check"
                         status=serviceCheck.hdfsCheckStatus
                         error=hdfsError
   }}
+  {{/if}}
+
+  {{#if serviceCheckPolicy.checkHomeDirectory}}
   {{service-check-entry label="USER HOME Check"
                         status=serviceCheck.userHomeCheckStatus
                         error=userHomeError
   }}
+  {{/if}}
+
+  {{#if serviceCheckPolicy.checkATS}}
   {{service-check-entry label="ATS Check"
                         status=serviceCheck.atsCheckStatus
                         error=atsError
   }}
+  {{/if}}
+
+  {{#if serviceCheckPolicy.checkHive}}
   {{service-check-entry label="HIVE Check"
                         status=serviceCheck.hiveCheckStatus
                         error=hiveError
   }}
-
+  {{/if}}
 </div>
