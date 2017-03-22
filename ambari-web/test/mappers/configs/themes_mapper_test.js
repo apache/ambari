@@ -487,7 +487,7 @@ describe('App.themeMapper', function () {
       }
     };
     beforeEach(function() {
-      this.mockConfig  = sinon.stub(App.configsCollection, 'getConfig');
+      this.mockConfig = sinon.stub(App.configsCollection, 'getConfig');
       this.mockConfigByName = sinon.stub(App.configsCollection, 'getConfigByName');
     });
     afterEach(function() {

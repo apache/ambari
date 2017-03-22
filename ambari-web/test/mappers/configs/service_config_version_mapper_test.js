@@ -124,7 +124,7 @@ describe('App.serviceConfigVersionsMapper', function () {
     });
 
     it('currentVersionMap should have not current version', function() {
-      expect(currentVersionMap['S1_g2'].get('isCurrent')).to.be.false;
+      expect(currentVersionMap.S1_g2.get('isCurrent')).to.be.false;
     });
 
     it('App.router.set should be called', function() {

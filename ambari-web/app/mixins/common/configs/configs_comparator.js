@@ -98,7 +98,8 @@ App.ConfigsComparator = Em.Mixin.create({
               type: configuration.type,
               tag: configuration.tag,
               version: configuration.version,
-              service_config_version: item.service_config_version
+              service_config_version: item.service_config_version,
+              filename: App.config.getOriginalFileName(configuration.type)
             };
             if (Em.isNone(configNamesMap[prop])) {
               allConfigs.push(this.getMockConfig(prop, serviceName, App.config.getOriginalFileName(configuration.type)));
@@ -127,7 +128,7 @@ App.ConfigsComparator = Em.Mixin.create({
    */
   addCompareConfigs: function(compareNonDefaultVersions, allConfigs, serviceVersionMap) {
     var compareVersionNumber = this.get('compareServiceVersion.version');
-
+    var serviceName = this.get('content.serviceName');
     if (compareNonDefaultVersions) {
       allConfigs.forEach(function (serviceConfig) {
         if (Em.get(serviceConfig, 'isRequiredByAgent') !== false) {
@@ -135,13 +136,25 @@ App.ConfigsComparator = Em.Mixin.create({
         }
       }, this);
     } else {
+      var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion.version')] || {};
+      var allConfigsMap = {};
       allConfigs.forEach(function (serviceConfig) {
+        var id = serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename);
+        allConfigsMap[id] = serviceConfig;
         if (Em.get(serviceConfig, 'isRequiredByAgent') !== false) {
-          var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion.version')];
-          var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
+          var compareConfig = serviceCfgVersionMap[id];
           this.setCompareDefaultGroupConfig(serviceConfig, compareConfig);
         }
       }, this);
+      if (allConfigs.length !== Object.keys(serviceCfgVersionMap).length) {
+        Object.keys(serviceCfgVersionMap).forEach(id => {
+          if (!allConfigsMap[id]) {
+            var mockConfig = this.getMockConfig(serviceCfgVersionMap[id].name, serviceName, serviceCfgVersionMap[id].filename);
+            this.setCompareDefaultGroupConfig(mockConfig, serviceCfgVersionMap[id]);
+            allConfigs.push(mockConfig);
+          }
+        });
+      }
     }
   },
 
