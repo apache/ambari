@@ -34,7 +34,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.logconfig.LogConfigHandler;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -326,8 +325,6 @@ public class OutputSolr extends Output {
       LOG.info("SolrWorker thread started");
       long lastDispatchTime = System.currentTimeMillis();
 
-      waitForConfig();
-      
       while (true) {
         long currTimeMS = System.currentTimeMillis();
         OutputData outputData = null;
@@ -371,26 +368,6 @@ public class OutputSolr extends Output {
       LOG.info("Exiting Solr worker thread. output=" + getShortDescription());
     }
     
-
-    private void waitForConfig() {
-      if (!LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false)) {
-        return;
-      }
-      
-      while (true) {
-        LOG.info("Checking if config is available");
-        if (LogConfigHandler.isFilterAvailable()) {
-          LOG.info("Config is available");
-          return;
-        }
-        try {
-          Thread.sleep(RETRY_INTERVAL * 1000);
-        } catch (InterruptedException e) {
-          LOG.error(e);
-        }
-      }
-    }
-
     /**
      * This will loop till Solr is available and LogFeeder is
      * successfully able to write to the collection or shard. It will block till
