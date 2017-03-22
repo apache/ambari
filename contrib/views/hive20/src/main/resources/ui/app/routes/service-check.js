@@ -24,5 +24,38 @@ export default Ember.Route.extend({
     if (this.get('serviceCheck.checkCompleted')) {
       this.transitionTo('application');
     }
+  },
+
+  model(){
+    let promise =  this.get("serviceCheck").fetchServiceCheckPolicy();
+    promise.then((data) => {
+      console.log("data : ", data);
+      this.set("serviceCheckPolicy", data.serviceCheckPolicy)
+    });
+
+    return promise;
+  },
+
+  afterModel(){
+    let controller = this.controllerFor("service-check");
+    controller.set("serviceCheckPolicy", this.get("serviceCheckPolicy"));
+    this.get('serviceCheck').check(this.get("serviceCheckPolicy")).then((data) => {
+      if(data.userHomePromise.state === 'rejected') {
+        controller.set('userHomeError', data.userHomePromise.reason.errors);
+      }
+
+      if(data.hdfsPromise.state === 'rejected') {
+        controller.set('hdfsError', data.hdfsPromise.reason.errors);
+      }
+
+      if(data.atsPromise.state === 'rejected') {
+        controller.set('atsError', data.atsPromise.reason.errors);
+      }
+
+      if(data.hivePromise.state === 'rejected') {
+        controller.set('hiveError', data.hivePromise.reason.errors);
+      }
+    });
+
   }
 });

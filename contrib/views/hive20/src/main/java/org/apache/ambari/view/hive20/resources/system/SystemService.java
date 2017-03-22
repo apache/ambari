@@ -18,7 +18,9 @@
 
 package org.apache.ambari.view.hive20.resources.system;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -27,6 +29,8 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.view.hive20.BaseService;
 import org.apache.ambari.view.hive20.resources.system.ranger.RangerService;
+import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.json.simple.JSONObject;
 
 /**
@@ -56,4 +60,18 @@ public class SystemService extends BaseService {
     return Response.ok(response).build();
   }
 
+  @GET
+  @Path("/service-check-policy")
+  public Response getServiceCheckList(){
+    ServiceCheck serviceCheck = new ServiceCheck(context);
+    try {
+      ServiceCheck.Policy policy = serviceCheck.getServiceCheckPolicy();
+      JSONObject policyJson = new JSONObject();
+      policyJson.put("serviceCheckPolicy", policy);
+      return Response.ok(policyJson).build();
+    } catch (HdfsApiException e) {
+      LOG.error("Error occurred while generating service check policy : ", e);
+      throw new ServiceFormattedException(e);
+    }
+  }
 }

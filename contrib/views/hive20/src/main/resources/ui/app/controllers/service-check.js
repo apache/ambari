@@ -45,22 +45,5 @@ export default Ember.Controller.extend({
 
   init() {
     this._super(...arguments);
-    this.get('serviceCheck').check().then((data) => {
-      if(data.userHomePromise.state === 'rejected') {
-        this.set('userHomeError', data.userHomePromise.reason.errors);
-      }
-
-      if(data.hdfsPromise.state === 'rejected') {
-        this.set('userHomeError', data.hdfsPromise.reason.errors);
-      }
-
-      if(data.atsPromise.state === 'rejected') {
-        this.set('atsError', data.atsError.reason.errors);
-      }
-
-      if(data.hivePromise.state === 'rejected') {
-        this.set('atsError', data.hiveError.reason.errors);
-      }
-    });
   }
 });

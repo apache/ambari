@@ -20,6 +20,11 @@ import ApplicationAdapter from './application';
 
 export default ApplicationAdapter.extend({
 
+  getServiceCheckPolicy(){
+    let url = this.buildURL() + '/system/service-check-policy';
+    return this.ajax(url, 'GET');
+  },
+
   doHdfsSeriveCheck() {
     let url = this.buildURL() + '/hive/hdfsStatus';
     return this.ajax(url, 'GET');
