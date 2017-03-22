@@ -381,6 +381,21 @@
       </service>
     </group>
 
+    <group name="DRUID" title="Druid">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
+      <service name="DRUID">
+        <component>DRUID_HISTORICAL</component>
+        <component>DRUID_MIDDLEMANAGER</component>
+        <component>DRUID_BROKER</component>
+        <component>DRUID_ROUTER</component>
+        <component>DRUID_COORDINATOR</component>
+        <component>DRUID_OVERLORD</component>
+        <component>DRUID_SUPERSET</component>
+      </service>
+    </group>
+
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -389,6 +404,7 @@
         <service>HDFS</service>
         <service>YARN</service>
         <service>HBASE</service>
+        <service>DRUID</service>
       </priority>
       <exclude>
         <service>AMBARI_METRICS</service>
@@ -965,6 +981,44 @@
         </upgrade>
       </component>
       <component name="ATLAS_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="DRUID">
+      <component name="DRUID_HISTORICAL">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="DRUID_MIDDLEMANAGER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="DRUID_BROKER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="DRUID_ROUTER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="DRUID_COORDINATOR">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="DRUID_OVERLORD">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="DRUID_SUPERSET">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

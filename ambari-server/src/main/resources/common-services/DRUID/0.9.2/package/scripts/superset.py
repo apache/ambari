@@ -16,17 +16,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import os, time
-from resource_management.core.resources.system import Directory
+import os
+
 from resource_management import Script
-from resource_management.libraries.resources.properties_file import PropertiesFile
-from resource_management.core.resources.system import Execute
-from resource_management.core.source import Template
-from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.core.logger import Logger
 from resource_management.core.resources import File
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Execute
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.resources.properties_file import PropertiesFile
 
 class Superset(Script):
 
@@ -36,7 +42,7 @@ class Superset(Script):
   def install(self, env):
     self.install_packages(env)
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     Directory(
       [params.superset_pid_dir, params.superset_log_dir, params.superset_config_dir, params.superset_home_dir],
@@ -85,10 +91,21 @@ class Superset(Script):
     Execute(format("source {params.superset_config_dir}/superset-env.sh ; {params.superset_bin_dir}/superset configure_druid_cluster --name druid-ambari --coordinator-host {params.druid_coordinator_host} --coordinator-port {params.druid_coordinator_port} --broker-host {params.druid_router_host} --broker-port {params.druid_router_port} --coordinator-endpoint druid/coordinator/v1/metadata --broker-endpoint druid/v2"),
             user=params.druid_user)
 
-  def start(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing druid-superset Upgrade pre-restart")
+    import params
+
+    env.set_params(params)
+
+    if params.stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version):
+      stack_select.select(self.get_component_name(), params.stack_version)
+    if params.stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version):
+      conf_select.select(params.stack_name, "superset", params.stack_version)
+
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    self.configure(env)
+    self.configure(env, upgrade_type=upgrade_type)
     daemon_cmd = self.get_daemon_cmd(params, "start")
     try:
       Execute(daemon_cmd,
@@ -98,11 +115,10 @@ class Superset(Script):
       show_logs(params.druid_log_dir, params.druid_user)
       raise
 
-
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-
+    self.configure(env, upgrade_type=upgrade_type)
     daemon_cmd = self.get_daemon_cmd(params, "stop")
     try:
       Execute(daemon_cmd,
