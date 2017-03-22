@@ -19,6 +19,6 @@ echo "
 "
 cd ..
 mvn clean compile package -Pdev
-cd ambari-logsearch-portal
+cd ambari-logsearch-server
 #mvn exec:java -Pdev
 java -cp target/libs/*:target/classes/ org.apache.ambari.logsearch.LogSearch

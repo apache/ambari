@@ -19,7 +19,7 @@ set -e
 export LOGSEARCH_PORT=61888
 
 # path containing LogSearch.jar file
-export LOGSEARCH_PATH=/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package
+export LOGSEARCH_PATH=/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package
 
 export LOGSEARCH_CONF_DIR=/root/config/logsearch
 

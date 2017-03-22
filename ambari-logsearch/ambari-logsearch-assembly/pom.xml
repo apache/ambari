@@ -36,7 +36,7 @@
     <solr.client.dir>${project.basedir}/../ambari-logsearch-solr-client</solr.client.dir>
     <logsearch.portal.package.name>ambari-logsearch-portal</logsearch.portal.package.name>
     <logsearch.portal.mapping.path>${mapping.base.path}/ambari-logsearch-portal</logsearch.portal.mapping.path>
-    <logsearch.portal.dir>${project.basedir}/../ambari-logsearch-portal</logsearch.portal.dir>
+    <logsearch.server.dir>${project.basedir}/../ambari-logsearch-server</logsearch.server.dir>
     <logsearch.logfeeder.package.name>ambari-logsearch-logfeeder</logsearch.logfeeder.package.name>
     <logsearch.logfeeder.mapping.path>${mapping.base.path}/ambari-logsearch-logfeeder</logsearch.logfeeder.mapping.path>
     <logsearch.logfeeder.dir>${project.basedir}/../ambari-logsearch-logfeeder</logsearch.logfeeder.dir>
@@ -138,7 +138,7 @@
                       <directory>${logsearch.portal.mapping.path}</directory>
                       <sources>
                         <source>
-                          <location>${logsearch.portal.dir}/target/package</location>
+                          <location>${logsearch.server.dir}/target/package</location>
                           <excludes>
                             <exclude>classes/log4j.xml</exclude>
                             <exclude>classes/logsearch.properties</exclude>
@@ -153,7 +153,7 @@
                       <directory>${logsearch.portal.conf.mapping.path}</directory>
                       <sources>
                         <source>
-                          <location>${logsearch.portal.dir}/target/package/classes</location>
+                          <location>${logsearch.server.dir}/target/package/classes</location>
                           <includes>
                             <include>log4j.xml</include>
                             <include>logsearch.properties</include>
@@ -166,7 +166,7 @@
                       <directory>${logsearch.portal.conf.mapping.path}/solr_configsets</directory>
                       <sources>
                         <source>
-                          <location>${logsearch.portal.dir}/target/package/solr_configsets</location>
+                          <location>${logsearch.server.dir}/target/package/solr_configsets</location>
                         </source>
                       </sources>
                     </mapping>
@@ -390,7 +390,7 @@
                   <skipPOMs>false</skipPOMs>
                   <dataSet>
                     <data>
-                      <src>${logsearch.portal.dir}/target/ambari-logsearch-portal.tar.gz</src>
+                      <src>${logsearch.server.dir}/target/ambari-logsearch-portal.tar.gz</src>
                       <type>archive</type>
                       <mapper>
                         <prefix>${logsearch.portal.mapping.path}</prefix>
@@ -403,7 +403,7 @@
                       </excludes>
                     </data>
                     <data>
-                      <src>${logsearch.portal.dir}/target/package/classes</src>
+                      <src>${logsearch.server.dir}/target/package/classes</src>
                       <type>directory</type>
                       <mapper>
                         <prefix>${logsearch.portal.conf.mapping.path}</prefix>
@@ -417,7 +417,7 @@
                       </includes>
                     </data>
                     <data>
-                      <src>${logsearch.portal.dir}/target/package/solr_configsets</src>
+                      <src>${logsearch.server.dir}/target/package/solr_configsets</src>
                       <type>directory</type>
                       <mapper>
                         <prefix>${logsearch.portal.conf.mapping.path}/solr_configsets</prefix>
@@ -518,7 +518,7 @@
   <dependencies>
     <dependency>
       <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-logsearch-portal</artifactId>
+      <artifactId>ambari-logsearch-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

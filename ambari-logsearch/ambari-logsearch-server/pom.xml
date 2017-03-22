@@ -24,11 +24,11 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
-  <artifactId>ambari-logsearch-portal</artifactId>
+  <artifactId>ambari-logsearch-server</artifactId>
   <packaging>jar</packaging>
   <version>2.0.0.0-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
-  <name>Ambari Logsearch Portal</name>
+  <name>Ambari Logsearch Server</name>
   <properties>
     <spring.version>4.2.5.RELEASE</spring.version>
     <spring.security.version>4.0.4.RELEASE</spring.security.version>
