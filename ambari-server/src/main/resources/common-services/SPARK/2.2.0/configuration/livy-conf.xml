@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+    <property>
+        <name>livy.environment</name>
+        <value>production</value>
+        <description>
+            Specifies Livy's environment. May either be "production" or "development". In "development"
+            mode, Livy will enable debugging options, such as reporting possible routes on a 404.
+            defaults to development
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.server.port</name>
+        <value>8999</value>
+        <description>
+            What port to start the server on. Defaults to 8999.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.server.session.timeout</name>
+        <value>3600000</value>
+        <description>
+            Time in milliseconds on how long Livy will wait before timing out an idle session.
+            Default is one hour.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.impersonation.enabled</name>
+        <value>true</value>
+        <description>
+            If livy should use proxy users when submitting a job.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.impersonation.enabled</name>
+        <value>true</value>
+        <description>
+            If livy should use proxy users when submitting a job.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.server.csrf_protection.enabled</name>
+        <value>true</value>
+        <description>
+            Whether to enable csrf protection for livy's rest api.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.spark.master</name>
+        <value>yarn-cluster</value>
+        <description>
+            spark.master property for spark engine
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.repl.enableHiveContext</name>
+        <value>true</value>
+        <description>
+            Whether to enable HiveContext in livy interpreter
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.server.recovery.mode</name>
+        <value>recovery</value>
+        <description>
+            Recovery mode for livy, either be "off" or "recovery".
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.server.recovery.state-store</name>
+        <value>filesystem</value>
+        <description>
+            Where Livy should store state for recovery.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
+        <name>livy.server.recovery.state-store.url</name>
+        <value>/livy-recovery</value>
+        <description>
+            Where Livy should store state for recovery.
+        </description>
+        <on-ambari-upgrade add="false"/>
+    </property>
+</configuration>
+

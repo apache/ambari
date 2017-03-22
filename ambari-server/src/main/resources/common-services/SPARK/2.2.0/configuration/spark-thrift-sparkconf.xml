@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <property>
+    <name>spark.yarn.queue</name>
+    <value>default</value>
+    <description>
+      The name of the YARN queue to which the application is submitted.
+    </description>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.driver.extraLibraryPath</name>
+    <value>{{spark_hadoop_lib_native}}</value>
+    <description>
+       Set a special library path to use when launching the driver JVM.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.executor.extraLibraryPath</name>
+    <value>{{spark_hadoop_lib_native}}</value>
+    <description>
+      Set a special library path to use when launching the executor JVM.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.history.provider</name>
+    <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
+    <description>Name of history provider class</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.history.fs.logDirectory</name>
+    <value>{{spark_history_dir}}</value>
+    <final>true</final>
+    <description>
+      Base directory for history spark application log. It is the same value
+      as in spark-defaults.xml.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.eventLog.enabled</name>
+    <value>true</value>
+    <final>true</final>
+    <description>
+      Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.eventLog.dir</name>
+    <value>{{spark_history_dir}}</value>
+    <final>true</final>
+    <description>
+      Base directory in which Spark events are logged, if spark.eventLog.enabled is true. It is the same value
+      as in spark-defaults.xml.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.master</name>
+    <value>{{spark_thrift_master}}</value>
+    <description>
+      The deploying mode of spark application, by default it is yarn-client for thrift-server but local mode for there's
+      only one nodemanager.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.scheduler.allocation.file</name>
+    <value>{{spark_conf}}/spark-thrift-fairscheduler.xml</value>
+    <description>
+      Scheduler configuration file for thriftserver.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.scheduler.mode</name>
+    <value>FAIR</value>
+    <description>
+      The scheduling mode between jobs submitted to the same SparkContext.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.shuffle.service.enabled</name>
+    <value>true</value>
+    <description>
+      Enables the external shuffle service.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.hadoop.cacheConf</name>
+    <value>false</value>
+    <description>
+      Specifies whether HadoopRDD caches the Hadoop configuration object
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.dynamicAllocation.enabled</name>
+    <value>true</value>
+    <description>
+      Whether to use dynamic resource allocation, which scales the number of executors registered with this application up and down based on the workload.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.dynamicAllocation.initialExecutors</name>
+    <value>0</value>
+    <description>
+      Initial number of executors to run if dynamic allocation is enabled.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.dynamicAllocation.maxExecutors</name>
+    <value>10</value>
+    <description>
+      Upper bound for the number of executors if dynamic allocation is enabled.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>spark.dynamicAllocation.minExecutors</name>
+    <value>0</value>
+    <description>
+      Lower bound for the number of executors if dynamic allocation is enabled.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>
