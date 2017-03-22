@@ -3051,16 +3051,23 @@ var formatRequest = function (data) {
  */
 var doGetAsPost = function(opt) {
   var delimiterPos = opt.url.indexOf('?');
+  var fieldsIndex = opt.url.indexOf('&fields');
 
   opt.type = "POST";
   opt.headers["X-Http-Method-Override"] = "GET";
   if (delimiterPos !== -1) {
+    var query = fieldsIndex !== -1 ? opt.url.substring(delimiterPos + 1, fieldsIndex) : opt.url.substr(delimiterPos + 1);
     opt.data = JSON.stringify({
-      "RequestInfo": {"query" : opt.url.substr(delimiterPos + 1, opt.url.length)}
+      "RequestInfo": {"query" : query}
     });
-    opt.url = opt.url.substr(0, delimiterPos);
+    if (fieldsIndex !== -1) {
+      opt.url = opt.url.substr(0, delimiterPos) + '?' + opt.url.substr(fieldsIndex + 1) + '&_=' + App.dateTime();
+    } else {
+      opt.url = opt.url.substr(0, delimiterPos)  + '?_=' + App.dateTime();
+    }
+  } else {
+    opt.url += '?_=' + App.dateTime();
   }
-  opt.url += '?_=' + App.dateTime();
   return opt;
 };
 

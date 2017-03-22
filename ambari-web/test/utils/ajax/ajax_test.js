@@ -153,7 +153,7 @@ describe('App.ajax', function() {
         headers: {"X-Http-Method-Override": "GET"}
       });
     });
-    it("url has '?'", function () {
+    it("url has '?params'", function () {
       var opt = {
         type: 'GET',
         url: 'root?params',
@@ -162,6 +162,19 @@ describe('App.ajax', function() {
       expect(App.ajax.fakeDoGetAsPost({}, opt)).to.eql({
         type: 'POST',
         url: 'root?_=1',
+        headers: {"X-Http-Method-Override": "GET"},
+        data: "{\"RequestInfo\":{\"query\":\"params\"}}"
+      });
+    });
+    it("url has '?params&fields'", function () {
+      var opt = {
+        type: 'GET',
+        url: 'root?params&fields',
+        headers: {}
+      };
+      expect(App.ajax.fakeDoGetAsPost({}, opt)).to.eql({
+        type: 'POST',
+        url: 'root?fields&_=1',
         headers: {"X-Http-Method-Override": "GET"},
         data: "{\"RequestInfo\":{\"query\":\"params\"}}"
       });
