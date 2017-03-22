@@ -30,7 +30,9 @@ export default Ember.Route.extend({
       atsTestDone: null,
       userhomeTest: null,
       userhomeTestDone: null,
-      percent: 0
+      percent: 0,
+      numberOfChecks: null,
+      serviceCheckPolicy: null,
     });
   },
 
@@ -61,7 +63,7 @@ export default Ember.Route.extend({
         var percent = model.get('percent');
         model.set("hiveserverTest", true);
         model.set("hiveserver" + 'TestDone', true);
-        model.set('percent', percent + 25);
+        model.set('percent', percent + (100/model.get("numberOfChecks")));
         loadView();
       }, function () {
         if (model.get('ldapFailure')) {
@@ -71,7 +73,7 @@ export default Ember.Route.extend({
             controller.checkConnection().then(function () {
               model.set("hiveserverTest", true);
               model.set("hiveserver" + 'TestDone', true);
-              model.set('percent', percent + 25);
+              model.set('percent', percent + (100/model.get("numberOfChecks")));
               loadView();
             }, function () {
               var percent = model.get('percent');
@@ -82,25 +84,46 @@ export default Ember.Route.extend({
               controller.set("errors", errors);
               model.get("hiveserverTest", false);
               model.set("hiveserver" + 'TestDone', true);
-              model.set('percent', percent + 25);
+              model.set('percent', percent + (100/model.get("numberOfChecks")));
               loadView();
             });
           });
         } else {
           model.get("hiveserverTest", false);
           model.set("hiveserver" + 'TestDone', true);
-          model.set('percent', model.get('percent') + 25);
+          model.set('percent', model.get('percent') + (100/model.get("numberOfChecks")));
           loadView();
         }
       });
     }
 
-    controller.startTests().then(function() {
-      checkHive();
-    });
-
+    this.fetchServiceCheckPolicy()
+      .then((data) => {
+        let numberOfChecks = 0;
+        let serviceCheckPolicy = data.serviceCheckPolicy;
+        for (let serviceCheck in serviceCheckPolicy) {
+          if (serviceCheckPolicy[serviceCheck] === true) {
+            numberOfChecks++;
+          }
+        }
+        model.set("numberOfChecks", numberOfChecks);
+        model.set("serviceCheckPolicy", serviceCheckPolicy);
+        controller.startTests().then(function () {
+          if(serviceCheckPolicy.checkHive === true){
+            checkHive();
+          }else{
+            model.set("hiveserver" + 'TestDone', true);
+            model.set("hiveserver" + 'Test', true);
+            loadView();
+          }
+        });
+      });
   },
 
+  fetchServiceCheckPolicy: function(){
+    let adapter = this.container.lookup('adapter:service-check');
+    return adapter.fetchServiceCheckPolicy();
+  },
   actions: {
     transition: function() {
       this.transitionTo('index');
