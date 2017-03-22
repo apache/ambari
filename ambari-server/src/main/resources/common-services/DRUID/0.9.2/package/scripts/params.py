@@ -45,6 +45,8 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 tmp_dir = Script.get_tmp_dir()
 
+stack_name = default("/hostLevelParams/stack_name", None)
+
 # stack version
 stack_version = default("/commandParams/version", None)
 
