@@ -17,6 +17,7 @@
  */
 
 var PATH_PARAM_NAME = "viewPath";
+var ENV = ENV || {};
 
 /**
  * Returns view name, version and instance name from location.pathname
