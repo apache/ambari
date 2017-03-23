@@ -41,14 +41,9 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
     var result = [];
     var itemIds = {};
     var serviceToHostMap = {};
-    var currentVersionsMap = {};
 
     if (json && json.items) {
-      App.ServiceConfigVersion.find().forEach(function (v) {
-        if (v.get('isCurrent')) {
-          currentVersionsMap[v.get('serviceName') + "_" + v.get('groupName')] = v;
-        }
-      });
+      var currentVersionsMap = this.getCurrentVersionMap();
 
       json.items.forEach(function (item, index) {
         var parsedItem = this.parseIt(item, this.get('config'));
@@ -76,23 +71,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
         App.router.set('mainConfigHistoryController.filteredCount', itemTotal);
       }
 
-      /**
-       * this code sets hostNames for default config group
-       * by excluding hostNames that belongs to not default groups
-       * from list of all hosts
-       */
-      Object.keys(serviceToHostMap).forEach(function(sName) {
-        var defaultHostNames = App.get('allHostNames');
-        for (var i = 0; i < serviceToHostMap[sName].length; i++) {
-          defaultHostNames = defaultHostNames.without(serviceToHostMap[sName][i]);
-        }
-        var defVer = result.find(function(v) {
-          return v.is_current && v.group_name === App.ServiceConfigGroup.defaultGroupName && v.service_name == sName;
-        });
-        if (defVer) {
-          defVer.hosts = defaultHostNames;
-        }
-      });
+      this.setHostsForDefaultCG(serviceToHostMap, result);
 
       // If on config history page, need to clear the model
       if (App.router.get('currentState.name') === 'configHistory') {
@@ -101,6 +80,37 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       App.store.safeLoadMany(this.get('model'), result);
       console.timeEnd('App.serviceConfigVersionsMapper');
     }
+  },
+
+  /**
+   * sets hostNames for default config group by excluding hostNames
+   * that belongs to not default groups from list of all hosts
+   * @param {object} serviceToHostMap
+   * @param {array} result
+   */
+  setHostsForDefaultCG: function(serviceToHostMap, result) {
+    Object.keys(serviceToHostMap).forEach(function(sName) {
+      var defaultHostNames = App.get('allHostNames');
+      for (var i = 0; i < serviceToHostMap[sName].length; i++) {
+        defaultHostNames = defaultHostNames.without(serviceToHostMap[sName][i]);
+      }
+      var defVer = result.find(function(v) {
+        return v.is_current && v.group_name === App.ServiceConfigGroup.defaultGroupName && v.service_name === sName;
+      });
+      if (defVer) {
+        defVer.hosts = defaultHostNames;
+      }
+    });
+  },
+
+  getCurrentVersionMap: function() {
+    var currentVersionsMap = {};
+    App.ServiceConfigVersion.find().forEach(function (v) {
+      if (v.get('isCurrent')) {
+        currentVersionsMap[v.get('serviceName') + "_" + v.get('groupName')] = v;
+      }
+    });
+    return currentVersionsMap;
   },
 
   /**

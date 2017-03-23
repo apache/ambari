@@ -18,10 +18,15 @@
  */
 package org.apache.ambari.logsearch.converter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.ambari.logsearch.model.request.LastPageParamDefinition;
 import org.apache.ambari.logsearch.model.request.impl.CommonSearchRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.Query;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
@@ -32,13 +37,31 @@ public abstract class AbstractSearchRequestQueryConverter<REQUEST_TYPE extends C
   @Override
   public QUERY_TYPE convert(REQUEST_TYPE request) {
     QUERY_TYPE query = createQuery();
-    int page = StringUtils.isNumeric(request.getPage()) ? new Integer(request.getPage()) : 0;
-    int pageSize = StringUtils.isNumeric(request.getPageSize()) ? new Integer(request.getPageSize()) : 99999;
-    PageRequest pageRequest = new PageRequest(page, pageSize, sort(request));
-    query.setPageRequest(pageRequest);
+    addPageRequest(request, query);
     Criteria criteria = new SimpleStringCriteria("*:*");
     query.addCriteria(criteria);
     return extendSolrQuery(request, query);
+  }
+  
+  private void addPageRequest(REQUEST_TYPE request, QUERY_TYPE query) {
+    int page = StringUtils.isNumeric(request.getPage()) ? new Integer(request.getPage()) : 0;
+    int pageSize = StringUtils.isNumeric(request.getPageSize()) ? new Integer(request.getPageSize()) : 99999;
+    Sort sort = sort(request);
+    
+    boolean isLastPage = (request instanceof LastPageParamDefinition) ?
+        ((LastPageParamDefinition)request).isLastPage() :
+        false;
+    if (isLastPage) {
+      page = 0;
+      List<Sort.Order> newOrders = new ArrayList<>();
+      for (Sort.Order order : sort) {
+        newOrders.add(new Sort.Order(order.getDirection() == Direction.ASC ? Direction.DESC : Direction.ASC, order.getProperty()));
+      }
+      sort = new Sort(newOrders);
+    }
+    
+    PageRequest pageRequest = new PageRequest(page, pageSize, sort);
+    query.setPageRequest(pageRequest);
   }
 
   public abstract QUERY_TYPE extendSolrQuery(REQUEST_TYPE request, QUERY_TYPE query);

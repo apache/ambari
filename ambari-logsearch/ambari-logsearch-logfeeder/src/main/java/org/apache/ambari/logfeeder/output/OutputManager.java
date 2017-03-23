@@ -30,8 +30,10 @@ import java.util.UUID;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.input.cache.LRUCache;
 import org.apache.ambari.logfeeder.logconfig.FilterLogData;
 import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.MurmurHash;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +52,8 @@ public class OutputManager {
 
   private static long docCounter = 0;
   private MetricData messageTruncateMetric = new MetricData(null, false);
+
+  private OutputLineFilter outputLineFilter = new OutputLineFilter();
 
   public List<Output> getOutputs() {
     return outputs;
@@ -138,8 +142,8 @@ public class OutputManager {
         jsonObj.put("message_md5", "" + MurmurHash.hash64A(logMessage.getBytes(), 31174077));
       }
     }
-    
-    if (FilterLogData.INSTANCE.isAllowed(jsonObj, inputMarker)) {
+    if (FilterLogData.INSTANCE.isAllowed(jsonObj, inputMarker)
+      && !outputLineFilter.apply(jsonObj, inputMarker.input)) {
       for (Output output : input.getOutputList()) {
         try {
           output.write(jsonObj, inputMarker);

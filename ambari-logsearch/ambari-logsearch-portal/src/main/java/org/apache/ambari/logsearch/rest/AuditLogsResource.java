@@ -22,6 +22,7 @@ package org.apache.ambari.logsearch.rest;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -30,6 +31,7 @@ import javax.ws.rs.core.Response;
 import freemarker.template.TemplateException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
@@ -66,6 +68,13 @@ public class AuditLogsResource {
   @ApiOperation(GET_AUDIT_LOGS_OD)
   public AuditLogResponse getAuditLogs(@BeanParam AuditLogRequest auditLogRequest) {
     return auditLogsManager.getLogs(auditLogRequest);
+  }
+
+  @DELETE
+  @Produces({"application/json"})
+  @ApiOperation(PURGE_AUDIT_LOGS_OD)
+  public StatusMessage deleteAuditLogs(@BeanParam AuditLogRequest auditLogRequest) {
+    return auditLogsManager.deleteLogs(auditLogRequest);
   }
 
   @GET

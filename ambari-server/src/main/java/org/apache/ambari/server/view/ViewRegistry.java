@@ -1966,7 +1966,7 @@ public class ViewRegistry {
             if (principalRole == null) {
               LOG.warn("Missing principal ID for role {} encountered while setting access to view {}. Ignoring.",
                   role, viewInstanceEntity.getName());
-            } else {
+            } else if (!privilegeDAO.exists(principalRole, resourceEntity, permissionViewUser)) {
               PrivilegeEntity privilegeEntity = new PrivilegeEntity();
               privilegeEntity.setPermission(permissionViewUser);
               privilegeEntity.setPrincipal(principalRole);

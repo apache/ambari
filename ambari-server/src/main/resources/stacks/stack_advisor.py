@@ -942,6 +942,48 @@ class DefaultStackAdvisor(StackAdvisor):
     return items
 
 
+  def calculateYarnAllocationSizes(self, configurations, services, hosts):
+    # initialize data
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    components = [component["StackServiceComponents"]["component_name"]
+                  for service in services["services"]
+                  for component in service["components"]]
+    putYarnProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
+
+    # calculate memory properties and get cluster data dictionary with whole information
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+
+    # executing code from stack advisor HDP 206
+    nodemanagerMinRam = 1048576 # 1TB in mb
+    if "referenceNodeManagerHost" in clusterSummary:
+      nodemanagerMinRam = min(clusterSummary["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
+
+    callContext = self.getCallContext(services)
+    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterSummary['containers'] * clusterSummary['ramPerContainer'], nodemanagerMinRam))))
+    if 'recommendConfigurations' == callContext:
+      putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterSummary['containers'] * clusterSummary['ramPerContainer'], nodemanagerMinRam))))
+    else:
+      # read from the supplied config
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+      else:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterSummary['containers'] * clusterSummary['ramPerContainer'], nodemanagerMinRam))))
+      pass
+    pass
+
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterSummary['yarnMinContainerSize']))
+    putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+
+    # executing code from stack advisor HDP 22
+    nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
+    if (nodeManagerHost is not None):
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.percentage-physical-cpu-limit" in services["configurations"]["yarn-site"]["properties"]:
+        putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+        putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+
+
+
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
     """
     Copied from HDP 2.0.6 so that it could be used by Service Advisors.

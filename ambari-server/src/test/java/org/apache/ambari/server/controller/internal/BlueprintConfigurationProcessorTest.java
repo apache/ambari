@@ -1265,6 +1265,7 @@ public class BlueprintConfigurationProcessorTest {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.log.server.web-service.url", expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
         Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -1306,6 +1307,8 @@ public class BlueprintConfigurationProcessorTest {
         createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
         createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline web service url was incorrectly exported",
+            createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.log.server.web-service.url"));
   }
 
   @Test

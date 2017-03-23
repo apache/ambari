@@ -97,12 +97,13 @@ public class LogFeeder {
     addSimulatedInputs();
     mergeAllConfigs();
     
-    LogConfigHandler.handleConfig();
     SSLUtil.ensureStorePasswords();
     
     outputManager.init();
     inputManager.init();
     metricsManager.init();
+    
+    LogConfigHandler.handleConfig();
     
     LOG.debug("==============");
     

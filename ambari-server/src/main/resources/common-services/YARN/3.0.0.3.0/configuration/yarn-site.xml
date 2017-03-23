@@ -1106,6 +1106,26 @@ yarn.node-labels.manager-class
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>yarn.log.server.web-service.url</name>
+    <value>http://localhost:8188/ws/v1/applicationhistory</value>
+    <description>Log Server Web Service URL.</description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.http.policy</name>
+      </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.timeline-service.webapp.address</name>
+      </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.timeline-service.webapp.https.address</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>yarn.timeline-service.entity-group-fs-store.cleaner-interval-seconds</name>
     <description>
       Scan interval for ATS v1.5 entity group file system storage cleaner.This

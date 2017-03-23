@@ -118,7 +118,7 @@
       {{#unless column.editing}}
         <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
       {{/unless}}
-      <button class="btn btn-danger" {{action "delete"}}>{{fa-icon "times"}} Delete</button>
+      <button class="btn btn-danger" {{action "delete"}} disabled={{options.isDeleteColumnDisabled}} >{{fa-icon "times"}} Delete</button>
     {{/if}}
 
   </div>

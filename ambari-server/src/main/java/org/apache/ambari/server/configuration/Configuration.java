@@ -4352,7 +4352,7 @@ public class Configuration {
     }
     Properties blacklistProperties = new Properties();
     String blacklistFile = getAmbariBlacklistFile();
-    propertiesToMask = new HashSet<String>();
+    propertiesToMask = new HashSet<>();
     if(blacklistFile != null) {
       File propertiesMaskFile = new File(blacklistFile);
       InputStream inputStream = null;
@@ -5652,7 +5652,7 @@ public class Configuration {
     // now write out specific groupings
     StringBuilder baselineBuffer = new StringBuilder(1024);
     for( ConfigurationGrouping grouping : ConfigurationGrouping.values() ){
-      baselineBuffer.append("####" + grouping);
+      baselineBuffer.append("#### " + grouping);
       baselineBuffer.append(System.lineSeparator());
       baselineBuffer.append("| Property Name | ");
 
@@ -5687,6 +5687,8 @@ public class Configuration {
 
         baselineBuffer.append(System.lineSeparator());
       }
+
+      baselineBuffer.append(System.lineSeparator());
     }
 
     // replace the tokens in the markdown template and write out the final MD file

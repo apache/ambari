@@ -72,4 +72,9 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>hadoop.caller.context.enabled</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

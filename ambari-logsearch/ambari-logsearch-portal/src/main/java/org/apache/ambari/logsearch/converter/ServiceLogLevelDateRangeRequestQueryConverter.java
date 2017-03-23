@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import com.google.common.base.Splitter;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +28,7 @@ import javax.inject.Named;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
@@ -49,14 +49,7 @@ public class ServiceLogLevelDateRangeRequestQueryConverter extends AbstractDateR
   @Override
   public SolrQuery convert(ServiceGraphRequest request) {
     SolrQuery solrQuery = super.convert(request);
-    if (StringUtils.isNotEmpty(request.getLevel())) {
-      List<String> levels = Splitter.on(",").splitToList(request.getLevel());
-      if (levels.size() > 1) {
-        solrQuery.addFilterQuery(String.format("%s:(%s)", LEVEL, StringUtils.join(levels, " OR ")));
-      } else {
-        solrQuery.addFilterQuery(String.format("%s:%s", LEVEL, levels.get(0)));
-      }
-    }
+    addListFilterToSolrQuery(solrQuery, LEVEL, request.getLevel());
     if (request.getHostList() != null && StringUtils.isEmpty(request.getHostName())) {
       List<String> hosts = request.getHostList().length() == 0 ? Arrays.asList("\\-1") : splitValueAsList(request.getHostList(), ",");
       if (hosts.size() > 1) {
@@ -65,6 +58,7 @@ public class ServiceLogLevelDateRangeRequestQueryConverter extends AbstractDateR
         solrQuery.addFilterQuery(String.format("%s:%s", HOST, hosts.get(0)));
       }
     }
+    addListFilterToSolrQuery(solrQuery, CLUSTER, request.getClusters());
     return solrQuery;
   }
 

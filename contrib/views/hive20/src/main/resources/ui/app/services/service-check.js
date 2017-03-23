@@ -25,21 +25,40 @@ export default Ember.Service.extend({
 
   transitionToApplication: false,
 
+  numberOfChecks: 4,
   hdfsCheckStatus: STATUS.notStarted,
   atsCheckStatus: STATUS.notStarted,
   userHomeCheckStatus: STATUS.notStarted,
   hiveCheckStatus: STATUS.notStarted,
   percentCompleted: Ember.computed('hdfsCheckStatus', 'atsCheckStatus', 'userHomeCheckStatus', 'hiveCheckStatus', function () {
+    // if all skipped then 100%
+    if(this.get("numberOfChecks") === 0){
+      return 100;
+    }
+
     let percent = 0;
-    percent += this.get('hdfsCheckStatus') === STATUS.completed ? 25 : 0;
-    percent += this.get('atsCheckStatus') === STATUS.completed ? 25 : 0;
-    percent += this.get('userHomeCheckStatus') === STATUS.completed ? 25 : 0;
-    percent += this.get('hiveCheckStatus') === STATUS.completed ? 25 : 0;
+    percent = this.getCompletedPercentage(percent, 'hdfsCheckStatus');
+    percent = this.getCompletedPercentage(percent, 'atsCheckStatus');
+    percent = this.getCompletedPercentage(percent, 'userHomeCheckStatus');
+    percent = this.getCompletedPercentage(percent, 'hiveCheckStatus');
+
     return percent;
   }),
 
+  getCompletedPercentage(currentPercent, checkStatus) {
+    if(this.get(checkStatus) === STATUS.skipped) {
+      return currentPercent;
+    }
+
+    return this.get(checkStatus) === STATUS.completed ? currentPercent + (100/this.get("numberOfChecks")) : currentPercent;
+  },
+
+  fetchServiceCheckPolicy(){
+    return this._getServiceCheckAdapter().getServiceCheckPolicy();
+  },
+
   checkCompleted: Ember.computed('percentCompleted', function () {
-    return this.get('percentCompleted') === 100;
+    return this.get('percentCompleted') <= 100 && this.get('percentCompleted') >= 95.5; // approximation for cases where odd number of checks are there.
   }),
 
   transitioner: Ember.observer('checkCompleted', function() {
@@ -50,12 +69,45 @@ export default Ember.Service.extend({
     }
   }),
 
-  check() {
+  check(serviceCheckPolicy) {
+    let numberOfChecks = this.get("numberOfChecks");
+    let hdfsPromise = null;
+    if( serviceCheckPolicy.checkHdfs){
+      hdfsPromise = this._doHdfsCheck();
+    } else {
+      this.set("numberOfChecks", this.get("numberOfChecks") - 1);
+      this.set("hdfsCheckStatus", STATUS.skipped);
+    }
+
+    let atsPromise = null;
+    if( serviceCheckPolicy.checkATS){
+      atsPromise = this._doAtsCheck();
+    }else {
+      this.set("numberOfChecks", this.get("numberOfChecks") - 1);
+      this.set("atsCheckStatus", STATUS.skipped);
+    }
+
+    let userHomePromise = null;
+    if( serviceCheckPolicy.checkHomeDirectory){
+      userHomePromise = this._doUserHomeCheck();
+    }else {
+      this.set("numberOfChecks", this.get("numberOfChecks") - 1);
+      this.set("userHomeCheckStatus", STATUS.skipped);
+    }
+
+    let hivePromise = null;
+    if( serviceCheckPolicy.checkHive == true){
+      hivePromise = this._doHiveCheck();
+    }else{
+      this.set("numberOfChecks", this.get("numberOfChecks") - 1);
+      this.set("hiveCheckStatus", STATUS.skipped);
+    }
+
     let promises = {
-      hdfsPromise: this._doHdfsCheck(),
-      atsPromise: this._doAtsCheck(),
-      userHomePromise: this._doUserHomeCheck(),
-       hivePromise: this._doHiveCheck()
+      hdfsPromise: hdfsPromise,
+      atsPromise: atsPromise,
+      userHomePromise: userHomePromise,
+      hivePromise: hivePromise
     };
     return Ember.RSVP.hashSettled(promises);
   },

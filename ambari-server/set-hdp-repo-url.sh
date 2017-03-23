@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
 if [ "$1" != '${hdpUrlForCentos6}' ]
 then
   # Updating for new stack version:
@@ -33,35 +32,29 @@ then
   S11URL="${C6URL/centos6/suse11}"
   U12URL="${C6URL/centos6/ubuntu12}"
 
-  if [ "$#" != 3 ]
-  then
-    HDPREPO=target/classes/stacks/HDP/${VERSION}/repos
-  else
-    HDPREPO=$3/var/lib/ambari-server/resources/stacks/HDP/${VERSION}/repos
-  fi
+  STACKS_DIR=$3/src/main/resources/stacks/HDP/
+  HDPREPO_DIR=$STACKS_DIR/${VERSION}/repos
 
-  echo "Processing '${HDPREPO}/repoinfo.xml' and '${HDPLOCALREPO}/repoinfo.xml'"
+  echo "Processing '${HDPREPO_DIR}/repoinfo.xml' and '${HDPLOCALREPO}/repoinfo.xml'"
   echo "$3"
 
   echo "Setting centos5 stack url to '$C5URL'"
-  sed "s;REPLACE_WITH_CENTOS5_URL;$C5URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
+  sed "s;REPLACE_WITH_CENTOS5_URL;$C5URL;" ${HDPREPO_DIR}/repoinfo.xml >  ${HDPREPO_DIR}/repoinfo.xml.tmp; mv ${HDPREPO_DIR}/repoinfo.xml.tmp ${HDPREPO_DIR}/repoinfo.xml
 
   echo "Setting centos6 stack url to '$C6URL'"
-  sed "s;REPLACE_WITH_CENTOS6_URL;$C6URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
+  sed "s;REPLACE_WITH_CENTOS6_URL;$C6URL;" ${HDPREPO_DIR}/repoinfo.xml >  ${HDPREPO_DIR}/repoinfo.xml.tmp; mv ${HDPREPO_DIR}/repoinfo.xml.tmp ${HDPREPO_DIR}/repoinfo.xml
 
   echo "Setting suse11 stack url to '$S11URL'"
-  sed  "s;REPLACE_WITH_SUSE11_URL;$S11URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
+  sed  "s;REPLACE_WITH_SUSE11_URL;$S11URL;" ${HDPREPO_DIR}/repoinfo.xml >  ${HDPREPO_DIR}/repoinfo.xml.tmp; mv ${HDPREPO_DIR}/repoinfo.xml.tmp ${HDPREPO_DIR}/repoinfo.xml
 
   echo "Setting ubuntu12 stack url to '$U12URL'"
-  sed  "s;REPLACE_WITH_UBUNTU12_URL;$U12URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
+  sed  "s;REPLACE_WITH_UBUNTU12_URL;$U12URL;" ${HDPREPO_DIR}/repoinfo.xml >  ${HDPREPO_DIR}/repoinfo.xml.tmp; mv ${HDPREPO_DIR}/repoinfo.xml.tmp ${HDPREPO_DIR}/repoinfo.xml
 
    
   # all stacks get the same url
-  for ver in '1.3' '2.0' '2.1' '2.2' '2.3' '2.4' '2.5'; do
-    HDPREPO=target/classes/stacks/HDP/$ver/repos
-    if [ -d $HDPREPO ]; then
-      echo "Replacing $ver latest lookup url to '$LATEST_URL'"
-      sed "s;\(<latest>\)\([^>]*\)\(<\/latest>\);\1$LATEST_URL\3;" ${HDPREPO}/repoinfo.xml > ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
-    fi
+  for HDP_VERSION_DIR in $(find $STACKS_DIR -mindepth 1 -maxdepth 1 -type d) ; do
+    HDPREPO_DIR=$HDP_VERSION_DIR/repos
+    echo "Replacing $ver latest lookup url to '$LATEST_URL'"
+    sed "s;\(<latest>\)\([^>]*\)\(<\/latest>\);\1$LATEST_URL\3;" ${HDPREPO_DIR}/repoinfo.xml > ${HDPREPO_DIR}/repoinfo.xml.tmp; mv ${HDPREPO_DIR}/repoinfo.xml.tmp ${HDPREPO_DIR}/repoinfo.xml
   done
 fi

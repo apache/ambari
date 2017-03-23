@@ -113,7 +113,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
   /**
    * Constructor.
    * @param extensionDirectory  represents extension directory
-   * @param extensionContext    general extension context
+   * @param stackContext    general stack context
    */
   public ExtensionModule(ExtensionDirectory extensionDirectory, StackContext stackContext) {
     this.extensionDirectory = extensionDirectory;

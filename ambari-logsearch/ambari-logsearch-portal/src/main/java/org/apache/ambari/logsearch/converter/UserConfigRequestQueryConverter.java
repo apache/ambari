@@ -28,6 +28,7 @@ import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.FILTER_NAME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.ROW_TYPE;
 
@@ -58,6 +59,8 @@ public class UserConfigRequestQueryConverter extends AbstractConverterAware<User
     List<SolrQuery.SortClause> sort = new ArrayList<>();
     sort.add(sortOrder);
     userConfigQuery.setSorts(sort);
+
+    SolrUtil.addListFilterToSolrQuery(userConfigQuery, CLUSTER, userConfigRequest.getClusters());
 
     return userConfigQuery;
   }

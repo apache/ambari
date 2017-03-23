@@ -44,7 +44,8 @@ public class AuditBarGraphRequestQueryConverterTest extends AbstractRequestConve
     // THEN
     SolrQuery query = underTest.convert(request);
     assertEquals("?q=*%3A*&facet=true&facet.pivot=%7B%21range%3Dr1%7Drepo&facet.mincount=1&facet.limit=-1&facet.sort=index" +
-      "&facet.range=%7B%21tag%3Dr1%7DevtTime&f.evtTime.facet.range.start=2016-09-13T22%3A00%3A01.000Z&f.evtTime.facet.range.end=2016-09-14T22%3A00%3A01.000Z&f.evtTime.facet.range.gap=%2B1HOUR&rows=0&start=0",
+      "&facet.range=%7B%21tag%3Dr1%7DevtTime&f.evtTime.facet.range.start=2016-09-13T22%3A00%3A01.000Z&f.evtTime.facet.range.end=2016-09-14T22%3A00%3A01.000Z&f.evtTime.facet.range.gap=%2B1HOUR" +
+      "&rows=0&start=0&fq=cluster%3Acl1",
       query.toQueryString());
   }
 

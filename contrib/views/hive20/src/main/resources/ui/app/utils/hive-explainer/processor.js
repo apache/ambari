@@ -261,9 +261,107 @@ export function getEdgesWithCorrectedUnion(edges) {
 
 }
 
+function findAllOutputOperators(vertices, outputOperatorsList, edges, patterns) {
+    vertices.forEach(cEdge => {
+      console.log(cEdge);
+      edges.push(cEdge);
+      let outputOperator = cEdge["OutputOperators:"];
+      if(outputOperator) {
+        patterns.push({outputOperator:outputOperator.substring(1, outputOperator.length-1), cEdge:[edges[edges.length-4], edges[edges.length-3], edges[edges.length-2], edges[edges.length-1]]});
+        outputOperatorsList.push({outputOperator:outputOperator.substring(1, outputOperator.length-1), cEdge:edges});
+      }
+      findAllOutputOperators(cEdge._children, outputOperatorsList, edges, patterns);
+    });
+}
+function findAllOperatorsVertex(cEdge, operatorIdList, edgesOp) {
+  cEdge.forEach(cChild => {
+    let operatorId = cChild["OperatorId:"];
+    if(operatorId) {
+      let operatorObj = {};
+      operatorObj[operatorId]= cChild["_operator"];
+      operatorIdList.push(operatorObj);
+      edgesOp.push(cChild);
+      if(edgesOp.length > 4) {
+        edgesOp.pop();
+      }
+    }
+    findAllOperatorsVertex(cChild._children, operatorIdList, edgesOp);
+  });
+}
+function findTheOperatorIDChains(vertices, operatorIdList, edgesOp) {
+  vertices.forEach(cChild => {
+    let subOperatorList = [];
+    edgesOp = [];
+    findAllOperatorsVertex(cChild._children, subOperatorList, edgesOp);
+    operatorIdList.push({subOperatorList:subOperatorList, edgesOp:edgesOp});
+  });
+}
+
+function findPatternParent(edges, patternArray) {
+ let newVertex;
+ edges._children.forEach(cChild => {
+    cChild._children.forEach(cSubChild => {
+      if(cSubChild && cSubChild["OperatorId:"] === patternArray[0]["OperatorId:"]){
+        if(cChild._children.length>1){
+          cChild._children = [cChild._children[0]];
+          cChild["OutputOperators:"] = patternArray[1]["OutputOperators:"];
+          newVertex = Object.assign(patternArray[2], {
+           "_operator":"Build Bloom Filter",
+           "_children":[],
+           "_groups": [
+           ...patternArray[0].groups||[doCloneAndOmit(patternArray[0], ['_groups'])],
+           ...patternArray[1].groups||[doCloneAndOmit(patternArray[1], ['_groups'])],
+           ...patternArray[2].groups||[doCloneAndOmit(patternArray[2], ['_groups'])],
+           ...patternArray[3].groups||[doCloneAndOmit(patternArray[3], ['_groups'])]]
+          });
+        }
+      } else if(cSubChild && cSubChild["OperatorId:"] === patternArray[3]["OperatorId:"]){
+          cChild._children = newVertex ? [newVertex]:[];
+      } else {
+        findPatternParent(cChild, patternArray);
+      }
+    });
+
+  });
+}
+
+function findTheOperatorIndex(vertices, patternArray) {
+  vertices.forEach(cChild => {
+    findPatternParent(cChild, patternArray);
+  });
+}
+
+function setTheNewVertex(vertices, patternArray) {
+  findTheOperatorIndex(vertices, patternArray);
+}
+
+function isPatternExists(outputOperators, operatorIds, vertices){
+  let patternArray = [outputOperators.cEdge[2], outputOperators.cEdge[3], operatorIds.edgesOp[0], operatorIds.edgesOp[1]];
+  setTheNewVertex(vertices, patternArray);
+}
+
+function findPatterns(outputOperatorsList, operatorIdList, pattern, patterns, vertices) {
+  patterns.forEach(item => {
+    operatorIdList.forEach(operatorDetails => {
+      operatorDetails.edgesOp.forEach(op => {
+        if(op["OperatorId:"] === item.outputOperator) {
+          pattern.push(op["OperatorId:"]);
+          isPatternExists(item, operatorDetails, vertices);
+        }
+      });
+    });
+  });
+
+}
+
 // DANGER: impure function
 // DANGER: breaks if there is a many-one / one-many connection
 export function getAdjustedVerticesAndEdges(vertices, edges) {
+
+  let outputOperatorsList = [], operatorIdList = [], pattern = [], edges_opOperator = [], edges_operatorId = [], patterns = [];
+  findAllOutputOperators(vertices, outputOperatorsList, edges_opOperator, patterns);
+  findTheOperatorIDChains(vertices, operatorIdList, edges_operatorId);
+  findPatterns(outputOperatorsList, operatorIdList, pattern, patterns, vertices);
 
   vertices
     .filter(cVertex => ['Select Operator', 'HASHTABLEDUMMY', 'File Output Operator'].indexOf(getFirstOperatorOf(cVertex)._operator) >= 0)

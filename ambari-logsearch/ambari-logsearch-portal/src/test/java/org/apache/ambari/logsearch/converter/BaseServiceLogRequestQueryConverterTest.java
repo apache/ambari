@@ -53,9 +53,9 @@ public class BaseServiceLogRequestQueryConverterTest extends AbstractRequestConv
     SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
     // THEN
     assertEquals("?q=*%3A*&start=0&rows=25&fq=type%3A%28logsearch_app+secure_log%29&fq=-type%3A%28hst_agent+system_message%29" +
-      "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=host%3Alogsearch.com" +
-      "&fq=path%3A%5C%2Fvar%5C%2Flog%5C%2Fmyfile%5C-%5C*%5C-hdfs.log&fq=type%3Acomponent&fq=level%3A%28FATAL+ERROR+WARN+UNKNOWN%29" +
-      "&fq=logtime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D&sort=logtime+desc%2Cseq_num+desc",
+      "&fq=log_message%3Amyincludemessage&fq=-log_message%3Amyexcludemessage&fq=cluster%3Acl1" +
+      "&fq=host%3Alogsearch.com&fq=path%3A%5C%2Fvar%5C%2Flog%5C%2Fmyfile%5C-%5C*%5C-hdfs.log&fq=type%3Acomponent" +
+      "&fq=level%3A%28FATAL+ERROR+WARN+UNKNOWN%29&fq=logtime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D&sort=logtime+desc%2Cseq_num+desc",
       solrQuery.toQueryString());
   }
 

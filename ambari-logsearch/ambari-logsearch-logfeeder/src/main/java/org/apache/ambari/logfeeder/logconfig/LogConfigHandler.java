@@ -40,7 +40,8 @@ public class LogConfigHandler extends Thread {
   private static final int DEFAULT_SOLR_CONFIG_INTERVAL = 5;
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
   private static final String TIMEZONE = "GMT";
-  
+  private static final int RETRY_INTERVAL = 30;
+
   static {
     TimeZone.setDefault(TimeZone.getTimeZone(TIMEZONE));
   }
@@ -53,13 +54,14 @@ public class LogConfigHandler extends Thread {
     }
   };
   
+  private static boolean filterEnabled;
   private static LogFeederFilterWrapper logFeederFilterWrapper;
 
   private static boolean running = false;
 
   public static void handleConfig() {
-    boolean filterEnable = LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false);
-    if (!filterEnable) {
+    filterEnabled = LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false);
+    if (!filterEnabled) {
       LOG.info("Logfeeder filter Scheduler is disabled.");
       return;
     }
@@ -174,6 +176,8 @@ public class LogConfigHandler extends Thread {
   }
   
   public static LogFeederFilter findComponentFilter(String componentName) {
+    waitForFilter();
+    
     if (logFeederFilterWrapper != null) {
       HashMap<String, LogFeederFilter> filter = logFeederFilterWrapper.getFilter();
       if (filter != null) {
@@ -185,5 +189,25 @@ public class LogConfigHandler extends Thread {
     }
     LOG.trace("Filter is not there for component :" + componentName);
     return null;
+  }
+
+  private static void waitForFilter() {
+    if (!filterEnabled || logFeederFilterWrapper != null) {
+      return;
+    }
+    
+    while (true) {
+      try {
+        Thread.sleep(RETRY_INTERVAL * 1000);
+      } catch (InterruptedException e) {
+        LOG.error(e);
+      }
+      
+      LOG.info("Checking if config is available");
+      if (logFeederFilterWrapper != null) {
+        LOG.info("Config is available");
+        return;
+      }
+    }
   }
 }

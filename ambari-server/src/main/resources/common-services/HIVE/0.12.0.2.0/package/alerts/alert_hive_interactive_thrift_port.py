@@ -35,6 +35,7 @@ CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
 HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.port}}'
 HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.http.port}}'
 HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = '{{hive-interactive-site/hive.server2.transport.mode}}'
+HIVE_SERVER_TRANSPORT_MODE_KEY = '{{hive-site/hive.server2.transport.mode}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY = '{{hive-interactive-site/hive.server2.authentication}}'
 HIVE_SERVER2_AUTHENTICATION_KEY = '{{hive-site/hive.server2.authentication}}'
@@ -86,8 +87,8 @@ def get_tokens():
           HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY, HIVE_SERVER2_AUTHENTICATION_KEY,
           HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY, SMOKEUSER_KEYTAB_KEY, SMOKEUSER_PRINCIPAL_KEY,
           HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY, HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY,
-          KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL, HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD,
-          HIVE_LDAP_USERNAME, HIVE_LDAP_PASSWORD)
+          HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL,
+          HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD, HIVE_LDAP_USERNAME, HIVE_LDAP_PASSWORD)
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -111,6 +112,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   transport_mode = HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_DEFAULT
   if HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY in configurations:
     transport_mode = configurations[HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY]
+  elif HIVE_SERVER_TRANSPORT_MODE_KEY in configurations:
+    transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
 
   port = THRIFT_PORT_DEFAULT
   if transport_mode.lower() == 'binary' and HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY in configurations:

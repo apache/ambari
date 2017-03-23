@@ -19,10 +19,8 @@
 var App = require('app');
 require('mappers/configs/config_groups_mapper');
 
-/**
- * not using this mapper
- */
-describe.skip('App.configGroupsMapper', function () {
+
+describe('App.configGroupsMapper', function () {
 
   var allHosts = App.get('allHostNames');
   var defaultAllHosts = ['host1', 'host2', 'host3'];
@@ -56,90 +54,54 @@ describe.skip('App.configGroupsMapper', function () {
             "id" : 2,
             "tag" : "Service1"
           }
-        },
-        {
-          "ConfigGroup" : {
-            "cluster_name" : "1",
-            "description" : "hdfs2",
-            "desired_configs" : [ ],
-            "group_name" : "hdfs2",
-            "hosts" : [
-              {
-                "host_name" : "host2"
-              }
-            ],
-            "id" : 3,
-            "tag" : "Service1"
-          }
-        },
-        {
-          "ConfigGroup" : {
-            "cluster_name" : "1",
-            "description" : "yarn1",
-            "desired_configs" : [ ],
-            "group_name" : "yarn1",
-            "hosts" : [
-              {
-                "host_name" : "host1"
-              },
-              {
-                "host_name" : "host2"
-              }
-            ],
-            "id" : 4,
-            "tag" : "Service2"
-          }
         }
       ]
     };
 
     beforeEach(function () {
-      App.resetDsStoreTypeMap(App.ServiceConfigGroup);
-      App.resetDsStoreTypeMap(App.Service);
-      sinon.stub(App.store, 'commit', Em.K);
+      sinon.stub(App.store, 'safeLoadMany', Em.K);
+      sinon.stub(App.configGroupsMapper, 'generateDefaultGroup').returns({id: 'default', is_default: true});
     });
     afterEach(function(){
-      App.store.commit.restore();
+      App.store.safeLoadMany.restore();
+      App.configGroupsMapper.generateDefaultGroup.restore();
     });
 
-    it('should not do anything as there is no serviceName', function() {
+    it('should not call safeLoadMany when no service provided', function() {
       App.configGroupsMapper.map(json);
-      expect(App.ServiceConfigGroup.find().get('length')).to.equal(0);
+      expect(App.store.safeLoadMany.called).to.be.false;
     });
 
-    it('should generate default groups for services', function() {
-      App.Service.createRecord({'id': 'Service1'});
-      App.configGroupsMapper.map(null, ["Service1"]);
-      expect(App.ServiceConfigGroup.find().get('length')).to.equal(1);
-      expect(App.ServiceConfigGroup.find('Service10').get('id')).to.equal('Service10');
-      expect(App.ServiceConfigGroup.find('Service10').get('configGroupId')).to.equal(-1);
-      expect(App.ServiceConfigGroup.find('Service10').get('name')).to.equal('Service1 Default');
-      expect(App.ServiceConfigGroup.find('Service10').get('description')).to.equal('Default cluster level Service1 configuration');
-      expect(App.ServiceConfigGroup.find('Service10').get('hostNames')).to.eql(defaultAllHosts);
-      expect(App.ServiceConfigGroup.find('Service10').get('serviceName')).to.equal('Service1');
-      expect(App.ServiceConfigGroup.find('Service10').get('service.id')).to.equal('Service1');
+    it('should call safeLoadMany when service provided', function() {
+      App.configGroupsMapper.map(null, null, ['S1']);
+      expect(App.store.safeLoadMany.getCall(0).args[1]).to.be.eql([{id: 'default', is_default: true}]);
     });
 
-    it('should generate groups form json and default config groups', function() {
-      App.Service.createRecord({'id': 'Service1'});
-      App.Service.createRecord({'id': 'Service2'});
-      App.configGroupsMapper.map(json, ["Service1", "Service2"]);
-      expect(App.ServiceConfigGroup.find().get('length')).to.equal(5);
-      expect(App.ServiceConfigGroup.find().mapProperty('id')).to.eql(["Service12", "Service13", "Service24", "Service10", "Service20"]);
-    });
-
-    it('should generate groups form json and default config groups and check data', function() {
-      App.Service.createRecord({'id': 'Service1'});
-      App.Service.createRecord({'id': 'Service2'});
-      App.configGroupsMapper.map(json, ["Service1", "Service2"]);
-
-      expect(App.ServiceConfigGroup.find('Service12').get('id')).to.equal('Service12');
-      expect(App.ServiceConfigGroup.find('Service12').get('configGroupId')).to.equal(2);
-      expect(App.ServiceConfigGroup.find('Service12').get('name')).to.equal('1');
-      expect(App.ServiceConfigGroup.find('Service12').get('description')).to.equal('1');
-      expect(App.ServiceConfigGroup.find('Service12').get('hostNames')).to.eql(["host1"]);
-      expect(App.ServiceConfigGroup.find('Service12').get('serviceName')).to.equal('Service1');
-      expect(App.ServiceConfigGroup.find('Service12').get('service.id')).to.equal('Service1');
+    it('should call safeLoadMany when json provided', function() {
+      App.configGroupsMapper.map(json, null, ['S1']);
+      expect(App.store.safeLoadMany.getCall(0).args[1]).to.be.eql([
+        {
+          "description": "1",
+          "desired_configs": [
+            {
+              "tag": "version1426088081862",
+              "type": "hadoop-env"
+            }
+          ],
+          "hosts": [
+            "host1"
+          ],
+          "id": 2,
+          "name": "1",
+          "parent_config_group_id": "Service1_Default",
+          "service_id": "Service1",
+          "service_name": "Service1"
+        },
+        {
+          id: 'default',
+          is_default: true
+        }
+      ]);
     });
   });
 
@@ -147,39 +109,51 @@ describe.skip('App.configGroupsMapper', function () {
     var tests = [
       {
         service: 's1',
-        hosts: ['h1'],
+        hosts: ['host1'],
         res: {
-          id: 's10',
-          config_group_id: '-1',
-          name: 's1 Default',
+          id: 's1_Default',
+          name: 'Default',
           service_name: 's1',
-          description: 'Default cluster level s1 configuration',
-          host_names: ['h1'],
-          service_id: 's1'
+          description: 'Default cluster level S1 configuration',
+          hosts: ['host1'],
+          child_config_groups: [],
+          service_id: 's1',
+          desired_configs: [],
+          properties: [],
+          is_default: true
         },
         m: 'with hosts'
       },
       {
         service: 's1',
+        childConfigGroups: [{}],
         res: {
-          id: 's10',
-          config_group_id: '-1',
-          name: 's1 Default',
+          id: 's1_Default',
+          name: 'Default',
           service_name: 's1',
-          description: 'Default cluster level s1 configuration',
-          host_names: defaultAllHosts,
-          service_id: 's1'
+          description: 'Default cluster level S1 configuration',
+          hosts: ['host2', 'host3', 'host1'],
+          child_config_groups: [{}],
+          service_id: 's1',
+          desired_configs: [],
+          properties: [],
+          is_default: true
         },
-        m: 'without hosts'
+        m: 'without hosts, with childConfigGroups'
       }
     ];
 
+    beforeEach(function() {
+      sinon.stub(App.configGroupsMapper, '_getAllHosts').returns(['host2', 'host3', 'host1']);
+    });
+    afterEach(function() {
+      App.configGroupsMapper._getAllHosts.restore();
+    });
 
     tests.forEach(function(t) {
       it('generates default config group mock object ' + t.m, function() {
-        expect(App.configGroupsMapper.generateDefaultGroup(t.service, t.hosts)).to.be.eql(t.res);
+        expect(App.configGroupsMapper.generateDefaultGroup(t.service, t.hosts, t.childConfigGroups)).to.be.eql(t.res);
       });
     });
-
   });
 });

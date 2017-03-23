@@ -16,4 +16,4 @@
  * limitations under the License.
  */
 
-export default { notStarted: 'NOT_STARTED', started: 'STARTED', completed: 'COMPLETED', errored: 'ERRORED'};
+export default { notStarted: 'NOT_STARTED', started: 'STARTED', completed: 'COMPLETED', errored: 'ERRORED', skipped : 'SKIPPED'};

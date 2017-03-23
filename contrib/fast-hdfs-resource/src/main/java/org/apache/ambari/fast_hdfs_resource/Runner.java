@@ -77,12 +77,14 @@ public class Runner {
           pathHadoop = new Path(resource.getSource());
         }
         else {
+          String path = resource.getTarget();
+          pathHadoop = new Path(path);
           if (!resource.isManageIfExists() && dfs.exists(pathHadoop)) {
-            System.out.println("Skipping the operation for not managed DFS directory " + resource.getTarget() +
-                               " since immutable_paths contains it.");
+            System.out.println(
+                String.format("Skipping the operation for not managed DFS directory %s  since immutable_paths contains it.", path)
+            );
             continue;
           }
-          pathHadoop = new Path(resource.getTarget());
         }
 
         if (resource.getAction().equals("create")) {

@@ -80,11 +80,11 @@
       </property>
       <property>
         <type>yarn-site</type>
-        <name>yarn.resourcemanager.webapp.address</name>
+        <name>yarn.timeline-service.webapp.address</name>
       </property>
       <property>
         <type>yarn-site</type>
-        <name>yarn.resourcemanager.webapp.https.address</name>
+        <name>yarn.timeline-service.webapp.https.address</name>
       </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>

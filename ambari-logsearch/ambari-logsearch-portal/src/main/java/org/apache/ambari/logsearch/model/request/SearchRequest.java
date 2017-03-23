@@ -18,8 +18,5 @@
  */
 package org.apache.ambari.logsearch.model.request;
 
-import org.apache.ambari.logsearch.common.Marker;
-
-@Marker
-public interface SearchRequest {
+public interface SearchRequest extends ClustersParamDefinition {
 }
