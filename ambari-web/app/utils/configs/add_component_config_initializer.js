@@ -58,7 +58,7 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
       'hadoop.registry.zk.quorum': this.getHDPStackOnlyHostsPortConfig('2.2', 'ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
       'nimbus.seeds': this.getHostsListComponentJSONStringifiedConfig('NIMBUS', true),
       'hadoop.proxyuser.{{webhcatUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false, true),
-      'hadoop.proxyuser.{{hiveUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false, true),
+      'hadoop.proxyuser.{{hiveUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE', 'HIVE_SERVER_INTERACTIVE'], false, true),
       'hive.metastore.uris': this.getHostsWithPortConfig(['HIVE_METASTORE'], 'thrift://', '', ',thrift://', 'hiveMetastorePort', true),
       'atlas.audit.hbase.zookeeper.quorum': this.getHostsListComponentConfig('ZOOKEEPER_SERVER', true),
       'atlas.graph.storage.hostname': this.getHostsListComponentConfig('ZOOKEEPER_SERVER', true),
@@ -330,5 +330,15 @@ App.AddHiveComponentsInitializer = App.AddComponentConfigInitializer.create({
 App.AddWebHCatComponentsInitializer = App.AddComponentConfigInitializer.create({
   initializeForProperties: [
     'hadoop.proxyuser.{{webhcatUser}}.hosts'
+  ]
+});
+
+/**
+ * Hive Server Interactive component add initializer.
+ * @instance App.AddHiveServerInteractiveInitializer
+ */
+App.AddHiveServerInteractiveInitializer = App.AddComponentConfigInitializer.create({
+  initializeForProperties: [
+    'hadoop.proxyuser.{{hiveUser}}.hosts'
   ]
 });
