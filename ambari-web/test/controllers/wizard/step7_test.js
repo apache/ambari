@@ -1448,6 +1448,9 @@ describe('App.InstallerStep7Controller', function () {
 
     beforeEach(function() {
       sinon.stub(App.config, 'kerberosIdentitiesDescription');
+      installerStep7Controller.set('content.services', [
+        {isSelected: true, serviceName: 's1'}
+      ]);
     });
 
     afterEach(function() {
@@ -1455,13 +1458,14 @@ describe('App.InstallerStep7Controller', function () {
     });
 
     var configs = [
-      { name: 'prop1', displayName: 'Prop1', description: 'd1' },
-      { name: 'prop2', displayName: 'Prop2', description: 'd1' },
-      { name: 'prop3', displayName: 'Prop3', description: 'd1' }
+      { name: 'prop1', displayName: 'Prop1', description: 'd1', serviceName: 's1' },
+      { name: 'prop2', displayName: 'Prop2', description: 'd1', serviceName: 's2' },
+      { name: 'prop3', displayName: 'Prop3', description: 'd1', serviceName: 's2' },
+      { name: 'prop4', displayName: 'Prop4', description: 'd1', serviceName: 's3' }
     ];
     var descriptor = [
-      Em.Object.create({ name: 'prop4', filename: 'file-1'}),
-      Em.Object.create({ name: 'prop1', filename: 'file-1'})
+      Em.Object.create({ name: 'prop4', filename: 'file-1', serviceName: 's2'}),
+      Em.Object.create({ name: 'prop1', filename: 'file-1', serviceName: 's1'})
     ];
     var propertiesAttrTests = [
       {
@@ -2055,24 +2059,6 @@ describe('App.InstallerStep7Controller', function () {
     it('true if it is not installer or addService', function () {
       installerStep7Controller.set('wizardController', {name: 'some'});
       expect(installerStep7Controller.allowUpdateProperty([], '', '')).to.be.true;
-    });
-
-  });
-
-  describe('#setButtonClickFinish', function () {
-
-    beforeEach(function () {
-      installerStep7Controller.set('submitButtonClicked', true);
-      App.set('router.nextBtnClickInProgress', true);
-      installerStep7Controller.setButtonClickFinish();
-    });
-
-    it('submitButtonClicked should be false', function () {
-      expect(installerStep7Controller.get('submitButtonClicked')).to.be.false;
-    });
-
-    it('nextBtnClickInProgress should be false', function () {
-      expect(App.get('router.nextBtnClickInProgress')).to.be.false;
     });
 
   });

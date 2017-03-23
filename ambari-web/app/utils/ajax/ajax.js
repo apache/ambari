@@ -1592,6 +1592,10 @@ var urls = {
     'real': '/clusters/{clusterName}/kerberos_descriptors/COMPOSITE{queryParams}',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
+  'admin.kerberize.cluster_descriptor.stack': {
+    'real': '/clusters/{clusterName}/kerberos_descriptors/STACK',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
   'admin.kerberos.cluster.artifact.create': {
     'type': 'POST',
     'real': '/clusters/{clusterName}/artifacts/{artifactName}',

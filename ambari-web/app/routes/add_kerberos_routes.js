@@ -174,7 +174,7 @@ module.exports = App.WizardRoute.extend({
         kerberosWizardStep2Controller.get('stepConfigs')[0].get('configs').findProperty('name', 'manage_krb5_conf').set('value', 'false');
       }
 
-      kerberosWizardController.saveServiceConfigProperties(kerberosWizardStep2Controller).always(function() {
+      kerberosWizardController.saveServiceConfigProperties(kerberosWizardStep2Controller, true).always(function() {
         kerberosWizardController.clearTasksData();
         if (kerberosWizardController.get('skipClientInstall')) {
           kerberosWizardController.setDBProperty('kerberosDescriptorConfigs', null);

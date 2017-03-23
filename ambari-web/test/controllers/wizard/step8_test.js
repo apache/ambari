@@ -2291,15 +2291,16 @@ describe('App.WizardStep8Controller', function () {
     };
 
     beforeEach(function () {
-      sinon.stub(App.db, 'get').withArgs('KerberosWizard', 'kerberosDescriptorConfigs').returns(1234);
       sinon.stub(installerStep8Controller, 'addRequestToAjaxQueue', Em.K);
       sinon.stub(installerStep8Controller, 'get').withArgs('wizardController').returns(Em.Object.create({
-        getDBProperty: function() { return true; }
+        getDBProperty: function(key) {
+          if (key === 'kerberosDescriptorConfigs') return 1234;
+          if (key === 'isClusterDescriptorExists') return true;
+        }
       }));
     });
 
     afterEach(function () {
-      App.db.get.restore();
       installerStep8Controller.addRequestToAjaxQueue.restore();
       installerStep8Controller.get.restore();
     });

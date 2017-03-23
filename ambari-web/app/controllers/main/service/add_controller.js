@@ -22,7 +22,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
 
   name: 'addServiceController',
 
-  totalSteps: 8,
+  totalSteps: 7,
 
   /**
    * @type {string}
@@ -122,6 +122,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         callback: function () {
           var self = this;
           var dfd = $.Deferred();
+          this.load('cluster');
           this.loadKerberosDescriptorConfigs().done(function() {
             self.loadServiceConfigGroups();
             self.loadConfigThemes().then(function() {
@@ -132,18 +133,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
             });
           });
           return dfd.promise();
-        }
-      }
-    ],
-    '5': [
-      {
-        type: 'sync',
-        callback: function () {
-          this.checkSecurityStatus();
-          this.load('cluster');
-          this.set('content.additionalClients', []);
-          this.set('installClientQueueLength', 0);
-          this.set('installClietsQueue', App.ajaxQueue.create({abortOnError: false}));
         }
       }
     ]
@@ -323,12 +312,17 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   loadKerberosDescriptorConfigs: function() {
     var self = this,
-        dfd = $.Deferred();
+        dfd = $.Deferred(),
+        mergedDescriptorConfigs;
     if (App.get('isKerberosEnabled')) {
-      this.loadClusterDescriptorConfigs().then(function(properties) {
-        self.set('kerberosDescriptorConfigs', self.createServicesStackDescriptorConfigs(properties));
-      }).always(function(){
-        dfd.resolve();
+      this.loadClusterDescriptorStackConfigs().then(function (stackProperties) {
+        self.loadClusterDescriptorConfigs().then(function(properties) {
+          self.set('kerberosDescriptorData', properties);
+          mergedDescriptorConfigs = self.mergeDescriptorStackWithConfigs(stackProperties, properties);
+          self.set('kerberosDescriptorConfigs', mergedDescriptorConfigs);
+        }).always(function(){
+          dfd.resolve();
+        });
       });
     } else {
       dfd.resolve();
@@ -565,13 +559,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   installClientError: function(request, ajaxOptions, error, opt, params) {
     if (this.get('installClientQueueLength') - 1 === params.counter) {
       params.deferred.resolve();
-    }
-  },
-
-  checkSecurityStatus: function() {
-    if (!App.get('isKerberosEnabled')) {
-      this.set('skipConfigureIdentitiesStep', true);
-      this.get('isStepDisabled').findProperty('step', 5).set('value', true);
     }
   },
 

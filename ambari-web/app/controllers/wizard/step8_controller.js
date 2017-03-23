@@ -877,7 +877,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method updateKerberosDescriptor
    */
   updateKerberosDescriptor: function(instant) {
-    var kerberosDescriptor = App.db.get('KerberosWizard', 'kerberosDescriptorConfigs');
+    var kerberosDescriptor = this.get('wizardController').getDBProperty('kerberosDescriptorConfigs');
     var descriptorExists = this.get('wizardController').getDBProperty('isClusterDescriptorExists') === true;
 
     var ajaxOpts = {
