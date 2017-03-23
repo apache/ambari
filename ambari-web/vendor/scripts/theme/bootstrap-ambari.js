@@ -1,5 +1,17 @@
 'use strict';
 
+$(document).ready(function () {
+  var $accordionToggler = $(this).find('[data-toggle="collapseAccordion"]');
+  $accordionToggler.off('click').on('click', function (event) {
+    var $this = $(this);
+    $this.siblings('.panel-body').slideToggle(500);
+    $this.children().children('.panel-toggle').toggleClass('fa-angle-down fa-angle-up');
+    event.stopPropagation();
+    return false;
+  });
+});
+'use strict';
+
 (function ($) {
 
   /**
