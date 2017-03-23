@@ -115,8 +115,8 @@
     <name>logfeeder.cache.key.field</name>
     <value>log_message</value>
     <description>
-      Key field, which will be used as keys in the Input cache. (by defalt, log_message represets the message part of processed data)<
-    /description>
+      Key field, which will be used as keys in the Input cache. (by defalt, log_message represets the message part of processed data)
+    </description>
     <display-name>Input cache key field</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
