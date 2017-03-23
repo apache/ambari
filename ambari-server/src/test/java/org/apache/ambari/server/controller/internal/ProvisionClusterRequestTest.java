@@ -49,9 +49,9 @@ import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.RequiredPasswordValidator;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.topology.TopologyValidator;
-import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -112,7 +112,7 @@ public class ProvisionClusterRequestTest {
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(2, provisionClusterRequest.getTopologyValidators().size());
+    assertEquals(1, provisionClusterRequest.getTopologyValidators().size());
 
     // group1
     // host info
@@ -164,7 +164,7 @@ public class ProvisionClusterRequestTest {
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(2, provisionClusterRequest.getTopologyValidators().size());
+    assertEquals(1, provisionClusterRequest.getTopologyValidators().size());
 
     // group2
     HostGroupInfo group2Info = hostGroupInfo.get("group2");
@@ -216,7 +216,7 @@ public class ProvisionClusterRequestTest {
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(2, hostGroupInfo.size());
-    assertEquals(2, provisionClusterRequest.getTopologyValidators().size());
+    assertEquals(1, provisionClusterRequest.getTopologyValidators().size());
 
     // group1
     // host info
@@ -374,7 +374,7 @@ public class ProvisionClusterRequestTest {
     TopologyRequest request = new ProvisionClusterRequest(properties, null);
     List<TopologyValidator> validators = request.getTopologyValidators();
 
-    assertEquals(2, validators.size());
+    assertEquals(1, validators.size());
     TopologyValidator pwdValidator = validators.get(0);
 
     TopologyValidator noDefaultPwdValidator = new RequiredPasswordValidator(null);
@@ -388,7 +388,7 @@ public class ProvisionClusterRequestTest {
     TopologyRequest request = new ProvisionClusterRequest(properties, null);
     List<TopologyValidator> validators = request.getTopologyValidators();
 
-    assertEquals(2, validators.size());
+    assertEquals(1, validators.size());
     TopologyValidator pwdValidator = validators.get(0);
 
     TopologyValidator defaultPwdValidator = new RequiredPasswordValidator("pwd");

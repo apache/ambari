@@ -10,27 +10,22 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distribut
+ * ed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
-package org.apache.ambari.server.topology.validators;
+package org.apache.ambari.server.topology;
+
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.PropertyInfo;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.topology.TopologyValidator;
 
 /**
  * Validates that all required passwords are provided.
