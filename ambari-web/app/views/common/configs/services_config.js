@@ -22,6 +22,8 @@ App.ServicesConfigView = Em.View.extend({
 
   templateName: require('templates/common/configs/services_config'),
 
+  classNames: ['accordion'],
+
   didInsertElement: function () {
     this.get('controller').loadStep();
   }
