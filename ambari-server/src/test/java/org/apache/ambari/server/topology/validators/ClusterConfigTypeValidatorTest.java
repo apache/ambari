@@ -74,8 +74,19 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     resetAll();
   }
 
+
+  @Test
+  public void testShouldValidationPassIfNoConfigTypesSpecifiedInCCTemplate() throws Exception {
+    //GIVEN
+    EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(Collections.<String>emptySet());
+    replayAll();
+
+    //WHEN
+    clusterConfigTypeValidator.validate(clusterTopologyMock);
+  }
+
   @Test(expected = InvalidTopologyException.class)
-  public void testShouldValidationFailWhenInvalidConfigGroupSpecifiedInCCTemplate() throws Exception {
+  public void testShouldValidationFailWhenInvalidConfigGroupsSpecifiedInCCTemplate() throws Exception {
     // given
     EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(new HashSet<String>(Arrays.asList("oozie-site")));
     EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
@@ -92,15 +103,23 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     // Exception is thrown
   }
 
-  @Test
-  public void testShouldValidationPassIfNoConfigTypesSpecifiedInCCTemplate() throws Exception {
-    //GIVEN
-    EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(Collections.<String>emptySet());
+
+  @Test(expected = InvalidTopologyException.class)
+  public void testShouldValidationFailWhenInvalidConfigGroupProvided() throws Exception {
+    // given
+    EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(new HashSet<String>(Arrays.asList("core-site", "yarn-site", "oozie-site")));
+    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
+
+    EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
+    EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
+
     replayAll();
 
-    //WHEN
+    //when
     clusterConfigTypeValidator.validate(clusterTopologyMock);
 
+    // then
+    // Exception is thrown
   }
 
   @Test
