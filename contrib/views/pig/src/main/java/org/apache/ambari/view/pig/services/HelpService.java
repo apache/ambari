@@ -21,11 +21,14 @@ package org.apache.ambari.view.pig.services;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.persistence.DataStoreStorage;
-import org.apache.ambari.view.pig.persistence.InstanceKeyValueStorage;
 import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.jobs.JobResourceManager;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.ambari.view.pig.utils.ServiceCheck;
+import org.apache.ambari.view.pig.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,6 +40,9 @@ import java.util.HashMap;
  * Help service
  */
 public class HelpService extends BaseService {
+  private final static Logger LOG =
+    LoggerFactory.getLogger(HelpService.class);
+
   private ViewContext context;
   private ViewResourceHandler handler;
 
@@ -128,6 +134,21 @@ public class HelpService extends BaseService {
   public Response storageStatus(){
     DataStoreStorage.storageSmokeTest(context);
     return getOKResponse();
+  }
+
+  @GET
+  @Path("/service-check-policy")
+  public Response getServiceCheckList(){
+    ServiceCheck serviceCheck = new ServiceCheck(context);
+    try {
+      ServiceCheck.Policy policy = serviceCheck.getServiceCheckPolicy();
+      JSONObject policyJson = new JSONObject();
+      policyJson.put("serviceCheckPolicy", policy);
+      return Response.ok(policyJson).build();
+    } catch (HdfsApiException e) {
+      LOG.error("Error occurred while generating service check policy : ", e);
+      throw new ServiceFormattedException(e);
+    }
   }
 
   private Response getOKResponse() {

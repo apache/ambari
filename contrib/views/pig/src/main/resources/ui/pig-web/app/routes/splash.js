@@ -29,26 +29,40 @@ App.SplashRoute = Em.Route.extend({
       hdfsTestDone: null,
       userhomeTest: null,
       userhomeTestDone: null,
-      percent: 0
+      percent: 0,
+      numberOfChecks: null,
+      serviceCheckPolicy: null,
     });
   },
   renderTemplate: function() {
     this.render('splash');
   },
-  setupController: function(controller, model) {
+  setupController: function (controller, model) {
     controller.set('model', model);
     var self = this;
-    controller.startTests(model).then(function() {
-      if (model.get("storageTest") && model.get("webhcatTest") && model.get("hdfsTest") && model.get("userhomeTest")) {
-        Ember.run.later(this, function() {
-          previousTransition = App.get('previousTransition');
-          if (previousTransition) {
-            previousTransition.retry();
-          } else {
-            self.transitionTo('pig.scripts');
+    controller.fetchServiceCheckPolicy()
+      .then(function(data){
+        let numberOfChecks = 0;
+        let serviceCheckPolicy = data.serviceCheckPolicy;
+        for (let serviceCheck in serviceCheckPolicy) {
+          if (serviceCheckPolicy[serviceCheck] === true) {
+            numberOfChecks++;
           }
-        }, 2000);
-      }
-    });
-  }
+        }
+        model.set("numberOfChecks", numberOfChecks);
+        model.set("serviceCheckPolicy", serviceCheckPolicy);
+        controller.startTests(model).then(function () {
+          if (model.get("storageTest") && model.get("webhcatTest") && model.get("hdfsTest") && model.get("userhomeTest")) {
+            Ember.run.later(this, function () {
+              previousTransition = App.get('previousTransition');
+              if (previousTransition) {
+                previousTransition.retry();
+              } else {
+                self.transitionTo('pig.scripts');
+              }
+            }, 2000);
+          }
+        });
+      });
+  },
 });
