@@ -27,7 +27,7 @@ require('utils/configs/move_hive_component_config_initializer_class');
 App.MoveHmConfigInitializer = App.MoveHiveComponentConfigInitializerClass.create({
 
   initializers: {
-    'hadoop.proxyuser.{{hiveUser}}.hosts': App.MoveHiveComponentConfigInitializerClass.getHostsWithComponentsConfig(['HIVE_SERVER', 'HIVE_METASTORE'], 'HIVE_METASTORE')
+    'hadoop.proxyuser.{{hiveUser}}.hosts': App.MoveHiveComponentConfigInitializerClass.getHostsWithComponentsConfig(['HIVE_SERVER', 'HIVE_METASTORE', 'HIVE_SERVER_INTERACTIVE'], 'HIVE_METASTORE')
   },
 
   uniqueInitializers: {
