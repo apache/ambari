@@ -44,28 +44,29 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
     }
 
     // config types in from the request
-    Set<String> topologyClusterConfigTypes = new HashSet(topology.getConfiguration().getAllConfigTypes());
-    LOGGER.debug("Cluster config types: {}", topologyClusterConfigTypes);
+    Set<String> clusterConfigTypes = topology.getConfiguration().getProperties().keySet();
+    LOGGER.debug("Cluster config types: {}", clusterConfigTypes);
 
-    if (topologyClusterConfigTypes == null || topologyClusterConfigTypes.isEmpty()) {
+    if (clusterConfigTypes == null || clusterConfigTypes.isEmpty()) {
       LOGGER.debug("No config types to be checked.");
       return;
     }
 
     // collecting all config types for services in the blueprint (from the related stack)
-    Set<String> stackServiceConfigTypes = new HashSet<>();
+    Set<String> serviceConfigTypes = new HashSet<>();
     for (String serviceName : topology.getBlueprint().getServices()) {
-      stackServiceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
+      serviceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
     }
 
     // identifying invalid config types
-    Set<String> configTypeIntersection = new HashSet<String>(topologyClusterConfigTypes);
+    Set<String> configTypeIntersection = new HashSet<String>(serviceConfigTypes);
 
-    if (configTypeIntersection.retainAll(stackServiceConfigTypes)) {
-      // there are config types not present in the stack for the services listed in the blueprint
+    // if the intersection is changed, there's been some wrong config type provided in the cluster configuration
+    if (configTypeIntersection.retainAll(clusterConfigTypes)) {
+      LOGGER.debug("Valid config types: {}", configTypeIntersection);
 
       // get the wrong  config types
-      Set<String> invalidConfigTypes = new HashSet<>(topologyClusterConfigTypes);
+      Set<String> invalidConfigTypes = new HashSet<>(clusterConfigTypes);
       invalidConfigTypes.removeAll(configTypeIntersection);
 
       LOGGER.error("The following config typess are wrong: {}", invalidConfigTypes);
