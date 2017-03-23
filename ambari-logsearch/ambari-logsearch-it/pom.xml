@@ -54,7 +54,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-logsearch-solr-client</artifactId>
+      <artifactId>ambari-infra-solr-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

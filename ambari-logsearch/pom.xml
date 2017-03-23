@@ -34,8 +34,8 @@
     <module>ambari-logsearch-server</module>
     <module>ambari-logsearch-web</module>
     <module>ambari-logsearch-logfeeder</module>
-    <module>ambari-logsearch-solr-client</module>
     <module>ambari-logsearch-it</module>
+    <module>ambari-infra-solr-client</module>
     <module>ambari-infra-solr-plugin</module>
   </modules>
   <properties>

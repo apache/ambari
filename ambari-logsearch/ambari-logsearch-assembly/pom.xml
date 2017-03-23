@@ -33,7 +33,7 @@
     <solr.package.name>ambari-infra-solr</solr.package.name>
     <solr.client.package.name>ambari-infra-solr-client</solr.client.package.name>
     <solr.client.mapping.path>${mapping.base.path}/${solr.client.package.name}</solr.client.mapping.path>
-    <solr.client.dir>${project.basedir}/../ambari-logsearch-solr-client</solr.client.dir>
+    <solr.client.dir>${project.basedir}/../ambari-infra-solr-client</solr.client.dir>
     <logsearch.portal.package.name>ambari-logsearch-portal</logsearch.portal.package.name>
     <logsearch.portal.mapping.path>${mapping.base.path}/ambari-logsearch-portal</logsearch.portal.mapping.path>
     <logsearch.server.dir>${project.basedir}/../ambari-logsearch-server</logsearch.server.dir>
@@ -363,7 +363,7 @@
                   <skipPOMs>false</skipPOMs>
                   <dataSet>
                     <data>
-                      <src>${solr.client.dir}/target/ambari-logsearch-solr-client.tar.gz</src>
+                      <src>${solr.client.dir}/target/ambari-infra-solr-client.tar.gz</src>
                       <type>archive</type>
                       <mapper>
                         <type>perm</type>
@@ -533,7 +533,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-logsearch-solr-client</artifactId>
+      <artifactId>ambari-infra-solr-client</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
