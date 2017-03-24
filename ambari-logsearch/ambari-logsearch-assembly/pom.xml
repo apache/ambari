@@ -28,12 +28,6 @@
   <modelVersion>4.0.0</modelVersion>
   <properties>
     <mapping.base.path>/usr/lib</mapping.base.path>
-    <solr.tar>http://archive.apache.org/dist/lucene/solr/${solr.version}/solr-${solr.version}.tgz</solr.tar>
-    <solr.mapping.path>${mapping.base.path}/ambari-infra-solr</solr.mapping.path>
-    <solr.package.name>ambari-infra-solr</solr.package.name>
-    <solr.client.package.name>ambari-infra-solr-client</solr.client.package.name>
-    <solr.client.mapping.path>${mapping.base.path}/${solr.client.package.name}</solr.client.mapping.path>
-    <solr.client.dir>${project.basedir}/../ambari-infra-solr-client</solr.client.dir>
     <logsearch.portal.package.name>ambari-logsearch-portal</logsearch.portal.package.name>
     <logsearch.portal.mapping.path>${mapping.base.path}/ambari-logsearch-portal</logsearch.portal.mapping.path>
     <logsearch.server.dir>${project.basedir}/../ambari-logsearch-server</logsearch.server.dir>
@@ -43,7 +37,6 @@
     <logsearch.portal.conf.mapping.path>/etc/${logsearch.portal.package.name}/conf</logsearch.portal.conf.mapping.path>
     <logsearch.logfeeder.conf.mapping.path>/etc/${logsearch.logfeeder.package.name}/conf
     </logsearch.logfeeder.conf.mapping.path>
-    <infra.solr.plugin.dir>${project.basedir}/../ambari-infra-solr-plugin</infra.solr.plugin.dir>
   </properties>
   <artifactId>ambari-logsearch-assembly</artifactId>
   <profiles>
@@ -80,50 +73,6 @@
               <defaultGroupname>root</defaultGroupname>
             </configuration>
             <executions>
-              <execution>
-                <id>logsearch-solr</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>rpm</goal>
-                </goals>
-                <configuration>
-                  <group>Development</group>
-                  <name>${solr.package.name}</name>
-                  <mappings>
-                    <mapping>
-                      <directory>${solr.mapping.path}</directory>
-                      <sources>
-                        <source>
-                          <location>${project.build.directory}/solr</location>
-                        </source>
-                      </sources>
-                    </mapping>
-                  </mappings>
-                </configuration>
-              </execution>
-              <execution>
-                <id>logsearch-solr-client</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>rpm</goal>
-                </goals>
-                <configuration>
-                  <group>Development</group>
-                  <name>${solr.client.package.name}</name>
-                  <needarch>noarch</needarch>
-                  <targetOS>linux</targetOS>
-                  <mappings>
-                    <mapping>
-                      <directory>${solr.client.mapping.path}</directory>
-                      <sources>
-                        <source>
-                          <location>${solr.client.dir}/target/package</location>
-                        </source>
-                      </sources>
-                    </mapping>
-                  </mappings>
-                </configuration>
-              </execution>
               <execution>
                 <id>logsearch-portal</id>
                 <phase>package</phase>
@@ -214,41 +163,6 @@
               </execution>
             </executions>
           </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.7</version>
-            <executions>
-              <execution>
-                <phase>generate-resources</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="Download Solr">
-                    <get
-                      src="${solr.tar}"
-                      dest="${project.build.directory}/solr.tgz"
-                      usetimestamp="true"
-                    />
-                    <untar
-                      src="${project.build.directory}/solr.tgz"
-                      dest="${project.build.directory}/"
-                      compression="gzip"
-                    />
-                    <move todir="${project.build.directory}/solr">
-                      <fileset dir="${project.build.directory}/solr-${solr.version}"/>
-                    </move>
-                    <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
-                    <copy file="${infra.solr.plugin.dir}/target/ambari-infra-solr-plugin-${project.version}.jar"
-                          toDir="${project.build.directory}/solr/server/solr-webapp/webapp/WEB-INF/lib/"/>
-                    <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
-                    <chmod file="${project.build.directory}/solr/server/scripts/**" perm="755"/>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
         </plugins>
       </build>
     </profile>
@@ -280,8 +194,6 @@
                     <resource>
                       <directory>${project.basedir}/src/main/package/deb</directory>
                       <excludes>
-                        <exclude>solr/postinst</exclude>
-                        <exclude>solr-client/postinst</exclude>
                         <exclude>portal/postinst</exclude>
                         <exclude>logfeeder/postinst</exclude>
                       </excludes>
@@ -290,8 +202,6 @@
                     <resource>
                       <directory>${project.basedir}/src/main/package/deb</directory>
                       <includes>
-                        <include>solr/postinst</include>
-                        <include>solr-client/postinst</include>
                         <include>portal/postinst</include>
                         <include>logfeeder/postinst</include>
                       </includes>
@@ -307,75 +217,6 @@
             <artifactId>jdeb</artifactId>
             <version>1.4</version>
             <executions>
-              <execution>
-                <phase>package</phase>
-                <id>jdeb-solr</id>
-                <goals>
-                  <goal>jdeb</goal>
-                </goals>
-                <configuration>
-                  <controlDir>${basedir}/src/main/package/deb/solr</controlDir>
-                  <deb>${basedir}/target/${solr.package.name}_${package-version}-${package-release}.deb</deb>
-                  <skip>false</skip>
-                  <skipPOMs>false</skipPOMs>
-                  <dataSet>
-                    <data>
-                      <src>${project.build.directory}/solr</src>
-                      <type>directory</type>
-                      <mapper>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                        <prefix>${solr.mapping.path}</prefix>
-                      </mapper>
-                      <excludes>
-                        bin/**,server/scripts/**
-                      </excludes>
-                    </data>
-                    <data>
-                      <src>${project.build.directory}/solr</src>
-                      <type>directory</type>
-                      <mapper>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                        <filemode>755</filemode>
-                        <prefix>${solr.mapping.path}</prefix>
-                      </mapper>
-                      <includes>
-                        bin/**,server/scripts/**
-                      </includes>
-                    </data>
-                  </dataSet>
-                </configuration>
-              </execution>
-
-              <execution>
-                <phase>package</phase>
-                <id>jdeb-solr-client</id>
-                <goals>
-                  <goal>jdeb</goal>
-                </goals>
-                <configuration>
-                  <controlDir>${basedir}/src/main/package/deb/solr-client</controlDir>
-                  <deb>${basedir}/target/${solr.client.package.name}_${package-version}-${package-release}.deb</deb>
-                  <skip>false</skip>
-                  <skipPOMs>false</skipPOMs>
-                  <dataSet>
-                    <data>
-                      <src>${solr.client.dir}/target/ambari-infra-solr-client.tar.gz</src>
-                      <type>archive</type>
-                      <mapper>
-                        <type>perm</type>
-                        <user>root</user>
-                        <group>root</group>
-                        <prefix>${solr.client.mapping.path}</prefix>
-                      </mapper>
-                    </data>
-                  </dataSet>
-                </configuration>
-              </execution>
-
               <execution>
                 <id>jdeb-portal</id>
                 <phase>package</phase>
@@ -475,41 +316,6 @@
               </execution>
             </executions>
           </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.7</version>
-            <executions>
-              <execution>
-                <phase>generate-resources</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="Download Solr">
-                    <get
-                      src="${solr.tar}"
-                      dest="${project.build.directory}/solr.tgz"
-                      usetimestamp="true"
-                    />
-                    <untar
-                      src="${project.build.directory}/solr.tgz"
-                      dest="${project.build.directory}/"
-                      compression="gzip"
-                    />
-                    <move todir="${project.build.directory}/solr">
-                      <fileset dir="${project.build.directory}/solr-${solr.version}"/>
-                    </move>
-                    <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
-                    <copy file="${infra.solr.plugin.dir}/target/ambari-infra-solr-plugin-${project.version}.jar"
-                          toDir="${project.build.directory}/solr/server/solr-webapp/webapp/WEB-INF/lib/"/>
-                    <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
-                    <chmod file="${project.build.directory}/solr/server/scripts/**" perm="755"/>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
         </plugins>
       </build>
     </profile>
@@ -529,16 +335,6 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-logsearch-logfeeder</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-infra-solr-client</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-infra-solr-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
