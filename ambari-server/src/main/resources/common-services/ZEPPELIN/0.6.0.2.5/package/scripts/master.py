@@ -301,6 +301,11 @@ class Master(Script):
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
+    for setting_key in interpreter_settings.keys():
+      interpreter = interpreter_settings[setting_key]
+      if not (interpreter['group'] in params.zeppelin_interpreter):
+        del interpreter_settings[setting_key]
+
     if 'spark2-defaults' in params.config['configurations']:
       spark2_config = self.get_spark2_interpreter_config()
       config_id = spark2_config["id"]
