@@ -370,7 +370,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
           repoBinding: 'parentView.content',
           checkboxClassNames: ["align-checkbox"],
           change: function() {
-            this.get('parentView.repo').forEach(function(os) {
+            this.get('repo.operatingSystems').forEach(function(os) {
               os.get('repositories').forEach(function(repo) {
                 repo.set('skipValidation', this.get('checked'));
               }, this);

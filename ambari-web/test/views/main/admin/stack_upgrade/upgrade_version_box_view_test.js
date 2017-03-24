@@ -249,35 +249,107 @@ describe('App.UpgradeVersionBoxView', function () {
   });
   
   describe("#editRepositories()", function () {
-    var cases = [
-      {
-        isRepoUrlsEditDisabled: true,
-        popupShowCallCount: 0,
-        title: 'edit repo URLS disabled, popup shouldn\'t be shown'
-      },
-      {
-        isRepoUrlsEditDisabled: false,
-        popupShowCallCount: 1,
-        title: 'edit repo URLS enabled, popup should be shown'
-      }
-    ];
-    beforeEach(function () {
-      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
-        operatingSystems: []
-      }));
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-    });
-    afterEach(function () {
-      App.RepositoryVersion.find.restore();
-      App.ModalPopup.show.restore();
-    });
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        view.reopen({
-          isRepoUrlsEditDisabled: item.isRepoUrlsEditDisabled
+
+    describe('popup display', function () {
+      var cases = [
+        {
+          isRepoUrlsEditDisabled: true,
+          popupShowCallCount: 0,
+          title: 'edit repo URLS disabled, popup shouldn\'t be shown'
+        },
+        {
+          isRepoUrlsEditDisabled: false,
+          popupShowCallCount: 1,
+          title: 'edit repo URLS enabled, popup should be shown'
+        }
+      ];
+      beforeEach(function () {
+        sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
+          operatingSystems: []
+        }));
+        sinon.stub(App.ModalPopup, 'show', Em.K);
+      });
+      afterEach(function () {
+        App.RepositoryVersion.find.restore();
+        App.ModalPopup.show.restore();
+      });
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          view.reopen({
+            isRepoUrlsEditDisabled: item.isRepoUrlsEditDisabled
+          });
+          view.editRepositories();
+          expect(App.ModalPopup.show.callCount).to.equal(item.popupShowCallCount);
         });
-        view.editRepositories();
-        expect(App.ModalPopup.show.callCount).to.equal(item.popupShowCallCount);
+      });
+    });
+
+    describe('skip base URL validation', function () {
+      var checkbox,
+        cases = [
+          {
+            checked: true,
+            skipValidation: true,
+            title: 'option is enabled'
+          },
+          {
+            checked: false,
+            skipValidation: false,
+            title: 'option is disabled'
+          }
+        ];
+      beforeEach(function () {
+        sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
+          operatingSystems: [
+            Em.Object.create({
+              repositories: [
+                Em.Object.create(),
+                Em.Object.create({
+                  skipValidation: true
+                }),
+                Em.Object.create({
+                  skipValidation: false
+                })
+              ]
+            }),
+            Em.Object.create({
+              repositories: [
+                Em.Object.create(),
+                Em.Object.create({
+                  skipValidation: true
+                }),
+                Em.Object.create({
+                  skipValidation: false
+                })
+              ]
+            })
+          ]
+        }));
+        sinon.stub(App.ModalPopup, 'show', function (popupOptions) {
+          var body = popupOptions.bodyClass.create();
+          return body.get('skipCheckBox').create({
+            parentView: body
+          });
+        });
+        view.reopen({
+          isRepoUrlsEditDisabled: false
+        });
+        checkbox = view.editRepositories();
+      });
+      afterEach(function () {
+        App.RepositoryVersion.find.restore();
+        App.ModalPopup.show.restore();
+      });
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          checkbox.set('checked', item.checked);
+          checkbox.change();
+          var reposByOS = checkbox.get('repo.operatingSystems').mapProperty('repositories'),
+            result = reposByOS.map(function (repos) {
+              return repos.everyProperty('skipValidation', item.skipValidation);
+            });
+          expect(result).to.eql([true, true]);
+        });
       });
     });
   });
