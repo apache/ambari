@@ -162,14 +162,6 @@ class Master(Script):
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     self.create_zeppelin_hdfs_conf_dir(env)
-    # copy hive-site.xml only if Spark 1.x is installed
-    if 'spark-defaults' in params.config['configurations'] and params.is_hive_installed:
-      XmlConfig("hive-site.xml",
-              conf_dir=params.external_dependency_conf,
-              configurations=params.spark_hive_properties,
-              owner=params.zeppelin_user,
-              group=params.zeppelin_group,
-              mode=0644)
 
     if len(params.hbase_master_hosts) > 0 and params.is_hbase_installed:
       # copy hbase-site.xml
