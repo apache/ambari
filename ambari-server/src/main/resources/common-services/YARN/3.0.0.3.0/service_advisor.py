@@ -1400,12 +1400,10 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
 
     :type yarn_min_container_size int
     """
-    if yarn_min_container_size > 1024:
+    if yarn_min_container_size >= 1024:
       return 1024
-    if yarn_min_container_size >= 256 and yarn_min_container_size <= 1024:
-      return yarn_min_container_size
-    if yarn_min_container_size < 256:
-      return 256
+    else:
+      return 512
 
   def get_yarn_nm_mem_in_mb(self, services, configurations):
     """
@@ -1446,7 +1444,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     calculated_tez_am_resource_memory_mb = None
     if is_cluster_create_opr or enable_hive_interactive_1st_invocation:
       if total_cluster_capacity <= 4096:
-        calculated_tez_am_resource_memory_mb = 256
+        calculated_tez_am_resource_memory_mb = 512
       elif total_cluster_capacity > 4096 and total_cluster_capacity <= 98304:
         calculated_tez_am_resource_memory_mb = 1024
       elif total_cluster_capacity > 98304:
