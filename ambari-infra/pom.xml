@@ -14,7 +14,9 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
@@ -23,29 +25,26 @@
   </parent>
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>ambari-logsearch</artifactId>
+  <artifactId>ambari-infra</artifactId>
   <version>2.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <url>http://maven.apache.org</url>
-  <modules>
-    <module>ambari-logsearch-assembly</module>
-    <module>ambari-logsearch-appender</module>
-    <module>ambari-logsearch-server</module>
-    <module>ambari-logsearch-web</module>
-    <module>ambari-logsearch-logfeeder</module>
-    <module>ambari-logsearch-it</module>
-  </modules>
   <properties>
+    <jdk.version>1.7</jdk.version>
+    <solr.version>5.5.2</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver}</deb.dependency.list>
-    <solr.version>5.5.2</solr.version>
-    <hadoop.version>2.7.2</hadoop.version>
-    <common.io.version>2.5</common.io.version>
   </properties>
+
+  <modules>
+    <module>ambari-infra-assembly</module>
+    <module>ambari-infra-solr-client</module>
+    <module>ambari-infra-solr-plugin</module>
+  </modules>
+
   <build>
     <plugins>
       <plugin>
@@ -71,8 +70,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
-
-          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
           <groups>${testcase.groups}</groups>
         </configuration>
       </plugin>
@@ -80,8 +77,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>${jdk.version}</source>
+          <target>${jdk.version}</target>
         </configuration>
       </plugin>
       <plugin>
@@ -163,8 +160,6 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.log</exclude>
             <exclude>**/*.txt</exclude>
-            <exclude>**/*.story</exclude>
-            <exclude>**/docker/Profile</exclude>
           </excludes>
         </configuration>
         <executions>
