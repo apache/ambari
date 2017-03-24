@@ -1,0 +1,753 @@
+{
+  "name": "default",
+  "description": "Default theme for HIVE service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-rows": 6,
+              "tab-columns": 3,
+              "sections": [
+                 {
+                  "name": "acid-transactions",
+                  "display-name": "ACID Transactions",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "acid-transactions-row1-col1-1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "misc-settings",
+                  "display-name": "Miscellaneous Settings",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "3",
+                  "section-columns": "3",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "misc-row1-col1",
+                      "display-name": "Log Level",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "interactive-query",
+                  "display-name": "Interactive Query",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "interactive-query-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "security",
+                  "display-name": "Security",
+                  "row-index": "0",
+                  "column-index": "2",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "security-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "optimization",
+                  "display-name": "Optimization",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "3",
+                  "section-columns": "3",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "optimization-row1-col1",
+                      "display-name": "Tez",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row1-col2",
+                      "display-name": "",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row1-col3",
+                      "display-name": "CBO",
+                      "row-index": "0",
+                      "column-index": "2",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row2-col1",
+                      "display-name": "Storage",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row2-col2",
+                      "display-name": "",
+                      "row-index": "1",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row2-col3",
+                      "display-name": "Memory",
+                      "row-index": "1",
+                      "column-index": "2",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "hive-database",
+            "display-name": "Database",
+            "layout": {
+              "tab-rows": 1,
+              "tab-columns": 1,
+              "sections": [
+                 {
+                  "name": "hive-database-configurations",
+                  "display-name": "Database Configurations",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "0",
+                  "column-span": "0",
+                  "section-columns": "2",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "hive-database-configurations-col-1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "hive-database-configurations-col-2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "hive-site/hive.exec.orc.default.stripe.size",
+          "subsection-name": "optimization-row2-col1"
+        },
+        {
+          "config": "hive-site/hive.exec.orc.default.compress",
+          "subsection-name": "optimization-row2-col1"
+        },
+        {
+          "config": "hive-env/hive_exec_orc_storage_strategy",
+          "subsection-name": "optimization-row2-col1"
+        },
+        {
+          "config": "hive-env/hive.heapsize",
+          "subsection-name": "optimization-row2-col2"
+        },
+        {
+          "config": "hive-env/hive.metastore.heapsize",
+          "subsection-name": "optimization-row2-col2"
+        },
+        {
+          "config": "hive-env/hive.client.heapsize",
+          "subsection-name": "optimization-row2-col2"
+        },
+        {
+          "config": "hive-site/hive.auto.convert.join.noconditionaltask.size",
+          "subsection-name": "optimization-row2-col3"
+        },
+        {
+          "config": "hive-site/hive.exec.reducers.bytes.per.reducer",
+          "subsection-name": "optimization-row2-col3"
+        },
+        {
+          "config": "hive-env/hive_txn_acid",
+          "subsection-name": "acid-transactions-row1-col1-1"
+        },
+        {
+          "config": "hive-site/hive.compactor.initiator.on",
+          "subsection-name": "acid-transactions-row1-col1-1"
+        },
+        {
+          "config": "hive-site/hive.compactor.worker.threads",
+          "subsection-name": "acid-transactions-row1-col1-1"
+        },
+        {
+          "config": "hive-site/hive.execution.engine",
+          "subsection-name": "optimization-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.tez.container.size",
+          "subsection-name": "optimization-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.prewarm.enabled",
+          "subsection-name": "optimization-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.prewarm.numcontainers",
+          "subsection-name": "optimization-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.cbo.enable",
+          "subsection-name": "optimization-row1-col3"
+        },
+        {
+          "config": "hive-site/hive.stats.fetch.column.stats",
+          "subsection-name": "optimization-row1-col3"
+        },
+        {
+          "config": "hive-env/hive_security_authorization",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.server2.enable.doAs",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.server2.authentication",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.server2.use.SSL",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-env/hive_database",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-site/ambari.hive.db.schema.name",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionUserName",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionURL",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-env/hive_database_type",
+          "subsection-name": "hive-database-configurations-col-2"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionDriverName",
+          "subsection-name": "hive-database-configurations-col-2"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionPassword",
+          "subsection-name": "hive-database-configurations-col-2"
+        },
+        {
+          "config": "hive-interactive-env/enable_hive_interactive",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
+          "config": "hive-interactive-site/hive.llap.daemon.queue.name",
+          "subsection-name": "interactive-query-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "hive-interactive-env/num_llap_nodes",
+          "subsection-name": "interactive-query-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
+          "subsection-name": "interactive-query-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "hive-interactive-site/ambari.copy.hive.llap.daemon.yarn.container.mb",
+          "subsection-name": "interactive-query-row1-col1",
+          "property_value_attributes": {
+            "ui_only_property": true,
+            "copy": "hive-interactive-site/hive.llap.daemon.yarn.container.mb"
+          },
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "hive-interactive-site/ambari.copy.hive.llap.io.memory.size",
+          "subsection-name": "interactive-query-row1-col1",
+          "property_value_attributes": {
+            "ui_only_property": true,
+            "copy": "hive-interactive-site/hive.llap.io.memory.size"
+          },
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "hive-interactive-site/ambari.copy.hive.llap.daemon.num.executors",
+          "subsection-name": "interactive-query-row1-col1",
+          "property_value_attributes": {
+            "ui_only_property": true,
+            "copy": "hive-interactive-site/hive.llap.daemon.num.executors"
+          },
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "hive-env/hive.log.level",
+          "subsection-name": "misc-row1-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "hive-site/hive.exec.orc.default.stripe.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.orc.default.compress",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-env/hive_exec_orc_storage_strategy",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-env/hive.heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive.metastore.heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive.client.heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.auto.convert.join.noconditionaltask.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.reducers.bytes.per.reducer",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive_txn_acid",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.compactor.initiator.on",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.compactor.worker.threads",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.execution.engine",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.tez.container.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.prewarm.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.prewarm.numcontainers",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.cbo.enable",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.stats.fetch.column.stats",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.server2.enable.doAs",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-env/hive_security_authorization",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.server2.authentication",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.server2.use.SSL",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-env/hive_database",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionUserName",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionPassword",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionDriverName",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionURL",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-site/ambari.hive.db.schema.name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-env/hive_database_type",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-interactive-env/enable_hive_interactive",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-interactive-site/hive.llap.daemon.queue.name",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-interactive-env/num_llap_nodes",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-interactive-site/ambari.copy.hive.llap.daemon.yarn.container.mb",
+        "widget": {
+          "type": "label",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-interactive-site/ambari.copy.hive.llap.io.memory.size",
+        "widget": {
+          "type": "label",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-interactive-site/ambari.copy.hive.llap.daemon.num.executors",
+        "widget": {
+          "type": "label",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive.log.level",
+        "widget": {
+          "type": "combo"
+        }
+      }
+    ]
+  }
+}

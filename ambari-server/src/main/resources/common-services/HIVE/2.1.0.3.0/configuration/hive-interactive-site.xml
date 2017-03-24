@@ -1,0 +1,762 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent hive/hive-site.
+       It inherits the other required configs from hive/hive-site.
+       The inheritance logic in order to get hive2/hive-site goes like this :
+
+       1. We read the hive/hive-site which includes the stack defaults and Stack Advisor recommended values.
+       2. We take the read hive/hive-site (step 1), and on top of it apply the hive-interactive-site to get
+          hive2/hive-site.
+
+       Therefore, any config defined here will override the config value read from hive2/hive-site (step 1).
+  -->
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10500</value>
+    <display-name>HiveServer2 Port</display-name>
+    <description>
+      TCP port number to listen on, default 10500.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.thrift.http.port</name>
+    <value>10501</value>
+    <description>Port number of HiveServer2 Thrift interface when hive.server2.transport.mode is 'http'.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.tez.sessions.per.default.queue</name>
+    <value>1</value>
+    <description>
+      The maximum number of queries the Hive Interactive cluster will be able to handle concurrently.
+    </description>
+    <display-name>Maximum Total Concurrent Queries</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.metastore.uris</name>
+    <value/>
+    <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>false</value>
+    <description>
+      Setting this property to true will have HiveServer2 execute
+      Hive operations as the user making the calls to it.
+    </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <!-- This is different for Hive batch and interactive -->
+    <name>hive.prewarm.enabled</name>
+    <value>false</value>
+    <description>Enables container prewarm for Tez (Hadoop 2 only)</description>
+    <display-name>Hold Containers to Reduce Latency</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.vectorized.execution.reduce.enabled</name>
+    <value>true</value>
+    <description>
+      This flag should be set to true to enable vectorized mode of the reduce-side of
+      query execution.
+    </description>
+    <display-name>Enable Reduce Vectorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.tez.default.queues</name>
+    <display-name>Default query queues</display-name>
+    <value>default</value>
+    <description>
+      A list of comma separated values corresponding to YARN queues of the same name.
+      When HiveServer2 is launched in Tez mode, this configuration needs to be set
+      for multiple Tez sessions to run in parallel on the cluster.
+    </description>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1+</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.tez.initialize.default.sessions</name>
+    <value>true</value>
+    <description>
+      This flag is used in HiveServer2 to enable a user to use HiveServer2 without
+      turning on Tez for HiveServer2. The user could potentially want to run queries
+      over Tez without the pool of sessions.
+    </description>
+    <display-name>Start Tez session at Initialization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.driver.parallel.compilation</name>
+    <value>true</value>
+    <description>
+      This flag allows HiveServer2 to compile queries in parallel.
+    </description>
+    <display-name>Compile queries in parallel</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.webui.port</name>
+    <value>10502</value>
+    <description>Web UI port address</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.webui.use.ssl</name>
+    <value>false</value>
+    <description>Enable SSL for HiveServer2 Interactive</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.zookeeper.namespace</name>
+    <value>hiveserver2-hive2</value>
+    <description>The parent node in ZooKeeper used by HiveServer2 when supporting dynamic service discovery.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.queue.name</name>
+    <value>default</value>
+    <description>Choose the YARN queue in this cluster that is dedicated to interactive query.</description>
+    <display-name>Interactive Query Queue</display-name>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.yarn.shuffle.port</name>
+    <value>15551</value>
+    <description>YARN shuffle port for LLAP-daemon-hosted shuffle.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.execution.engine</name>
+    <value>tez</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.execution.mode</name>
+    <value>llap</value>
+    <description>Chooses whether query fragments will run in container or in llap</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.llap.io.enabled</name>
+    <value>true</value>
+    <description>Whether the LLAP IO layer is enabled.</description>
+    <depends-on>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.io.memory.size</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.io.use.lrfu</name>
+    <value>true</value>
+    <description>Whether ORC low-level cache should use LRFU cache policy instead of default (FIFO).</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.auto.allow.uber</name>
+    <value>false</value>
+    <description>Whether or not to allow the planner to run vertices in the AM.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.object.cache.enabled</name>
+    <value>true</value>
+    <description>Cache objects (plans, hashtables, etc) in llap</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.tez.input.generate.consistent.splits</name>
+    <value>true</value>
+    <description>Whether to generate consistent split locations when generating splits in the AM</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.client.consistent.splits</name>
+    <description>
+      Whether to setup split locations to match nodes on which llap daemons are running,
+      instead of using the locations provided by the split itself.
+    </description>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.exec.orc.split.strategy</name>
+    <value>HYBRID</value>
+    <description>
+      This is not a user level config. BI strategy is used when the requirement is to spend less time in split generation
+      as opposed to query execution (split generation does not read or cache file footers).
+      ETL strategy is used when spending little more time in split generation is acceptable
+      (split generation reads and caches file footers). HYBRID chooses between the above strategies
+      based on heuristics.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.service.hosts</name>
+    <value>@llap0</value>
+    <description>
+      Explicitly specified hosts to use for LLAP scheduling. Useful for testing. By default,
+      a ZooKeeper based registry is used.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.io.memory.size</name>
+    <display-name>In-Memory Cache per Daemon</display-name>
+    <description>The amount of memory reserved for Hive's optimized in-memory cache.</description>
+    <value>0</value>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+      <property>
+        <type>tez-site</type>
+        <name>tez.am.resource.memory.mb</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.num.executors</name>
+    <display-name>Number of executors per LLAP Daemon</display-name>
+    <description>The number of fragments that a single LLAP daemon will run concurrently. Usually, this will be the same as the number of available CPUs</description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+      <property>
+        <type>tez-site</type>
+        <name>tez.am.resource.memory.mb</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.vcpus.per.instance</name>
+    <value>${hive.llap.daemon.num.executors}</value>
+    <description>The total number of vcpus to use for the executors inside LLAP.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.yarn.container.mb</name>
+    <display-name>Memory per Daemon</display-name>
+    <description>
+      Total memory used by individual LLAP daemons (YARN Container size). This includes memory
+      for the cache as well as for the query execution. Should be larger than the sum of
+      the Daemon cache size and the daemon heap size, and should leave some headroom
+      after this (In most cases: cache size + heap size + headroom = Memory Per Daemon).
+    </description>
+    <value>0</value>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>llap.shuffle.connection-keep-alive.enable</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>llap.shuffle.connection-keep-alive.timeout</name>
+    <value>60</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.io.threadpool.size</name>
+    <value>2</value>
+    <description>Specify the number of threads to use for low-level IO thread pool.</description>
+    <depends-on>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.num.executors</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.rpc.port</name>
+    <value>0</value>
+    <description>The LLAP daemon RPC port.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.management.rpc.port</name>
+    <value>15004</value>
+    <description>RPC port for LLAP daemon management service.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.task.scheduler.enable.preemption</name>
+    <value>true</value>
+    <description>hive.llap.daemon.task.scheduler.enable.preemption</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.tez.exec.print.summary</name>
+    <value>true</value>
+    <description>Display breakdown of execution steps, for every query executed by the shell.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.vectorized.execution.mapjoin.native.enabled</name>
+    <value>true</value>
+    <description>
+      This flag should be set to true to enable native (i.e. non-pass through) vectorization
+      of queries using MapJoin.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.vectorized.execution.mapjoin.minmax.enabled</name>
+    <value>true</value>
+    <description>
+      This flag should be set to true to enable vector map join hash tables to
+      use max / max filtering for integer join queries using MapJoin.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.vectorized.execution.mapjoin.native.fast.hashtable.enabled</name>
+    <value>true</value>
+    <description>
+      This flag should be set to true to enable use of native fast vector map join hash tables in
+      queries using MapJoin.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.optimize.dynamic.partition.hashjoin</name>
+    <value>true</value>
+    <description>
+      Whether to enable dynamically partitioned hash join optimization.
+      This setting is also dependent on enabling hive.auto.convert.join
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.zk.sm.connectionString</name>
+    <value>localhost:2181</value>
+    <description>ZooKeeper connection string for ZooKeeper SecretManager.</description>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.io.memory.mode</name>
+    <value/>
+    <description>
+      LLAP IO memory usage; 'cache' (the default) uses data and metadata cache with a
+      custom off-heap allocator, 'allocator' uses the custom allocator without the caches,
+      'none' doesn't use either (this mode may result in significant performance degradation)
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.metastore.event.listeners</name>
+    <value/>
+    <description>
+      Listeners for metastore events
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.tez.container.size</name>
+    <value>682</value>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask.size</name>
+    <value>1000000000</value>
+    <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
+      is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
+      converted to a mapjoin(there is no conditional task). The default is 10MB.
+    </description>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.llap.task.scheduler.locality.delay</name>
+    <value>8000</value>
+    <description>
+      Amount of time to wait (in ms) before allocating a request which contains location information,
+      to a location other than the ones requested. Set to -1 for an infinite delay, 0
+      for no delay.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.mapjoin.hybridgrace.hashtable</name>
+    <value>true</value>
+    <description>Whether to use hybrid grace hash join as the join method for mapjoin.
+      Applies to dynamically partitioned joins when running in LLAP, but not to regular
+      broadcast(map) joins. hive.llap.enable.grace.join.in.llap is used for this.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.llap.enable.grace.join.in.llap</name>
+    <value>false</value>
+    <description>Override if grace join should be allowed to run in llap for regular map joins.
+      Dynamic partitioned joins will honor the hive.mapjoin.hybridgrace.hashtable property in LLAP
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.llap.execution.mode</name>
+    <value>only</value>
+    <description>Chooses which fragments of a query will run in llap</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.tez.cartesian-product.enabled</name>
+    <value>true</value>
+    <description>Use Tez cartesian product edge for Hive cartesian product</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.logger</name>
+    <value>query-routing</value>
+    <description>Logger to be used by LLAP. (query-routing, RFA)</description>
+    <display-name>LLAP logger</display-name>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.custom.queue.allowed</name>
+    <value>ignore</value>
+    <description>Whether to allow the users of this HS2 to specify custom queues - yes, no (fail if specified), ignore (use the default queues even if a custom one is specified)</description>
+    <display-name>Allow custom queues</display-name>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.restricted.configs</name>
+    <value>hive.execution.mode,hive.execution.engine</value>
+    <description>The list of configuration settings that the users of the session pool of this HS2 are not allowed to override</description>
+    <display-name>Restricted session configs</display-name>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.tez.bucket.pruning</name>
+    <value>true</value>
+    <description>
+      When pruning is enabled, filters on bucket columns will be processed by
+      filtering the splits against a bitset of included buckets. This needs predicates
+      produced by hive.optimize.ppd and hive.optimize.index.filters.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.am.liveness.heartbeat.interval.ms</name>
+    <value>10000ms</value>
+    <description>Tez AM-LLAP heartbeat interval. This should be below the task timeout</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+</configuration>
