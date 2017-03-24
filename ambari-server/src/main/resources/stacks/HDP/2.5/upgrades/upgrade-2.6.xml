@@ -865,6 +865,7 @@
       <component name="LIVY_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs" />
         </pre-upgrade>
         
         <pre-downgrade />
