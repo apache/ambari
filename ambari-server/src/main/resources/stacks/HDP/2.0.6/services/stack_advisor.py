@@ -773,38 +773,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     pass
 
-  # TODO, move this to a generic stack advisor.
-  def getZKHostPortString(self, services, include_port=True):
-    """
-    Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
-    Example: zk.host1.org:2181,zk.host2.org:2181,zk.host3.org:2181
-    include_port boolean param -> If port is also needed.
-    """
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    include_zookeeper = "ZOOKEEPER" in servicesList
-    zookeeper_host_port = ''
 
-    if include_zookeeper:
-      zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
-      zookeeper_host_port_arr = []
-
-      if include_port:
-        zookeeper_port = self.getZKPort(services)
-        for i in range(len(zookeeper_hosts)):
-          zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
-      else:
-        for i in range(len(zookeeper_hosts)):
-          zookeeper_host_port_arr.append(zookeeper_hosts[i])
-
-      zookeeper_host_port = ",".join(zookeeper_host_port_arr)
-    return zookeeper_host_port
-
-  # TODO, move this to a generic stack advisor
-  def getZKPort(self, services):
-    zookeeper_port = '2181'     #default port
-    if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
-      zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
-    return zookeeper_port
 
   def getServiceConfigurationValidators(self):
     return {
@@ -1356,19 +1325,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
 
-  def checkSiteProperties(self, siteProperties, *propertyNames):
-    """
-    Check if properties defined in site properties.
-    :param siteProperties: config properties dict
-    :param *propertyNames: property names to validate
-    :returns: True if all properties defined, in other cases returns False
-    """
-    if siteProperties is None:
-      return False
-    for name in propertyNames:
-      if not (name in siteProperties):
-        return False
-    return True
 
   def get_service_component_meta(self, service, component, services):
     """
@@ -1417,17 +1373,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return {}
 
     return component_meta[0][__stack_service_components]
-
-  def is_secured_cluster(self, services):
-    """
-    Detects if cluster is secured or not
-    :type services dict
-    :rtype bool
-    """
-    return services and "cluster-env" in services["configurations"] and\
-           "security_enabled" in services["configurations"]["cluster-env"]["properties"] and\
-           services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
-
 
 
   def get_components_list(self, service, services):

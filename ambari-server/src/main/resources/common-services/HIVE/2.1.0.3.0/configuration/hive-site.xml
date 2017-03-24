@@ -614,6 +614,21 @@ limitations under the License.
     <name>hive.cbo.enable</name>
     <value>true</value>
     <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
+    <display-name>Enable Cost Based Optimizer</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
