@@ -564,6 +564,10 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs"/>
       </execute-stage>
 
+      <execute-stage service="SPARK" component="LIVY_SERVER" title="Add SPARK_CONF_DIR for Livy Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs"/>
+      </execute-stage>
+
       <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
         <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue">
           <summary>Add queue customization property</summary>

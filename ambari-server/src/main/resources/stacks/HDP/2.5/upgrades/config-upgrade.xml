@@ -75,6 +75,10 @@
             <transfer operation="move" from-key="livy.server.kerberos.keytab" to-key="livy.server.launch.kerberos.keytab" />
             <transfer operation="move" from-key="livy.server.kerberos.principal" to-key="livy.server.launch.kerberos.principal" />
           </definition>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs">
+            <type>livy-env</type>
+            <insert key="content" value="export SPARK_CONF_DIR=/usr/hdp/current/spark-client/conf" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
         </changes>
       </component>
     </service>
