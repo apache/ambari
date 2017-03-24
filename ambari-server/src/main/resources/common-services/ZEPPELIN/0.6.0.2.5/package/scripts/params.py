@@ -84,6 +84,7 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 # params from zeppelin-config
 zeppelin_port = str(config['configurations']['zeppelin-config']['zeppelin.server.port'])
+zeppelin_interpreter = str(config['configurations']['zeppelin-config']['zeppelin.interpreter.group.order']).split(",")
 
 # params from zeppelin-env
 zeppelin_user = config['configurations']['zeppelin-env']['zeppelin_user']
