@@ -482,6 +482,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
           this.set('controller.saveInProgress', true);
           assignMasterOnStep7Controller.execute(this, 'ADD', hostComponent);
         } else {
+          if(hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
+            assignMasterOnStep7Controller.execute(this, 'ADD', hostComponent);
+          }
           assignMasterOnStep7Controller.clearComponentsToBeDeleted(hostComponent.componentName);
         }
         break;

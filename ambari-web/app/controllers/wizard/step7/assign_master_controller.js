@@ -62,15 +62,13 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     this.set('configWidgetContext', context);
     this.set('content', context.get('controller.content'));
     this.set('configActionComponent', hostComponent);
-    var missingDependentServices = this.getAllMissingDependentServices();
-    var isNonWizardPage = !this.get('content.controllerName');
+    
     switch (action) {
       case 'ADD':
-        if (missingDependentServices.length && isNonWizardPage) {
-          this.showInstallServicesPopup(missingDependentServices);
+        if (hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
+          this.getPendingBatchRequests(hostComponent);  
         } else {
-          this.set('mastersToCreate', [hostComponent.componentName]);
-          this.showAssignComponentPopup();
+          this.showPopup(hostComponent);
         }
         break;
       case 'DELETE':
@@ -80,6 +78,71 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     }
   },
 
+  getPendingBatchRequests: function(hostComponent) {
+    var self = this;
+    // Send Ajax request to get status of pending batch requests
+    App.ajax.send({
+      name : 'request_schedule.get.pending',
+      sender: self,
+      error : 'pendingBatchRequestsAjaxError',
+      success: 'pendingBatchRequestsAjaxSuccess',
+      data: {
+        hostComponent: hostComponent
+      }
+    });
+  },
+
+  pendingBatchRequestsAjaxError: function(data) {
+    var error = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error, null);
+  },
+
+  pendingBatchRequestsAjaxSuccess : function(data, opt, params) {
+    var self = this;
+    var showAlert = false;
+    if (data.hasOwnProperty('items') && data.items.length > 0) {
+      data.items.forEach( function(_item) {
+        _item.RequestSchedule.batch.batch_requests.forEach( function(batchRequest) {
+          // Check if a DELETE request on HIVE_SERVER_INTERACTIVE is in progress
+          if (batchRequest.request_type == "DELETE" && batchRequest.request_uri.indexOf("HIVE_SERVER_INTERACTIVE") > -1) {
+            showAlert = true;
+          }
+        });
+      });
+    }
+    if (showAlert) {
+      App.showAlertPopup(Em.I18n.t('services.service.actions.hsi.alertPopup.header'), Em.I18n.t('services.service.actions.hsi.alertPopup.body'), function() {
+        var configWidgetContext = self.get('configWidgetContext');
+        var config = self.get('configWidgetContext.config');
+        configWidgetContext.toggleProperty('controller.forceUpdateBoundaries');
+        var value = config.get('initialValue');
+        config.set('value', value);
+        configWidgetContext.setValue(value);
+        configWidgetContext.sendRequestRorDependentConfigs(config);
+        this.hide();
+      });
+    } else {
+      this.showPopup(params.hostComponent);
+    }
+  },
+  
+  showPopup: function(hostComponent) {
+    var missingDependentServices = this.getAllMissingDependentServices();
+    var isNonWizardPage = !this.get('content.controllerName');
+    if (missingDependentServices.length && isNonWizardPage) {
+      this.showInstallServicesPopup(missingDependentServices);
+    } else {
+      this.set('mastersToCreate', [hostComponent.componentName]);
+      this.showAssignComponentPopup();
+    }  
+  },
+  
   /**
    * Used to set showAddControl/showRemoveControl flag
    * @param componentName
