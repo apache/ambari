@@ -24,4 +24,9 @@ limitations under the License.
     <deleted>true</deleted>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>atlas.cluster.name</name>
+    <on-ambari-upgrade add="false"/>
+    <deleted>true</deleted>
+  </property>
 </configuration>
