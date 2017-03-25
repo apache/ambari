@@ -311,7 +311,7 @@ class Master(Script):
       config_id = spark2_config["id"]
       interpreter_settings[config_id] = spark2_config
 
-    if 'livy2-defaults' in params.config['configurations']:
+    if params.livy2_livyserver_host:
       livy2_config = self.get_livy2_interpreter_config()
       config_id = livy2_config["id"]
       interpreter_settings[config_id] = livy2_config
