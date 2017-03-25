@@ -224,7 +224,7 @@
               <executable>chmod</executable>
               <arguments>
                 <argument>+x</argument>
-                <argument>${ui.directory}/node/npm/bin/node-gyp-bin/node-gyp</argument>
+                <argument>${ui.directory}/node/node_modules/npm/bin/node-gyp-bin/node-gyp</argument>
               </arguments>
             </configuration>
           </execution>
