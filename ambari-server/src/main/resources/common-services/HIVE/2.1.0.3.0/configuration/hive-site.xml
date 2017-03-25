@@ -53,17 +53,6 @@ limitations under the License.
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>atlas.cluster.name</name>
-    <value>{{cluster_name}}</value>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.enableTLS</name>
-      </property>
-    </depends-on>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>hive.metastore.sasl.enabled</name>
     <value>false</value>
     <description>If true, the metastore thrift interface will be secured with SASL.
