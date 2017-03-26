@@ -12,7 +12,7 @@
     "start": "ember server",
     "test": "ember test",
     "preinstall": "chmod +x node/node_modules/npm/bin/node-gyp-bin/node-gyp",
-    "postinstall": "bash node/with_new_path.sh node node_modules/.bin/bower --allow-root install"
+    "postinstall": "node node_modules/.bin/bower --allow-root install"
   },
   "repository": "",
   "engines": {
