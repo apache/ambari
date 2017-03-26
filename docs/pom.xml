@@ -1039,6 +1039,17 @@
             </roles>
             <organization>
             </organization>
+        </developer>
+        <developer>
+            <id>vivekratnavel</id>
+            <name>Vivek Ratnavel Subramanian</name>
+            <email>vivekratnavel@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+            </organization>
         </developer>        
         <developer>
             <id>vgogate</id>
