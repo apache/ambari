@@ -112,7 +112,7 @@ public class ProvisionClusterRequestTest {
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(2, provisionClusterRequest.getTopologyValidators().size());
+    assertEquals(3, provisionClusterRequest.getTopologyValidators().size());
 
     // group1
     // host info
@@ -164,7 +164,7 @@ public class ProvisionClusterRequestTest {
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(2, provisionClusterRequest.getTopologyValidators().size());
+    assertEquals(3, provisionClusterRequest.getTopologyValidators().size());
 
     // group2
     HostGroupInfo group2Info = hostGroupInfo.get("group2");
@@ -216,7 +216,7 @@ public class ProvisionClusterRequestTest {
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(2, hostGroupInfo.size());
-    assertEquals(2, provisionClusterRequest.getTopologyValidators().size());
+    assertEquals(3, provisionClusterRequest.getTopologyValidators().size());
 
     // group1
     // host info
@@ -374,7 +374,7 @@ public class ProvisionClusterRequestTest {
     TopologyRequest request = new ProvisionClusterRequest(properties, null);
     List<TopologyValidator> validators = request.getTopologyValidators();
 
-    assertEquals(2, validators.size());
+    assertEquals(3, validators.size());
     TopologyValidator pwdValidator = validators.get(0);
 
     TopologyValidator noDefaultPwdValidator = new RequiredPasswordValidator(null);
@@ -388,7 +388,7 @@ public class ProvisionClusterRequestTest {
     TopologyRequest request = new ProvisionClusterRequest(properties, null);
     List<TopologyValidator> validators = request.getTopologyValidators();
 
-    assertEquals(2, validators.size());
+    assertEquals(3, validators.size());
     TopologyValidator pwdValidator = validators.get(0);
 
     TopologyValidator defaultPwdValidator = new RequiredPasswordValidator("pwd");

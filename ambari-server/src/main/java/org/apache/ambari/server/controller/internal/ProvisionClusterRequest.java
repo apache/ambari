@@ -38,6 +38,7 @@ import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyValidator;
 import org.apache.ambari.server.topology.validators.ClusterConfigTypeValidator;
+import org.apache.ambari.server.topology.validators.HiveServiceValidator;
 import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,7 +198,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
     }
 
-    topologyValidators = ImmutableList.of(new RequiredPasswordValidator(defaultPassword), new ClusterConfigTypeValidator());
+    topologyValidators = ImmutableList.of(new RequiredPasswordValidator(defaultPassword),
+      new ClusterConfigTypeValidator(), new HiveServiceValidator());
   }
 
   private String processQuickLinksProfile(Map<String, Object> properties) throws QuickLinksProfileEvaluationException {
