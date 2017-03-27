@@ -17,7 +17,7 @@ package org.apache.ambari.server.topology.validators;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.topology.Blueprint;
@@ -41,12 +41,8 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
 
-
   @Mock
   private Configuration clusterConfigurationMock;
-
-  @Mock
-  private Map<String, Map<String, String>> clusterConfigurationMapMock;
 
   @Mock
   private Blueprint blueprintMock;
@@ -57,13 +53,14 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   @Mock
   private ClusterTopology clusterTopologyMock;
 
+  private Set<String> clusterRequestConfigTypes;
+
   @TestSubject
   private ClusterConfigTypeValidator clusterConfigTypeValidator = new ClusterConfigTypeValidator();
 
   @Before
   public void before() {
     EasyMock.expect(clusterTopologyMock.getConfiguration()).andReturn(clusterConfigurationMock).anyTimes();
-    EasyMock.expect(clusterConfigurationMock.getProperties()).andReturn(clusterConfigurationMapMock).anyTimes();
 
     EasyMock.expect(clusterTopologyMock.getBlueprint()).andReturn(blueprintMock).anyTimes();
     EasyMock.expect(blueprintMock.getStack()).andReturn(stackMock).anyTimes();
@@ -76,19 +73,27 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
 
 
   @Test
-  public void testShouldValidationPassIfNoConfigTypesSpecifiedInCCTemplate() throws Exception {
-    //GIVEN
-    EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(Collections.<String>emptySet());
+  public void testShouldValidationPassWhenNoConfigTypesSpecifiedInCCTemplate() throws Exception {
+    // GIVEN
+    clusterRequestConfigTypes = Collections.<String>emptySet();
+    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
+
     replayAll();
 
-    //WHEN
+    // WHEN
     clusterConfigTypeValidator.validate(clusterTopologyMock);
+
+    // THEN
   }
 
-  @Test(expected = InvalidTopologyException.class)
-  public void testShouldValidationFailWhenInvalidConfigGroupsSpecifiedInCCTemplate() throws Exception {
-    // given
-    EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(new HashSet<String>(Arrays.asList("oozie-site")));
+
+  @Test
+  public void testShouldValidationPassWhenAllConfigTypesAreValid() throws Exception {
+    // GIVEN
+    // all the config types are OK
+    clusterRequestConfigTypes = new HashSet<String>(Arrays.asList("core-site", "yarn-site"));
+    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
+
     EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
@@ -96,18 +101,43 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
 
     replayAll();
 
-    //when
+    // WHEN
     clusterConfigTypeValidator.validate(clusterTopologyMock);
 
-    // then
+    // THEN
+    // Exception is thrown
+
+  }
+
+  @Test(expected = InvalidTopologyException.class)
+  public void testShouldValidationFailWhenInvalidConfigGroupsSpecifiedInCCTemplate() throws Exception {
+    // GIVEN
+
+    // the config type that is not present in the stack definition for services
+    clusterRequestConfigTypes = new HashSet<String>(Arrays.asList("oozie-site"));
+    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
+
+    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
+    EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
+
+    replayAll();
+
+    // WHEN
+    clusterConfigTypeValidator.validate(clusterTopologyMock);
+
+    // THEN
     // Exception is thrown
   }
 
 
   @Test(expected = InvalidTopologyException.class)
-  public void testShouldValidationFailWhenInvalidConfigGroupProvided() throws Exception {
-    // given
-    EasyMock.expect(clusterConfigurationMapMock.keySet()).andReturn(new HashSet<String>(Arrays.asList("core-site", "yarn-site", "oozie-site")));
+  public void testShouldValidationFailWhenThereIsAnInvalidConfigGroupProvided() throws Exception {
+    // GIVEN
+    // oozzie-type is wrong!
+    clusterRequestConfigTypes = new HashSet<String>(Arrays.asList("core-site", "yarn-site", "oozie-site"));
+    EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
+
     EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
@@ -115,10 +145,10 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
 
     replayAll();
 
-    //when
+    // WHEN
     clusterConfigTypeValidator.validate(clusterTopologyMock);
 
-    // then
+    // THEN
     // Exception is thrown
   }
 

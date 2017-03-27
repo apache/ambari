@@ -33,21 +33,11 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
-    if (topology.getConfiguration() == null) {
-      LOGGER.debug("No configuration is set into the topology");
-      return;
-    }
-
-    if (topology.getConfiguration().getProperties() == null) {
-      LOGGER.debug("No properties is set into the topology configuration");
-      return;
-    }
-
-    // config types in from the request
+    // config types in from the request / configuration is always set in the request instance
     Set<String> topologyClusterConfigTypes = new HashSet(topology.getConfiguration().getAllConfigTypes());
     LOGGER.debug("Cluster config types: {}", topologyClusterConfigTypes);
 
-    if (topologyClusterConfigTypes == null || topologyClusterConfigTypes.isEmpty()) {
+    if (topologyClusterConfigTypes.isEmpty()) {
       LOGGER.debug("No config types to be checked.");
       return;
     }
