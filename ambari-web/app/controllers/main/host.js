@@ -343,7 +343,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
     if (this.get('isCountersUpdating')) {
       App.ajax.send({
-        name: 'host.status.counters',
+        name: 'host.status.total_count',
         sender: this,
         data: {},
         success: 'updateStatusCountersSuccessCallback',
@@ -364,12 +364,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   updateStatusCountersSuccessCallback: function (data) {
     var hostsCountMap = {
-      'HEALTHY': data.Clusters.health_report['Host/host_status/HEALTHY'],
-      'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
-      'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
-      'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
-      'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
-      'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
       'TOTAL': data.Clusters.total_hosts
     };
 
