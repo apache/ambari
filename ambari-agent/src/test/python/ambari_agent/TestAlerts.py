@@ -35,7 +35,7 @@ from ambari_agent.alerts.script_alert import ScriptAlert
 from ambari_agent.alerts.web_alert import WebAlert
 from ambari_agent.alerts.recovery_alert import RecoveryAlert
 from ambari_agent.apscheduler.scheduler import Scheduler
-from ambari_agent.ClusterConfiguration import ClusterConfiguration
+from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 
 from collections import namedtuple
@@ -1288,7 +1288,7 @@ class TestAlerts(TestCase):
     """
     with patch("__builtin__.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
-      cluster_configuration = ClusterConfiguration("")
+      cluster_configuration = ClusterConfigurationCache("/tmp/test_cache")
       return cluster_configuration
 
 
@@ -1301,7 +1301,7 @@ class TestAlerts(TestCase):
     :return:
     """
     osfdopen_mock.side_effect = self.osfdopen_side_effect
-    cluster_configuration._update_configurations("c1", configuration)
+    cluster_configuration.update_cache("c1", configuration)
 
 
   def open_side_effect(self, file, mode):

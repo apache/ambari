@@ -78,12 +78,12 @@ class BaseAlert(object):
     return self.alert_meta['uuid']
 
 
-  def set_helpers(self, collector, cluster_configuration):
+  def set_helpers(self, collector, cluster_configuration_cache):
     """
     sets helper objects for alerts without having to use them in a constructor
     """
     self.collector = collector
-    self.cluster_configuration = cluster_configuration
+    self.cluster_configuration_cache = cluster_configuration_cache
 
 
   def set_cluster(self, cluster_name, host_name):
@@ -215,7 +215,7 @@ class BaseAlert(object):
     # for every match, get its configuration value and replace it in the key
     resolved_key = key
     for placeholder_key in placeholder_keys:
-      value = self.cluster_configuration.get_configuration_value(
+      value = self.cluster_configuration_cache.get_configuration_value(
         self.cluster_name, placeholder_key)
 
       # if any of the placeholder keys is missing from the configuration, then

@@ -39,7 +39,7 @@ class FileCache():
   downloads relevant files from the server.
   """
 
-  CLUSTER_CONFIGURATION_CACHE_DIRECTORY="cluster_configuration"
+  CLUSTER_CACHE_DIRECTORY="cluster_cache"
   ALERTS_CACHE_DIRECTORY="alerts"
   RECOVERY_CACHE_DIRECTORY="recovery"
   STACKS_CACHE_DIRECTORY="stacks"

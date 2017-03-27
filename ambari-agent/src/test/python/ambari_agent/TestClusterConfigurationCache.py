@@ -21,7 +21,7 @@ limitations under the License.
 import os
 import sys
 
-from ambari_agent.ClusterConfiguration import ClusterConfiguration
+from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 
 from mock.mock import MagicMock, patch, mock_open, ANY
 from unittest import TestCase
@@ -46,9 +46,9 @@ class TestClusterConfigurationCache(TestCase):
     open_mock = mock_open(read_data=configuration_json)
 
     with patch("__builtin__.open", open_mock):
-      cluster_configuration = ClusterConfiguration(os.path.join(os.sep, "foo", "bar", "baz"))
+      cluster_configuration = ClusterConfigurationCache(os.path.join(os.sep, "tmp", "bar", "baz"))
 
-    open_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json", 'r')
+    open_mock.assert_called_with(os.sep + "tmp" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json", 'r')
 
     self.assertEqual('bar', cluster_configuration.get_configuration_value('c1', 'foo-site/foo') )
     self.assertEqual('baz', cluster_configuration.get_configuration_value('c1', 'foo-site/foobar') )
@@ -68,7 +68,7 @@ class TestClusterConfigurationCache(TestCase):
     }
 
     osopen_mock, osfdopen_mock = self.__update_cluster_configuration(cluster_configuration, configuration)
-    osopen_mock.assert_called_with(os.sep + "foo" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json",
+    osopen_mock.assert_called_with(os.sep + "tmp" + os.sep + "bar" + os.sep + "baz" + os.sep + "configurations.json",
                                    TestClusterConfigurationCache.o_flags,
                                    TestClusterConfigurationCache.perms);
     osfdopen_mock.assert_called_with(11, "w")
@@ -84,7 +84,7 @@ class TestClusterConfigurationCache(TestCase):
     """
     with patch("__builtin__.open") as open_mock:
       open_mock.side_effect = self.open_side_effect
-      cluster_configuration = ClusterConfiguration(os.path.join(os.sep, "foo", "bar", "baz"))
+      cluster_configuration = ClusterConfigurationCache(os.path.join(os.sep, "tmp", "bar", "baz"))
       return cluster_configuration
 
 
@@ -97,7 +97,7 @@ class TestClusterConfigurationCache(TestCase):
     :return:
     """
     osopen_mock.return_value = 11
-    cluster_configuration._update_configurations("c1", configuration)
+    cluster_configuration.update_cache("c1", configuration)
 
     return osopen_mock, osfdopen_mock
 
