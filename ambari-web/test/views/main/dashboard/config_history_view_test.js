@@ -104,6 +104,7 @@ describe('App.MainConfigHistoryView', function() {
       sinon.stub(App.ServiceConfigVersion, 'find').returns([
         Em.Object.create({groupName: 'G1'}),
         Em.Object.create({groupName: 'G1'}),
+        Em.Object.create({groupName: 'Default'}),
         Em.Object.create({groupName: null})
       ]);
     });
@@ -113,12 +114,16 @@ describe('App.MainConfigHistoryView', function() {
     it("content", function () {
       expect(subView.get('content')).to.eql([
         {
-          "value": "",
-          "label": Em.I18n.t('common.all')
+          value: '',
+          label: Em.I18n.t('common.all')
         },
         {
-          "value": "G1",
-          "label": "G1"
+          value: 'G1',
+          label: 'G1'
+        },
+        {
+          value: 'Default',
+          label: 'Default'
         }
       ]);
     });
