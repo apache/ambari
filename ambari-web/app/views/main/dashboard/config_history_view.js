@@ -131,22 +131,12 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     column: 2,
     fieldType: 'filter-input-width',
     content: function () {
-      var groupName = App.ServiceConfigVersion.find().mapProperty('groupName').uniq();
-      if (groupName.indexOf(null) > -1) {
-        groupName.splice(groupName.indexOf(null), 1);
-      }
       return [
-        {
-          value: '',
-          label: Em.I18n.t('common.all')
-        }
-      ].concat(groupName.map(function (item) {
-        return {
-          value: item,
-          label: item
-        }
+        {value: '', label: Em.I18n.t('common.all') }
+      ].concat(App.ServiceConfigVersion.find().mapProperty('groupName').uniq().compact().map(item => {
+        return { value: item, label: item }
       }));
-    }.property('parentView.isInitialRendering'),
+    }.property('parentView.isInitialRendering', 'controller.content.[]'),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }

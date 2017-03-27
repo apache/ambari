@@ -2296,6 +2296,7 @@ describe('App.WizardStep8Controller', function () {
         getDBProperty: function(key) {
           if (key === 'kerberosDescriptorConfigs') return 1234;
           if (key === 'isClusterDescriptorExists') return true;
+          return App.db.get(this.get('dbNamespace'), key);
         }
       }));
     });
