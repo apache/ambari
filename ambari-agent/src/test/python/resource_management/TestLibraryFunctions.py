@@ -31,5 +31,6 @@ class TestLibraryFunctions(TestCase):
     self.assertEqual("8080",get_port_from_url("host:8080/dots_in_url8888:"))
     self.assertEqual("8080",get_port_from_url("protocol://host:8080/dots_in_url8888:"))
     self.assertEqual("8080",get_port_from_url("127.0.0.1:8080"))
+    self.assertEqual("8042",get_port_from_url("8042"))
     self.assertRaises(Fail, get_port_from_url, "http://host/no_port")
     self.assertRaises(Fail, get_port_from_url, "127.0.0.1:808080")
