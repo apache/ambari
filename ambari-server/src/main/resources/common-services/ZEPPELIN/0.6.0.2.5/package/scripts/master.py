@@ -171,8 +171,23 @@ class Master(Script):
               configuration_attributes=params.config['configuration_attributes']['hbase-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
-              mode=0644
-              )
+              mode=0644)
+
+      XmlConfig("hdfs-site.xml",
+                conf_dir=params.external_dependency_conf,
+                configurations=params.config['configurations']['hdfs-site'],
+                configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+                owner=params.zeppelin_user,
+                group=params.zeppelin_group,
+                mode=0644)
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.external_dependency_conf,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.zeppelin_user,
+                group=params.zeppelin_group,
+                mode=0644)
 
   def stop(self, env, upgrade_type=None):
     import params
