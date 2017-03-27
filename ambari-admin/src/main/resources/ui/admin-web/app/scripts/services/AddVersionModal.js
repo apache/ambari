@@ -59,7 +59,7 @@ angular.module('ambariAdminConsole')
             index: 2,
             displayName: $t('versions.enterURL'),
             url: "",
-            placeholder: "Enter URL to Version Definition File"
+            placeholder: $t('versions.URLPlaceholder')
           };
           $scope.readInfoButtonDisabled = function () {
             return $scope.option1.index == $scope.selectedLocalOption.index ? !$scope.option1.file : !$scope.option2.url;

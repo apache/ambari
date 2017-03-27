@@ -21,7 +21,7 @@ angular.module('ambariAdminConsole')
 .controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', '$translate', 'RoleDetailsModal', '$timeout', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver, $translate, RoleDetailsModal, $timeout) {
   var $t = $translate.instant;
   $scope.getConstant = function (key) {
-    return $t('common.' + key).toLowerCase();
+    return $t(key).toLowerCase();
   };
   $scope.identity = angular.identity;
   function reloadClusterData(){

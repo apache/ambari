@@ -91,7 +91,7 @@ angular.module('ambariAdminConsole')
 
       })
       .catch(function(data) {
-        console.error('Error in fetching remote clusters.', data);
+        console.error($t('remoteClusters.alerts.fetchError'), data);
       });
   };
 

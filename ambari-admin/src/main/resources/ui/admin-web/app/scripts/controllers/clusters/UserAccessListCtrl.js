@@ -72,7 +72,7 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         var privilege = $scope.pickEffectivePrivilege(user.privileges);
         // Redefine principal_name and principal type in case of None
         privilege.principal_name = user.Users? user.Users.user_name : user.Groups.group_name;
-        if (privilege.permission_label === "None") {
+        if (privilege.permission_label === $t('users.roles.none')) {
           privilege.principal_type = user.Users ? 'USER' : 'GROUP';
         }
         var name = encodeURIComponent(privilege.principal_name);
