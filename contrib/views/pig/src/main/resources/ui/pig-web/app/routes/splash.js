@@ -42,9 +42,9 @@ App.SplashRoute = Em.Route.extend({
     var self = this;
     controller.fetchServiceCheckPolicy()
       .then(function(data){
-        let numberOfChecks = 0;
-        let serviceCheckPolicy = data.serviceCheckPolicy;
-        for (let serviceCheck in serviceCheckPolicy) {
+        var numberOfChecks = 0;
+        var serviceCheckPolicy = data.serviceCheckPolicy;
+        for (var serviceCheck in serviceCheckPolicy) {
           if (serviceCheckPolicy[serviceCheck] === true) {
             numberOfChecks++;
           }
@@ -54,7 +54,7 @@ App.SplashRoute = Em.Route.extend({
         controller.startTests(model).then(function () {
           if (model.get("storageTest") && model.get("webhcatTest") && model.get("hdfsTest") && model.get("userhomeTest")) {
             Ember.run.later(this, function () {
-              let previousTransition = App.get('previousTransition');
+              var previousTransition = App.get('previousTransition');
               if (previousTransition) {
                 previousTransition.retry();
               } else {
