@@ -383,6 +383,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       inputFields.set(key + '.value', inputFields.get(key + '.defaultValue'));
     });
     inputFields.set('severityFilter.value', ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']);
+    inputFields.set('customProperties',Em.A([]));
     this.showCreateEditPopup(false);
   },
 
