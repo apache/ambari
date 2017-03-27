@@ -54,7 +54,7 @@ App.SplashRoute = Em.Route.extend({
         controller.startTests(model).then(function () {
           if (model.get("storageTest") && model.get("webhcatTest") && model.get("hdfsTest") && model.get("userhomeTest")) {
             Ember.run.later(this, function () {
-              previousTransition = App.get('previousTransition');
+              let previousTransition = App.get('previousTransition');
               if (previousTransition) {
                 previousTransition.retry();
               } else {
