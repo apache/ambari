@@ -856,7 +856,6 @@ describe('App.clusterController', function () {
       sinon.stub(App.router.get('mainController'), 'startPolling');
       sinon.stub(App.router.get('userSettingsController'), 'getAllUserSettings');
       sinon.stub(App.router.get('errorsHandlerController'), 'loadErrorLogs');
-      sinon.stub(App.router.get('mainHostController'), 'updateStatusCounters');
       sinon.stub(App.router.get('wizardWatcherController'), 'getUser');
       sinon.stub(App.db, 'setFilterConditions');
       sinon.stub(App.router.get('updateController'), 'updateClusterEnv');
@@ -867,7 +866,6 @@ describe('App.clusterController', function () {
       App.router.get('updateController').updateClusterEnv.restore();
       App.db.setFilterConditions.restore();
       App.router.get('wizardWatcherController').getUser.restore();
-      App.router.get('mainHostController').updateStatusCounters.restore();
       App.router.get('errorsHandlerController').loadErrorLogs.restore();
       App.router.get('userSettingsController').getAllUserSettings.restore();
       App.router.get('mainController').startPolling.restore();
@@ -902,11 +900,6 @@ describe('App.clusterController', function () {
     it('loadErrorLogs should be called', function() {
       controller.loadClusterData();
       expect(App.router.get('errorsHandlerController').loadErrorLogs.calledOnce).to.be.true;
-    });
-
-    it('updateStatusCounters should be called', function() {
-      controller.loadClusterData();
-      expect(App.router.get('mainHostController').updateStatusCounters.calledOnce).to.be.true;
     });
 
     it('loadClusterInfo should be called', function() {
