@@ -33,7 +33,7 @@
           <span class="bottom-margin admin-filter glyphicon glyphicon-flash" 
             ng-class="{'no-filter' : !adminFilter}" 
             ng-click="toggleAdminFilter()"
-            tooltip="{{'users.' + (adminFilter ? 'showAll' : 'showAdmin') | translate}}"
+            tooltip="{{(adminFilter ? 'users.showAll' : 'users.showAdmin') | translate}}"
           ></span>
         </th>
         <th>
@@ -71,7 +71,7 @@
            <a href="#/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
         </td>
         <td>{{user.Users.userTypeName}}</td>
-        <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{'users.' + (user.Users.active ? 'active' : 'inactive') | translate}}</span></td>
+        <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{(user.Users.active ? 'users.active' : 'users.inactive') | translate}}</span></td>
       </tr>
     </tbody>
   </table>

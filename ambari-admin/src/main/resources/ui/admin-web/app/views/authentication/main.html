@@ -66,7 +66,7 @@
       <div class="form-group">
         <label for="trust-store" class="control-label col-sm-4">{{'authentication.connectivity.trustStore.label' | translate}}</label>
         <div class="col-sm-3">
-          <select class="form-control" id="trust-store" ng-model="connectivity.trustStore" ng-options="t('authentication.connectivity.trustStore.options.' + item) for item in connectivity.trustStoreOptions"></select>
+          <select class="form-control" id="trust-store" ng-model="connectivity.trustStore" ng-options="t(item) for item in connectivity.trustStoreOptions"></select>
         </div>
       </div>
       <div ng-show="connectivity.trustStore === 'custom'">
@@ -79,7 +79,7 @@
         <div class="form-group">
           <label for="trust-store-type" class="control-label col-sm-4">{{'authentication.connectivity.trustStoreType.label' | translate}}</label>
           <div class="col-sm-3">
-            <select class="form-control" id="trust-store-type" ng-model="connectivity.trustStoreType" ng-options="t('authentication.connectivity.trustStoreType.options.' + item) for item in connectivity.trustStoreTypeOptions"></select>
+            <select class="form-control" id="trust-store-type" ng-model="connectivity.trustStoreType" ng-options="t(item) for item in connectivity.trustStoreTypeOptions"></select>
           </div>
         </div>
         <div class="form-group">

@@ -44,7 +44,7 @@ angular.module('ambariAdminConsole')
         if (msie > 0)
           return !!parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)));
 
-        // If Internet Explorer 11 handling differently becaue UserAgent string updated by Microsoft
+        // If Internet Explorer 11 handling differently because UserAgent string updated by Microsoft
         else if (!!navigator.userAgent.match(/Trident\/7\./))
           return true;
         else

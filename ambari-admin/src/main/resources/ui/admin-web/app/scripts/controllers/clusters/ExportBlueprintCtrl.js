@@ -18,11 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ExportBlueprintCtrl', ['$scope', '$http', '$location', 'Cluster', '$routeParams', 'Alert', '$translate', '$timeout', function($scope, $http, $location, Cluster, $routeParams, Alert, $translate, $timeout) {
+.controller('ExportBlueprintCtrl', ['$scope', '$http', '$location', 'Cluster', '$routeParams', '$translate', function($scope, $http, $location, Cluster, $routeParams, $translate) {
   var $t = $translate.instant;
-  $scope.getConstant = function (key) {
-    return $t('common.' + key).toLowerCase();
-  };
   $scope.identity = angular.identity;
 
   $scope.isDataLoaded = false;
@@ -32,7 +29,7 @@ angular.module('ambariAdminConsole')
     Cluster.getBlueprint({
       clusterName: $scope.clusterName
     }).then(function(data) {
-      console.debug("Data loaded...", data);
+      console.debug($t('exportBlueprint.dataLoaded'), data);
       $scope.isDataLoaded = true;
       var response = JSON.stringify(data, null, 4),
         lt = /&lt;/g,
