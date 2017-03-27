@@ -99,9 +99,9 @@ export default Ember.Route.extend({
 
     this.fetchServiceCheckPolicy()
       .then((data) => {
-        var numberOfChecks = 0;
-        var serviceCheckPolicy = data.serviceCheckPolicy;
-        for (var serviceCheck in serviceCheckPolicy) {
+        let numberOfChecks = 0;
+        let serviceCheckPolicy = data.serviceCheckPolicy;
+        for (let serviceCheck in serviceCheckPolicy) {
           if (serviceCheckPolicy[serviceCheck] === true) {
             numberOfChecks++;
           }
@@ -121,7 +121,7 @@ export default Ember.Route.extend({
   },
 
   fetchServiceCheckPolicy: function(){
-    var adapter = this.container.lookup('adapter:service-check');
+    let adapter = this.container.lookup('adapter:service-check');
     return adapter.fetchServiceCheckPolicy();
   },
   actions: {
