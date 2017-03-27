@@ -117,10 +117,10 @@
           Will only be written to the local file system if Atlas is present. -->
           <definition xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs">
             <type>sqoop-atlas-application.properties</type>
-            <set key="atlas.jaas.KafkaClient.option.useTicketCache" value="true" 
+            <set key="atlas.jaas.KafkaClient.option.useTicketCache" value="true"
               if-type="cluster-env" if-key="security_enabled" if-value="true"/>
 
-            <set key="atlas.jaas.KafkaClient.option.renewTicket" value="true" 
+            <set key="atlas.jaas.KafkaClient.option.renewTicket" value="true"
               if-type="cluster-env" if-key="security_enabled" if-value="true"/>
           </definition>
         </changes>
@@ -132,7 +132,7 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_6_0_0_pig_use_tez">
             <type>pig-properties</type>
-            <replace key="exectype" find="exectype=mapreduce" replace-with="exectype=tez" />
+            <regex-replace key="content" find=" *#* *exectype=(\w+)" replace-with="exectype=tez" />
           </definition>
         </changes>
       </component>
@@ -278,8 +278,8 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag">
-            <type>ranger-env</type>            
-            <set key="is_external_solrCloud_enabled" value="true" 
+            <type>ranger-env</type>
+            <set key="is_external_solrCloud_enabled" value="true"
               if-type="ranger-env" if-key="is_solrCloud_enabled" if-value="true"/>
           </definition>
 
