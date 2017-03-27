@@ -230,7 +230,7 @@ def setup_unlimited_key_jce_policy():
     Logger.debug("Skipping unlimited key JCE policy check and setup since it is not required")
 
   else:
-    jcePolicyInfo = JcePolicyInfo(java_exec=params.java_exec, java_home=params.java_home)
+    jcePolicyInfo = JcePolicyInfo(params.java_home)
 
     if jcePolicyInfo.is_unlimited_key_jce_policy():
       Logger.info("The unlimited key JCE policy is required, and appears to have been installed.")
