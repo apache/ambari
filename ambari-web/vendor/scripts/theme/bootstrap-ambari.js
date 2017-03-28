@@ -30,6 +30,7 @@ $(document).ready(function () {
     var settings = $.extend({}, $.fn.navigationBar.defaults, options);
 
     return this.each(function () {
+      var _this = this;
 
       var containerSelector = '.navigation-bar-container';
       var $navigationContainer = $(this).find(containerSelector);
@@ -48,10 +49,10 @@ $(document).ready(function () {
         $(this).addClass('navigation-bar-fit-height');
 
         // make scrolling effect on side nav ONLY, i.e. not effected on ambari main contents
-        $(this).find('.side-nav-menu').on('DOMMouseScroll mousewheel', function(ev) {
+        $(this).find('.side-nav-menu').on('DOMMouseScroll mousewheel', function (ev) {
           var $this = $(this),
-            scrollTop = (this).scrollTop,
-            scrollHeight = (this).scrollHeight,
+            scrollTop = this.scrollTop,
+            scrollHeight = this.scrollHeight,
             height = $this.innerHeight(),
             delta = ev.originalEvent.wheelDelta,
             up = delta > 0;
@@ -177,7 +178,9 @@ $(document).ready(function () {
       $dropdownMenu.on('click', function () {
         // some action was triggered, should hide this icon
         var moreIcon = $(this).parent();
-        setTimeout(function(){ moreIcon.hide(); }, 1000);
+        setTimeout(function () {
+          moreIcon.hide();
+        }, 1000);
       });
       $navigationContainer.children('.side-nav-menu').scroll(function () {
         $moreActions.removeClass('open');
@@ -199,6 +202,16 @@ $(document).ready(function () {
             // set the hover effect when collapsed, should show sub-menu on hovering
             $subMenuItems.hover(function () {
               $(this).find(subMenuSelector).show();
+              // set sub-menu position
+              var $parent = $(this);
+              var $header = $('.side-nav-header');
+              if (settings.fitHeight) {
+                $(this).find(subMenuSelector).css({
+                  position: 'fixed',
+                  top: $parent.offset().top - $header.offset().top + 'px',
+                  left: 50 + 'px'
+                });
+              }
             }, function () {
               $(this).find(subMenuSelector).hide();
             });
@@ -209,6 +222,14 @@ $(document).ready(function () {
             });
             $subMenuItems.unbind('mouseenter mouseleave');
             $navigationContainer.find('.toggle-icon').removeClass(settings.menuLeftClass).addClass(settings.menuDownClass);
+            // set sub-menu position
+            if (settings.fitHeight) {
+              $(_this).find(subMenuSelector).css({
+                position: 'relative',
+                top: 0,
+                left: 0
+              });
+            }
           }
 
           //set main content left margin based on the width of side-nav

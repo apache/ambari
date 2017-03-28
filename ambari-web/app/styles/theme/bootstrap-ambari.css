@@ -1092,10 +1092,6 @@ input.radio:checked + label:after {
   top: 0;
   left: 50px;
 }
-.navigation-bar-container.collapsed ul.nav.side-nav-menu li:hover ul.sub-menu,
-.navigation-bar-container.collapsed ul.nav.side-nav-footer li:hover ul.sub-menu {
-  display: block;
-}
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li > a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li > a {
   padding: 10px 5px 10px 25px;
@@ -1166,7 +1162,7 @@ input.radio:checked + label:after {
 .navigation-bar-fit-height .navigation-bar-container {
   height: 100%;
 }
-.navigation-bar-fit-height .navigation-bar-container:not(.collapsed) .side-nav-menu {
+.navigation-bar-fit-height .navigation-bar-container .side-nav-menu {
   overflow-y: auto;
 }
 .notifications-group {
