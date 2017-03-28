@@ -18,17 +18,6 @@
 
 import Ember from 'ember';
 
-const columnStatsKeys = [
-  {dataKey: 'min', label: 'MIN'},
-  {dataKey: 'max', label: 'MAX'},
-  {dataKey: 'numNulls', label: 'NUMBER OF NULLS'},
-  {dataKey: 'distinctCount', label: 'DISTINCT COUNT'},
-  {dataKey: 'avgColLen', label: 'AVERAGE COLUMN LENGTH'},
-  {dataKey: 'maxColLen', label: 'MAX COLUMN LENGTH'},
-  {dataKey: 'numTrues', label: 'NUMBER OF TRUE'},
-  {dataKey: 'numFalse', label: 'NUMBER OF FALSE'},
-  ];
-
 export default Ember.Service.extend({
   jobs: Ember.inject.service(),
   store: Ember.inject.service(),
@@ -68,9 +57,7 @@ export default Ember.Service.extend({
   fetchColumnStatsResult(databaseName, tableName, columnName, job) {
     return this.get('store').adapterFor('table').fetchColumnStats(databaseName, tableName, columnName, job.get('id')).then((data) => {
       let columnStats = data.columnStats;
-      return columnStatsKeys.map((item) => {
-        return {label: item.label, value: columnStats[item.dataKey]};
-      });
+      return columnStats;
     });
   }
 });

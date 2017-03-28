@@ -23,6 +23,7 @@ import org.apache.ambari.view.hive20.actor.message.GetColumnMetadataJob;
 import org.apache.hive.jdbc.HiveConnection;
 import org.apache.hive.jdbc.HiveStatement;
 
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -31,6 +32,9 @@ public interface ConnectionDelegate {
   Optional<ResultSet> execute(String statement) throws SQLException;
   Optional<ResultSet> execute(HiveConnection connection, String statement) throws SQLException;
   ResultSet getColumnMetadata(HiveConnection connection, GetColumnMetadataJob job) throws SQLException;
+
+  DatabaseMetaData getDatabaseMetadata(HiveConnection connection) throws SQLException;
+
   void cancel() throws SQLException;
   void closeResultSet();
   void closeStatement();
