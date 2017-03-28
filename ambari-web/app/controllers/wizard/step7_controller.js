@@ -375,7 +375,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         for (var prop in config.properties) {
           var fileName = App.config.getOriginalFileName(config.type);
           var serviceConfig = serviceConfigs.filterProperty('name', prop).findProperty('filename', fileName);
-          if (serviceConfig) {
+          if (serviceConfig && serviceConfig.get('isOriginalSCP')) {
             var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
             var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
 
@@ -1172,7 +1172,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           var modelGroup = App.ServiceConfigGroup.find(item.id);
           modelGroup.set('properties', []);
           item.properties.forEach(function (propertyData) {
-            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
+            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).filterProperty('isOriginalSCP').findProperty('name', propertyData.name);
             if (parentSCP) {
               App.config.createOverride(parentSCP, propertyData, modelGroup)
             } else {
