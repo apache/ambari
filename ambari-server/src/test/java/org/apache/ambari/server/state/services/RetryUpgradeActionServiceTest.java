@@ -108,10 +108,12 @@ public class RetryUpgradeActionServiceTest {
    * Case 4: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that
    * does NOT meet conditions to be retried => no-op
    * Case 5: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that
-   * DOES meet conditions to be retried => retries the task
-   * Case 6: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that
+   * DOES meet conditions to be retried and has values for start time and original start time => retries the task
+   * * Case 6: Cluster with an active upgrade that contains a failed task in HOLDING_TIMEDOUT that
+   * DOES meet conditions to be retriedand does not have values for start time or original start time => retries the task
+   * Case 7: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that
    * was already retried and has now expired => no-op
-   * Case 7: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED, but it is a critical task
+   * Case 8: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED, but it is a critical task
    * during Finalize Cluster, which should not be retried => no-op
    * @throws Exception
    */
@@ -184,7 +186,23 @@ public class RetryUpgradeActionServiceTest {
     // Ensure that task 2 transitioned from HOLDING_FAILED to PENDING
     Assert.assertEquals(HostRoleStatus.PENDING, hostRoleCommandDAO.findByPK(hrc2.getTaskId()).getStatus());
 
-    // Case 6: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that was already retried and has now expired.
+    // Case 6: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that DOES meet conditions to be retried.
+    hrc2.setStatus(HostRoleStatus.HOLDING_TIMEDOUT);
+    hrc2.setRetryAllowed(true);
+    hrc2.setOriginalStartTime(-1L);
+    hrc2.setStartTime(-1L);
+    hrc2.setLastAttemptTime(-1L);
+    hrc2.setEndTime(-1L);
+    hrc2.setAttemptCount((short) 0);
+    hostRoleCommandDAO.merge(hrc2);
+
+    // Run the service
+    service.runOneIteration();
+
+    // Ensure that task 2 transitioned from HOLDING_TIMEDOUT to PENDING
+    Assert.assertEquals(HostRoleStatus.PENDING, hostRoleCommandDAO.findByPK(hrc2.getTaskId()).getStatus());
+    
+    // Case 7: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that was already retried and has now expired.
     now = System.currentTimeMillis();
     hrc2.setOriginalStartTime(now - (timeoutMins * 60000) - 1);
     hrc2.setStatus(HostRoleStatus.HOLDING_FAILED);
@@ -195,7 +213,7 @@ public class RetryUpgradeActionServiceTest {
 
     Assert.assertEquals(HostRoleStatus.HOLDING_FAILED, hostRoleCommandDAO.findByPK(hrc2.getTaskId()).getStatus());
 
-    // Case 7: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED, but it is a critical task
+    // Case 8: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED, but it is a critical task
     // during Finalize Cluster, which should not be retried.
     now = System.currentTimeMillis();
     hrc2.setOriginalStartTime(now);
