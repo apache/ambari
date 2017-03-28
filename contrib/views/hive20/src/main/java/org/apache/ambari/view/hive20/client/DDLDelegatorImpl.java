@@ -29,6 +29,7 @@ import org.apache.ambari.view.hive20.actor.message.ExecuteJob;
 import org.apache.ambari.view.hive20.actor.message.GetColumnMetadataJob;
 import org.apache.ambari.view.hive20.actor.message.HiveJob;
 import org.apache.ambari.view.hive20.actor.message.SQLStatementJob;
+import org.apache.ambari.view.hive20.actor.message.job.AuthenticationFailed;
 import org.apache.ambari.view.hive20.actor.message.job.ExecutionFailed;
 import org.apache.ambari.view.hive20.actor.message.job.FetchFailed;
 import org.apache.ambari.view.hive20.actor.message.job.Next;
@@ -230,6 +231,10 @@ public class DDLDelegatorImpl implements DDLDelegator {
       LOG.error("Failed to get the table description");
       throw new ServiceFormattedException(error.getMessage(), error.getError());
 
+    } else if (submitResult instanceof AuthenticationFailed) {
+      AuthenticationFailed exception = (AuthenticationFailed) submitResult;
+      LOG.error("Failed to connect to Hive", exception.getMessage());
+      throw new ServiceFormattedException(exception.getMessage(), exception.getError(), 401);
     } else if (submitResult instanceof ResultSetHolder) {
       ResultSetHolder holder = (ResultSetHolder) submitResult;
       ActorRef iterator = holder.getIterator();

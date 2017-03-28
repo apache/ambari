@@ -25,6 +25,14 @@ export default Ember.Controller.extend({
   atsError: null,
   hiveError: null,
 
+  reset() {
+    this.set('hdfsError');
+    this.set('userHomeError');
+    this.set('atsError');
+    this.set('hiveError');
+
+  },
+
   progressStyle: Ember.computed('serviceCheck.percentCompleted', function() {
     let percentCompleted = this.get('serviceCheck.percentCompleted');
     return `width: ${percentCompleted}%;`;

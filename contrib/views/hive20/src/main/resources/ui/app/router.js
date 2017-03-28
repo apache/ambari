@@ -26,6 +26,7 @@ const Router = Ember.Router.extend({
 
 Router.map(function() {
   this.route('service-check');
+  this.route('password');
 
   this.route('jobs');
   this.route('udfs', function() {

@@ -21,8 +21,11 @@ import ENV from 'ui/config/environment';
 
 export default Ember.Controller.extend({
   serviceCheck: Ember.inject.service(),
+  ldapAuth: Ember.inject.service(),
 
-  serviceCheckCompleted: Ember.computed('serviceCheck.transitionToApplication', function() {
+  serviceCheckCompleted: Ember.computed('serviceCheck.transitionToApplication', 'ldapAuth.passwordRequired', function() {
+    if(this.get('ldapAuth.passwordRequired'))
+      return false;
     return !ENV.APP.SHOULD_PERFORM_SERVICE_CHECK || this.get('serviceCheck.transitionToApplication');
   })
 });

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,22 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive20.actor.message.job;
+import ApplicationAdapter from './application';
 
-public class Failure extends Exception {
-  private final Throwable error;
-  private final String message;
+export default ApplicationAdapter.extend({
 
-  public Failure(String message, Throwable error) {
-    this.message = message;
-    this.error = error;
+  authenticate(password){
+    let url = this.buildURL() + '/connection/auth';
+    return this.ajax(url, 'POST', {data: {'password': password}});
   }
-
-  public Throwable getError() {
-    return error;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-}
+});
