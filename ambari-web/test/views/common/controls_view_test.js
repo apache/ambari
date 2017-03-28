@@ -979,3 +979,22 @@ describe('App.BaseUrlTextField', function () {
     });
   });
 });
+
+describe('App.ServiceConfigComponentHostsView', function () {
+
+  function getView (value, serviceConfig) {
+    return App.ServiceConfigComponentHostsView.create({
+      value: value,
+      serviceConfig: serviceConfig
+    });
+  }
+
+  App.TestAliases.testAsComputedFirstNotBlank(getView(), 'firstHost', ['value.firstObject', 'serviceConfig.value.firstObject']);
+
+  App.TestAliases.testAsComputedIfThenElseByKeys(getView(), 'formatValue', 'hasOneHost', 'value.firstObject', 'value');
+
+  App.TestAliases.testAsComputedEqual(getView(), 'hasOneHost', 'value.length', 1);
+
+  App.TestAliases.testAsComputedGt(getView(), 'hasMultipleHosts', 'value.length', 1);
+
+})
