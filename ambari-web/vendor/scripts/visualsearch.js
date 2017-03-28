@@ -613,7 +613,7 @@
                 source    : _.bind(this.autocompleteValues, this),
                 minLength : 0,
                 delay     : this.app.options.delay,
-                autoFocus : true,
+                autoFocus : false,
                 position  : {offset : "0 5"},
                 create    : _.bind(function(e, ui) {
                     $(this.el).find('.ui-autocomplete-input').css('z-index','auto');
