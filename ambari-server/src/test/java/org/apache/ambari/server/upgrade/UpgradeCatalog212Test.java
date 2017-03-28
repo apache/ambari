@@ -298,7 +298,155 @@ public class UpgradeCatalog212Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog212.class).updateHbaseAndClusterConfigurations();
     easyMockSupport.verifyAll();
+  }
 
+  @Test
+  public void testUpdateHBaseAdnClusterConfigsTrue() throws Exception {
+    setupIoCContext();
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Map<String, String> propertiesHbaseEnv = new HashMap<String, String>() {
+      {
+        put("override_hbase_uid", "true");
+      }
+    };
+
+    final Config mockHbaseEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
+    final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
+      put("override_uid", "true");
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
+
+    expect(mockClusterEnv.getProperties()).andReturn(propertiesExpectedClusterEnv).atLeastOnce();
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesExpectedHbaseEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog212.class).updateHbaseAndClusterConfigurations();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateHBaseAdnClusterConfigsNoHBaseEnv() throws Exception {
+    setupIoCContext();
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
+      put("override_uid", "false");
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnv).atLeastOnce();
+
+    expect(mockClusterEnv.getProperties()).andReturn(propertiesExpectedClusterEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog212.class).updateHbaseAndClusterConfigurations();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateHBaseAdnClusterConfigsNoOverrideHBaseUID() throws Exception {
+    setupIoCContext();
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Map<String, String> propertiesHbaseEnv = new HashMap<String, String>() {
+      {
+        put("hbase_user", "hbase");
+      }
+    };
+
+    final Config mockHbaseEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
+    final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>() {{
+      put("hbase_user", "hbase");
+    }};
+    final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
+      put("override_uid", "false");
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
+
+    expect(mockClusterEnv.getProperties()).andReturn(propertiesExpectedClusterEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog212.class).updateHbaseAndClusterConfigurations();
+    easyMockSupport.verifyAll();
   }
 
   @Test
