@@ -287,6 +287,9 @@ public class AmbariServer {
   static void setSystemProperties(Configuration configs) {
     // modify location of temporary dir to avoid using default /tmp dir
     System.setProperty("java.io.tmpdir", configs.getServerTempDir());
+    if (configs.getJavaVersion() >= 8) {
+      System.setProperty("jdk.tls.ephemeralDHKeySize", String.valueOf(configs.getTlsEphemeralDhKeySize()));
+    }
   }
 
   public static AmbariManagementController getController() {

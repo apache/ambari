@@ -2644,6 +2644,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> SERVER_STARTUP_WEB_TIMEOUT = new ConfigurationProperty<>(
     "server.startup.web.timeout", 50);
 
+  /**
+   * The Ephemeral TLS Diffie-Hellman (DH) key size.
+   * Supported from Java 8.
+   */
+  @Markdown(description = "The Ephemeral TLS Diffie-Hellman (DH) key size. Supported from Java 8.")
+  public static final ConfigurationProperty<Integer> TLS_EPHEMERAL_DH_KEY_SIZE = new ConfigurationProperty<>(
+    "security.server.tls.ephemeral_dh_key_size", 2048);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2961,6 +2969,7 @@ public class Configuration {
     configsMap.put(KDC_PORT.getKey(), getProperty(KDC_PORT));
     configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT.getKey(), getProperty(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT));
     configsMap.put(PROXY_ALLOWED_HOST_PORTS.getKey(), getProperty(PROXY_ALLOWED_HOST_PORTS));
+    configsMap.put(TLS_EPHEMERAL_DH_KEY_SIZE.getKey(), getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
 
     File passFile = new File(
         configsMap.get(SRVR_KSTR_DIR.getKey()) + File.separator
@@ -5447,6 +5456,17 @@ public class Configuration {
    */
   public int getLogSearchMetadataCacheExpireTimeout() {
     return NumberUtils.toInt(getProperty(LOGSEARCH_METADATA_CACHE_EXPIRE_TIMEOUT));
+  }
+
+  /**
+   * @return Ephemeral TLS DH key size
+   */
+  public int getTlsEphemeralDhKeySize() {
+    int keySize = NumberUtils.toInt(getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
+    if (keySize == 0) {
+      throw new IllegalArgumentException("Invalid " + TLS_EPHEMERAL_DH_KEY_SIZE + " " + getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
+    }
+    return keySize;
   }
 
   /**
