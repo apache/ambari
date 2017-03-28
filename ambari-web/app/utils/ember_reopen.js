@@ -225,7 +225,9 @@ Em.View.reopen({
     } else {
       console.debug('Calling setProperties on destroyed view');
     }
-  }
+  },
+
+  attributeBindings: ['data-qa']
 });
 
 Ember._HandlebarsBoundView.reopen({
