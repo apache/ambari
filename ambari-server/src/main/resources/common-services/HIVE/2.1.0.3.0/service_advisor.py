@@ -734,6 +734,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(HiveValidator, self)
     self.as_super.__init__(*args, **kwargs)
+    self.HIVE_INTERACTIVE_SITE = 'hive-interactive-site'
 
     self.validators = [("hive-site", self.validateHiveConfigurationsFromHDP21),
                        ("hiveserver2-site", self.validateHiveServer2ConfigurationsFromHDP22),
