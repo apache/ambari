@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive20.client;
 
 import java.util.List;
 
+import org.apache.ambari.view.hive20.exceptions.ServiceException;
 import org.apache.ambari.view.hive20.internal.dto.DatabaseInfo;
 import org.apache.ambari.view.hive20.internal.dto.TableInfo;
 
@@ -40,4 +41,6 @@ public interface DDLDelegator {
   Cursor<Row, ColumnDescription> getTableListCursor(ConnectionConfig config, String database, String like);
 
   Cursor<Row, ColumnDescription> getTableDescriptionCursor(ConnectionConfig config, String database, String table, String like, boolean extended);
+
+  DatabaseMetadataWrapper getDatabaseMetadata(ConnectionConfig config) throws ServiceException;
 }
