@@ -404,6 +404,15 @@
                 </transformer>
               </transformers>
               <outputFile>${project.build.directory}${dirsep}zkmigrator.jar</outputFile>
+              <minimizeJar>true</minimizeJar>
+              <artifactSet>
+                <includes>
+                  <include>org.apache.zookeeper:zookeeper</include>
+                  <include>commons-cli:commons-cli</include>
+                  <include>org.slf4j:*</include>
+                  <include>log4j:*</include>
+                </includes>
+              </artifactSet>
             </configuration>
           </execution>
           <execution>
