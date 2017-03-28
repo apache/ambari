@@ -168,10 +168,10 @@ public class HostRoleCommand {
     errorLog = hostRoleCommandEntity.getErrorLog();
     structuredOut = hostRoleCommandEntity.getStructuredOut() != null ? new String(hostRoleCommandEntity.getStructuredOut()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
-    startTime = hostRoleCommandEntity.getStartTime();
-    originalStartTime = hostRoleCommandEntity.getOriginalStartTime();
+    startTime = hostRoleCommandEntity.getStartTime() != null ? hostRoleCommandEntity.getStartTime() : -1L;
+    originalStartTime = hostRoleCommandEntity.getOriginalStartTime() != null ? hostRoleCommandEntity.getOriginalStartTime() : -1L;
     endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
-    lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
+    lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime() != null ? hostRoleCommandEntity.getLastAttemptTime() : -1L;
     attemptCount = hostRoleCommandEntity.getAttemptCount();
     retryAllowed = hostRoleCommandEntity.isRetryAllowed();
     autoSkipFailure = hostRoleCommandEntity.isFailureAutoSkipped();
