@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,22 +16,29 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive20.actor.message.job;
+import Ember from 'ember';
 
-public class Failure extends Exception {
-  private final Throwable error;
-  private final String message;
+export default Ember.Controller.extend({
+  loginError: null,
 
-  public Failure(String message, Throwable error) {
-    this.message = message;
-    this.error = error;
+  isValid(password) {
+    this.set('loginError');
+    this.set('error');
+    this.set('errorText');
+    if (Ember.isEmpty(password)) {
+      this.set('error', true);
+      this.set('errorText', "Password cannot be empty");
+      return false;
+    }
+    return true;
+  },
+
+  actions: {
+    login(password) {
+      if (!this.isValid(password)) {
+        return false;
+      }
+      return true;
+    }
   }
-
-  public Throwable getError() {
-    return error;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-}
+});

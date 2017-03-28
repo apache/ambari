@@ -36,6 +36,7 @@ import org.apache.ambari.view.hive20.actor.message.ResultInformation;
 import org.apache.ambari.view.hive20.actor.message.ResultNotReady;
 import org.apache.ambari.view.hive20.actor.message.RunStatement;
 import org.apache.ambari.view.hive20.actor.message.SQLStatementJob;
+import org.apache.ambari.view.hive20.actor.message.job.AuthenticationFailed;
 import org.apache.ambari.view.hive20.actor.message.job.CancelJob;
 import org.apache.ambari.view.hive20.actor.message.job.ExecuteNextStatement;
 import org.apache.ambari.view.hive20.actor.message.job.ExecutionFailed;
@@ -397,24 +398,34 @@ public class JdbcConnector extends HiveActor {
   }
 
   private void notifyConnectFailure(Exception ex) {
+    boolean loginError = false;
     executing = false;
     isFailure = true;
     this.failure = new Failure("Cannot connect to hive", ex);
+    if(ex instanceof ConnectionException){
+      ConnectionException connectionException = (ConnectionException) ex;
+      Throwable cause = connectionException.getCause();
+      if(cause instanceof SQLException){
+        SQLException sqlException = (SQLException) cause;
+        if(isLoginError(sqlException))
+          loginError = true;
+      }
+    }
+
     if (isAsync()) {
       updateJobStatus(jobId.get(), Job.JOB_STATE_ERROR);
 
-      if(ex instanceof ConnectionException){
-        ConnectionException connectionException = (ConnectionException) ex;
-        Throwable cause = connectionException.getCause();
-        if(cause instanceof SQLException){
-          SQLException sqlException = (SQLException) cause;
-          if(isLoginError(sqlException))
-            return;
-        }
+      if (loginError) {
+        return;
       }
 
     } else {
-      sender().tell(new ExecutionFailed("Cannot connect to hive"), ActorRef.noSender());
+      if (loginError) {
+        sender().tell(new AuthenticationFailed("Hive authentication error", ex), ActorRef.noSender());
+      } else {
+        sender().tell(new ExecutionFailed("Cannot connect to hive", ex), ActorRef.noSender());
+      }
+
     }
     // Do not clean up in case of failed authorizations
     // The failure is bubbled to the user for requesting credentials

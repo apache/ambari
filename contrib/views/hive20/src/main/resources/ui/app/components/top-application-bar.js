@@ -19,5 +19,6 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-  service: false
+  service: false,
+  askPassword: false
 });

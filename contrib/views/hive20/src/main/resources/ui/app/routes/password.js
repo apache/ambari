@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,22 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive20.actor.message.job;
+import Ember from 'ember';
+import UILoggerMixin from '../mixins/ui-logger';
 
-public class Failure extends Exception {
-  private final Throwable error;
-  private final String message;
+export default Ember.Route.extend(UILoggerMixin, {
+  ldapAuth: Ember.inject.service(),
 
-  public Failure(String message, Throwable error) {
-    this.message = message;
-    this.error = error;
+  setupController(controller, model) {
+    controller.set('password', '');
+    this.get('logger').clearMessages();
+    this._super(...arguments);
+  },
+
+  actions: {
+    login(password) {
+      this.get('ldapAuth').authenticate(password).then(() => {
+        this.set('ldapAuth.passwordRequired', false);
+        this.get('ldapAuth').passwordProvided();
+      }).catch(() => {
+        this.controller.set('loginError', "Failed to login to hive");
+      });
+    }
   }
-
-  public Throwable getError() {
-    return error;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-}
+});

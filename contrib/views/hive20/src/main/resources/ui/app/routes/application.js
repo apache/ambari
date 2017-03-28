@@ -22,6 +22,14 @@ import ENV from 'ui/config/environment';
 
 export default Ember.Route.extend({
   serviceCheck: Ember.inject.service(),
+  ldapAuth: Ember.inject.service(),
+
+
+  init() {
+    this.get('ldapAuth').on('ask-password', this.askPassword.bind(this));
+    this.get('ldapAuth').on('password-provided', this.passwordProvided.bind(this));
+    return this._super(...arguments);
+  },
 
   beforeModel() {
     if (ENV.APP.SHOULD_PERFORM_SERVICE_CHECK && !this.get('serviceCheck.checkCompleted')) {
@@ -32,6 +40,15 @@ export default Ember.Route.extend({
   setupController: function (controller, model) {
     this._super(controller, model);
     controller.set('tabs', tabs);
+  },
+
+  askPassword() {
+    this.set('ldapAuth.passwordRequired', true);
+    this.transitionTo('password');
+  },
+
+  passwordProvided() {
+    this.refresh();
   }
 
 });
