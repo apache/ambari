@@ -1401,19 +1401,19 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '9548')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '9207')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '8524')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '8183')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '819')
     self.assertEqual(configurations['hive-interactive-env']['properties']['hive_heapsize'], '2048')
     self.assertEqual(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], {'read_only': 'true', 'minimum': '1', 'maximum': '1'})
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '682')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.auto.convert.join.noconditionaltask.size'], '286261248')
 
     self.assertTrue('tez.am.resource.memory.mb' not in configurations['tez-interactive-site']['properties'])
@@ -2007,19 +2007,19 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
 
     self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes_for_llap_daemons'], 3)
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10571')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10230')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '1355')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '1014')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '7372')
     self.assertEqual(configurations['hive-interactive-env']['properties']['hive_heapsize'], '2048')
     self.assertEqual(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], {'maximum': '3', 'minimum': '1', 'read_only': 'false'})
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '682')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.auto.convert.join.noconditionaltask.size'], '858783744')
 
@@ -2815,19 +2815,19 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
     self.assertTrue('num_llap_nodes' not in configurations['hive-interactive-env']['properties'])
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '199826')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '199485')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '10')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '10')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '158866')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '158525')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '34816')
     self.assertEqual(configurations['hive-interactive-env']['properties']['hive_heapsize'], '2048')
     self.assertEqual(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], {'maximum': '5', 'minimum': '1', 'read_only': 'false'})
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '682')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.auto.convert.join.noconditionaltask.size'], '1145044992')
 
@@ -5369,6 +5369,11 @@ class TestHDP25StackAdvisor(TestCase):
         "stack_version": "2.5"
       },
       "configurations": {
+        "cluster-env": {
+          "properties": {
+            "security_enabled": "true"
+          }
+        },
         "storm-site": {
           "properties": {
             "nimbus.authorizer" : "org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer",
@@ -5393,6 +5398,7 @@ class TestHDP25StackAdvisor(TestCase):
     configurations['storm-site']['properties'] = {}
     configurations['storm-site']['property_attributes'] = {}
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'false'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment")
     self.assertEquals(configurations['storm-site']['properties']['storm.cluster.metrics.consumer.register'], '[{"class": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"}]')
@@ -5409,6 +5415,7 @@ class TestHDP25StackAdvisor(TestCase):
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = ''
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
     services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
 
@@ -5418,6 +5425,7 @@ class TestHDP25StackAdvisor(TestCase):
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'No'
     services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
 

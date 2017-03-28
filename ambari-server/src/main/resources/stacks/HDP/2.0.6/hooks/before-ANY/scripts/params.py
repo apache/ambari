@@ -36,11 +36,14 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
+from resource_management.libraries.functions.get_architecture import get_architecture
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+architecture = get_architecture()
 
 dfs_type = default("/commandParams/dfs_type", "")
 

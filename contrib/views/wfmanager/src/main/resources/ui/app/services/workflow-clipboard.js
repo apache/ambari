@@ -26,9 +26,9 @@ export default Ember.Service.extend({
       actionType : node.actionType,
       operation : operation
     };
-    this.set('clipboard', clipboardContent);
+    this.set('clipboard', JSOG.stringify(clipboardContent));
   },
   getContent (){
-    return this.get('clipboard');
+    return JSOG.parse(this.get('clipboard'));
   }
 });

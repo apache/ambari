@@ -22,6 +22,9 @@
   </div>
   <div class="col-md-12">
     <div>&nbsp;</div>
+    {{#if vectorizedInfo}}
+        <div class="vector-info">{{vectorizedInfo}}</div>
+    {{/if}}
     <pre class="prettyprint">{{explainDetailData}}</pre>
   </div>
 </div>

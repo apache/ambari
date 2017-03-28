@@ -154,11 +154,6 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     this.set('content.kerberosOption', stepController.get('selectedItem'));
   },
 
-  loadKerberosDescriptorConfigs: function () {
-    var kerberosDescriptorConfigs = this.getDBProperty('kerberosDescriptorConfigs');
-    this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
-  },
-
   /**
    * Override the visibility of a list of form items with a new value
    *
@@ -181,15 +176,6 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
 
   loadKerberosOption: function () {
     this.set('content.kerberosOption', this.getDBProperty('kerberosOption'));
-  },
-
-  /**
-   * @method saveKerberosDescriptorConfigs
-   * @param {App.ServiceConfigProperty[]} kerberosDescriptorConfigs
-   */
-  saveKerberosDescriptorConfigs: function (kerberosDescriptorConfigs) {
-    this.setDBProperty('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
-    this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
   },
 
   createKerberosResources: function (callback) {

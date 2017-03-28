@@ -1325,7 +1325,9 @@ input:invalid {
 
 .cy-note {
   color: #777;
-  padding-right: 10px;
+  padding-right: 40px;
+  position: absolute;
+  width: 100%;
 }
 
 .overlay_node_editor {
@@ -1774,4 +1776,43 @@ input:invalid {
   overflow: hidden;
   top: 5px;
   position: relative;
+}
+#stackTrace {
+  word-wrap: break-word;
+}
+.dismissable-error-close {
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1;
+  -webkit-appearance: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  position: relative;
+  top: 4px;
+  right: -9px;
+  color: inherit;
+}
+
+.dismissable-error-close:focus, .dismissable-error-close:hover {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+  filter: alpha(opacity=50);
+  opacity: .5;
+}
+
+#actions-list-header, #actions-list-body {
+  margin-bottom: 0px;
+}
+
+#actions-list-header-conatiner {
+  padding-right: 16px;
+}
+
+#actions-list-body-conatiner {
+  max-height: 150px;
+  overflow-y: scroll;
+  margin-bottom: 10px;
 }

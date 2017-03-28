@@ -391,7 +391,7 @@ logfeeder_use_ssl = logsearch_solr_ssl_enabled or metrics_collector_protocol == 
 # Smoke command
 #####################################
 
-logsearch_server_hosts = config['clusterHostInfo']['logsearch_server_hosts']
+logsearch_server_hosts = default('/configurations/clusterHostInfo/logsearch_server_hosts', None)
 logsearch_server_host = ""
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]

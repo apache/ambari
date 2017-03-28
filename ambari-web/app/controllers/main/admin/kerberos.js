@@ -360,6 +360,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   setStepConfigs: function (properties) {
     this.get('stepConfigs').clear();
     this._super(properties);
+    this.set('selectedService', this.get('stepConfigs')[0]);
     this.get('stepConfigs').forEach(function (serviceConfig) {
       serviceConfig.set('initConfigsLength', serviceConfig.get('configs.length'));
     });

@@ -1009,9 +1009,11 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer .more-actions {
   display: none;
   position: absolute;
-  top: 20px;
-  right: 35px;
-  line-height: 14px;
+  top: 14px;
+  right: 33px;
+  line-height: 25px;
+  width: 20px;
+  text-align: center;
   font-size: 14px;
   cursor: pointer;
   vertical-align: middle;
@@ -1148,13 +1150,21 @@ input.radio:checked + label:after {
   top: 0;
 }
 .navigation-bar-fit-height .side-nav-menu {
-  position: fixed;
+  position: absolute;
   top: 55px;
   bottom: 50px;
 }
 .navigation-bar-fit-height .side-nav-footer {
-  position: fixed;
+  position: absolute;
   bottom: 0;
+}
+.navigation-bar-fit-height .more-actions .dropdown-menu {
+  position: fixed;
+  top: auto;
+  left: auto;
+}
+.navigation-bar-fit-height .navigation-bar-container {
+  height: 100%;
 }
 .navigation-bar-fit-height .navigation-bar-container:not(.collapsed) .side-nav-menu {
   overflow-y: auto;
@@ -1285,7 +1295,8 @@ input.radio:checked + label:after {
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  max-height: 47px; /* For firefox */
+  max-height: 47px;
+  /* For firefox */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1343,6 +1354,56 @@ input.radio:checked + label:after {
 }
 .modal .modal-content .modal-footer .btn ~ .btn {
   margin-left: 10px;
+}
+.accordion .panel-group,
+.wizard .wizard-body .wizard-content .accordion .panel-group {
+  margin-bottom: 0px;
+}
+.accordion .panel-group .panel,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel {
+  border-radius: 0px;
+  border: 1px solid;
+  border-color: #ccc transparent;
+  border-bottom: none;
+  margin-top: 0px;
+}
+.accordion .panel-group .panel .panel-heading,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading {
+  height: 50px;
+  padding: 15px 10px;
+  border: 1px solid transparent;
+  background: #fff;
+}
+.accordion .panel-group .panel .panel-heading .panel-title,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  color: #1491c1;
+}
+.accordion .panel-group .panel .panel-heading .panel-title > a,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title > a {
+  font-size: 18px;
+}
+.accordion .panel-group .panel .panel-heading .panel-title > i,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title > i {
+  font-size: 20px;
+}
+.accordion .panel-group .panel .panel-heading:hover,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading:hover {
+  background: #f3faff;
+  border: 1px solid #a7dff2;
+  cursor: pointer;
+}
+.accordion .panel-group .panel .panel-body,
+.wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-body {
+  padding: 30px 20px;
+}
+.accordion .panel-group:last-child .panel,
+.wizard .wizard-body .wizard-content .accordion .panel-group:last-child .panel {
+  border-bottom: 1px solid #ccc;
 }
 h1,
 h2,

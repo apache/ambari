@@ -68,6 +68,9 @@ def slider():
        content=InlineTemplate(params.slider_env_sh_template)
   )
 
+  # TODO HDP 3.0,
+  # uncomment after Storm is part of the supported services or revisit after Slider is moved into YARN.
+  '''
   # check to see if the current/storm_slider_client symlink is broken if it is then the storm slider client is not installed
   storm_slider_client_dir = os.path.join(params.storm_slider_conf_dir, "..")
   if (os.path.exists(storm_slider_client_dir) or not os.path.islink(storm_slider_client_dir)):
@@ -79,6 +82,7 @@ def slider():
          mode=0755,
          content=Template('storm-slider-env.sh.j2')
     )
+  '''
 
   if (params.log4j_props != None):
     File(format("{params.slider_conf_dir}/log4j.properties"),

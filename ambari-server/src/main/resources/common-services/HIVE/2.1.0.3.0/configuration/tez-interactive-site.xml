@@ -1,0 +1,257 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent tez/tez-site.
+        It inherits the other required configs from tez/tez-site.
+        The inheritance logic in order to get tez_hive2/tez-site goes like this :
+
+        1. We read the tez/tez-site which includes the stack defaults and Stack Advisor recommended values.
+        2. We take the read tez/tez-site (step 1), and on top of it apply the tez-interactive-site to get tez_hive2/tez-site.
+
+        Therefore, any config defined here will override the config value read from tez/tez-site (step 1).
+  -->
+  <property>
+    <name>tez.runtime.shuffle.fetch.buffer.percent</name>
+    <value>0.6</value>
+    <description>Fraction (0-1) of the available memory which can be used to
+      retain shuffled data</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.shuffle.memory.limit.percent</name>
+    <value>0.25</value>
+    <description>This property determines the maximum size of a shuffle segment
+      which can be fetched to memory. Fraction (0-1) of shuffle memory
+      (after applying tez.runtime.shuffle.fetch.buffer.percent)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.report.partition.stats</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.pipelined-shuffle.enabled</name>
+    <value>false</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.pipelined.sorter.lazy-allocate.memory</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.grouping.node.local.only</name>
+    <value>true</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.shuffle.fetch.verify-disk-checksum</name>
+    <value>false</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.lib.uris</name>
+    <value>/hdp/apps/${hdp.version}/tez_hive2/tez.tar.gz</value>
+    <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
+      Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
+      If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.dag.recovery.enabled</name>
+    <value>false</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.resource.memory.mb</name>
+    <value>1536</value>
+    <description>The amount of memory to be used by the AppMaster</description>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.io.sort.mb</name>
+    <value>512</value>
+    <description>The size of the sort buffer when output needs to be sorted</description>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.task.resource.memory.mb</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.unordered.output.buffer.size-mb</name>
+    <value>100</value>
+    <description>The size of the buffer when output does not require to be sorted</description>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.task.resource.memory.mb</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>tez.task.heartbeat.timeout.check-ms</name>
+    <value>15000</value>
+    <description>The time interval, in milliseconds, at which the AM will check
+      for timed out tasks
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.task.timeout-ms</name>
+    <value>90000</value>
+    <description>Amount of time the Tez AM waits before marking a task which
+      has not sent in a heartbeat, as timed out
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.client.heartbeat.timeout.secs</name>
+    <value>90</value>
+    <description>The time interval, after which an AM will kill itself, if it
+      does not receive a heartbeat from the client.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.client.heartbeat.poll.interval.millis</name>
+    <value>6000</value>
+    <description>The interval at which the AM checks for a client heartbeat
+      timeout
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.node-blacklisting.enabled</name>
+    <value>false</value>
+    <description>Whether to enable blacklisting in Tez AMs. Disable for LLAP
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.session.am.dag.submit.timeout.secs</name>
+    <value>1209600</value>
+    <description>The amount of time an AM will wait, before killing itself,
+      if not DAG is submitted.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.history.logging.taskattempt-filters</name>
+    <value>SERVICE_BUSY,EXTERNAL_PREEMPTION</value>
+    <description>TASK_ATTEMPT events to be ignored.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.history.logging.timeline.num-dags-per-group</name>
+    <value>5</value>
+    <description>Maximum number of dags per group.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.task.listener.thread-count</name>
+    <value>1</value>
+    <description>Number of IPC server thread for Tez task listener. Should
+      be minimized for LLAP
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.container.max.java.heap.fraction</name>
+    <value>-1</value>
+    <description>Setting this to -1 so that Tez can auto determine different
+      Xmx for different container size
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.shuffle.parallel.copies</name>
+    <value>8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

@@ -942,6 +942,48 @@ class DefaultStackAdvisor(StackAdvisor):
     return items
 
 
+  def calculateYarnAllocationSizes(self, configurations, services, hosts):
+    # initialize data
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    components = [component["StackServiceComponents"]["component_name"]
+                  for service in services["services"]
+                  for component in service["components"]]
+    putYarnProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
+
+    # calculate memory properties and get cluster data dictionary with whole information
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
+
+    # executing code from stack advisor HDP 206
+    nodemanagerMinRam = 1048576 # 1TB in mb
+    if "referenceNodeManagerHost" in clusterSummary:
+      nodemanagerMinRam = min(clusterSummary["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
+
+    callContext = self.getCallContext(services)
+    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterSummary['containers'] * clusterSummary['ramPerContainer'], nodemanagerMinRam))))
+    if 'recommendConfigurations' == callContext:
+      putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterSummary['containers'] * clusterSummary['ramPerContainer'], nodemanagerMinRam))))
+    else:
+      # read from the supplied config
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+      else:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterSummary['containers'] * clusterSummary['ramPerContainer'], nodemanagerMinRam))))
+      pass
+    pass
+
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterSummary['yarnMinContainerSize']))
+    putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+
+    # executing code from stack advisor HDP 22
+    nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
+    if (nodeManagerHost is not None):
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.percentage-physical-cpu-limit" in services["configurations"]["yarn-site"]["properties"]:
+        putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+        putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+
+
+
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
     """
     Copied from HDP 2.0.6 so that it could be used by Service Advisors.
@@ -1416,6 +1458,61 @@ class DefaultStackAdvisor(StackAdvisor):
     if hostnames is not None:
       return len(hostnames) > 0
     return False
+
+  def checkSiteProperties(self, siteProperties, *propertyNames):
+    """
+    Check if properties defined in site properties.
+    :param siteProperties: config properties dict
+    :param *propertyNames: property names to validate
+    :returns: True if all properties defined, in other cases returns False
+    """
+    if siteProperties is None:
+      return False
+    for name in propertyNames:
+      if not (name in siteProperties):
+        return False
+    return True
+
+  def is_secured_cluster(self, services):
+    """
+    Detects if cluster is secured or not
+    :type services dict
+    :rtype bool
+    """
+    return services and "cluster-env" in services["configurations"] and \
+           "security_enabled" in services["configurations"]["cluster-env"]["properties"] and \
+           services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
+
+  def getZKHostPortString(self, services, include_port=True):
+    """
+    Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
+    Example: zk.host1.org:2181,zk.host2.org:2181,zk.host3.org:2181
+    include_port boolean param -> If port is also needed.
+    """
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    include_zookeeper = "ZOOKEEPER" in servicesList
+    zookeeper_host_port = ''
+
+    if include_zookeeper:
+      zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
+      zookeeper_host_port_arr = []
+
+      if include_port:
+        zookeeper_port = self.getZKPort(services)
+        for i in range(len(zookeeper_hosts)):
+          zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
+      else:
+        for i in range(len(zookeeper_hosts)):
+          zookeeper_host_port_arr.append(zookeeper_hosts[i])
+
+      zookeeper_host_port = ",".join(zookeeper_host_port_arr)
+    return zookeeper_host_port
+
+  def getZKPort(self, services):
+    zookeeper_port = '2181'     #default port
+    if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
+      zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
+    return zookeeper_port
 
   def isClientComponent(self, component):
     return self.getComponentAttribute(component, "component_category") == 'CLIENT'

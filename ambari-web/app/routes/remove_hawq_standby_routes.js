@@ -21,6 +21,10 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/highAvailability/Hawq/remove',
 
+  breadcrumbs: {
+    label: Em.I18n.t('admin.removeHawqStandby.wizard.header')
+  },
+
   enter: function (router, transition) {
     var removeHawqStandbyWizardController = router.get('removeHawqStandbyWizardController');
     removeHawqStandbyWizardController.dataLoading().done(function () {

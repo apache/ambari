@@ -26,6 +26,14 @@ module.exports = App.WizardRoute.extend({
     reassignMasterController.resetOnClose(reassignMasterController, 'main.index');
   },
 
+  breadcrumbs: {
+    labelBindingPath: 'App.router.reassignMasterController.content.reassign.display_name',
+    labelPostFormat(label) {
+      let msg = Em.I18n.t('services.reassign.header');
+      return label ? `${msg} (${label})` : msg;
+    }
+  },
+
   enter: function (router) {
     var context = this;
     var reassignMasterController = router.get('reassignMasterController');

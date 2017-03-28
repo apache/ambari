@@ -72,7 +72,7 @@
       <td class="col-medium">
         <span>{{repo.repository_version}}</span>
       </td>
-      <td class="col-small">
+      <td class="col-small ellipsis-overflow">
         <a href="{{fromSiteRoot('/#/main/admin/stack/versions')}}" ng-show="repo.cluster">
           {{repo.cluster}}
         </a>
@@ -109,11 +109,11 @@
     <i class="fa fa-2x fa-spinner fa-spin" aria-hidden="true"></i>
   </div>
   <div class="alert alert-info col-sm-12" ng-show="!repos.length && !isLoading">
-    {{'common.alerts.nothingToDisplay' | translate: '{term: getConstant("version")}'}}
+    {{'common.alerts.nothingToDisplay' | translate: '{term: getConstant("common.version")}'}}
   </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
-      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: getConstant("versions")}'}}</span>
+      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: getConstant("common.versions")}'}}</span>
       <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
     </div>
     <div class="pull-right left-margin">

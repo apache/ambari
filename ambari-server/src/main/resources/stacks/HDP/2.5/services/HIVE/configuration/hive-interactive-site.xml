@@ -703,4 +703,23 @@ limitations under the License.
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>hive.map.aggr.hash.min.reduction</name>
+    <value>0.99</value>
+    <description>
+      Hash aggregation will be turned off if the ratio between hash  table size and input rows is bigger than this number.
+      Set to 1 to make sure hash aggregation is never turned off.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.vectorized.groupby.maxentries</name>
+    <value>1000000</value>
+    <description>
+      Max number of entries in the vector group by aggregation hashtables.
+      Exceeding this will trigger a flush irrelevant of memory pressure condition.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
 </configuration>

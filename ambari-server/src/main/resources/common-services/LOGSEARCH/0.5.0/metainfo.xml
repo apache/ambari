@@ -38,7 +38,7 @@
           <timelineAppid>logsearch</timelineAppid>
           <displayName>Log Search Server</displayName>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>0-1</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/logsearch.py</script>

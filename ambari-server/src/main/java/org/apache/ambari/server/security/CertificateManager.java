@@ -66,6 +66,10 @@ public class CertificateManager {
       "-keyfile {0}" + File.separator + "{4} -cert {0}" + File.separator + "{5}"; /**
        * Verify that root certificate exists, generate it otherwise.
        */
+  private static final String SET_PERMISSIONS = "find %s -type f -exec chmod 700 {} +";
+
+  private static final String SET_SERVER_PASS_FILE_PERMISSIONS = "chmod 600 %s";
+
   public void initRootCert() {
     LOG.info("Initialization of root certificate");
     boolean certExists = isCertExists();
@@ -145,6 +149,7 @@ public class CertificateManager {
     String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME.getKey());
     String kstrName = configsMap.get(Configuration.KSTR_NAME.getKey());
     String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
+    String srvrCrtPassFile =  configsMap.get(Configuration.SRVR_CRT_PASS_FILE.getKey());
 
     Object[] scriptArgs = {srvrCrtPass, srvrKstrDir, srvrKeyName,
         srvrCrtName, kstrName, srvrCsrName};
@@ -161,6 +166,11 @@ public class CertificateManager {
     command = MessageFormat.format(EXPRT_KSTR,scriptArgs);
     runCommand(command);
 
+    command = String.format(SET_PERMISSIONS,srvrKstrDir);
+    runCommand(command);
+
+    command = String.format(SET_SERVER_PASS_FILE_PERMISSIONS, srvrKstrDir + File.separator + srvrCrtPassFile);
+    runCommand(command);
   }
 
   /**

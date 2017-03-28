@@ -216,10 +216,10 @@
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
-        <service>YARN</service>
         <service>HBASE</service>
       </priority>
       <exclude>
+        <service>YARN</service>
         <service>AMBARI_METRICS</service>
         <service>LOGSEARCH</service>
       </exclude>
@@ -818,6 +818,7 @@
           <task xsi:type="configure" id="hive_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_update_headroom"/>
+          <task xsi:type="configure" id="llap_update_hashaggregation"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -865,6 +866,7 @@
       <component name="LIVY_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs" />
         </pre-upgrade>
         
         <pre-downgrade />
@@ -1068,6 +1070,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="atlas_log4j_parameterize" />
           <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
+          <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

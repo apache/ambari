@@ -197,9 +197,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     }
     App.router.get('userSettingsController').getAllUserSettings();
     App.router.get('errorsHandlerController').loadErrorLogs();
-    var hostsController = App.router.get('mainHostController');
-    hostsController.set('isCountersUpdating', true);
-    hostsController.updateStatusCounters();
 
     this.loadClusterInfo();
     this.restoreUpgradeState();

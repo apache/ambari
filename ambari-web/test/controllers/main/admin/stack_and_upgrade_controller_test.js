@@ -464,6 +464,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: 'n0',
             resultingValue: 'n0',
             isDeprecated: false,
+            wasModified: false,
             willBeRemoved: false
           },
           {
@@ -473,6 +474,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
             resultingValue: 'c1',
             isDeprecated: true,
+            wasModified: false,
             willBeRemoved: false
           },
           {
@@ -482,6 +484,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
             resultingValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved'),
             isDeprecated: true,
+            wasModified: false,
             willBeRemoved: true
           }
         ],
@@ -2092,6 +2095,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: 'n0',
             isDeprecated: false,
             resultingValue: 'r0',
+            wasModified: false,
             willBeRemoved: false
           },
           {
@@ -2101,6 +2105,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: 'n1',
             isDeprecated: false,
             resultingValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved'),
+            wasModified: false,
             willBeRemoved: true
           },
           {
@@ -2110,6 +2115,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
             isDeprecated: true,
             resultingValue: 'r2',
+            wasModified: false,
             willBeRemoved: false
           }
         ],
@@ -2157,6 +2163,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: 'n0',
             isDeprecated: false,
             resultingValue: 'r0',
+            wasModified: false,
             willBeRemoved: false
           },
           {
@@ -2166,6 +2173,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: 'n1',
             isDeprecated: false,
             resultingValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved'),
+            wasModified: false,
             willBeRemoved: true
           },
           {
@@ -2175,7 +2183,18 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
             isDeprecated: true,
             resultingValue: 'r2',
+            wasModified: false,
             willBeRemoved: false
+          },
+          {
+            "currentValue": "c3",
+            "isDeprecated": false,
+            "name": "p3",
+            "recommendedValue": "c2",
+            "resultingValue": "c3",
+            "type": "t3",
+            "wasModified": true,
+            "willBeRemoved": false
           }
         ],
         title: 'should skip warning when current and result_value are the same'

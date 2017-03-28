@@ -52,7 +52,14 @@ App.ConfigAction = DS.Model.extend({
   popupProperties: DS.attr('object', {
     defaultValue: function () { return {}; }
   }),
-  serviceName: DS.attr('string')
+  serviceName: DS.attr('string'),
+  // TODO remove after stack advisor is able to handle this case
+  // dependencies is used as workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive from Install Wizard
+  dependencies: DS.attr('object', {
+    defaultValue: function () {
+      return {};
+    }
+  })
 });
 
 App.ConfigAction.FIXTURES = [
@@ -63,7 +70,31 @@ App.ConfigAction.FIXTURES = [
     file_name: "hive-interactive-env.xml",
     if:'${hive-interactive-env/enable_hive_interactive}',
     then:'add',
-    else: 'delete'
+    else: 'delete',
+    // TODO remove after stack advisor is able to handle this case
+    // dependencies is used as workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive from Install Wizard
+    dependencies: {
+      initializer: {
+        name: 'AddHiveServerInteractiveInitializer',
+        setupKeys: ['hiveUser'],
+        componentNames: ['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE', 'HIVE_SERVER_INTERACTIVE']
+      },
+      properties: [
+        {
+          fileName: 'core-site',
+          nameTemplate: 'hadoop.proxyuser.{{hiveUser}}.hosts',
+          isHostsList: true,
+          isHostsArray: false
+        }
+      ],
+      foreignKeys: [
+        {
+          key: 'hiveUser',
+          fileName: 'hive-env.xml',
+          propertyName: 'hive_user'
+        }
+      ]
+    }
   },
   {
     id: 2,

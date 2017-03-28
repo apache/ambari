@@ -102,11 +102,13 @@ from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
+from ambari_commons.network import reconfigure_urllib2_opener
 from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
+
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
@@ -117,6 +119,7 @@ agentPid = os.getpid()
 home_dir = ""
 
 config = AmbariConfig.AmbariConfig()
+
 # TODO AMBARI-18733, remove this global variable and calculate it based on home_dir once it is set.
 configFile = config.getConfigFile()
 two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
@@ -125,10 +128,17 @@ IS_LINUX = platform.system() == "Linux"
 SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
+_file_logging_handlers ={}
+
 def setup_logging(logger, filename, logging_level):
   formatter = logging.Formatter(formatstr)
-  rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
-  rotateLog.setFormatter(formatter)
+
+  if filename in _file_logging_handlers:
+    rotateLog = _file_logging_handlers[filename]
+  else:
+    rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
+    rotateLog.setFormatter(formatter)
+    _file_logging_handlers[filename] = rotateLog
   logger.addHandler(rotateLog)
       
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
@@ -419,6 +429,10 @@ def main(heartbeat_stop_callback=None):
   update_log_level(config)
 
   update_open_files_ulimit(config)
+
+  if not config.use_system_proxy_setting():
+    logger.info('Agent is configured to ignore system proxy settings')
+    reconfigure_urllib2_opener(ignore_system_proxy=True)
 
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     daemonize()

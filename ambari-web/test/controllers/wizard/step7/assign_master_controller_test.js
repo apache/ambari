@@ -338,6 +338,9 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(mock, 'saveMasterComponentHosts');
       sinon.stub(mock, 'loadMasterComponentHosts');
       sinon.stub(mock, 'setDBProperty');
+      sinon.stub(App.config, 'getConfigTagFromFileName', function (value) {
+        return value;
+      });
       view.reopen({
         content: Em.Object.create({
           controllerName: 'ctrl1',
@@ -355,25 +358,33 @@ describe('App.AssignMasterOnStep7Controller', function () {
         },
         configWidgetContext: Em.Object.create({
           config: Em.Object.create({
-            configAction: {
-              hostComponentConfig: {
-                fileName: 'file1',
-                configName: 'conf1'
-              }
-            },
+            fileName: 'file1',
+            name: 'conf1',
             serviceName: 'S1',
+            savedValue: 'val1',
             toggleProperty: Em.K
           }),
           controller: Em.Object.create({
+            selectedService: {
+              serviceName: 'S1'
+            },
+            wizardController: {
+              name: 'ctrl'
+            },
             stepConfigs: [
               Em.Object.create({
                 serviceName: 'S1',
                 configs: [
                   config
                 ]
+              }),
+              Em.Object.create({
+                serviceName: 'MISC',
+                configs: [
+                  config
+                ]
               })
-            ],
-            loadConfigRecommendations: mock.loadConfigRecommendations
+            ]
           })
         })
       });
@@ -386,6 +397,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       mock.saveMasterComponentHosts.restore();
       mock.loadMasterComponentHosts.restore();
       mock.setDBProperty.restore();
+      App.config.getConfigTagFromFileName.restore();
     });
 
     it("saveMasterComponentHosts should be called", function() {

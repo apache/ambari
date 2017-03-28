@@ -42,7 +42,7 @@ var App = require('app');
  * @property {?object[]} slaveComponentHosts
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, {
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.AddSecurityConfigs, App.KDCCredentialsControllerMixin, {
 
   name: 'wizardStep7Controller',
 
@@ -375,7 +375,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         for (var prop in config.properties) {
           var fileName = App.config.getOriginalFileName(config.type);
           var serviceConfig = serviceConfigs.filterProperty('name', prop).findProperty('filename', fileName);
-          if (serviceConfig) {
+          if (serviceConfig && serviceConfig.get('isOriginalSCP')) {
             var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
             var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
 
@@ -429,7 +429,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   _updateIsEditableFlagForConfig: function (serviceConfigProperty, defaultGroupSelected) {
     if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
-      if (App.get('isKerberosEnabled') && serviceConfigProperty.get('isConfigIdentity')) {
+      if (App.get('isKerberosEnabled') &&
+          serviceConfigProperty.get('isConfigIdentity') &&
+          !App.StackService.find().filterProperty('isSelected').mapProperty('serviceName').contains(Em.get(serviceConfigProperty, 'serviceName'))) {
         serviceConfigProperty.set('isEditable', false);
       } else if (defaultGroupSelected && !Em.get(serviceConfigProperty, 'group')) {
         if (serviceConfigProperty.get('serviceName') === 'MISC') {
@@ -488,7 +490,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         self.applyServicesConfigs(configs);
       });
     } else {
-      this.applyServicesConfigs(configs);
+      this.applyServicesConfigs(configs, true);
     }
   },
 
@@ -515,13 +517,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return configs
   },
 
-  applyServicesConfigs: function (configs) {
+  applyServicesConfigs: function (configs, isRestoring) {
+    var self = this;
     console.time('applyServicesConfigs execution time: ');
     if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
       this.updateHawqConfigs(configs);
     }
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') === 'addServiceController') {
-      this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
+      this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || [], isRestoring);
     }
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
@@ -536,7 +539,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.checkHostOverrideInstaller();
     this.selectProperService();
     var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
-    var self = this;
     var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
     var isRangerServiceAbsent =  rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected');
     if (isRangerServiceAbsent) {
@@ -638,21 +640,33 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @param {App.ServiceConfigProperty[]} descriptor - parsed kerberos descriptor
    * @method addKerberosDescriptorConfigs
    */
-  addKerberosDescriptorConfigs: function (configs, descriptor) {
+  addKerberosDescriptorConfigs: function (configs, descriptor, isRestoring) {
+    var servicesToBeInstalled = this.get('content.services').filterProperty('isSelected').mapProperty('serviceName');
     descriptor.forEach(function (item) {
-      var property = configs.findProperty('name', item.get('name'));
+      var service = item.get('serviceName');
+      if (!servicesToBeInstalled.contains(service)) return false;
+      var name = item.get('name');
+      var filename = Em.get(item, 'filename');
+      var property = configs.filterProperty('serviceName', service).findProperty('name', name);
+      var propertyObj = {
+        isSecureConfig: true,
+        value: Em.get(isRestoring && property ? property : item, 'value'),
+        defaultValue: Em.get(item, 'value'),
+        displayName: name,
+        isOverridable: false,
+        isConfigIdentity: Em.get(item, 'isConfigIdentity'),
+        isUserProperty: !!Em.get(item, 'isUserProperty'),
+        category: (Em.get(item, 'isUserProperty') ? 'Custom ' : 'Advanced ') + filename
+      };
       if (property) {
-        Em.setProperties(property, {
-          isSecureConfig: true,
-          displayName: Em.get(item, 'name'),
-          isUserProperty: false,
-          isOverridable: false,
-          isConfigIdentity: Em.get(item, 'isConfigIdentity'),
+        Em.setProperties(property, $.extend(propertyObj, {
+          savedValue: Em.get(item, 'value'),
           description: Em.get(item, 'isConfigIdentity')
-            ? App.config.kerberosIdentitiesDescription(Em.get(property, 'description'))
-            : Em.get(property, 'description'),
-          category: 'Advanced ' + Em.get(item, 'filename')
-        });
+              ? App.config.kerberosIdentitiesDescription(Em.get(property, 'description'))
+              : Em.get(property, 'description')
+        }));
+      } else {
+        configs.push(App.ServiceConfigProperty.create(App.config.getDefaultConfig(name, filename, propertyObj)));
       }
     });
   },
@@ -974,13 +988,34 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @return {$.ajax|null}
    * @method getConfigTags
    */
-  getConfigTags: function () {
-    this.set('isAppliedConfigLoaded', false);
+  getConfigTags: function (resetFlag) {
+    if (resetFlag) this.set('isAppliedConfigLoaded', false);
     return App.ajax.send({
       name: 'config.tags',
       sender: this,
       success: 'getConfigTagsSuccess'
     });
+  },
+
+  getServicesConfigurations: function() {
+    var dfd = $.Deferred();
+    var configs, servicesConfigurations;
+    configs = this.get('wizardController').getConfigsAndFilenames(this, true).serviceConfigProperties;
+    servicesConfigurations = configs.reduce(function(configTags, property) {
+      var fileName = App.config.getConfigTagFromFileName(property.filename),
+          configType;
+      if (!configTags.someProperty('type', fileName)) {
+        configTags.push({
+          type: fileName,
+          properties: {}
+        });
+      }
+      configType = configTags.findProperty('type', fileName);
+      configType.properties[property.name] = property.value;
+      return configTags;
+    }, []);
+    dfd.resolve(servicesConfigurations);
+    return dfd.promise();
   },
 
   /**
@@ -1137,7 +1172,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           var modelGroup = App.ServiceConfigGroup.find(item.id);
           modelGroup.set('properties', []);
           item.properties.forEach(function (propertyData) {
-            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
+            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).filterProperty('isOriginalSCP').findProperty('name', propertyData.name);
             if (parentSCP) {
               App.config.createOverride(parentSCP, propertyData, modelGroup)
             } else {
@@ -1211,7 +1246,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   _setEditableValue: function (config) {
     var selectedGroup = this.get('selectedConfigGroup');
     if (!selectedGroup) return config;
-    if (App.get('isKerberosEnabled') && config.get('isConfigIdentity')) {
+    if (App.get('isKerberosEnabled') &&
+        config.get('isConfigIdentity') &&
+        !App.StackService.find().filterProperty('isSelected').mapProperty('serviceName').contains(Em.get(config, 'serviceName'))) {
       config.set('isEditable', false);
     } else {
       var isEditable = config.get('isEditable'),
@@ -1511,7 +1548,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       },
       onSecondary: function () {
         this._super();
-        self.setButtonClickFinish();
+        self.set('submitButtonClicked', false);
+        App.set('router.nextBtnClickInProgress', false);
         deferred.reject();
       }
     });
@@ -1534,7 +1572,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             }
           },
           onSecondary: function() {
-            self.setButtonClickFinish();
+            App.set('router.nextBtnClickInProgress', false);
+            self.set('submitButtonClicked', false);
             this.hide();
           },
           onClose: function() {
@@ -1568,14 +1607,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       return false;
     }
     App.set('router.nextBtnClickInProgress', true);
-    if (this.get('wizardController.name') === 'addServiceController' && this.get('hasChangedDependencies')) {
-      return this.showChangedDependentConfigs({}, this.proceedWithChecks.bind(this), this.setButtonClickFinish.bind(this));
-    } else {
-      return this.proceedWithChecks();
-    }
-  },
-
-  proceedWithChecks: function () {
     if (this.get('supportsPreInstallChecks')) {
       var preInstallChecksController = App.router.get('preInstallChecksController');
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
@@ -1586,11 +1617,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return this.postSubmit();
   },
 
-  setButtonClickFinish: function () {
-    this.set('submitButtonClicked', false);
-    App.set('router.nextBtnClickInProgress', false);
-  },
-
   postSubmit: function () {
     var self = this;
     this.set('submitButtonClicked', true);
@@ -1599,7 +1625,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     })
       .fail(function (value) {
         if ("invalid_configs" === value) {
-          self.setButtonClickFinish();
+          self.set('submitButtonClicked', false);
+          App.set('router.nextBtnClickInProgress', false);
         } else {
           // Failed due to validation mechanism failure.
           // Should proceed with other checks
@@ -1650,5 +1677,37 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   hasStepConfigIssues: function() {
     return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('hasConfigIssues', false);
-  }.property('stepConfigs.@each.hasConfigIssues')
+  }.property('stepConfigs.@each.hasConfigIssues'),
+
+  checkDescriptor: function() {
+    if (App.get('isKerberosEnabled')) {
+      return App.ajax.send({
+        sender: self,
+        name: 'admin.kerberize.cluster_descriptor_artifact'
+      });
+    }
+    return $.Deferred().resolve().promise();
+  },
+
+  /**
+   * Store status of kerberos descriptor located in cluster artifacts.
+   * This status needed for Add Service Wizard to select appropriate method to create
+   * or update descriptor.
+   *
+   * @param  {Boolean} isExists <code>true</code> if cluster descriptor present
+   */
+  storeClusterDescriptorStatus: function(isExists) {
+    this.get('wizardController').setDBProperty('isClusterDescriptorExists', isExists);
+  },
+
+   /**
+   * Get all configs, that should be stored in kerberos_descriptor
+   * @returns {Array}
+   */
+  getDescriptorConfigs: function () {
+     return this.get('stepConfigs').reduce(function (allConfigs, service) {
+      return allConfigs.concat(service.get('configs').filterProperty('isSecureConfig'));
+    }, []);
+  }
+
 });

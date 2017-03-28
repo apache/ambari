@@ -25,7 +25,7 @@ export default Ember.Component.extend({
     if(Ember.isBlank(this.get('jobs.start'))){
       return 1;
     }
-    var roundedStart = this.get('jobs.start') - this.get('jobs.start') % 10;
+    var roundedStart = this.get('jobs.start') - this.get('jobs.start') % this.get('jobs.pageSize');
     return (roundedStart / this.get('jobs.pageSize'))+1;
   }),
   userName : Ember.computed.alias('userInfo.userName'),

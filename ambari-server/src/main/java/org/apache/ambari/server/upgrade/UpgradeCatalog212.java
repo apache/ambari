@@ -264,7 +264,11 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
               removes.add("override_hbase_uid");
               updateConfigurationPropertiesForCluster(cluster, HBASE_ENV, new HashMap<String, String>(), removes, false, true);
               updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, updates, true, false);
+            } else {
+              updateOverrideUIDClusterConfig("false", cluster);
             }
+          } else {
+            updateOverrideUIDClusterConfig("false", cluster);
           }
 
           if (hbaseSiteProps != null) {
@@ -277,11 +281,21 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
                 updateConfigurationPropertiesForCluster(cluster, HBASE_SITE, updates, true, false);
               }
             }
-
           }
         }
       }
     }
+  }
+
+  /**
+   * Set override_uid to false during the upgrade to retain UIDs already set on the cluster
+   * This is necessary for upgrading a third party Ambari/stack distribution from
+   * Ambari version 2.1.0 where HBase does not have override_hbase_uid.
+   * */
+  private void updateOverrideUIDClusterConfig(String toOverride, Cluster cluster) throws AmbariException{
+    Map<String, String> updates = new HashMap<String, String>();
+    updates.put("override_uid", toOverride);
+    updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, updates, true, false);
   }
 
   protected void updateHiveConfigs() throws AmbariException {

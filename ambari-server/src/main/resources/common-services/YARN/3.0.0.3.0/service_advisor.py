@@ -275,30 +275,9 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
-    nodemanagerMinRam = 1048576 # 1TB in mb
-    if "referenceNodeManagerHost" in clusterData:
-      nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
 
-    callContext = self.getCallContext(services)
-    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    # read from the supplied config
-    #if 'recommendConfigurations' != callContext and \
-    #        "yarn-site" in services["configurations"] and \
-    #        "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
-    #    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
-    if 'recommendConfigurations' == callContext:
-      putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    else:
-      # read from the supplied config
-      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
-        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
-      else:
-        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-      pass
-    pass
+    self.calculateYarnAllocationSizes(configurations, services, hosts)
 
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['yarnMinContainerSize']))
-    putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
     yarn_mount_properties = [
@@ -349,8 +328,6 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
       putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'maximum', nodeManagerHost["Hosts"]["cpu_count"] * 2)
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
-      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
       kerberos_authentication_enabled = self.isSecurityEnabled(services)
       if kerberos_authentication_enabled:
@@ -461,6 +438,25 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
       ranger_yarn_plugin_enabled = (services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'].lower() == 'Yes'.lower())
     else:
       ranger_yarn_plugin_enabled = False
+
+     #yarn timeline service url depends on http policy and takes the host name of the yarn webapp.
+    if "yarn-site" in services["configurations"] and \
+         "yarn.http.policy" in services["configurations"]["yarn-site"]["properties"] and \
+          "yarn.log.server.web-service.url" in services["configurations"]["yarn-site"]["properties"]:
+      webservice_url = ''
+      if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+         if "yarn.timeline-service.webapp.address" in services["configurations"]["yarn-site"]["properties"]:
+           webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+           webservice_url = "http://"+webapp_address+"/ws/v1/applicationhistory"
+         else:
+           Logger.error("Required config yarn.timeline-service.webapp.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
+      else:
+         if "yarn.timeline-service.webapp.https.address" in services["configurations"]["yarn-site"]["properties"]:
+           webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+           webservice_url = "https://"+webapp_address+"/ws/v1/applicationhistory"
+         else:
+           Logger.error("Required config yarn.timeline-service.webapp.https.address in yarn-site does not exist. Unable to set yarn.log.server.web-service.url")
+      putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url )
 
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
       Logger.info("Setting Yarn Repo user for Ranger.")
@@ -1404,12 +1400,10 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
 
     :type yarn_min_container_size int
     """
-    if yarn_min_container_size > 1024:
+    if yarn_min_container_size >= 1024:
       return 1024
-    if yarn_min_container_size >= 256 and yarn_min_container_size <= 1024:
-      return yarn_min_container_size
-    if yarn_min_container_size < 256:
-      return 256
+    else:
+      return 512
 
   def get_yarn_nm_mem_in_mb(self, services, configurations):
     """
@@ -1450,7 +1444,7 @@ yarn.scheduler.capacity.root.{0}.maximum-am-resource-percent=1""".format(llap_qu
     calculated_tez_am_resource_memory_mb = None
     if is_cluster_create_opr or enable_hive_interactive_1st_invocation:
       if total_cluster_capacity <= 4096:
-        calculated_tez_am_resource_memory_mb = 256
+        calculated_tez_am_resource_memory_mb = 512
       elif total_cluster_capacity > 4096 and total_cluster_capacity <= 98304:
         calculated_tez_am_resource_memory_mb = 1024
       elif total_cluster_capacity > 98304:
@@ -1693,6 +1687,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
 
     self.validators = [("yarn-site", self.validateYARNSiteConfigurationsFromHDP206),
                        ("yarn-site", self.validateYARNSiteConfigurationsFromHDP25),
+                       ("yarn-ste" , self.validateYarnSiteConfigurationsFromHDP26),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP206),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP22),
                        ("ranger-yarn-plugin-properties", self.validateYARNRangerPluginConfigurationsFromHDP22)]
@@ -1748,6 +1743,22 @@ class YARNValidator(service_advisor.ServiceAdvisor):
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-site")
     return validationProblems
+
+  def validateYarnSiteConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    siteProperties = services["configurations"]["yarn-site"]["properties"]
+    if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
+      webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.address"]
+      propertyValue = "http://"+webapp_address+"/ws/v1/applicationhistory"
+    else:
+      webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
+      propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
+      Logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
+    if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
+      validationItems = [
+                      {"config-name": "yarn.log.server.web-service.url",
+                       "item": self.getWarnItem("Value should be %s" % propertyValue)}]
+    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateYARNEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     """

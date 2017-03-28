@@ -122,7 +122,7 @@ AMBARI_SERVER_STARTED_SUCCESS_MSG = "Ambari Server has started successfully"
 
 # linux open-file limit
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
-ULIMIT_OPEN_FILES_DEFAULT = 10000
+ULIMIT_OPEN_FILES_DEFAULT = 65536
 
 AMBARI_ENV_FILE = AmbariPath.get("/var/lib/ambari-server/ambari-env.sh")
 

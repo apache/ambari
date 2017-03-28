@@ -15,7 +15,7 @@
 # limitations under the License
 
 AMBARI_PATH=/root/ambari
-LOGSEARCH_SERVER_PATH=$AMBARI_PATH/ambari-logsearch/ambari-logsearch-portal/target/package
+LOGSEARCH_SERVER_PATH=$AMBARI_PATH/ambari-logsearch/ambari-logsearch-server/target/package
 LOGFEEDER_PATH=$AMBARI_PATH/ambari-logsearch/ambari-logsearch-logfeeder/target/package
 SOLR_LOCATION=/root/solr-$SOLR_VERSION.tgz
 SOLR_SERVER_LOCATION=/root/solr-$SOLR_VERSION

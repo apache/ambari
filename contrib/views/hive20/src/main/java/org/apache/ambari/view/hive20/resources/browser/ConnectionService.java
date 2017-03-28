@@ -18,6 +18,9 @@
 
 package org.apache.ambari.view.hive20.resources.browser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive20.AuthParams;
@@ -74,7 +77,11 @@ public class ConnectionService {
       Optional<String> password = instance.getPassword(context);
       if (!password.isPresent()) {
         // No password cached - request for one
-        return Response.status(Response.Status.UNAUTHORIZED).build();
+        JSONObject entity = new JSONObject();
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "Ldap password required");
+        entity.put("errors", errors);
+        return Response.status(Response.Status.UNAUTHORIZED).entity(entity).build();
       }
       // if there was a password cached, make a connection attempt
       // get the password
@@ -105,9 +112,13 @@ public class ConnectionService {
           // check the message to see if the cause was a login failure
           // return a 401
           // else return a 500
-          if(isLoginError(e))
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-          else
+          if(isLoginError(e)) {
+            JSONObject entity = new JSONObject();
+            Map<String, String> errors = new HashMap<>();
+            errors.put("message", "Authentication Exception");
+            entity.put("errors", errors);
+            return Response.status(Response.Status.UNAUTHORIZED).entity(entity).build();
+          } else
               throw new ServiceFormattedException(e.getMessage(), e);
         } finally {
           try {
@@ -137,7 +148,7 @@ public class ConnectionService {
             //Cache the password for the user
             ConnectionSystem instance = ConnectionSystem.getInstance();
             instance.persistCredentials(context.getUsername(),request.password);
-            return getOKResponse();
+            return attemptHiveConnection(request.password);
         } catch (WebApplicationException ex) {
             throw ex;
         } catch (Exception ex) {

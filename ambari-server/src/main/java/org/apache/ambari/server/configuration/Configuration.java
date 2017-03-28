@@ -2687,6 +2687,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> SERVER_STARTUP_WEB_TIMEOUT = new ConfigurationProperty<>(
     "server.startup.web.timeout", 50);
 
+  /**
+   * The Ephemeral TLS Diffie-Hellman (DH) key size.
+   * Supported from Java 8.
+   */
+  @Markdown(description = "The Ephemeral TLS Diffie-Hellman (DH) key size. Supported from Java 8.")
+  public static final ConfigurationProperty<Integer> TLS_EPHEMERAL_DH_KEY_SIZE = new ConfigurationProperty<>(
+    "security.server.tls.ephemeral_dh_key_size", 2048);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2828,6 +2836,7 @@ public class Configuration {
     agentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
     agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
     agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
+    agentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
 
     configsMap = new HashMap<>();
     configsMap.putAll(agentConfigsMap);
@@ -2873,6 +2882,7 @@ public class Configuration {
     configsMap.put(KDC_PORT.getKey(), getProperty(KDC_PORT));
     configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT.getKey(), getProperty(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT));
     configsMap.put(PROXY_ALLOWED_HOST_PORTS.getKey(), getProperty(PROXY_ALLOWED_HOST_PORTS));
+    configsMap.put(TLS_EPHEMERAL_DH_KEY_SIZE.getKey(), getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
 
     File passFile = new File(
         configsMap.get(SRVR_KSTR_DIR.getKey()) + File.separator
@@ -4352,7 +4362,7 @@ public class Configuration {
     }
     Properties blacklistProperties = new Properties();
     String blacklistFile = getAmbariBlacklistFile();
-    propertiesToMask = new HashSet<String>();
+    propertiesToMask = new HashSet<>();
     if(blacklistFile != null) {
       File propertiesMaskFile = new File(blacklistFile);
       InputStream inputStream = null;
@@ -5558,6 +5568,17 @@ public class Configuration {
   }
 
   /**
+   * @return Ephemeral TLS DH key size
+   */
+  public int getTlsEphemeralDhKeySize() {
+    int keySize = NumberUtils.toInt(getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
+    if (keySize == 0) {
+      throw new IllegalArgumentException("Invalid " + TLS_EPHEMERAL_DH_KEY_SIZE + " " + getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
+    }
+    return keySize;
+  }
+
+  /**
    * Generates a markdown table which includes:
    * <ul>
    * <li>Property key name</li>
@@ -5652,7 +5673,7 @@ public class Configuration {
     // now write out specific groupings
     StringBuilder baselineBuffer = new StringBuilder(1024);
     for( ConfigurationGrouping grouping : ConfigurationGrouping.values() ){
-      baselineBuffer.append("####" + grouping);
+      baselineBuffer.append("#### " + grouping);
       baselineBuffer.append(System.lineSeparator());
       baselineBuffer.append("| Property Name | ");
 
@@ -5687,6 +5708,8 @@ public class Configuration {
 
         baselineBuffer.append(System.lineSeparator());
       }
+
+      baselineBuffer.append(System.lineSeparator());
     }
 
     // replace the tokens in the markdown template and write out the final MD file

@@ -768,6 +768,18 @@
             </organization>
         </developer>
         <developer>
+            <id>ppriya</id>
+            <name>Padma Priya</name>
+            <email>ppriya@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>prajwal</id>
             <name>Prajwal Rao</name>
             <email>prajwal@apache.org</email>
@@ -1024,6 +1036,17 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+            </organization>
+        </developer>
+        <developer>
+            <id>vivekratnavel</id>
+            <name>Vivek Ratnavel Subramanian</name>
+            <email>vivekratnavel@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
             </organization>

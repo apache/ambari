@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,6 +81,7 @@ public class MapperDate extends Mapper {
         if (isEpoch) {
           long ms = Long.parseLong(value.toString()) * 1000;
           value = new Date(ms);
+          jsonObj.put(LogFeederConstants.IN_MEMORY_TIMESTAMP, ((Date) value).getTime());
         } else if (targetDateFormatter != null) {
           if (srcDateFormatter != null) {
             Date srcDate = srcDateFormatter.parse(value.toString());
@@ -97,8 +99,10 @@ public class MapperDate extends Mapper {
               }
             }
             value = targetDateFormatter.format(srcDate);
+            jsonObj.put(LogFeederConstants.IN_MEMORY_TIMESTAMP, srcDate.getTime());
           } else {
             value = targetDateFormatter.parse(value.toString());
+            jsonObj.put(LogFeederConstants.IN_MEMORY_TIMESTAMP, ((Date) value).getTime());
           }
         } else {
           return value;

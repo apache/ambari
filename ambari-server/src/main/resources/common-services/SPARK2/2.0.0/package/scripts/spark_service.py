@@ -41,7 +41,7 @@ def make_tarfile(output_filename, source_dir):
   parent_dir=os.path.dirname(output_filename)
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
-    os.chmod(parent_dir, 0711)
+  os.chmod(parent_dir, 0711)
   with closing(tarfile.open(output_filename, "w:gz")) as tar:
     for file in os.listdir(source_dir):
       tar.add(os.path.join(source_dir,file),arcname=file)
@@ -63,7 +63,7 @@ def spark_service(name, upgrade_type=None, action=None):
           source_dir=params.spark_home+"/jars"
           tmp_archive_file=get_tarball_paths("spark2")[1]
           make_tarfile(tmp_archive_file, source_dir)
-          copy_to_hdfs("spark2", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+          copy_to_hdfs("spark2", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs, replace_existing_files=True)
       # create spark history directory
       params.HdfsResource(params.spark_history_dir,
                           type="directory",

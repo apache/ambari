@@ -936,6 +936,7 @@
       <component name="ATLAS_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
+          <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts"/>
         </pre-upgrade>
         
         <pre-downgrade/>

@@ -81,7 +81,7 @@ class Master(Script):
                         )
 
     spark_deps_full_path = self.get_zeppelin_spark_dependencies()[0]
-    spark_dep_file_name = os.path.basename(spark_deps_full_path);
+    spark_dep_file_name = os.path.basename(spark_deps_full_path)
 
     params.HdfsResource(params.spark_jar_dir + "/" + spark_dep_file_name,
                         type="file",
@@ -162,14 +162,6 @@ class Master(Script):
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     self.create_zeppelin_hdfs_conf_dir(env)
-    # copy hive-site.xml only if Spark 1.x is installed
-    if 'spark-defaults' in params.config['configurations'] and params.is_hive_installed:
-      XmlConfig("hive-site.xml",
-              conf_dir=params.external_dependency_conf,
-              configurations=params.spark_hive_properties,
-              owner=params.zeppelin_user,
-              group=params.zeppelin_group,
-              mode=0644)
 
     if len(params.hbase_master_hosts) > 0 and params.is_hbase_installed:
       # copy hbase-site.xml
@@ -179,8 +171,23 @@ class Master(Script):
               configuration_attributes=params.config['configuration_attributes']['hbase-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
-              mode=0644
-              )
+              mode=0644)
+
+      XmlConfig("hdfs-site.xml",
+                conf_dir=params.external_dependency_conf,
+                configurations=params.config['configurations']['hdfs-site'],
+                configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+                owner=params.zeppelin_user,
+                group=params.zeppelin_group,
+                mode=0644)
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.external_dependency_conf,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.zeppelin_user,
+                group=params.zeppelin_group,
+                mode=0644)
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -309,15 +316,24 @@ class Master(Script):
     config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
-    if 'spark2-env' in params.config['configurations']:
+    if 'spark2-defaults' in params.config['configurations']:
       spark2_config = self.get_spark2_interpreter_config()
       config_id = spark2_config["id"]
       interpreter_settings[config_id] = spark2_config
 
-    if 'livy2-env' in params.config['configurations']:
+    if params.livy2_livyserver_host:
       livy2_config = self.get_livy2_interpreter_config()
       config_id = livy2_config["id"]
       interpreter_settings[config_id] = livy2_config
+
+    if params.zeppelin_interpreter:
+      settings_to_delete = []
+      for settings_key, interpreter in interpreter_settings.items():
+        if interpreter['group'] not in params.zeppelin_interpreter:
+          settings_to_delete.append(settings_key)
+
+      for key in settings_to_delete:
+        del interpreter_settings[key]
 
     hive_interactive_properties_key = 'hive_interactive'
     for setting_key in interpreter_settings.keys():

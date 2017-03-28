@@ -120,22 +120,11 @@ public class Users {
   /**
    * This method works incorrectly, userName is not unique if users have different types
    *
-   * @return One user. Priority is LOCAL -> LDAP -> JWT
+   * @return One user. Priority is LOCAL -> LDAP -> JWT -> PAM
    */
   @Deprecated
   public User getAnyUser(String userName) {
-    UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
-    if (userEntity == null) {
-      userEntity = userDAO.findUserByNameAndType(userName, UserType.LDAP);
-    }
-    if (userEntity == null) {
-      userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
-    }
-
-    if (userEntity == null) {
-        userEntity = userDAO.findUserByNameAndType(userName, UserType.PAM);
-    }
-
+    UserEntity userEntity = userDAO.findSingleUserByName(userName);
     return (null == userEntity) ? null : new User(userEntity);
   }
 
@@ -153,9 +142,12 @@ public class Users {
    * Retrieves User then userName is unique in users DB. Will return null if there no user with provided userName or
    * there are some users with provided userName but with different types.
    *
+   * <p>User names in the future will likely be unique hence the deprecation.</p>
+   *
    * @param userName
    * @return User if userName is unique in DB, null otherwise
    */
+  @Deprecated
   public User getUserIfUnique(String userName) {
     List<UserEntity> userEntities = new ArrayList<>();
     UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
@@ -311,9 +303,10 @@ public class Users {
       throw new AmbariException("UserType not specified.");
     }
 
-    User existingUser = getUser(userName, userType);
+    User existingUser = getAnyUser(userName);
     if (existingUser != null) {
-      throw new AmbariException("User " + existingUser.getUserName() + " already exists");
+      throw new AmbariException("User " + existingUser.getUserName() + " already exists with type "
+          + existingUser.getUserType());
     }
 
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);

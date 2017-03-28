@@ -18,8 +18,22 @@
 
 var App = require('app');
 
+/**
+ * @param {string} labelBindingPath
+ * @returns {string}
+ * @private
+ */
 function _getLabelPathWithoutApp(labelBindingPath) {
   return labelBindingPath.startsWith('App.') ? labelBindingPath.replace('App.', '') : labelBindingPath;
+}
+
+/**
+ * @param {string} stateName
+ * @returns {string}
+ * @private
+ */
+function _formatLabel(stateName) {
+  return stateName.capitalize().replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
 /**
@@ -155,8 +169,26 @@ App.BreadcrumbsView = Em.View.extend({
     let currentState = App.get('router.currentState');
     let items = [];
     while (currentState) {
-      if (currentState.breadcrumbs) {
-        items.pushObject(currentState.breadcrumbs);
+      if (currentState.breadcrumbs !== undefined) {
+        // breadcrumbs should be defined and be not null or any other falsie-value
+        if (currentState.breadcrumbs) {
+          const {label, labelBindingPath, route, disabled} = currentState.breadcrumbs;
+          // generate label if it isn't provided
+          if (!label && !labelBindingPath) {
+            currentState.breadcrumbs.label = _formatLabel(currentState.name);
+          }
+          // generate route if it isn't provided and breadcrumb is not disabled
+          if (!route && !disabled) {
+            currentState.breadcrumbs.route = currentState.absoluteRoute(App.router).replace('/main/', '');
+          }
+          items.pushObject(currentState.breadcrumbs);
+        }
+      }
+      else {
+        // generate breadcrumb if it is not defined
+        if (currentState.name && !['root', 'index'].contains(currentState.name)) {
+          items.pushObject({label: _formatLabel(currentState.name)});
+        }
       }
       currentState = currentState.get('parentState');
     }
@@ -173,6 +205,7 @@ App.BreadcrumbsView = Em.View.extend({
   /**
    * Move user to the route described in the breadcrumb item
    * <code>beforeTransition</code> hook is executed
+   * <code>afterTransition</code> hook is executed
    *
    * @param {{context: App.BreadcrumbItem}} event
    * @returns {*}

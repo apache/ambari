@@ -69,16 +69,6 @@ ul.typeahead.dropdown-menu {
   overflow: visible;
   padding-bottom: @footer-height;
   min-width: 980px;
-
-   .clock-view {
-     top: 10px;
-     left: 4px;
-     position: fixed;
-     color: red;
-     font-weight: bold;
-     padding: 4px;
-     background-color: rgba(0, 0, 0, 0.6);
-  }
 }
 
 footer {
@@ -753,11 +743,6 @@ h1 {
         color: #337ab7;
         text-decoration: underline;
       }
-    }
-    .category-name {
-      font-size: 14px;
-      margin-left: 10px;
-      color: #23527c;
     }
   }
 
@@ -2328,9 +2313,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     .diff {
       td {
-        &.empty {
-          width: 50%;
-        }
+        width: 50%;
         &.delete {
           background-color: @diff-background-delete !important;
         }
@@ -2343,6 +2326,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         &.not-defined:first-of-type, &.is-removed:last-of-type {
           background-color: @diff-background-empty;
           font-style: italic;
+          word-break: normal;
         }
       }
     }
@@ -2659,5 +2643,26 @@ a.abort-icon:hover {
 .dropdown {
   button .selected-item {
     text-transform: none;
+  }
+}
+
+.clock-view {
+  bottom: 10px;
+  right: 4px;
+  position: fixed;
+  color: red;
+  font-weight: bold;
+  padding: 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.loading-overlay {
+  background: #fff;
+  opacity: 0.3;
+  display: none;
+  position: absolute;
+  z-index: 10;
+  &.overlay-visible {
+    display: block;
   }
 }

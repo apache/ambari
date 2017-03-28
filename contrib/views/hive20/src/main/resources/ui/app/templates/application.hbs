@@ -29,12 +29,17 @@
         {{#tabs-pane tabs=tabs as |tab|}}
           {{tabs-item tab=tab tabs=tabs}}
         {{/tabs-pane}}
+      {{else if ldapAuth.passwordRequired}}
+        {{top-application-bar askPassword=true}}
       {{else}}
         {{top-application-bar service=true}}
       {{/if}}
 
     </div>
   </div>
+  {{#if askPassword}}
+    ASKING PASSWORD
+  {{/if}}
   <div class="row">
     <div class="main-wrapper clearfix">
       <div class="col-md-12">

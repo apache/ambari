@@ -65,6 +65,68 @@ App.IntInputComponent = Ember.TextField.extend({
   }.observes('value')
 });
 
+App.DecimalInputComponent = Ember.TextField.extend({
+  classNames:['form-control'],
+
+  initVal: function() {
+    this.set('value', (!Em.isBlank(this.get('value')) && !isNaN(parseFloat(this.get('value')))) ? parseFloat(this.get('value')): null);
+  }.on('init'),
+
+  keyDown: function(evt) {
+    var newChar, val = this.get('value') || 0;
+    val = val.toString();
+    if ((evt.keyCode > 64 && evt.keyCode < 91) ||
+       (evt.keyCode > 185 && evt.keyCode < 190) ||
+       (evt.keyCode > 190 && evt.keyCode < 193) ||
+       (evt.keyCode > 218 && evt.keyCode < 223)) {
+      return false;
+    }
+    if (evt.keyCode === 190 || evt.keyCode === 9) {
+      return true;
+    }
+    if (evt.keyCode > 95 && evt.keyCode < 106) {
+      newChar = (evt.keyCode - 96).toString();
+    } else {
+      newChar = String.fromCharCode(evt.keyCode);
+    }
+    if (newChar.match(/[0-9]/)) {
+      val = val.substring(0, evt.target.selectionStart) + newChar + val.substring(evt.target.selectionEnd);
+    }
+    if (/^\d+\.\d{3}$/.test(val)) {
+      return false;
+    }
+    return parseFloat(val);
+  },
+
+  debounceId: null,
+
+  cancelDebounceCallback: function() {
+    Ember.run.cancel(this.get('debounceId'));
+    this.set('debounceId', null);
+  },
+
+  initDebounceCallback: function(val) {
+    var debounce = Ember.run.debounce(this, function() {
+      this.set('value', parseFloat(val));
+    }, 8000);
+    this.set('debounceId', debounce);
+  },
+
+  valueDidChange: function() {
+    var val = this.get('value');
+    this.cancelDebounceCallback();
+    if (/^\d+(\.(\d{1,2})?)?$/.test(val)) {
+      if (/^\d+\.[0]$/.test(val) || /^\d+\.$/.test(val)) {
+        this.initDebounceCallback(val);
+      } else {
+        this.set('value', parseFloat(val));
+      }
+    }
+    else
+      this.set('value', (!Em.isBlank(this.get('value')) && !isNaN(parseFloat(this.get('value')))) ? parseFloat(val) : null);
+  }.observes('value').on('change')
+});
+
 App.CapacityInputComponent = App.IntInputComponent.extend({
 
   totalCapacity:null,

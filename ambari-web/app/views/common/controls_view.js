@@ -895,7 +895,11 @@ App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSuppo
   valueBinding: 'serviceConfig.value',
   unitBinding: 'serviceConfig.unit',
 
-  fullValue: Em.computed.format('{0} {1}', 'value', 'unit'),
+  fullValue: function () {
+    var value = this.get('value');
+    var unit = this.get('unit');
+    return unit ? value + ' ' + unit : value;
+  }.property('value', 'unit'),
 
   template: Ember.Handlebars.compile('<i>{{formatWordBreak view.fullValue}}</i>')
 });
@@ -910,28 +914,21 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     if (!this.get('value')) {
       return true;
     }
-    return this.get('value').length === 0;
+    return !this.get('value.length');
   }.property('value'),
 
-  formatValue: function() {
-    if (Em.isArray(this.get('value')) && this.get('value').length === 1) {
-      return this.get('value.firstObject');
-    } else {
-      return this.get('value');
-    }
-  }.property('value'),
+  formatValue: Em.computed.ifThenElseByKeys('hasOneHost', 'value.firstObject', 'value'),
 
   hasOneHost: Em.computed.equal('value.length', 1),
 
   hasMultipleHosts: Em.computed.gt('value.length', 1),
 
   otherLength: function () {
-    var len = this.get('value').length;
+    var len = this.get('value.length');
     if (len > 2) {
       return Em.I18n.t('installer.controls.serviceConfigMultipleHosts.others').format(len - 1);
-    } else {
-      return Em.I18n.t('installer.controls.serviceConfigMultipleHosts.other');
     }
+    return Em.I18n.t('installer.controls.serviceConfigMultipleHosts.other');
   }.property('value')
 
 });
@@ -949,6 +946,8 @@ App.ServiceConfigComponentHostsView = Ember.View.extend(App.ServiceConfigMultipl
   valueBinding: 'serviceConfig.value',
 
   templateName: require('templates/wizard/component_hosts'),
+
+  firstHost: Em.computed.firstNotBlank('value.firstObject', 'serviceConfig.value.firstObject'),
 
   /**
    * Onclick handler for link

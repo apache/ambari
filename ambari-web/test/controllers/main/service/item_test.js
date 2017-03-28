@@ -2000,4 +2000,21 @@ describe('App.MainServiceItemController', function () {
 
   });
 
+  describe('#startStopPopupErrorCallback', function () {
+
+    beforeEach(function () {
+      sinon.spy(App.ajax, 'defaultErrorHandler');
+    });
+
+    afterEach(function () {
+      App.ajax.defaultErrorHandler.restore();
+    });
+
+    it('`App.ajax.defaultErrorHandler` should be called', function () {
+      App.MainServiceItemController.create().startStopPopupErrorCallback({}, {}, '', {}, {query: Em.Object.create()});
+      expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
+    });
+
+  });
+
 });

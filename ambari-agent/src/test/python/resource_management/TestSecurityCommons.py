@@ -162,8 +162,9 @@ class TestSecurityCommons(TestCase):
     print result
 
   @patch('xml.etree.ElementTree.parse')
-  def test_get_params_from_filesystem(self, et_parser_mock):
-
+  @patch('os.path.isfile')
+  def test_get_params_from_filesystem(self, file_exists_mock, et_parser_mock):
+    file_exists_mock.return_value = True
     conf_dir = gettempdir()
     config_file = {
       "config.xml": FILE_TYPE_XML

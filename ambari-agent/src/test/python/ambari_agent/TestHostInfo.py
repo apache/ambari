@@ -198,7 +198,8 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfoLinux, 'hadoopVarRunCount')
   @patch.object(HostInfoLinux, 'hadoopVarLogCount')
   @patch.object(HostInfoLinux, 'checkFirewall')
-  def test_hostinfo_register_suse(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
+  @patch.object(HostInfoLinux, 'checkUnlimitedJce')
+  def test_hostinfo_register_suse(self, jce_mock, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
     cit_mock.return_value = True
@@ -215,6 +216,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(cit_mock.called)
     self.assertTrue(os_umask_mock.called)
     self.assertTrue(whcf_mock.called)
+    self.assertTrue(jce_mock.called)
 
     self.assertTrue('agentTimeStampAtReporting' in dict['hostHealth'])
 

@@ -1873,3 +1873,8 @@ legend {
   text-align: center;
   padding-bottom: 10px;
 }
+
+.ellipsis-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

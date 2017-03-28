@@ -35,7 +35,7 @@
     <ul class="admin-submenu sub-menu nav nav-pills nav-stacked">
       {{#each category in view.dropdownCategories}}
         {{#view view.AdminDropdownItemView itemBinding="category.name"}}
-          <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
+          <a {{bindAttr href="category.href"}} {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
         {{/view}}
       {{/each}}
     </ul>

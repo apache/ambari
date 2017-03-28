@@ -415,60 +415,6 @@ describe('App.AddServiceController', function() {
     }, this);
   });
 
-  describe('#checkSecurityStatus', function () {
-
-    var cases = [
-      {
-        securityEnabled: true,
-        skipConfigureIdentitiesStep: false,
-        isStep5Disabled: false,
-        title: 'security enabled'
-      },
-      {
-        securityEnabled: false,
-        skipConfigureIdentitiesStep: true,
-        isStep5Disabled: true,
-        title: 'security disabled'
-      }
-    ];
-
-    beforeEach(function () {
-      addServiceController.setProperties({
-        skipConfigureIdentitiesStep: false,
-        isStepDisabled: [
-          Em.Object.create({
-            step: 5,
-            value: false
-          })
-        ]
-      });
-    });
-
-    afterEach(function () {
-      App.get.restore();
-    });
-
-    cases.forEach(function (item) {
-      describe(item.title, function () {
-
-        beforeEach(function () {
-          sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(item.securityEnabled);
-          addServiceController.checkSecurityStatus();
-        });
-
-        it('skipConfigureIdentitiesStep is ' + item.skipConfigureIdentitiesStep, function () {
-          expect(addServiceController.get('skipConfigureIdentitiesStep')).to.equal(item.skipConfigureIdentitiesStep);
-        });
-
-        it('step 5 is ' + (item.isStep5Disabled ? 'disabved' : 'enabled'), function () {
-          expect(addServiceController.get('isStepDisabled').findProperty('step', 5).get('value')).to.equal(item.isStep5Disabled);
-        });
-
-      });
-    });
-
-  });
-
   describe('#loadServiceConfigGroups', function () {
 
     var dbMock,

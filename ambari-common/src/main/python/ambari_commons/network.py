@@ -21,6 +21,7 @@ limitations under the License.
 import httplib
 import ssl
 import socket
+import urllib2
 
 from ambari_commons.logging_utils import print_warning_msg
 from resource_management.core.exceptions import Fail
@@ -64,3 +65,16 @@ def check_ssl_certificate_and_return_ssl_version(host, port, ca_certs):
       raise Fail("Failed to verify the SSL certificate for https://{0}:{1} with CA certificate in {2}. Error : {3}"
                .format(host, port, ca_certs, str(ssl_error)))
   return ssl_version
+
+
+def reconfigure_urllib2_opener(ignore_system_proxy=False):
+  """
+  Reconfigure urllib opener
+
+  :type ignore_system_proxy bool
+  """
+
+  if ignore_system_proxy:
+    proxy_handler = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(proxy_handler)
+    urllib2.install_opener(opener)

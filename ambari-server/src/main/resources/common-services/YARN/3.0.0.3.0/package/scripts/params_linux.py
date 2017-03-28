@@ -220,8 +220,8 @@ nm_log_dirs_list = nm_log_dirs.split(',')
 nm_log_dir_to_mount_file = "/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist"
 nm_local_dir_to_mount_file = "/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist"
 
-distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
-hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
+distrAppJarName = "hadoop-yarn-applications-distributedshell-3.*.jar"
+hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-3.*.jar"
 
 entity_file_history_directory = "/tmp/entity-file-history/active"
 

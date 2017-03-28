@@ -226,7 +226,7 @@ describe('App.ComponentActionsByConfigs', function () {
         name: 'common.batch.request_schedules',
         sender: mixin,
         data: {
-          intervalTimeSeconds: 1,
+          intervalTimeSeconds: 60,
           tolerateSize: 0,
           batches: [{}, {}]
         }

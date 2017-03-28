@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
+
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -161,21 +163,14 @@ public class PrivilegeEntity {
     if (o == null || getClass() != o.getClass()) return false;
 
     PrivilegeEntity that = (PrivilegeEntity) o;
-
-    if (!id.equals(that.id)) return false;
-    if (permission != null ? !permission.equals(that.permission) : that.permission != null) return false;
-    if (principal != null ? !principal.equals(that.principal) : that.principal != null) return false;
-    if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
-
-    return true;
+    return Objects.equals(id, that.id) &&
+        Objects.equals(permission, that.permission) &&
+        Objects.equals(principal, that.principal) &&
+        Objects.equals(resource, that.resource);
   }
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (permission != null ? permission.hashCode() : 0);
-    result = 31 * result + (resource != null ? resource.hashCode() : 0);
-    result = 31 * result + (principal != null ? principal.hashCode() : 0);
-    return result;
+    return Objects.hash(id, permission, resource, principal);
   }
 }

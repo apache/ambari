@@ -1592,6 +1592,10 @@ var urls = {
     'real': '/clusters/{clusterName}/kerberos_descriptors/COMPOSITE{queryParams}',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
+  'admin.kerberize.cluster_descriptor.stack': {
+    'real': '/clusters/{clusterName}/kerberos_descriptors/STACK',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
   'admin.kerberos.cluster.artifact.create': {
     'type': 'POST',
     'real': '/clusters/{clusterName}/artifacts/{artifactName}',
@@ -2337,6 +2341,10 @@ var urls = {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'mock': ''
   },
+  'request_schedule.get.pending': {
+    'real': '/clusters/{clusterName}/request_schedules?fields=*&(RequestSchedule/status.in(SCHEDULED,IN_PROGRESS))',
+    'mock': ''
+  },
   'restart.hostComponents': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
@@ -2501,8 +2509,8 @@ var urls = {
       };
     }
   },
-  'host.status.counters': {
-    'real': '/clusters/{clusterName}?fields=Clusters/health_report,Clusters/total_hosts,alerts_summary_hosts&minimal_response=true',
+  'host.status.total_count': {
+    'real': '/clusters/{clusterName}?fields=Clusters/total_hosts&minimal_response=true',
     'mock': '/data/hosts/HDP2/host_status_counters.json'
   },
   'host.stack_versions.install': {
@@ -3062,16 +3070,23 @@ var formatRequest = function (data) {
  */
 var doGetAsPost = function(opt) {
   var delimiterPos = opt.url.indexOf('?');
+  var fieldsIndex = opt.url.indexOf('&fields');
 
   opt.type = "POST";
   opt.headers["X-Http-Method-Override"] = "GET";
   if (delimiterPos !== -1) {
+    var query = fieldsIndex !== -1 ? opt.url.substring(delimiterPos + 1, fieldsIndex) : opt.url.substr(delimiterPos + 1);
     opt.data = JSON.stringify({
-      "RequestInfo": {"query" : opt.url.substr(delimiterPos + 1, opt.url.length)}
+      "RequestInfo": {"query" : query}
     });
-    opt.url = opt.url.substr(0, delimiterPos);
+    if (fieldsIndex !== -1) {
+      opt.url = opt.url.substr(0, delimiterPos) + '?' + opt.url.substr(fieldsIndex + 1) + '&_=' + App.dateTime();
+    } else {
+      opt.url = opt.url.substr(0, delimiterPos)  + '?_=' + App.dateTime();
+    }
+  } else {
+    opt.url += '?_=' + App.dateTime();
   }
-  opt.url += '?_=' + App.dateTime();
   return opt;
 };
 

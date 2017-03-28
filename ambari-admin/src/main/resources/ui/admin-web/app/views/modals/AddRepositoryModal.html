@@ -16,16 +16,16 @@
 * limitations under the License.
 -->
 <div class="modal-header" xmlns="http://www.w3.org/1999/html">
-    <h3 class="modal-title">Add Repository</h3>
+    <h3 class="modal-title">{{'versions.repository.add' | translate}}</h3>
 </div>
 <form class="form-horizontal" name="addRepoForm" novalidate>
     <div class="modal-body">
         <div class="alert alert-warning hide-soft" ng-class="{'visible' : showAlert}" role="alert">
-            A repository with the same Repo ID already exists for {{repo.selectedOS}}!
+            {{'versions.alerts.repositoryExists' | translate: '{os: repo.selectedOS}'}}
         </div>
         <div class="form-group">
             <div class="col-sm-3">
-                <label class="control-label">OS</label>
+                <label class="control-label">{{'versions.os' | translate}}</label>
             </div>
             <div class="col-sm-4">
                 <select class="form-control" ng-options="os for os in osTypes" ng-model="repo.selectedOS"></select>
@@ -33,7 +33,7 @@
         </div>
         <div class="form-group">
             <div class="col-sm-3">
-                <label class="control-label">Repo ID</label>
+                <label class="control-label">{{'versions.repoID' | translate}}</label>
             </div>
             <div class="col-sm-9">
                 <input name="repoId" type="text" class="form-control" ng-model="repo.id" ng-required="true">
@@ -41,7 +41,7 @@
         </div>
         <div class="form-group">
             <div class="col-sm-3">
-                <label class="control-label">Repo Name</label>
+                <label class="control-label">{{'versions.repoName' | translate}}</label>
             </div>
             <div class="col-sm-9">
                 <input name="repoName" type="text" class="form-control" ng-model="repo.name" ng-required="true">
@@ -49,7 +49,7 @@
         </div>
         <div class="form-group">
             <div class="col-sm-3">
-                <label class="control-label">Base URL</label>
+                <label class="control-label">{{'versions.baseURL' | translate}}</label>
             </div>
             <div class="col-sm-9">
                 <input name="repoUrl" type="text" class="form-control" ng-model="repo.baseUrl" ng-required="true">
@@ -57,7 +57,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-        <button class="btn btn-primary" ng-disabled="addRepoForm.$invalid" ng-click="add(repo)" >Add</button>
+        <button class="btn btn-default" ng-click="cancel()">{{'common.controls.cancel' | translate}}</button>
+        <button class="btn btn-primary" ng-disabled="addRepoForm.$invalid" ng-click="add(repo)" >{{'common.controls.add' | translate}}</button>
     </div>
 </form>

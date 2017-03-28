@@ -19,138 +19,181 @@
 var App = require('app');
 require('mappers/configs/service_config_version_mapper');
 
-describe.skip('App.serviceConfigVersionsMapper', function () {
+describe('App.serviceConfigVersionsMapper', function () {
 
-  var allHosts = App.get('allHostNames');
-  var defaultAllHosts = ['host1', 'host2', 'host3'];
-  beforeEach(function () {
-    App.set('allHostNames', defaultAllHosts);
+  describe('#map', function() {
+    var json = {
+      itemTotal: 2,
+      items: [
+        {
+          service_name: 'S1',
+          service_config_version: 'v1',
+          is_current: false,
+          createtime: 1,
+          group_id: 1,
+          user: 'admin',
+          is_cluster_compatible: true,
+          group_name: 'g1',
+          service_config_version_note: 'notes...',
+          stack_id: 'HDP-1',
+          hosts: ['host1']
+        },
+        {
+          service_name: 'S1',
+          service_config_version: 'v1',
+          is_current: true,
+          createtime: 1,
+          group_id: -1,
+          user: 'admin',
+          is_cluster_compatible: true,
+          group_name: 'g2',
+          service_config_version_note: 'notes...',
+          stack_id: 'HDP-1',
+          hosts: []
+        }
+      ]
+    };
+    var currentVersionMap;
+
+    beforeEach(function() {
+      currentVersionMap = {
+        S1_g2: Em.Object.create({
+          isCurrent: true
+        })
+      };
+      sinon.stub(App.router, 'set');
+      sinon.stub(App.serviceConfigVersionsMapper, 'getCurrentVersionMap').returns(currentVersionMap);
+      sinon.stub(App, 'dateTimeWithTimeZone').returns(1);
+      sinon.stub(App.serviceConfigVersionsMapper, 'setHostsForDefaultCG');
+      sinon.stub(App.ServiceConfigVersion, 'find').returns({clear: Em.K});
+      sinon.stub(App.store, 'safeLoadMany');
+      sinon.stub(App.router, 'get').returns('configHistory');
+      App.serviceConfigVersionsMapper.map(json);
+    });
+    afterEach(function() {
+      App.router.set.restore();
+      App.serviceConfigVersionsMapper.getCurrentVersionMap.restore();
+      App.dateTimeWithTimeZone.restore();
+      App.serviceConfigVersionsMapper.setHostsForDefaultCG.restore();
+      App.ServiceConfigVersion.find.restore();
+      App.store.safeLoadMany.restore();
+      App.router.get.restore();
+    });
+
+    it('should call safeLoadMany', function() {
+      expect(App.store.safeLoadMany.getCall(0).args[1]).to.be.eql([
+        {
+          "author": "admin",
+          "create_time": 1,
+          "group_id": 1,
+          "group_name": "g1",
+          "hosts": [
+            "host1"
+          ],
+          "id": "S1_v1",
+          "index": 0,
+          "is_compatible": true,
+          "is_current": false,
+          "is_requested": true,
+          "notes": "notes...",
+          "raw_create_time": 1,
+          "service_id": "S1",
+          "service_name": "S1",
+          "stack_version": "HDP-1",
+          "version": "v1"
+        },
+        {
+          "author": "admin",
+          "create_time": 1,
+          "group_id": 'S1_default',
+          "group_name": "g2",
+          "hosts": [],
+          "id": "S1_v1",
+          "index": 1,
+          "is_compatible": true,
+          "is_current": true,
+          "is_requested": true,
+          "notes": "notes...",
+          "raw_create_time": 1,
+          "service_id": "S1",
+          "service_name": "S1",
+          "stack_version": "HDP-1",
+          "version": "v1"
+        }
+      ]);
+    });
+
+    it('currentVersionMap should have not current version', function() {
+      expect(currentVersionMap.S1_g2.get('isCurrent')).to.be.false;
+    });
+
+    it('App.router.set should be called', function() {
+      expect(App.router.set.calledWith('mainConfigHistoryController.filteredCount', 2)).to.be.true;
+    });
+
+    it('setHostsForDefaultCG should be called', function() {
+      expect(App.serviceConfigVersionsMapper.setHostsForDefaultCG.calledOnce).to.be.true;
+    });
+
+    it('App.ServiceConfigVersion.find should be called', function() {
+      expect(App.ServiceConfigVersion.find.calledOnce).to.be.true;
+    });
   });
-  afterEach(function(){
-    App.set('allHostNames', allHosts);
+
+  describe('#setHostsForDefaultCG', function() {
+    var serviceToHostMap = {
+      'S1': ['host2']
+    };
+    var result = [
+      {
+        is_current: true,
+        group_name: 'Default',
+        service_name: 'S1'
+      }
+    ];
+
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(['host1', 'host2']);
+    });
+    afterEach(function() {
+      App.get.restore();
+    });
+
+    it('should set hosts to default group', function() {
+      App.serviceConfigVersionsMapper.setHostsForDefaultCG(serviceToHostMap, result);
+      expect(result[0].hosts).to.be.eql(['host1']);
+    });
   });
 
-  describe("#map", function() {
-
-    var json = { items: [
-      {
-        "cluster_name" : "1",
-        "createtime" : 1425979244738,
-        "group_id" : -1,
-        "group_name" : "default",
-        "hosts" : [ ],
-        "is_current" : true,
-        "service_config_version" : 1,
-        "service_config_version_note" : "Initial configurations for SERVICE1",
-        "service_name" : "SERVICE1",
-        "user" : "admin"
-      },
-      {
-        "cluster_name" : "1",
-        "configurations" : [
-          {
-            "Config" : {
-              "cluster_name" : "1"
-            },
-            "type" : "hadoop-env",
-            "tag" : "version1426088081862",
-            "version" : 2,
-            "properties" : {
-              "dtnode_heapsize" : "1026m"
-            },
-            "properties_attributes" : { }
-          }
-        ],
-        "createtime" : 1426088137115,
-        "group_id" : 2,
-        "group_name" : "1",
-        "hosts" : [
-          "host1"
-        ],
-        "is_current" : false,
-        "service_config_version" : 4,
-        "service_config_version_note" : "",
-        "service_name" : "SERVICE2",
-        "user" : "admin"
-      },
-    ]};
-
-    beforeEach(function () {
-      App.resetDsStoreTypeMap(App.ServiceConfigVersion);
-      sinon.stub(App.store, 'commit', Em.K);
+  describe('#getCurrentVersionMap', function() {
+    beforeEach(function() {
+      sinon.stub(App.ServiceConfigVersion, 'find').returns([
+        Em.Object.create({
+          isCurrent: true,
+          serviceName: 'S1',
+          groupName: 'g1'
+        })
+      ]);
     });
-    afterEach(function(){
-      App.store.commit.restore();
+    afterEach(function() {
+      App.ServiceConfigVersion.find.restore();
     });
 
-    it('should not do anything as there is no json', function() {
-      App.serviceConfigVersionsMapper.map(null);
-      expect(App.ServiceConfigVersion.find().get('length')).to.equal(0);
+    it('should return current version map', function() {
+      expect(App.serviceConfigVersionsMapper.getCurrentVersionMap()).to.be.eql({
+        'S1_g1': Em.Object.create({
+          isCurrent: true,
+          serviceName: 'S1',
+          groupName: 'g1'
+        })
+      });
     });
+  });
 
-    describe('should load data to model', function() {
+  describe('#makeId', function() {
 
-      beforeEach(function () {
-        App.serviceConfigVersionsMapper.map(json);
-      });
-
-      it('two versions are mapped', function () {
-        expect(App.ServiceConfigVersion.find().get('length')).to.equal(2);
-      });
-
-      it('services have correct ids', function () {
-        expect(App.ServiceConfigVersion.find().mapProperty('id')).to.eql(['SERVICE1_1','SERVICE2_4']);
-      });
-
-      it('SERVICE1_1 createTime', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('createTime')).to.equal(1425979244738);
-      });
-      it('SERVICE1_1 groupId', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('groupId')).to.equal(-1);
-      });
-      it('SERVICE1_1 hosts', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('hosts')).to.eql(defaultAllHosts);
-      });
-      it('SERVICE1_1 isCurrent', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('isCurrent')).to.be.true;
-      });
-      it('SERVICE1_1 version', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('version')).to.equal(1);
-      });
-      it('SERVICE1_1 notes', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('notes')).to.equal("Initial configurations for SERVICE1");
-      });
-      it('SERVICE1_1 serviceName', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('serviceName')).to.equal("SERVICE1");
-      });
-      it('SERVICE1_1 author', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE1_1').get('author')).to.equal("admin");
-      });
-
-      it('SERVICE2_4 createTime', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('createTime')).to.equal(1426088137115);
-      });
-      it('SERVICE2_4 groupId', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('groupId')).to.equal(2);
-      });
-      it('SERVICE2_4 hosts', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('hosts')).to.eql(["host1"]);
-      });
-      it('SERVICE2_4 isCurrent', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('isCurrent')).to.be.false;
-      });
-      it('SERVICE2_4 version', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('version')).to.equal(4);
-      });
-      it('SERVICE2_4 notes', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('notes')).to.equal("");
-      });
-      it('SERVICE2_4 serviceName', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('serviceName')).to.equal("SERVICE2");
-      });
-      it('SERVICE2_4 author', function () {
-        expect(App.ServiceConfigVersion.find('SERVICE2_4').get('author')).to.equal("admin");
-      });
+    it('should return id', function() {
+      expect(App.serviceConfigVersionsMapper.makeId('S1', 'v1')).to.be.equal('S1_v1');
     });
   });
 

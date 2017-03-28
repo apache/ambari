@@ -90,7 +90,7 @@ public class ViewPrivilegeResourceProviderTest {
   public void resetGlobalMocks() {
 
     ViewRegistry.initInstance(ViewRegistryTest.getRegistry(viewDAO, viewInstanceDAO, userDAO,
-        memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null));
+        memberDAO, privilegeDAO, permissionDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null));
     reset(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, handlerList);
   }
 

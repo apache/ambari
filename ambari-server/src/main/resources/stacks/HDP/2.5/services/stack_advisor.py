@@ -468,17 +468,25 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     storm_site = self.getServicesSiteProperties(services, "storm-site")
+    storm_env = self.getServicesSiteProperties(services, "storm-env")
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
-    security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
+    security_enabled = self.isSecurityEnabled(services)
 
-    if security_enabled:
-      _storm_principal_name = services['configurations']['storm-env']['properties']['storm_principal_name']
-      storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
-      if 'nimbus.impersonation.acl' in storm_site:
-        storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"]
-        storm_nimbus_impersonation_acl.replace('{{storm_bare_jaas_principal}}', storm_bare_jaas_principal)
-        putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+    if storm_env and storm_site:
+      if security_enabled:
+        _storm_principal_name = storm_env['storm_principal_name'] if 'storm_principal_name' in storm_env else None
+        storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
+        if 'nimbus.impersonation.acl' in storm_site:
+          storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"]
+          storm_nimbus_impersonation_acl.replace('{{storm_bare_jaas_principal}}', storm_bare_jaas_principal)
+          putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+      else:
+        if 'nimbus.impersonation.acl' in storm_site:
+          putStormSiteAttributes('nimbus.impersonation.acl', 'delete', 'true')
+        if 'nimbus.impersonation.authorizer' in storm_site:
+          putStormSiteAttributes('nimbus.impersonation.authorizer', 'delete', 'true')
+
     rangerPluginEnabled = ''
     if 'ranger-storm-plugin-properties' in configurations and 'ranger-storm-plugin-enabled' in  configurations['ranger-storm-plugin-properties']['properties']:
       rangerPluginEnabled = configurations['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
@@ -491,7 +499,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if security_enabled:
       if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putStormSiteProperty('nimbus.authorizer',ranger_authorizer_class)
-      elif rangerPluginEnabled and (rangerPluginEnabled.lower() == 'No'.lower()) and (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == ranger_authorizer_class):
+      else:
         putStormSiteProperty('nimbus.authorizer', storm_authorizer_class)
     else:
       putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
@@ -1454,12 +1462,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     :type yarn_min_container_size int
     """
-    if yarn_min_container_size > 1024:
+    if yarn_min_container_size >= 1024:
       return 1024
-    if yarn_min_container_size >= 256 and yarn_min_container_size <= 1024:
-      return yarn_min_container_size
-    if yarn_min_container_size < 256:
-      return 256
+    else:
+      return 512
 
   def calculate_tez_am_container_size(self, services, total_cluster_capacity, is_cluster_create_opr=False, enable_hive_interactive_1st_invocation=False):
     """
@@ -1470,7 +1476,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     calculated_tez_am_resource_memory_mb = None
     if is_cluster_create_opr or enable_hive_interactive_1st_invocation:
       if total_cluster_capacity <= 4096:
-        calculated_tez_am_resource_memory_mb = 256
+        calculated_tez_am_resource_memory_mb = 512
       elif total_cluster_capacity > 4096 and total_cluster_capacity <= 98304:
         calculated_tez_am_resource_memory_mb = 1024
       elif total_cluster_capacity > 98304:

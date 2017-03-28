@@ -457,6 +457,10 @@ Em.I18n.translations = {
   'popup.clusterCheck.Upgrade.configsMerge.resultingValue': 'Resulting Value',
   'popup.clusterCheck.Upgrade.configsMerge.deprecated': 'Property is deprecated',
   'popup.clusterCheck.Upgrade.configsMerge.willBeRemoved': 'Will be removed',
+  'popup.clusterCheck.Upgrade.configsRecommend.alert': 'We\'ve detected the need to update the following properties,' +
+  ' but cannot do so automatically since they have been customized.  Please review these properties manually,' +
+  ' and update the properties manually where necessary.',
+  'popup.clusterCheck.Upgrade.configsRecommend.title': 'Recommended Configuration Changes: Manual Review',
   'popup.clusterCheck.Security.header': 'Enable Security',
   'popup.clusterCheck.Security.title': 'Security Requirements Not Met',
   'popup.clusterCheck.Security.alert': 'You must meet the following requirements before you can enable security.',
@@ -1991,6 +1995,8 @@ Em.I18n.translations = {
   'services.service.actions.run.runHawqCheck.label':'Run HAWQ Config Check',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
+  'services.service.actions.hsi.alertPopup.header':'Cannot enable Interactive Query',
+  'services.service.actions.hsi.alertPopup.body':'You cannot enable Interactive Query now because Interactive Query is in the process of being disabled. This may take a few minutes. Try again later.',
 
   'services.service.delete.popup.header': 'Delete Service',
   'services.service.delete.popup.kerberos': 'The Kerberos Service <i>cannot be deleted</i> because Kerberos is ' +
@@ -2655,6 +2661,7 @@ Em.I18n.translations = {
   'hosts.host.summary.header':'Summary',
   'hosts.host.summary.hostname':'Hostname',
   'hosts.host.summary.agentHeartbeat':'Heartbeat',
+  'hosts.host.summary.agentHasJce':'JCE Unlimited',
   'hosts.host.summary.hostMetrics':'Host Metrics',
   'hosts.host.summary.hostLogMetrics':'Host Log Metrics',
   'hosts.host.summary.addComponent':'Add Component',

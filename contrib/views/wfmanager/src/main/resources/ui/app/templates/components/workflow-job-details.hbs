@@ -70,24 +70,30 @@
     </div>
   </div>
   <div role="tabpanel" class="tab-pane" id="jobAction">
-    <table id="actions-list" class="table listing job-listing table-striped table-hover table-bordered">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Status</th>
-          <th>Transition</th>
-          <th>Start Time</th>
-          <th>End Time</th>
-          <th>Job Url</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each model.actions as |actionInfo|}}        
-          {{workflow-job-action actionInfo=actionInfo getActionDetails="getActionDetails"}}
-        {{/each}}
-      </tbody>
-    </table>
+    <div id="actions-list-header-conatiner">
+      <table id="actions-list-header" class="table listing job-listing table-striped table-hover table-bordered">
+        <thead>
+          <tr>
+            <th class="col-xs-2">Name</th>
+            <th class="col-xs-1">Type</th>
+            <th class="col-xs-1">Status</th>
+            <th class="col-xs-2">Transition</th>
+            <th class="col-xs-2">Start Time</th>
+            <th class="col-xs-2">End Time</th>
+            <th class="col-xs-1">Job Url</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div id="actions-list-body-conatiner">
+      <table id="actions-list-body" class="table listing job-listing table-striped table-hover table-bordered">
+        <tbody>
+          {{#each model.actions as |actionInfo|}}
+            {{workflow-job-action actionInfo=actionInfo getActionDetails="getActionDetails"}}
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
     {{#if model.actionDetails}}
     <div id="action-details">
       <div class="panel panel-default">
@@ -194,7 +200,7 @@
                 Workflow is too large to be rendered.
               </div>
             {{else}}
-              <div class="cy-note pull-right">Click on node to get details</div>
+              <div class="cy-note"><div class="pull-right">Click on node to get details</div></div>
             {{/if}}
             <div id="cy" class="cy-panel"></div>
           </div>

@@ -46,6 +46,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   groupsStore: App.ServiceConfigGroup.find(),
 
   /**
+   * Configs tab for current service
+   *
+   * @type {App.Tab[]}
+   */
+  activeServiceTabs: function () {
+    var selectedServiceName = this.get('selectedService.serviceName');
+    return selectedServiceName ? App.Tab.find().filterProperty('serviceName', selectedServiceName) : [];
+  }.property('selectedService.serviceName'),
+
+  /**
+   * Currently opened configs tab
+   *
+   * @type {App.Tab}
+   */
+  activeTab: Em.computed.findBy('activeServiceTabs', 'isActive', true),
+
+  /**
    * config groups for current service
    * @type {App.ConfigGroup[]}
    */
@@ -518,13 +535,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
               App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name');
-              allConfigs.push(App.config.createCustomGroupConfig({
+              var propValue = config.properties[prop];
+              var newConfig = App.ServiceConfigProperty.create(App.config.createDefaultConfig(prop, fileName, false, {
+                overrides: [],
+                displayType: 'label',
+                value: 'Undefined',
+                isPropertyOverridable: false,
+                overrideValues: [propValue],
+                overrideIsFinalValues: [false]
+              }));
+              newConfig.get('overrides').push(App.config.createCustomGroupConfig({
                 propertyName: prop,
                 filename: fileName,
-                value: config.properties[prop],
-                savedValue: config.properties[prop],
+                value: propValue,
+                savedValue: propValue,
                 isEditable: isEditable
               }, configGroup));
+              allConfigs.push(newConfig);
             }
           }
         });

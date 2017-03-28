@@ -44,7 +44,7 @@
               {{emptyColumnsErrorText}}
             </div>
           {{/if}}
-          {{table-columns columns=columns shouldAddBuckets=shouldAddBuckets}}
+          {{table-columns columns=columns shouldAddBuckets=shouldAddBuckets options=options}}
         {{/if}}
         {{#if (eq tab.link "create.table.properties")}}
           {{table-properties properties=properties}}

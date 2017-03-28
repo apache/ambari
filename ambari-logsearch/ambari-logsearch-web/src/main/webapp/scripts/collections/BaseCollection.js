@@ -1,0 +1,172 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+define(['require',
+	'backbone',
+	'utils/Globals',
+	'utils/Utils',
+	'backbone-pageable'
+],function(require,Backbone,Globals,Utils) {
+	'use strict';
+	
+	var BaseCollection = Backbone.PageableCollection.extend(
+	/** @lends BaseCollection.prototype */
+	{
+		/**
+		 * BaseCollection's initialize function
+		 * @augments Backbone.PageableCollection
+		 * @constructs
+		 */
+
+		initialize : function() {
+		},
+		bindErrorEvents :function(){
+			this.bind("error", Utils.defaultErrorHandler);
+		},
+		/**
+		 * state required for the PageableCollection 
+		 */
+		state : {
+			firstPage: 0,
+			pageSize : Globals.settings.PAGE_SIZE
+		},
+		mode : 'server',
+		/**
+		 * queryParams required for the PageableCollection 
+		 * Server sends us this :
+		 * pageSize: "2"
+		 * resultSize: "2"
+		 * startIndex: "0"
+		 * totalCount: "15"
+		 */
+		queryParams: {
+			pageSize	: 'pageSize',
+			sortKey		: 'sortBy',
+			order		: 'sortType',
+			totalRecords: 'totalCount',
+			startIndex : function(){
+				return this.state.currentPage * this.state.pageSize;
+			}
+		},
+
+		/**
+		 * override the parseState of PageableCollection for our use
+		 */
+		parseState: function (resp, queryParams, state, options) {
+			if(!this.modelAttrName){
+				throw new Error("this.modelAttrName not defined for " + this);
+			}
+			var serverState = _.omit(resp,this.modelAttrName);
+			var newState = _.clone(state);
+
+			_.each(_.pairs(_.omit(queryParams, "directions")), function (kvp) {
+				var k = kvp[0], v = kvp[1];
+				var serverVal = serverState[v];
+				if (!_.isUndefined(serverVal) && !_.isNull(serverVal)){
+					if((k == 'pageSize') || (k == 'totalRecords')){
+						newState[k] = parseInt(serverState[v],10);
+					} else {
+						newState[k] = serverState[v];
+					}
+				}
+			});
+
+			if (serverState.sortType) {
+				newState.order = _.invert(queryParams.directions)[serverState.sortType] * 1;
+			}
+			
+			var startIndex = parseInt(serverState.startIndex,10);
+			var totalCount = parseInt(serverState.totalCount,10);
+			var pageSize = parseInt(serverState.pageSize,10);
+
+			newState.pageSize = pageSize ? pageSize : state.pageSize;
+			newState.currentPage = startIndex === 0 ? 0 : Math.ceil(startIndex / newState.pageSize);
+			//newState.totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / serverState.pageSize);
+
+			return newState;
+		},
+
+		/**
+		 * override the parseRecords of PageableCollection for our use
+		 */
+		parseRecords : function(resp, options){
+			if(!this.modelAttrName){
+				throw new Error("this.modelAttrName not defined for " + this);
+			}
+			return resp[this.modelAttrName];
+		},
+		////////////////////////////////////////////////////////////
+		// Overriding backbone.paginator page handlers methods	 //
+		////////////////////////////////////////////////////////////
+	    getFirstPage: function (options) {
+	    	return this.getPage("first", _.extend({reset:true}, options));
+	    },
+
+	    getPreviousPage: function (options) {
+			return this.getPage("prev", _.extend({reset:true}, options));
+	    },
+
+	    getNextPage: function (options) {
+			return this.getPage("next", _.extend({reset:true}, options));
+	    },
+
+	    getLastPage: function (options) {
+			return this.getPage("last", _.extend({reset:true}, options));
+	    },
+	    getPage : function(index, options){
+		if(index === "last"){
+			this.queryParams.lastPage = true;
+		}else{
+			delete this.queryParams.lastPage;
+		}
+		var fn = Backbone.PageableCollection.prototype.getPage;
+		fn.apply(this,arguments);
+
+	    },
+	    /////////////////////////////
+	    // End overriding methods //
+	    /////////////////////////////
+
+	}, {
+		//static functions
+
+		/**
+		 * function to get table cols for backgrid, this function assumes that the 
+		 * collection has a static tableCols member.
+		 */
+		getTableCols : function(cols, collection){
+			var retCols = _.map(cols, function(v, k, l){
+				var defaults = collection.constructor.tableCols[k];
+				if(! defaults){
+					defaults = {};
+				}
+				return _.extend({ 'name' : k }, defaults, v );
+			});
+
+			return retCols;
+		},
+		nonCrudOperation : function(url, requestMethod, options){
+			return Backbone.sync.call(this, null, this, _.extend({
+				url: url,
+				type: requestMethod
+			}, options));
+		}
+
+	});
+
+	return BaseCollection;
+});

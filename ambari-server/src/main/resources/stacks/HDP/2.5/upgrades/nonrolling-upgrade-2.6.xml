@@ -446,6 +446,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas zookeeper timeout values">
+        <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts">
+          <summary>Updating Atlas zookeeper timeout values</summary>
+        </task>
+      </execute-stage>
+
       <!--KAFKA-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
         <task xsi:type="configure" id="kafka_log4j_parameterize">
@@ -554,6 +560,10 @@
       <!-- SPARK -->
       <execute-stage service="SPARK" component="LIVY_SERVER" title="Apply config changes for Livy Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs"/>
+      </execute-stage>
+
+      <execute-stage service="SPARK" component="LIVY_SERVER" title="Add SPARK_CONF_DIR for Livy Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs"/>
       </execute-stage>
 
       <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
@@ -673,6 +683,13 @@
           <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update Hash Aggregation settings for LLAP">
+        <task xsi:type="configure" id="llap_update_hashaggregation">
+          <summary>Updating Hash Aggregation settings for LLAP</summary>
+        </task>
+      </execute-stage>
+
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">

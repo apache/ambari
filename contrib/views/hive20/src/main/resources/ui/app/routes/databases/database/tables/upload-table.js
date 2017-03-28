@@ -38,6 +38,7 @@ export default NewTable.extend(UILoggerMixin, {
   setupController(controller, model) {
     this._super(controller, model);
     this.controller.set("showUploadTableModal", false);
+    this.controller.set("options", { 'isDeleteColumnDisabled' : true});
   },
   getCharOptionByCharCode: function(charCode){
     return Helpers.getAllTerminationCharacters().findBy("id", charCode + "");
@@ -294,7 +295,7 @@ export default NewTable.extend(UILoggerMixin, {
       tableMeta.settings.rowFormat = {};
     }
     tableMeta.settings.rowFormat.fieldTerminatedBy = this.getCharOptionByCharCode(1);
-    tableMeta.settings.rowFormat.escapeDefinedAs = this.getCharOptionByCharCode(0);
+    tableMeta.settings.rowFormat.escapeDefinedAs = this.getCharOptionByCharCode(2);
     return this.createTable(tableMeta);
   },
 

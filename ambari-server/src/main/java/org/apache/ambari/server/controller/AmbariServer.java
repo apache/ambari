@@ -292,6 +292,9 @@ public class AmbariServer {
   static void setSystemProperties(Configuration configs) {
     // modify location of temporary dir to avoid using default /tmp dir
     System.setProperty("java.io.tmpdir", configs.getServerTempDir());
+    if (configs.getJavaVersion() >= 8) {
+      System.setProperty("jdk.tls.ephemeralDHKeySize", String.valueOf(configs.getTlsEphemeralDhKeySize()));
+    }
   }
 
   public static AmbariManagementController getController() {
@@ -790,6 +793,7 @@ public class AmbariServer {
    */
   protected void configureRootHandler(ServletContextHandler root) {
     configureHandlerCompression(root);
+    configureAdditionalContentTypes(root);
     root.setContextPath(CONTEXT_PATH);
     root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
     root.setMaxFormContentSize(-1);
@@ -817,6 +821,11 @@ public class AmbariServer {
               "application/javascript,application/json");
       gzipFilter.setInitParameter("minGzipSize", configs.getApiGzipMinSize());
     }
+  }
+
+  private void configureAdditionalContentTypes(ServletContextHandler root) {
+    root.getMimeTypes().addMimeMapping("woff", "application/font-woff");
+    root.getMimeTypes().addMimeMapping("ttf", "application/font-sfnt");
   }
 
   /**

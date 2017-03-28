@@ -52,8 +52,11 @@ class SingleProcessStatusCommandsExecutor(StatusCommandsExecutor):
     self.need_relaunch = False
 
   def put_commands(self, commands):
-    while not self.statusCommandQueue.empty():
-      self.statusCommandQueue.get()
+    with self.statusCommandQueue.mutex:
+      qlen = len(self.statusCommandQueue.queue)
+      if qlen:
+        logger.info("Removing %s stale status commands from queue", qlen)
+      self.statusCommandQueue.queue.clear()
 
     for command in commands:
       logger.info("Adding " + command['commandType'] + " for component " + \
@@ -164,6 +167,12 @@ class MultiProcessStatusCommandsExecutor(StatusCommandsExecutor):
     """
     Internal method that running in separate process.
     """
+    # cleanup monkey-patching results in child process, as it causing problems
+    import subprocess
+    reload(subprocess)
+    import multiprocessing
+    reload(multiprocessing)
+
     bind_debug_signal_handlers()
     self._log_message(logging.INFO, "StatusCommandsExecutor process started")
 

@@ -17,20 +17,14 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +32,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -48,8 +41,6 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyUpgradeBehavior;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.view.ViewArchiveUtility;
-import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -186,61 +177,6 @@ public class AbstractUpgradeCatalogTest {
     upgradeCatalog.addNewConfigurationsFromXml();
 
     verify(configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
-  }
-
-  @Test
-  public void shouldReturnLatestTezViewVersion() throws Exception {
-    Configuration configuration = createNiceMock(Configuration.class);
-    ViewArchiveUtility archiveUtility = createNiceMock(ViewArchiveUtility.class);
-    File viewDirectory = createNiceMock(File.class);
-    File viewJarFile = createNiceMock(File.class);
-    ViewConfig viewConfig = createNiceMock(ViewConfig.class);
-    expect(configuration.getViewsDir()).andReturn(viewDirectory).anyTimes();
-    expect(viewDirectory.listFiles(anyObject(FilenameFilter.class))).andReturn(new File[] {viewJarFile}).anyTimes();
-    expect(archiveUtility.getViewConfigFromArchive(viewJarFile)).andReturn(viewConfig).anyTimes();
-    expect(viewConfig.getVersion()).andReturn("2.2").anyTimes();
-
-    replay(configuration, archiveUtility, viewDirectory, viewJarFile, viewConfig);
-
-    upgradeCatalog.archiveUtility = archiveUtility;
-    upgradeCatalog.configuration = configuration;
-
-    assertEquals("2.2", upgradeCatalog.getLatestTezViewVersion("2.1"));
-    assertEquals("http://ambari:8080/#/main/views/TEZ/2.2/TEZ_CLUSTER_INSTANCE",
-      upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE"));
-
-    assertEquals("http://ambari:8080/#/main/views/TEZ/2.2/tezView",
-        upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/tezView"));
-
-    reset(viewDirectory, archiveUtility);
-
-    expect(viewDirectory.listFiles(anyObject(FilenameFilter.class))).andReturn(new File[] {viewJarFile}).anyTimes();
-    expect(archiveUtility.getViewConfigFromArchive(viewJarFile)).andThrow(new IOException()).anyTimes();
-    replay(viewDirectory, archiveUtility);
-    assertEquals("2.1", upgradeCatalog.getLatestTezViewVersion("2.1"));
-    assertEquals("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE",
-      upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE"));
-
-    reset(viewDirectory);
-
-    expect(viewDirectory.listFiles(anyObject(FilenameFilter.class))).andReturn(null).anyTimes();
-    replay(viewDirectory);
-    assertEquals("2.1", upgradeCatalog.getLatestTezViewVersion("2.1"));
-    assertEquals("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE",
-      upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE"));
-
-    reset(viewDirectory);
-
-    expect(viewDirectory.listFiles(anyObject(FilenameFilter.class))).andReturn(new File[] {}).anyTimes();
-    replay(viewDirectory);
-    assertEquals("2.1", upgradeCatalog.getLatestTezViewVersion("2.1"));
-    assertEquals("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE",
-      upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE"));
-  }
-
-  @Test(expected = AmbariException.class)
-  public void shouldThrowExceptionWhenOldTezViewUrlIsInvalid() throws Exception {
-    upgradeCatalog.getUpdatedTezHistoryUrlBase("Invalid URL");
   }
 
   private static PropertyInfo createProperty(String filename, String name, boolean add, boolean update, boolean delete) {

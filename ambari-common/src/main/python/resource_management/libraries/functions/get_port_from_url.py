@@ -30,11 +30,15 @@ def get_port_from_url(address):
   If address is UnknownConfiguration, UnknownConfiguration will be returned. 
   If no port was found, Fail will be raised.
   """
+  
   if is_empty(address):
     return address
-  
+
   if isinstance(address, (int, long)):
-    return address  
+    return address
+
+  if address is None or address.strip() == "":
+    return ""
   
   port = re.findall(":([\d]{1,5})(?=/|$)", address)
   if port:
