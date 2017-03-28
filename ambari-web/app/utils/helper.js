@@ -363,6 +363,26 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
 /**
  * Usage:
  *
+ * <div {{QAAttr "someText"}}></div>
+ * <div {{QAAttr "{someProperty}"}}></div>
+ * <div {{QAAttr "someText-and-{someProperty}"}}></div>
+ *
+ */
+Em.Handlebars.registerHelper('QAAttr', function(text, data) {
+  var self = this;
+  var textToReplace = text.match(/\{(.*?)\}/g);
+  if (textToReplace) {
+    textToReplace.forEach(function (t) {
+      var value = Em.Handlebars.getPath(self, t.slice(1, t.length-1), data);
+      text = text.replace(t, value);
+    });
+  }
+  return new Em.Handlebars.SafeString('data-qa="' + text + '"');
+});
+
+/**
+ * Usage:
+ *
  * <pre>
  *   {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
  *     {{! some truly code }}
