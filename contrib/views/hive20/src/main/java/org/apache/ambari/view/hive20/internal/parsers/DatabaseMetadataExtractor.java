@@ -19,13 +19,28 @@
 package org.apache.ambari.view.hive20.internal.parsers;
 
 import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
-import org.apache.ambari.view.hive20.client.Row;
+import org.apache.ambari.view.hive20.exceptions.ServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 
-/**
- *
- */
-public interface TableMetaParser<T> {
-  T parse(String database, String table, List<Row> createTableStatementRows, List<Row> describeFormattedRows, DatabaseMetadataWrapper databaseMetadata);
+public class DatabaseMetadataExtractor {
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseMetadataExtractor.class);
+
+  private final DatabaseMetaData databaseMetaData;
+
+  public DatabaseMetadataExtractor(DatabaseMetaData databaseMetaData) {
+    this.databaseMetaData = databaseMetaData;
+  }
+
+  public DatabaseMetadataWrapper extract() throws ServiceException {
+    try {
+      return new DatabaseMetadataWrapper(databaseMetaData.getDatabaseMajorVersion(), databaseMetaData.getDatabaseMinorVersion());
+    } catch (SQLException e) {
+      LOG.error("Error occurred while fetching version from database metadata.", e);
+      throw new ServiceException(e);
+    }
+  }
 }

@@ -30,6 +30,7 @@ import org.apache.ambari.view.hive20.actor.message.Connect;
 import org.apache.ambari.view.hive20.actor.message.FetchError;
 import org.apache.ambari.view.hive20.actor.message.FetchResult;
 import org.apache.ambari.view.hive20.actor.message.GetColumnMetadataJob;
+import org.apache.ambari.view.hive20.actor.message.GetDatabaseMetadataJob;
 import org.apache.ambari.view.hive20.actor.message.HiveJob;
 import org.apache.ambari.view.hive20.actor.message.HiveMessage;
 import org.apache.ambari.view.hive20.actor.message.ResultInformation;
@@ -51,8 +52,11 @@ import org.apache.ambari.view.hive20.actor.message.lifecycle.FreeConnector;
 import org.apache.ambari.view.hive20.actor.message.lifecycle.InactivityCheck;
 import org.apache.ambari.view.hive20.actor.message.lifecycle.KeepAlive;
 import org.apache.ambari.view.hive20.actor.message.lifecycle.TerminateInactivityCheck;
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
+import org.apache.ambari.view.hive20.exceptions.ServiceException;
 import org.apache.ambari.view.hive20.internal.Connectable;
 import org.apache.ambari.view.hive20.internal.ConnectionException;
+import org.apache.ambari.view.hive20.internal.parsers.DatabaseMetadataExtractor;
 import org.apache.ambari.view.hive20.persistence.Storage;
 import org.apache.ambari.view.hive20.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
@@ -64,6 +68,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
@@ -78,7 +83,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class JdbcConnector extends HiveActor {
 
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private static final Logger LOG = LoggerFactory.getLogger(JdbcConnector.class);
 
   public static final String SUFFIX = "validating the login";
 
@@ -190,6 +195,8 @@ public class JdbcConnector extends HiveActor {
       runStatementJob((SQLStatementJob) message);
     } else if (message instanceof GetColumnMetadataJob) {
       runGetMetaData((GetColumnMetadataJob) message);
+    } else if (message instanceof GetDatabaseMetadataJob) {
+      runGetDatabaseMetaData((GetDatabaseMetadataJob) message);
     } else if (message instanceof ExecuteNextStatement) {
       executeNextStatement();
     } else if (message instanceof ResultInformation) {
@@ -252,6 +259,12 @@ public class JdbcConnector extends HiveActor {
       processFailure(failure);
       return;
     }
+    Optional<DatabaseMetaData> databaseMetaDataOptional = message.getDatabaseMetaData();
+    if (databaseMetaDataOptional.isPresent()) {
+      DatabaseMetaData databaseMetaData = databaseMetaDataOptional.get();
+      processDatabaseMetadata(databaseMetaData);
+      return;
+    }
     if (statementQueue.size() == 0) {
       // This is the last resultSet
       processResult(message.getResultSet());
@@ -284,6 +297,19 @@ public class JdbcConnector extends HiveActor {
       commandSender.tell(new ExecutionFailed(failure.getMessage(), failure.getError()), self());
       cleanUpWithTermination();
     }
+  }
+
+  private void processDatabaseMetadata(DatabaseMetaData databaseMetaData) {
+    executing = false;
+    isFailure = false;
+    // Send for sync execution
+    try {
+      DatabaseMetadataWrapper databaseMetadataWrapper = new DatabaseMetadataExtractor(databaseMetaData).extract();
+      commandSender.tell(databaseMetadataWrapper, self());
+    } catch (ServiceException e) {
+      commandSender.tell(new ExecutionFailed(e.getMessage(), e), self());
+    }
+    cleanUpWithTermination();
   }
 
   private void stopStatementExecutor() {
@@ -378,6 +404,16 @@ public class JdbcConnector extends HiveActor {
   }
 
   private void runGetMetaData(GetColumnMetadataJob message) {
+    if (!checkConnection()) return;
+    resetToInitialState();
+    executing = true;
+    executionType = message.getType();
+    commandSender = getSender();
+    statementExecutor = getStatementExecutor();
+    statementExecutor.tell(message, self());
+  }
+
+  private void runGetDatabaseMetaData(GetDatabaseMetadataJob message) {
     if (!checkConnection()) return;
     resetToInitialState();
     executing = true;

@@ -29,6 +29,7 @@ import org.apache.ambari.view.hive20.ConnectionSystem;
 import org.apache.ambari.view.hive20.client.ConnectionConfig;
 import org.apache.ambari.view.hive20.client.DDLDelegator;
 import org.apache.ambari.view.hive20.client.DDLDelegatorImpl;
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
 import org.apache.ambari.view.hive20.client.HiveClientException;
 import org.apache.ambari.view.hive20.client.Row;
 import org.apache.ambari.view.hive20.exceptions.ServiceException;
@@ -146,8 +147,14 @@ public class DDLProxy {
     DDLDelegator delegator = new DDLDelegatorImpl(context, ConnectionSystem.getInstance().getActorSystem(), ConnectionSystem.getInstance().getOperationController(context));
     List<Row> createTableStatementRows = delegator.getTableCreateStatement(connectionConfig, databaseName, tableName);
     List<Row> describeFormattedRows = delegator.getTableDescriptionFormatted(connectionConfig, databaseName, tableName);
+    DatabaseMetadataWrapper databaseMetadata = new DatabaseMetadataWrapper(1, 0);
+    try {
+      databaseMetadata = delegator.getDatabaseMetadata(connectionConfig);
+    } catch (ServiceException e) {
+      LOG.error("Exception while fetching hive version", e);
+    }
 
-    return tableMetaParser.parse(databaseName, tableName, createTableStatementRows, describeFormattedRows);
+    return tableMetaParser.parse(databaseName, tableName, createTableStatementRows, describeFormattedRows, databaseMetadata);
   }
 
   private Optional<DatabaseInfo> selectDatabase(final String databaseId) {
@@ -353,6 +360,7 @@ public class DDLProxy {
        List<String[]> rows = results.getRows();
        Map<Integer, String> headerMap = new HashMap<>();
        boolean header = true;
+        ColumnStats columnStats = new ColumnStats();
         for(String[] row : rows){
           if(header){
             for(int i = 0 ; i < row.length; i++){
@@ -364,10 +372,14 @@ public class DDLProxy {
           }
           else if(row.length > 0 ){
             if(columnName.equals(row[0])){ // the first column of the row contains column name
-              return createColumnStats(row, headerMap);
+              createColumnStats(row, headerMap, columnStats);
+            }else if( row.length > 1 && row[0].equalsIgnoreCase("COLUMN_STATS_ACCURATE")){
+              columnStats.setColumnStatsAccurate(row[1]);
             }
           }
         }
+
+        return columnStats;
       }else{
         throw new ServiceException("Cannot find any result for this jobId: " + jobId);
       }
@@ -375,9 +387,6 @@ public class DDLProxy {
       LOG.error("Exception occurred while fetching results for column statistics with jobId: {}", jobId, e);
       throw new ServiceException(e);
     }
-
-    LOG.error("Column stats not found in the fetched results.");
-    throw new ServiceException("Could not find the column stats in the result.");
   }
 
   /**
@@ -386,13 +395,13 @@ public class DDLProxy {
    * indexes : 0           1        2    3     4             5               6             7           8         9    10
    * @param row
    * @param headerMap
+   * @param columnStats
    * @return
    */
-  private ColumnStats createColumnStats(String[] row, Map<Integer, String> headerMap) throws ServiceException {
+  private ColumnStats createColumnStats(String[] row, Map<Integer, String> headerMap, ColumnStats columnStats) throws ServiceException {
     if(null == row){
       throw new ServiceException("row cannot be null.");
     }
-    ColumnStats columnStats = new ColumnStats();
     for(int i = 0 ; i < row.length; i++){
       switch(headerMap.get(i)){
         case ColumnStats.COLUMN_NAME:

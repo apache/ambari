@@ -20,17 +20,32 @@ package org.apache.ambari.view.hive20.actor.message.job;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.ambari.view.hive20.client.ColumnDescription;
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
 import org.apache.ambari.view.hive20.client.Row;
 
+import java.sql.DatabaseMetaData;
 import java.util.List;
 
 public class Result {
-  private final List<ColumnDescription> columns;
-  private final List<Row> rows;
+  private List<ColumnDescription> columns;
+  private List<Row> rows;
+  private DatabaseMetadataWrapper databaseMetadata;
 
   public Result(List<Row> rows, List<ColumnDescription> columns) {
     this.rows = ImmutableList.copyOf(rows);
     this.columns = columns;
+  }
+
+  public Result(DatabaseMetadataWrapper databaseMetadata){
+    this.databaseMetadata = databaseMetadata;
+  }
+
+  public DatabaseMetadataWrapper getDatabaseMetadata() {
+    return databaseMetadata;
+  }
+
+  public void setDatabaseMetadata(DatabaseMetadataWrapper databaseMetadata) {
+    this.databaseMetadata = databaseMetadata;
   }
 
   public List<Row> getRows() {

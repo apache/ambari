@@ -16,6 +16,7 @@
 * limitations under the License.
 }}
 
+{{#if showStats}}
 <div class="row">
   <div class="alert">
     <p class="lead">
@@ -36,6 +37,12 @@
 </div>
 <div class="row">
   {{#if tableStatisticsEnabled}}
+    {{#if (not basicStatsAccurate) }}
+      <div class="alert alert-warning">
+        <p> Table statistics might be stale. Please consider recomputing statistics.
+        </p>
+      </div>
+    {{/if}}
     <div class="stats-section">
       <p><strong>TABLE STATISTICS</strong></p>
       <table class="table table-bordered table-hover">
@@ -108,6 +115,12 @@
             {{/if}}
 
             {{#if (and column.stats column.showStats)}}
+              {{#if column.statsWarn}}
+                <div class="alert alert-warning">
+                  <p> {{column.statsWarnMsg}}
+                  </p>
+                </div>
+              {{/if}}
               <div class="col-stats-details">
                 <table class="table table-bordered table-hover ">
                   <thead>
@@ -126,10 +139,8 @@
                   </tbody>
                 </table>
               </div>
+              {{/if}}
             {{/if}}
-          {{else}}
-            No statistics computed
-          {{/if}}
         </td>
       </tr>
     {{/each}}
@@ -155,3 +166,11 @@
     </div>
   {{/modal-dialog}}
 {{/if}}
+{{else}}
+  <div class="alert alert-danger">
+    <p>  Statistics not supported for partitioned table in Hive Server version lesser than {{partitionStatSupportedVersion}}.
+         Your current Hive Server version is {{table.tableStats.databaseMetadata.databaseMajorVersion}}.{{table.tableStats.databaseMetadata.databaseMinorVersion}}
+    </p>
+  </div>
+{{/if}}
+
