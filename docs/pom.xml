@@ -608,6 +608,18 @@
                 <role>PMC</role>
             </roles>
             <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>mradhakrishnan</id>
+            <name>Madhuvanthi Radhakrishnan</name>
+            <email>mradhakrishnan@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
                 Hortonworks                
             </organization>            
         </developer>
