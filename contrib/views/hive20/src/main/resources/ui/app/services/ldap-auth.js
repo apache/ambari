@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,22 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive20.actor.message.job;
+import Ember from 'ember';
 
-public class Failure extends Exception {
-  private final Throwable error;
-  private final String message;
+export default Ember.Service.extend(Ember.Evented, {
+  passwordRequired: false,
+  store: Ember.inject.service(),
+  askPassword() {
+    this.trigger('ask-password');
+  },
 
-  public Failure(String message, Throwable error) {
-    this.message = message;
-    this.error = error;
+  passwordProvided() {
+    this.trigger('password-provided')
+  },
+
+  authenticate(password) {
+    return this.get('store').adapterFor('auth').authenticate(password);
   }
-
-  public Throwable getError() {
-    return error;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-}
+});

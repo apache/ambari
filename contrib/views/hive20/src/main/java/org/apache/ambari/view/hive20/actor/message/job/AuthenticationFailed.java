@@ -18,20 +18,10 @@
 
 package org.apache.ambari.view.hive20.actor.message.job;
 
-public class Failure extends Exception {
-  private final Throwable error;
-  private final String message;
+public class AuthenticationFailed extends Failure {
 
-  public Failure(String message, Throwable error) {
-    this.message = message;
-    this.error = error;
+  public AuthenticationFailed(String message, Throwable error) {
+    super(message, error);
   }
 
-  public Throwable getError() {
-    return error;
-  }
-
-  public String getMessage() {
-    return message;
-  }
 }
