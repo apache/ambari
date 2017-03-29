@@ -631,8 +631,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     clearTimeout(this.get('timer'));
     if (this.get('validationInProgress')) {
       this.set('timer', setTimeout(function () {
-        self.callValidation()
-          .then(validationCallback);
+        self.callValidation();
       }, 700));
     } else {
       this.callServerSideValidation()
