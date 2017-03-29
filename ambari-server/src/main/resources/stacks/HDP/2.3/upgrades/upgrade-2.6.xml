@@ -750,6 +750,11 @@
 
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">
+            <summary>Fixing YARN Webservice Url</summary>
+          </task>
+        </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>
