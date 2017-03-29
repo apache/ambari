@@ -366,6 +366,12 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
  * <div {{QAAttr "someText"}}></div>
  * <div {{QAAttr "{someProperty}"}}></div>
  * <div {{QAAttr "someText-and-{someProperty}"}}></div>
+ * <div {{QAAttr "{someProperty:some-text}"}}></div>
+ * <div {{QAAttr "someText-and-{someProperty:some-text}"}}></div>
+ * <div {{QAAttr "{someProperty:some-text:another-text}"}}></div>
+ * <div {{QAAttr "someText-and-{someProperty:some-text:another-text}"}}></div>
+ * <div {{QAAttr "{someProperty::another-text}"}}></div>
+ * <div {{QAAttr "someText-and-{someProperty::another-text}"}}></div>
  *
  */
 Em.Handlebars.registerHelper('QAAttr', function(text, data) {
@@ -373,7 +379,15 @@ Em.Handlebars.registerHelper('QAAttr', function(text, data) {
   var textToReplace = text.match(/\{(.*?)\}/g);
   if (textToReplace) {
     textToReplace.forEach(function (t) {
-      var value = Em.Handlebars.getPath(self, t.slice(1, t.length-1), data);
+      var value,
+        expression = t.slice(1, t.length - 1),
+        conditionals = Em.View._parsePropertyPath(expression);
+      if (conditionals.classNames) {
+        var sourceValue = Em.Handlebars.getPath(self, conditionals.path, data);
+        value = sourceValue ? conditionals.className : (conditionals.falsyClassName || '');
+      } else {
+        value = Em.Handlebars.getPath(self, expression, data);
+      }
       text = text.replace(t, value);
     });
   }
