@@ -342,6 +342,13 @@
         </task>
       </execute-stage>
 
+      <!--Yarn Apptimeline server-->
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for App timeline server">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">
+          <summary>Fixing YARN Webservice Url</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
           <summary>Verifying LZO codec path for mapreduce</summary>
