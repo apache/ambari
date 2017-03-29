@@ -18,14 +18,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import hashlib
 import logging
 import ambari_simplejson as json
 import os
 import threading
+from ambari_agent.Utils import Utils
 
 logger = logging.getLogger(__name__)
 
-class ClusterCache(object):
+class ClusterCache(dict):
   """
   Maintains an in-memory cache and disk cache (for debugging purposes) for
   every cluster. This is useful for having quick access to any of the properties.
@@ -37,10 +39,8 @@ class ClusterCache(object):
     :param cluster_cache_dir:
     :return:
     """
-    self.cluster_cache_dir = cluster_cache_dir
 
-    # keys are cluster names, values are caches for the clusters
-    self._cache_dict = {}
+    self.cluster_cache_dir = cluster_cache_dir
 
     self.__file_lock = threading.RLock()
     self._cache_lock = threading.RLock()
@@ -51,9 +51,12 @@ class ClusterCache(object):
       os.makedirs(cluster_cache_dir)
 
     # if the file exists, then load it
+    cache_dict = {}
     if os.path.isfile(self.__current_cache_json_file):
       with open(self.__current_cache_json_file, 'r') as fp:
-        self._cache_dict = json.load(fp)
+        cache_dict = json.load(fp)
+
+    super(ClusterCache, self).__init__(cache_dict)
 
   def update_cache(self, cluster_name, cache):
     """
@@ -65,22 +68,34 @@ class ClusterCache(object):
     """
     logger.info("Updating cache {0} for cluster {1}".format(self.__class__.__name__, cluster_name))
 
-    self._cache_lock.acquire()
-    try:
-      self._cache_dict[cluster_name] = cache
-    finally:
-      self._cache_lock.release()
+    # The cache should contain exactly the data received from server.
+    # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
+    # Also immutability can lead to multithreading issues.
+    immutable_cache = Utils.make_immutable(cache)
+    with self._cache_lock:
+      self[cluster_name] = immutable_cache
 
 
-    self.__file_lock.acquire()
-    try:
+    with self.__file_lock:
       with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
-        json.dump(self._cache_dict, f, indent=2)
-    finally:
-      self.__file_lock.release()
+        json.dump(self, f, indent=2)
 
-  def get_cache(self):
-    self._cache_lock.acquire()
-    cache_copy = self._cache_dict[:]
-    self._cache_lock.release()
-    return cache_copy
+  def get_md5_hashsum(self, cluster_name):
+    """
+    Thread-safe method for writing out the specified cluster cache
+    and updating the in-memory representation.
+    :param cluster_name:
+    :param cache:
+    :return:
+    """
+    with self._cache_lock:
+      # have to make sure server generates json in exactly the same way. So hashes are equal
+      json_repr = json.dumps(self, sort_keys=True)
+
+    md5_calculator = hashlib.md5()
+    md5_calculator.update(json_repr)
+    result = md5_calculator.hexdigest()
+
+    logger.info("Cache value for {0} is {1}".format(self.__class__.__name__, result))
+
+    return result

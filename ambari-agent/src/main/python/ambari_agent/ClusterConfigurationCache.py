@@ -33,7 +33,7 @@ class ClusterConfigurationCache(ClusterCache):
   def __init__(self, cluster_cache_dir):
     """
     Initializes the configuration cache.
-    :param cluster_cache_dir:
+    :param cluster_cache_dir: directory the changed json are saved
     :return:
     """
     super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
@@ -51,7 +51,7 @@ class ClusterConfigurationCache(ClusterCache):
     """
     self._cache_lock.acquire()
     try:
-      dictionary = self._cache_dict[cluster_name]
+      dictionary = self[cluster_name]
       for layer_key in key.split('/'):
         dictionary = dictionary[layer_key]
 

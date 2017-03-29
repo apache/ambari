@@ -45,6 +45,7 @@ from ambari_agent.NetUtil import NetUtil
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.ClusterConfigurationCache import  ClusterConfigurationCache
+from ambari_agent.ClusterTopologyCache import ClusterTopologyCache
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
@@ -127,6 +128,7 @@ class Controller(threading.Thread):
     self.recovery_manager = RecoveryManager(recovery_cache_dir)
 
     self.cluster_configuration_cache = ClusterConfigurationCache(cluster_cache_dir)
+    self.cluster_topology_cache = ClusterTopologyCache(cluster_cache_dir)
 
     self.move_data_dir_mount_file()
 
@@ -242,7 +244,14 @@ class Controller(threading.Thread):
         if 'clusterName' in command and 'configurations' in command:
           cluster_name = command['clusterName']
           configurations = command['configurations']
+          topology = command['clusterHostInfo']
           self.cluster_configuration_cache.update_cache(cluster_name, configurations)
+          self.cluster_topology_cache.update_cache(cluster_name, topology)
+
+          # TODO: use this once server part is ready.
+          self.cluster_topology_cache.get_md5_hashsum(cluster_name)
+          self.cluster_configuration_cache.get_md5_hashsum(cluster_name)
+
 
     if self.ALERT_DEFINITION_COMMANDS in heartbeat_keys:
       alert_definition_commands = heartbeat[self.ALERT_DEFINITION_COMMANDS]
@@ -251,6 +260,9 @@ class Controller(threading.Thread):
           cluster_name = command['clusterName']
           configurations = command['configurations']
           self.cluster_configuration_cache.update_cache(cluster_name, configurations)
+
+          # TODO: use this once server part is ready.
+          self.cluster_configuration_cache.get_md5_hashsum(cluster_name)
 
   def cancelCommandInQueue(self, commands):
     """ Remove from the queue commands, kill the process if it's in progress """
