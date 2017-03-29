@@ -43,6 +43,17 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>ca_cert</name>
+    <value></value>
+    <description>Path to CA root certificate or bundle to be used to validate the Grafana certificate against.
+      For self signed certificates, this value can be the same as the value for 'cert_file'.
+      (If a path is not specified, the certificate validation is skipped)</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>ams-grafana-ini template</display-name>
     <value>
