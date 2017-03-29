@@ -75,13 +75,13 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   public static final String ID = "id";
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>();
+  private static Set<String> pkPropertyIds = new HashSet<>();
 
   @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>();
+  public static Set<String> propertyIds = new HashSet<>();
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>();
+  public static Map<Type, String> keyPropertyIds = new HashMap<>();
 
   static {
     pkPropertyIds.add(WIDGETLAYOUT_ID_PROPERTY_ID);
@@ -141,11 +141,11 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    List<WidgetLayoutEntity> layoutEntities = new ArrayList<WidgetLayoutEntity>();
+    List<WidgetLayoutEntity> layoutEntities = new ArrayList<>();
 
     boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
         RoleAuthorization.AMBARI_MANAGE_USERS);
@@ -183,11 +183,11 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
       resource.setProperty(WIDGETLAYOUT_USERNAME_PROPERTY_ID, layoutEntity.getUserName());
       resource.setProperty(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, layoutEntity.getDisplayName());
 
-      List<HashMap> widgets = new ArrayList<HashMap>();
+      List<HashMap> widgets = new ArrayList<>();
       List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = layoutEntity.getListWidgetLayoutUserWidgetEntity();
       for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : widgetLayoutUserWidgetEntityList) {
         WidgetEntity widgetEntity = widgetLayoutUserWidgetEntity.getWidget();
-        HashMap<String, Object> widgetInfoMap = new HashMap<String, Object>();
+        HashMap<String, Object> widgetInfoMap = new HashMap<>();
         widgetInfoMap.put("WidgetInfo",WidgetResponse.coerce(widgetEntity));
         widgets.add(widgetInfoMap);
       }

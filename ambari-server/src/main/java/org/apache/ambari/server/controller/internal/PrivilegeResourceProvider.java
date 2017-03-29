@@ -175,9 +175,9 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
   @Override
   public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Long>     resourceIds  = new HashSet<Long>();
+    Set<Long>     resourceIds  = new HashSet<>();
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
@@ -195,10 +195,10 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
 
       resourceIds.addAll(resourceEntities.keySet());
 
-      Set<PrivilegeEntity> entitySet = new HashSet<PrivilegeEntity>();
-      List<PrincipalEntity> userPrincipals = new LinkedList<PrincipalEntity>();
-      List<PrincipalEntity> groupPrincipals = new LinkedList<PrincipalEntity>();
-      List<PrincipalEntity> rolePrincipals = new LinkedList<PrincipalEntity>();
+      Set<PrivilegeEntity> entitySet = new HashSet<>();
+      List<PrincipalEntity> userPrincipals = new LinkedList<>();
+      List<PrincipalEntity> groupPrincipals = new LinkedList<>();
+      List<PrincipalEntity> rolePrincipals = new LinkedList<>();
 
       List<PrivilegeEntity> entities = privilegeDAO.findAll();
 
@@ -221,7 +221,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
         }
       }
 
-      Map<Long, UserEntity> userEntities = new HashMap<Long, UserEntity>();
+      Map<Long, UserEntity> userEntities = new HashMap<>();
       if(!userPrincipals.isEmpty()) {
         List<UserEntity> userList = userDAO.findUsersByPrincipal(userPrincipals);
         for (UserEntity userEntity : userList) {
@@ -229,7 +229,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
         }
       }
 
-      Map<Long, GroupEntity> groupEntities = new HashMap<Long, GroupEntity>();
+      Map<Long, GroupEntity> groupEntities = new HashMap<>();
       if(!groupPrincipals.isEmpty()) {
         List<GroupEntity> groupList = groupDAO.findGroupsByPrincipal(groupPrincipals);
         for (GroupEntity groupEntity : groupList) {
@@ -237,7 +237,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
         }
       }
 
-      Map<Long, PermissionEntity> roleEntities = new HashMap<Long, PermissionEntity>();
+      Map<Long, PermissionEntity> roleEntities = new HashMap<>();
       if (!rolePrincipals.isEmpty()){
         List<PermissionEntity> roleList = permissionDAO.findPermissionsByPrincipal(rolePrincipals);
         for (PermissionEntity roleEntity : roleList) {
@@ -277,7 +277,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(getKeyPropertyIds().values());
+    return new HashSet<>(getKeyPropertyIds().values());
   }
 
 
@@ -478,7 +478,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
       @Override
       public Void invoke() throws AmbariException {
         Long resource = null;
-        final List<PrivilegeEntity> requiredEntities = new ArrayList<PrivilegeEntity>();
+        final List<PrivilegeEntity> requiredEntities = new ArrayList<>();
         for (Map<String, Object> properties: request.getProperties()) {
           Set<Long> resourceIds = getResourceEntities(properties).keySet();
           Long      resourceId  = resourceIds.iterator().next();

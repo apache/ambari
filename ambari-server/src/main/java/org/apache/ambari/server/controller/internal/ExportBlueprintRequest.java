@@ -64,7 +64,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
   private Blueprint blueprint;
   private Configuration configuration;
   //todo: Should this map be represented by a new class?
-  private Map<String, HostGroupInfo> hostGroupInfo = new HashMap<String, HostGroupInfo>();
+  private Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
 
 
   public ExportBlueprintRequest(TreeNode<Resource> clusterNode) throws InvalidTopologyTemplateException {
@@ -129,11 +129,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
   private void createBlueprint(Collection<ExportedHostGroup> exportedHostGroups, Stack stack) {
     String bpName = "exported-blueprint";
 
-    Collection<HostGroup> hostGroups = new ArrayList<HostGroup>();
+    Collection<HostGroup> hostGroups = new ArrayList<>();
     for (ExportedHostGroup exportedHostGroup : exportedHostGroups) {
 
       // create Component using component name
-      List<Component> componentList = new ArrayList<Component>();
+      List<Component> componentList = new ArrayList<>();
       for (String component : exportedHostGroup.getComponents()) {
         componentList.add(new Component(component));
       }
@@ -175,8 +175,8 @@ public class ExportBlueprintRequest implements TopologyRequest {
    */
   private void createConfiguration(TreeNode<Resource> clusterNode) {
 
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
 
     Map<String, Object> desiredConfigMap = clusterNode.getObject().getPropertiesMap().get("Clusters/desired_configs");
     TreeNode<Resource> configNode = clusterNode.getChild("configurations");
@@ -204,7 +204,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
    * @return collection of host groups
    */
   private Collection<ExportedHostGroup> processHostGroups(TreeNode<Resource> hostNode) {
-    Map<ExportedHostGroup, ExportedHostGroup> mapHostGroups = new HashMap<ExportedHostGroup, ExportedHostGroup>();
+    Map<ExportedHostGroup, ExportedHostGroup> mapHostGroups = new HashMap<>();
     int count = 1;
     for (TreeNode<Resource> host : hostNode.getChildren()) {
       ExportedHostGroup group = new ExportedHostGroup(host);
@@ -235,9 +235,9 @@ public class ExportBlueprintRequest implements TopologyRequest {
    * @return list of component names for the host
    */
   private List<Map<String, String>> processHostGroupComponents(ExportedHostGroup group) {
-    List<Map<String, String>> listHostGroupComponents = new ArrayList<Map<String, String>>();
+    List<Map<String, String>> listHostGroupComponents = new ArrayList<>();
     for (String component : group.getComponents()) {
-      Map<String, String> mapComponentProperties = new HashMap<String, String>();
+      Map<String, String> mapComponentProperties = new HashMap<>();
       listHostGroupComponents.add(mapComponentProperties);
       mapComponentProperties.put("name", component);
     }
@@ -261,12 +261,12 @@ public class ExportBlueprintRequest implements TopologyRequest {
     /**
      * Associated components.
      */
-    private Set<String> components = new HashSet<String>();
+    private Set<String> components = new HashSet<>();
 
     /**
      * Host group scoped configurations.
      */
-    private Collection<ExportedConfiguration> configurations = new HashSet<ExportedConfiguration>();
+    private Collection<ExportedConfiguration> configurations = new HashSet<>();
 
     /**
      * Number of instances.
@@ -276,7 +276,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
     /**
      * Collection of associated hosts.
      */
-    private Collection<String> hosts = new HashSet<String>();
+    private Collection<String> hosts = new HashSet<>();
 
     /**
      * Constructor.
@@ -296,8 +296,8 @@ public class ExportBlueprintRequest implements TopologyRequest {
     }
 
     public Configuration getConfiguration() {
-      Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
-      Map<String, Map<String, Map<String, String>>> configAttributes = new HashMap<String, Map<String, Map<String, String>>>();
+      Map<String, Map<String, String>> configProperties = new HashMap<>();
+      Map<String, Map<String, Map<String, String>>> configAttributes = new HashMap<>();
 
       for (ExportedConfiguration config : configurations) {
         configProperties.put(config.getType(), config.getProperties());
@@ -450,12 +450,12 @@ public class ExportBlueprintRequest implements TopologyRequest {
     /**
      * Properties of the configuration.
      */
-    private Map<String, String> properties = new HashMap<String, String>();
+    private Map<String, String> properties = new HashMap<>();
 
     /**
      * Attributes for the properties in the cluster configuration.
      */
-    private Map<String, Map<String, String>> propertyAttributes = new HashMap<String, Map<String, String>>();
+    private Map<String, Map<String, String>> propertyAttributes = new HashMap<>();
 
     /**
      * Constructor.

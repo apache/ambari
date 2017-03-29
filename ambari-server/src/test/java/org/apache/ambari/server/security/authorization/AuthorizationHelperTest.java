@@ -87,7 +87,7 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
 
   @Test
   public void testConvertPrivilegesToAuthorities() throws Exception {
-    Collection<PrivilegeEntity> privilegeEntities = new ArrayList<PrivilegeEntity>();
+    Collection<PrivilegeEntity> privilegeEntities = new ArrayList<>();
 
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(1);
@@ -136,7 +136,7 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
 
     assertEquals("Wrong number of authorities", 2, authorities.size());
 
-    Set<String> authorityNames = new HashSet<String>();
+    Set<String> authorityNames = new HashSet<>();
 
     for (GrantedAuthority authority : authorities) {
       authorityNames.add(authority.getAuthority());

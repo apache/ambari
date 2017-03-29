@@ -655,7 +655,7 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
+      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());

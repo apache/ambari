@@ -71,7 +71,7 @@ public class EmailDispatcherTest {
     DispatchCallback callback = EasyMock.createMock(DispatchCallback.class);
     notification.Callback = callback;
 
-    List<String> callbackIds = new ArrayList<String>();
+    List<String> callbackIds = new ArrayList<>();
     callbackIds.add(UUID.randomUUID().toString());
     notification.CallbackIds = callbackIds;
 
@@ -94,14 +94,14 @@ public class EmailDispatcherTest {
     Notification notification = new Notification();
     DispatchCallback callback = EasyMock.createMock(DispatchCallback.class);
     notification.Callback = callback;
-    notification.Recipients = new ArrayList<Recipient>();
+    notification.Recipients = new ArrayList<>();
 
     Recipient recipient = new Recipient();
     recipient.Identifier = "foo";
 
     notification.Recipients.add(recipient);
 
-    List<String> callbackIds = new ArrayList<String>();
+    List<String> callbackIds = new ArrayList<>();
     callbackIds.add(UUID.randomUUID().toString());
     notification.CallbackIds = callbackIds;
 
@@ -119,7 +119,7 @@ public class EmailDispatcherTest {
   @Test
   public void testValidateTargetConfig_invalidOnAuthenticationException() throws Exception {
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
     EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
         addMockedMethods("getMailTransport").createNiceMock();
@@ -137,7 +137,7 @@ public class EmailDispatcherTest {
   @Test
   public void testValidateTargetConfig_invalidOnMessagingException() throws Exception {
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
     EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
         addMockedMethods("getMailTransport").createNiceMock();
@@ -155,7 +155,7 @@ public class EmailDispatcherTest {
   @Test
   public void testValidateTargetConfig_validIfNoErrors() throws Exception {
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
     EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
         addMockedMethods("getMailTransport").createNiceMock();

@@ -18,6 +18,7 @@
 
 var stringUtils = require('utils/string_utils');
 var numberUtils = require('utils/number_utils');
+var blueprintUtils = require('utils/blueprint');
 
 App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
 
@@ -61,15 +62,13 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     this.set('configWidgetContext', context);
     this.set('content', context.get('controller.content'));
     this.set('configActionComponent', hostComponent);
-    var missingDependentServices = this.getAllMissingDependentServices();
-    var isNonWizardPage = !this.get('content.controllerName');
+    
     switch (action) {
       case 'ADD':
-        if (missingDependentServices.length && isNonWizardPage) {
-          this.showInstallServicesPopup(missingDependentServices);
+        if (hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
+          this.getPendingBatchRequests(hostComponent);  
         } else {
-          this.set('mastersToCreate', [hostComponent.componentName]);
-          this.showAssignComponentPopup();
+          this.showPopup(hostComponent);
         }
         break;
       case 'DELETE':
@@ -79,6 +78,71 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     }
   },
 
+  getPendingBatchRequests: function(hostComponent) {
+    var self = this;
+    // Send Ajax request to get status of pending batch requests
+    App.ajax.send({
+      name : 'request_schedule.get.pending',
+      sender: self,
+      error : 'pendingBatchRequestsAjaxError',
+      success: 'pendingBatchRequestsAjaxSuccess',
+      data: {
+        hostComponent: hostComponent
+      }
+    });
+  },
+
+  pendingBatchRequestsAjaxError: function(data) {
+    var error = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error, null);
+  },
+
+  pendingBatchRequestsAjaxSuccess : function(data, opt, params) {
+    var self = this;
+    var showAlert = false;
+    if (data.hasOwnProperty('items') && data.items.length > 0) {
+      data.items.forEach( function(_item) {
+        _item.RequestSchedule.batch.batch_requests.forEach( function(batchRequest) {
+          // Check if a DELETE request on HIVE_SERVER_INTERACTIVE is in progress
+          if (batchRequest.request_type == "DELETE" && batchRequest.request_uri.indexOf("HIVE_SERVER_INTERACTIVE") > -1) {
+            showAlert = true;
+          }
+        });
+      });
+    }
+    if (showAlert) {
+      App.showAlertPopup(Em.I18n.t('services.service.actions.hsi.alertPopup.header'), Em.I18n.t('services.service.actions.hsi.alertPopup.body'), function() {
+        var configWidgetContext = self.get('configWidgetContext');
+        var config = self.get('configWidgetContext.config');
+        configWidgetContext.toggleProperty('controller.forceUpdateBoundaries');
+        var value = config.get('initialValue');
+        config.set('value', value);
+        configWidgetContext.setValue(value);
+        configWidgetContext.sendRequestRorDependentConfigs(config);
+        this.hide();
+      });
+    } else {
+      this.showPopup(params.hostComponent);
+    }
+  },
+  
+  showPopup: function(hostComponent) {
+    var missingDependentServices = this.getAllMissingDependentServices();
+    var isNonWizardPage = !this.get('content.controllerName');
+    if (missingDependentServices.length && isNonWizardPage) {
+      this.showInstallServicesPopup(missingDependentServices);
+    } else {
+      this.set('mastersToCreate', [hostComponent.componentName]);
+      this.showAssignComponentPopup();
+    }  
+  },
+  
   /**
    * Used to set showAddControl/showRemoveControl flag
    * @param componentName
@@ -398,9 +462,20 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       var componentHostName = self.getSelectedHostName(configActionComponent.componentName);
       var config = self.get('configWidgetContext.config');
       var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
+
+      // TODO remove after stack advisor is able to handle this case
+      // workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive from Install Wizard
+      var serviceConfigs = context.get('controller.stepConfigs').findProperty('serviceName', context.get('controller.selectedService.serviceName')).get('configs');
+      var dependencies = context.get('config.configAction.dependencies');
+
       if (self.get('content.controllerName')) {
         self.saveMasterComponentHosts();
         self.saveRecommendationsHostGroups();
+
+        // TODO remove after stack advisor is able to handle this case
+        // workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive from Install Wizard
+        var miscConfigs = context.get('controller.stepConfigs').findProperty('serviceName', 'MISC').get('configs');
+        serviceConfigs = serviceConfigs.concat(miscConfigs);
       } else {
         self.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostName);
         self.clearComponentsToBeDeleted(configActionComponent.componentName);
@@ -408,11 +483,115 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
       configActionComponent.hostName = componentHostName;
       config.set('configActionComponent', configActionComponent);
+      /* TODO uncomment after stack advisor is able to handle this case
       context.get('controller').loadConfigRecommendations([{
         type: App.config.getConfigTagFromFileName(config.get('fileName')),
         name: config.get('name'),
         old_value: config.get(oldValueKey)
       }]);
+      */
+
+      // TODO remove after stack advisor is able to handle this case
+      // workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive
+      if (dependencies) {
+        var foreignKeys = {};
+        if (dependencies.foreignKeys) {
+          dependencies.foreignKeys.forEach(function (dependency) {
+            var matchingProperty = serviceConfigs.find(function (property) {
+              return property.get('filename') === App.config.getOriginalFileName(dependency.fileName) && property.get('name') === dependency.propertyName;
+            });
+            if (matchingProperty) {
+              foreignKeys[dependency.key] = matchingProperty.get('value');
+            }
+          });
+        }
+        if (dependencies.properties && dependencies.initializer) {
+          var initializer = App.get(dependencies.initializer.name);
+          var setup = Em.getProperties(foreignKeys, dependencies.initializer.setupKeys);
+          initializer.setup(setup);
+          var blueprintObject = {};
+          dependencies.properties.forEach(function (property) {
+            var propertyObject = Em.getProperties(property, ['name', 'fileName']);
+            if (property.nameTemplate) {
+              var name = property.nameTemplate;
+              Em.keys(foreignKeys).forEach(function (key) {
+                name = name.replace('{{' + key + '}}', foreignKeys[key]);
+              });
+              propertyObject.name = name;
+            }
+            if (!blueprintObject[property.fileName]) {
+              blueprintObject[property.fileName] = {
+                properties: {}
+              };
+            }
+            var masterComponents = [];
+            if (self.get('content.controllerName')) {
+              var savedMasterComponents = context.get('controller.content.masterComponentHosts').filter(function (componentObject) {
+                return dependencies.initializer.componentNames.contains(componentObject.component);
+              });
+              masterComponents = savedMasterComponents.map(function (componentObject) {
+                var masterComponent = Em.getProperties(componentObject, ['component', 'hostName']);
+                masterComponent.isInstalled = true;
+                return masterComponent;
+              });
+            } else {
+              var hostsMap = blueprintUtils.getComponentForHosts();
+              Em.keys(hostsMap).forEach(function (hostName) {
+                hostsMap[hostName].forEach(function (componentName) {
+                  if (dependencies.initializer.componentNames.contains(componentName)) {
+                    masterComponents.push({
+                      component: componentName,
+                      hostName: hostName,
+                      isInstalled: true
+                    });
+                  }
+                });
+              });
+            }
+            var result = initializer.initialValue(propertyObject, {
+              masterComponentHosts: masterComponents
+            });
+            var propertiesMap = blueprintObject[propertyObject.fileName].properties;
+            propertiesMap[propertyObject.name] = result.value;
+            if (property.isHostsList) {
+              var service = App.config.get('serviceByConfigTypeMap')[propertyObject.fileName];
+              if (service) {
+                var serviceName = service.get('serviceName');
+                var configs = serviceName === context.get('controller.selectedService.serviceName') ? serviceConfigs :
+                  context.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
+                var originalFileName = App.config.getOriginalFileName(propertyObject.fileName);
+                var currentProperty = configs.find(function (configProperty) {
+                  return configProperty.get('filename') === originalFileName && configProperty.get('name') === propertyObject.name;
+                });
+                if (currentProperty) {
+                  propertiesMap[propertyObject.name] = currentProperty.get('value');
+                  App.config.updateHostsListValue(propertiesMap, propertyObject.fileName, propertyObject.name, propertyObject.value, property.isHostsArray);
+                }
+              }
+            }
+            context.get('controller').loadRecommendationsSuccess({
+              resources: [
+                {
+                  recommendations: {
+                    blueprint: {
+                      configurations: blueprintObject
+                    }
+                  }
+                }
+              ]
+            }, null, {
+              dataToSend: {
+                changed_configurations: [{
+                  type: App.config.getConfigTagFromFileName(config.get('fileName')),
+                  name: config.get('name'),
+                  old_value: config.get(oldValueKey)
+                }]
+              }
+            });
+            initializer.cleanup();
+          });
+        }
+      }
     });
   }
 });

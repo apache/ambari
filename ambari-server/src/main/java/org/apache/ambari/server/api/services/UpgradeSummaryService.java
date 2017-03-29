@@ -72,7 +72,7 @@ public class UpgradeSummaryService extends BaseService {
    * @return the resource instance
    */
   private ResourceInstance createResourceInstance(Long requestId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
 
     if (null != requestId) {

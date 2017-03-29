@@ -34,7 +34,7 @@ public class ConfigGroupServiceTest extends BaseServiceTest {
 
   @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     // Get Config Groups
     ConfigGroupService configGroupService = new TestConfigGroupService

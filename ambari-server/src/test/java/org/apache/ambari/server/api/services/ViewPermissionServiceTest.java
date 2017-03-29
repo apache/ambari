@@ -38,7 +38,7 @@ public class ViewPermissionServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getPermission
     ViewPermissionService permissionService = new TestViewPermissionService("MY_VIEW", "1.0", "permissionName");

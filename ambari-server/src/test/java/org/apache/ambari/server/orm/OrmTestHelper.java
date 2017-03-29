@@ -177,7 +177,7 @@ public class OrmTestHelper {
     host2.setIpv4("192.168.0.2");
     host3.setIpv4("192.168.0.3");
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    List<HostEntity> hostEntities = new ArrayList<>();
     hostEntities.add(host1);
     hostEntities.add(host2);
 
@@ -199,7 +199,7 @@ public class OrmTestHelper {
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
     clusterServiceEntity.setServiceName("HDFS");
     clusterServiceEntity.setClusterEntity(clusterEntity);
-    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<ClusterServiceEntity>();
+    List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<>();
     clusterServiceEntities.add(clusterServiceEntity);
     clusterEntity.setClusterServiceEntities(clusterServiceEntities);
 
@@ -231,7 +231,7 @@ public class OrmTestHelper {
     admin.setUserPassword(encoder.encode("admin"));
     admin.setPrincipal(principalEntity);
 
-    Set<UserEntity> users = new HashSet<UserEntity>();
+    Set<UserEntity> users = new HashSet<>();
 
     users.add(admin);
 
@@ -415,7 +415,7 @@ public class OrmTestHelper {
     clusters.addHost(hostName);
 
     Host host = clusters.getHost(hostName);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);

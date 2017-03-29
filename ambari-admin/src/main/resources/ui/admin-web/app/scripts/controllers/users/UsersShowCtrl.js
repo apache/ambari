@@ -159,7 +159,8 @@ angular.module('ambariAdminConsole')
   };    
   $scope.toggleUserAdmin = function() {
     if(!$scope.isCurrentUser){
-      var action = $scope.user.admin ? 'revoke' : 'grant';
+      var action = $scope.user.admin ?
+        $t('users.changePrivilegeConfirmation.revoke') : $t('users.changePrivilegeConfirmation.grant');
       ConfirmationModal.show(
         $t('users.changePrivilegeConfirmation.title'),
         $t('users.changePrivilegeConfirmation.message', {

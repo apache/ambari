@@ -38,7 +38,7 @@ public class AmbariCsrfProtectionFilter implements ContainerRequestFilter {
   private static final JsonSerializer JSON_SERIALIZER = new JsonSerializer();
 
   static {
-    HashSet<String> methods = new HashSet<String>();
+    HashSet<String> methods = new HashSet<>();
     methods.add("GET");
     methods.add("OPTIONS");
     methods.add("HEAD");

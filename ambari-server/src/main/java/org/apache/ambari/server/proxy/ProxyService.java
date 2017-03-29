@@ -129,7 +129,7 @@ public class ProxyService {
   }
 
   private Map<String, List<String>> getHeaderParamsToForward(HttpHeaders headers) {
-    Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerParamsToForward = new HashMap<>();
     for (String paramName: headers.getRequestHeaders().keySet()) {
       if (paramName.startsWith(AMBARI_PROXY_PREFIX)) {
         headerParamsToForward.put(paramName.replaceAll(AMBARI_PROXY_PREFIX,""), headers.getRequestHeader(paramName));

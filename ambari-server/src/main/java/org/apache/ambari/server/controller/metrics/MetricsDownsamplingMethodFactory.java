@@ -106,7 +106,7 @@ class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
                                      MetricsDataTransferMethod dataTransferMethod,
                                      TemporalInfo temporalInfo) {
 
-    OutOfBandAccumuloFilterList<Accumulo> cache = new OutOfBandAccumuloFilterList<Accumulo>(temporalInfo);
+    OutOfBandAccumuloFilterList<Accumulo> cache = new OutOfBandAccumuloFilterList<>(temporalInfo);
 
     final Iterator<Map.Entry<Long, Double>> ci = metricData.getMetricValues().entrySet().iterator();
 

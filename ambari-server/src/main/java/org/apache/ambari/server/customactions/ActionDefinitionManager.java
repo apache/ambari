@@ -48,7 +48,7 @@ public class ActionDefinitionManager {
   private final static Logger LOG = LoggerFactory
       .getLogger(ActionDefinitionManager.class);
   private static final Map<Class<?>, JAXBContext> _jaxbContexts =
-      new HashMap<Class<?>, JAXBContext>();
+    new HashMap<>();
   private static final Short MAX_TIMEOUT = Short.MAX_VALUE-1;
 
   static {
@@ -60,7 +60,7 @@ public class ActionDefinitionManager {
     }
   }
 
-  private final Map<String, ActionDefinition> actionDefinitionMap = new HashMap<String, ActionDefinition>();
+  private final Map<String, ActionDefinition> actionDefinitionMap = new HashMap<>();
 
   public ActionDefinitionManager() {
   }
@@ -179,7 +179,7 @@ public class ActionDefinitionManager {
   }
 
   public List<ActionDefinition> getAllActionDefinition() {
-    return new ArrayList<ActionDefinition>(actionDefinitionMap.values());
+    return new ArrayList<>(actionDefinitionMap.values());
   }
 
   public ActionDefinition getActionDefinition(String name) {
@@ -222,7 +222,7 @@ public class ActionDefinitionManager {
     if (StringUtils.isEmpty(permissions)) {
       return null;
     } else {
-      Set<RoleAuthorization> authorizations = new HashSet<RoleAuthorization>();
+      Set<RoleAuthorization> authorizations = new HashSet<>();
       String[] parts = permissions.split(",");
 
       for (String permission : parts) {

@@ -295,7 +295,7 @@ export default NewTable.extend(UILoggerMixin, {
       tableMeta.settings.rowFormat = {};
     }
     tableMeta.settings.rowFormat.fieldTerminatedBy = this.getCharOptionByCharCode(1);
-    tableMeta.settings.rowFormat.escapeDefinedAs = this.getCharOptionByCharCode(0);
+    tableMeta.settings.rowFormat.escapeDefinedAs = this.getCharOptionByCharCode(2);
     return this.createTable(tableMeta);
   },
 

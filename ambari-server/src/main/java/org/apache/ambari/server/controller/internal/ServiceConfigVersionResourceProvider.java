@@ -67,12 +67,12 @@ public class ServiceConfigVersionResourceProvider extends
   /**
    * The property ids for a service configuration resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for a service configuration resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   static {
     // properties
@@ -101,9 +101,9 @@ public class ServiceConfigVersionResourceProvider extends
    * The primary key property ids for the service config version resource type.
    */
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID,
-          SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID,
+      SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID}));
 
 
   // ----- Constructors ------------------------------------------------------
@@ -135,7 +135,7 @@ public class ServiceConfigVersionResourceProvider extends
 
   @Override
   public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<ServiceConfigVersionRequest> requests = new HashSet<ServiceConfigVersionRequest>();
+    final Set<ServiceConfigVersionRequest> requests = new HashSet<>();
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       requests.add(createRequest(properties));
     }
@@ -147,7 +147,7 @@ public class ServiceConfigVersionResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     for (ServiceConfigVersionResponse response : responses) {
       String clusterName = response.getClusterName();
       List<ConfigurationResponse> configurationResponses = response.getConfigurations();
@@ -190,7 +190,7 @@ public class ServiceConfigVersionResourceProvider extends
     if (propertyIds.isEmpty()) {
       return propertyIds;
     }
-    Set<String> unsupportedProperties = new HashSet<String>();
+    Set<String> unsupportedProperties = new HashSet<>();
 
     for (String propertyId : propertyIds) {
       if (!propertyId.equals("cluster_name") && !propertyId.equals("service_config_version") &&
@@ -224,10 +224,10 @@ public class ServiceConfigVersionResourceProvider extends
   }
 
   private List<Map<String, Object>> convertToSubResources(final String clusterName, List<ConfigurationResponse> configs) {
-    List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> result = new ArrayList<>();
     for (final ConfigurationResponse config : configs) {
-      Map<String, Object> subResourceMap = new LinkedHashMap<String, Object>();
-      Map<String,String> configMap = new HashMap<String, String>();
+      Map<String, Object> subResourceMap = new LinkedHashMap<>();
+      Map<String,String> configMap = new HashMap<>();
 
       String stackId = config.getStackId().getStackId();
 
@@ -238,7 +238,7 @@ public class ServiceConfigVersionResourceProvider extends
       subResourceMap.put("type", config.getType());
       subResourceMap.put("tag", config.getVersionTag());
       subResourceMap.put("version", config.getVersion());
-      subResourceMap.put("properties", new TreeMap<String, String>(config.getConfigs()));
+      subResourceMap.put("properties", new TreeMap<>(config.getConfigs()));
       subResourceMap.put("properties_attributes", config.getConfigAttributes());
       result.add(subResourceMap);
     }

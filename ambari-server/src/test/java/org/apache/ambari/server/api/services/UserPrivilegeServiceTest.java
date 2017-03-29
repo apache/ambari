@@ -46,7 +46,7 @@ import junit.framework.Assert;
 public class UserPrivilegeServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     UserPrivilegeService userPrivilegeService;
     Method m;
@@ -73,7 +73,7 @@ public class UserPrivilegeServiceTest extends BaseServiceTest {
     final UriInfo uriInfo = EasyMock.createNiceMock(UriInfo.class);
     final UserPrivilegeService service = new TestUserPrivilegeService();
 
-    final List<Response> disabledMethods = new ArrayList<Response>();
+    final List<Response> disabledMethods = new ArrayList<>();
     disabledMethods.add(service.createPrivilege("test", headers, uriInfo));
     disabledMethods.add(service.updatePrivilege("test", headers, uriInfo, "test"));
     disabledMethods.add(service.updatePrivileges("test", headers, uriInfo));

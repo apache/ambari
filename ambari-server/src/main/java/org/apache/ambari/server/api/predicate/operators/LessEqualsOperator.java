@@ -40,7 +40,7 @@ public class LessEqualsOperator extends AbstractOperator implements RelationalOp
 
   @Override
   public Predicate toPredicate(String prop, String val) {
-    return new LessEqualsPredicate<String>(prop, val);
+    return new LessEqualsPredicate<>(prop, val);
   }
 
   @Override

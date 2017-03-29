@@ -102,8 +102,8 @@ public class ConfigurationInfo implements Validable{
    * @param specifiedAttributes attributes that have been specified in configuration
    */
   private void setAttributes(Map<String, String> specifiedAttributes) {
-    Map<String, Map<String, String>> attributes = new HashMap<String, Map<String, String>>();
-    Map<String, String> supportsAttributes = new HashMap<String, String>();
+    Map<String, Map<String, String>> attributes = new HashMap<>();
+    Map<String, String> supportsAttributes = new HashMap<>();
     attributes.put(Supports.KEYWORD, supportsAttributes);
 
     for (Map.Entry<String, String> entry : specifiedAttributes.entrySet()) {
@@ -129,7 +129,7 @@ public class ConfigurationInfo implements Validable{
     this.valid = valid;
   }
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
   
   @Override
   public void addError(String error) {

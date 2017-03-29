@@ -120,7 +120,7 @@ public class HostVersionDAOTest {
     ClusterVersionEntity clusterVersionEntity = new ClusterVersionEntity(
         clusterEntity, repoVersionEntity, RepositoryVersionState.CURRENT,
         System.currentTimeMillis(), System.currentTimeMillis(), "admin");
-    List<ClusterVersionEntity> clusterVersionEntities = new ArrayList<ClusterVersionEntity>();
+    List<ClusterVersionEntity> clusterVersionEntities = new ArrayList<>();
     clusterVersionEntities.add(clusterVersionEntity);
     clusterEntity.setClusterVersionEntities(clusterVersionEntities);
 
@@ -139,7 +139,7 @@ public class HostVersionDAOTest {
     host2.setIpv4("192.168.0.2");
     host3.setIpv4("192.168.0.3");
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    List<HostEntity> hostEntities = new ArrayList<>();
     hostEntities.add(host1);
     hostEntities.add(host2);
     hostEntities.add(host3);

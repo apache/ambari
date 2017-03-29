@@ -196,7 +196,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
       }
 
       if (components == null) {
-        components = new TreeMap<String, KerberosComponentDescriptor>();
+        components = new TreeMap<>();
       }
 
       components.put(name, component);
@@ -262,7 +262,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
     Map<String, Object> map = super.toMap();
 
     if (components != null) {
-      List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+      List<Map<String, Object>> list = new ArrayList<>();
       for (KerberosComponentDescriptor component : components.values()) {
         list.add(component.toMap());
       }

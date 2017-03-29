@@ -67,7 +67,7 @@ public class AlertHistoryEntity_ {
    */
   @SuppressWarnings("unchecked")
   public static Map<String, List<? extends SingularAttribute<?, ?>>> getPredicateMapping() {
-    Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<String, List<? extends SingularAttribute<?, ?>>>();
+    Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<>();
 
     mapping.put(AlertHistoryResourceProvider.ALERT_HISTORY_ID,
         Collections.singletonList(alertId));

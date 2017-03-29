@@ -78,7 +78,7 @@ public class WidgetLayoutDAOTest {
     widgetLayoutEntity2.setScope("CLUSTER");
     widgetLayoutEntity2.setDisplayName("displ_name2");
 
-    List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+    List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<>();
 
     for (int i=0; i<3; i++) {
       WidgetEntity widgetEntity = new WidgetEntity();

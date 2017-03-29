@@ -55,24 +55,24 @@ public class Extension {
    * Map of service name to components
    */
   private Map<String, Collection<String>> serviceComponents =
-      new HashMap<String, Collection<String>>();
+    new HashMap<>();
 
   /**
    * Map of component to service
    */
-  private Map<String, String> componentService = new HashMap<String, String>();
+  private Map<String, String> componentService = new HashMap<>();
 
   /**
    * Map of component to dependencies
    */
   private Map<String, Collection<DependencyInfo>> dependencies =
-      new HashMap<String, Collection<DependencyInfo>>();
+    new HashMap<>();
 
   /**
    * Map of dependency to conditional service
    */
   private Map<DependencyInfo, String> dependencyConditionalServiceMap =
-      new HashMap<DependencyInfo, String>();
+    new HashMap<>();
 
   /**
    * Map of database component name to configuration property which indicates whether
@@ -80,18 +80,18 @@ public class Extension {
    * If the value of the config property starts with 'New', the database is determined
    * to be managed, otherwise it is non-managed.
    */
-  private Map<String, String> dbDependencyInfo = new HashMap<String, String>();
+  private Map<String, String> dbDependencyInfo = new HashMap<>();
 
   /**
    * Map of component to required cardinality
    */
-  private Map<String, String> cardinalityRequirements = new HashMap<String, String>();
+  private Map<String, String> cardinalityRequirements = new HashMap<>();
 
   /**
    * Map of component to auto-deploy information
    */
   private Map<String, AutoDeployInfo> componentAutoDeployInfo =
-      new HashMap<String, AutoDeployInfo>();
+    new HashMap<>();
 
   /**
    * Ambari Management Controller, used to obtain Extension definitions
@@ -177,9 +177,9 @@ public class Extension {
    * @return map of service to associated components
    */
   public Map<String, Collection<String>> getComponents() {
-    Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> serviceComponents = new HashMap<>();
     for (String service : getServices()) {
-      Collection<String> components = new HashSet<String>();
+      Collection<String> components = new HashSet<>();
       components.addAll(getComponents(service));
       serviceComponents.put(service, components);
     }
@@ -227,7 +227,7 @@ public class Extension {
    * @return collection of services which contain the specified components
    */
   public Collection<String> getServicesForComponents(Collection<String> components) {
-    Set<String> services = new HashSet<String>();
+    Set<String> services = new HashSet<>();
     for (String component : components) {
       services.add(getServiceForComponent(component));
     }

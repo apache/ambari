@@ -183,7 +183,7 @@ public class ServiceComponentTest {
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     h.setHostAttributes(hostAttributes);
@@ -282,7 +282,7 @@ public class ServiceComponentTest {
     sch.setState(State.INSTALLED);
 
     Map<String, ServiceComponentHost> compHosts =
-      new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     compHosts.put("h1", sch);
     component.addServiceComponentHosts(compHosts);
     Assert.assertEquals(1, component.getServiceComponentHosts().size());
@@ -426,7 +426,7 @@ public class ServiceComponentTest {
         serviceComponentHostFactory.createNew(sc, "h2");
 
     Map<String, ServiceComponentHost> compHosts =
-        new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     compHosts.put("h1", sch1);
     compHosts.put("h2", sch2);
     sc.addServiceComponentHosts(compHosts);

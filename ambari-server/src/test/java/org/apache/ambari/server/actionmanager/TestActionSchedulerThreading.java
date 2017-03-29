@@ -102,8 +102,8 @@ public class TestActionSchedulerThreading {
     // make sure the stacks are different
     Assert.assertFalse(stackId.equals(newStackId));
 
-    Map<String, String> properties = new HashMap<String, String>();
-    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String, String>>();
+    Map<String, String> properties = new HashMap<>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
 

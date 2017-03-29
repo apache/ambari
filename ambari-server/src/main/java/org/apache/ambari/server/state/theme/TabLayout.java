@@ -80,7 +80,7 @@ public class TabLayout {
   }
 
   private List<Section> mergedSections(List<Section> parentSections, List<Section> childSections) {
-    Map<String, Section> mergedSections = new HashMap<String, Section>();
+    Map<String, Section> mergedSections = new HashMap<>();
     for (Section parentSection : parentSections) {
       mergedSections.put(parentSection.getName(), parentSection);
     }
@@ -100,7 +100,7 @@ public class TabLayout {
         }
       }
     }
-    return new ArrayList<Section>(mergedSections.values());
+    return new ArrayList<>(mergedSections.values());
 
   }
 }

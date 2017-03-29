@@ -110,9 +110,9 @@ public class HeartBeatHandler {
   @Inject
   private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
 
-  private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
+  private Map<String, Long> hostResponseIds = new ConcurrentHashMap<>();
 
-  private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<String, HeartBeatResponse>();
+  private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<>();
 
   @Inject
   public HeartBeatHandler(Clusters fsm, ActionQueue aq, ActionManager am,
@@ -523,10 +523,10 @@ public class HeartBeatHandler {
   }
 
   private Map<String, Map<String, String>> getComponentsMap(StackInfo stack) {
-    Map<String, Map<String, String>> result = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> result = new HashMap<>();
 
     for (ServiceInfo service : stack.getServices()) {
-      Map<String, String> components = new HashMap<String, String>();
+      Map<String, String> components = new HashMap<>();
 
       for (ComponentInfo component : service.getComponents()) {
         components.put(component.getName(), component.getCategory());
@@ -554,7 +554,7 @@ public class HeartBeatHandler {
       return null;
     }
 
-    List<AlertDefinitionCommand> commands = new ArrayList<AlertDefinitionCommand>();
+    List<AlertDefinitionCommand> commands = new ArrayList<>();
 
     // for every cluster this host is a member of, build the command
     for (Cluster cluster : hostClusters) {
@@ -608,7 +608,7 @@ public class HeartBeatHandler {
                 File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
 
                 if (keytabFile.canRead()) {
-                  Map<String, String> keytabMap = new HashMap<String, String>();
+                  Map<String, String> keytabMap = new HashMap<>();
                   String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
                   String isService = record.get(KerberosIdentityDataFileReader.SERVICE);
 
@@ -636,7 +636,7 @@ public class HeartBeatHandler {
                 }
               }
             } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
-              Map<String, String> keytabMap = new HashMap<String, String>();
+              Map<String, String> keytabMap = new HashMap<>();
 
               keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
               keytabMap.put(KerberosIdentityDataFileReader.SERVICE, record.get(KerberosIdentityDataFileReader.SERVICE));

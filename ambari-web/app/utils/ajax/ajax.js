@@ -1592,6 +1592,10 @@ var urls = {
     'real': '/clusters/{clusterName}/kerberos_descriptors/COMPOSITE{queryParams}',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
+  'admin.kerberize.cluster_descriptor.stack': {
+    'real': '/clusters/{clusterName}/kerberos_descriptors/STACK',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
   'admin.kerberos.cluster.artifact.create': {
     'type': 'POST',
     'real': '/clusters/{clusterName}/artifacts/{artifactName}',
@@ -2337,6 +2341,10 @@ var urls = {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'mock': ''
   },
+  'request_schedule.get.pending': {
+    'real': '/clusters/{clusterName}/request_schedules?fields=*&(RequestSchedule/status.in(SCHEDULED,IN_PROGRESS))',
+    'mock': ''
+  },
   'restart.hostComponents': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
@@ -2501,8 +2509,8 @@ var urls = {
       };
     }
   },
-  'host.status.counters': {
-    'real': '/clusters/{clusterName}?fields=Clusters/health_report,Clusters/total_hosts,alerts_summary_hosts&minimal_response=true',
+  'host.status.total_count': {
+    'real': '/clusters/{clusterName}?fields=Clusters/total_hosts&minimal_response=true',
     'mock': '/data/hosts/HDP2/host_status_counters.json'
   },
   'host.stack_versions.install': {

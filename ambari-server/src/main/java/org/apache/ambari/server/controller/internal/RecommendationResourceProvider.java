@@ -69,8 +69,8 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
   protected static final String BINDING_HOST_GROUPS_NAME_PROPERTY_ID = "name";
   protected static final String BINDING_HOST_GROUPS_HOSTS_PROPERTY_ID = "hosts";
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { RECOMMENDATION_ID_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{RECOMMENDATION_ID_PROPERTY_ID}));
 
   protected RecommendationResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds, AmbariManagementController managementController) {
@@ -117,9 +117,9 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
             .getRecommendations().getBlueprint().getConfigurations(), getPropertyIds());
 
         Set<HostGroup> hostGroups = response.getRecommendations().getBlueprint().getHostGroups();
-        List<Map<String, Object>> listGroupProps = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listGroupProps = new ArrayList<>();
         for (HostGroup hostGroup : hostGroups) {
-          Map<String, Object> mapGroupProps = new HashMap<String, Object>();
+          Map<String, Object> mapGroupProps = new HashMap<>();
           mapGroupProps.put(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY_ID, hostGroup.getName());
           mapGroupProps
               .put(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY_ID, hostGroup.getComponents());
@@ -130,9 +130,9 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
 
         Set<BindingHostGroup> bindingHostGroups = response.getRecommendations()
             .getBlueprintClusterBinding().getHostGroups();
-        List<Map<String, Object>> listBindingGroupProps = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listBindingGroupProps = new ArrayList<>();
         for (BindingHostGroup hostGroup : bindingHostGroups) {
-          Map<String, Object> mapGroupProps = new HashMap<String, Object>();
+          Map<String, Object> mapGroupProps = new HashMap<>();
           mapGroupProps.put(BINDING_HOST_GROUPS_NAME_PROPERTY_ID, hostGroup.getName());
           mapGroupProps.put(BINDING_HOST_GROUPS_HOSTS_PROPERTY_ID, hostGroup.getHosts());
           listBindingGroupProps.add(mapGroupProps);
@@ -145,7 +145,7 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
     });
     notifyCreate(Resource.Type.Recommendation, request);
 
-    Set<Resource> resources = new HashSet<Resource>(Arrays.asList(recommendation));
+    Set<Resource> resources = new HashSet<>(Arrays.asList(recommendation));
     return new RequestStatusImpl(null, resources);
   }
 

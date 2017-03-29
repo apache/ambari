@@ -160,11 +160,17 @@ public class OozieProxyImpersonator {
   @GET
   @Path("/getWorkflowManagerConfigs")
   public Response getWorkflowConfigs() {
-    HashMap<String, String> workflowConfigs = new HashMap<String, String>();
-    workflowConfigs.put("nameNode", viewContext.getProperties().get("webhdfs.url"));
-    workflowConfigs.put("resourceManager", viewContext.getProperties().get("yarn.resourcemanager.address"));
-    workflowConfigs.put("userName", viewContext.getUsername());
-    return Response.ok(workflowConfigs).build();
+    try {
+      HashMap<String, String> workflowConfigs = new HashMap<String, String>();
+      workflowConfigs.put("nameNode", viewContext.getProperties().get("webhdfs.url"));
+      workflowConfigs.put("resourceManager", viewContext.getProperties().get("yarn.resourcemanager.address"));
+      workflowConfigs.put("userName", viewContext.getUsername());
+      workflowConfigs.put("checkHomeDir",hdfsFileUtils.shouldCheckForHomeDir().toString());
+      return Response.ok(workflowConfigs).build();
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      throw new WfmWebException(e);
+    }
   }
 
   @POST

@@ -39,7 +39,7 @@ public class FeedServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getFeed
     FeedService feedService = new TestFeedService("feedName");

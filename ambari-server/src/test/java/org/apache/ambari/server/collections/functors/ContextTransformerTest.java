@@ -37,7 +37,7 @@ public class ContextTransformerTest extends EasyMockSupport {
 
   @Test
   public void testTransformSimple() {
-    Map<String, Object> context = new HashMap<String, Object>();
+    Map<String, Object> context = new HashMap<>();
     context.put("key", "value");
     context.put("key1", "value1");
     context.put("key2", "value2");
@@ -48,14 +48,14 @@ public class ContextTransformerTest extends EasyMockSupport {
 
   @Test
   public void testTransformTree() {
-    Map<String, Object> serviceSite = new HashMap<String, Object>();
+    Map<String, Object> serviceSite = new HashMap<>();
     serviceSite.put("property", "service-site-property");
 
-    Map<String, Object> configurations = new HashMap<String, Object>();
+    Map<String, Object> configurations = new HashMap<>();
     configurations.put("service-site", serviceSite);
     configurations.put("property", "configuration-property");
 
-    Map<String, Object> context = new HashMap<String, Object>();
+    Map<String, Object> context = new HashMap<>();
     context.put("configurations", configurations);
     context.put("property", "context-property");
 

@@ -107,7 +107,7 @@ public class ConfigurationService extends BaseService {
    * @return a service resource instance
    */
   ResourceInstance createConfigurationResource(String clusterName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Configuration, null);
 

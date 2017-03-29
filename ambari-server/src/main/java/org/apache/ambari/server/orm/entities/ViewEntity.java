@@ -134,19 +134,19 @@ public class ViewEntity implements ViewDefinition {
   * The list of view parameters.
   */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
-  private Collection<ViewParameterEntity> parameters = new HashSet<ViewParameterEntity>();
+  private Collection<ViewParameterEntity> parameters = new HashSet<>();
 
   /**
    * The list of view resources.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
-  private Collection<ViewResourceEntity> resources = new HashSet<ViewResourceEntity>();
+  private Collection<ViewResourceEntity> resources = new HashSet<>();
 
    /**
    * The list of view instances.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
-  private Collection<ViewInstanceEntity> instances = new HashSet<ViewInstanceEntity>();
+  private Collection<ViewInstanceEntity> instances = new HashSet<>();
 
   /**
    * The list of view permissions.
@@ -155,7 +155,7 @@ public class ViewEntity implements ViewDefinition {
   @JoinColumns({
       @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false)
   })
-  private Collection<PermissionEntity> permissions = new HashSet<PermissionEntity>();
+  private Collection<PermissionEntity> permissions = new HashSet<>();
 
   /**
    * The resource type.
@@ -196,19 +196,19 @@ public class ViewEntity implements ViewDefinition {
    * The mapping of resource type to resource provider.
    */
   @Transient
-  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
+  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<>();
 
   /**
    * The mapping of resource type to resource definition.
    */
   @Transient
-  private final Map<Resource.Type, ViewSubResourceDefinition> resourceDefinitions = new HashMap<Resource.Type, ViewSubResourceDefinition>();
+  private final Map<Resource.Type, ViewSubResourceDefinition> resourceDefinitions = new HashMap<>();
 
   /**
    * The mapping of resource type to resource configuration.
    */
   @Transient
-  private final Map<Resource.Type, ResourceConfig> resourceConfigurations = new HashMap<Resource.Type, ResourceConfig>();
+  private final Map<Resource.Type, ResourceConfig> resourceConfigurations = new HashMap<>();
 
   /**
    * The name of the view shared across versions.

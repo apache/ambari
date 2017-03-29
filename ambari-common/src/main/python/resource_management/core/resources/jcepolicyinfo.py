@@ -20,28 +20,23 @@ Ambari Agent
 
 """
 
-from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
-
+from resource_management.core import shell
+import subprocess
 
 class JcePolicyInfo:
-  def __init__(self, java_exec, java_home):
-    self.java_exec = java_exec
+  def __init__(self, java_home):
     self.java_home = java_home
     self.jar = "/var/lib/ambari-agent/tools/jcepolicyinfo.jar"
 
   def is_unlimited_key_jce_policy(self):
     Logger.info("Testing the JVM's JCE policy to see it if supports an unlimited key length.")
-
-    try:
-      Execute(self._command("-tu"),
-              environment={'JAVA_HOME': self.java_home},
-              logoutput=True
-              )
-      return True
-    except Exception:
-      return False
-
+    return shell.call(
+      self._command('-tu'),
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      timeout = 5,
+      quiet = True)[0] == 0
 
   def _command(self, options):
-    return "{0} -jar {1} {2}".format(self.java_exec, self.jar, options)
+    return '{0}/bin/java -jar /var/lib/ambari-agent/tools/jcepolicyinfo.jar {1}'.format(self.java_home, options)

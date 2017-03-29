@@ -99,7 +99,7 @@ public class ClusterStackVersionService extends BaseService {
   @Path("{stackVersionId}/repository_versions")
   public RepositoryVersionService getRepositoryVersionService(@Context javax.ws.rs.core.Request request,
                                                                   @PathParam("stackVersionId") String stackVersion) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ClusterStackVersion, stackVersion);
     return new RepositoryVersionService(mapIds);
@@ -145,7 +145,7 @@ public class ClusterStackVersionService extends BaseService {
    * @return a cluster stack version resource instance
    */
   private ResourceInstance createResource(String stackVersionId) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ClusterStackVersion, stackVersionId);
     return createResource(Resource.Type.ClusterStackVersion, mapIds);

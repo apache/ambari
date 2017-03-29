@@ -334,6 +334,19 @@
         </task>
       </execute-stage>
 
+      <!--Yarn Apptimeline server-->
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for App timeline server">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">
+          <summary>Fixing YARN Webservice Url</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
+          <summary>Validate Root Queue Ordering Policy</summary>
+        </task>
+      </execute-stage> 
+
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
@@ -562,6 +575,10 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs"/>
       </execute-stage>
 
+      <execute-stage service="SPARK" component="LIVY_SERVER" title="Add SPARK_CONF_DIR for Livy Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_add_spark_conf_dir_livy_configs"/>
+      </execute-stage>
+
       <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
         <task xsi:type="configure" id="hdp_2_5_0_0_spark_yarn_queue">
           <summary>Add queue customization property</summary>
@@ -679,6 +696,13 @@
           <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update Hash Aggregation settings for LLAP">
+        <task xsi:type="configure" id="llap_update_hashaggregation">
+          <summary>Updating Hash Aggregation settings for LLAP</summary>
+        </task>
+      </execute-stage>
+
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">

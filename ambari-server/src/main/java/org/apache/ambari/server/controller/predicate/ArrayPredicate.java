@@ -30,7 +30,7 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
  */
 public abstract class ArrayPredicate implements BasePredicate {
   private final Predicate[] predicates;
-  private final Set<String> propertyIds = new HashSet<String>();
+  private final Set<String> propertyIds = new HashSet<>();
 
   // ----- Constructors -----------------------------------------------------
 
@@ -101,15 +101,15 @@ public abstract class ArrayPredicate implements BasePredicate {
     if (propertyIds != null ? !propertyIds.equals(that.propertyIds) : that.propertyIds != null) return false;
 
     // don't care about array order
-    Set<Predicate> setThisPredicates = new HashSet<Predicate>(Arrays.asList(predicates));
-    Set<Predicate> setThatPredicates = new HashSet<Predicate>(Arrays.asList(that.predicates));
+    Set<Predicate> setThisPredicates = new HashSet<>(Arrays.asList(predicates));
+    Set<Predicate> setThatPredicates = new HashSet<>(Arrays.asList(that.predicates));
     return setThisPredicates.equals(setThatPredicates);
   }
 
   @Override
   public int hashCode() {
     // don't care about array order
-    int result = predicates != null ? new HashSet<Predicate>(Arrays.asList(predicates)).hashCode() : 0;
+    int result = predicates != null ? new HashSet<>(Arrays.asList(predicates)).hashCode() : 0;
     result = 31 * result + (propertyIds != null ? propertyIds.hashCode() : 0);
     return result;
   }

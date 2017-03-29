@@ -92,7 +92,7 @@ public abstract class AbstractExpression<T> implements Expression<T> {
    * @return a list containing the un-merged left expression, this and right expression
    */
   protected List<Expression> defaultMerge(Expression left, Expression right) {
-    List<Expression> listExpressions = new ArrayList<Expression>();
+    List<Expression> listExpressions = new ArrayList<>();
     if (left != null) {
       listExpressions.add(left);
     }

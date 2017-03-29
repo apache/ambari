@@ -55,6 +55,7 @@ public class ServicesNamenodeTruncateCheckTest {
   private ServicesNamenodeTruncateCheck m_check = new ServicesNamenodeTruncateCheck();
   private final Map<String, String> m_configMap = new HashMap<String, String>();
   private RepositoryVersionDAO m_repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
+  private final Map<String, String> m_configMap = new HashMap<>();
 
   @Before
   public void setup() throws Exception {

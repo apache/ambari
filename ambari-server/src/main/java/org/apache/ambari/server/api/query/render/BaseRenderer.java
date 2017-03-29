@@ -131,7 +131,7 @@ public abstract class BaseRenderer implements Renderer {
     ResourceDefinition resource = queryInfo.getResource();
     Set<SubResourceDefinition> subResources = resource.getSubResourceDefinitions();
     for (SubResourceDefinition subResource : subResources) {
-      Set<String> resourceProperties = new HashSet<String>();
+      Set<String> resourceProperties = new HashSet<>();
       populateSubResourceDefaults(subResource, resourceProperties);
       propertyTree.addChild(resourceProperties, subResource.getType().name());
     }

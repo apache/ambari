@@ -89,7 +89,7 @@ public class RepositoryVersionResourceProviderTest {
   private static String jsonStringRedhat7 = "[{\"OperatingSystems\":{\"os_type\":\"redhat7\"},\"repositories\":[]}]";
 
   private List<ClusterVersionEntity> getNoClusterVersions() {
-    final List<ClusterVersionEntity> emptyList = new ArrayList<ClusterVersionEntity>();
+    final List<ClusterVersionEntity> emptyList = new ArrayList<>();
     return emptyList;
   }
 
@@ -98,7 +98,7 @@ public class RepositoryVersionResourceProviderTest {
     cluster.setClusterName("c1");
     cluster.setClusterId(1L);
 
-    final List<ClusterVersionEntity> clusterVersions = new ArrayList<ClusterVersionEntity>();
+    final List<ClusterVersionEntity> clusterVersions = new ArrayList<>();
     final RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
     repositoryVersion.setId(1L);
     final ClusterVersionEntity installFailedVersion = new ClusterVersionEntity();
@@ -113,7 +113,7 @@ public class RepositoryVersionResourceProviderTest {
   @Before
   public void before() throws Exception {
     final Set<String> validVersions = Sets.newHashSet("1.1", "1.1-17", "1.1.1.1", "1.1.343432.2", "1.1.343432.2-234234324");
-    final Set<StackInfo> stacks = new HashSet<StackInfo>();
+    final Set<StackInfo> stacks = new HashSet<>();
 
     final AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
     clusterVersionDAO = Mockito.mock(ClusterVersionDAO.class);
@@ -131,7 +131,7 @@ public class RepositoryVersionResourceProviderTest {
     final StackInfo stackInfo = new StackInfo() {
       @Override
       public Map<String, UpgradePack> getUpgradePacks() {
-        final Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
+        final Map<String, UpgradePack> map = new HashMap<>();
         final UpgradePack pack1 = new UpgradePack() {
           @Override
           public String getName() {
@@ -194,7 +194,7 @@ public class RepositoryVersionResourceProviderTest {
 
     });
 
-    final HashSet<OperatingSystemInfo> osInfos = new HashSet<OperatingSystemInfo>();
+    final HashSet<OperatingSystemInfo> osInfos = new HashSet<>();
     osInfos.add(new OperatingSystemInfo("redhat6"));
     osInfos.add(new OperatingSystemInfo("redhat7"));
     Mockito.when(ambariMetaInfo.getOperatingSystems(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<Set<OperatingSystemInfo>>() {
@@ -207,7 +207,7 @@ public class RepositoryVersionResourceProviderTest {
         if (stack.equals("HDP") && validVersions.contains(version)) {
           return osInfos;
         } else {
-          return new HashSet<OperatingSystemInfo>();
+          return new HashSet<>();
         }
       }
     });
@@ -257,8 +257,8 @@ public class RepositoryVersionResourceProviderTest {
 
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
     properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"1\",\"Repositories/unique\":\"true\"}]}]", Object.class));
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
@@ -421,8 +421,8 @@ public class RepositoryVersionResourceProviderTest {
 
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
     properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"1\",\"Repositories/unique\":\"true\"}]}]", Object.class));
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
@@ -469,8 +469,8 @@ public class RepositoryVersionResourceProviderTest {
           }
         });
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
     properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\",\"Repositories/unique\":\"true\"}]}]", Object.class));
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
@@ -553,8 +553,8 @@ public class RepositoryVersionResourceProviderTest {
           }
         });
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
     properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\",\"Repositories/unique\":\"true\"}]}]", Object.class));
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");

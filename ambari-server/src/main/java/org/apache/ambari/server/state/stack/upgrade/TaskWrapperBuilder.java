@@ -52,7 +52,7 @@ public class TaskWrapperBuilder {
     // to create.
     String ambariServerHostname = StageUtils.getHostName();
 
-    List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
+    List<TaskWrapper> collection = new ArrayList<>();
     for (Task t : tasks) {
       if (t.getType().equals(Task.Type.CONFIGURE) || t.getType().equals(Task.Type.MANUAL)) {
         // only add the CONFIGURE/MANUAL task if there are actual hosts for the service/component
@@ -111,7 +111,7 @@ public class TaskWrapperBuilder {
    * @return Returns the union of the hosts scheduled to perform the tasks.
    */
   public static Set<String> getEffectiveHosts(List<TaskWrapper> tasks) {
-    Set<String> effectiveHosts = new HashSet<String>();
+    Set<String> effectiveHosts = new HashSet<>();
     for(TaskWrapper t : tasks) {
       effectiveHosts.addAll(t.getHosts());
     }

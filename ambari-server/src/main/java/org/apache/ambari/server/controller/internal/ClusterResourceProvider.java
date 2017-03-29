@@ -116,12 +116,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * The cluster primary key properties.
    */
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
 
   /**
    * The key property ids for a cluster resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID);
   }
@@ -129,7 +129,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   /**
    * The property ids for a cluster resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
 
   /**
    * Used to serialize to/from json.
@@ -237,7 +237,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ClusterRequest> requests = new HashSet<ClusterRequest>();
+    final Set<ClusterRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -257,7 +257,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Found clusters matching getClusters request"
           + ", clusterResponseCount=" + responses.size());
@@ -297,7 +297,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ClusterRequest>   requests = new HashSet<ClusterRequest>();
+    final Set<ClusterRequest>   requests = new HashSet<>();
     RequestStatusResponse       response;
 
     for (Map<String, Object> requestPropertyMap : request.getProperties()) {
@@ -321,7 +321,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       if (updateResults != null) {
         Map<String, Collection<ServiceConfigVersionResponse>> serviceConfigVersions = updateResults.getDesiredServiceConfigVersions();
         if (serviceConfigVersions != null) {
-          associatedResources = new HashSet<Resource>();
+          associatedResources = new HashSet<>();
           for (Collection<ServiceConfigVersionResponse> scvCollection : serviceConfigVersions.values()) {
             for (ServiceConfigVersionResponse serviceConfigVersionResponse : scvCollection) {
               Resource resource = new ResourceImpl(Resource.Type.ServiceConfigVersion);
@@ -447,7 +447,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @return the map of session attributes
    */
   private Map<String, Object> getSessionAttributes(Map<String, Object> properties) {
-    Map<String, Object> sessionAttributes = new HashMap<String, Object>();
+    Map<String, Object> sessionAttributes = new HashMap<>();
 
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
 

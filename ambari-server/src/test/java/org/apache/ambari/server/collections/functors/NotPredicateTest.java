@@ -64,7 +64,7 @@ public class NotPredicateTest extends EasyMockSupport {
 
     verifyAll();
 
-    Map<String, Object> expectedMap = new HashMap<String, Object>();
+    Map<String, Object> expectedMap = new HashMap<>();
     expectedMap.put("not", Collections.<String, Object>singletonMap("nop", "foo"));
 
     Assert.assertEquals(expectedMap, actualMap);

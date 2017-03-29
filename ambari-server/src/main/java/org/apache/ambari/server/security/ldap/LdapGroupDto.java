@@ -32,7 +32,7 @@ public class LdapGroupDto {
   /**
    * Set of member attributes. Usually it's either UID or DN of users.
    */
-  private Set<String> memberAttributes = new HashSet<String>();
+  private Set<String> memberAttributes = new HashSet<>();
 
   /**
    * Determines if the LDAP group is synchronized with internal group in database.

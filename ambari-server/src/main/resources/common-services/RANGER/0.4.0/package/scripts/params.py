@@ -443,3 +443,6 @@ https_enabled = config['configurations']['ranger-admin-site']['ranger.service.ht
 http_enabled = config['configurations']['ranger-admin-site']['ranger.service.http.enabled']
 https_keystore_password = config['configurations']['ranger-admin-site']['ranger.service.https.attrib.keystore.pass']
 truststore_password = config['configurations']['ranger-admin-site']['ranger.truststore.password']
+
+# need this to capture cluster name for ranger tagsync
+cluster_name = config['clusterName']

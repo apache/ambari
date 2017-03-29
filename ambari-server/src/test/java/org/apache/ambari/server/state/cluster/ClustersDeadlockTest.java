@@ -139,7 +139,7 @@ public class ClustersDeadlockTest {
                           final int numberOfThreads,
                           CountDownLatch writerStoppedSignal,
                           CountDownLatch readerStoppedSignal) throws Exception {
-    List<Thread> writerThreads = new ArrayList<Thread>();
+    List<Thread> writerThreads = new ArrayList<>();
     for (int i = 0; i < numberOfThreads; i++) {
       Thread readerThread = readerProvider.get();
       Thread writerThread = writerProvider.get();
@@ -347,7 +347,7 @@ public class ClustersDeadlockTest {
      */
     @Override
     public void run() {
-      List<String> hostNames = new ArrayList<String>(100);
+      List<String> hostNames = new ArrayList<>(100);
       try {
         // pre-map the hosts
         for (int i = 0; i < NUMBER_OF_HOSTS; i++) {
@@ -372,7 +372,7 @@ public class ClustersDeadlockTest {
 
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>(2);
+    Map<String, String> hostAttributes = new HashMap<>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);

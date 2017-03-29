@@ -58,7 +58,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
   /**
    * Map of Ganglia cluster names keyed by component type.
    */
-  static final Map<String, List<String>> GANGLIA_CLUSTER_NAME_MAP = new HashMap<String, List<String>>();
+  static final Map<String, List<String>> GANGLIA_CLUSTER_NAME_MAP = new HashMap<>();
 
   
   static {
@@ -177,13 +177,13 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
                                                                     Set<String> ids) {
 
     Map<String, Map<TemporalInfo, RRDRequest>> requestMap =
-        new HashMap<String, Map<TemporalInfo, RRDRequest>>();
+      new HashMap<>();
 
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
       Map<TemporalInfo, RRDRequest> requests = requestMap.get(clusterName);
       if (requests == null) {
-        requests = new HashMap<TemporalInfo, RRDRequest>();
+        requests = new HashMap<>();
         requestMap.put(clusterName, requests);
       }
 
@@ -194,7 +194,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
             new ResourceKey(getHostName(resource), gangliaClusterName);
 
         for (String id : ids) {
-          Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
+          Map<String, PropertyInfo> propertyInfoMap = new HashMap<>();
 
           Map<String, PropertyInfo> componentMetricMap =
             getComponentMetrics().get(getComponentName(resource));
@@ -334,10 +334,10 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
     private static final int POPULATION_TIME_UPPER_LIMIT = 5;
     private final String clusterName;
     private final TemporalInfo temporalInfo;
-    private final Map<ResourceKey, Set<Resource>> resources = new HashMap<ResourceKey, Set<Resource>>();
-    private final Map<String, Set<String>> metrics = new HashMap<String, Set<String>>();
-    private final Set<String> clusterSet = new HashSet<String>();
-    private final Set<String> hostSet = new HashSet<String>();
+    private final Map<ResourceKey, Set<Resource>> resources = new HashMap<>();
+    private final Map<String, Set<String>> metrics = new HashMap<>();
+    private final Set<String> clusterSet = new HashSet<>();
+    private final Set<String> hostSet = new HashSet<>();
 
 
     private RRDRequest(String clusterName, TemporalInfo temporalInfo) {
@@ -350,7 +350,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
       hostSet.add(key.getHostName());
       Set<Resource> resourceSet = resources.get(key);
       if (resourceSet == null) {
-        resourceSet = new HashSet<Resource>();
+        resourceSet = new HashSet<>();
         resources.put(key, resourceSet);
       }
       resourceSet.add(resource);
@@ -360,7 +360,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
       Set<String> propertyIds = metrics.get(metric);
 
       if (propertyIds == null) {
-        propertyIds = new HashSet<String>();
+        propertyIds = new HashSet<>();
         metrics.put(metric, propertyIds);
       }
       propertyIds.add(id);
@@ -429,7 +429,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
         while(!"[~EOF]".equals(dsName)) {
           GangliaMetric metric = new GangliaMetric();
           List<GangliaMetric.TemporalMetric> listTemporalMetrics =
-              new ArrayList<GangliaMetric.TemporalMetric>();
+            new ArrayList<>();
 
           metric.setDs_name(dsName);
           metric.setCluster_name(reader.readLine());
@@ -532,7 +532,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
       List<String> parameterList = null;
       if (metric_name != null) {
         propertyIdSet = metrics.get(metric_name);
-        parameterList = new LinkedList<String>();
+        parameterList = new LinkedList<>();
 
         if (propertyIdSet == null) {
           for (Map.Entry<String, Set<String>> entry : metrics.entrySet()) {

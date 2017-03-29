@@ -177,19 +177,19 @@ public class TopologyManagerTest {
 
   private HostGroupInfo group1Info = new HostGroupInfo("group1");
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
-  private Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
+  private Map<String, HostGroupInfo> groupInfoMap = new HashMap<>();
 
   private Collection<Component> group1Components = Arrays.asList(new Component("component1"), new Component("component2"), new Component("component3"));
   private Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
 
-  private Map<String, Collection<String>> group1ServiceComponents = new HashMap<String, Collection<String>>();
-  private Map<String, Collection<String>> group2ServiceComponents = new HashMap<String, Collection<String>>();
+  private Map<String, Collection<String>> group1ServiceComponents = new HashMap<>();
+  private Map<String, Collection<String>> group2ServiceComponents = new HashMap<>();
 
-  private Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
+  private Map<String, Collection<String>> serviceComponents = new HashMap<>();
 
   private String predicate = "Hosts/host_name=foo";
 
-  private List<TopologyValidator> topologyValidators = new ArrayList<TopologyValidator>();
+  private List<TopologyValidator> topologyValidators = new ArrayList<>();
 
   private Capture<ClusterTopology> clusterTopologyCapture;
   private Capture<Map<String, Object>> configRequestPropertiesCapture;
@@ -223,7 +223,7 @@ public class TopologyManagerTest {
     groupInfoMap.put("group1", group1Info);
     groupInfoMap.put("group2", group2Info);
 
-    Map<String, HostGroup> groupMap = new HashMap<String, HostGroup>();
+    Map<String, HostGroup> groupMap = new HashMap<>();
     groupMap.put("group1", group1);
     groupMap.put("group2", group2);
 

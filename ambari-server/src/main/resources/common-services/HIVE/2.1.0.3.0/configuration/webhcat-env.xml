@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <!-- webhcat-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>webhcat-env template</display-name>
+    <description>webhcat-env.sh content</description>
+    <value>
+# The file containing the running pid
+PID_FILE={{webhcat_pid_file}}
+
+TEMPLETON_LOG_DIR={{templeton_log_dir}}/
+
+
+WEBHCAT_LOG_DIR={{templeton_log_dir}}/
+
+# The console error log
+ERROR_LOG={{templeton_log_dir}}/webhcat-console-error.log
+
+# The console log
+CONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log
+
+#TEMPLETON_JAR=templeton_jar_name
+
+#HADOOP_PREFIX=hadoop_prefix
+
+#HCAT_PREFIX=hive_prefix
+
+# Set HADOOP_HOME to point to a specific hadoop install directory
+export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

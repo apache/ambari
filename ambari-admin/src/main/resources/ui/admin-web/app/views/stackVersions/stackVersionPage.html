@@ -25,7 +25,7 @@
   </ol>
 
   <div class="pull-right deregister-button" ng-switch="deleteEnabled"  ng-if="editController">
-    <button ng-switch-when="false" class="btn disabled btn-default" tooltip="Cannot delete version already installed.">{{'versions.deregister' | translate}}</button>
+    <button ng-switch-when="false" class="btn disabled btn-default" tooltip="{{'versions.alerts.cannotDeleteInstalled' | translate}}">{{'versions.deregister' | translate}}</button>
     <button ng-switch-when="true" class="btn btn-danger" ng-click="delete()">{{'versions.deregister' | translate}}</button>
   </div>
 </div>
@@ -84,7 +84,7 @@
               </ul>
             </div>
             <div class="pull-right form-inline repo-version-inline" ng-if="activeStackVersion.isNonXMLdata">
-              <label class="control-label col-sm-1 repo-version-label">Name:</label>
+              <label class="control-label col-sm-1 repo-version-label">{{'common.name' | translate}}:</label>
               <div class="col-sm-11">
                 <span class="control-label">
                   {{activeStackVersion.stackNameVersion}}
@@ -92,10 +92,10 @@
                 <span class="dot">.</span>
                 <div class="form-group" ng-class="{'has-error' : versionRegForm.version.$error.pattern}">
                   <input class="form-control" name="version" type="text" ng-model="activeStackVersion.editableDisplayName" ng-pattern="subversionPattern"
-                         placeholder="Version Number (0.0)" ng-change="updateCurrentVersionInput()" required/>
+                         placeholder="{{'versions.placeholder' | translate}}" ng-change="updateCurrentVersionInput()" required/>
                 </div>
                 <div class="text-danger" ng-show="versionRegForm.version.$error.pattern">
-                    &nbsp{{activeStackVersion.displayName}} Invalid.
+                  &nbsp{{'common.alerts.isInvalid' | translate: '{term: activeStackVersion.displayName}'}}
                 </div>
               </div>
             </div>
@@ -138,7 +138,7 @@
           <button ng-show="supports.addingNewRepository" class="btn btn-primary pull-right btn-xs pull-up"
                   ng-click="addRepository()">
             <span class="glyphicon glyphicon-plus"></span>
-            {{'common.add' | translate:'{ term: "Repository" }'}}
+            {{'versions.repository.add' | translate}}
           </button>
         </h3>
       </div>
@@ -156,7 +156,7 @@
                  tooltip="{{(isAddOsButtonDisabled() && !useRedhatSatellite)? ('versions.alerts.allOsAdded' | translate) : ''}}"
                  dropdown>
               <button class="btn add-os-button dropdown-toggle" ng-disabled="isAddOsButtonDisabled()">
-                <i class="fa fa-plus" aria-hidden="true"></i> {{'common.add' | translate}} &nbsp;<span
+                <i class="fa fa-plus" aria-hidden="true"></i> {{'common.controls.add' | translate}} &nbsp;<span
                       class="caret"></span></button>
               <ul class="dropdown-menu" ng-class="{'hidden': hasNotDeletedRepo()}">
                 <li ng-repeat="os in osList"><a ng-if="os.selected==false" ng-click="addOS($event)">{{os.OperatingSystems.os_type}}</a>

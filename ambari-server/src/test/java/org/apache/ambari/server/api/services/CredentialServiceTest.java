@@ -38,7 +38,7 @@ public class CredentialServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getCredential
     CredentialService CredentialService = new TestCredentialService("alias");

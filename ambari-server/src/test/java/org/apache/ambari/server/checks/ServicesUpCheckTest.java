@@ -116,7 +116,7 @@ public class ServicesUpCheckTest {
     final Service tezService = Mockito.mock(Service.class);
     final Service amsService = Mockito.mock(Service.class);
 
-    HashMap<String, Service> clusterServices = new HashMap<String, Service>();
+    HashMap<String, Service> clusterServices = new HashMap<>();
     clusterServices.put("HDFS", hdfsService);
     clusterServices.put("TEZ", tezService);
     clusterServices.put("AMBARI_METRICS", amsService);
@@ -148,7 +148,7 @@ public class ServicesUpCheckTest {
 
     // Put Components inside Services
     // HDFS
-    Map<String, ServiceComponent> hdfsComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> hdfsComponents = new HashMap<>();
 
     ServiceComponent nameNode = Mockito.mock(ServiceComponent.class);
     Mockito.when(nameNode.getName()).thenReturn("NAMENODE");
@@ -175,7 +175,7 @@ public class ServicesUpCheckTest {
     Mockito.when(hdfsService.getServiceComponents()).thenReturn(hdfsComponents);
 
     // TEZ
-    Map<String, ServiceComponent> tezComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> tezComponents = new HashMap<>();
 
     ServiceComponent tezClient = Mockito.mock(ServiceComponent.class);
     Mockito.when(tezClient.getName()).thenReturn("TEZ_CLIENT");
@@ -187,7 +187,7 @@ public class ServicesUpCheckTest {
     Mockito.when(tezService.getServiceComponents()).thenReturn(tezComponents);
 
     // AMS
-    Map<String, ServiceComponent> amsComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> amsComponents = new HashMap<>();
 
     ServiceComponent metricsCollector = Mockito.mock(ServiceComponent.class);
     Mockito.when(metricsCollector.getName()).thenReturn("METRICS_COLLECTOR");
@@ -223,7 +223,7 @@ public class ServicesUpCheckTest {
     Mockito.when(hcsMetricsCollector.getHostId()).thenReturn(Long.valueOf(1));
     Mockito.when(hcsMetricsMonitor.getHostId()).thenReturn(Long.valueOf(1));
 
-    List<HostComponentSummary> allHostComponentSummaries = new ArrayList<HostComponentSummary>();
+    List<HostComponentSummary> allHostComponentSummaries = new ArrayList<>();
     allHostComponentSummaries.add(hcsNameNode);
     allHostComponentSummaries.add(hcsDataNode1);
     allHostComponentSummaries.add(hcsDataNode2);

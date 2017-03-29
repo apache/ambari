@@ -23,7 +23,7 @@
   <div class="panel panel-default">
     <div class="panel-body">
       {{#if anyGeneralIssues}}
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" {{QAAttr "error-message"}}>
           {{t installer.step6.validationSlavesAndClients.hasIssues}}
           <a href="javascript:void(null);" {{action openSlavesAndClientsIssues target="controller"}}>{{t installer.step6.validationSlavesAndClients.click}}</a>
           {{t installer.step6.validationSlavesAndClients.forDetails}}
@@ -31,15 +31,15 @@
       {{/if}}
 
       <div class="pre-scrollable col-sm-12">
-        <table class="table table-hover" id="component_assign_table">
+        <table class="table table-hover" id="component_assign_table" {{QAAttr "slave-clients-table"}}>
           <thead>
           <tr>
             <th class="host-column">{{t common.host}}</th>
             {{#each header in controller.headers}}
               <th {{bindAttr class="header.name"}}>
-                <a href="#" {{bindAttr class="header.allChecked:selected:deselected header.isDisabled:remove-link" id="header.allId"}}
+                <a href="#" {{QAAttr "select-all"}} {{bindAttr class="header.allChecked:selected:deselected header.isDisabled:remove-link" id="header.allId"}}
                   {{action "selectAllNodes" header target="controller"}}>{{t all}}</a> &nbsp;|&nbsp; <a
-                      href="#" {{bindAttr class="header.noChecked:selected:deselected header.isDisabled:remove-link" id="header.noneId"}}
+                {{QAAttr "deselect-all"}} href="#" {{bindAttr class="header.noChecked:selected:deselected header.isDisabled:remove-link" id="header.noneId"}}
                 {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
               </th>
             {{/each}}
@@ -47,19 +47,19 @@
           </thead>
           <tbody>
             {{#each host in view.pageContent}}
-              <tr>
+              <tr {{QAAttr "host-row"}}>
                 {{#view App.WizardStep6HostView hostBinding="host" }}
                   <div class="checkbox">
                     <span class="trim_hostname">{{host.hostName}}</span>
                     {{#if host.hasMaster}}
-                      <i class="glyphicon glyphicon-asterisks">&#10037;</i>
+                      <i {{QAAttr "has-masters"}} class="glyphicon glyphicon-asterisks">&#10037;</i>
                     {{/if}}
                   </div>
                 {{/view}}
                 {{#each checkbox in host.checkboxes}}
-                  <td {{bindAttr class="checkbox.hasErrorMessage:error checkbox.hasWarnMessage:warning checkbox.component"}}>
-                    <div class="checkbox">
-                        <input {{bindAttr id="checkbox.uId" checked = "checkbox.checked" disabled="checkbox.isDisabled"}} {{action "checkboxClick" checkbox target="view" }}
+                  <td {{QAAttr "toggle-component"}} {{bindAttr class="checkbox.hasErrorMessage:error checkbox.hasWarnMessage:warning checkbox.component"}}>
+                    <div class="checkbox" {{bindAttr data-qa="checkbox.dataQaAttr"}}>
+                        <input {{bindAttr id="checkbox.uId" checked="checkbox.checked" disabled="checkbox.isDisabled"}} {{action "checkboxClick" checkbox target="view" }}
                                 type="checkbox"/>
                       <label {{bindAttr for="checkbox.uId"}}>{{checkbox.title}}</label>
                     </div>

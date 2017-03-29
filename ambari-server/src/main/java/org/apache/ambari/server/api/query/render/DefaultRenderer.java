@@ -41,8 +41,8 @@ public class DefaultRenderer extends BaseRenderer implements Renderer {
       TreeNode<QueryInfo> queryTree, boolean isCollection) {
 
     QueryInfo queryInfo = queryTree.getObject();
-    TreeNode<Set<String>> resultTree = new TreeNodeImpl<Set<String>>(
-        null, queryInfo.getProperties(), queryTree.getName());
+    TreeNode<Set<String>> resultTree = new TreeNodeImpl<>(
+      null, queryInfo.getProperties(), queryTree.getName());
 
     copyPropertiesToResult(queryTree, resultTree);
 

@@ -452,7 +452,7 @@ public class MaintenanceStateHelperTest {
     resourceFilter = new RequestResourceFilter("HDFS", "NAMENODE", null);
     Assert.assertEquals(Resource.Type.Service, maintenanceStateHelper.guessOperationLevel(resourceFilter));
 
-    ArrayList<String> hosts = new ArrayList<String>();
+    ArrayList<String> hosts = new ArrayList<>();
     hosts.add("host1");
     hosts.add("host2");
     resourceFilter = new RequestResourceFilter("HDFS", null, hosts);
@@ -473,7 +473,7 @@ public class MaintenanceStateHelperTest {
     expect(predicate.shouldHostBeRemoved(eq("host2"))).andReturn(false);
     expect(predicate.shouldHostBeRemoved(eq("host3"))).andReturn(true);
     expect(predicate.shouldHostBeRemoved(eq("host4"))).andReturn(false);
-    Set<String> candidates = new HashSet<String>();
+    Set<String> candidates = new HashSet<>();
     candidates.add("host1");
     candidates.add("host2");
     candidates.add("host3");

@@ -71,12 +71,12 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
   public static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_ITEM_STAGE_ID));
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
+    Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_ITEM_STAGE_ID));
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
-  private static Map<String, String> STAGE_MAPPED_IDS = new HashMap<String, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
+  private static Map<String, String> STAGE_MAPPED_IDS = new HashMap<>();
 
   @Inject
   private static UpgradeDAO s_dao;
@@ -191,7 +191,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new LinkedHashSet<Resource>();
+    Set<Resource> results = new LinkedHashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -215,7 +215,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
         stageId = Long.valueOf(stageIdStr);
       }
 
-      List<UpgradeItemEntity> entities = new ArrayList<UpgradeItemEntity>();
+      List<UpgradeItemEntity> entities = new ArrayList<>();
       if (null == stageId) {
         UpgradeGroupEntity group = s_dao.findUpgradeGroup(groupId);
 
@@ -234,7 +234,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
       // !!! need to do some lookup for stages, so use a stageid -> resource for
       // when that happens
-      Map<Long, Resource> resultMap = new HashMap<Long, Resource>();
+      Map<Long, Resource> resultMap = new HashMap<>();
 
       for (UpgradeItemEntity entity : entities) {
         Resource r = toResource(entity, requestPropertyIds);
@@ -244,7 +244,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
       if (!resultMap.isEmpty()) {
         if (null != clusterName) {
           Set<Resource> stages = s_upgradeHelper.getStageResources(clusterName,
-              requestId, new ArrayList<Long>(resultMap.keySet()));
+              requestId, new ArrayList<>(resultMap.keySet()));
 
           for (Resource stage : stages) {
             Long l = (Long) stage.getPropertyValue(StageResourceProvider.STAGE_STAGE_ID);

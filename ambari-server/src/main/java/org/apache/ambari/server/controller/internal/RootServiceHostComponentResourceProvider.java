@@ -57,8 +57,8 @@ public class RootServiceHostComponentResourceProvider extends
       .getPropertyId("RootServiceHostComponents", "properties");
   
   
-  private Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { SERVICE_NAME_PROPERTY_ID, HOST_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID }));
+  private Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{SERVICE_NAME_PROPERTY_ID, HOST_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID}));
 
 
   public RootServiceHostComponentResourceProvider(Set<String> propertyIds,
@@ -73,7 +73,7 @@ public class RootServiceHostComponentResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RootServiceHostComponentRequest> requests = new HashSet<RootServiceHostComponentRequest>();
+    final Set<RootServiceHostComponentRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -92,7 +92,7 @@ public class RootServiceHostComponentResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (RootServiceHostComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RootServiceHostComponent);
@@ -135,7 +135,7 @@ public class RootServiceHostComponentResourceProvider extends
   // Get the root service host components for the given set of requests
   protected Set<RootServiceHostComponentResponse> getRootServiceHostComponents(
       Set<RootServiceHostComponentRequest> requests) throws AmbariException {
-    Set<RootServiceHostComponentResponse> response = new HashSet<RootServiceHostComponentResponse>();
+    Set<RootServiceHostComponentResponse> response = new HashSet<>();
     for (RootServiceHostComponentRequest request : requests) {
       String serviceName = request.getServiceName();
       try {

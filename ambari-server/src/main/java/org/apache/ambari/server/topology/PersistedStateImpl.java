@@ -172,10 +172,10 @@ public class PersistedStateImpl implements PersistedState {
   public Map<ClusterTopology, List<LogicalRequest>> getAllRequests() {
     //todo: we only currently support a single request per ambari instance so there should only
     //todo: be a single cluster topology
-    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<ClusterTopology, List<LogicalRequest>>();
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>();
     Collection<TopologyRequestEntity> entities = topologyRequestDAO.findAll();
 
-    Map<Long, ClusterTopology> topologyRequests = new HashMap<Long, ClusterTopology>();
+    Map<Long, ClusterTopology> topologyRequests = new HashMap<>();
     for (TopologyRequestEntity entity : entities) {
       TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
       ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterId());
@@ -239,7 +239,7 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     // host groups
-    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<TopologyHostGroupEntity>();
+    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<>();
     for (HostGroupInfo groupInfo : request.getHostGroupInfo().values())  {
       hostGroupEntities.add(toEntity(groupInfo, entity));
     }
@@ -257,7 +257,7 @@ public class PersistedStateImpl implements PersistedState {
     entity.setTopologyRequestId(topologyRequestEntity.getId());
 
     // host requests
-    Collection<TopologyHostRequestEntity> hostRequests = new ArrayList<TopologyHostRequestEntity>();
+    Collection<TopologyHostRequestEntity> hostRequests = new ArrayList<>();
     entity.setTopologyHostRequestEntities(hostRequests);
     for (HostRequest hostRequest : request.getHostRequests()) {
       hostRequests.add(toEntity(hostRequest, entity));
@@ -276,7 +276,7 @@ public class PersistedStateImpl implements PersistedState {
         logicalRequestEntity.getTopologyRequestId(), request.getHostgroupName()));
 
     // logical tasks
-    Collection<TopologyHostTaskEntity> hostRequestTaskEntities = new ArrayList<TopologyHostTaskEntity>();
+    Collection<TopologyHostTaskEntity> hostRequestTaskEntities = new ArrayList<>();
     entity.setTopologyHostTaskEntities(hostRequestTaskEntities);
     // for now only worry about install and start tasks
     for (TopologyTask task : request.getTopologyTasks()) {
@@ -285,7 +285,7 @@ public class PersistedStateImpl implements PersistedState {
         hostRequestTaskEntities.add(topologyTaskEntity);
         topologyTaskEntity.setType(task.getType().name());
         topologyTaskEntity.setTopologyHostRequestEntity(entity);
-        Collection<TopologyLogicalTaskEntity> logicalTaskEntities = new ArrayList<TopologyLogicalTaskEntity>();
+        Collection<TopologyLogicalTaskEntity> logicalTaskEntities = new ArrayList<>();
         topologyTaskEntity.setTopologyLogicalTaskEntities(logicalTaskEntities);
         for (Long logicalTaskId : request.getLogicalTasksForTopologyTask(task).values()) {
           TopologyLogicalTaskEntity logicalTaskEntity = new TopologyLogicalTaskEntity();
@@ -313,7 +313,7 @@ public class PersistedStateImpl implements PersistedState {
     entity.setTopologyRequestEntity(topologyRequestEntity);
 
     // host info
-    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<TopologyHostInfoEntity>();
+    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<>();
     entity.setTopologyHostInfoEntities(hostInfoEntities);
 
     Collection<String> hosts = groupInfo.getHostNames();
@@ -356,7 +356,7 @@ public class PersistedStateImpl implements PersistedState {
     private final String description;
     private final Blueprint blueprint;
     private final Configuration configuration;
-    private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+    private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
     public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();

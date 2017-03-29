@@ -77,7 +77,7 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
 
     final ClusterVersionEntity clusterVersion = clusterVersionDAOProvider.get().findByClusterAndStackAndVersion(
         clusterName, targetStackId, repoVersion);
-    final Set<String> failedHosts = new HashSet<String>();
+    final Set<String> failedHosts = new HashSet<>();
 
     for (Host host : cluster.getHosts()) {
       if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
@@ -95,7 +95,7 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
               "Install Packages had failed. Please re-run Install Packages, if necessary place following hosts " +
               "in Maintenance mode: {4}", cluster.getClusterName(), targetStackId.getStackName(),
           targetStackId.getStackVersion(), repoVersion, StringUtils.join(failedHosts, ", "));
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<String>(failedHosts));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedHosts));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(message);
     } else if (clusterVersion.getState() == RepositoryVersionState.INSTALL_FAILED) {
@@ -103,7 +103,7 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
               "Install Packages failed. Please re-run Install Packages even if you placed the failed hosts " +
               "in Maintenance mode.", cluster.getClusterName(), targetStackId.getStackName(),
           targetStackId.getStackVersion(), repoVersion);
-      LinkedHashSet<String> failedOn = new LinkedHashSet<String>();
+      LinkedHashSet<String> failedOn = new LinkedHashSet<>();
       failedOn.add(cluster.getClusterName());
       prerequisiteCheck.setFailedOn(failedOn);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);

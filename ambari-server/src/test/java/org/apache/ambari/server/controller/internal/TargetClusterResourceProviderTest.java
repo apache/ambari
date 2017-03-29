@@ -50,7 +50,7 @@ public class TargetClusterResourceProviderTest {
 
   private static Cluster.Interface interface1 = new Cluster.Interface("write", "hdfs://ec2.a.b.com:8020", "1.1.2.22");
 
-  private static Map<String, String> interfaces = new HashMap<String, String>();
+  private static Map<String, String> interfaces = new HashMap<>();
   static {
     interfaces.put("type", interface1.getType());
     interfaces.put("endpoint", interface1.getEndpoint());
@@ -59,7 +59,7 @@ public class TargetClusterResourceProviderTest {
 
   private static Cluster.Location location1 = new Cluster.Location("location1", "/mirrorthis");
 
-  private static Map<String, String> locations  = new HashMap<String, String>();
+  private static Map<String, String> locations  = new HashMap<>();
   static {
     locations.put("name", location1.getName());
     locations.put("path", location1.getPath());
@@ -69,9 +69,9 @@ public class TargetClusterResourceProviderTest {
   public void testCreateResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
     properties.put(TargetClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster1");
     properties.put(TargetClusterResourceProvider.CLUSTER_COLO_PROPERTY_ID, "Colo");
@@ -103,11 +103,11 @@ public class TargetClusterResourceProviderTest {
   public void testGetResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
-    List<String> targetClusterNames = new LinkedList<String>();
+    List<String> targetClusterNames = new LinkedList<>();
     targetClusterNames.add("Cluster1");
     targetClusterNames.add("Cluster2");
     targetClusterNames.add("Cluster3");
@@ -152,9 +152,9 @@ public class TargetClusterResourceProviderTest {
   public void testUpdateResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
     properties.put(TargetClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster1");
     properties.put(TargetClusterResourceProvider.CLUSTER_COLO_PROPERTY_ID, "Colo");
@@ -162,7 +162,7 @@ public class TargetClusterResourceProviderTest {
     properties.put(TargetClusterResourceProvider.CLUSTER_LOCATIONS_PROPERTY_ID, Collections.singleton(locations));
     properties.put(TargetClusterResourceProvider.CLUSTER_PROPERTIES_PROPERTY_ID + "/P1", "V1");
 
-    List<String> targetClusterNames = new LinkedList<String>();
+    List<String> targetClusterNames = new LinkedList<>();
     targetClusterNames.add("Cluster1");
 
     Set<Cluster.Interface> interfaceSet = Collections.singleton(interface1);
@@ -199,7 +199,7 @@ public class TargetClusterResourceProviderTest {
   public void testDeleteResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    List<String> targetClusterNames = new LinkedList<String>();
+    List<String> targetClusterNames = new LinkedList<>();
     targetClusterNames.add("Cluster1");
 
     Cluster.Interface interface1 = new Cluster.Interface("type", "endpoint", "version");

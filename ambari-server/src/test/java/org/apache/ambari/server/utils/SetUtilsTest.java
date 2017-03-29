@@ -52,7 +52,7 @@ public class SetUtilsTest {
     Assert.assertEquals(1, subsets.size());
     Assert.assertEquals(1, subsets.get(0).size());
 
-    Set<Integer> set = new LinkedHashSet<Integer>(5);
+    Set<Integer> set = new LinkedHashSet<>(5);
     for(int i = 0; i < 5; i++) {
       set.add(i);
     }
@@ -61,7 +61,7 @@ public class SetUtilsTest {
     Assert.assertEquals(5, subsets.get(0).size());
 
 
-    set = new LinkedHashSet<Integer>(10);
+    set = new LinkedHashSet<>(10);
     for(int i = 0; i < 10; i++) {
       set.add(i);
     }
@@ -69,7 +69,7 @@ public class SetUtilsTest {
     Assert.assertEquals(1, subsets.size());
     Assert.assertEquals(10, subsets.get(0).size());
 
-    set = new LinkedHashSet<Integer>(11);
+    set = new LinkedHashSet<>(11);
     for(int i = 0; i < 11; i++) {
       set.add(i);
     }
@@ -78,7 +78,7 @@ public class SetUtilsTest {
     Assert.assertEquals(10, subsets.get(0).size());
     Assert.assertEquals(1, subsets.get(1).size());
 
-    set = new LinkedHashSet<Integer>(20);
+    set = new LinkedHashSet<>(20);
     for(int i = 0; i < 20; i++) {
       set.add(i);
     }
@@ -87,7 +87,7 @@ public class SetUtilsTest {
     Assert.assertEquals(10, subsets.get(0).size());
     Assert.assertEquals(10, subsets.get(1).size());
 
-    set = new LinkedHashSet<Integer>(27);
+    set = new LinkedHashSet<>(27);
     for(int i = 0; i < 27; i++) {
       set.add(i);
     }

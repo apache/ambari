@@ -112,7 +112,7 @@ public class JobService extends BaseService {
    */
   ResourceInstance createJobResource(String clusterName, String workflowId,
       String jobId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type,String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Workflow, workflowId);
     mapIds.put(Resource.Type.Job, jobId);

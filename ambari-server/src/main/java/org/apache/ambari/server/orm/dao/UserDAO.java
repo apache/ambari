@@ -95,7 +95,7 @@ public class UserDAO {
        case 1:
          return resultList.get(0);
        default:
-         ImmutableMap.Builder<UserType, UserEntity> mapBuilder = ImmutableMap.<UserType, UserEntity>builder();
+         ImmutableMap.Builder<UserType, UserEntity> mapBuilder = ImmutableMap.builder();
          for (UserEntity user: resultList) {
            mapBuilder.put(user.getUserType(), user);
          }
@@ -182,7 +182,7 @@ public class UserDAO {
 
   @Transactional
   public void create(UserEntity user) {
-    create(new HashSet<UserEntity>(Arrays.asList(user)));
+    create(new HashSet<>(Arrays.asList(user)));
   }
 
   @Transactional

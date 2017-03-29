@@ -60,7 +60,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   /**
    * The property ids for an Ambari privilege resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(PRIVILEGE_ID_PROPERTY_ID);
     propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
@@ -78,7 +78,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.AmbariPrivilege, PRIVILEGE_ID_PROPERTY_ID);
   }
@@ -122,7 +122,7 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
 
   @Override
   public Map<Long, Object> getResourceEntities(Map<String, Object> properties) {
-    Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
+    Map<Long, Object> resourceEntities = new HashMap<>();
 
     resourceEntities.put(ResourceEntity.AMBARI_RESOURCE_ID, null);
     // add cluster entities

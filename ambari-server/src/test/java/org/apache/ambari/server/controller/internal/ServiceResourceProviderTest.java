@@ -142,10 +142,10 @@ public class ServiceResourceProviderTest {
     ResourceProvider provider = getServiceProvider(managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
     // Service 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -197,7 +197,7 @@ public class ServiceResourceProviderTest {
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
 
-    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    Map<String, Service> allResponseMap = new HashMap<>();
     allResponseMap.put("Service100", service0);
     allResponseMap.put("Service101", service1);
     allResponseMap.put("Service102", service2);
@@ -254,7 +254,7 @@ public class ServiceResourceProviderTest {
 
     ResourceProvider provider = getServiceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
@@ -265,7 +265,7 @@ public class ServiceResourceProviderTest {
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(5, resources.size());
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
@@ -292,7 +292,7 @@ public class ServiceResourceProviderTest {
     resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
-    names = new HashSet<String>();
+    names = new HashSet<>();
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
@@ -319,7 +319,7 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    Map<String, Service> allResponseMap = new HashMap<>();
     allResponseMap.put("KERBEROS", service0);
 
     // set expectations
@@ -387,7 +387,7 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    Map<String, Service> allResponseMap = new HashMap<>();
     allResponseMap.put("KERBEROS", service0);
 
     // set expectations
@@ -454,7 +454,7 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    Map<String, Service> allResponseMap = new HashMap<>();
     allResponseMap.put("KERBEROS", service0);
 
     // set expectations
@@ -523,7 +523,7 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
 
-    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    Map<String, Service> allResponseMap = new HashMap<>();
     allResponseMap.put("KERBEROS", service0);
 
     // set expectations
@@ -608,7 +608,7 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
@@ -663,7 +663,7 @@ public class ServiceResourceProviderTest {
     ServiceResourceProvider provider = getServiceProvider(managementController, maintenanceStateHelper);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "STARTED");
 
@@ -716,7 +716,7 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
@@ -797,7 +797,7 @@ public class ServiceResourceProviderTest {
     ServiceResourceProvider provider2 = getServiceProvider(managementController2, maintenanceStateHelper);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID,
       "STARTED");
@@ -943,7 +943,7 @@ public class ServiceResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
     ServiceComponent sc = createNiceMock(ServiceComponent.class);
-    Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> scMap = new HashMap<>();
     scMap.put("Component100", sc);
     State componentState = State.STARTED;
     ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
@@ -1022,7 +1022,7 @@ public class ServiceResourceProviderTest {
     TestComponent component2 = new TestComponent("Component101", createNiceMock(ServiceComponent.class), State.STARTED);
     TestComponent component3 = new TestComponent("Component102", createNiceMock(ServiceComponent.class), State.STARTED);
 
-    Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> scMap = new HashMap<>();
     scMap.put(component1.Name, component1.Component);
     scMap.put(component2.Name, component2.Component);
     scMap.put(component3.Name, component3.Component);
@@ -1108,7 +1108,7 @@ public class ServiceResourceProviderTest {
 
   @Test
   public void testCheckPropertyIds() throws Exception {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("foo");
     propertyIds.add("cat1/foo");
     propertyIds.add("cat2/bar");
@@ -1117,7 +1117,7 @@ public class ServiceResourceProviderTest {
     propertyIds.add("cat4/sub2/sub3/bat");
     propertyIds.add("cat5/subcat5/map");
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 

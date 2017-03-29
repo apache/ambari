@@ -81,7 +81,7 @@ public class ServerActionExecutor {
    * requestSharedDataMap object
    */
   private final Map<Long, ConcurrentMap<String, Object>> requestSharedDataMap =
-      new HashMap<Long, ConcurrentMap<String, Object>>();
+    new HashMap<>();
 
   /**
    * The hostname of the (Ambari) server.
@@ -233,7 +233,7 @@ public class ServerActionExecutor {
       ConcurrentMap<String, Object> map = requestSharedDataMap.get(requestId);
 
       if (map == null) {
-        map = new ConcurrentHashMap<String, Object>();
+        map = new ConcurrentHashMap<>();
         requestSharedDataMap.put(requestId, map);
       }
 

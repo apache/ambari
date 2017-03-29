@@ -37,7 +37,7 @@ import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 public class ServiceServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getService
     ServiceService service = new TestServiceService("clusterName", "serviceName");

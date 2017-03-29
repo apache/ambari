@@ -58,7 +58,7 @@ public class LdapSyncRequest {
    * @param type  the request type
    */
   public LdapSyncRequest(LdapSyncSpecEntity.SyncType type) {
-    this.principalNames = new HashSet<String>();
+    this.principalNames = new HashSet<>();
     this.type  = type;
   }
 

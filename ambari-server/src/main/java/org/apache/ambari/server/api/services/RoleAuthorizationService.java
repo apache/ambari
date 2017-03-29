@@ -99,7 +99,7 @@ public class RoleAuthorizationService extends BaseService {
    * @return an authorization resource instance
    */
   protected ResourceInstance createAuthorizationResource(String authorizationId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Permission, permissionId);
     mapIds.put(Resource.Type.RoleAuthorization, authorizationId);
     return createResource(Resource.Type.RoleAuthorization, mapIds);

@@ -51,7 +51,7 @@ public class RootServiceHostComponentResourceDefinition extends
   
   @Override
   public List<PostProcessor> getPostProcessors() {
-    List<PostProcessor> listProcessors = new ArrayList<PostProcessor>();
+    List<PostProcessor> listProcessors = new ArrayList<>();
     listProcessors.add(new RootServiceHostComponentHrefProcessor());
 
     return listProcessors;

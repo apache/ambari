@@ -72,7 +72,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
 
     Map<String, String> commandParameters = getCommandParameters();
     String dataDirectory = getCommandParameterValue(commandParameters, DATA_DIRECTORY);
-    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
 
     int schCount = schToProcess.size();
     if (schCount == 0) {
@@ -179,11 +179,11 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     if (!schToProcess.isEmpty()) {
       actionLog.writeStdOut("Creating auth-to-local rules");
 
-      Map<String, Set<String>> services = new HashMap<String, Set<String>>();
+      Map<String, Set<String>> services = new HashMap<>();
       for (ServiceComponentHost sch : schToProcess) {
         Set<String> components = services.get(sch.getServiceName());
         if (components == null) {
-          components = new HashSet<String>();
+          components = new HashSet<>();
           services.put(sch.getServiceName(), components);
         }
 

@@ -391,7 +391,7 @@ public class ServiceService extends BaseService {
    * @return a service resource instance
    */
   ResourceInstance createServiceResource(String clusterName, String serviceName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Service, serviceName);
 
@@ -408,7 +408,7 @@ public class ServiceService extends BaseService {
    * @return an artifact resource instance
    */
   ResourceInstance createArtifactResource(String clusterName, String serviceName, String artifactName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Service, serviceName);
     mapIds.put(Resource.Type.Artifact, artifactName);

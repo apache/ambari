@@ -63,7 +63,7 @@ public class RequestEventCreatorTest extends AuditEventCreatorTestBase{
     Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK));
     request.getBody().addRequestInfoProperty("command", "MyCommand");
 
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Map<String, Object> mapProperties = new HashMap<>();
     mapProperties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "mycluster");
     NamedPropertySet namedPropSet = new NamedPropertySet("", mapProperties);
     request.getBody().addPropertySet(namedPropSet);

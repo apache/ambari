@@ -92,7 +92,7 @@ abstract class DelegatedMultiplePredicateContainer extends Predicate implements 
    */
   private List<Map<String, Object>> containedPredicatesToMaps() {
 
-    List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> list = new ArrayList<>();
 
     if (delegate != null) {
       org.apache.commons.collections.Predicate[] predicates = delegate.getPredicates();

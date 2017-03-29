@@ -97,7 +97,7 @@ public class StackArtifactResourceProviderTest {
 
     StackArtifactResourceProvider resourceProvider = getStackArtifactResourceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
     propertyIds.add(STACK_NAME_PROPERTY_ID);
     propertyIds.add(STACK_VERSION_PROPERTY_ID);
@@ -142,7 +142,7 @@ public class StackArtifactResourceProviderTest {
 
     StackArtifactResourceProvider resourceProvider = getStackArtifactResourceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
     propertyIds.add(STACK_NAME_PROPERTY_ID);
     propertyIds.add(STACK_VERSION_PROPERTY_ID);
@@ -190,7 +190,7 @@ public class StackArtifactResourceProviderTest {
 
     StackArtifactResourceProvider resourceProvider = getStackArtifactResourceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
     propertyIds.add(STACK_NAME_PROPERTY_ID);
     propertyIds.add(STACK_VERSION_PROPERTY_ID);

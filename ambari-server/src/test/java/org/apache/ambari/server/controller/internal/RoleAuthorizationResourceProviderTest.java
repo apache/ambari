@@ -82,7 +82,7 @@ public class RoleAuthorizationResourceProviderTest extends EasyMockSupport {
     expect(roleAuthorizationEntity.getAuthorizationId()).andReturn("TEST.DO_SOMETHING");
     expect(roleAuthorizationEntity.getAuthorizationName()).andReturn("Do Something");
 
-    List<RoleAuthorizationEntity> authorizationEntities = new ArrayList<RoleAuthorizationEntity>();
+    List<RoleAuthorizationEntity> authorizationEntities = new ArrayList<>();
     authorizationEntities.add(roleAuthorizationEntity);
 
     RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
@@ -112,7 +112,7 @@ public class RoleAuthorizationResourceProviderTest extends EasyMockSupport {
     expect(roleAuthorizationEntity.getAuthorizationId()).andReturn("TEST.DO_SOMETHING").once();
     expect(roleAuthorizationEntity.getAuthorizationName()).andReturn("Do Something").once();
 
-    List<RoleAuthorizationEntity> authorizationEntities = new ArrayList<RoleAuthorizationEntity>();
+    List<RoleAuthorizationEntity> authorizationEntities = new ArrayList<>();
     authorizationEntities.add(roleAuthorizationEntity);
 
     PermissionEntity permissionEntry = createStrictMock(PermissionEntity.class);
@@ -152,7 +152,7 @@ public class RoleAuthorizationResourceProviderTest extends EasyMockSupport {
     expect(roleAuthorizationEntity2.getAuthorizationId()).andReturn("TEST.DO_SOMETHING_ELSE").anyTimes();
     expect(roleAuthorizationEntity2.getAuthorizationName()).andReturn("Do Something Else").anyTimes();
 
-    List<RoleAuthorizationEntity> authorizationEntities = new ArrayList<RoleAuthorizationEntity>();
+    List<RoleAuthorizationEntity> authorizationEntities = new ArrayList<>();
     authorizationEntities.add(roleAuthorizationEntity1);
     authorizationEntities.add(roleAuthorizationEntity2);
 

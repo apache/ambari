@@ -88,13 +88,13 @@ public class RangerSSLConfigCheckTest {
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("ranger-admin-site", desiredConfig);
 
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     properties.put("ranger.service.http.enabled","true");

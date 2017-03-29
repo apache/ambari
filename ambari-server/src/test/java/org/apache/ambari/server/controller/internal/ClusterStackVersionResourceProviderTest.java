@@ -222,7 +222,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersion.setId(1l);
     repoVersion.setOperatingSystems(OS_JSON);
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -271,7 +271,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -363,9 +363,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -412,7 +412,7 @@ public class ClusterStackVersionResourceProviderTest {
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -490,7 +490,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -584,9 +584,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -645,7 +645,7 @@ public class ClusterStackVersionResourceProviderTest {
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -707,7 +707,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -806,9 +806,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -877,7 +877,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -939,7 +939,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1037,9 +1037,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -1151,7 +1151,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1205,7 +1205,7 @@ public class ClusterStackVersionResourceProviderTest {
     field.set(provider, finalizeUpgradeAction);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -1304,7 +1304,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1361,7 +1361,7 @@ public class ClusterStackVersionResourceProviderTest {
 
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
@@ -1423,7 +1423,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersion.setType(RepositoryType.STANDARD);
 
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
@@ -1472,7 +1472,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<>();
     expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -1555,7 +1555,7 @@ public class ClusterStackVersionResourceProviderTest {
     badRve.setVersion("2.2.1.0-1000");
     bad.setRepositoryVersion(badRve);
 
-    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.<ClusterVersionEntity>singletonList(bad)).once();
+    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.singletonList(bad)).once();
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
@@ -1571,9 +1571,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -1637,7 +1637,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersionEntity.setVersionXsd("version_definition.xsd");
     repoVersionEntity.setType(RepositoryType.STANDARD);
 
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    Map<String, Host> hostsForCluster = new HashMap<>();
     List<HostVersionEntity> hostVersionEntitiesMergedWithNotRequired = new ArrayList<>();
     int hostCount = 10;
 
@@ -1758,9 +1758,9 @@ public class ClusterStackVersionResourceProviderTest {
 
     // add the property map to a set for the request. add more maps for multiple
     // creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(
@@ -1827,9 +1827,9 @@ public class ClusterStackVersionResourceProviderTest {
     injector.injectMembers(provider);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");

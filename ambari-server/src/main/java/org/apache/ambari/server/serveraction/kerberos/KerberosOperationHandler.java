@@ -213,7 +213,7 @@ public abstract class KerberosOperationHandler {
 
   private PrincipalKeyCredential administratorCredential = null;
   private String defaultRealm = null;
-  private Set<EncryptionType> keyEncryptionTypes = new HashSet<EncryptionType>(DEFAULT_CIPHERS);
+  private Set<EncryptionType> keyEncryptionTypes = new HashSet<>(DEFAULT_CIPHERS);
   private boolean open = false;
 
   /**
@@ -338,8 +338,8 @@ public abstract class KerberosOperationHandler {
       throw new KerberosOperationException(String.format("Failed to create keytab file for %s, missing password", principal));
     }
 
-    Set<EncryptionType> ciphers = new HashSet<EncryptionType>(keyEncryptionTypes);
-    List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
+    Set<EncryptionType> ciphers = new HashSet<>(keyEncryptionTypes);
+    List<KeytabEntry> keytabEntries = new ArrayList<>();
     Keytab keytab = new Keytab();
 
 
@@ -443,11 +443,11 @@ public abstract class KerberosOperationHandler {
   protected Keytab mergeKeytabs(Keytab keytab, Keytab updates) {
     List<KeytabEntry> keytabEntries = (keytab == null)
         ? Collections.<KeytabEntry>emptyList()
-        : new ArrayList<KeytabEntry>(keytab.getEntries());
+        : new ArrayList<>(keytab.getEntries());
     List<KeytabEntry> updateEntries = (updates == null)
         ? Collections.<KeytabEntry>emptyList()
-        : new ArrayList<KeytabEntry>(updates.getEntries());
-    List<KeytabEntry> mergedEntries = new ArrayList<KeytabEntry>();
+        : new ArrayList<>(updates.getEntries());
+    List<KeytabEntry> mergedEntries = new ArrayList<>();
 
     if (keytabEntries.isEmpty()) {
       mergedEntries.addAll(updateEntries);
@@ -569,10 +569,10 @@ public abstract class KerberosOperationHandler {
    * @param keyEncryptionTypes a Set of EncryptionKey values or null to indicate the default set
    */
   public void setKeyEncryptionTypes(Set<EncryptionType> keyEncryptionTypes) {
-    this.keyEncryptionTypes = new HashSet<EncryptionType>(
-        (keyEncryptionTypes == null)
-            ? DEFAULT_CIPHERS
-            : keyEncryptionTypes
+    this.keyEncryptionTypes = new HashSet<>(
+      (keyEncryptionTypes == null)
+        ? DEFAULT_CIPHERS
+        : keyEncryptionTypes
     );
   }
 
@@ -620,7 +620,7 @@ public abstract class KerberosOperationHandler {
     List<String> searchPaths = null;
 
     if (delimitedExecutableSearchPaths != null) {
-      searchPaths = new ArrayList<String>();
+      searchPaths = new ArrayList<>();
       for (String path : delimitedExecutableSearchPaths.split(",")) {
         path = path.trim();
         if (!path.isEmpty()) {
@@ -820,7 +820,7 @@ public abstract class KerberosOperationHandler {
    * @return a Set of EncryptionType values
    */
   protected Set<EncryptionType> translateEncryptionTypes(String names, String delimiter) {
-    Set<EncryptionType> encryptionTypes = new HashSet<EncryptionType>();
+    Set<EncryptionType> encryptionTypes = new HashSet<>();
 
     if (!StringUtils.isEmpty(names)) {
       for (String name : names.split((delimiter == null) ? "\\s+" : delimiter)) {

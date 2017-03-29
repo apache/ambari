@@ -34,8 +34,8 @@ public class ConfigurationFactory {
       "Provided configuration format is not supported";
 
   public Configuration getConfiguration(Collection<Map<String, String>> configProperties) {
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
     Configuration configuration = new Configuration(properties, attributes);
 
     if (configProperties != null) {

@@ -66,7 +66,7 @@ public class PermissionResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    List<PermissionEntity> permissionEntities = new LinkedList<PermissionEntity>();
+    List<PermissionEntity> permissionEntities = new LinkedList<>();
 
     PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
     ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);

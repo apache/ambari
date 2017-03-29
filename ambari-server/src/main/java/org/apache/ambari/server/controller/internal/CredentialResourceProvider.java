@@ -70,12 +70,12 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
 
   static {
     Set<String> set;
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(CREDENTIAL_CLUSTER_NAME_PROPERTY_ID);
     set.add(CREDENTIAL_ALIAS_PROPERTY_ID);
     PK_PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(CREDENTIAL_CLUSTER_NAME_PROPERTY_ID);
     set.add(CREDENTIAL_ALIAS_PROPERTY_ID);
     set.add(CREDENTIAL_PRINCIPAL_PROPERTY_ID);
@@ -83,7 +83,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
     set.add(CREDENTIAL_TYPE_PROPERTY_ID);
     PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    HashMap<Type, String> map = new HashMap<Type, String>();
+    HashMap<Type, String> map = new HashMap<>();
     map.put(Type.Cluster, CREDENTIAL_CLUSTER_NAME_PROPERTY_ID);
     map.put(Type.Credential, CREDENTIAL_ALIAS_PROPERTY_ID);
     KEY_PROPERTY_IDS = Collections.unmodifiableMap(map);
@@ -130,7 +130,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     boolean sendNotFoundErrorIfEmpty = false;
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -398,7 +398,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
       if (credential instanceof PrincipalKeyCredential) {
         PrincipalKeyCredential principalKeyCredential = (PrincipalKeyCredential) credential;
 
-        Map<String, Object> credentialProperties = new HashMap<String, Object>();
+        Map<String, Object> credentialProperties = new HashMap<>();
 
         // Make sure the credential to update is removed from the persisted or temporary store... the
         // updated data may change the persistence type.

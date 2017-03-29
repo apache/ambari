@@ -32,13 +32,13 @@ public class HeartBeatResponse {
   private long responseId;
 
   @SerializedName("executionCommands")
-  private List<ExecutionCommand> executionCommands = new ArrayList<ExecutionCommand>();
+  private List<ExecutionCommand> executionCommands = new ArrayList<>();
 
   @SerializedName("statusCommands")
-  private List<StatusCommand> statusCommands = new ArrayList<StatusCommand>();
+  private List<StatusCommand> statusCommands = new ArrayList<>();
 
   @SerializedName("cancelCommands")
-  private List<CancelCommand> cancelCommands = new ArrayList<CancelCommand>();
+  private List<CancelCommand> cancelCommands = new ArrayList<>();
 
   /**
    * {@link AlertDefinitionCommand}s are used to isntruct the agent as to which
@@ -197,7 +197,7 @@ public class HeartBeatResponse {
     // commands are added here when they are taken off the queue; there should
     // be no thread contention and thus no worry about locks for the null check
     if (null == alertDefinitionCommands) {
-      alertDefinitionCommands = new ArrayList<AlertDefinitionCommand>();
+      alertDefinitionCommands = new ArrayList<>();
     }
 
     alertDefinitionCommands.add(command);
@@ -207,7 +207,7 @@ public class HeartBeatResponse {
     // commands are added here when they are taken off the queue; there should
     // be no thread contention and thus no worry about locks for the null check
     if (null == alertExecutionCommands) {
-      alertExecutionCommands = new ArrayList<AlertExecutionCommand>();
+      alertExecutionCommands = new ArrayList<>();
     }
 
     alertExecutionCommands.add(command);

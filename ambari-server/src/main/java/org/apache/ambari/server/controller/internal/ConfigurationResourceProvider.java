@@ -66,12 +66,12 @@ public class ConfigurationResourceProvider extends
   /**
    * The property ids for a configuration resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for a configuration resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   static {
     // properties
@@ -90,9 +90,9 @@ public class ConfigurationResourceProvider extends
    * The primary key property ids for the configuration resource type.
    */
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
-          CONFIGURATION_CONFIG_TYPE_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
+      CONFIGURATION_CONFIG_TYPE_PROPERTY_ID}));
 
 
   // ----- Constructors ------------------------------------------------------
@@ -127,7 +127,7 @@ public class ConfigurationResourceProvider extends
       String type = (String) map.get(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
       String tag  = (String) map.get(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 
-      Map<String, String> configMap = new HashMap<String, String>();
+      Map<String, String> configMap = new HashMap<>();
       Map<String, Map<String, String>> configAttributesMap = null;
 
       for (Entry<String, Object> entry : map.entrySet()) {
@@ -139,12 +139,12 @@ public class ConfigurationResourceProvider extends
             && PROPERTIES_ATTRIBUTES_PATTERN.matcher(propertyCategory).matches()
             && null != entry.getValue()) {
           if (null == configAttributesMap) {
-            configAttributesMap = new HashMap<String, Map<String,String>>();
+            configAttributesMap = new HashMap<>();
           }
           String attributeName = propertyCategory.substring(propertyCategory.lastIndexOf('/') + 1);
           Map<String, String> attributesMap = configAttributesMap.get(attributeName);
           if (attributesMap == null) {
-            attributesMap = new HashMap<String, String>();
+            attributesMap = new HashMap<>();
             configAttributesMap.put(attributeName, attributesMap);
           }
           attributesMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
@@ -169,7 +169,7 @@ public class ConfigurationResourceProvider extends
   public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ConfigurationRequest> requests = new HashSet<ConfigurationRequest>();
+    final Set<ConfigurationRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(request, propertyMap));
@@ -182,7 +182,7 @@ public class ConfigurationResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     for (ConfigurationResponse response : responses) {
       // don't use the StackId object here; we just want the stack ID string
       String stackId = response.getStackId().getStackId();
@@ -239,7 +239,7 @@ public class ConfigurationResourceProvider extends
     if (propertyIds.isEmpty()) {
       return propertyIds;
     }
-    Set<String> unsupportedProperties = new HashSet<String>();
+    Set<String> unsupportedProperties = new HashSet<>();
 
     for (String propertyId : propertyIds) {
 

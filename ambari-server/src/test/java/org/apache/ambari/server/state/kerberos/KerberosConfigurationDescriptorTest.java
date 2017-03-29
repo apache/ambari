@@ -58,22 +58,22 @@ public class KerberosConfigurationDescriptorTest {
 
 
   static {
-    TreeMap<String, Object> configuration_data = new TreeMap<String, Object>();
+    TreeMap<String, Object> configuration_data = new TreeMap<>();
     configuration_data.put("property1", "black");
     configuration_data.put("property2", "white");
 
-    MAP_SINGLE_VALUE = new TreeMap<String, Map<String, Object>>();
+    MAP_SINGLE_VALUE = new TreeMap<>();
     MAP_SINGLE_VALUE.put("configuration-type", configuration_data);
 
-    TreeMap<String, Object> configurationType2Properties = new TreeMap<String, Object>();
+    TreeMap<String, Object> configurationType2Properties = new TreeMap<>();
     configurationType2Properties.put("property1", "red");
     configurationType2Properties.put("property2", "yellow");
     configurationType2Properties.put("property3", "green");
 
-    Map<String, Map<String, Object>> configurationType2 = new TreeMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> configurationType2 = new TreeMap<>();
     configurationType2.put("configuration-type2", configurationType2Properties);
 
-    TreeMap<String, Map<String, Map<String, Object>>> multipleValuesMap = new TreeMap<String, Map<String, Map<String, Object>>>();
+    TreeMap<String, Map<String, Map<String, Object>>> multipleValuesMap = new TreeMap<>();
     multipleValuesMap.put("configuration-type", MAP_SINGLE_VALUE);
     multipleValuesMap.put("configuration-type2", configurationType2);
 
@@ -107,7 +107,7 @@ public class KerberosConfigurationDescriptorTest {
         }.getType());
 
 
-    List<KerberosConfigurationDescriptor> configurations = new ArrayList<KerberosConfigurationDescriptor>();
+    List<KerberosConfigurationDescriptor> configurations = new ArrayList<>();
 
     for (Map<String, Object> item : jsonData) {
       configurations.add(new KerberosConfigurationDescriptor(item));
@@ -161,7 +161,7 @@ public class KerberosConfigurationDescriptorTest {
   @Test
   public void testMapDeserializeMultiple() {
 
-    List<KerberosConfigurationDescriptor> configurations = new ArrayList<KerberosConfigurationDescriptor>();
+    List<KerberosConfigurationDescriptor> configurations = new ArrayList<>();
 
     for (Map<String, Map<String, Object>> item : MAP_MULTIPLE_VALUES) {
       configurations.add(new KerberosConfigurationDescriptor(item));

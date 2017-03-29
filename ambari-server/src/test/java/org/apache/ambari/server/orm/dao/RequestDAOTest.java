@@ -118,7 +118,7 @@ public class RequestDAOTest {
     Assert.assertEquals(calc1.getPercent(), calc2.getPercent(), 0.01d);
 
     // !!! simulate an upgrade group
-    Set<Long> group = new HashSet<Long>();
+    Set<Long> group = new HashSet<>();
     group.add(2L);
     group.add(3L);
     group.add(4L);

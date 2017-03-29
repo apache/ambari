@@ -657,7 +657,7 @@ public class ServiceInfoTest {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     ServiceMetainfoXml serviceMetainfoXml = (ServiceMetainfoXml) unmarshaller.unmarshal(configStream);
 
-    Map<String, ServiceInfo> serviceInfoMap = new HashMap<String, ServiceInfo>();
+    Map<String, ServiceInfo> serviceInfoMap = new HashMap<>();
     for (ServiceInfo serviceInfo : serviceMetainfoXml.getServices()) {
       serviceInfoMap.put(serviceInfo.getName(), serviceInfo);
     }

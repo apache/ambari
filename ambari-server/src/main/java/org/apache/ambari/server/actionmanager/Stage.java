@@ -90,13 +90,13 @@ public class Stage {
   private volatile boolean wrappersLoaded = false;
 
   //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
-  private Map<Role, Float> successFactors = new HashMap<Role, Float>();
+  private Map<Role, Float> successFactors = new HashMap<>();
 
   //Map of host to host-roles
   Map<String, Map<String, HostRoleCommand>> hostRoleCommands =
-      new TreeMap<String, Map<String, HostRoleCommand>>();
+    new TreeMap<>();
   private Map<String, List<ExecutionCommandWrapper>> commandsToSend =
-      new TreeMap<String, List<ExecutionCommandWrapper>>();
+    new TreeMap<>();
 
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
@@ -237,7 +237,7 @@ public class Stage {
   }
 
   public List<HostRoleCommand> getOrderedHostRoleCommands() {
-    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> commands = new ArrayList<>();
     //Correct due to ordered maps
     for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
       for (Map.Entry<String, HostRoleCommand> roleCommandEntry : hostRoleCommandEntry.getValue().entrySet()) {
@@ -491,7 +491,7 @@ public class Stage {
 
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
 
-    Map<String, String> cmdParams = new HashMap<String, String>();
+    Map<String, String> cmdParams = new HashMap<>();
     if (commandParams != null) {
       cmdParams.putAll(commandParams);
     }
@@ -500,18 +500,18 @@ public class Stage {
     }
     cmd.setCommandParams(cmdParams);
 
-    Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> configurations = new TreeMap<>();
     cmd.setConfigurations(configurations);
 
-    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
     cmd.setConfigurationAttributes(configurationAttributes);
 
     if (configTags == null) {
-      configTags = new TreeMap<String, Map<String, String>>();
+      configTags = new TreeMap<>();
     }
     cmd.setConfigurationTags(configTags);
 
-    Map<String, String> roleParams = new HashMap<String, String>();
+    Map<String, String> roleParams = new HashMap<>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
     if (userName != null) {
       roleParams.put(ServerAction.ACTION_USER_NAME, userName);
@@ -539,7 +539,7 @@ public class Stage {
 
     Assert.notEmpty(cancelTargets, "Provided targets task Id are empty.");
 
-    Map<String, String> roleParams = new HashMap<String, String>();
+    Map<String, String> roleParams = new HashMap<>();
 
     roleParams.put("cancelTaskIdTargets", StringUtils.join(cancelTargets, ','));
     cmd.setRoleParams(roleParams);
@@ -550,7 +550,7 @@ public class Stage {
    * @return list of hosts
    */
   public synchronized List<String> getHosts() { // TODO: Check whether method should be synchronized
-    List<String> hlist = new ArrayList<String>();
+    List<String> hlist = new ArrayList<>();
     for (String h : hostRoleCommands.keySet()) {
       hlist.add(h);
     }

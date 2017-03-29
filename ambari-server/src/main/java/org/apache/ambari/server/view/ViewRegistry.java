@@ -168,31 +168,31 @@ public class ViewRegistry {
   /**
    * Mapping of view names to view definitions.
    */
-  private Map<String, ViewEntity> viewDefinitions = new HashMap<String, ViewEntity>();
+  private Map<String, ViewEntity> viewDefinitions = new HashMap<>();
 
   /**
    * Mapping of view instances to view definition and instance name.
    */
   private Map<ViewEntity, Map<String, ViewInstanceEntity>> viewInstanceDefinitions =
-      new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
+    new HashMap<>();
 
   /**
    * Mapping of view names to sub-resources.
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
-      new ConcurrentHashMap<String, Set<SubResourceDefinition>>();
+    new ConcurrentHashMap<>();
 
   /**
    * Mapping of view types to resource providers.
    */
   private final Map<Resource.Type, ResourceProvider> resourceProviders =
-      new ConcurrentHashMap<Resource.Type, ResourceProvider>();
+    new ConcurrentHashMap<>();
 
   /**
    * Mapping of view names to registered listeners.
    */
   private final Map<String, Set<Listener>> listeners =
-      new ConcurrentHashMap<String, Set<Listener>>();
+    new ConcurrentHashMap<>();
 
   /**
    * The singleton view registry instance.
@@ -454,7 +454,7 @@ public class ViewRegistry {
   public void addInstanceDefinition(ViewEntity definition, ViewInstanceEntity instanceDefinition) {
     Map<String, ViewInstanceEntity> instanceDefinitions = viewInstanceDefinitions.get(definition);
     if (instanceDefinitions == null) {
-      instanceDefinitions = new HashMap<String, ViewInstanceEntity>();
+      instanceDefinitions = new HashMap<>();
       viewInstanceDefinitions.put(definition, instanceDefinitions);
     }
 
@@ -902,7 +902,7 @@ public class ViewRegistry {
     try {
       Masker masker = getMasker(viewConfig.getMaskerClass(classLoader));
 
-      Map<String, ParameterConfig> parameterConfigMap = new HashMap<String, ParameterConfig>();
+      Map<String, ParameterConfig> parameterConfigMap = new HashMap<>();
       for (ParameterConfig paramConfig : viewConfig.getParameters()) {
         parameterConfigMap.put(paramConfig.getName(), paramConfig);
       }
@@ -1155,7 +1155,7 @@ public class ViewRegistry {
 
     List<ParameterConfig> parameterConfigurations = viewConfig.getParameters();
 
-    Collection<ViewParameterEntity> parameters = new HashSet<ViewParameterEntity>();
+    Collection<ViewParameterEntity> parameters = new HashSet<>();
 
     String viewName = viewDefinition.getName();
 
@@ -1189,7 +1189,7 @@ public class ViewRegistry {
     ResourceInstanceFactoryImpl.addResourceDefinition(externalResourceType,
         new ViewExternalSubResourceDefinition(externalResourceType));
 
-    Collection<ViewResourceEntity> resources = new HashSet<ViewResourceEntity>();
+    Collection<ViewResourceEntity> resources = new HashSet<>();
     for (ResourceConfig resourceConfiguration : resourceConfigurations) {
       ViewResourceEntity viewResourceEntity = new ViewResourceEntity();
 
@@ -1233,7 +1233,7 @@ public class ViewRegistry {
 
     List<PermissionConfig> permissionConfigurations = viewConfig.getPermissions();
 
-    Collection<PermissionEntity> permissions = new HashSet<PermissionEntity>();
+    Collection<PermissionEntity> permissions = new HashSet<>();
     for (PermissionConfig permissionConfiguration : permissionConfigurations) {
       PermissionEntity permissionEntity = new PermissionEntity();
 
@@ -1255,7 +1255,7 @@ public class ViewRegistry {
     viewDefinition.setValidator(validator);
     viewDefinition.setMask(viewConfig.getMasker());
 
-    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
     for (Resource.Type type : viewDefinition.getViewResourceTypes()) {
       subResourceDefinitions.add(new SubResourceDefinition(type));
     }
@@ -1282,7 +1282,7 @@ public class ViewRegistry {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
 
     for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
       properties.put(propertyConfig.getKey(), propertyConfig.getValue());
@@ -1335,7 +1335,7 @@ public class ViewRegistry {
     ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
     ViewConfig viewConfig = viewDefinition.getConfiguration();
 
-    Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+    Collection<ViewEntityEntity> entities = new HashSet<>();
 
     if (viewConfig != null) {
       PersistenceConfig persistenceConfig = viewConfig.getPersistence();
@@ -1686,7 +1686,7 @@ public class ViewRegistry {
 
         if (files != null) {
 
-          Set<Runnable> extractionRunnables = new HashSet<Runnable>();
+          Set<Runnable> extractionRunnables = new HashSet<>();
 
           final String serverVersion = ambariMetaInfoProvider.get().getServerVersion();
 
@@ -1791,7 +1791,7 @@ public class ViewRegistry {
       if (checkViewVersions(viewDefinition, serverVersion)) {
         setupViewDefinition(viewDefinition, cl);
 
-        Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+        Set<ViewInstanceEntity> instanceDefinitions = new HashSet<>();
 
         for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
           ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
@@ -2098,7 +2098,7 @@ public class ViewRegistry {
   // Get the view extraction thread pool
   private static synchronized ExecutorService getExecutorService(Configuration configuration) {
     if (executorService == null) {
-      LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+      LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 
       ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
           configuration.getViewExtractionThreadPoolCoreSize(),

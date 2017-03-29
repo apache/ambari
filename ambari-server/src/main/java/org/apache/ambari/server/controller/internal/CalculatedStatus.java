@@ -166,8 +166,8 @@ public class CalculatedStatus {
    * @return a calculated status
    */
   public static CalculatedStatus statusFromStageEntities(Collection<StageEntity> stages) {
-    Collection<HostRoleStatus> stageStatuses = new HashSet<HostRoleStatus>();
-    Collection<HostRoleCommandEntity> tasks = new HashSet<HostRoleCommandEntity>();
+    Collection<HostRoleStatus> stageStatuses = new HashSet<>();
+    Collection<HostRoleCommandEntity> tasks = new HashSet<>();
 
     for (StageEntity stage : stages) {
       // get all the tasks for the stage
@@ -202,8 +202,8 @@ public class CalculatedStatus {
    */
   public static CalculatedStatus statusFromStages(Collection<Stage> stages) {
 
-    Collection<HostRoleStatus> stageStatuses = new HashSet<HostRoleStatus>();
-    Collection<HostRoleCommand> tasks = new HashSet<HostRoleCommand>();
+    Collection<HostRoleStatus> stageStatuses = new HashSet<>();
+    Collection<HostRoleCommand> tasks = new HashSet<>();
 
     for (Stage stage : stages) {
       // get all the tasks for the stage
@@ -236,7 +236,7 @@ public class CalculatedStatus {
    * @return a map of counts of tasks keyed by the task status
    */
   public static Map<HostRoleStatus, Integer> calculateStatusCounts(Collection<HostRoleStatus> hostRoleStatuses) {
-    Map<HostRoleStatus, Integer> counters = new HashMap<HostRoleStatus, Integer>();
+    Map<HostRoleStatus, Integer> counters = new HashMap<>();
     // initialize
     for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
       counters.put(hostRoleStatus, 0);
@@ -309,7 +309,7 @@ public class CalculatedStatus {
 
     Map<StatusType,Map<HostRoleStatus, Integer>> counters = new HashMap<>();
     for (StatusType statusType : StatusType.values()) {
-      Map <HostRoleStatus, Integer> statusMap = new HashMap<HostRoleStatus, Integer>();
+      Map <HostRoleStatus, Integer> statusMap = new HashMap<>();
       counters.put(statusType,statusMap);
       // initialize
       for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
@@ -391,7 +391,7 @@ public class CalculatedStatus {
    * @return a map of counts of tasks keyed by the task status
    */
   public static Map<HostRoleStatus, Integer> calculateTaskEntityStatusCounts(Collection<HostRoleCommandEntity> tasks) {
-    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<>();
 
     for (HostRoleCommandEntity hostRoleCommand : tasks) {
       hostRoleStatuses.add(hostRoleCommand.getStatus());
@@ -408,7 +408,7 @@ public class CalculatedStatus {
   public static Map<HostRoleStatus, Integer> calculateTaskStatusCounts(
       Map<Long, HostRoleCommandStatusSummaryDTO> stageDto, Set<Long> stageIds) {
 
-    List<HostRoleStatus> status = new ArrayList<HostRoleStatus>();
+    List<HostRoleStatus> status = new ArrayList<>();
 
     for (Long stageId : stageIds) {
       if (!stageDto.containsKey(stageId)) {
@@ -485,7 +485,7 @@ public class CalculatedStatus {
    * @return a map of counts of tasks keyed by the task status
    */
   private static Map<HostRoleStatus, Integer> calculateTaskStatusCounts(Collection<HostRoleCommand> tasks) {
-    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<>();
 
     for (HostRoleCommand hostRoleCommand : tasks) {
       hostRoleStatuses.add(hostRoleCommand.getStatus());

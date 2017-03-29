@@ -83,7 +83,7 @@ public class AMSReportPropertyProviderTest {
     String propertyId = PropertyHelper.getPropertyId("metrics/cpu", "User");
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     temporalInfoMap.put(propertyId, new TemporalInfoImpl(1416445244800L, 1416448936474L, 1L));
     Request request = PropertyHelper.getReadRequest(
       Collections.singleton(propertyId), temporalInfoMap);
@@ -126,7 +126,7 @@ public class AMSReportPropertyProviderTest {
     String propertyId = PropertyHelper.getPropertyId("metrics/cpu", "User._sum");
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
     resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     temporalInfoMap.put(propertyId, new TemporalInfoImpl(1432033257812L, 1432035927922L, 1L));
     Request request = PropertyHelper.getReadRequest(
       Collections.singleton(propertyId), temporalInfoMap);

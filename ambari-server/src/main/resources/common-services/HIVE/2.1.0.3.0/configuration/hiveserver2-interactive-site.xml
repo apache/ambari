@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>hive.metastore.metrics.enabled</name>
+    <value>true</value>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.server2.metrics.enabled</name>
+    <value>true</value>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.service.metrics.reporter</name>
+    <value>HADOOP2</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.service.metrics.hadoop2.component</name>
+    <value>hiveserver2</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hive.async.log.enabled</name>
+    <value>false</value>
+    <description>Whether to enable Log4j2's asynchronous logging. Asynchronous logging can give significant performance improvement as logging will be handled in separate thread that uses LMAX disruptor queue for buffering log messages. Refer https://logging.apache.org/log4j/2.x/manual/async.html for benefits and drawbacks.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

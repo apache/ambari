@@ -31,7 +31,7 @@ public class PredicateVisitorTest {
   public void testVisitor() {
 
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    EqualsPredicate equalsPredicate = new EqualsPredicate<String>(propertyId, "bar");
+    EqualsPredicate equalsPredicate = new EqualsPredicate<>(propertyId, "bar");
 
     TestPredicateVisitor visitor = new TestPredicateVisitor();
     equalsPredicate.accept(visitor);

@@ -79,9 +79,9 @@ public class WorkflowResourceProvider extends
   protected static final String WORKFLOW_CONTEXT_PROPERTY_ID = PropertyHelper
       .getPropertyId("Workflow", "context");
 
-  private static final Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] {WORKFLOW_CLUSTER_NAME_PROPERTY_ID,
-          WORKFLOW_ID_PROPERTY_ID}));
+  private static final Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{WORKFLOW_CLUSTER_NAME_PROPERTY_ID,
+      WORKFLOW_ID_PROPERTY_ID}));
 
   protected WorkflowFetcher workflowFetcher;
 
@@ -128,7 +128,7 @@ public class WorkflowResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resourceSet = new HashSet<Resource>();
+    Set<Resource> resourceSet = new HashSet<>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String,Object>> predicatePropertieSet = getPropertyMaps(predicate);
@@ -164,7 +164,7 @@ public class WorkflowResourceProvider extends
 
   @Override
   public Map<Type,String> getKeyPropertyIds() {
-    Map<Type,String> keyPropertyIds = new HashMap<Type,String>();
+    Map<Type,String> keyPropertyIds = new HashMap<>();
     keyPropertyIds.put(Type.Cluster, WORKFLOW_CLUSTER_NAME_PROPERTY_ID);
     keyPropertyIds.put(Type.Workflow, WORKFLOW_ID_PROPERTY_ID);
     return keyPropertyIds;
@@ -246,7 +246,7 @@ public class WorkflowResourceProvider extends
     @Override
     public Set<Resource> fetchWorkflows(Set<String> requestedIds,
         String clusterName, String workflowId) {
-      Set<Resource> workflows = new HashSet<Resource>();
+      Set<Resource> workflows = new HashSet<>();
       ResultSet rs = null;
       try {
         rs = getResultSet(requestedIds, workflowId);
@@ -309,7 +309,7 @@ public class WorkflowResourceProvider extends
 
   @Override
   protected Map<String,WorkflowFields> getDBFieldMap() {
-    Map<String,WorkflowFields> dbFields = new HashMap<String,WorkflowFields>();
+    Map<String,WorkflowFields> dbFields = new HashMap<>();
     dbFields.put(WORKFLOW_ID_PROPERTY_ID, WorkflowFields.WORKFLOWID);
     dbFields.put(WORKFLOW_NAME_PROPERTY_ID, WorkflowFields.WORKFLOWNAME);
     dbFields.put(WORKFLOW_USER_NAME_PROPERTY_ID, WorkflowFields.USERNAME);

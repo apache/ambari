@@ -133,7 +133,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException,
     NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 

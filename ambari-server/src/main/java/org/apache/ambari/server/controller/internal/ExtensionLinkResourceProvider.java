@@ -68,8 +68,8 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
   public static final String EXTENSION_VERSION_PROPERTY_ID = PropertyHelper
       .getPropertyId("ExtensionLink", "extension_version");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { LINK_ID_PROPERTY_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, EXTENSION_NAME_PROPERTY_ID, EXTENSION_VERSION_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{LINK_ID_PROPERTY_ID, STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID, EXTENSION_NAME_PROPERTY_ID, EXTENSION_VERSION_PROPERTY_ID}));
 
   @Inject
   private static ExtensionLinkDAO dao;
@@ -85,7 +85,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
 	        throws SystemException, UnsupportedPropertyException,
 	        NoSuchParentResourceException, ResourceAlreadyExistsException {
 
-    final Set<ExtensionLinkRequest> requests = new HashSet<ExtensionLinkRequest>();
+    final Set<ExtensionLinkRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
@@ -118,7 +118,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
         throws SystemException, UnsupportedPropertyException,
         NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ExtensionLinkRequest> requests = new HashSet<ExtensionLinkRequest>();
+    final Set<ExtensionLinkRequest> requests = new HashSet<>();
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
     } else {
@@ -154,10 +154,10 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
         throws SystemException, UnsupportedPropertyException,
         NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    final Set<ExtensionLinkRequest> requests = new HashSet<ExtensionLinkRequest>();
+    final Set<ExtensionLinkRequest> requests = new HashSet<>();
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
     } else {
@@ -166,7 +166,7 @@ public class ExtensionLinkResourceProvider extends AbstractControllerResourcePro
       }
     }
 
-    Set<ExtensionLinkEntity> entities = new HashSet<ExtensionLinkEntity>();
+    Set<ExtensionLinkEntity> entities = new HashSet<>();
 
     for (ExtensionLinkRequest extensionLinkRequest : requests) {
       verifyStackAndExtensionExist(extensionLinkRequest);

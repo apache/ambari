@@ -70,7 +70,7 @@ public class GangliaMetric {
   //BUG-3386 Cluster CPU Chart is off the charts
   // Here can be added other percentage metrics
   static {
-    Set<String> temp = new HashSet<String>();
+    Set<String> temp = new HashSet<>();
     temp.add("cpu_wio");
     temp.add("cpu_idle");
     temp.add("cpu_nice");

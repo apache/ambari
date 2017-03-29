@@ -56,9 +56,9 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   public static final String MEMBER_USER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("MemberInfo", "user_name");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          MEMBER_GROUP_NAME_PROPERTY_ID,
-          MEMBER_USER_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      MEMBER_GROUP_NAME_PROPERTY_ID,
+      MEMBER_USER_NAME_PROPERTY_ID}));
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -87,7 +87,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
              ResourceAlreadyExistsException,
              NoSuchParentResourceException {
 
-    final Set<MemberRequest> requests = new HashSet<MemberRequest>();
+    final Set<MemberRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
@@ -107,7 +107,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<MemberRequest> requests = new HashSet<MemberRequest>();
+    final Set<MemberRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
@@ -124,7 +124,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
         + responses.size());
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (MemberResponse memberResponse : responses) {
       ResourceImpl resource = new ResourceImpl(Resource.Type.Member);
@@ -145,13 +145,13 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<MemberRequest> requests = new HashSet<MemberRequest>();
+    final Set<MemberRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
     if (requests.isEmpty()) {
       // request for removing all users from group
-      Map<String, Object> propertyMap = new HashMap<String, Object>();
+      Map<String, Object> propertyMap = new HashMap<>();
       propertyMap.put(MEMBER_GROUP_NAME_PROPERTY_ID, getQueryParameterValue(MEMBER_GROUP_NAME_PROPERTY_ID, predicate));
       requests.add(getRequest(propertyMap));
     }
@@ -171,7 +171,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<MemberRequest> requests = new HashSet<MemberRequest>();
+    final Set<MemberRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       final MemberRequest req = getRequest(propertyMap);

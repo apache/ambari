@@ -84,8 +84,8 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   protected static final String ALERT_REPEAT_TOLERANCE_REMAINING = "Alert/repeat_tolerance_remaining";
   protected static final String ALERT_FIRMNESS = "Alert/firmness";
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
 
   @Inject
   private static AlertsDAO alertsDAO;
@@ -99,12 +99,12 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   /**
    * The property ids for an alert defintion resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for an alert definition resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   static {
     // properties
@@ -170,7 +170,7 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     // use a collection which preserves order since JPA sorts the results
-    Set<Resource> results = new LinkedHashSet<Resource>();
+    Set<Resource> results = new LinkedHashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
 

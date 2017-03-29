@@ -69,8 +69,8 @@ ENV SOLR_INCLUDE /root/config/solr/solr-env.sh
 ENV LOGSEARCH_INCLUDE /root/config/logsearch/logsearch-env.sh
 ENV LOGFEEDER_INCLUDE /root/config/logfeeder/logfeeder-env.sh
 
-RUN mkdir -p /var/run/ambari-logsearch-solr /var/log/ambari-logsearch-solr /var/run/ambari-logsearch-solr-client \
-  /var/log/ambari-logsearch-solr-client /root/logsearch_solr_index/data \
+RUN mkdir -p /var/run/ambari-logsearch-solr /var/log/ambari-logsearch-solr /var/run/ambari-infra-solr-client \
+  /var/log/ambari-infra-solr-client /root/logsearch_solr_index/data \
   /var/run/ambari-logsearch-portal /var/log/ambari-logsearch-portal \
   /var/run/ambari-logsearch-logfeeder /var/log/ambari-logsearch-logfeeder
 

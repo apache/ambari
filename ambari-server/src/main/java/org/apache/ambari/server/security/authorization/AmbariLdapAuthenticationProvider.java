@@ -49,8 +49,8 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
   private UserDAO userDAO;
 
-  private ThreadLocal<LdapServerProperties> ldapServerProperties = new ThreadLocal<LdapServerProperties>();
-  private ThreadLocal<LdapAuthenticationProvider> providerThreadLocal = new ThreadLocal<LdapAuthenticationProvider>();
+  private ThreadLocal<LdapServerProperties> ldapServerProperties = new ThreadLocal<>();
+  private ThreadLocal<LdapAuthenticationProvider> providerThreadLocal = new ThreadLocal<>();
   private ThreadLocal<String> ldapUserSearchFilterThreadLocal = new ThreadLocal<>();
 
   @Inject

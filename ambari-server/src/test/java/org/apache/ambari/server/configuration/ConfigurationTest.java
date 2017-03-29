@@ -1063,4 +1063,25 @@ public class ConfigurationTest {
           StringUtils.isEmpty(markdown.description()));
     }
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testRejectsInvalidDtKeySize() {
+    Properties properties = new Properties();
+    properties.put(Configuration.TLS_EPHEMERAL_DH_KEY_SIZE.getKey(), "invalid");
+    new Configuration(properties).getTlsEphemeralDhKeySize();
+  }
+
+  @Test
+  public void testDefaultDhKeySizeIs2048() {
+    Properties properties = new Properties();
+    Assert.assertEquals(2048, new Configuration(properties).getTlsEphemeralDhKeySize());
+  }
+
+  @Test
+  public void testOverridingDhtKeySize() {
+    Properties properties = new Properties();
+    properties.put(Configuration.TLS_EPHEMERAL_DH_KEY_SIZE.getKey(), "1024");
+    Assert.assertEquals(1024, new Configuration(properties).getTlsEphemeralDhKeySize());
+  }
+
 }

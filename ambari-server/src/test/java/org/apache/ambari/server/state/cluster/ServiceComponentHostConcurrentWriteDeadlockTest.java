@@ -121,7 +121,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     Config config2 = configFactory.createNew(cluster, "test-type2", null, new HashMap<String, String>(), new HashMap<String,
         Map<String, String>>());
 
-    cluster.addDesiredConfig("test user", new HashSet<Config>(Arrays.asList(config1, config2)));
+    cluster.addDesiredConfig("test user", new HashSet<>(Arrays.asList(config1, config2)));
 
     String hostName = "c6401";
     clusters.addHost(hostName);
@@ -144,11 +144,11 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     ServiceComponentHost nameNodeSCH = createNewServiceComponentHost("HDFS", "NAMENODE", "c6401");
     ServiceComponentHost dataNodeSCH = createNewServiceComponentHost("HDFS", "DATANODE", "c6401");
 
-    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
+    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     serviceComponentHosts.add(nameNodeSCH);
     serviceComponentHosts.add(dataNodeSCH);
 
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       ServiceComponentHostDeadlockWriter thread = new ServiceComponentHostDeadlockWriter();
       thread.setServiceComponentHosts(serviceComponentHosts);
@@ -216,7 +216,7 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>(2);
+    Map<String, String> hostAttributes = new HashMap<>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);

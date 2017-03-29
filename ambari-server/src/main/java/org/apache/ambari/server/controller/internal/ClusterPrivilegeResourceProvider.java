@@ -56,7 +56,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_ID_PROPERTY_ID);
@@ -70,7 +70,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.Cluster, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID_PROPERTY_ID);
@@ -120,7 +120,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
     String clusterName = (String) properties.get(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
 
     if (clusterName == null) {
-      Map<Long, ClusterEntity> resourceEntities = new HashMap<Long, ClusterEntity>();
+      Map<Long, ClusterEntity> resourceEntities = new HashMap<>();
 
       List<ClusterEntity> clusterEntities = clusterDAO.findAll();
 

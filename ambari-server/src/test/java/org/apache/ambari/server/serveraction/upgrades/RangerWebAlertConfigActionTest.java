@@ -89,7 +89,7 @@ public class RangerWebAlertConfigActionTest {
     Mockito.when(m_clusters.getCluster(Mockito.anyString())).thenReturn(cluster);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", CLUSTER_NAME);
 
 
@@ -136,7 +136,7 @@ public class RangerWebAlertConfigActionTest {
     rangerWebAlertConfigAction.setExecutionCommand(m_executionCommand);
     rangerWebAlertConfigAction.setHostRoleCommand(hrc);
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
     CommandReport commandReport = null;
     try {
       commandReport = rangerWebAlertConfigAction.execute(requestSharedDataContext);

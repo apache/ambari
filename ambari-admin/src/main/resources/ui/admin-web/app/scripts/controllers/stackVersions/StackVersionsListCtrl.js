@@ -21,7 +21,7 @@ angular.module('ambariAdminConsole')
   .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', '$translate', 'Settings', function ($scope, Cluster, Stack, $routeParams, $translate, Settings) {
     var $t = $translate.instant;
     $scope.getConstant = function (key) {
-      return $t('common.' + key).toLowerCase();
+      return $t(key).toLowerCase();
     };
     $scope.isLoading = false;
     $scope.clusterName = $routeParams.clusterName;

@@ -283,7 +283,7 @@ public class HostService extends BaseService {
    * @return a host resource instance
    */
   ResourceInstance createHostResource(String clusterName, String hostName, UriInfo ui) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Host, hostName);
     if (clusterName != null) {
       mapIds.put(Resource.Type.Cluster, clusterName);

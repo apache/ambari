@@ -99,9 +99,9 @@ public class PreUpgradeCheckResourceProviderTest {
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
 
-    Map<String, Service> allServiceMap = new HashMap<String, Service>();
+    Map<String, Service> allServiceMap = new HashMap<>();
     allServiceMap.put("Service100", service);
-    Map<String, ServiceInfo> allServiceInfoMap = new HashMap<String, ServiceInfo>();
+    Map<String, ServiceInfo> allServiceInfoMap = new HashMap<>();
     allServiceInfoMap.put("Service100", serviceInfo);
 
     // set expectations
@@ -122,8 +122,8 @@ public class PreUpgradeCheckResourceProviderTest {
     expect(repo.getStackId()).andReturn(targetStackId).atLeastOnce();
     expect(upgradeHelper.suggestUpgradePack("Cluster100", "1.0", "Repo100", Direction.UPGRADE, UpgradeType.NON_ROLLING, "upgrade_pack11")).andReturn(upgradePack);
 
-    List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<AbstractCheckDescriptor>();
-    List<String> prerequisiteChecks = new LinkedList<String>();
+    List<AbstractCheckDescriptor> upgradeChecksToRun = new LinkedList<>();
+    List<String> prerequisiteChecks = new LinkedList<>();
     prerequisiteChecks.add("org.apache.ambari.server.sample.checks.SampleServiceCheck");
     expect(upgradePack.getPrerequisiteCheckConfig()).andReturn(config);
     expect(upgradePack.getPrerequisiteChecks()).andReturn(prerequisiteChecks).anyTimes();

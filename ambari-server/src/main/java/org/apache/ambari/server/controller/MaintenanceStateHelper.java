@@ -302,7 +302,7 @@ public class MaintenanceStateHelper {
    */
   public Set<Map<String, String>> getMaintenanceHostComponents(
       Clusters clusters, Cluster cluster) throws AmbariException {
-    Set<Map<String, String>> set = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> set = new HashSet<>();
 
     Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
 
@@ -317,7 +317,7 @@ public class MaintenanceStateHelper {
 
           if (MaintenanceState.OFF != getEffectiveState(cluster.getClusterId(),
               service, host, sch)) {
-            Map<String, String> map = new HashMap<String, String>();
+            Map<String, String> map = new HashMap<>();
             map.put("host", sch.getHostName());
             map.put("service", sch.getServiceName());
             map.put("component", sch.getServiceComponentName());
@@ -419,7 +419,7 @@ public class MaintenanceStateHelper {
   public Set<String> filterHostsInMaintenanceState(Set<String> candidateHosts,
       HostPredicate condition) throws AmbariException {
     // Filter hosts that are in MS
-    Set<String> removedHosts = new HashSet<String>();
+    Set<String> removedHosts = new HashSet<>();
     for (String hostname : candidateHosts) {
       if (condition.shouldHostBeRemoved(hostname)) {
         removedHosts.add(hostname);

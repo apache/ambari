@@ -65,8 +65,8 @@ public class AlertNoticeResourceProvider extends AbstractControllerResourceProvi
   public static final String ALERT_NOTICE_HISTORY_ID = "AlertNotice/history_id";
   public static final String ALERT_NOTICE_CLUSTER_NAME = "AlertNotice/cluster_name";
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(ALERT_NOTICE_ID));
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
+    Arrays.asList(ALERT_NOTICE_ID));
 
   /**
    * Used for querying alert history.
@@ -77,13 +77,13 @@ public class AlertNoticeResourceProvider extends AbstractControllerResourceProvi
   /**
    * The property ids for an alert history resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for an alert history resource.
    */
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS =
-      new HashMap<Resource.Type, String>();
+    new HashMap<>();
 
   static {
     // properties
@@ -175,7 +175,7 @@ public class AlertNoticeResourceProvider extends AbstractControllerResourceProvi
     }
 
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> results = new LinkedHashSet<Resource>();
+    Set<Resource> results = new LinkedHashSet<>();
 
     AlertNoticeRequest noticeRequest = new AlertNoticeRequest();
     noticeRequest.Predicate  = predicate;

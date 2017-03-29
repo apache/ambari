@@ -52,6 +52,10 @@ system_resource_overrides={ps}etc{ps}resource_overrides
 [python]
 custom_actions_dir = {ps}var{ps}lib{ps}ambari-agent{ps}resources{ps}custom_actions
 
+
+[network]
+use_system_proxy_settings=true
+
 [security]
 keysdir={ps}tmp{ps}ambari-agent
 server_crt=ca.crt
@@ -303,6 +307,14 @@ class AmbariConfig:
   def set_ulimit_open_files(self, value):
     self.set('agent', self.ULIMIT_OPEN_FILES_KEY, value)
 
+
+  def use_system_proxy_setting(self):
+    """
+    Return `True` if Agent need to honor system proxy setting and `False` if not
+
+    :rtype bool
+    """
+    return "true" == self.get("network", "use_system_proxy_settings", "true").lower()
 
   def get_multiprocess_status_commands_executor_enabled(self):
     return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 1)))

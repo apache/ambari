@@ -139,7 +139,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
    */
   private SortedMap<String, List<Map<String, String>>> getRepos(Request request) {
 
-    SortedMap<String, List<Map<String, String>>> result = new TreeMap<String, List<Map<String, String>>>();
+    SortedMap<String, List<Map<String, String>>> result = new TreeMap<>();
 
     Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
 
@@ -156,7 +156,7 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
    * @return
    */
   private SortedMap<String, List<Map<String, String>>> createResultForOperationSystems(Set<?> set) {
-    SortedMap<String, List<Map<String, String>>> result = new TreeMap<String, List<Map<String, String>>>();
+    SortedMap<String, List<Map<String, String>>> result = new TreeMap<>();
     for (Object entry : set) {
       if (entry instanceof Map) {
         Map<?, ?> map = (Map<?, ?>) entry;

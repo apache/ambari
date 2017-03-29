@@ -1,0 +1,24 @@
+{
+  "name": "ambari-logsearch-web",
+  "version": "0.5.0",
+  "description": "<!-- {% comment %} Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with this work for additional information regarding copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the \"License\"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at",
+  "dependencies": {
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "gulp-minify-css": "^1.2.3",
+    "gulp-minify-html": "^1.0.5",
+    "gulp-shell": "^0.5.2",
+    "run-sequence": "^1.1.5",
+    "yargs": "^3.32.0",
+    "bower": "~1.7.2",
+    "grunt": "~0.4.5",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-jshint": "~0.11.3",
+    "grunt-contrib-copy": "0.4.x"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache 2.0"
+}

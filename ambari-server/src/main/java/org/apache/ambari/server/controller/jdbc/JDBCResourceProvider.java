@@ -68,7 +68,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
     /**
      * Key mappings used for joins.
      */
-    private final Map<String, Map<String, String>> importedKeys = new HashMap<String, Map<String, String>>();
+    private final Map<String, Map<String, String>> importedKeys = new HashMap<>();
 
     protected final static Logger LOG =
             LoggerFactory.getLogger(JDBCResourceProvider.class);
@@ -87,7 +87,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
     public Set<Resource> getResources(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-        Set<Resource> resources = new HashSet<Resource>();
+        Set<Resource> resources = new HashSet<>();
         Set<String> propertyIds = getRequestPropertyIds(request, predicate);
 
         // Can't allow these properties with the old schema...
@@ -309,7 +309,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
     private String getSelectSQL(Set<String> propertyIds, Predicate predicate) {
 
         StringBuilder columns = new StringBuilder();
-        Set<String> tableSet = new HashSet<String>();
+        Set<String> tableSet = new HashSet<>();
 
         for (String propertyId : propertyIds) {
             if (columns.length() > 0) {
@@ -444,7 +444,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
   private void getImportedKeys(Connection connection, String table) throws SQLException {
     if (!this.importedKeys.containsKey(table)) {
 
-      Map<String, String> importedKeys = new HashMap<String, String>();
+      Map<String, String> importedKeys = new HashMap<>();
       this.importedKeys.put(table, importedKeys);
 
       DatabaseMetaData metaData = connection.getMetaData();
@@ -486,7 +486,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
      * @return the set of tables
      */
     private static Set<String> getTables(Set<String> propertyIds) {
-        Set<String> tables = new HashSet<String>();
+        Set<String> tables = new HashSet<>();
         for (String propertyId : propertyIds) {
             tables.add(PropertyHelper.getPropertyCategory(propertyId));
         }

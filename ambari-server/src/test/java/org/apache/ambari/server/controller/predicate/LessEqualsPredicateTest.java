@@ -36,7 +36,7 @@ public class LessEqualsPredicateTest {
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    Predicate predicate = new LessEqualsPredicate<Integer>(propertyId, 10);
+    Predicate predicate = new LessEqualsPredicate<>(propertyId, 10);
 
     resource.setProperty(propertyId, 1);
     Assert.assertTrue(predicate.evaluate(resource));
@@ -61,7 +61,7 @@ public class LessEqualsPredicateTest {
   @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    LessEqualsPredicate predicate = new LessEqualsPredicate<Integer>(propertyId, 10);
+    LessEqualsPredicate predicate = new LessEqualsPredicate<>(propertyId, 10);
 
     Set<String> ids = predicate.getPropertyIds();
 

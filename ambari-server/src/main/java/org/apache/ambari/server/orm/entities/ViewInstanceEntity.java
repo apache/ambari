@@ -185,19 +185,19 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * The instance properties.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
-  private Collection<ViewInstancePropertyEntity> properties = new HashSet<ViewInstancePropertyEntity>();
+  private Collection<ViewInstancePropertyEntity> properties = new HashSet<>();
 
   /**
    * The instance data.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
-  private Collection<ViewInstanceDataEntity> data = new HashSet<ViewInstanceDataEntity>();
+  private Collection<ViewInstanceDataEntity> data = new HashSet<>();
 
   /**
    * The list of view entities.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
-  private Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+  private Collection<ViewEntityEntity> entities = new HashSet<>();
 
   @ManyToOne
   @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false)
@@ -224,14 +224,14 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * instance is added.
    */
   @Transient
-  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
+  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<>();
 
   /**
    * The mapping of the resource plural name to service.  Calculated when the
    * instance is added.
    */
   @Transient
-  private final Map<String, Object> services = new HashMap<String, Object>();
+  private final Map<String, Object> services = new HashMap<>();
 
   /**
    * Helper class.
@@ -324,7 +324,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   @Override
   public Map<String, String> getPropertyMap() {
-    Map<String, String> propertyMap = new HashMap<String, String>();
+    Map<String, String> propertyMap = new HashMap<>();
 
     for (ViewInstancePropertyEntity viewInstancePropertyEntity : getProperties()) {
       propertyMap.put(viewInstancePropertyEntity.getName(), viewInstancePropertyEntity.getValue());
@@ -340,7 +340,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
 
   @Override
   public Map<String, String> getInstanceDataMap() {
-    Map<String, String> applicationData = new HashMap<String, String>();
+    Map<String, String> applicationData = new HashMap<>();
 
     String user = getCurrentUserName();
 
@@ -894,14 +894,14 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   public InstanceValidationResultImpl getValidationResult(ViewEntity viewEntity, Validator.ValidationContext context)
       throws IllegalStateException {
 
-    Map<String, ValidationResult> propertyResults = new HashMap<String, ValidationResult>();
+    Map<String, ValidationResult> propertyResults = new HashMap<>();
 
     if (context.equals(Validator.ValidationContext.PRE_CREATE) ||
         context.equals(Validator.ValidationContext.PRE_UPDATE)) {
 
       // make sure that there is an instance property value defined
       // for each required view parameter
-      Set<String> requiredParameterNames = new HashSet<String>();
+      Set<String> requiredParameterNames = new HashSet<>();
       for (ViewParameterEntity parameter : viewEntity.getParameters()) {
         if (parameter.isRequired()) {
           // Don't enforce 'required' validation for cluster config parameters since

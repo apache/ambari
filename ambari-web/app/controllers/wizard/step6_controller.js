@@ -163,6 +163,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
 
   openSlavesAndClientsIssues: function () {
     App.ModalPopup.show({
+      'data-qa': 'slave-clients-issues-modal',
       header: Em.I18n.t('installer.step6.validationSlavesAndClients.popup.header'),
       bodyClass: Em.View.extend({
         controller: this,
@@ -405,7 +406,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
             checked: false,
             isInstalled: false,
             isDisabled: header.get('isDisabled'),
-            uId: _hostName + '-checkbox-' + index
+            uId: _hostName + '-checkbox-' + index,
+            dataQaAttr: header.name === 'CLIENT' ? 'client-component' : ''
           };
         })
       };
@@ -631,8 +633,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     clearTimeout(this.get('timer'));
     if (this.get('validationInProgress')) {
       this.set('timer', setTimeout(function () {
-        self.callValidation()
-          .then(validationCallback);
+        self.callValidation();
       }, 700));
     } else {
       this.callServerSideValidation()
@@ -835,6 +836,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
 
     if (self.get('anyWarnings') || self.get('anyErrors')) {
       App.ModalPopup.show({
+        'data-qa': 'validation-issues-modal',
         primary: Em.I18n.t('common.continueAnyway'),
         header: Em.I18n.t('installer.step6.validationIssuesAttention.header'),
         body: Em.I18n.t('installer.step6.validationIssuesAttention'),

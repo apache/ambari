@@ -56,7 +56,7 @@ public class BatchRequestJobTest {
     long executionId = 31L;
     long batchId = 1L;
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(BatchRequestJob.BATCH_REQUEST_EXECUTION_ID_KEY, executionId);
     properties.put(BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY, batchId);
     properties.put(BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY, clusterName);
@@ -117,7 +117,7 @@ public class BatchRequestJobTest {
     JobExecutionContext executionContext = createNiceMock(JobExecutionContext.class);
     JobDataMap jobDataMap = createNiceMock(JobDataMap.class);
     JobDetail jobDetail = createNiceMock(JobDetail.class);
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 10);
     properties.put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 20);
 

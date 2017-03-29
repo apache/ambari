@@ -111,7 +111,7 @@ public class HostKerberosIdentityService extends BaseService {
    * @return a component resource instance
    */
   ResourceInstance createResource(String clusterName, String hostName, String identityId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Host, hostName);
     mapIds.put(Resource.Type.HostKerberosIdentity, identityId);

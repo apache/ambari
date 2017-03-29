@@ -161,7 +161,7 @@ class ActionScheduler implements Runnable {
   private final Object wakeupSyncObject = new Object();
   private final ServerActionExecutor serverActionExecutor;
 
-  private final Set<Long> requestsInProgress = new HashSet<Long>();
+  private final Set<Long> requestsInProgress = new HashSet<>();
 
   /**
    * Contains request ids that have been scheduled to be cancelled,
@@ -176,7 +176,7 @@ class ActionScheduler implements Runnable {
    * requestsToBeCancelled object
    */
   private final Map<Long, String> requestCancelReasons =
-    new HashMap<Long, String>();
+    new HashMap<>();
 
   /**
    * true if scheduler should run ASAP.
@@ -354,7 +354,7 @@ class ActionScheduler implements Runnable {
         return;
       }
 
-      Set<Long> runningRequestIds = new HashSet<Long>();
+      Set<Long> runningRequestIds = new HashSet<>();
       List<Stage> stages = db.getStagesInProgress();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Scheduler wakes up");
@@ -453,8 +453,8 @@ class ActionScheduler implements Runnable {
           return;
         }
 
-        List<ExecutionCommand> commandsToStart = new ArrayList<ExecutionCommand>();
-        List<ExecutionCommand> commandsToUpdate = new ArrayList<ExecutionCommand>();
+        List<ExecutionCommand> commandsToStart = new ArrayList<>();
+        List<ExecutionCommand> commandsToUpdate = new ArrayList<>();
 
         //Schedule what we have so far
 
@@ -468,7 +468,7 @@ class ActionScheduler implements Runnable {
 
         //Multimap is analog of Map<Object, List<Object>> but allows to avoid nested loop
         ListMultimap<String, ServiceComponentHostEvent> eventMap = formEventMap(stage, commandsToStart);
-        Map<ExecutionCommand, String> commandsToAbort = new HashMap<ExecutionCommand, String>();
+        Map<ExecutionCommand, String> commandsToAbort = new HashMap<>();
         if (!eventMap.isEmpty()) {
           LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
           Cluster cluster = clusters.getCluster(stage.getClusterName());
@@ -501,7 +501,7 @@ class ActionScheduler implements Runnable {
         if (commandsToAbort.size() > 0) { // Code branch may be a bit slow, but is extremely rarely used
           LOG.debug("==> Aborting {} tasks...", commandsToAbort.size());
           // Build a list of HostRoleCommands
-          List<Long> taskIds = new ArrayList<Long>();
+          List<Long> taskIds = new ArrayList<>();
           for (ExecutionCommand command : commandsToAbort.keySet()) {
             taskIds.add(command.getTaskId());
           }
@@ -571,7 +571,7 @@ class ActionScheduler implements Runnable {
    * @return
    */
   private HashSet<String> getListOfHostsWithPendingTask(List<Stage> stages) {
-    HashSet<String> hostsWithTasks = new HashSet<String>();
+    HashSet<String> hostsWithTasks = new HashSet<>();
     for (Stage s : stages) {
       hostsWithTasks.addAll(s.getHosts());
     }
@@ -604,9 +604,9 @@ class ActionScheduler implements Runnable {
    * @return a list of stages that may be executed in parallel
    */
   private List<Stage> filterParallelPerHostStages(List<Stage> stages) {
-    List<Stage> retVal = new ArrayList<Stage>();
-    Set<String> affectedHosts = new HashSet<String>();
-    Set<Long> affectedRequests = new HashSet<Long>();
+    List<Stage> retVal = new ArrayList<>();
+    Set<String> affectedHosts = new HashSet<>();
+    Set<Long> affectedRequests = new HashSet<>();
 
     for (Stage s : stages) {
       long requestId = s.getRequestId();
@@ -697,8 +697,8 @@ class ActionScheduler implements Runnable {
         return false;
       }
 
-      Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
-      Map<Role, Integer> failedHostCountsForRoles = new HashMap<Role, Integer>();
+      Map<Role, Integer> hostCountsForRoles = new HashMap<>();
+      Map<Role, Integer> failedHostCountsForRoles = new HashMap<>();
 
       for (String host : prevStage.getHostRoleCommands().keySet()) {
         Map<String, HostRoleCommand> roleCommandMap = prevStage.getHostRoleCommands().get(host);
@@ -1008,9 +1008,9 @@ class ActionScheduler implements Runnable {
    */
   private Map<String, RoleStats> initRoleStats(Stage s) {
     // Meaning: how many hosts are affected by commands for each role
-    Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
+    Map<Role, Integer> hostCountsForRoles = new HashMap<>();
     // < role_name, rolestats >
-    Map<String, RoleStats> roleStats = new TreeMap<String, RoleStats>();
+    Map<String, RoleStats> roleStats = new TreeMap<>();
 
     for (String host : s.getHostRoleCommands().keySet()) {
       Map<String, HostRoleCommand> roleCommandMap = s.getHostRoleCommands().get(host);

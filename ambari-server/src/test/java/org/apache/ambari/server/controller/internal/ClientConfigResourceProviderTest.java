@@ -109,9 +109,9 @@ public class ClientConfigResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "c1");
@@ -151,7 +151,7 @@ public class ClientConfigResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
@@ -200,20 +200,18 @@ public class ClientConfigResourceProviderTest {
     Runtime runtime = createMock(Runtime.class);
     Process process = createNiceMock(Process.class);
 
-    Map<String, DesiredConfig> desiredConfigMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> desiredConfigMap = new HashMap<>();
     desiredConfigMap.put("hive-site", desiredConfig);
-    Map<String, Map<String, String>> allConfigTags = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> configTags = new HashMap<String,
-            Map<String, String>>();
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String,
-            Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> allConfigTags = new HashMap<>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, Map<String, String>> configTags = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
 
     ClientConfigFileDefinition clientConfigFileDefinition = new ClientConfigFileDefinition();
     clientConfigFileDefinition.setDictionaryName("pig-env");
     clientConfigFileDefinition.setFileName("pig-env.sh");
     clientConfigFileDefinition.setType("env");
-    List <ClientConfigFileDefinition> clientConfigFileDefinitionList = new LinkedList<ClientConfigFileDefinition>();
+    List <ClientConfigFileDefinition> clientConfigFileDefinitionList = new LinkedList<>();
     clientConfigFileDefinitionList.add(clientConfigFileDefinition);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -241,23 +239,23 @@ public class ClientConfigResourceProviderTest {
       packageFolder = "PIG\\package";
     }
 
-    HashMap<String, Host> hosts = new HashMap<String, Host>();
+    HashMap<String, Host> hosts = new HashMap<>();
     hosts.put(hostName, host);
-    HashMap<String, Service> services = new HashMap<String, Service>();
+    HashMap<String, Service> services = new HashMap<>();
     services.put(serviceName,service);
-    HashMap<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    HashMap<String, ServiceComponent> serviceComponentMap = new HashMap<>();
     serviceComponentMap.put(componentName,serviceComponent);
-    HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<>();
     serviceComponentHosts.put(componentName, serviceComponentHost);
-    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<String, ServiceOsSpecific>();
+    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, publicHostname,desiredState, "", null, null, null);
 
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
     responses.add(shr1);
 
-    Map<String, String> returnConfigMap = new HashMap<String, String>();
+    Map<String, String> returnConfigMap = new HashMap<>();
     returnConfigMap.put(Configuration.SERVER_TMP_DIR.getKey(), Configuration.SERVER_TMP_DIR.getDefaultValue());
     returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP.getKey(), Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
 
@@ -278,7 +276,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
     expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
-    Map<String,String> props = new HashMap<String, String>();
+    Map<String,String> props = new HashMap<>();
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
@@ -287,12 +285,12 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
-    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
-    Set<String> all_hosts = new HashSet<String>(Arrays.asList("Host100","Host101","Host102"));
-    Set<String> some_hosts = new HashSet<String>(Arrays.asList("0-1","2"));
-    Set<String> ohter_hosts = new HashSet<String>(Arrays.asList("0,1"));
-    Set<String> clusterHostTypes = new HashSet<String>(Arrays.asList("nm_hosts", "hs_host",
-            "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
+    Map<String, Set<String>> clusterHostInfo = new HashMap<>();
+    Set<String> all_hosts = new HashSet<>(Arrays.asList("Host100", "Host101", "Host102"));
+    Set<String> some_hosts = new HashSet<>(Arrays.asList("0-1", "2"));
+    Set<String> ohter_hosts = new HashSet<>(Arrays.asList("0,1"));
+    Set<String> clusterHostTypes = new HashSet<>(Arrays.asList("nm_hosts", "hs_host",
+      "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
     for (String hostTypes: clusterHostTypes) {
       if (hostTypes.equals("slave_hosts")) {
         clusterHostInfo.put(hostTypes, ohter_hosts);
@@ -300,7 +298,7 @@ public class ClientConfigResourceProviderTest {
         clusterHostInfo.put(hostTypes, some_hosts);
       }
     }
-    Map<String, Host> stringHostMap = new HashMap<String, Host>();
+    Map<String, Host> stringHostMap = new HashMap<>();
     stringHostMap.put(hostName, host);
     clusterHostInfo.put("all_hosts",all_hosts);
     expect(StageUtils.getClusterHostInfo(cluster)).andReturn(clusterHostInfo);
@@ -320,12 +318,12 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 
-    HashMap<String, String> rcaParams = new HashMap<String, String>();
+    HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
-    Set<String> userSet = new HashSet<String>();
+    Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(
       stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
@@ -353,7 +351,7 @@ public class ClientConfigResourceProviderTest {
     userProperties.put(userProperty, "hdfsUser");
     groupProperties.put(groupProperty, "hdfsGroup");
     Map<String, Set<String>> userGroupsMap = new HashMap<>();
-    userGroupsMap.put("hdfsUser", new HashSet<String>(Arrays.asList("hdfsGroup")));
+    userGroupsMap.put("hdfsUser", new HashSet<>(Arrays.asList("hdfsGroup")));
     expect(configHelper.getPropertiesWithPropertyType(
       stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userProperties).anyTimes();
     expect(configHelper.getPropertiesWithPropertyType(
@@ -437,20 +435,18 @@ public class ClientConfigResourceProviderTest {
     Runtime runtime = createMock(Runtime.class);
     Process process = createNiceMock(Process.class);
 
-    Map<String, DesiredConfig> desiredConfigMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> desiredConfigMap = new HashMap<>();
     desiredConfigMap.put("hive-site", desiredConfig);
-    Map<String, Map<String, String>> allConfigTags = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> configTags = new HashMap<String,
-            Map<String, String>>();
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String,
-            Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> allConfigTags = new HashMap<>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, Map<String, String>> configTags = new HashMap<>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
 
     ClientConfigFileDefinition clientConfigFileDefinition = new ClientConfigFileDefinition();
     clientConfigFileDefinition.setDictionaryName("pig-env");
     clientConfigFileDefinition.setFileName("pig-env.sh");
     clientConfigFileDefinition.setType("env");
-    List <ClientConfigFileDefinition> clientConfigFileDefinitionList = new LinkedList<ClientConfigFileDefinition>();
+    List <ClientConfigFileDefinition> clientConfigFileDefinitionList = new LinkedList<>();
     clientConfigFileDefinitionList.add(clientConfigFileDefinition);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -489,23 +485,23 @@ public class ClientConfigResourceProviderTest {
       packageFolder = StackManager.COMMON_SERVICES + "\\PIG\\package";
     }
 
-    HashMap<String, Host> hosts = new HashMap<String, Host>();
+    HashMap<String, Host> hosts = new HashMap<>();
     hosts.put(hostName, host);
-    HashMap<String, Service> services = new HashMap<String, Service>();
+    HashMap<String, Service> services = new HashMap<>();
     services.put(serviceName,service);
-    HashMap<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    HashMap<String, ServiceComponent> serviceComponentMap = new HashMap<>();
     serviceComponentMap.put(componentName,serviceComponent);
-    HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<>();
     serviceComponentHosts.put(componentName, serviceComponentHost);
-    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<String, ServiceOsSpecific>();
+    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null);
 
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
     responses.add(shr1);
 
-    Map<String, String> returnConfigMap = new HashMap<String, String>();
+    Map<String, String> returnConfigMap = new HashMap<>();
     returnConfigMap.put(Configuration.SERVER_TMP_DIR.getKey(), Configuration.SERVER_TMP_DIR.getDefaultValue());
     returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP.getKey(), Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
 
@@ -527,7 +523,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getExternalScriptThreadPoolSize()).andReturn(Configuration.THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT.getDefaultValue());
     expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
 
-    Map<String,String> props = new HashMap<String, String>();
+    Map<String,String> props = new HashMap<>();
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
@@ -536,12 +532,12 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
-    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
-    Set<String> all_hosts = new HashSet<String>(Arrays.asList("Host100","Host101","Host102"));
-    Set<String> some_hosts = new HashSet<String>(Arrays.asList("0-1","2"));
-    Set<String> ohter_hosts = new HashSet<String>(Arrays.asList("0,1"));
-    Set<String> clusterHostTypes = new HashSet<String>(Arrays.asList("nm_hosts", "hs_host",
-            "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
+    Map<String, Set<String>> clusterHostInfo = new HashMap<>();
+    Set<String> all_hosts = new HashSet<>(Arrays.asList("Host100", "Host101", "Host102"));
+    Set<String> some_hosts = new HashSet<>(Arrays.asList("0-1", "2"));
+    Set<String> ohter_hosts = new HashSet<>(Arrays.asList("0,1"));
+    Set<String> clusterHostTypes = new HashSet<>(Arrays.asList("nm_hosts", "hs_host",
+      "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
     for (String hostTypes: clusterHostTypes) {
       if (hostTypes.equals("slave_hosts")) {
         clusterHostInfo.put(hostTypes, ohter_hosts);
@@ -549,7 +545,7 @@ public class ClientConfigResourceProviderTest {
         clusterHostInfo.put(hostTypes, some_hosts);
       }
     }
-    Map<String, Host> stringHostMap = new HashMap<String, Host>();
+    Map<String, Host> stringHostMap = new HashMap<>();
     stringHostMap.put(hostName, host);
     clusterHostInfo.put("all_hosts",all_hosts);
     expect(StageUtils.getClusterHostInfo(cluster)).andReturn(clusterHostInfo);
@@ -569,12 +565,12 @@ public class ClientConfigResourceProviderTest {
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 
-    HashMap<String, String> rcaParams = new HashMap<String, String>();
+    HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
     expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
     expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
     expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
-    Set<String> userSet = new HashSet<String>();
+    Set<String> userSet = new HashSet<>();
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();

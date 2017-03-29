@@ -41,7 +41,7 @@ import junit.framework.TestCase;
 public class ClusterStackVersionServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     ClusterStackVersionService clusterStackVersionService;
     Method m;

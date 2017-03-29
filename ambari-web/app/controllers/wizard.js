@@ -1487,6 +1487,15 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return App.get('router.configurationController').loadFromServer([{'siteName': 'hadoop-env'}]);
   },
 
+  loadKerberosDescriptorConfigs: function () {
+    var kerberosDescriptorConfigs = this.getDBProperty('kerberosDescriptorConfigs');
+    this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+  },
+
+  saveKerberosDescriptorConfigs: function (kerberosDescriptorConfigs) {
+    this.setDBProperty('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+    this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+  },
   /**
    * reset stored wizard data and reload App
    * @param {App.WizardController} controller - wizard controller

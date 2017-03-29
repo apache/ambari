@@ -18,17 +18,23 @@
 
 package org.apache.ambari.view.hive20.client;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Inbox;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive20.actor.message.Connect;
 import org.apache.ambari.view.hive20.actor.message.ExecuteJob;
 import org.apache.ambari.view.hive20.actor.message.GetColumnMetadataJob;
+import org.apache.ambari.view.hive20.actor.message.GetDatabaseMetadataJob;
 import org.apache.ambari.view.hive20.actor.message.HiveJob;
 import org.apache.ambari.view.hive20.actor.message.SQLStatementJob;
+import org.apache.ambari.view.hive20.actor.message.job.AuthenticationFailed;
 import org.apache.ambari.view.hive20.actor.message.job.ExecutionFailed;
 import org.apache.ambari.view.hive20.actor.message.job.FetchFailed;
 import org.apache.ambari.view.hive20.actor.message.job.Next;
@@ -36,23 +42,19 @@ import org.apache.ambari.view.hive20.actor.message.job.NoMoreItems;
 import org.apache.ambari.view.hive20.actor.message.job.NoResult;
 import org.apache.ambari.view.hive20.actor.message.job.Result;
 import org.apache.ambari.view.hive20.actor.message.job.ResultSetHolder;
+import org.apache.ambari.view.hive20.exceptions.ServiceException;
 import org.apache.ambari.view.hive20.internal.dto.DatabaseInfo;
 import org.apache.ambari.view.hive20.internal.dto.TableInfo;
 import org.apache.ambari.view.hive20.utils.HiveActorConfiguration;
 import org.apache.ambari.view.hive20.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Inbox;
 import scala.concurrent.duration.Duration;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class DDLDelegatorImpl implements DDLDelegator {
 
@@ -206,6 +208,23 @@ public class DDLDelegatorImpl implements DDLDelegator {
     return getResultFromDB(execute);
   }
 
+  @Override
+  public DatabaseMetadataWrapper getDatabaseMetadata(ConnectionConfig config) throws ServiceException {
+    Connect connect = config.createConnectMessage();
+    HiveJob job = new GetDatabaseMetadataJob(config.getUsername());
+    ExecuteJob execute = new ExecuteJob(connect, job);
+
+    LOG.info("Fetching databaseMetadata.");
+    Optional<Result> resultOptional = getResultFromDB(execute);
+    if(resultOptional.isPresent()){
+      Result result = resultOptional.get();
+      DatabaseMetadataWrapper databaseMetadata = result.getDatabaseMetadata();
+      return databaseMetadata;
+    }else{
+      throw new ServiceException("Cannot fetch database version.");
+    }
+  }
+
   private Optional<Result> getResultFromDB(ExecuteJob job) {
     List<ColumnDescription> descriptions = null;
     List<Row> rows = Lists.newArrayList();
@@ -225,11 +244,20 @@ public class DDLDelegatorImpl implements DDLDelegator {
       return Optional.absent();
     }
 
+    if (submitResult instanceof DatabaseMetadataWrapper) {
+      LOG.info("Query returned with no result.");
+      return Optional.of(new Result((DatabaseMetadataWrapper)submitResult));
+    }
+
     if (submitResult instanceof ExecutionFailed) {
       ExecutionFailed error = (ExecutionFailed) submitResult;
       LOG.error("Failed to get the table description");
       throw new ServiceFormattedException(error.getMessage(), error.getError());
 
+    } else if (submitResult instanceof AuthenticationFailed) {
+      AuthenticationFailed exception = (AuthenticationFailed) submitResult;
+      LOG.error("Failed to connect to Hive", exception.getMessage());
+      throw new ServiceFormattedException(exception.getMessage(), exception.getError(), 401);
     } else if (submitResult instanceof ResultSetHolder) {
       ResultSetHolder holder = (ResultSetHolder) submitResult;
       ActorRef iterator = holder.getIterator();

@@ -94,9 +94,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
   public TreeNode<Set<String>> finalizeProperties(
       TreeNode<QueryInfo> queryProperties, boolean isCollection) {
 
-    Set<String> properties = new HashSet<String>(queryProperties.getObject().getProperties());
-    TreeNode<Set<String>> resultTree = new TreeNodeImpl<Set<String>>(
-        null, properties, queryProperties.getName());
+    Set<String> properties = new HashSet<>(queryProperties.getObject().getProperties());
+    TreeNode<Set<String>> resultTree = new TreeNodeImpl<>(
+      null, properties, queryProperties.getName());
 
     copyPropertiesToResult(queryProperties, resultTree);
 
@@ -153,8 +153,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
     for (TreeNode<Resource> node : resultTree.getChildren()) {
       Resource blueprintResource = createBlueprintResource(node);
-      blueprintResultTree.addChild(new TreeNodeImpl<Resource>(
-          blueprintResultTree, blueprintResource, node.getName()));
+      blueprintResultTree.addChild(new TreeNodeImpl<>(
+        blueprintResultTree, blueprintResource, node.getName()));
     }
     return result;
   }
@@ -268,11 +268,11 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     LOG.info("ClusterBlueprintRenderer: getSettings()");
 
     //Initialize collections to create appropriate json structure
-    Collection<Map<String, Object>> blueprintSetting = new ArrayList<Map<String, Object>>();
+    Collection<Map<String, Object>> blueprintSetting = new ArrayList<>();
 
-    Set<Map<String, String>> recoverySettingValue = new HashSet<Map<String, String>>();
-    Set<Map<String, String>> serviceSettingValue = new HashSet<Map<String, String>>();
-    Set<Map<String, String>> componentSettingValue = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> recoverySettingValue = new HashSet<>();
+    Set<Map<String, String>> serviceSettingValue = new HashSet<>();
+    Set<Map<String, String>> componentSettingValue = new HashSet<>();
 
     HashMap<String, String> property = new HashMap<>();
     HashMap<String, String> componentProperty = new HashMap<>();
@@ -366,7 +366,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       if (propertyMap != null) {
         Map<String, Object> artifactData = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
         Map<String, Object> artifactDataProperties = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties");
-        HashMap<String, Object> data = new HashMap<String, Object>();
+        HashMap<String, Object> data = new HashMap<>();
 
         if (artifactData != null) {
           data.putAll(artifactData);
@@ -389,14 +389,14 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    */
   private List<Map<String, Map<String, Map<String, ?>>>>  processConfigurations(ClusterTopology topology) {
 
-    List<Map<String, Map<String, Map<String, ?>>>> configList = new ArrayList<Map<String, Map<String, Map<String, ?>>>>();
+    List<Map<String, Map<String, Map<String, ?>>>> configList = new ArrayList<>();
 
     Configuration configuration = topology.getConfiguration();
-    Collection<String> allTypes = new HashSet<String>();
+    Collection<String> allTypes = new HashSet<>();
     allTypes.addAll(configuration.getFullProperties().keySet());
     allTypes.addAll(configuration.getFullAttributes().keySet());
     for (String type : allTypes) {
-      Map<String, Map<String, ?>> typeMap = new HashMap<String, Map<String, ?>>();
+      Map<String, Map<String, ?>> typeMap = new HashMap<>();
       typeMap.put("properties", configuration.getFullProperties().get(type));
       if (! configuration.getFullAttributes().isEmpty()) {
         typeMap.put("properties_attributes", configuration.getFullAttributes().get(type));
@@ -415,9 +415,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * @return list of host group property maps, one element for each host group
    */
   private List<Map<String, Object>> formatGroupsAsList(ClusterTopology topology) {
-    List<Map<String, Object>> listHostGroups = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> listHostGroups = new ArrayList<>();
     for (HostGroupInfo group : topology.getHostGroupInfo().values()) {
-      Map<String, Object> mapGroupProperties = new HashMap<String, Object>();
+      Map<String, Object> mapGroupProperties = new HashMap<>();
       listHostGroups.add(mapGroupProperties);
 
       String name = group.getHostGroupName();
@@ -426,7 +426,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       mapGroupProperties.put("components", processHostGroupComponents(topology.getBlueprint().getHostGroup(name)));
 
       Configuration configuration = topology.getHostGroupInfo().get(name).getConfiguration();
-      List<Map<String, Map<String, String>>> configList = new ArrayList<Map<String, Map<String, String>>>();
+      List<Map<String, Map<String, String>>> configList = new ArrayList<>();
       for (Map.Entry<String, Map<String, String>> typeEntry : configuration.getProperties().entrySet()) {
         Map<String, Map<String, String>> propertyMap = Collections.singletonMap(
             typeEntry.getKey(), typeEntry.getValue());
@@ -447,9 +447,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * @return list of component names for the host
    */
   private List<Map<String, String>> processHostGroupComponents(HostGroup group) {
-    List<Map<String, String>> listHostGroupComponents = new ArrayList<Map<String, String>>();
+    List<Map<String, String>> listHostGroupComponents = new ArrayList<>();
     for (Component component : group.getComponents()) {
-      Map<String, String> mapComponentProperties = new HashMap<String, String>();
+      Map<String, String> mapComponentProperties = new HashMap<>();
       listHostGroupComponents.add(mapComponentProperties);
       mapComponentProperties.put("name", component.getName());
     }

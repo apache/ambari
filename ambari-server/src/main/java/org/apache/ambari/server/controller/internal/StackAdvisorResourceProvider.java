@@ -149,7 +149,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private Map<String, Set<String>> calculateHostGroupComponentsMap(Request request) {
     Set<Map<String, Object>> hostGroups = (Set<Map<String, Object>>) getRequestProperty(request,
         BLUEPRINT_HOST_GROUPS_PROPERTY);
-    Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> map = new HashMap<>();
     if (hostGroups != null) {
       for (Map<String, Object> hostGroup : hostGroups) {
         String hostGroupName = (String) hostGroup.get(BLUEPRINT_HOST_GROUPS_NAME_PROPERTY);
@@ -157,7 +157,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         Set<Map<String, Object>> componentsSet = (Set<Map<String, Object>>) hostGroup
             .get(BLUEPRINT_HOST_GROUPS_COMPONENTS_PROPERTY);
 
-        Set<String> components = new HashSet<String>();
+        Set<String> components = new HashSet<>();
         for (Map<String, Object> component : componentsSet) {
           components.add((String) component.get(BLUEPRINT_HOST_GROUPS_COMPONENTS_NAME_PROPERTY));
         }
@@ -180,7 +180,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private Map<String, Set<String>> calculateHostGroupHostsMap(Request request) {
     Set<Map<String, Object>> bindingHostGroups = (Set<Map<String, Object>>) getRequestProperty(
         request, BINDING_HOST_GROUPS_PROPERTY);
-    Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> map = new HashMap<>();
     if (bindingHostGroups != null) {
       for (Map<String, Object> hostGroup : bindingHostGroups) {
         String hostGroupName = (String) hostGroup.get(BINDING_HOST_GROUPS_NAME_PROPERTY);
@@ -188,7 +188,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         Set<Map<String, Object>> hostsSet = (Set<Map<String, Object>>) hostGroup
             .get(BINDING_HOST_GROUPS_HOSTS_PROPERTY);
 
-        Set<String> hosts = new HashSet<String>();
+        Set<String> hosts = new HashSet<>();
         for (Map<String, Object> host : hostsSet) {
           hosts.add((String) host.get(BINDING_HOST_GROUPS_HOSTS_NAME_PROPERTY));
         }
@@ -202,7 +202,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
   protected List<ChangedConfigInfo> calculateChangedConfigurations(Request request) {
     List<ChangedConfigInfo> configs =
-      new LinkedList<ChangedConfigInfo>();
+      new LinkedList<>();
     HashSet<HashMap<String, String>> changedConfigs =
       (HashSet<HashMap<String, String>>) getRequestProperty(request, CHANGED_CONFIGURATIONS_PROPERTY);
     for (HashMap<String, String> props: changedConfigs) {
@@ -215,7 +215,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   protected Set<RecommendationResponse.ConfigGroup> calculateConfigGroups(Request request) {
 
     Set<RecommendationResponse.ConfigGroup> configGroups =
-      new HashSet<RecommendationResponse.ConfigGroup>();
+      new HashSet<>();
 
     Set<HashMap<String, Object>> configGroupsProperties =
       (HashSet<HashMap<String, Object>>) getRequestProperty(request, CONFIG_GROUPS_PROPERTY);
@@ -269,7 +269,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
 
   protected Map<String, Map<String, Map<String, String>>> calculateConfigurations(Request request) {
-    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
     Map<String, Object> properties = request.getProperties().iterator().next();
     for (String property : properties.keySet()) {
       if (property.startsWith(CONFIGURATIONS_PROPERTY_ID)) {
@@ -282,13 +282,13 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
           Map<String, Map<String, String>> siteMap = configurations.get(siteName);
           if (siteMap == null) {
-            siteMap = new HashMap<String, Map<String, String>>();
+            siteMap = new HashMap<>();
             configurations.put(siteName, siteMap);
           }
 
           Map<String, String> propertiesMap = siteMap.get(propertiesProperty);
           if (propertiesMap == null) {
-            propertiesMap = new HashMap<String, String>();
+            propertiesMap = new HashMap<>();
             siteMap.put(propertiesProperty, propertiesMap);
           }
 
@@ -315,7 +315,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
      * missed, etc.
      */
 
-    Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> componentHostsMap = new HashMap<>();
     if (null != bindingHostGroups && null != hostGroups) {
       for (Map.Entry<String, Set<String>> hgComponents : hostGroups.entrySet()) {
         String hgName = hgComponents.getKey();
@@ -325,7 +325,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         for (String component : components) {
           Set<String> componentHosts = componentHostsMap.get(component);
           if (componentHosts == null) { // if was not initialized
-            componentHosts = new HashSet<String>();
+            componentHosts = new HashSet<>();
             componentHostsMap.put(component, componentHosts);
           }
           componentHosts.addAll(hosts);

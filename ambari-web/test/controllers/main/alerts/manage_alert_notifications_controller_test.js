@@ -213,6 +213,10 @@ describe('App.ManageAlertNotificationsController', function () {
       });
     });
 
+    it("should reset custom properties",function(){
+       expect(controller.get('inputFields.customProperties')).to.be.eql(Em.A([]));
+    });
+
     it("should call showCreateEditPopup", function () {
       expect(controller.showCreateEditPopup.calledOnce).to.be.true;
     });

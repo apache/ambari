@@ -66,7 +66,7 @@ public class MapReduce2JobHistoryStatePreservingCheck extends AbstractCheckDescr
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     PrereqCheckStatus checkStatus = PrereqCheckStatus.FAIL;
 
     String enabled =

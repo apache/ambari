@@ -116,7 +116,7 @@ public class HostsMasterMaintenanceCheckTest {
     hostsMasterMaintenanceCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
-    final Map<String, UpgradePack> upgradePacks = new HashMap<String, UpgradePack>();
+    final Map<String, UpgradePack> upgradePacks = new HashMap<>();
     final UpgradePack upgradePack = Mockito.mock(UpgradePack.class);
     Mockito.when(upgradePack.getName()).thenReturn(upgradePackName);
     upgradePacks.put(upgradePack.getName(), upgradePack);

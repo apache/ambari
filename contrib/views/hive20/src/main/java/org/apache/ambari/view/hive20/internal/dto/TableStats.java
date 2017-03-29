@@ -18,6 +18,9 @@
 
 package org.apache.ambari.view.hive20.internal.dto;
 
+
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
+
 /**
  * this will be returned as a part of TableMeta which table info is called.
  * It includes the part of DetailedTableInfo which contain statistics related data.
@@ -29,6 +32,7 @@ public class TableStats {
   public static final String RAW_DATA_SIZE = "rawDataSize";
   public static final String TOTAL_SIZE = "totalSize";
 
+  private DatabaseMetadataWrapper databaseMetadata;
   private Boolean isTableStatsEnabled;
   private Integer numFiles;
   private Integer numRows;
@@ -95,5 +99,13 @@ public class TableStats {
     sb.append(", totalSize='").append(totalSize).append('\'');
     sb.append('}');
     return sb.toString();
+  }
+
+  public DatabaseMetadataWrapper getDatabaseMetadata() {
+    return databaseMetadata;
+  }
+
+  public void setDatabaseMetadata(DatabaseMetadataWrapper databaseMetadata) {
+    this.databaseMetadata = databaseMetadata;
   }
 }

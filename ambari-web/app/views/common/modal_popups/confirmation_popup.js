@@ -34,6 +34,7 @@ App.showConfirmationPopup = function (primary, body, secondary, header, primaryT
     return false;
   }
   return App.ModalPopup.show({
+    'data-qa': 'confirmation-modal',
     encodeBody: false,
     primary: primaryText || Em.I18n.t('ok'),
     header: header || Em.I18n.t('popup.confirmation.commonHeader'),

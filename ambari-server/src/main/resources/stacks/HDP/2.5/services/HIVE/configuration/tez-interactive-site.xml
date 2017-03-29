@@ -178,4 +178,9 @@
     <value>3600</value>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>tez.runtime.shuffle.parallel.copies</name>
+    <value>8</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>

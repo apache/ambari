@@ -28,6 +28,7 @@ var App = require('app');
  */
 App.showAlertPopup = function (header, body, callback) {
   return App.ModalPopup.show({
+    'data-qa': 'alert-modal',
     primary: Em.I18n.t('ok'),
     secondary: null,
     header: header,

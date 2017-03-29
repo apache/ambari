@@ -27,6 +27,7 @@
   <name>Apache Ambari Project POM</name>
   <packaging>pom</packaging>
   <properties>
+    <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
     <jetty.version>8.1.19.v20160209</jetty.version>

@@ -199,24 +199,59 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
     List<HostRoleCommandEntity> holdingCommands = m_hostRoleCommandDAO.findByRequestIdAndStatuses(requestId, HOLDING_STATUSES);
     if (holdingCommands.size() > 0) {
       for (HostRoleCommandEntity hrc : holdingCommands) {
-        LOG.debug("Comparing taskId: {}, original start time: {}, now: {}",
-            hrc.getTaskId(), hrc.getOriginalStartTime(), now);
+        LOG.debug("Comparing taskId: {}, attempt count: {}, original start time: {}, now: {}",
+            hrc.getTaskId(), hrc.getAttemptCount(), hrc.getOriginalStartTime(), now);
 
         /*
+        Use-Case 1:
+        If the command has been sent to the host before because it was heartbeating, then it does have
+        an original start time, so we can attempt to retry on this host even if no longer heartbeating.
+        If the host does heartbeat again within the time interval, the command will actually be scheduled by the host.
+
+        Use-Case 2:
+        If the host is not heartbeating and the command is scheduled to be ran on it, then it means the following
+        is true,
+        - does not have original start time
+        - does not have start time
+        - attempt count is 0
+        - status will be HOLDING_TIMEDOUT
+        When the host does start heartbeating, we need to schedule this command by changing its state back to PENDING.
+
+        Notes:
         While testing, can update the original_start_time of records in host_role_command table to current epoch time.
         E.g. in postgres,
         SELECT CAST(EXTRACT(EPOCH FROM NOW()) AS BIGINT) * 1000;
         UPDATE host_role_command SET attempt_count = 1, status = 'HOLDING_FAILED', original_start_time = (CAST(EXTRACT(EPOCH FROM NOW()) AS BIGINT) * 1000) WHERE task_id IN (x, y, z);
-         */
-        if (canRetryCommand(hrc) && hrc.getOriginalStartTime() > 0 && hrc.getOriginalStartTime() < now) {
-          Long retryTimeWindow = hrc.getOriginalStartTime() + MAX_TIMEOUT_MS;
-          Long deltaMS = retryTimeWindow - now;
+        */
 
-          if (deltaMS > 0) {
-            String originalStartTimeString = m_fullDateFormat.format(new Date(hrc.getOriginalStartTime()));
-            String deltaString = m_deltaDateFormat.format(new Date(deltaMS));
-            LOG.info("Retrying task with id: {}, attempts: {}, original start time: {}, time til timeout: {}",
-                hrc.getTaskId(), hrc.getAttemptCount(), originalStartTimeString, deltaString);
+        if (canRetryCommand(hrc)) {
+
+          boolean allowRetry = false;
+          // Use-Case 1
+          if (hrc.getOriginalStartTime() != null && hrc.getOriginalStartTime() > 0 && hrc.getOriginalStartTime() < now) {
+            Long retryTimeWindow = hrc.getOriginalStartTime() + MAX_TIMEOUT_MS;
+            Long deltaMS = retryTimeWindow - now;
+
+            if (deltaMS > 0) {
+              String originalStartTimeString = m_fullDateFormat.format(new Date(hrc.getOriginalStartTime()));
+              String deltaString = m_deltaDateFormat.format(new Date(deltaMS));
+              LOG.info("Retrying task with id: {}, attempts: {}, original start time: {}, time til timeout: {}",
+                  hrc.getTaskId(), hrc.getAttemptCount(), originalStartTimeString, deltaString);
+              allowRetry = true;
+            }
+          }
+
+          // Use-Case 2
+          if ((hrc.getOriginalStartTime() == null || hrc.getOriginalStartTime() == -1L) &&
+              (hrc.getStartTime() == null || hrc.getStartTime() == -1L) &&
+              hrc.getAttemptCount() == 0){
+            LOG.info("Re-scheduling task with id: {} since it has 0 attempts, and null start_time and " +
+                    "original_start_time, which likely means the host was not heartbeating when the command was supposed to be scheduled.",
+                hrc.getTaskId());
+            allowRetry = true;
+          }
+
+          if (allowRetry) {
             retryHostRoleCommand(hrc);
           }
         }
@@ -262,6 +297,7 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
     hrc.setStatus(HostRoleStatus.PENDING);
     hrc.setStartTime(-1L);
     // Don't change the original start time.
+    hrc.setEndTime(-1L);
     hrc.setLastAttemptTime(-1L);
 
     // This will invalidate the cache, as expected.

@@ -193,7 +193,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   }
 
   private void executeTopologyDDLUpdates() throws AmbariException, SQLException {
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
 
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("action", String.class, 255, null, false));
@@ -576,7 +576,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   }
 
   private void executeWidgetDDLUpdates() throws AmbariException, SQLException {
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
 
     columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("widget_name", String.class,  255,   null, false));
@@ -592,7 +592,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("cluster_id", Long.class, null, null, false));
     dbAccessor.createTable(WIDGET_TABLE, columns, "id");
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("layout_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("section_name", String.class, 255, null, false));
@@ -603,7 +603,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable(WIDGET_LAYOUT_TABLE, columns, "id");
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBColumnInfo("widget_layout_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("widget_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("widget_order", Short.class, null, null, true));
@@ -623,7 +623,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    */
   private void executeStackDDLUpdates() throws AmbariException, SQLException {
     // stack table creation
-    ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    ArrayList<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("stack_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("stack_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("stack_version", String.class, 255, null,
@@ -677,7 +677,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     List<StackEntity> stacks = stackDAO.findAll();
-    Map<Long,String> entityToJsonMap = new HashMap<Long, String>();
+    Map<Long,String> entityToJsonMap = new HashMap<>();
 
     // build a mapping of stack entity to old-school JSON
     for( StackEntity stack : stacks ){
@@ -1399,9 +1399,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           if (RangerHiveConfig != null
                   && RangerHiveConfig.getProperties().containsKey("ranger-hive-plugin-enabled")
                   && cluster.getDesiredConfigByType("hive-env") != null) {
-            Map<String, String> newHiveEnvProperties = new HashMap<String, String>();
-            Map<String, String> newHiveServerProperties = new HashMap<String, String>();
-            Set<String> removeRangerHiveProperties = new HashSet<String>();
+            Map<String, String> newHiveEnvProperties = new HashMap<>();
+            Map<String, String> newHiveServerProperties = new HashMap<>();
+            Set<String> removeRangerHiveProperties = new HashSet<>();
             removeRangerHiveProperties.add("ranger-hive-plugin-enabled");
 
             if (RangerHiveConfig.getProperties().get("ranger-hive-plugin-enabled") != null
@@ -1432,7 +1432,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           if (RangerHBaseConfig != null
                 && RangerHBaseConfig.getProperties().containsKey("ranger-hbase-plugin-enabled")
                 && cluster.getDesiredConfigByType("hbase-site") != null) {
-            Map<String, String> newHBaseSiteProperties = new HashMap<String, String>();
+            Map<String, String> newHBaseSiteProperties = new HashMap<>();
 
             if (RangerHBaseConfig.getProperties().get("ranger-hbase-plugin-enabled") != null
                   && RangerHBaseConfig.getProperties().get("ranger-hbase-plugin-enabled").equalsIgnoreCase("yes")) {
@@ -1454,7 +1454,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
-      Map<String, String> prop = new HashMap<String, String>();
+      Map<String, String> prop = new HashMap<>();
       String content = null;
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
@@ -1495,7 +1495,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                 } else {
                   // NN HA disabled
                   nameNodeRpc = new URI(cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS"));
-                  Map<String, String> hdfsProp = new HashMap<String, String>();
+                  Map<String, String> hdfsProp = new HashMap<>();
                   hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
                   updateConfigurationPropertiesForCluster(cluster, HDFS_SITE_CONFIG,
                           hdfsProp, false, false);
@@ -1529,8 +1529,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           }
 
           if(cluster.getDesiredConfigByType("hive-env") != null) {
-            Map<String, String> hiveEnvProps = new HashMap<String, String>();
-            Set<String> hiveServerSiteRemoveProps = new HashSet<String>();
+            Map<String, String> hiveEnvProps = new HashMap<>();
+            Set<String> hiveServerSiteRemoveProps = new HashSet<>();
             // Update logic for setting HIVE_AUX_JARS_PATH in hive-env.sh
             content = cluster.getDesiredConfigByType("hive-env").getProperties().get("content");
             if(content != null) {
@@ -1570,8 +1570,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           }
 
           if(cluster.getDesiredConfigByType("hive-site") != null) {
-            Set<String> hiveSiteRemoveProps = new HashSet<String>();
-            Map<String, String> hiveSiteAddProps = new HashMap<String, String>();
+            Set<String> hiveSiteRemoveProps = new HashSet<>();
+            Map<String, String> hiveSiteAddProps = new HashMap<>();
 
             if (!"pam".equalsIgnoreCase(hive_server2_auth)) {
               hiveSiteRemoveProps.add("hive.server2.authentication.pam.services");
@@ -1615,10 +1615,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
           if (cluster.getDesiredConfigByType("hbase-site") != null && cluster.getDesiredConfigByType("hbase-env") != null) {
-            Map<String, String> hbaseEnvProps = new HashMap<String, String>();
-            Map<String, String> hbaseSiteProps = new HashMap<String, String>();
-            Set<String> hbaseEnvRemoveProps = new HashSet<String>();
-            Set<String> hbaseSiteRemoveProps = new HashSet<String>();
+            Map<String, String> hbaseEnvProps = new HashMap<>();
+            Map<String, String> hbaseSiteProps = new HashMap<>();
+            Set<String> hbaseEnvRemoveProps = new HashSet<>();
+            Set<String> hbaseSiteRemoveProps = new HashSet<>();
 
             if (cluster.getDesiredConfigByType("hbase-site").getProperties().containsKey("hbase.region.server.rpc.scheduler.factory.class") &&
                 "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory".equals(cluster.getDesiredConfigByType("hbase-site").getProperties().get(
@@ -1697,7 +1697,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           if(cluster.getDesiredConfigByType("cluster-env") != null
                   && cluster.getDesiredConfigByType("cluster-env").getProperties().get("security_enabled").equals("true")
                   && cluster.getDesiredConfigByType("storm-site") != null ) {
-            Map<String, String> newStormProps = new HashMap<String, String>();
+            Map<String, String> newStormProps = new HashMap<>();
             if (!cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("java.security.auth.login.config")) {
               newStormProps.put("java.security.auth.login.config", "{{conf_dir}}/storm_jaas.conf");
             }

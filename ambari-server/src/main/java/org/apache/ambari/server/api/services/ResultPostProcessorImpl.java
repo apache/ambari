@@ -45,7 +45,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
    * These are used to act on specific resource types contained in the result.
    */
   Map<Resource.Type, List<ResourceDefinition.PostProcessor>>
-      m_mapPostProcessors = new HashMap<Resource.Type, List<ResourceDefinition.PostProcessor>>();
+      m_mapPostProcessors = new HashMap<>();
 
 
   /**
@@ -132,7 +132,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
     Resource.Type type = resource.getResourceDefinition().getType();
     List<ResourceDefinition.PostProcessor> listProcessors = m_mapPostProcessors.get(type);
     if (listProcessors == null) {
-      listProcessors = new ArrayList<ResourceDefinition.PostProcessor>();
+      listProcessors = new ArrayList<>();
       m_mapPostProcessors.put(type, listProcessors);
     }
     listProcessors.addAll(resource.getResourceDefinition().getPostProcessors());

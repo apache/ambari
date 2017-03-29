@@ -200,7 +200,7 @@ public class AlertMaintenanceModeListenerTest {
       EasyMock.expect(componentHistory.getComponentName()).andReturn(COMPONENT).atLeastOnce();
     }
 
-    List<AlertCurrentEntity> currentAlerts = new ArrayList<AlertCurrentEntity>();
+    List<AlertCurrentEntity> currentAlerts = new ArrayList<>();
     currentAlerts.add(hostAlert);
     currentAlerts.add(serviceAlert);
     currentAlerts.add(componentAlert);

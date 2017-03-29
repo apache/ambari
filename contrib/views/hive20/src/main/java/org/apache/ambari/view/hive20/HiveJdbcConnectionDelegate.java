@@ -73,6 +73,12 @@ public class HiveJdbcConnectionDelegate implements ConnectionDelegate {
   }
 
   @Override
+  public DatabaseMetaData getDatabaseMetadata(HiveConnection connection) throws SQLException {
+    DatabaseMetaData metaData = connection.getMetaData();
+    return metaData;
+  }
+
+  @Override
   public void cancel() throws SQLException {
     if (currentStatement != null) {
       currentStatement.cancel();

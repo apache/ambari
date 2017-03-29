@@ -215,12 +215,12 @@ public class DDLTests {
       diffs.addAll(
           compareSets(String.format("Comparing columns of table %s.", tableName), baseTable.columns, otherTable.columns));
       diffs.addAll(
-          DDLTests.<FKConstraintContent>compareConstraints(tableName, "FK", baseTable.foreignKeys, otherTable.foreignKeys, false));
+          DDLTests.compareConstraints(tableName, "FK", baseTable.foreignKeys, otherTable.foreignKeys, false));
       diffs.addAll(
-          DDLTests.<Set<String>>compareConstraints(tableName, "UQ", baseTable.uniqueConstraints, otherTable.uniqueConstraints, false));
+          DDLTests.compareConstraints(tableName, "UQ", baseTable.uniqueConstraints, otherTable.uniqueConstraints, false));
       boolean comparePKName = !tableName.contains("qrtz"); // we are more lenient with quartz tables
       diffs.addAll(
-          DDLTests.<Set<String>>compareConstraints(tableName, "PK", toSet(baseTable.primaryKey), toSet(otherTable.primaryKey), comparePKName));
+          DDLTests.compareConstraints(tableName, "PK", toSet(baseTable.primaryKey), toSet(otherTable.primaryKey), comparePKName));
     }
 
     return diffs;

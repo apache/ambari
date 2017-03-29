@@ -110,9 +110,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     "params/start_dependencies";
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          SERVICE_CLUSTER_NAME_PROPERTY_ID,
-          SERVICE_SERVICE_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      SERVICE_CLUSTER_NAME_PROPERTY_ID,
+      SERVICE_SERVICE_NAME_PROPERTY_ID}));
 
 
   private MaintenanceStateHelper maintenanceStateHelper;
@@ -175,7 +175,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    final Set<ServiceRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
@@ -189,7 +189,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     });
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (ServiceResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Service);
@@ -243,7 +243,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    final Set<ServiceRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
@@ -265,7 +265,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     if (propertyIds.isEmpty()) {
       return propertyIds;
     }
-    Set<String> unsupportedProperties = new HashSet<String>();
+    Set<String> unsupportedProperties = new HashSet<>();
 
     for (String propertyId : propertyIds) {
       if (!propertyId.equals("config")) {
@@ -291,7 +291,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request, Predicate predicate)
       throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    final Set<ServiceRequest> requests = new HashSet<>();
     RequestStageContainer requestStages = null;
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
@@ -407,7 +407,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   // Get services from the given set of requests.
   protected Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
       throws AmbariException {
-    Set<ServiceResponse> response = new HashSet<ServiceResponse>();
+    Set<ServiceResponse> response = new HashSet<>();
     for (ServiceRequest request : requests) {
       try {
         response.addAll(getServices(request));
@@ -440,7 +440,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
     }
 
-    Set<ServiceResponse> response = new HashSet<ServiceResponse>();
+    Set<ServiceResponse> response = new HashSet<>();
     if (request.getServiceName() != null) {
       Service s = cluster.getService(request.getServiceName());
       response.add(s.convertToResponse());
@@ -485,17 +485,17 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Map<State, List<Service>> changedServices
-        = new EnumMap<State, List<Service>>(State.class);
+        = new EnumMap<>(State.class);
     Map<State, List<ServiceComponent>> changedComps =
-        new EnumMap<State, List<ServiceComponent>>(State.class);
+      new EnumMap<>(State.class);
     Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
-        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+      new HashMap<>();
     Collection<ServiceComponentHost> ignoredScHosts =
-        new ArrayList<ServiceComponentHost>();
+      new ArrayList<>();
 
-    Set<String> clusterNames = new HashSet<String>();
-    Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
-    Set<State> seenNewStates = new HashSet<State>();
+    Set<String> clusterNames = new HashSet<>();
+    Map<String, Set<String>> serviceNames = new HashMap<>();
+    Set<State> seenNewStates = new HashSet<>();
     Map<Service, Boolean> serviceCredentialStoreEnabledMap = new HashMap<>();
 
     // Determine operation level
@@ -657,7 +657,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
 
     if (startDependencies && changedServices.containsKey(State.STARTED)) {
-      HashSet<Service> depServices = new HashSet<Service>();
+      HashSet<Service> depServices = new HashSet<>();
       for (Service service : changedServices.get(State.STARTED)) {
         RoleCommandOrder rco = controller.getRoleCommandOrder(service.getCluster());
         Set<Service> dependencies = rco.getTransitiveServices(service, RoleCommand.START);
@@ -837,7 +837,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     Clusters clusters    = getManagementController().getClusters();
 
-    Set<Service> removable = new HashSet<Service>();
+    Set<Service> removable = new HashSet<>();
 
     for (ServiceRequest serviceRequest : request) {
       if (StringUtils.isEmpty(serviceRequest.getClusterName()) || StringUtils.isEmpty(serviceRequest.getServiceName())) {
@@ -928,14 +928,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    * @param requestedIds relevant request property ids
    */
   private Map<String, Object> getServiceSpecificProperties(String clusterName, String serviceName, Set<String> requestedIds) {
-    Map<String, Object> serviceSpecificProperties = new HashMap<String, Object>();
+    Map<String, Object> serviceSpecificProperties = new HashMap<>();
     if (serviceName.equals("KERBEROS")) {
       // Only include details on whether the KDC administrator credentials are set and correct if
       // implicitly (Service/attributes) or explicitly (Service/attributes/kdc_...) queried
       if (requestedIds.contains(SERVICE_ATTRIBUTES_PROPERTY_ID) ||
           isPropertyCategoryRequested(SERVICE_ATTRIBUTES_PROPERTY_ID, requestedIds) ||
           isPropertyEntryRequested(SERVICE_ATTRIBUTES_PROPERTY_ID, requestedIds)) {
-        Map<String, String> kerberosAttributes = new HashMap<String, String>();
+        Map<String, String> kerberosAttributes = new HashMap<>();
         String kdcValidationResult = "OK";
         String failureDetails = "";
         try {

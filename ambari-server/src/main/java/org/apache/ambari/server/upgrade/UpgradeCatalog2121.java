@@ -120,7 +120,7 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
    */
   protected void updatePHDConfigs() throws AmbariException {
 
-    Map<String, String> replacements = new LinkedHashMap<String, String>();
+    Map<String, String> replacements = new LinkedHashMap<>();
     replacements.put("-Dstack.name=\\{\\{\\s*stack_name\\s*\\}\\}\\s*", "");
     replacements.put("-Dstack.name=\\$\\{stack.name\\}\\s*", "");
     replacements.put("-Dstack.version=\\{\\{\\s*stack_version_buildnum\\s*\\}\\}", "-Dhdp.version=\\$HDP_VERSION");
@@ -150,7 +150,7 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
 
                 Map<String, String> properties = config.getProperties();
                 if(properties != null && !properties.isEmpty()) {
-                  Map<String, String> updates = new HashMap<String, String>();
+                  Map<String, String> updates = new HashMap<>();
                   for (Map.Entry<String, String> property : properties.entrySet()) {
                     String propertyKey = property.getKey();
                     String propertyValue = property.getValue();
@@ -182,7 +182,7 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
         // Remove oozie.authentication.kerberos.name.rules if empty
         String oozieAuthKerbRules = oozieSiteProps.getProperties().get(OOZIE_AUTHENTICATION_KERBEROS_NAME_RULES);
         if (StringUtils.isBlank(oozieAuthKerbRules)) {
-          Set<String> removeProperties = new HashSet<String>();
+          Set<String> removeProperties = new HashSet<>();
           removeProperties.add(OOZIE_AUTHENTICATION_KERBEROS_NAME_RULES);
           updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, new HashMap<String, String>(), removeProperties, true, false);
         }

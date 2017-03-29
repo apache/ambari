@@ -99,7 +99,7 @@ public class StackServiceResponse {
     if (null == definitions || definitions.size() == 0) {
       customCommands = Collections.emptyList();
     } else {
-      customCommands = new ArrayList<String>(definitions.size());
+      customCommands = new ArrayList<>(definitions.size());
       for (CustomCommandDefinition command : definitions) {
         customCommands.add(command.getName());
       }

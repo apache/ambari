@@ -51,7 +51,7 @@ public class AbstractJDBCResourceProviderTest {
 
   @Test
   public void test() throws SQLException {
-    Set<String> requestedIds = new TreeSet<String>();
+    Set<String> requestedIds = new TreeSet<>();
     requestedIds.add(property1);
     requestedIds.add("none1");
     requestedIds.add(property2);
@@ -129,7 +129,7 @@ public class AbstractJDBCResourceProviderTest {
 
     @Override
     protected Map<String,TestFields> getDBFieldMap() {
-      Map<String,TestFields> fields = new HashMap<String,TestFields>();
+      Map<String,TestFields> fields = new HashMap<>();
       fields.put(property1, TestFields.field1);
       fields.put(property2, TestFields.field2);
       return fields;

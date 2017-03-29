@@ -36,7 +36,7 @@ public class GreaterEqualsPredicateTest {
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    Predicate predicate = new GreaterEqualsPredicate<Integer>(propertyId, 10);
+    Predicate predicate = new GreaterEqualsPredicate<>(propertyId, 10);
 
     resource.setProperty(propertyId, 1);
     Assert.assertFalse(predicate.evaluate(resource));
@@ -61,7 +61,7 @@ public class GreaterEqualsPredicateTest {
   @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    GreaterEqualsPredicate predicate = new GreaterEqualsPredicate<Integer>(propertyId, 10);
+    GreaterEqualsPredicate predicate = new GreaterEqualsPredicate<>(propertyId, 10);
 
     Set<String> ids = predicate.getPropertyIds();
 

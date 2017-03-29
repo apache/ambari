@@ -98,7 +98,7 @@ public class AmbariPerformanceRunnableTest {
   private AlertsDAO m_alertsDao;
   private AlertDefinitionDAO m_definitionDao;
   private AlertDefinitionEntity m_definition;
-  private List<AlertCurrentEntity> m_currentAlerts = new ArrayList<AlertCurrentEntity>();
+  private List<AlertCurrentEntity> m_currentAlerts = new ArrayList<>();
   private MockEventListener m_listener;
 
   private AlertEventPublisher m_eventPublisher;
@@ -128,7 +128,7 @@ public class AmbariPerformanceRunnableTest {
     m_synchronizedBus.register(m_listener);
 
     // create the cluster map
-    Map<String,Cluster> clusterMap = new HashMap<String, Cluster>();
+    Map<String,Cluster> clusterMap = new HashMap<>();
     clusterMap.put(CLUSTER_NAME, m_cluster);
 
     // mock the definition for the alert

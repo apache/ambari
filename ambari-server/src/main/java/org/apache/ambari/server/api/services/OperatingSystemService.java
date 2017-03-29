@@ -105,7 +105,7 @@ public class OperatingSystemService extends BaseService {
    */
   @Path("{osType}/repositories")
   public RepositoryService getOperatingSystemsHandler(@PathParam("osType") String osType) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.OperatingSystem, osType);
     return new RepositoryService(mapIds);
@@ -119,7 +119,7 @@ public class OperatingSystemService extends BaseService {
    * @return an operating system instance
    */
   private ResourceInstance createResource(String osType) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.OperatingSystem, osType);
     return createResource(Resource.Type.OperatingSystem, mapIds);

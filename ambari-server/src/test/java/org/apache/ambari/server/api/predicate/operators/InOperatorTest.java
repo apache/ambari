@@ -40,9 +40,9 @@ public class InOperatorTest {
   public void testToPredicate() throws Exception {
     String prop = "prop";
     String val = "one,2,three";
-    EqualsPredicate p1 = new EqualsPredicate<String>(prop, "one");
-    EqualsPredicate p2 = new EqualsPredicate<String>(prop, "2");
-    EqualsPredicate p3 = new EqualsPredicate<String>(prop, "three");
+    EqualsPredicate p1 = new EqualsPredicate<>(prop, "one");
+    EqualsPredicate p2 = new EqualsPredicate<>(prop, "2");
+    EqualsPredicate p3 = new EqualsPredicate<>(prop, "three");
     OrPredicate orPredicate = new OrPredicate(p1, p2, p3);
 
     assertEquals(orPredicate, new InOperator().toPredicate(prop, val));

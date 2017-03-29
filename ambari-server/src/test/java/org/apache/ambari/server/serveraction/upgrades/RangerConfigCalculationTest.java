@@ -67,7 +67,7 @@ public class RangerConfigCalculationTest {
     expect(adminConfig.getType()).andReturn("admin-properties").anyTimes();
     expect(adminConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-    mockProperties = new HashMap<String, String>();
+    mockProperties = new HashMap<>();
 
     Config adminSiteConfig = EasyMock.createNiceMock(Config.class);
     expect(adminSiteConfig.getType()).andReturn("admin-properties").anyTimes();
@@ -94,7 +94,7 @@ public class RangerConfigCalculationTest {
   @Test
   public void testAction() throws Exception {
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();

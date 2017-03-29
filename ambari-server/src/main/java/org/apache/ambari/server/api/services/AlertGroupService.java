@@ -110,7 +110,7 @@ public class AlertGroupService extends BaseService {
   private ResourceInstance createAlertGroupResource(String clusterName,
       Long groupId) {
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.AlertGroup,
         null == groupId ? null : groupId.toString());

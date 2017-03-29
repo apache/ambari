@@ -113,7 +113,7 @@ public class HostStackVersionService extends BaseService {
    */
   @Path("{stackVersionId}/repository_versions")
   public RepositoryVersionService getRepositoryVersionHandler(@PathParam("stackVersionId") String stackVersionId) {
-    final Map<Resource.Type, String> stackVersionProperties = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> stackVersionProperties = new HashMap<>();
     stackVersionProperties.put(Resource.Type.Host, hostName);
     stackVersionProperties.put(Resource.Type.HostStackVersion, stackVersionId);
     return new RepositoryVersionService(stackVersionProperties);
@@ -128,7 +128,7 @@ public class HostStackVersionService extends BaseService {
    * @return a host host version resource instance
    */
   private ResourceInstance createResource(UriInfo ui, String clusterName, String hostName, String stackVersionId) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     if (clusterName != null) {
       mapIds.put(Resource.Type.Cluster, clusterName);
     }

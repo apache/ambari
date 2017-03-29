@@ -53,8 +53,8 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   protected static final String CLUSTER_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Cluster", "properties");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          CLUSTER_NAME_PROPERTY_ID }));
+    new HashSet<>(Arrays.asList(new String[]{
+      CLUSTER_NAME_PROPERTY_ID}));
 
   /**
    * Construct a provider.
@@ -88,7 +88,7 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
     IvoryService  service         = getService();
     List<String>  clusterNames    = service.getClusterNames();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (String clusterName : clusterNames ) {
 
@@ -159,7 +159,7 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
 
   protected static Cluster getCluster(String clusterName, Map<String, Object> propertyMap) {
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     for ( Map.Entry<String, Object> entry : propertyMap.entrySet()) {
       String property = entry.getKey();
       String category = PropertyHelper.getPropertyCategory(property);
@@ -177,7 +177,7 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   protected static Set<Cluster.Interface> getInterfaces(Set<Map<String, Object>> maps) {
-    Set<Cluster.Interface> interfaces = new HashSet<Cluster.Interface>();
+    Set<Cluster.Interface> interfaces = new HashSet<>();
     for (Map<String, Object> map : maps) {
       interfaces.add(new Cluster.Interface((String) map.get("type"), (String) map.get("endpoint"), (String) map.get("version")));
     }
@@ -185,7 +185,7 @@ public class TargetClusterResourceProvider extends AbstractDRResourceProvider {
   }
 
   protected static Set<Cluster.Location> getLocations(Set<Map<String, Object>> maps) {
-    Set<Cluster.Location> locations = new HashSet<Cluster.Location>();
+    Set<Cluster.Location> locations = new HashSet<>();
     for (Map<String, Object> map : maps) {
       locations.add(new Cluster.Location((String) map.get("name"), (String) map.get("path")));
     }

@@ -18,7 +18,7 @@
 
 package org.apache.ambari.view.hive20.actor.message.job;
 
-public class Failure {
+public class Failure extends Exception {
   private final Throwable error;
   private final String message;
 

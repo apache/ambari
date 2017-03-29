@@ -111,7 +111,7 @@ public class ViewPrivilegeResourceProviderTest {
     registry.addInstanceDefinition(viewDefinition, viewInstanceDefinition);
 
 
-    List<PrivilegeEntity> privilegeEntities = new LinkedList<PrivilegeEntity>();
+    List<PrivilegeEntity> privilegeEntities = new LinkedList<>();
 
     PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
     ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
@@ -120,10 +120,10 @@ public class ViewPrivilegeResourceProviderTest {
     PrincipalTypeEntity principalTypeEntity = createNiceMock(PrincipalTypeEntity.class);
     PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
 
-    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> principalEntities = new LinkedList<>();
     principalEntities.add(principalEntity);
 
-    List<UserEntity> userEntities = new LinkedList<UserEntity>();
+    List<UserEntity> userEntities = new LinkedList<>();
     userEntities.add(userEntity);
 
     privilegeEntities.add(privilegeEntity);

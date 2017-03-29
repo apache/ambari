@@ -86,7 +86,7 @@ public class RepositoryVersionHelper {
    * @throws Exception if any kind of json parsing error happened
    */
   public List<OperatingSystemEntity> parseOperatingSystems(String repositoriesJson) throws Exception {
-    final List<OperatingSystemEntity> operatingSystems = new ArrayList<OperatingSystemEntity>();
+    final List<OperatingSystemEntity> operatingSystems = new ArrayList<>();
     final JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
     for (JsonElement operatingSystemJson: rootJson) {
       JsonObject osObj = operatingSystemJson.getAsJsonObject();

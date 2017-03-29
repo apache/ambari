@@ -153,7 +153,7 @@ public class RepositoryService extends BaseService {
    * @return a repository instance
    */
   private ResourceInstance createResource(String repoId) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.Repository, repoId);
     return createResource(Resource.Type.Repository, mapIds);

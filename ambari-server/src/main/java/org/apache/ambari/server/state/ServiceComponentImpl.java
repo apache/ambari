@@ -85,7 +85,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   private AmbariMetaInfo ambariMetaInfo;
 
-  private final ConcurrentMap<String, ServiceComponentHost> hostComponents = new ConcurrentHashMap<String, ServiceComponentHost>();
+  private final ConcurrentMap<String, ServiceComponentHost> hostComponents = new ConcurrentHashMap<>();
 
   /**
    * The ID of the persisted {@link ServiceComponentDesiredStateEntity}.
@@ -274,7 +274,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public Map<String, ServiceComponentHost> getServiceComponentHosts() {
-    return new HashMap<String, ServiceComponentHost>(hostComponents);
+    return new HashMap<>(hostComponents);
   }
 
   @Override
@@ -747,7 +747,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   private Map <String, Integer> getServiceComponentStateCount() {
-    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", getSCHCountByState(State.STARTED));
     serviceComponentStateCountMap.put("installedCount", getSCHCountByState(State.INSTALLED));
     serviceComponentStateCountMap.put("installFailedCount", getSCHCountByState(State.INSTALL_FAILED));

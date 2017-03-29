@@ -134,7 +134,7 @@ public class SecurePasswordHelperTest {
   private void assertMinCharacterCount(int minCount, String string, char[] characters) {
 
     int count = 0;
-    Set<Character> set = new HashSet<Character>();
+    Set<Character> set = new HashSet<>();
     for(char c:characters) {
       set.add(c);
     }

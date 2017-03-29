@@ -33,7 +33,7 @@ public class QueryResponseImplTest {
 
   @Test
   public void testGetResources() throws Exception {
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     resources.add(new ResourceImpl(Resource.Type.Stage));
 
     QueryResponse queryResponse = new QueryResponseImpl(resources);
@@ -42,7 +42,7 @@ public class QueryResponseImplTest {
 
   @Test
   public void testIsSortedResponse() throws Exception {
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     resources.add(new ResourceImpl(Resource.Type.Stage));
 
     QueryResponse queryResponse = new QueryResponseImpl(resources);
@@ -57,7 +57,7 @@ public class QueryResponseImplTest {
 
   @Test
   public void testIsPagedResponse() throws Exception {
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     resources.add(new ResourceImpl(Resource.Type.Stage));
 
     QueryResponse queryResponse = new QueryResponseImpl(resources);
@@ -72,7 +72,7 @@ public class QueryResponseImplTest {
 
   @Test
   public void testGetTotalResourceCount() throws Exception {
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     resources.add(new ResourceImpl(Resource.Type.Stage));
 
     QueryResponse queryResponse = new QueryResponseImpl(resources);

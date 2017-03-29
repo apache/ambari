@@ -48,7 +48,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
   @Override
   public Set<RequestBody> parse(String body) throws BodyParseException {
 
-    Set<RequestBody> requestBodySet = new HashSet<RequestBody>();
+    Set<RequestBody> requestBodySet = new HashSet<>();
     RequestBody      rootBody       = new RequestBody();
     rootBody.setBody(body);
 
@@ -60,8 +60,8 @@ public class JsonRequestBodyParser implements RequestBodyParser {
         Iterator<JsonNode> iterator = root.getElements();
         while (iterator.hasNext()) {
           JsonNode            node             = iterator.next();
-          Map<String, Object> mapProperties    = new HashMap<String, Object>();
-          Map<String, String> requestInfoProps = new HashMap<String, String>();
+          Map<String, Object> mapProperties    = new HashMap<>();
+          Map<String, String> requestInfoProps = new HashMap<>();
           NamedPropertySet    propertySet      = new NamedPropertySet("", mapProperties);
 
           processNode(node, "", propertySet, requestInfoProps);
@@ -119,8 +119,8 @@ public class JsonRequestBodyParser implements RequestBodyParser {
       if (child.isArray()) {
         //array
         Iterator<JsonNode>       arrayIter = child.getElements();
-        Set<Map<String, Object>> arraySet  = new LinkedHashSet<Map<String, Object>>();
-        List<String> primitives = new ArrayList<String>();
+        Set<Map<String, Object>> arraySet  = new LinkedHashSet<>();
+        List<String> primitives = new ArrayList<>();
 
         while (arrayIter.hasNext()) {
           JsonNode next = arrayIter.next();

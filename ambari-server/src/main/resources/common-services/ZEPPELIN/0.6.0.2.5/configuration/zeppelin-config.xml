@@ -93,6 +93,13 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>zeppelin.interpreter.group.order</name>
+    <value>spark,angular,jdbc,livy,md,sh</value>
+    <description>Comma separated interpreter configurations. First interpreter become default
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>zeppelin.interpreter.connect.timeout</name>
     <value>30000</value>
     <description>Interpreter process connect timeout in msec.</description>

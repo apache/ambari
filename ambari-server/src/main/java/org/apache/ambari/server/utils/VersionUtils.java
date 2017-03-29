@@ -88,8 +88,8 @@ public class VersionUtils {
     int length = Math.max(version1Parts.length, version2Parts.length);
     length = maxLengthToCompare == 0 || maxLengthToCompare > length ? length : maxLengthToCompare;
 
-    List<Integer> stack1Parts = new ArrayList<Integer>();
-    List<Integer> stack2Parts = new ArrayList<Integer>();
+    List<Integer> stack1Parts = new ArrayList<>();
+    List<Integer> stack2Parts = new ArrayList<>();
 
     for (int i = 0; i < length; i++) {
       // Robust enough to handle strings in the version

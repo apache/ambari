@@ -33,40 +33,29 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
   @Override
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
 
-    if (topology.getConfiguration() == null) {
-      LOGGER.debug("No configuration is set into the topology");
-      return;
-    }
+    // config types in from the request / configuration is always set in the request instance
+    Set<String> topologyClusterConfigTypes = new HashSet(topology.getConfiguration().getAllConfigTypes());
+    LOGGER.debug("Cluster config types: {}", topologyClusterConfigTypes);
 
-    if (topology.getConfiguration().getProperties() == null) {
-      LOGGER.debug("No properties is set into the topology configuration");
-      return;
-    }
-
-    // config types in from the request
-    Set<String> clusterConfigTypes = topology.getConfiguration().getProperties().keySet();
-    LOGGER.debug("Cluster config types: {}", clusterConfigTypes);
-
-    if (clusterConfigTypes == null || clusterConfigTypes.isEmpty()) {
+    if (topologyClusterConfigTypes.isEmpty()) {
       LOGGER.debug("No config types to be checked.");
       return;
     }
 
     // collecting all config types for services in the blueprint (from the related stack)
-    Set<String> serviceConfigTypes = new HashSet<>();
+    Set<String> stackServiceConfigTypes = new HashSet<>();
     for (String serviceName : topology.getBlueprint().getServices()) {
-      serviceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
+      stackServiceConfigTypes.addAll(topology.getBlueprint().getStack().getConfigurationTypes(serviceName));
     }
 
     // identifying invalid config types
-    Set<String> configTypeIntersection = new HashSet<String>(serviceConfigTypes);
+    Set<String> configTypeIntersection = new HashSet<>(topologyClusterConfigTypes);
 
-    // if the intersection is changed, there's been some wrong config type provided in the cluster configuration
-    if (configTypeIntersection.retainAll(clusterConfigTypes)) {
-      LOGGER.debug("Valid config types: {}", configTypeIntersection);
+    if (configTypeIntersection.retainAll(stackServiceConfigTypes)) {
+      // there are config types not present in the stack for the services listed in the blueprint
 
       // get the wrong  config types
-      Set<String> invalidConfigTypes = new HashSet<>(clusterConfigTypes);
+      Set<String> invalidConfigTypes = new HashSet<>(topologyClusterConfigTypes);
       invalidConfigTypes.removeAll(configTypeIntersection);
 
       LOGGER.error("The following config typess are wrong: {}", invalidConfigTypes);

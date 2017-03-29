@@ -39,7 +39,7 @@ angular.module('ambariAdminConsole')
         $scope.status = false;
         $scope.motdExists = false;
         $scope.text = "";
-        $scope.buttonText = "OK";
+        $scope.buttonText = $t('common.controls.ok');
       });
       $scope.submitDisabled = true;
     };

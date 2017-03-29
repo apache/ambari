@@ -21,6 +21,8 @@ import DS from 'ember-data';
 import ENV from 'ui/config/environment';
 
 export default DS.RESTAdapter.extend({
+  ldapAuth: Ember.inject.service(),
+
   init: function () {
     Ember.$.ajaxSetup({
       cache: false
@@ -55,12 +57,20 @@ export default DS.RESTAdapter.extend({
       // In development mode when the UI is served using ember serve the xhr requests are proxied to ambari server
       // by setting the proxyurl parameter in ember serve and for ambari to authenticate the requests, it needs this
       // basic authorization. This is for default admin/admin username/password combination.
-      headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
+      //headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
       //headers['Authorization'] = 'Basic aGl2ZTpoaXZl';
       //headers['Authorization'] = 'Basic ZGlwYXlhbjpkaXBheWFu';
     }
     return headers;
   }),
+
+
+  handleResponse(status, headers, payload, requestData) {
+    if (status == 401) {
+      this.get('ldapAuth').askPassword();
+    }
+    return this._super(...arguments);
+  },
 
   parseErrorResponse(responseText) {
     let json = this._super(responseText);

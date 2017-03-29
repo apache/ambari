@@ -64,8 +64,8 @@ public class EqualsPredicateTest extends EasyMockSupport {
 
     verifyAll();
 
-    Map<String, Object> expectedMap = new HashMap<String, Object>();
-    expectedMap.put("equals", new ArrayList<String>(Arrays.asList("data", "value")));
+    Map<String, Object> expectedMap = new HashMap<>();
+    expectedMap.put("equals", new ArrayList<>(Arrays.asList("data", "value")));
 
     Assert.assertEquals(expectedMap, actualMap);
   }

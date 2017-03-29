@@ -35,7 +35,7 @@ public class NotPredicateTest {
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    EqualsPredicate predicate = new EqualsPredicate<String>(propertyId, "bar");
+    EqualsPredicate predicate = new EqualsPredicate<>(propertyId, "bar");
     NotPredicate notPredicate = new NotPredicate(predicate);
 
     resource.setProperty(propertyId, "monkey");
@@ -48,7 +48,7 @@ public class NotPredicateTest {
   @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    EqualsPredicate predicate = new EqualsPredicate<String>(propertyId, "bar");
+    EqualsPredicate predicate = new EqualsPredicate<>(propertyId, "bar");
 
     Set<String> ids = predicate.getPropertyIds();
 

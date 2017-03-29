@@ -40,7 +40,7 @@ public class GreaterOperator extends AbstractOperator implements RelationalOpera
 
   @Override
   public Predicate toPredicate(String prop, String val) {
-    return new GreaterPredicate<String>(prop, val);
+    return new GreaterPredicate<>(prop, val);
   }
 
   @Override

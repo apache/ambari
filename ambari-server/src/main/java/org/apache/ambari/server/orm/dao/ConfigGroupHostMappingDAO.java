@@ -80,7 +80,7 @@ public class ConfigGroupHostMappingDAO {
       try {
         if (!cacheLoaded) {
           if (configGroupHostMappingByHost == null) {
-            configGroupHostMappingByHost = new HashMap<Long, Set<ConfigGroupHostMapping>>();
+            configGroupHostMappingByHost = new HashMap<>();
 
             TypedQuery<ConfigGroupHostMappingEntity> query = entityManagerProvider.get().createQuery(
                 "SELECT entity FROM ConfigGroupHostMappingEntity entity",
@@ -93,7 +93,7 @@ public class ConfigGroupHostMappingDAO {
               Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get((configGroupHostMappingEntity.getHostId()));
 
               if (setByHost == null) {
-                setByHost = new HashSet<ConfigGroupHostMapping>();
+                setByHost = new HashSet<>();
                 configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), setByHost);
               }
 
@@ -135,7 +135,7 @@ public class ConfigGroupHostMappingDAO {
       return null;
     }
 
-    Set<ConfigGroupHostMapping> set = new HashSet<ConfigGroupHostMapping>(configGroupHostMappingByHost.get(hostId));
+    Set<ConfigGroupHostMapping> set = new HashSet<>(configGroupHostMappingByHost.get(hostId));
 
     return set;
 
@@ -146,11 +146,11 @@ public class ConfigGroupHostMappingDAO {
 
     populateCache();
 
-    Set<ConfigGroupHostMapping> result = new HashSet<ConfigGroupHostMapping>();
+    Set<ConfigGroupHostMapping> result = new HashSet<>();
 
     for (Set<ConfigGroupHostMapping> item : configGroupHostMappingByHost.values()) {
 
-      Set<ConfigGroupHostMapping> setByHost = new HashSet<ConfigGroupHostMapping>(item);
+      Set<ConfigGroupHostMapping> setByHost = new HashSet<>(item);
 
       CollectionUtils.filter(setByHost, new Predicate() {
 
@@ -183,7 +183,7 @@ public class ConfigGroupHostMappingDAO {
     //create in cache
     Set<ConfigGroupHostMapping> set = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostId());
     if (set == null){
-      set = new HashSet<ConfigGroupHostMapping>();
+      set = new HashSet<>();
       configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), set);
     }
 
@@ -197,7 +197,7 @@ public class ConfigGroupHostMappingDAO {
 
     Set<ConfigGroupHostMapping> set = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostId());
     if (set == null){
-      set = new HashSet<ConfigGroupHostMapping>();
+      set = new HashSet<>();
       configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), set);
     }
 

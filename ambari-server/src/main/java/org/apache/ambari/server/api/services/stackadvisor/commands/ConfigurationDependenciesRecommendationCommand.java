@@ -70,15 +70,15 @@ public class ConfigurationDependenciesRecommendationCommand extends
   }
 
   protected Set<HostGroup> processHostGroups(StackAdvisorRequest request) {
-    Set<HostGroup> resultSet = new HashSet<HostGroup>();
+    Set<HostGroup> resultSet = new HashSet<>();
     for (Map.Entry<String, Set<String>> componentHost : request.getHostComponents().entrySet()) {
       String hostGroupName = componentHost.getKey();
       Set<String> components = componentHost.getValue();
       if (hostGroupName != null && components != null) {
         HostGroup hostGroup = new HostGroup();
-        Set<Map<String, String>> componentsSet = new HashSet<Map<String, String>>();
+        Set<Map<String, String>> componentsSet = new HashSet<>();
         for (String component : components) {
-          Map<String, String> componentMap = new HashMap<String, String>();
+          Map<String, String> componentMap = new HashMap<>();
           componentMap.put("name", component);
           componentsSet.add(componentMap);
         }
@@ -91,15 +91,15 @@ public class ConfigurationDependenciesRecommendationCommand extends
   }
 
   private Set<BindingHostGroup> processHostGroupBindings(StackAdvisorRequest request) {
-    Set<BindingHostGroup> resultSet = new HashSet<BindingHostGroup>();
+    Set<BindingHostGroup> resultSet = new HashSet<>();
     for (Map.Entry<String, Set<String>> hostBinding : request.getHostGroupBindings().entrySet()) {
       String hostGroupName = hostBinding.getKey();
       Set<String> hosts = hostBinding.getValue();
       if (hostGroupName != null && hosts != null) {
         BindingHostGroup bindingHostGroup = new BindingHostGroup();
-        Set<Map<String, String>> hostsSet = new HashSet<Map<String, String>>();
+        Set<Map<String, String>> hostsSet = new HashSet<>();
         for (String host : hosts) {
-          Map<String, String> hostMap = new HashMap<String, String>();
+          Map<String, String> hostMap = new HashMap<>();
           hostMap.put("name", host);
           hostsSet.add(hostMap);
         }
