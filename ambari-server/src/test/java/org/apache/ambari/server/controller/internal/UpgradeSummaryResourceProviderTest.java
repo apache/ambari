@@ -169,7 +169,7 @@ public class UpgradeSummaryResourceProviderTest {
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);

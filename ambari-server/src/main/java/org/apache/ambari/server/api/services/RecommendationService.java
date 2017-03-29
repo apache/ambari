@@ -61,7 +61,7 @@ public class RecommendationService extends BaseService {
   }
 
   ResourceInstance createRecommendationResource(String stackName, String stackVersion) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
 

@@ -298,7 +298,7 @@ public class StageResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_STAGE_ID).equals(2L).and().
         property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L).toPredicate();
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(StageResourceProvider.STAGE_STATUS, HostRoleStatus.ABORTED.name());
     Request request = PropertyHelper.getUpdateRequest(requestProps, null);
 
@@ -331,14 +331,14 @@ public class StageResourceProviderTest {
     task2.setEndTime(2500L);
 
 
-    Collection<HostRoleCommandEntity> tasks = new HashSet<HostRoleCommandEntity>();
+    Collection<HostRoleCommandEntity> tasks = new HashSet<>();
     tasks.add(task1);
     tasks.add(task2);
 
     stage.setHostRoleCommands(tasks);
     stage.setRequestId(1L);
 
-    List<StageEntity> entities = new LinkedList<StageEntity>();
+    List<StageEntity> entities = new LinkedList<>();
     entities.add(stage);
     return entities;
   }

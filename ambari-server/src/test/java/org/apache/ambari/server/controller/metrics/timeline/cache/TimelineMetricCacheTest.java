@@ -142,7 +142,7 @@ public class TimelineMetricCacheTest {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName("cpu_user");
     timelineMetric.setAppId("app1");
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> metricValues = new TreeMap<>();
     metricValues.put(now + 100, 1.0);
     metricValues.put(now + 200, 2.0);
     metricValues.put(now + 300, 3.0);
@@ -315,7 +315,7 @@ public class TimelineMetricCacheTest {
     final TimelineMetric timelineMetric1 = new TimelineMetric();
     timelineMetric1.setMetricName("cpu_user");
     timelineMetric1.setAppId("app1");
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> metricValues = new TreeMap<>();
     metricValues.put(now - 100, 1.0);
     metricValues.put(now - 200, 2.0);
     metricValues.put(now - 300, 3.0);
@@ -323,7 +323,7 @@ public class TimelineMetricCacheTest {
     final TimelineMetric timelineMetric2 = new TimelineMetric();
     timelineMetric2.setMetricName("cpu_nice");
     timelineMetric2.setAppId("app1");
-    metricValues = new TreeMap<Long, Double>();
+    metricValues = new TreeMap<>();
     metricValues.put(now + 400, 1.0);
     metricValues.put(now + 500, 2.0);
     metricValues.put(now + 600, 3.0);
@@ -341,7 +341,7 @@ public class TimelineMetricCacheTest {
     TimelineMetric timelineMetric3 = new TimelineMetric();
     timelineMetric3.setMetricName("cpu_user");
     timelineMetric3.setAppId("app1");
-    metricValues = new TreeMap<Long, Double>();
+    metricValues = new TreeMap<>();
     metricValues.put(now + 1400, 1.0);
     metricValues.put(now + 1500, 2.0);
     metricValues.put(now + 1600, 3.0);
@@ -420,12 +420,12 @@ public class TimelineMetricCacheTest {
     long year = 365 * day;
 
     //Original Values
-    Map<String, TimelineMetric> valueMap = new HashMap<String, TimelineMetric>();
+    Map<String, TimelineMetric> valueMap = new HashMap<>();
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName("cpu_user");
     timelineMetric.setAppId("app1");
 
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> metricValues = new TreeMap<>();
     for (long i = 1 * year - 1 * day; i >= 0; i -= 1 * day) {
       metricValues.put(now-i, 1.0);
     }
@@ -446,12 +446,12 @@ public class TimelineMetricCacheTest {
     key.setSpec("");
 
     //Updated values
-    Map<String, TimelineMetric> newValueMap = new HashMap<String, TimelineMetric>();
+    Map<String, TimelineMetric> newValueMap = new HashMap<>();
     TimelineMetric newTimelineMetric = new TimelineMetric();
     newTimelineMetric.setMetricName("cpu_user");
     newTimelineMetric.setAppId("app1");
 
-    TreeMap<Long, Double> newMetricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> newMetricValues = new TreeMap<>();
     for(long i=1*hour;i<=2*day;i+=hour) {
       newMetricValues.put(now-1*day+i, 2.0);
     }

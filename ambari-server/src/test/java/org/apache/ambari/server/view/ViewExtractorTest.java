@@ -210,7 +210,7 @@ public class ViewExtractorTest {
     Map<File, ViewConfig> viewConfigs =
         Collections.singletonMap(viewArchive, viewDefinition.getConfiguration());
 
-    Map<String, File> files = new HashMap<String, File>();
+    Map<String, File> files = new HashMap<>();
 
     if (System.getProperty("os.name").contains("Windows")) {
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work", extractedArchiveDir);
@@ -229,10 +229,10 @@ public class ViewExtractorTest {
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
     }
 
-    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    Map<File, FileOutputStream> outputStreams = new HashMap<>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
+    Map<File, JarInputStream> jarFiles = new HashMap<>();
     jarFiles.put(viewArchive, viewJarFile);
 
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);

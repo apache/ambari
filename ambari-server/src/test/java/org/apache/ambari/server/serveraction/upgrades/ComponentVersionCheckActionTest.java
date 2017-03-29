@@ -159,7 +159,7 @@ public class ComponentVersionCheckActionTest {
 
     Host host = clusters.getHost(hostName);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
@@ -213,7 +213,7 @@ public class ComponentVersionCheckActionTest {
     clusters.addHost(hostName);
     Host host = clusters.getHost(hostName);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
@@ -273,7 +273,7 @@ public class ComponentVersionCheckActionTest {
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
 
     // Finalize the upgrade
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
     commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
 
@@ -348,7 +348,7 @@ public class ComponentVersionCheckActionTest {
 
     // now finalize and ensure we can transition from UPGRADING to UPGRADED
     // automatically before CURRENT
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
     commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
     commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
@@ -417,8 +417,8 @@ public class ComponentVersionCheckActionTest {
   }
 
   private void createConfigs(Cluster cluster) {
-    Map<String, String> properties = new HashMap<String, String>();
-    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String, String>>();
+    Map<String, String> properties = new HashMap<>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
     properties.put("a", "a1");
     properties.put("b", "b1");
 

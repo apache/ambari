@@ -195,7 +195,7 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
     PrincipalDAO principalDAO = injector.getInstance(PrincipalDAO.class);
     PrincipalTypeDAO principalTypeDAO = injector.getInstance(PrincipalTypeDAO.class);
 
-    Map<String, String> principalTypeToRole = new HashMap<String, String>();
+    Map<String, String> principalTypeToRole = new HashMap<>();
     principalTypeToRole.put("ALL.CLUSTER.ADMINISTRATOR", "CLUSTER.ADMINISTRATOR");
     principalTypeToRole.put("ALL.CLUSTER.OPERATOR", "CLUSTER.OPERATOR");
     principalTypeToRole.put("ALL.CLUSTER.USER", "CLUSTER.USER");

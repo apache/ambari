@@ -340,7 +340,7 @@ public class ShellCommandUtil {
     if (pathExists(directoryPath, sudo).isSuccessful()) {
       return new Result(0, "The directory already exists, skipping.", ""); // Success!
     } else {
-      ArrayList<String> command = new ArrayList<String>();
+      ArrayList<String> command = new ArrayList<>();
 
       command.add("/bin/mkdir");
 
@@ -365,7 +365,7 @@ public class ShellCommandUtil {
    * @return the shell command result
    */
   public static Result copyFile(String srcFile, String destFile, boolean force, boolean sudo) throws IOException, InterruptedException {
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
 
     if (WINDOWS) {
       command.add("copy");

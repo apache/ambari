@@ -29,7 +29,7 @@ public class MetricsDataTransferMethodFactory {
   private static final Set<String> PERCENTAGE_METRIC;
 
   static {
-    Set<String> percentMetrics = new HashSet<String>();
+    Set<String> percentMetrics = new HashSet<>();
     percentMetrics.add("cpu_wio");
     percentMetrics.add("cpu_idle");
     percentMetrics.add("cpu_nice");
@@ -37,7 +37,7 @@ public class MetricsDataTransferMethodFactory {
     percentMetrics.add("cpu_system");
     percentMetrics.add("cpu_user");
 
-    Set<String> metricsWithAggregateFunctionIds = new HashSet<String>();
+    Set<String> metricsWithAggregateFunctionIds = new HashSet<>();
     for (String metric : percentMetrics) {
       for (String aggregateFunctionId : AGGREGATE_FUNCTION_IDENTIFIERS) {
         metricsWithAggregateFunctionIds.add(metric + aggregateFunctionId);

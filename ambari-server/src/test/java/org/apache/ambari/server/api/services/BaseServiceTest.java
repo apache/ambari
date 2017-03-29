@@ -210,7 +210,7 @@ public abstract class BaseServiceTest {
     private Object[] m_args;
     private String m_body;
 
-    private static final Map<Request.Type, Integer> mapStatusCodes = new HashMap<Request.Type, Integer>();
+    private static final Map<Request.Type, Integer> mapStatusCodes = new HashMap<>();
 
     static {
       mapStatusCodes.put(Request.Type.GET, 200);

@@ -728,12 +728,12 @@ public class UpgradeCatalog240Test {
     final Config mockOozieEnv = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedOozieEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedOozieEnv = new HashMap<>();
     propertiesExpectedOozieEnv.put("oozie_derby_database", "Derby");
     propertiesExpectedOozieEnv.put("property", "value");
     // Imitate missing property
     // propertiesExpectedOozieEnv.put("oozie_hostname", "hostname");
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<>();
     propertiesExpectedHiveEnv.put("hive_hostname", "hostname");
 
     final Injector mockInjector = Guice.createInjector(new Module() {
@@ -790,7 +790,7 @@ public class UpgradeCatalog240Test {
 
     final Config mockFalconEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedFalconEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedFalconEnv = new HashMap<>();
     propertiesExpectedFalconEnv.put("falcon_store_uri", "file:///hadoop/falcon/store");
     propertiesExpectedFalconEnv.put("content", "# content");
     propertiesExpectedFalconEnv.put("property", "value");
@@ -817,7 +817,7 @@ public class UpgradeCatalog240Test {
 
     final Config falconStartupConfig = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> falconStartupConfigProperties= new HashMap<String, String>();
+    final Map<String, String> falconStartupConfigProperties= new HashMap<>();
     falconStartupConfigProperties.put("*.application.services", applicationServicesOldPropertyValue);
     falconStartupConfigProperties.put("property", "value");
     final Injector mockInjector = Guice.createInjector(new Module() {
@@ -1941,39 +1941,39 @@ public class UpgradeCatalog240Test {
 
     PrincipalEntity principalAdministratorOnly = ems.createStrictMock(PrincipalEntity.class);
     expect(principalAdministratorOnly.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeAdmin)))
         .once();
 
     PrincipalEntity principalNonAdminSingleRoleSingleCluster = ems.createStrictMock(PrincipalEntity.class);
     expect(principalNonAdminSingleRoleSingleCluster.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeClusterUserC1)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeClusterUserC1)))
         .once();
 
     PrincipalEntity principalNonAdminMultipleRolesSingleCluster = ems.createStrictMock(PrincipalEntity.class);
     expect(principalNonAdminMultipleRolesSingleCluster.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeClusterUserC1, privilegeClusterOperatorC1)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeClusterUserC1, privilegeClusterOperatorC1)))
         .once();
 
     PrincipalEntity principalNonAdminMultipleRolesMultipleClusters = ems.createStrictMock(PrincipalEntity.class);
     expect(principalNonAdminMultipleRolesMultipleClusters.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeClusterUserC1, privilegeClusterOperatorC1,
-            privilegeClusterUserC2, privilegeClusterOperatorC2)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeClusterUserC1, privilegeClusterOperatorC1,
+          privilegeClusterUserC2, privilegeClusterOperatorC2)))
         .once();
 
     PrincipalEntity principalAdminSingleRoleSingleCluster = ems.createStrictMock(PrincipalEntity.class);
     expect(principalAdminSingleRoleSingleCluster.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin, privilegeClusterOperatorC1)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeAdmin, privilegeClusterOperatorC1)))
         .once();
 
     PrincipalEntity principalAdminMultipleRolesSingleCluster = ems.createStrictMock(PrincipalEntity.class);
     expect(principalAdminMultipleRolesSingleCluster.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin, privilegeClusterUserC1, privilegeClusterOperatorC1)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeAdmin, privilegeClusterUserC1, privilegeClusterOperatorC1)))
         .once();
 
     PrincipalEntity principalAdminMultipleRolesMultipleClusters = ems.createStrictMock(PrincipalEntity.class);
     expect(principalAdminMultipleRolesMultipleClusters.getPrivileges())
-        .andReturn(new HashSet<PrivilegeEntity>(Arrays.asList(privilegeAdmin, privilegeClusterUserC1,
-            privilegeClusterOperatorC1, privilegeClusterUserC2, privilegeClusterOperatorC2)))
+        .andReturn(new HashSet<>(Arrays.asList(privilegeAdmin, privilegeClusterUserC1,
+          privilegeClusterOperatorC1, privilegeClusterUserC2, privilegeClusterOperatorC2)))
         .once();
 
     UserEntity userAdministratorOnly = ems.createStrictMock(UserEntity.class);
@@ -2193,14 +2193,14 @@ public class UpgradeCatalog240Test {
       }
     });
 
-    List<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
+    List<ViewInstanceEntity> instances = new ArrayList<>();
 
     ViewInstanceEntity instance1 = createNiceMock(ViewInstanceEntity.class);
     expect(instance1.getViewName()).andReturn("CAPACITY-SCHEDULER{1.0.0}");
     expect(instance1.getClusterHandle()).andReturn(null);
     instances.add(instance1);
 
-    Map<String,String> propertyMap = new HashMap<String,String>();
+    Map<String,String> propertyMap = new HashMap<>();
     String url = "url";
     String username = "user";
     String password = "password";
@@ -2239,7 +2239,7 @@ public class UpgradeCatalog240Test {
     final Map<String, String> oldPqsProperties = new HashMap<>();
     oldPqsProperties.put("phoenix.queryserver.kerberos.principal", "hbase/_HOST@EXAMPLE.COM");
     oldPqsProperties.put("phoenix.queryserver.keytab.file", "/etc/security/keytabs/hbase.service.keytab");
-    final Map<String, String> newPqsProperties = new HashMap<String, String>();
+    final Map<String, String> newPqsProperties = new HashMap<>();
     newPqsProperties.put("phoenix.queryserver.kerberos.principal", spnegoPrincipal);
     newPqsProperties.put("phoenix.queryserver.keytab.file", spnegoKeytab);
 
@@ -2389,7 +2389,7 @@ public class UpgradeCatalog240Test {
     final String spnegoPrincipal = "HTTP/_HOST@EXAMPLE.COM";
     final String spnegoKeytab = "/etc/security/keytabs/spnego.service.keytab";
     final Map<String, String> oldProperties = new HashMap<>();
-    final Map<String, String> newProperties = new HashMap<String, String>();
+    final Map<String, String> newProperties = new HashMap<>();
     newProperties.put(UpgradeCatalog240.HBASE_SPNEGO_PRINCIPAL_KEY, spnegoPrincipal);
     newProperties.put(UpgradeCatalog240.HBASE_SPNEGO_KEYTAB_KEY, spnegoKeytab);
 

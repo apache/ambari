@@ -104,17 +104,17 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   /**
    * Map of child configuration modules keyed by configuration type
    */
-  private Map<String, ConfigurationModule> configurationModules = new HashMap<String, ConfigurationModule>();
+  private Map<String, ConfigurationModule> configurationModules = new HashMap<>();
 
   /**
    * Map of child service modules keyed by service name
    */
-  private Map<String, ServiceModule> serviceModules = new HashMap<String, ServiceModule>();
+  private Map<String, ServiceModule> serviceModules = new HashMap<>();
 
   /**
    * Map of linked extension modules keyed by extension name + version
    */
-  private Map<String, ExtensionModule> extensionModules = new HashMap<String, ExtensionModule>();
+  private Map<String, ExtensionModule> extensionModules = new HashMap<>();
 
   /**
    * Corresponding StackInfo instance
@@ -320,7 +320,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     Collection<ServiceModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, serviceModules, parentStack.serviceModules);
 
-    List<String> removedServices = new ArrayList<String>();
+    List<String> removedServices = new ArrayList<>();
 
     for (ServiceModule module : mergedModules) {
       if (module.isDeleted()){
@@ -615,7 +615,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param serviceDirectory the child service directory
    */
   private void populateService(ServiceDirectory serviceDirectory)  {
-    Collection<ServiceModule> serviceModules = new ArrayList<ServiceModule>();
+    Collection<ServiceModule> serviceModules = new ArrayList<>();
     // unfortunately, we allow multiple services to be specified in the same metainfo.xml,
     // so we can't move the unmarshal logic into ServiceModule
     ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
@@ -767,7 +767,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     // Stack-definition has 'depends-on' relationship specified.
     // We have a map to construct the 'depended-by' relationship.
     Map<PropertyDependencyInfo, Set<PropertyDependencyInfo>> dependedByMap =
-      new HashMap<PropertyDependencyInfo, Set<PropertyDependencyInfo>>();
+      new HashMap<>();
 
     // Go through all service-configs and gather the reversed 'depended-by'
     // relationship into map. Since we do not have the reverse {@link PropertyInfo},
@@ -783,7 +783,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
             dependedByMap.get(pdi).add(propertyDependency);
           } else {
             Set<PropertyDependencyInfo> newDependenciesSet =
-              new HashSet<PropertyDependencyInfo>();
+              new HashSet<>();
             newDependenciesSet.add(propertyDependency);
             dependedByMap.put(pdi, newDependenciesSet);
           }
@@ -981,7 +981,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           if (skippedGroups.containsKey(group.addAfterGroup)) {
             tmp = skippedGroups.get(group.addAfterGroup);
           } else {
-            tmp = new ArrayList<Grouping>();
+            tmp = new ArrayList<>();
             skippedGroups.put(group.addAfterGroup, tmp);
           }
           tmp.add(group);
@@ -1332,7 +1332,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     this.valid = valid;
   }
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public void addError(String error) {

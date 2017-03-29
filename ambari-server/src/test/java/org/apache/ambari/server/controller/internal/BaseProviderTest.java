@@ -42,7 +42,7 @@ import org.junit.Test;
 public class BaseProviderTest {
   @Test
   public void testGetProperties() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("foo");
     propertyIds.add("bar");
     propertyIds.add("cat1/prop1");
@@ -57,7 +57,7 @@ public class BaseProviderTest {
 
   @Test
   public void testCheckPropertyIds() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("foo");
     propertyIds.add("bar");
     propertyIds.add("cat1/prop1");
@@ -93,7 +93,7 @@ public class BaseProviderTest {
 
   @Test
   public void testGetRequestPropertyIds() {
-    Set<String> providerPropertyIds = new HashSet<String>();
+    Set<String> providerPropertyIds = new HashSet<>();
     providerPropertyIds.add("foo");
     providerPropertyIds.add("bar");
     providerPropertyIds.add("cat1/sub1");
@@ -136,7 +136,7 @@ public class BaseProviderTest {
 
   @Test
   public void testSetResourceProperty() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("p1");
     propertyIds.add("foo");
     propertyIds.add("cat1/foo");
@@ -172,7 +172,7 @@ public class BaseProviderTest {
 
   @Test
   public void testIsPropertyRequested() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("p1");
     propertyIds.add("foo");
     propertyIds.add("cat1/foo");
@@ -200,7 +200,7 @@ public class BaseProviderTest {
 
   @Test
   public void testSetResourcePropertyWithMaps() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("cat1/emptyMapProperty");
     propertyIds.add("cat1/mapProperty");
     propertyIds.add("cat2/mapMapProperty");
@@ -211,11 +211,11 @@ public class BaseProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.Service);
 
     // Adding an empty Map as a property should add the actual Map as a property
-    Map<String, String> emptyMapProperty = new HashMap<String, String>();
+    Map<String, String> emptyMapProperty = new HashMap<>();
     BaseProvider.setResourceProperty(resource, "cat1/emptyMapProperty", emptyMapProperty, propertyIds);
     assertTrue(resource.getPropertiesMap().containsKey("cat1/emptyMapProperty"));
 
-    Map<String, String> mapProperty = new HashMap<String, String>();
+    Map<String, String> mapProperty = new HashMap<>();
     mapProperty.put("key1", "value1");
     mapProperty.put("key2", "value2");
     mapProperty.put("key3", "value3");
@@ -228,18 +228,18 @@ public class BaseProviderTest {
     assertEquals("value2", resource.getPropertyValue("cat1/mapProperty/key2"));
     assertEquals("value3", resource.getPropertyValue("cat1/mapProperty/key3"));
 
-    Map<String, Map<String, String>> mapMapProperty = new HashMap<String, Map<String, String>>();
-    Map<String, String> mapSubProperty1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> mapMapProperty = new HashMap<>();
+    Map<String, String> mapSubProperty1 = new HashMap<>();
     mapSubProperty1.put("key1", "value11");
     mapSubProperty1.put("key2", "value12");
     mapSubProperty1.put("key3", "value13");
     mapMapProperty.put("subMap1", mapSubProperty1);
-    Map<String, String> mapSubProperty2 = new HashMap<String, String>();
+    Map<String, String> mapSubProperty2 = new HashMap<>();
     mapSubProperty2.put("key1", "value21");
     mapSubProperty2.put("key2", "value22");
     mapSubProperty2.put("key3", "value23");
     mapMapProperty.put("subMap2", mapSubProperty2);
-    Map<String, String> mapSubProperty3 = new HashMap<String, String>();
+    Map<String, String> mapSubProperty3 = new HashMap<>();
     mapMapProperty.put("subMap3", mapSubProperty3);
 
     // Map of maps ... adding a property of type Map should add all of its keys as sub properties
@@ -263,7 +263,7 @@ public class BaseProviderTest {
     assertEquals("value23",
         resource.getPropertyValue("cat2/mapMapProperty/subMap2/key3"));
 
-    Map<String, String> mapProperty3 = new HashMap<String, String>();
+    Map<String, String> mapProperty3 = new HashMap<>();
     mapProperty3.put("key1", "value1");
     mapProperty3.put("key2", "value2");
     mapProperty3.put("key3", "value3");
@@ -277,7 +277,7 @@ public class BaseProviderTest {
     assertEquals("value2", resource.getPropertyValue("cat3/mapProperty3/key2"));
     assertNull(resource.getPropertyValue("cat3/mapProperty3/key3"));
 
-    Map<String, Map<String, String>> mapMapProperty4 = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> mapMapProperty4 = new HashMap<>();
     mapMapProperty4.put("subMap1", mapSubProperty1);
     mapMapProperty4.put("subMap2", mapSubProperty2);
     // Map of maps ... adding a property of type Map shouldn't add the map if it wasn't requested and
@@ -301,7 +301,7 @@ public class BaseProviderTest {
 
   @Test
   public void testRegexpMethods() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     String regexp = "cat/$1.replaceAll(\\\"([.])\\\",\\\"/\\\")/key";
     String propertyId = "cat/sub/key";
     String regexp2 = "cat/$1.replaceAll(\\\"([.])\\\",\\\"/\\\")/something/$2/key";
@@ -323,7 +323,7 @@ public class BaseProviderTest {
 
   @Test
   public void testComplexMetricParsing() {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/sum");
     propertyIds.add("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted");
     propertyIds.add("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsFailed");

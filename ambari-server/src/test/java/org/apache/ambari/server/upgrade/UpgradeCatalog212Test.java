@@ -262,7 +262,7 @@ public class UpgradeCatalog212Test {
     expect(mockHbaseSite.getProperties()).andReturn(propertiesHbaseSite).once();
     final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<>();
     final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
       put("override_uid", "false");
     }};
@@ -320,7 +320,7 @@ public class UpgradeCatalog212Test {
     expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
     final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<>();
     final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
       put("override_uid", "true");
     }};
@@ -461,7 +461,7 @@ public class UpgradeCatalog212Test {
     final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<>();
     final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
       put("hive.heapsize", "512");
       put("hive.server2.custom.authentication.class", "");
@@ -614,7 +614,7 @@ public class UpgradeCatalog212Test {
     HashMap<String, Capture<DBColumnInfo>> captures;
 
     public HostRoleCommandDDL() {
-      captures = new HashMap<String, Capture<DBColumnInfo>>();
+      captures = new HashMap<>();
 
       Capture<DBAccessor.DBColumnInfo> hostRoleCommandAutoSkipColumnCapture = EasyMock.newCapture();
 

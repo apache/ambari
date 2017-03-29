@@ -98,9 +98,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String CREDENTIAL_STORE_ENABLED = PropertyHelper.getPropertyId(
       "StackServices", "credential_store_enabled");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
-        STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID}));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID}));
 
   /**
    * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
@@ -119,7 +119,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
     NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<StackServiceRequest> requests = new HashSet<StackServiceRequest>();
+    final Set<StackServiceRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -138,7 +138,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (StackServiceResponse response : responses) {
       Resource resource = createResource(response, requestedIds);

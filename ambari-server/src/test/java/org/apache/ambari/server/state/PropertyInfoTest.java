@@ -67,7 +67,7 @@ public class PropertyInfoTest {
   public void testAttributes() throws Exception {
     PropertyInfo property = new PropertyInfo();
 
-    List<Element> elements = new ArrayList<Element>();
+    List<Element> elements = new ArrayList<>();
     Element e1 = createNiceMock(Element.class);
     Element e2 = createNiceMock(Element.class);
     Node n1 = createNiceMock(Node.class);

@@ -83,7 +83,7 @@ public class TestParallel {
    */
   @Test
   public void testParallelForLoop() throws Exception {
-    final List<Integer> input = new LinkedList<Integer>();
+    final List<Integer> input = new LinkedList<>();
     for(int i = 0; i < 10; i++) {
       input.add(i);
     }
@@ -110,7 +110,7 @@ public class TestParallel {
    */
   @Test
   public void testNestedParallelForLoop() throws Exception {
-    final List<Integer> input = new LinkedList<Integer>();
+    final List<Integer> input = new LinkedList<>();
     for(int i = 0; i < 10; i++) {
       input.add(i);
     }
@@ -156,7 +156,7 @@ public class TestParallel {
    */
   @Test
   public void testParallelForLoopIterationFailures() throws Exception {
-    final List<Integer> input = new LinkedList<Integer>();
+    final List<Integer> input = new LinkedList<>();
     for(int i = 0; i < 10; i++) {
       input.add(i);
     }
@@ -192,7 +192,7 @@ public class TestParallel {
    */
   @Test
   public void testParallelForLoopIterationExceptions() throws Exception {
-    final List<Integer> input = new LinkedList<Integer>();
+    final List<Integer> input = new LinkedList<>();
     for(int i = 0; i < 10; i++) {
       input.add(i);
     }

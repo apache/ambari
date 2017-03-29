@@ -69,18 +69,18 @@ public class AlertGroupResourceProvider extends
   public static final String ALERT_GROUP_DEFINITIONS = "AlertGroup/definitions";
   public static final String ALERT_GROUP_TARGETS = "AlertGroup/targets";
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
+    Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));
 
   /**
    * The property ids for an alert group resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for an alert group resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   static {
     // properties
@@ -140,7 +140,7 @@ public class AlertGroupResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<Resource>();
+    Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -213,7 +213,7 @@ public class AlertGroupResourceProvider extends
     Set<Resource> resources = getResources(new RequestImpl(null, null, null,
         null), predicate);
 
-    Map<Long, AlertGroupEntity> entities = new HashMap<Long, AlertGroupEntity>();
+    Map<Long, AlertGroupEntity> entities = new HashMap<>();
 
     for (final Resource resource : resources) {
       Long id = (Long) resource.getPropertyValue(ALERT_GROUP_ID);
@@ -268,7 +268,7 @@ public class AlertGroupResourceProvider extends
   private void createAlertGroups(Set<Map<String, Object>> requestMaps)
       throws AmbariException, AuthorizationException {
 
-    List<AlertGroupEntity> entities = new ArrayList<AlertGroupEntity>();
+    List<AlertGroupEntity> entities = new ArrayList<>();
     for (Map<String, Object> requestMap : requestMaps) {
       AlertGroupEntity entity = new AlertGroupEntity();
 
@@ -297,7 +297,7 @@ public class AlertGroupResourceProvider extends
       // targets are not required on creation
       if (requestMap.containsKey(ALERT_GROUP_TARGETS)) {
         List<Long> targetIds = (List<Long>) requestMap.get(ALERT_GROUP_TARGETS);
-        Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+        Set<AlertTargetEntity> targets = new HashSet<>();
         targets.addAll(s_dao.findTargetsById(targetIds));
         entity.setAlertTargets(targets);
       }
@@ -305,7 +305,7 @@ public class AlertGroupResourceProvider extends
       // definitions are not required on creation
       if (requestMap.containsKey(ALERT_GROUP_DEFINITIONS)) {
         List<Long> definitionIds = (List<Long>) requestMap.get(ALERT_GROUP_DEFINITIONS);
-        Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+        Set<AlertDefinitionEntity> definitions = new HashSet<>();
         definitions.addAll(s_definitionDao.findByIds(definitionIds));
         entity.setAlertDefinitions(definitions);
       }
@@ -356,9 +356,9 @@ public class AlertGroupResourceProvider extends
 
       // if targets were supplied, replace existing
       if (null != targetIds) {
-        Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+        Set<AlertTargetEntity> targets = new HashSet<>();
 
-        List<Long> ids = new ArrayList<Long>(targetIds.size());
+        List<Long> ids = new ArrayList<>(targetIds.size());
         ids.addAll(targetIds);
 
         if (ids.size() > 0) {
@@ -377,9 +377,9 @@ public class AlertGroupResourceProvider extends
         }
 
         // if definitions were supplied, replace existing
-        Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+        Set<AlertDefinitionEntity> definitions = new HashSet<>();
         if (null != definitionIds && definitionIds.size() > 0) {
-          List<Long> ids = new ArrayList<Long>(definitionIds.size());
+          List<Long> ids = new ArrayList<>(definitionIds.size());
           ids.addAll(definitionIds);
           definitions.addAll(s_definitionDao.findByIds(ids));
 
@@ -417,8 +417,8 @@ public class AlertGroupResourceProvider extends
     // only set the definitions if requested
     if (BaseProvider.isPropertyRequested(ALERT_GROUP_DEFINITIONS, requestedIds)) {
       Set<AlertDefinitionEntity> definitions = entity.getAlertDefinitions();
-      List<AlertDefinitionResponse> definitionList = new ArrayList<AlertDefinitionResponse>(
-          definitions.size());
+      List<AlertDefinitionResponse> definitionList = new ArrayList<>(
+        definitions.size());
 
       for (AlertDefinitionEntity definition : definitions) {
         AlertDefinitionResponse response = AlertDefinitionResponse.coerce(definition);
@@ -431,8 +431,8 @@ public class AlertGroupResourceProvider extends
     if (BaseProvider.isPropertyRequested(ALERT_GROUP_TARGETS, requestedIds)) {
       Set<AlertTargetEntity> targetEntities = entity.getAlertTargets();
 
-      List<AlertTarget> targets = new ArrayList<AlertTarget>(
-          targetEntities.size());
+      List<AlertTarget> targets = new ArrayList<>(
+        targetEntities.size());
 
       for (AlertTargetEntity targetEntity : targetEntities) {
         AlertTarget target = AlertTarget.coerce(targetEntity);

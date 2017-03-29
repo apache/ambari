@@ -38,7 +38,7 @@ public class AggregateDefinitionMapping {
    * This is used for fast lookups when receiving events.
    */
   private Map<Long, Map<String, AlertDefinition>> m_aggregateMap =
-      new ConcurrentHashMap<Long, Map<String, AlertDefinition>>();
+    new ConcurrentHashMap<>();
 
   /**
    * Constructor.
@@ -125,7 +125,7 @@ public class AggregateDefinitionMapping {
     }
 
     Map<String, AlertDefinition> map = m_aggregateMap.get(clusterId);
-    return new ArrayList<AlertDefinition>(map.values());
+    return new ArrayList<>(map.values());
   }
 
   /**
@@ -141,6 +141,6 @@ public class AggregateDefinitionMapping {
     }
 
     Map<String, AlertDefinition> map = m_aggregateMap.get(clusterId);
-    return new ArrayList<String>(map.keySet());
+    return new ArrayList<>(map.keySet());
   }
 }

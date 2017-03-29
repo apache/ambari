@@ -147,7 +147,7 @@ public class CsvSerializer implements ResultSerializer {
     if (node != null) {
       Resource recordResource = node.getObject();
       if (recordResource != null) {
-        List<Object> values = new ArrayList<Object>();
+        List<Object> values = new ArrayList<>();
 
         if (fieldNameOrder != null) {
           for (String fieldName : fieldNameOrder) {
@@ -208,14 +208,14 @@ public class CsvSerializer implements ResultSerializer {
       fieldNameOrder = (List<String>) object;
     } else if (header != null) {
       // Use the ordering specified by the map.
-      fieldNameOrder = new ArrayList<String>(header.keySet());
+      fieldNameOrder = new ArrayList<>(header.keySet());
     } else {
       fieldNameOrder = null;
     }
 
     if (header != null) {
       // build the header record
-      List<String> headerNames = new ArrayList<String>();
+      List<String> headerNames = new ArrayList<>();
       for (String fieldName : fieldNameOrder) {
         headerNames.add(header.get(fieldName));
       }

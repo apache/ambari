@@ -82,7 +82,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
 
     replayAll();
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
 
     FinalizeKerberosServerAction action = injector.getInstance(FinalizeKerberosServerAction.class);
     action.setExecutionCommand(executionCommand);
@@ -113,7 +113,7 @@ public class FinalizeKerberosServerActionTest extends EasyMockSupport {
 
     replayAll();
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
 
     FinalizeKerberosServerAction action = injector.getInstance(FinalizeKerberosServerAction.class);
     action.setExecutionCommand(executionCommand);

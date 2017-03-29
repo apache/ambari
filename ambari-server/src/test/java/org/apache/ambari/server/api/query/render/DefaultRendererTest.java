@@ -61,7 +61,7 @@ public class DefaultRendererTest {
     replay(schemaFactory, schema);
 
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), new HashSet<String>());
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);
@@ -90,10 +90,10 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);
@@ -121,9 +121,9 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);
@@ -150,10 +150,10 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     DefaultRenderer renderer = new DefaultRenderer();
     renderer.init(schemaFactory);
@@ -185,9 +185,9 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
 
     DefaultRenderer renderer = new DefaultRenderer();
@@ -225,11 +225,11 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
-    HashSet<String> componentProperties = new HashSet<String>();
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
+    HashSet<String> componentProperties = new HashSet<>();
     componentProperties.add("goo/car");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), componentProperties), "Component");
 
@@ -270,9 +270,9 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
 
     DefaultRenderer renderer = new DefaultRenderer();
@@ -310,10 +310,10 @@ public class DefaultRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
 
     DefaultRenderer renderer = new DefaultRenderer();

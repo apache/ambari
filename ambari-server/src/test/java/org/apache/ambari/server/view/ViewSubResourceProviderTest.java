@@ -127,10 +127,10 @@ public class ViewSubResourceProviderTest {
 
     ViewSubResourceProvider viewSubResourceProvider = new ViewSubResourceProvider(type, MyResource.class, "id", viewEntity);
 
-    Set<String> requestProperties = new HashSet<String>();
+    Set<String> requestProperties = new HashSet<>();
     requestProperties.add("metrics/myMetric");
 
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     TemporalInfo temporalInfo = new TemporalInfoImpl(1000L, 1100L, 10L);
     temporalInfoMap.put("metrics/myMetric", temporalInfo);
 
@@ -193,7 +193,7 @@ public class ViewSubResourceProviderTest {
     public Set<MyResource> getResources(ReadRequest request)
         throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
 
-      Set<MyResource> resources = new HashSet<MyResource>();
+      Set<MyResource> resources = new HashSet<>();
       resources.add(new MyResource("1", "foo", getMetricsValue(1, request, "myMetric")));
       resources.add(new MyResource("2", "bar", getMetricsValue(2, request, "myMetric")));
 

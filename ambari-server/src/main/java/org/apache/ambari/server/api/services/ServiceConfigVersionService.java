@@ -49,7 +49,7 @@ public class ServiceConfigVersionService extends BaseService {
 
 
   ResourceInstance createServiceConfigResource(String clusterName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ServiceConfigVersion, null);
 

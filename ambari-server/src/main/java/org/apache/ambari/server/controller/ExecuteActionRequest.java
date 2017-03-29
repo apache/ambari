@@ -61,11 +61,11 @@ public class ExecuteActionRequest {
     this.clusterName = clusterName;
     this.commandName = commandName;
     this.actionName = null;
-    this.parameters = new HashMap<String, String>();
+    this.parameters = new HashMap<>();
     if (parameters != null) {
       this.parameters.putAll(parameters);
     }
-    this.resourceFilters = new ArrayList<RequestResourceFilter>();
+    this.resourceFilters = new ArrayList<>();
     this.exclusive = exclusive;
   }
 

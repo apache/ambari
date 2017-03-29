@@ -82,7 +82,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
    */
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    Set<String> supportedIds = new HashSet<String>();
+    Set<String> supportedIds = new HashSet<>();
     for (String propertyId : propertyIds) {
       if (propertyId.startsWith(ZERO_PADDING_PARAM)
           || PropertyHelper.hasAggregateFunctionSuffix(propertyId)) {
@@ -97,7 +97,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
   public Set<Resource> populateResources(Set<Resource> resources,
                Request request, Predicate predicate) throws SystemException {
 
-    Set<Resource> keepers = new HashSet<Resource>();
+    Set<Resource> keepers = new HashSet<>();
     for (Resource resource : resources) {
       if (populateResource(resource, request, predicate)) {
         keepers.add(resource);
@@ -253,7 +253,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
   }
 
   private Map<String, MetricReportRequest> getPropertyIdMaps(Request request, Set<String> ids) {
-    Map<String, MetricReportRequest> propertyMap = new HashMap<String, MetricReportRequest>();
+    Map<String, MetricReportRequest> propertyMap = new HashMap<>();
 
     for (String id : ids) {
       Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap("*", id);
@@ -290,7 +290,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
   class MetricReportRequest {
     private TemporalInfo temporalInfo;
-    private Map<String, String> propertyIdMap = new HashMap<String, String>();
+    private Map<String, String> propertyIdMap = new HashMap<>();
 
     public TemporalInfo getTemporalInfo() {
       return temporalInfo;

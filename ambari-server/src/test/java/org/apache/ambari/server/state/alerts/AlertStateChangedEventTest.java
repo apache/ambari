@@ -119,8 +119,8 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
 
     AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
-    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    List<AlertGroupEntity> groups = new ArrayList<>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
 
     targets.add(alertTarget);
     groups.add(alertGroup);
@@ -171,8 +171,8 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
   public void testAlertNoticeSkippedForTarget() throws Exception {
     AlertTargetEntity alertTarget = createMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
-    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    List<AlertGroupEntity> groups = new ArrayList<>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
 
     targets.add(alertTarget);
     groups.add(alertGroup);
@@ -223,8 +223,8 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
   public void testAlertNoticeSkippedForDisabledTarget() throws Exception {
     AlertTargetEntity alertTarget = createMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
-    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    List<AlertGroupEntity> groups = new ArrayList<>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
 
     targets.add(alertTarget);
     groups.add(alertGroup);
@@ -384,8 +384,8 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
 
     AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
-    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    List<AlertGroupEntity> groups = new ArrayList<>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
 
     targets.add(alertTarget);
     groups.add(alertGroup);
@@ -433,8 +433,8 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
 
     AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
-    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    List<AlertGroupEntity> groups = new ArrayList<>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
 
     targets.add(alertTarget);
     groups.add(alertGroup);
@@ -484,8 +484,8 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
 
     AlertTargetEntity alertTarget = createNiceMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = createMock(AlertGroupEntity.class);
-    List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
-    Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
+    List<AlertGroupEntity> groups = new ArrayList<>();
+    Set<AlertTargetEntity> targets = new HashSet<>();
 
     targets.add(alertTarget);
     groups.add(alertGroup);

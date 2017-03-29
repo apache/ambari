@@ -26,7 +26,7 @@ import java.util.List;
 public class OperatingSystemEntity {
 
   private String osType;
-  private List<RepositoryEntity> repositories = new ArrayList<RepositoryEntity>();
+  private List<RepositoryEntity> repositories = new ArrayList<>();
   private boolean ambariManagedRepos = true;
 
   public String getOsType() {

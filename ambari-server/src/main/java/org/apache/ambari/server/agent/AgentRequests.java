@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class AgentRequests {
   private static Log LOG = LogFactory.getLog(HeartbeatMonitor.class);
-  private final Map<String, Map<String, Boolean>> requiresExecCmdDetails = new HashMap<String, Map<String, Boolean>>();
+  private final Map<String, Map<String, Boolean>> requiresExecCmdDetails = new HashMap<>();
   private final Object _lock = new Object();
 
   /**

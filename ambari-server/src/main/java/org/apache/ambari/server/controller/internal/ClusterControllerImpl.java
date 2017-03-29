@@ -75,19 +75,19 @@ public class ClusterControllerImpl implements ClusterController {
    * Map of resource providers keyed by resource type.
    */
   private final Map<Resource.Type, ExtendedResourceProviderWrapper> resourceProviders =
-      new HashMap<Resource.Type, ExtendedResourceProviderWrapper>();
+    new HashMap<>();
 
   /**
    * Map of property provider lists keyed by resource type.
    */
   private final Map<Resource.Type, List<PropertyProvider>> propertyProviders =
-      new HashMap<Resource.Type, List<PropertyProvider>>();
+    new HashMap<>();
 
   /**
    * Map of schemas keyed by resource type.
    */
   private final Map<Resource.Type, Schema> schemas =
-      new HashMap<Resource.Type, Schema>();
+    new HashMap<>();
 
   /**
    * Resource comparator.
@@ -198,8 +198,8 @@ public class ClusterControllerImpl implements ClusterController {
       // if the provider did not already sort the set, then sort it based
       // on the comparator
       if (!providerAlreadySorted) {
-        TreeSet<Resource> sortedResources = new TreeSet<Resource>(
-            resourceComparator);
+        TreeSet<Resource> sortedResources = new TreeSet<>(
+          resourceComparator);
 
         sortedResources.addAll(providerResources);
         resources = sortedResources;
@@ -252,7 +252,7 @@ public class ClusterControllerImpl implements ClusterController {
   private void checkSortRequestProperties(SortRequest sortRequest, Type type,
                                           ResourceProvider provider) throws UnsupportedPropertyException {
     Set<String> requestPropertyIds = provider.checkPropertyIds(
-      new HashSet<String>(sortRequest.getPropertyIds()));
+      new HashSet<>(sortRequest.getPropertyIds()));
 
     if (requestPropertyIds.size() > 0) {
       List<PropertyProvider> propertyProviders = ensurePropertyProviders(type);
@@ -504,7 +504,7 @@ public class ClusterControllerImpl implements ClusterController {
 
     ResourceProvider provider = ensureResourceProvider(type);
 
-    Set<String>  keyPropertyIds = new HashSet<String>(provider.getKeyPropertyIds().values());
+    Set<String>  keyPropertyIds = new HashSet<>(provider.getKeyPropertyIds().values());
     Request      readRequest    = PropertyHelper.getReadRequest(keyPropertyIds);
 
     Iterable<Resource> resources = getResourceIterable(type, readRequest, predicate);
@@ -544,7 +544,7 @@ public class ClusterControllerImpl implements ClusterController {
    * @return true if the given provider can service the request
    */
   private boolean providesRequestProperties(PropertyProvider provider, Request request, Predicate predicate) {
-    Set<String> requestPropertyIds = new HashSet<String>(request.getPropertyIds());
+    Set<String> requestPropertyIds = new HashSet<>(request.getPropertyIds());
 
     if (requestPropertyIds.size() == 0) {
       return true;
@@ -582,7 +582,7 @@ public class ClusterControllerImpl implements ClusterController {
    */
   private LinkedList<Resource> getEvaluatedResources(ResourceIterable
                                               resourceIterable) {
-    LinkedList<Resource> resources = new LinkedList<Resource>();
+    LinkedList<Resource> resources = new LinkedList<>();
     if (resourceIterable != null) {
       for (Resource resource : resourceIterable) {
         resources.add(resource);
@@ -608,7 +608,7 @@ public class ClusterControllerImpl implements ClusterController {
 
     int currentOffset = 0;
     Resource previous      = null;
-    Set<Resource> pageResources = new LinkedHashSet<Resource>();
+    Set<Resource> pageResources = new LinkedHashSet<>();
     LinkedList<Resource> filteredResources =
       getEvaluatedResources(new ResourceIterable(resources, predicate, evaluator));
     Iterator<Resource> iterator = filteredResources.iterator();
@@ -649,7 +649,7 @@ public class ClusterControllerImpl implements ClusterController {
 
     int                currentOffset = resources.size() - 1;
     Resource           next          = null;
-    List<Resource>     pageResources = new LinkedList<Resource>();
+    List<Resource>     pageResources = new LinkedList<>();
     LinkedList<Resource> filteredResources =
       getEvaluatedResources(new ResourceIterable(resources, predicate, evaluator));
     Iterator<Resource> iterator = filteredResources.descendingIterator();

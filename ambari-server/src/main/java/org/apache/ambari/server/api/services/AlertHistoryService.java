@@ -84,7 +84,7 @@ public class AlertHistoryService extends BaseService {
    */
   private ResourceInstance createResourceInstance(String clusterName,
       Long historyId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Service, serviceName);
     mapIds.put(Resource.Type.Host, hostName);

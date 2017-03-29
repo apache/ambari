@@ -43,7 +43,7 @@ public class ViewPrivilegeService extends PrivilegeService {
 
   @Override
   protected ResourceInstance createPrivilegeResource(String privilegeId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, viewVersion);
     mapIds.put(Resource.Type.ViewInstance, instanceName);

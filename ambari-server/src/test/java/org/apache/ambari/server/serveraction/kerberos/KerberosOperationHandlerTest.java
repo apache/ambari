@@ -84,7 +84,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     File file = folder.newFile();
     final String principal1 = "principal1@REALM.COM";
     final String principal2 = "principal2@REALM.COM";
-    Set<String> seenEntries = new HashSet<String>();
+    Set<String> seenEntries = new HashSet<>();
 
     Assert.assertTrue(handler.createKeytabFile(principal1, "some password", 0, file));
     Assert.assertTrue(handler.createKeytabFile(principal2, "some password", 0, file));

@@ -185,7 +185,7 @@ public interface Resource {
     /**
      * Map of all registered types.
      */
-    private static Map<String, Type> types = new ConcurrentHashMap<String, Type>();
+    private static Map<String, Type> types = new ConcurrentHashMap<>();
 
     /**
      * Ordinal number counter for registering external types.

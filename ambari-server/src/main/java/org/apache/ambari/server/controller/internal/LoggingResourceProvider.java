@@ -50,7 +50,7 @@ public class LoggingResourceProvider extends AbstractControllerResourceProvider 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS;
 
   static {
-    Set<String> localSet = new HashSet<String>();
+    Set<String> localSet = new HashSet<>();
     localSet.add(LOGGING_SEARCH_SERVICE_PROPERTY_ID);
     localSet.add(LOGGING_SEARCH_TERM_PROPERTY_ID);
     localSet.add(LOGGING_COMPONENT_PROPERTY_ID);
@@ -58,7 +58,7 @@ public class LoggingResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS = Collections.unmodifiableSet(localSet);
 
     Map<Resource.Type, String> localMap =
-      new HashMap<Resource.Type, String>();
+      new HashMap<>();
 
     localMap.put(Resource.Type.LoggingQuery, LOGGING_SEARCH_SERVICE_PROPERTY_ID);
     KEY_PROPERTY_IDS = Collections.unmodifiableMap(localMap);
@@ -91,7 +91,7 @@ public class LoggingResourceProvider extends AbstractControllerResourceProvider 
       new LoggingRequestHelperFactoryImpl().getHelper(AmbariServer.getController(), "");
 
     Map<String, String> queryParameters =
-      new HashMap<String, String>();
+      new HashMap<>();
 
     queryParameters.put("level", "ERROR");
 

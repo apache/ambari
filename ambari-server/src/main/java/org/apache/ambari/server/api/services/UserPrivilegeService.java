@@ -71,7 +71,7 @@ public class UserPrivilegeService extends PrivilegeService {
 
   @Override
   protected ResourceInstance createPrivilegeResource(String privilegeId) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.User, StringUtils.lowerCase(userName));
     mapIds.put(Resource.Type.UserPrivilege, privilegeId);
     return createResource(Resource.Type.UserPrivilege, mapIds);

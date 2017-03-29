@@ -48,7 +48,7 @@ public class HostGroupInfo {
   /**
    * hosts contained associated with the host group
    */
-  private final Collection<String> hostNames = new HashSet<String>();
+  private final Collection<String> hostNames = new HashSet<>();
 
   /**
    * maps host names to rack information
@@ -106,7 +106,7 @@ public class HostGroupInfo {
     // needs to be an exclusive lock, not a read lock because collection
     // shouldn't change while copying elements into the new set instance
     synchronized (hostNames) {
-      return new HashSet<String>(hostNames);
+      return new HashSet<>(hostNames);
     }
   }
 

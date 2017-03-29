@@ -93,7 +93,7 @@ public class UpgradeDAOTest {
     group.setTitle("group title");
 
     // create 2 items
-    List<UpgradeItemEntity> items = new ArrayList<UpgradeItemEntity>();
+    List<UpgradeItemEntity> items = new ArrayList<>();
     UpgradeItemEntity item = new UpgradeItemEntity();
     item.setState(UpgradeState.IN_PROGRESS);
     item.setStageId(Long.valueOf(1L));

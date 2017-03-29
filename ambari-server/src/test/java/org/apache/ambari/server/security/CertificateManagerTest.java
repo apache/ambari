@@ -52,7 +52,7 @@ public class CertificateManagerTest extends EasyMockSupport {
 
     String hostname = "host1.example.com";
 
-    Map<String, String> configurationMap = new HashMap<String, String>();
+    Map<String, String> configurationMap = new HashMap<>();
     configurationMap.put(Configuration.SRVR_KSTR_DIR.getKey(), directory.getAbsolutePath());
     configurationMap.put(Configuration.SRVR_CRT_PASS.getKey(), "server_cert_pass");
     configurationMap.put(Configuration.SRVR_CRT_NAME.getKey(), "server_cert_name");

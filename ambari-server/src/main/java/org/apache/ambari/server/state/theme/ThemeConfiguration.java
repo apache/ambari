@@ -90,7 +90,7 @@ public class ThemeConfiguration{
   }
 
   private List<Layout> mergeLayouts(List<Layout> parentLayouts, List<Layout> childLayouts) {
-    Map<String, Layout> mergedLayouts = new LinkedHashMap<String, Layout>();
+    Map<String, Layout> mergedLayouts = new LinkedHashMap<>();
 
     for (Layout parentLayout : parentLayouts) {
       mergedLayouts.put(parentLayout.getName(), parentLayout);
@@ -108,12 +108,12 @@ public class ThemeConfiguration{
       }
     }
 
-    return new ArrayList<Layout>(mergedLayouts.values());
+    return new ArrayList<>(mergedLayouts.values());
 
   }
 
   private List<WidgetEntry> mergeWidgets(List<WidgetEntry> parentWidgets, List<WidgetEntry> childWidgets) {
-    Map<String, WidgetEntry> mergedWidgets = new LinkedHashMap<String, WidgetEntry>();
+    Map<String, WidgetEntry> mergedWidgets = new LinkedHashMap<>();
     for (WidgetEntry widgetEntry : parentWidgets) {
       mergedWidgets.put(widgetEntry.getConfig(), widgetEntry);
     }
@@ -129,6 +129,6 @@ public class ThemeConfiguration{
 
     }
 
-    return new ArrayList<WidgetEntry>(mergedWidgets.values());
+    return new ArrayList<>(mergedWidgets.values());
   }
 }

@@ -106,11 +106,11 @@ public class AgentHeartbeatAlertRunnableTest {
     m_synchronizedBus.register(m_listener);
 
     // create the cluster map
-    Map<String,Cluster> clusterMap = new HashMap<String, Cluster>();
+    Map<String,Cluster> clusterMap = new HashMap<>();
     clusterMap.put(CLUSTER_NAME, m_cluster);
 
     // create the host map
-    Map<String, Host> hostMap = new HashMap<String, Host>();
+    Map<String, Host> hostMap = new HashMap<>();
     hostMap.put(HOSTNAME, m_host);
 
     // mock the definition for the alert

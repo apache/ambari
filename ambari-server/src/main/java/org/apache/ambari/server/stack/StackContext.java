@@ -143,12 +143,12 @@ public class StackContext {
     /**
      * Registered tasks
      */
-    private Collection<LatestRepoCallable> tasks = new ArrayList<LatestRepoCallable>();
+    private Collection<LatestRepoCallable> tasks = new ArrayList<>();
 
     /**
      * Task futures
      */
-    Collection<Future<Void>> futures = new ArrayList<Future<Void>>();
+    Collection<Future<Void>> futures = new ArrayList<>();
     /**
      * Underlying executor
      */

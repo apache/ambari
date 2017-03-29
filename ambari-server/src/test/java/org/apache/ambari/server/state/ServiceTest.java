@@ -166,7 +166,7 @@ public class ServiceTest {
         serviceComponentFactory.createNew(s, "DATANODE2");
 
     Map<String, ServiceComponent> comps = new
-        HashMap<String, ServiceComponent>();
+      HashMap<>();
     comps.put(sc1.getName(), sc1);
     comps.put(sc2.getName(), sc2);
 
@@ -326,7 +326,7 @@ public class ServiceTest {
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     h.setHostAttributes(hostAttributes);

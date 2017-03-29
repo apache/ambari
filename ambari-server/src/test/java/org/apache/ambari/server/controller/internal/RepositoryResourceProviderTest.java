@@ -58,7 +58,7 @@ public class RepositoryResourceProviderTest {
         VAL_REPO_ID, VAL_REPO_NAME, null, null, null);
     rr.setStackName(VAL_STACK_NAME);
     rr.setStackVersion(VAL_STACK_VERSION);
-    Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
+    Set<RepositoryResponse> allResponse = new HashSet<>();
     allResponse.add(rr);
 
     // set expectations
@@ -69,7 +69,7 @@ public class RepositoryResourceProviderTest {
 
     ResourceProvider provider = new RepositoryResourceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
@@ -154,7 +154,7 @@ public class RepositoryResourceProviderTest {
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
         VAL_REPO_ID, VAL_REPO_NAME, null, null ,null);
-    Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
+    Set<RepositoryResponse> allResponse = new HashSet<>();
     allResponse.add(rr);
 
     // set expectations
@@ -167,7 +167,7 @@ public class RepositoryResourceProviderTest {
     ResourceProvider provider = new RepositoryResourceProvider(managementController);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, "http://garbage.eu.co");
 
     // create the request

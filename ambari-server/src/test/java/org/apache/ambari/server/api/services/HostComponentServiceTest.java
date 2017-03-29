@@ -38,7 +38,7 @@ import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 public class HostComponentServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getHostComponent
     HostComponentService componentService = new TestHostComponentService("clusterName", "serviceName", "componentName");

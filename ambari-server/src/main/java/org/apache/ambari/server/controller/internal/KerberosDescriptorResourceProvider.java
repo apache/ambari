@@ -117,7 +117,7 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
       results = kerberosDescriptorDAO.findAll();
     }
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
     for (KerberosDescriptorEntity entity : results) {
       Resource resource = new ResourceImpl(Resource.Type.KerberosDescriptor);

@@ -55,7 +55,7 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
    */
   protected boolean valid = true;
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
   
   @Override
   public void addError(String error) {
@@ -146,7 +146,7 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
    * @param parent  parent configuration module
    */
   private void mergeProperties(ConfigurationModule parent) {
-    Collection<String> existingProps = new HashSet<String>();
+    Collection<String> existingProps = new HashSet<>();
     Iterator<PropertyInfo> iter = info.getProperties().iterator();
     while (iter.hasNext()) {
       PropertyInfo prop = iter.next();
@@ -176,7 +176,7 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
       String category = parentCategoryEntry.getKey();
       Map<String, String> categoryAttributeMap = info.getAttributes().get(category);
       if (categoryAttributeMap == null) {
-        categoryAttributeMap = new HashMap<String, String>();
+        categoryAttributeMap = new HashMap<>();
         info.getAttributes().put(category, categoryAttributeMap);
       }
       for (Map.Entry<String, String> parentAttributeEntry : parentCategoryEntry.getValue().entrySet()) {

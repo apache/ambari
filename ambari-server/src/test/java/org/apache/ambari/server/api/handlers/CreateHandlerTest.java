@@ -76,7 +76,7 @@ public class CreateHandlerTest {
     Resource resource2 = createNiceMock(Resource.class);
     Renderer renderer = new DefaultRenderer();
 
-    Set<Resource> setResources = new HashSet<Resource>();
+    Set<Resource> setResources = new HashSet<>();
     setResources.add(resource1);
     setResources.add(resource2);
 
@@ -136,7 +136,7 @@ public class CreateHandlerTest {
     Resource resource2 = createNiceMock(Resource.class);
     Renderer renderer = new DefaultRenderer();
 
-    Set<Resource> setResources = new HashSet<Resource>();
+    Set<Resource> setResources = new HashSet<>();
     setResources.add(resource1);
     setResources.add(resource2);
 
@@ -196,7 +196,7 @@ public class CreateHandlerTest {
     Resource requestResource = createNiceMock(Resource.class);
     Renderer renderer = new DefaultRenderer();
 
-    Set<Resource> setResources = new HashSet<Resource>();
+    Set<Resource> setResources = new HashSet<>();
     setResources.add(resource1);
     setResources.add(resource2);
 

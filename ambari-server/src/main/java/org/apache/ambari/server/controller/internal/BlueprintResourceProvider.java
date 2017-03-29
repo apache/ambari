@@ -116,8 +116,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     "Configuration Maps must hold a single configuration type each";
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          BLUEPRINT_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      BLUEPRINT_NAME_PROPERTY_ID}));
 
   /**
    * Used to create Blueprint instances
@@ -224,7 +224,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       results = blueprintDAO.findAll();
     }
 
-    Set<Resource> resources  = new HashSet<Resource>();
+    Set<Resource> resources  = new HashSet<>();
     for (BlueprintEntity entity : results) {
       Resource resource = toResource(entity, getRequestPropertyIds(request, predicate));
       if (predicate == null || ! applyPredicate || predicate.evaluate(resource)) {
@@ -299,18 +299,18 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackEntity.getStackName(), requestedIds);
     setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackEntity.getStackVersion(), requestedIds);
 
-    List<Map<String, Object>> listGroupProps = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> listGroupProps = new ArrayList<>();
     Collection<HostGroupEntity> hostGroups = entity.getHostGroups();
     for (HostGroupEntity hostGroup : hostGroups) {
-      Map<String, Object> mapGroupProps = new HashMap<String, Object>();
+      Map<String, Object> mapGroupProps = new HashMap<>();
       mapGroupProps.put(HOST_GROUP_NAME_PROPERTY_ID, hostGroup.getName());
       listGroupProps.add(mapGroupProps);
       mapGroupProps.put(HOST_GROUP_CARDINALITY_PROPERTY_ID, hostGroup.getCardinality());
 
-      List<Map<String, String>> listComponentProps = new ArrayList<Map<String, String>>();
+      List<Map<String, String>> listComponentProps = new ArrayList<>();
       Collection<HostGroupComponentEntity> components = hostGroup.getComponents();
       for (HostGroupComponentEntity component : components) {
-        Map<String, String> mapComponentProps = new HashMap<String, String>();
+        Map<String, String> mapComponentProps = new HashMap<>();
         mapComponentProps.put(COMPONENT_NAME_PROPERTY_ID, component.getName());
 
         if (component.getProvisionAction() != null) {
@@ -351,10 +351,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   List<Map<String, Map<String, Object>>> populateConfigurationList(
       Collection<? extends BlueprintConfiguration> configurations) throws NoSuchResourceException {
 
-    List<Map<String, Map<String, Object>>> listConfigurations = new ArrayList<Map<String, Map<String, Object>>>();
+    List<Map<String, Map<String, Object>>> listConfigurations = new ArrayList<>();
     for (BlueprintConfiguration config : configurations) {
-      Map<String, Map<String, Object>> mapConfigurations = new HashMap<String, Map<String, Object>>();
-      Map<String, Object> configTypeDefinition = new HashMap<String, Object>();
+      Map<String, Map<String, Object>> mapConfigurations = new HashMap<>();
+      Map<String, Object> configTypeDefinition = new HashMap<>();
       String type = config.getType();
 
       if(config instanceof BlueprintConfigEntity) {
@@ -403,7 +403,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    */
   public static List<Map<String, Object>> populateSettingList(
           Collection<? extends BlueprintSettingEntity> settings) throws NoSuchResourceException {
-    List<Map<String, Object>> listSettings = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> listSettings = new ArrayList<>();
 
     if (settings != null) {
       for (BlueprintSettingEntity setting : settings) {
@@ -427,7 +427,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   void createBlueprintConfigEntities(Collection<Map<String, String>> propertyMaps,
                                              BlueprintEntity blueprint) {
 
-    Collection<BlueprintConfigEntity> configurations = new ArrayList<BlueprintConfigEntity>();
+    Collection<BlueprintConfigEntity> configurations = new ArrayList<>();
     if (propertyMaps != null) {
       for (Map<String, String> configuration : propertyMaps) {
         BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
@@ -555,8 +555,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   protected static abstract class BlueprintConfigPopulationStrategy {
 
     public void applyConfiguration(Map<String, String> configuration, BlueprintConfiguration blueprintConfiguration) {
-      Map<String, String> configData = new HashMap<String, String>();
-      Map<String, Map<String, String>> configAttributes = new HashMap<String, Map<String, String>>();
+      Map<String, String> configData = new HashMap<>();
+      Map<String, Map<String, String>> configAttributes = new HashMap<>();
 
       if (configuration != null) {
         for (Map.Entry<String, String> entry : configuration.entrySet()) {

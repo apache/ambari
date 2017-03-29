@@ -67,7 +67,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final StackId stackId = cluster.getDesiredStackVersion();
-    final Set<String> hostsWithMasterComponent = new HashSet<String>();
+    final Set<String> hostsWithMasterComponent = new HashSet<>();
 
     // TODO AMBARI-12698, need to pass the upgrade pack to use in the request, or at least the type.
     final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion(), null);
@@ -84,7 +84,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.setFailReason(String.format(fail, upgradePackName));
       return;
     }
-    final Set<String> componentsFromUpgradePack = new HashSet<String>();
+    final Set<String> componentsFromUpgradePack = new HashSet<>();
     for (Map<String, ProcessingComponent> task: upgradePack.getTasks().values()) {
       componentsFromUpgradePack.addAll(task.keySet());
     }

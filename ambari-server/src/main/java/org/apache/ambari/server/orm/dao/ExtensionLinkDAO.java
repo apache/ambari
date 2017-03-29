@@ -66,7 +66,7 @@ public class ExtensionLinkDAO {
   public List<ExtensionLinkEntity> find(ExtensionLinkRequest request) {
     if (request.getLinkId() != null) {
       ExtensionLinkEntity entity = findById(new Long(request.getLinkId()));
-      List<ExtensionLinkEntity> list = new ArrayList<ExtensionLinkEntity>();
+      List<ExtensionLinkEntity> list = new ArrayList<>();
       list.add(entity);
       return list;
     }
@@ -79,7 +79,7 @@ public class ExtensionLinkDAO {
     if (stackName != null && stackVersion != null) {
       if (extensionName != null && extensionVersion != null) {
         ExtensionLinkEntity entity = findByStackAndExtension(stackName, stackVersion, extensionName, extensionVersion);
-        List<ExtensionLinkEntity> list = new ArrayList<ExtensionLinkEntity>();
+        List<ExtensionLinkEntity> list = new ArrayList<>();
         list.add(entity);
         return list;
       }

@@ -46,7 +46,7 @@ public class ServiceOsSpecific {
 
   @XmlElementWrapper(name="packages")
   @XmlElements(@XmlElement(name="package"))
-  private List<Package> packages = new ArrayList<Package>();
+  private List<Package> packages = new ArrayList<>();
 
 
   public String getOsFamily() {

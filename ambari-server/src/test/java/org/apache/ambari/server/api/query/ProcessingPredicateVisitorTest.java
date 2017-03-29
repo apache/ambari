@@ -41,7 +41,7 @@ public class ProcessingPredicateVisitorTest {
   public void testGetProcessedPredicate() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, "HDP");
 
     //test
@@ -65,7 +65,7 @@ public class ProcessingPredicateVisitorTest {
   public void testGetSubResourceForNotPredicate() throws Exception {
     ResourceDefinition resourceDefinition = new HostResourceDefinition();
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Host, null);
 
     //test
@@ -90,7 +90,7 @@ public class ProcessingPredicateVisitorTest {
   public void testGetSubResourceCategories() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, "HDP");
 
     //test
@@ -105,7 +105,7 @@ public class ProcessingPredicateVisitorTest {
 
     Set<String> categories = visitor.getSubResourceCategories();
 
-    Set<String> expected = new HashSet<String>();
+    Set<String> expected = new HashSet<>();
     expected.add("versions");
 
     Assert.assertEquals(expected, categories);
@@ -115,7 +115,7 @@ public class ProcessingPredicateVisitorTest {
   public void testGetSubResourceProperties() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, "HDP");
 
     //test
@@ -130,7 +130,7 @@ public class ProcessingPredicateVisitorTest {
 
     Set<String> properties = visitor.getSubResourceProperties();
 
-    Set<String> expected = new HashSet<String>();
+    Set<String> expected = new HashSet<>();
     expected.add("versions/stackServices/StackServices/service_name");
     expected.add("versions/operatingSystems/OperatingSystems/os_type");
 

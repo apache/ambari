@@ -40,7 +40,7 @@ import org.junit.Test;
 public class UserAuthorizationServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getAuthorization
     UserAuthorizationService service = new TestUserAuthorizationService("id");

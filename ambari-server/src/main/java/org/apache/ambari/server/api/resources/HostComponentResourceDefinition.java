@@ -56,7 +56,7 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> setSubResources = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> setSubResources = new HashSet<>();
 
     setSubResources.add(new SubResourceDefinition(Resource.Type.Component,
         Collections.singleton(Resource.Type.Service), false));
@@ -68,7 +68,7 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public List<PostProcessor> getPostProcessors() {
-    List<PostProcessor> listProcessors = new ArrayList<PostProcessor>();
+    List<PostProcessor> listProcessors = new ArrayList<>();
     listProcessors.add(new HostComponentHrefProcessor());
     listProcessors.add(new HostComponentHostProcessor());
 

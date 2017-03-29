@@ -68,7 +68,7 @@ public class StackAdvisorBlueprintProcessor {
   private static final Map<String, String> userContext;
   static
   {
-    userContext = new HashMap<String, String>();
+    userContext = new HashMap<>();
     userContext.put("operation", "ClusterCreate");
   }
 
@@ -97,7 +97,7 @@ public class StackAdvisorBlueprintProcessor {
       hgHostsMap);
     return StackAdvisorRequest.StackAdvisorRequestBuilder
       .forStack(stack.getName(), stack.getVersion())
-      .forServices(new ArrayList<String>(clusterTopology.getBlueprint().getServices()))
+      .forServices(new ArrayList<>(clusterTopology.getBlueprint().getServices()))
       .forHosts(gatherHosts(clusterTopology))
       .forHostsGroupBindings(gatherHostGroupBindings(clusterTopology))
       .forHostComponents(gatherHostGroupComponents(clusterTopology))
@@ -136,7 +136,7 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   private Map<String, Set<String>> gatherComponentsHostsMap(Map<String, Set<String>> hostGroups, Map<String, Set<String>> bindingHostGroups) {
-    Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> componentHostsMap = new HashMap<>();
     if (null != bindingHostGroups && null != hostGroups) {
       for (Map.Entry<String, Set<String>> hgComponents : hostGroups.entrySet()) {
         String hgName = hgComponents.getKey();
@@ -147,7 +147,7 @@ public class StackAdvisorBlueprintProcessor {
           for (String component : components) {
             Set<String> componentHosts = componentHostsMap.get(component);
             if (componentHosts == null) { // if was not initialized
-              componentHosts = new HashSet<String>();
+              componentHosts = new HashSet<>();
               componentHostsMap.put(component, componentHosts);
             }
             componentHosts.addAll(hosts);

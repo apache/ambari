@@ -81,9 +81,9 @@ public class JobResourceProvider extends
   protected static final String JOB_WORKFLOW_ENTITY_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Job", "workflow_entity_name");
 
-  private static final Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] {JOB_CLUSTER_NAME_PROPERTY_ID,
-          JOB_WORKFLOW_ID_PROPERTY_ID, JOB_ID_PROPERTY_ID}));
+  private static final Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{JOB_CLUSTER_NAME_PROPERTY_ID,
+      JOB_WORKFLOW_ID_PROPERTY_ID, JOB_ID_PROPERTY_ID}));
 
   protected JobFetcher jobFetcher;
 
@@ -130,7 +130,7 @@ public class JobResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resourceSet = new HashSet<Resource>();
+    Set<Resource> resourceSet = new HashSet<>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String,Object>> predicatePropertieSet = getPropertyMaps(predicate);
@@ -167,7 +167,7 @@ public class JobResourceProvider extends
 
   @Override
   public Map<Type,String> getKeyPropertyIds() {
-    Map<Type,String> keyPropertyIds = new HashMap<Type,String>();
+    Map<Type,String> keyPropertyIds = new HashMap<>();
     keyPropertyIds.put(Type.Cluster, JOB_CLUSTER_NAME_PROPERTY_ID);
     keyPropertyIds.put(Type.Workflow, JOB_WORKFLOW_ID_PROPERTY_ID);
     keyPropertyIds.put(Type.Job, JOB_ID_PROPERTY_ID);
@@ -256,7 +256,7 @@ public class JobResourceProvider extends
     @Override
     public Set<Resource> fetchJobDetails(Set<String> requestedIds,
         String clusterName, String workflowId, String jobId) {
-      Set<Resource> jobs = new HashSet<Resource>();
+      Set<Resource> jobs = new HashSet<>();
       ResultSet rs = null;
       try {
         rs = getResultSet(requestedIds, workflowId, jobId);
@@ -333,7 +333,7 @@ public class JobResourceProvider extends
 
   @Override
   protected Map<String,JobFields> getDBFieldMap() {
-    Map<String,JobFields> dbFields = new HashMap<String,JobFields>();
+    Map<String,JobFields> dbFields = new HashMap<>();
     dbFields.put(JOB_WORKFLOW_ID_PROPERTY_ID, JobFields.WORKFLOWID);
     dbFields.put(JOB_ID_PROPERTY_ID, JobFields.JOBID);
     dbFields.put(JOB_NAME_PROPERTY_ID, JobFields.JOBNAME);

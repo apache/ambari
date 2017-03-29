@@ -69,7 +69,7 @@ public class ResourceEntity {
    * The list of privileges.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "resource")
-  private Collection<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+  private Collection<PrivilegeEntity> privileges = new HashSet<>();
 
 
   // ----- ResourceEntity ---------------------------------------------------

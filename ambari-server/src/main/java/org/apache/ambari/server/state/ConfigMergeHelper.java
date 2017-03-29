@@ -80,7 +80,7 @@ public class ConfigMergeHelper {
 
     // Final result after merging.
     Map<String, Map<String, ThreeWayValue>> result =
-        new HashMap<String, Map<String, ThreeWayValue>>();
+      new HashMap<>();
 
     // For every property of every config type, see if it is going to be merged:
     for (Entry<String, Map<String, String>> entry : oldMap.entrySet()) {

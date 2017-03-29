@@ -60,7 +60,7 @@ public class BootStrapImpl {
     this.bootScript = conf.getBootStrapScript();
     this.bootSetupAgentScript = conf.getBootSetupAgentScript();
     this.bootSetupAgentPassword = conf.getBootSetupAgentPassword();
-    this.bsStatus = new FifoLinkedHashMap<Long, BootStrapStatus>();
+    this.bsStatus = new FifoLinkedHashMap<>();
     this.masterHostname = conf.getMasterHostname(
         InetAddress.getLocalHost().getCanonicalHostName());
     this.clusterOsType = conf.getServerOsType();
@@ -141,7 +141,7 @@ public class BootStrapImpl {
    * @return
    */
   public synchronized List<BSHostStatus> getHostInfo(List<String> hosts) {
-    List<BSHostStatus> statuses = new ArrayList<BSHostStatus>();
+    List<BSHostStatus> statuses = new ArrayList<>();
 
     if (null == hosts || 0 == hosts.size() || (hosts.size() == 1 && hosts.get(0).equals("*"))) {
       for (BootStrapStatus status : bsStatus.values()) {

@@ -46,13 +46,13 @@ public class ConfigurationRecommendationCommandTest {
     ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "1w", "script", 1, saRunner, metaInfo);
 
     StackAdvisorRequest request = mock(StackAdvisorRequest.class);
-    Map<String, Set<String>> componentHostGroupMap = new HashMap<String, Set<String>>();
-    Set<String> components1 = new HashSet<String>();
+    Map<String, Set<String>> componentHostGroupMap = new HashMap<>();
+    Set<String> components1 = new HashSet<>();
     components1.add("component1");
     components1.add("component4");
     components1.add("component5");
     componentHostGroupMap.put("group1", components1);
-    Set<String> components2 = new HashSet<String>();
+    Set<String> components2 = new HashSet<>();
     components2.add("component2");
     components2.add("component3");
     componentHostGroupMap.put("group2", components2);
@@ -62,7 +62,7 @@ public class ConfigurationRecommendationCommandTest {
     assertNotNull(hostGroups);
     assertEquals(2, hostGroups.size());
     Map<String, RecommendationResponse.HostGroup> hostGroupMap =
-        new HashMap<String, RecommendationResponse.HostGroup>();
+      new HashMap<>();
     for (RecommendationResponse.HostGroup hostGroup : hostGroups) {
       hostGroupMap.put(hostGroup.getName(), hostGroup);
     }
@@ -71,7 +71,7 @@ public class ConfigurationRecommendationCommandTest {
     Set<Map<String, String>> host1Components = hostGroup1.getComponents();
     assertNotNull(host1Components);
     assertEquals(3, host1Components.size());
-    Set<String> componentNames1 = new HashSet<String>();
+    Set<String> componentNames1 = new HashSet<>();
     for (Map<String, String> host1Component : host1Components) {
       assertNotNull(host1Component);
       assertEquals(1, host1Component.size());
@@ -88,7 +88,7 @@ public class ConfigurationRecommendationCommandTest {
     Set<Map<String, String>> host2Components = hostGroup2.getComponents();
     assertNotNull(host2Components);
     assertEquals(2, host2Components.size());
-    Set<String> componentNames2 = new HashSet<String>();
+    Set<String> componentNames2 = new HashSet<>();
     for (Map<String, String> host2Component : host2Components) {
       assertNotNull(host2Component);
       assertEquals(1, host2Component.size());

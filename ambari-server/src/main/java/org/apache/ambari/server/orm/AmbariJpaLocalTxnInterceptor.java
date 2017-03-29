@@ -93,7 +93,7 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
   private final UnitOfWork unitOfWork = null;
 
   // Tracks if the unit of work was begun implicitly by this transaction.
-  private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<Boolean>();
+  private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<>();
 
   /**
    * {@inheritDoc}

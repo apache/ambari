@@ -99,10 +99,10 @@ public class StackServiceComponentResourceProvider extends
   private static final String AUTO_DEPLOY_LOCATION_ID = PropertyHelper.getPropertyId(
       "auto_deploy", "location");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
-          STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID,
-          COMPONENT_NAME_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID,
+      COMPONENT_NAME_PROPERTY_ID}));
 
   protected StackServiceComponentResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -115,7 +115,7 @@ public class StackServiceComponentResourceProvider extends
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    final Set<StackServiceComponentRequest> requests = new HashSet<StackServiceComponentRequest>();
+    final Set<StackServiceComponentRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -134,7 +134,7 @@ public class StackServiceComponentResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (StackServiceComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.StackServiceComponent);

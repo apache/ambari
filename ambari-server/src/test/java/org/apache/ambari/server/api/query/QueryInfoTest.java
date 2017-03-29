@@ -34,7 +34,7 @@ import org.junit.Test;
 public class QueryInfoTest {
   @Test
   public void testGetProperties() {
-    Set<String> properties = new HashSet<String>();
+    Set<String> properties = new HashSet<>();
     QueryInfo info = new QueryInfo(new ClusterResourceDefinition(), properties);
 
     assertEquals(properties, info.getProperties());

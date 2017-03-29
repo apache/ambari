@@ -494,7 +494,7 @@ public class CalculatedStatusTest {
 
   @Test
   public void testCalculateStatusCounts() throws Exception {
-    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<>();
 
     hostRoleStatuses.add(HostRoleStatus.PENDING);
     hostRoleStatuses.add(HostRoleStatus.QUEUED);
@@ -529,7 +529,7 @@ public class CalculatedStatusTest {
 
   @Test
   public void testCountsWithRepeatHosts() throws Exception {
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
 
       stages.addAll(getStages(getTaskEntities(
           HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED,
@@ -697,7 +697,7 @@ public class CalculatedStatusTest {
   }
 
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {
-    Collection<HostRoleCommandEntity> entities = new LinkedList<HostRoleCommandEntity>();
+    Collection<HostRoleCommandEntity> entities = new LinkedList<>();
 
     for (int i = 0; i < statuses.length; i++) {
       HostRoleStatus status = statuses[i];
@@ -712,7 +712,7 @@ public class CalculatedStatusTest {
 
   private Collection<StageEntity> getStageEntities(Collection<HostRoleCommandEntity> ... taskCollections) {
 
-    Collection<StageEntity> entities = new LinkedList<StageEntity>();
+    Collection<StageEntity> entities = new LinkedList<>();
 
     for (Collection<HostRoleCommandEntity> taskEntities : taskCollections) {
       StageEntity entity = new StageEntity();
@@ -726,7 +726,7 @@ public class CalculatedStatusTest {
 
   private Collection<Stage> getStages(Collection<HostRoleCommandEntity> ... taskCollections) {
 
-    Collection<Stage> entities = new LinkedList<Stage>();
+    Collection<Stage> entities = new LinkedList<>();
 
     for (Collection<HostRoleCommandEntity> taskEntities : taskCollections) {
       TestStage stage = new TestStage();
@@ -740,7 +740,7 @@ public class CalculatedStatusTest {
 
   private class TestStage extends Stage {
 
-    private final List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    private final List<HostRoleCommand> hostRoleCommands = new LinkedList<>();
 
     private TestStage() {
       super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory, ecwFactory);

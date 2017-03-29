@@ -238,7 +238,7 @@ public class HostComponentService extends BaseService {
   @Produces("text/plain")
   public Response getProcesses(@Context HttpHeaders headers, @Context UriInfo ui,
       @PathParam("hostComponentName") String hostComponentName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
     mapIds.put(Resource.Type.HostComponent, hostComponentName);
@@ -258,7 +258,7 @@ public class HostComponentService extends BaseService {
    * @return a host resource instance
    */
   ResourceInstance createHostComponentResource(String clusterName, String hostName, String hostComponentName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Host, hostName);
     mapIds.put(Resource.Type.HostComponent, hostComponentName);
@@ -268,7 +268,7 @@ public class HostComponentService extends BaseService {
 
   private Response createClientConfigResource(String body, HttpHeaders headers, UriInfo ui,
                                               String hostComponentName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Host, m_hostName);
     mapIds.put(Resource.Type.Component, hostComponentName);

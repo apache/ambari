@@ -60,7 +60,7 @@ public class Layout{
   }
 
   private List<Tab> mergeTabs(List<Tab> parentTabs, List<Tab> childTabs) {
-    Map<String, Tab> mergedTabs = new HashMap<String, Tab>();
+    Map<String, Tab> mergedTabs = new HashMap<>();
     for (Tab parentTab : parentTabs) {
       mergedTabs.put(parentTab.getName(), parentTab);
     }
@@ -76,7 +76,7 @@ public class Layout{
         }
       }
     }
-    return new ArrayList<Tab>(mergedTabs.values());
+    return new ArrayList<>(mergedTabs.values());
   }
 
 }

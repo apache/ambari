@@ -66,7 +66,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   /**
    * Observers of this observable resource provider.
    */
-  private final Set<ResourceProviderObserver> observers = new HashSet<ResourceProviderObserver>();
+  private final Set<ResourceProviderObserver> observers = new HashSet<>();
 
   protected final static Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
   protected final static String PROPERTIES_ATTRIBUTES_REGEX = "properties_attributes/[a-zA-Z][a-zA-Z._-]*$";
@@ -168,7 +168,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
     PredicateHelper.visit(givenPredicate, visitor);
     List<Predicate> predicates = visitor.getSimplifiedPredicates();
 
-    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertyMaps = new HashSet<>();
 
     for (Predicate predicate : predicates) {
       propertyMaps.add(PredicateHelper.getProperties(predicate));
@@ -190,18 +190,18 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   protected Set<Map<String, Object>> getPropertyMaps(Map<String, Object> requestPropertyMap, Predicate givenPredicate)
       throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertyMaps = new HashSet<>();
 
     // If the predicate specifies a unique resource then we can simply return a single
     // property map for the update.  Otherwise we need to do a get with the given predicate
     // to get the set of property maps for the resources that need to be updated.
     if (specifiesUniqueResource(givenPredicate)) {
-      Map<String, Object> propertyMap = new HashMap<String, Object>(PredicateHelper.getProperties(givenPredicate));
+      Map<String, Object> propertyMap = new HashMap<>(PredicateHelper.getProperties(givenPredicate));
       propertyMap.putAll(requestPropertyMap);
       propertyMaps.add(propertyMap);
     } else {
       for (Resource resource : getResources(givenPredicate)) {
-        Map<String, Object> propertyMap = new HashMap<String, Object>(PropertyHelper.getProperties(resource));
+        Map<String, Object> propertyMap = new HashMap<>(PropertyHelper.getProperties(resource));
         propertyMap.putAll(requestPropertyMap);
         propertyMaps.add(propertyMap);
       }
@@ -364,7 +364,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    */
   public static List<ConfigurationRequest> getConfigurationRequests(String parentCategory, Map<String, Object> properties) {
 
-    List<ConfigurationRequest> configs = new LinkedList<ConfigurationRequest>();
+    List<ConfigurationRequest> configs = new LinkedList<>();
 
     String desiredConfigKey = parentCategory + "/desired_config";
     // Multiple configs to be updated
@@ -426,12 +426,12 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
       String attributeName = absCategory.substring(absCategory.lastIndexOf('/') + 1);
       Map<String, Map<String, String>> configAttributesMap = config.getPropertiesAttributes();
       if (null == configAttributesMap) {
-        configAttributesMap = new HashMap<String, Map<String,String>>();
+        configAttributesMap = new HashMap<>();
         config.setPropertiesAttributes(configAttributesMap);
       }
       Map<String, String> attributesMap = configAttributesMap.get(attributeName);
       if (null == attributesMap) {
-        attributesMap = new HashMap<String, String>();
+        attributesMap = new HashMap<>();
         configAttributesMap.put(attributeName, attributesMap);
       }
       attributesMap.put(propName, propValue);

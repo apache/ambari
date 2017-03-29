@@ -146,7 +146,7 @@ public class HBaseEnvMaxDirectMemorySizeActionTest {
   @Test
   public void testAction() throws Exception {
     Pattern regex = Pattern.compile("^.*\\s*(HBASE_MASTER_OPTS)\\s*=.*(XX:MaxDirectMemorySize).*$", Pattern.MULTILINE);
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();

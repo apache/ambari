@@ -38,7 +38,7 @@ import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 public class RoleAuthorizationServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getAuthorization
     RoleAuthorizationService service = new TestRoleAuthorizationService("id");

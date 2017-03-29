@@ -232,7 +232,7 @@ public class RequestStageContainer {
           actionManager.getRequestTasks(id);
 
       response.setRequestContext(actionManager.getRequestContext(id));
-      List<ShortTaskStatus> tasks = new ArrayList<ShortTaskStatus>();
+      List<ShortTaskStatus> tasks = new ArrayList<>();
 
       for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
         tasks.add(new ShortTaskStatus(hostRoleCommand));

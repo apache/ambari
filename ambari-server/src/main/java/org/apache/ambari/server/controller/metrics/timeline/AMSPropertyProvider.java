@@ -119,7 +119,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
    */
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    Set<String> supportedIds = new HashSet<String>();
+    Set<String> supportedIds = new HashSet<>();
     for (String propertyId : propertyIds) {
       if (propertyId.startsWith(ZERO_PADDING_PARAM)
           || PropertyHelper.hasAggregateFunctionSuffix(propertyId)) {
@@ -135,15 +135,15 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
    */
   class MetricsRequest {
     private final TemporalInfo temporalInfo;
-    private final Map<String, Set<Resource>> resources = new HashMap<String, Set<Resource>>();
-    private final Map<String, Set<String>> metrics = new HashMap<String, Set<String>>();
+    private final Map<String, Set<Resource>> resources = new HashMap<>();
+    private final Map<String, Set<String>> metrics = new HashMap<>();
     private final URIBuilder uriBuilder;
     Set<String> resolvedMetricsParams;
     MetricsRequestHelper requestHelper = new MetricsRequestHelper(streamProvider);
 
     // Metrics with amsHostMetric = true
     // Basically a host metric to be returned for a hostcomponent
-    private final Set<String> hostComponentHostMetrics = new HashSet<String>();
+    private final Set<String> hostComponentHostMetrics = new HashSet<>();
     private String clusterName;
     private Map<String, Set<String>> componentMetricMap = new HashMap<>();
 
@@ -161,7 +161,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     public void putResource(String componentName, Resource resource) {
       Set<Resource> resourceSet = resources.get(componentName);
       if (resourceSet == null) {
-        resourceSet = new HashSet<Resource>();
+        resourceSet = new HashSet<>();
         resources.put(componentName, resourceSet);
       }
       resourceSet.add(resource);
@@ -171,7 +171,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       Set<String> propertyIds = metrics.get(metric);
 
       if (propertyIds == null) {
-        propertyIds = new HashSet<String>();
+        propertyIds = new HashSet<>();
         metrics.put(metric, propertyIds);
       }
       propertyIds.add(id);
@@ -367,7 +367,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
     private Set<String> createPatterns(Set<String> rawNames) {
       Pattern pattern = Pattern.compile(METRIC_REGEXP_PATTERN);
-      Set<String> result = new HashSet<String>();
+      Set<String> result = new HashSet<>();
       for (String rawName : rawNames) {
         Matcher matcher = pattern.matcher(rawName);
         StringBuilder sb = new StringBuilder();
@@ -393,7 +393,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
 
     private Set<String> processRegexps(Set<String> metricNames) {
-      Set<String> result = new HashSet<String>();
+      Set<String> result = new HashSet<>();
       for (String name : metricNames) {
         result.add(name.replaceAll(METRIC_REGEXP_PATTERN, Matcher.quoteReplacement("%")));
       }
@@ -404,7 +404,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
                                   TemporalInfo temporalInfo) {
       String metric_name = metric.getMetricName();
       Set<String> propertyIdSet = metrics.get(metric_name);
-      List<String> parameterList  = new LinkedList<String>();
+      List<String> parameterList  = new LinkedList<>();
 
       if (propertyIdSet == null) {
         for (Map.Entry<String, Set<String>> entry : metrics.entrySet()) {
@@ -561,7 +561,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     } else {
       metricPropertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Component);
     }
-    Map<String, PropertyInfo> amsMetrics = new HashMap<String, PropertyInfo>();
+    Map<String, PropertyInfo> amsMetrics = new HashMap<>();
     if (metricPropertyIds.containsKey(HBASE_MASTER.name())) {
       amsMetrics.putAll(metricPropertyIds.get(HBASE_MASTER.name()));
     }
@@ -587,7 +587,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               Set<Resource> resources, Request request, Set<String> ids) throws SystemException {
 
     Map<String, Map<TemporalInfo, MetricsRequest>> requestMap =
-      new HashMap<String, Map<TemporalInfo, MetricsRequest>>();
+      new HashMap<>();
 
     String collectorPort = null;
     Map<String, Boolean> clusterCollectorComponentLiveMap = new HashMap<>();
@@ -645,7 +645,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
       Map<TemporalInfo, MetricsRequest> requests = requestMap.get(clusterName);
       if (requests == null) {
-        requests = new HashMap<TemporalInfo, MetricsRequest>();
+        requests = new HashMap<>();
         requestMap.put(clusterName, requests);
       }
 
@@ -656,7 +656,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
 
       for (String id : ids) {
-        Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
+        Map<String, PropertyInfo> propertyInfoMap = new HashMap<>();
 
         String componentName = getOverridenComponentName(resource);
 

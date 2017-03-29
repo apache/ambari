@@ -99,7 +99,7 @@ public class StackManager {
   /**
    * Map of stack id to stack info
    */
-  protected Map<String, StackInfo> stackMap = new HashMap<String, StackInfo>();
+  protected Map<String, StackInfo> stackMap = new HashMap<>();
   protected Map<String, ServiceModule> commonServiceModules;
   protected Map<String, StackModule> stackModules;
   protected Map<String, ExtensionModule> extensionModules;
@@ -107,7 +107,7 @@ public class StackManager {
   /**
    * Map of extension id to extension info
    */
-  private Map<String, ExtensionInfo> extensionMap = new HashMap<String, ExtensionInfo>();
+  private Map<String, ExtensionInfo> extensionMap = new HashMap<>();
 
   /**
    * Constructor. Initialize stack manager.
@@ -151,9 +151,9 @@ public class StackManager {
       validateExtensionDirectory(extensionRoot);
     }
 
-    stackMap = new HashMap<String, StackInfo>();
+    stackMap = new HashMap<>();
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
-    extensionMap = new HashMap<String, ExtensionInfo>();
+    extensionMap = new HashMap<>();
 
     parseDirectories(stackRoot, commonServicesRoot, extensionRoot);
 
@@ -248,7 +248,7 @@ public class StackManager {
    *         If no stacks match the specified name, an empty collection is returned.
    */
   public Collection<StackInfo> getStacks(String name) {
-    Collection<StackInfo> stacks = new HashSet<StackInfo>();
+    Collection<StackInfo> stacks = new HashSet<>();
     for (StackInfo stack: stackMap.values()) {
       if (stack.getName().equals(name)) {
         stacks.add(stack);
@@ -286,7 +286,7 @@ public class StackManager {
    *         If no extensions match the specified name, an empty collection is returned.
    */
   public Collection<ExtensionInfo> getExtensions(String name) {
-    Collection<ExtensionInfo> extensions = new HashSet<ExtensionInfo>();
+    Collection<ExtensionInfo> extensions = new HashSet<>();
     for (ExtensionInfo extension: extensionMap.values()) {
       if (extension.getName().equals(name)) {
 	  extensions.add(extension);
@@ -495,7 +495,7 @@ public class StackManager {
    * @throws AmbariException if unable to parse all common services
    */
   private Map<String, ServiceModule> parseCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
-    Map<String, ServiceModule> commonServiceModules = new HashMap<String, ServiceModule>();
+    Map<String, ServiceModule> commonServiceModules = new HashMap<>();
 
     if(commonServicesRoot != null) {
       File[] commonServiceFiles = commonServicesRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
@@ -538,7 +538,7 @@ public class StackManager {
    * @throws AmbariException if unable to parse all stacks
    */
   private Map<String, StackModule> parseStackDirectory(File stackRoot) throws AmbariException {
-    Map<String, StackModule> stackModules = new HashMap<String, StackModule>();
+    Map<String, StackModule> stackModules = new HashMap<>();
 
     File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
     for (File stack : stackFiles) {
@@ -580,7 +580,7 @@ public class StackManager {
    * @throws AmbariException if unable to parse all extensions
    */
   private Map<String, ExtensionModule> parseExtensionDirectory(File extensionRoot) throws AmbariException {
-    Map<String, ExtensionModule> extensionModules = new HashMap<String, ExtensionModule>();
+    Map<String, ExtensionModule> extensionModules = new HashMap<>();
     if (extensionRoot == null || !extensionRoot.exists())
       return extensionModules;
 

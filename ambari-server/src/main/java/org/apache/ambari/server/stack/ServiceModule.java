@@ -71,23 +71,23 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Map of child configuration modules keyed by configuration type
    */
   private Map<String, ConfigurationModule> configurationModules =
-      new HashMap<String, ConfigurationModule>();
+    new HashMap<>();
 
   /**
    * Map of child component modules keyed by component name
    */
   private Map<String, ComponentModule> componentModules =
-      new HashMap<String, ComponentModule>();
+    new HashMap<>();
 
   /**
    * Map of themes, single value currently
    */
-  private Map<String, ThemeModule> themeModules = new HashMap<String, ThemeModule>();
+  private Map<String, ThemeModule> themeModules = new HashMap<>();
 
   /**
    * Map of quicklinks, single value currently
    */
-  private Map<String, QuickLinksConfigurationModule> quickLinksConfigurationModules = new HashMap<String, QuickLinksConfigurationModule>();
+  private Map<String, QuickLinksConfigurationModule> quickLinksConfigurationModules = new HashMap<>();
 
   /**
    * Encapsulates IO operations on service directory
@@ -430,7 +430,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     String themesDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getThemesDir();
 
     if (serviceInfo.getThemes() != null) {
-      List<ThemeInfo> themes = new ArrayList<ThemeInfo>(serviceInfo.getThemes().size());
+      List<ThemeInfo> themes = new ArrayList<>(serviceInfo.getThemes().size());
       for (ThemeInfo themeInfo : serviceInfo.getThemes()) {
         File themeFile = new File(themesDir + File.separator + themeInfo.getFileName());
         ThemeModule module = new ThemeModule(themeFile, themeInfo);
@@ -602,7 +602,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   private void mergeCustomCommands(Collection<CustomCommandDefinition> parentCmds,
                                    Collection<CustomCommandDefinition> childCmds) {
 
-    Collection<String> existingNames = new HashSet<String>();
+    Collection<String> existingNames = new HashSet<>();
 
     for (CustomCommandDefinition childCmd : childCmds) {
       existingNames.add(childCmd.getName());
@@ -636,7 +636,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.valid = valid;
   }
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public void addError(String error) {

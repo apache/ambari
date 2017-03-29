@@ -316,7 +316,7 @@ public class VariableReplacementHelper {
 
       Collection<String> sourceItems = parseItems(sourceData, concatDelimiter);
       Collection<String> dataItems = parseItems(data, concatDelimiter);
-      Collection<String> items = new ArrayList<String>();
+      Collection<String> items = new ArrayList<>();
 
       if (uniqueOnly) {
         for (String item : sourceItems) {
@@ -346,7 +346,7 @@ public class VariableReplacementHelper {
      * @return a Collection of Strings split from the original string
      */
     private Collection<String> parseItems(String delimitedString, String concatDelimiter) {
-      Collection<String> items = new ArrayList<String>();
+      Collection<String> items = new ArrayList<>();
 
       if (!StringUtils.isEmpty(delimitedString)) {
         for (String item : delimitedString.split(concatDelimiter)) {

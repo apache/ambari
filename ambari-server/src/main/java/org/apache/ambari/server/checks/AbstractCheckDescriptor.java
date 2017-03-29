@@ -240,7 +240,7 @@ public abstract class AbstractCheckDescriptor {
               c.getDesiredStackVersion().getStackName(),
               c.getDesiredStackVersion().getStackVersion());
 
-          LinkedHashSet<String> displays = new LinkedHashSet<String>();
+          LinkedHashSet<String> displays = new LinkedHashSet<>();
           for (String name : names) {
             if (services.containsKey(name)) {
               displays.add(services.get(name).getDisplayName());

@@ -48,7 +48,7 @@ import junit.framework.Assert;
  */
 public class SchemaImplTest {
 
-  private static final Set<String> resourceProviderProperties = new HashSet<String>();
+  private static final Set<String> resourceProviderProperties = new HashSet<>();
 
   static {
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p1"));
@@ -87,7 +87,7 @@ public class SchemaImplTest {
     @Override
     public Set<String> checkPropertyIds(Set<String> propertyIds) {
       if (!resourceProviderProperties.containsAll(propertyIds)) {
-        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        Set<String> unsupportedPropertyIds = new HashSet<>(propertyIds);
         unsupportedPropertyIds.removeAll(resourceProviderProperties);
         return unsupportedPropertyIds;
       }
@@ -95,7 +95,7 @@ public class SchemaImplTest {
     }
   };
 
-  private static final Set<String> propertyProviderProperties = new HashSet<String>();
+  private static final Set<String> propertyProviderProperties = new HashSet<>();
 
   static {
     propertyProviderProperties.add(PropertyHelper.getPropertyId("c3", "p5"));
@@ -113,7 +113,7 @@ public class SchemaImplTest {
     @Override
     public Set<String> checkPropertyIds(Set<String> propertyIds) {
       if (!propertyProviderProperties.containsAll(propertyIds)) {
-        Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
+        Set<String> unsupportedPropertyIds = new HashSet<>(propertyIds);
         unsupportedPropertyIds.removeAll(propertyProviderProperties);
         return unsupportedPropertyIds;
       }
@@ -121,13 +121,13 @@ public class SchemaImplTest {
     }
   };
 
-  private static final List<PropertyProvider> propertyProviders = new LinkedList<PropertyProvider>();
+  private static final List<PropertyProvider> propertyProviders = new LinkedList<>();
 
   static {
     propertyProviders.add(propertyProvider);
   }
 
-  private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
   static {
     keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("c1", "p1"));

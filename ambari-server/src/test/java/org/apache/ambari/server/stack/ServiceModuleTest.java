@@ -142,7 +142,7 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_RequiredServices() throws Exception {
-    List<String> requiredServices = new ArrayList<String>();
+    List<String> requiredServices = new ArrayList<>();
     requiredServices.add("foo");
     requiredServices.add("bar");
 
@@ -232,7 +232,7 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_OsSpecifics() throws Exception {
-    Map<String, ServiceOsSpecific> osSpecifics = new HashMap<String, ServiceOsSpecific>();
+    Map<String, ServiceOsSpecific> osSpecifics = new HashMap<>();
     osSpecifics.put("foo", new ServiceOsSpecific());
 
     // specified in child only
@@ -251,7 +251,7 @@ public class ServiceModuleTest {
     assertEquals(osSpecifics, service.getModuleInfo().getOsSpecifics());
 
     // specified in both
-    Map<String, ServiceOsSpecific> osSpecifics2 = new HashMap<String, ServiceOsSpecific>();
+    Map<String, ServiceOsSpecific> osSpecifics2 = new HashMap<>();
     osSpecifics.put("bar", new ServiceOsSpecific());
 
     info.setOsSpecifics(osSpecifics);
@@ -470,7 +470,7 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_CustomCommands() throws Exception {
-    List<CustomCommandDefinition> customCommands = new ArrayList<CustomCommandDefinition>();
+    List<CustomCommandDefinition> customCommands = new ArrayList<>();
     CustomCommandDefinition cmd1 = new CustomCommandDefinition();
     setPrivateField(cmd1, "name", "cmd1");
     setPrivateField(cmd1, "background", false);
@@ -495,7 +495,7 @@ public class ServiceModuleTest {
     assertEquals(customCommands, service.getModuleInfo().getCustomCommands());
 
     // specified in both
-    List<CustomCommandDefinition> parentCustomCommands = new ArrayList<CustomCommandDefinition>();
+    List<CustomCommandDefinition> parentCustomCommands = new ArrayList<>();
     CustomCommandDefinition cmd3 = new CustomCommandDefinition();
     setPrivateField(cmd3, "name", "cmd1");
     setPrivateField(cmd3, "background", true);
@@ -524,7 +524,7 @@ public class ServiceModuleTest {
 
   @Test
   public void testResolve_ConfigDependencies() throws Exception {
-    List<String> configDependencies = new ArrayList<String>();
+    List<String> configDependencies = new ArrayList<>();
     configDependencies.add("foo");
     configDependencies.add("bar");
 
@@ -544,7 +544,7 @@ public class ServiceModuleTest {
     assertEquals(configDependencies, service.getModuleInfo().getConfigDependencies());
 
     // specified in both
-    List<String> parentCustomCommands = new ArrayList<String>();
+    List<String> parentCustomCommands = new ArrayList<>();
     parentCustomCommands.add("bar");
     parentCustomCommands.add("other");
 
@@ -614,7 +614,7 @@ public class ServiceModuleTest {
     List<ComponentInfo> components = child.getModuleInfo().getComponents();
     assertEquals(3, components.size());
 
-    Map<String, ComponentInfo> mergedComponents = new HashMap<String, ComponentInfo>();
+    Map<String, ComponentInfo> mergedComponents = new HashMap<>();
     for (ComponentInfo component : components) {
       mergedComponents.put(component.getName(), component);
     }
@@ -635,33 +635,33 @@ public class ServiceModuleTest {
 
     // child configurations
     //FOO
-    Collection<PropertyInfo> childFooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> childFooProperties = new ArrayList<>();
     PropertyInfo childProp1 = new PropertyInfo();
     childProp1.setName("childName1");
     childProp1.setValue("childVal1");
     childFooProperties.add(childProp1);
 
     //BAR : Doesn't inherit parents BAR due to attribute Supports.DO_NOT_EXTEND
-    Collection<PropertyInfo> childBarProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> childBarProperties = new ArrayList<>();
     PropertyInfo childProp2 = new PropertyInfo();
     childProp2.setName("childName2");
     childProp2.setValue("childVal2");
     childBarProperties.add(childProp2);
 
     // add attributes for BAR
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, String> attributes = new HashMap<>();
     attributes.put(ConfigurationInfo.Supports.DO_NOT_EXTEND.getXmlAttributeName(), "true");
 
     // create child config modules
     ConfigurationModule childConfigModule1 = createConfigurationModule("FOO", childFooProperties);
     ConfigurationModule childConfigModule2 = createConfigurationModule("BAR", childBarProperties, attributes);
-    Collection<ConfigurationModule> childModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> childModules = new ArrayList<>();
     childModules.add(childConfigModule1);
     childModules.add(childConfigModule2);
 
     // parent configurations
     //FOO
-    Collection<PropertyInfo> parentFooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> parentFooProperties = new ArrayList<>();
     PropertyInfo parentProp1 = new PropertyInfo();
     parentProp1.setName("parentName1");
     parentProp1.setValue("parentVal1");
@@ -673,14 +673,14 @@ public class ServiceModuleTest {
     parentFooProperties.add(parentProp12);
 
     //BAR
-    Collection<PropertyInfo> parentBarProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> parentBarProperties = new ArrayList<>();
     PropertyInfo parentProp2 = new PropertyInfo();
     parentProp2.setName("parentName2");
     parentProp2.setValue("parentVal2");
     parentBarProperties.add(parentProp2);
 
     //OTHER
-    Collection<PropertyInfo> parentOtherProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> parentOtherProperties = new ArrayList<>();
     PropertyInfo parentProp3 = new PropertyInfo();
     parentProp3.setName("parentName3");
     parentProp3.setValue("parentVal3");
@@ -690,7 +690,7 @@ public class ServiceModuleTest {
     ConfigurationModule parentConfigModule1 = createConfigurationModule("FOO", parentFooProperties);
     ConfigurationModule parentConfigModule2 = createConfigurationModule("BAR", parentBarProperties);
     ConfigurationModule parentConfigModule3 = createConfigurationModule("OTHER", parentOtherProperties);
-    Collection<ConfigurationModule> parentModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> parentModules = new ArrayList<>();
     parentModules.add(parentConfigModule1);
     parentModules.add(parentConfigModule2);
     parentModules.add(parentConfigModule3);
@@ -706,7 +706,7 @@ public class ServiceModuleTest {
     List<PropertyInfo> mergedProperties = child.getModuleInfo().getProperties();
     assertEquals(4, mergedProperties.size());
 
-    Map<String, PropertyInfo> mergedPropertyMap = new HashMap<String, PropertyInfo>();
+    Map<String, PropertyInfo> mergedPropertyMap = new HashMap<>();
     for (PropertyInfo prop : mergedProperties) {
       mergedPropertyMap.put(prop.getName(), prop);
     }
@@ -757,39 +757,39 @@ public class ServiceModuleTest {
 
     // child configurations
     //FOO
-    Collection<PropertyInfo> childFooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> childFooProperties = new ArrayList<>();
     PropertyInfo childProp1 = new PropertyInfo();
     childProp1.setName("childName1");
     childProp1.setValue("childVal1");
     childFooProperties.add(childProp1);
 
     // add attributes for parent FOO
-    Map<String, String> childFooAttributes = new HashMap<String, String>();
+    Map<String, String> childFooAttributes = new HashMap<>();
     // override parents value
     childFooAttributes.put(ConfigurationInfo.Supports.ADDING_FORBIDDEN.getXmlAttributeName(), "false");
 
     // create child config modules
     ConfigurationModule childConfigModule1 = createConfigurationModule("FOO", childFooProperties, childFooAttributes);
-    Collection<ConfigurationModule> childModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> childModules = new ArrayList<>();
     childModules.add(childConfigModule1);
 
     // parent configurations
     //FOO
-    Collection<PropertyInfo> parentFooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> parentFooProperties = new ArrayList<>();
     PropertyInfo parentProp1 = new PropertyInfo();
     parentProp1.setName("parentName1");
     parentProp1.setValue("parentVal1");
     parentFooProperties.add(parentProp1);
 
     // add attributes for parent FOO
-    Map<String, String> parentFooAttributes = new HashMap<String, String>();
+    Map<String, String> parentFooAttributes = new HashMap<>();
     // child will inherit
     parentFooAttributes.put(ConfigurationInfo.Supports.FINAL.getXmlAttributeName(), "true");
     // child will override
     parentFooAttributes.put(ConfigurationInfo.Supports.ADDING_FORBIDDEN.getXmlAttributeName(), "true");
 
     //BAR
-    Collection<PropertyInfo> parentBarProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> parentBarProperties = new ArrayList<>();
     PropertyInfo parentProp2 = new PropertyInfo();
     parentProp2.setName("parentName2");
     parentProp2.setValue("parentVal2");
@@ -799,7 +799,7 @@ public class ServiceModuleTest {
     // create parent config modules
     ConfigurationModule parentConfigModule1 = createConfigurationModule("FOO", parentFooProperties, parentFooAttributes);
     ConfigurationModule parentConfigModule2 = createConfigurationModule("BAR", parentBarProperties);
-    Collection<ConfigurationModule> parentModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> parentModules = new ArrayList<>();
     parentModules.add(parentConfigModule1);
     parentModules.add(parentConfigModule2);
 
@@ -836,7 +836,7 @@ public class ServiceModuleTest {
     info.setExcludedConfigTypes(Collections.singleton("BAR"));
 
     //FOO
-    Collection<PropertyInfo> fooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> fooProperties = new ArrayList<>();
     PropertyInfo prop1 = new PropertyInfo();
     prop1.setName("name1");
     prop1.setValue("val1");
@@ -847,14 +847,14 @@ public class ServiceModuleTest {
     fooProperties.add(prop2);
 
     //BAR
-    Collection<PropertyInfo> barProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> barProperties = new ArrayList<>();
     PropertyInfo prop3 = new PropertyInfo();
     prop3.setName("name1");
     prop3.setValue("val3");
     barProperties.add(prop3);
 
     //OTHER
-    Collection<PropertyInfo> otherProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> otherProperties = new ArrayList<>();
     PropertyInfo prop4 = new PropertyInfo();
     prop4.setName("name1");
     prop4.setValue("val4");
@@ -863,7 +863,7 @@ public class ServiceModuleTest {
     ConfigurationModule configModule1 = createConfigurationModule("FOO", fooProperties);
     ConfigurationModule configModule2 = createConfigurationModule("BAR", barProperties);
     ConfigurationModule configModule3 = createConfigurationModule("OTHER", otherProperties);
-    Collection<ConfigurationModule> configModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> configModules = new ArrayList<>();
     configModules.add(configModule1);
     configModules.add(configModule2);
     configModules.add(configModule3);
@@ -886,7 +886,7 @@ public class ServiceModuleTest {
     info.setExcludedConfigTypes(Collections.singleton("BAR"));
 
     //FOO
-    Collection<PropertyInfo> fooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> fooProperties = new ArrayList<>();
     PropertyInfo prop1 = new PropertyInfo();
     prop1.setName("name1");
     prop1.setValue("val1");
@@ -897,21 +897,21 @@ public class ServiceModuleTest {
     fooProperties.add(prop2);
 
     ConfigurationModule childConfigModule = createConfigurationModule("FOO", fooProperties);
-    Collection<ConfigurationModule> childConfigModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> childConfigModules = new ArrayList<>();
     childConfigModules.add(childConfigModule);
 
     // parent
     ServiceInfo parentInfo = new ServiceInfo();
 
     //BAR
-    Collection<PropertyInfo> barProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> barProperties = new ArrayList<>();
     PropertyInfo prop3 = new PropertyInfo();
     prop3.setName("name1");
     prop3.setValue("val3");
     barProperties.add(prop3);
 
     ConfigurationModule parentConfigModule = createConfigurationModule("BAR", barProperties);
-    Collection<ConfigurationModule> parentConfigModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> parentConfigModules = new ArrayList<>();
     parentConfigModules.add(parentConfigModule);
 
     // create service modules
@@ -936,29 +936,29 @@ public class ServiceModuleTest {
   public void testMerge_Configuration__ExcludedTypes() throws Exception {
     // child
     ServiceInfo info = new ServiceInfo();
-    Set<String> childExcludedConfigTypes = new HashSet<String>();
+    Set<String> childExcludedConfigTypes = new HashSet<>();
     childExcludedConfigTypes.add("FOO");
     info.setExcludedConfigTypes(childExcludedConfigTypes);
 
     //FOO
-    Collection<PropertyInfo> fooProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> fooProperties = new ArrayList<>();
 
     ConfigurationModule childConfigModule = createConfigurationModule("FOO", fooProperties);
-    Collection<ConfigurationModule> childConfigModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> childConfigModules = new ArrayList<>();
     childConfigModules.add(childConfigModule);
 
     // parent
     ServiceInfo parentInfo = new ServiceInfo();
-    Set<String> parentExcludedConfigTypes = new HashSet<String>();
+    Set<String> parentExcludedConfigTypes = new HashSet<>();
     childExcludedConfigTypes.add("BAR");
     info.setExcludedConfigTypes(childExcludedConfigTypes);
     parentInfo.setExcludedConfigTypes(parentExcludedConfigTypes);
     //BAR
-    Collection<PropertyInfo> barProperties = new ArrayList<PropertyInfo>();
+    Collection<PropertyInfo> barProperties = new ArrayList<>();
 
 
     ConfigurationModule parentConfigModule = createConfigurationModule("BAR", barProperties);
-    Collection<ConfigurationModule> parentConfigModules = new ArrayList<ConfigurationModule>();
+    Collection<ConfigurationModule> parentConfigModules = new ArrayList<>();
     parentConfigModules.add(parentConfigModule);
 
     // create service modules

@@ -88,7 +88,7 @@ public class RootServiceService extends BaseService {
   
   
   protected ResourceInstance createHostResource(String hostName) {
-    return createResource(Resource.Type.Host, Collections.<Resource.Type, String>singletonMap(Resource.Type.Host, hostName));
+    return createResource(Resource.Type.Host, Collections.singletonMap(Resource.Type.Host, hostName));
   }
 
   
@@ -118,7 +118,7 @@ public class RootServiceService extends BaseService {
   
   protected ResourceInstance createHostComponentResource(String serviceName, String hostName, String componentName) {
     
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.RootService, serviceName);
     mapIds.put(Resource.Type.Host, hostName);
     mapIds.put(Resource.Type.RootServiceComponent, componentName);
@@ -155,7 +155,7 @@ public class RootServiceService extends BaseService {
   protected ResourceInstance createServiceComponentResource(String serviceName,
       String componentName) {
     
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.RootService, serviceName);
     mapIds.put(Resource.Type.RootServiceComponent, componentName);
 

@@ -67,7 +67,7 @@ public class RequestStageContainerTest {
 
     Stage stage2 = createNiceMock(Stage.class);
     Stage stage3 = createNiceMock(Stage.class);
-    List<Stage> listStages = new ArrayList<Stage>();
+    List<Stage> listStages = new ArrayList<>();
     listStages.add(stage2);
     listStages.add(stage3);
     requestStages.addStages(listStages);
@@ -85,7 +85,7 @@ public class RequestStageContainerTest {
 
     Stage stage1 = createNiceMock(Stage.class);
     Stage stage2 = createNiceMock(Stage.class);
-    List<Stage> listStages = new ArrayList<Stage>();
+    List<Stage> listStages = new ArrayList<>();
     listStages.add(stage1);
     listStages.add(stage2);
 
@@ -109,7 +109,7 @@ public class RequestStageContainerTest {
     HostRoleCommand command2 = createNiceMock(HostRoleCommand.class);
     HostRoleCommand command3 = createNiceMock(HostRoleCommand.class);
 
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(stage1);
     stages.add(stage2);
     stages.add(stage3);
@@ -138,7 +138,7 @@ public class RequestStageContainerTest {
     Request request = createStrictMock(Request.class);
     Stage stage1 = createNiceMock(Stage.class);
     Stage stage2 = createNiceMock(Stage.class);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(stage1);
     stages.add(stage2);
 
@@ -176,12 +176,12 @@ public class RequestStageContainerTest {
     Stage stage2 = createNiceMock(Stage.class);
     HostRoleCommand command1 = createNiceMock(HostRoleCommand.class);
     Role role = createNiceMock(Role.class);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     RoleCommand roleCommand = RoleCommand.INSTALL;
     HostRoleStatus status = HostRoleStatus.IN_PROGRESS;
     stages.add(stage1);
     stages.add(stage2);
-    List<HostRoleCommand> hostRoleCommands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> hostRoleCommands = new ArrayList<>();
     hostRoleCommands.add(command1);
 
     expect(actionManager.getRequestTasks(100)).andReturn(hostRoleCommands);

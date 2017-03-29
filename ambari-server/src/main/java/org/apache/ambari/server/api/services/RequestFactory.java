@@ -116,7 +116,7 @@ public class RequestFactory {
    * @return map of query parameters or an empty map if no parameters are present
    */
   private Map<String, String> getQueryParameters(UriInfo uriInfo, RequestBody body) {
-    Map<String, String> queryParameters = new HashMap<String, String>();
+    Map<String, String> queryParameters = new HashMap<>();
     for (Map.Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
       queryParameters.put(entry.getKey(), entry.getValue().get(0));
     }

@@ -93,7 +93,7 @@ public class ExtensionLinksService extends BaseService {
   }
 
   ResourceInstance createExtensionLinkResource(String linkId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.ExtensionLink, linkId);
     return createResource(Resource.Type.ExtensionLink, mapIds);
   }

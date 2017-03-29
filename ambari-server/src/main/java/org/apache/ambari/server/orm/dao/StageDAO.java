@@ -61,7 +61,7 @@ public class StageDAO {
   /**
    * Mapping of valid status transitions that that are driven by manual input.
    */
-  private static Map<HostRoleStatus, EnumSet<HostRoleStatus>> manualTransitionMap = new HashMap<HostRoleStatus, EnumSet<HostRoleStatus>>();
+  private static Map<HostRoleStatus, EnumSet<HostRoleStatus>> manualTransitionMap = new HashMap<>();
 
   static {
     manualTransitionMap.put(HostRoleStatus.HOLDING,
@@ -154,7 +154,7 @@ public class StageDAO {
    */
   @RequiresSession
   public List<StageEntity> findByStageIds(Long requestId, Set<Long> stageIds) {
-    List<StageEntity> stageEntities = new LinkedList<StageEntity>();
+    List<StageEntity> stageEntities = new LinkedList<>();
 
     for (StageEntity stage : findByRequestId(requestId)) {
       if (stageIds.contains(stage.getStageId())) {
@@ -190,7 +190,7 @@ public class StageDAO {
 
   @RequiresSession
   public Map<Long, String> findRequestContext(List<Long> requestIds) {
-    Map<Long, String> resultMap = new HashMap<Long, String>();
+    Map<Long, String> resultMap = new HashMap<>();
     if (requestIds != null && !requestIds.isEmpty()) {
       TypedQuery<StageEntity> query = entityManagerProvider.get()
         .createQuery("SELECT stage FROM StageEntity stage WHERE " +
@@ -264,7 +264,7 @@ public class StageDAO {
     }
 
     // sorting
-    JpaSortBuilder<StageEntity> sortBuilder = new JpaSortBuilder<StageEntity>();
+    JpaSortBuilder<StageEntity> sortBuilder = new JpaSortBuilder<>();
     List<Order> sortOrders = sortBuilder.buildSortOrders(request.getSortRequest(), visitor);
     query.orderBy(sortOrders);
 
@@ -306,7 +306,7 @@ public class StageDAO {
     if (desiredStatus == HostRoleStatus.ABORTED) {
       actionManager.cancelRequest(stage.getRequestId(), "User aborted.");
     } else {
-      List <HostRoleCommandEntity> hrcWithChangedStatus = new ArrayList<HostRoleCommandEntity>();
+      List <HostRoleCommandEntity> hrcWithChangedStatus = new ArrayList<>();
       for (HostRoleCommandEntity hostRoleCommand : tasks) {
         HostRoleStatus hostRoleStatus = hostRoleCommand.getStatus();
         if (hostRoleStatus.equals(currentStatus)) {

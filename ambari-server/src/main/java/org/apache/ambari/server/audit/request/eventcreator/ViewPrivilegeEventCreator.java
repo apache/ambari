@@ -110,7 +110,7 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
    * @return a map of role -> [user|group] names
    */
   private Map<String, List<String>> getEntities(final Request request, final String type) {
-    Map<String, List<String>> entities = new HashMap<String, List<String>>();
+    Map<String, List<String>> entities = new HashMap<>();
 
     for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
       String ptype = String.valueOf(propertyMap.get(ViewPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));

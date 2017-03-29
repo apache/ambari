@@ -49,10 +49,10 @@ public class MetricsPaddingRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     MetricsPaddingRenderer renderer = new MetricsPaddingRenderer("null_padding");
     renderer.init(schemaFactory);

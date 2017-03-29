@@ -77,13 +77,13 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   public static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          TASK_ID_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      TASK_ID_PROPERTY_ID}));
 
   /**
    * The property ids for a task resource.
    */
-  static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   // These are static so that they can be referenced by other classes such as UpgradeSummaryResourceProvider.java
   static {
@@ -158,7 +158,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new LinkedHashSet<Resource>();
+    Set<Resource> results = new LinkedHashSet<>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     List<HostRoleCommandEntity> entities = s_dao.findAll(request, predicate);

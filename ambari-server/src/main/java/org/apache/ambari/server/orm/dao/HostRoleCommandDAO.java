@@ -236,7 +236,7 @@ public class HostRoleCommandDAO {
    */
   @RequiresSession
   private Map<Long, HostRoleCommandStatusSummaryDTO> loadAggregateCounts(Long requestId) {
-    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
+    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<>();
 
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManager.createQuery(SUMMARY_DTO,
@@ -294,9 +294,9 @@ public class HostRoleCommandDAO {
       HostRoleCommandEntity.class);
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<HostRoleCommandEntity> result = new ArrayList<HostRoleCommandEntity>();
+      List<HostRoleCommandEntity> result = new ArrayList<>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
+      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
         result.addAll(daoUtils.selectList(query, list));
       }
@@ -364,9 +364,9 @@ public class HostRoleCommandDAO {
     );
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<Long> result = new ArrayList<Long>();
+      List<Long> result = new ArrayList<>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
+      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> taskIdList : lists) {
         result.addAll(daoUtils.selectList(query, requestIds, taskIdList));
       }
@@ -424,7 +424,7 @@ public class HostRoleCommandDAO {
         "ORDER BY hostRoleCommand.hostEntity.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
     List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(query, stageEntity);
 
-    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<String, List<HostRoleCommandEntity>>();
+    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<>();
 
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (!hostCommands.containsKey(commandEntity.getHostName())) {
@@ -669,7 +669,7 @@ public class HostRoleCommandDAO {
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public List<HostRoleCommandEntity> mergeAll(Collection<HostRoleCommandEntity> entities) {
     Set<Long> requestsToInvalidate = new LinkedHashSet<>();
-    List<HostRoleCommandEntity> managedList = new ArrayList<HostRoleCommandEntity>(entities.size());
+    List<HostRoleCommandEntity> managedList = new ArrayList<>(entities.size());
     for (HostRoleCommandEntity entity : entities) {
       EntityManager entityManager = entityManagerProvider.get();
       entity = entityManager.merge(entity);
@@ -896,7 +896,7 @@ public class HostRoleCommandDAO {
     // sorting
     SortRequest sortRequest = request.getSortRequest();
     if (null != sortRequest) {
-      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<HostRoleCommandEntity>();
+      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<>();
       List<Order> sortOrders = sortBuilder.buildSortOrders(sortRequest, visitor);
       query.orderBy(sortOrders);
     }

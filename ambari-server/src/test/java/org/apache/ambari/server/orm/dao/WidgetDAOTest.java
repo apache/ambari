@@ -87,7 +87,7 @@ public class WidgetDAOTest {
       widgetLayoutUserWidget.setWidgetOrder(0);
 
       widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidget);
-      List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+      List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<>();
       widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidget);
 
       widgetLayoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);

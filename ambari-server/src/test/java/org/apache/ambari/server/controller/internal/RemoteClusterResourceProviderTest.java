@@ -61,7 +61,7 @@ public class RemoteClusterResourceProviderTest {
   @Test
   public void testToResource() throws Exception {
     RemoteClusterResourceProvider provider = new RemoteClusterResourceProvider();
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(RemoteClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(RemoteClusterResourceProvider.CLUSTER_URL_PROPERTY_ID);
     propertyIds.add(RemoteClusterResourceProvider.USERNAME_PROPERTY_ID);
@@ -74,7 +74,7 @@ public class RemoteClusterResourceProviderTest {
     RemoteAmbariClusterServiceEntity service2 = createNiceMock(RemoteAmbariClusterServiceEntity.class);
     expect(service2.getServiceName()).andReturn("service2").once();
 
-    List<RemoteAmbariClusterServiceEntity> serviceList = new ArrayList<RemoteAmbariClusterServiceEntity>();
+    List<RemoteAmbariClusterServiceEntity> serviceList = new ArrayList<>();
     serviceList.add(service1);
     serviceList.add(service2);
 
@@ -86,7 +86,7 @@ public class RemoteClusterResourceProviderTest {
 
     replay(service1, service2, entity);
 
-    List<String> services = new ArrayList<String>();
+    List<String> services = new ArrayList<>();
     services.add("service1");
     services.add("service2");
 
@@ -135,7 +135,7 @@ public class RemoteClusterResourceProviderTest {
     RemoteAmbariClusterServiceEntity service2 = createNiceMock(RemoteAmbariClusterServiceEntity.class);
     expect(service2.getServiceName()).andReturn("service2").once();
 
-    List<RemoteAmbariClusterServiceEntity> serviceList = new ArrayList<RemoteAmbariClusterServiceEntity>();
+    List<RemoteAmbariClusterServiceEntity> serviceList = new ArrayList<>();
     serviceList.add(service1);
     serviceList.add(service2);
 

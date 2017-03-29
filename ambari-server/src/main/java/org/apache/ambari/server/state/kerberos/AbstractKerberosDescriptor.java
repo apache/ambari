@@ -65,7 +65,7 @@ public abstract class AbstractKerberosDescriptor {
    * @return a Map of date representing this AbstractKerberosDescriptor implementation
    */
   public Map<String, Object> toMap() {
-    TreeMap<String, Object> dataMap = new TreeMap<String, Object>();
+    TreeMap<String, Object> dataMap = new TreeMap<>();
     String name = getName();
 
     if (name != null) {

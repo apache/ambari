@@ -572,10 +572,10 @@ public class AmbariMetaInfoTest {
   public void testGetRepos() throws Exception {
     Map<String, List<RepositoryInfo>> repos = metaInfo.getRepository(
         STACK_NAME_HDP, STACK_VERSION_HDP);
-    Set<String> centos5Cnt = new HashSet<String>();
-    Set<String> centos6Cnt = new HashSet<String>();
-    Set<String> redhat6cnt = new HashSet<String>();
-    Set<String> redhat5cnt = new HashSet<String>();
+    Set<String> centos5Cnt = new HashSet<>();
+    Set<String> centos6Cnt = new HashSet<>();
+    Set<String> redhat6cnt = new HashSet<>();
+    Set<String> redhat5cnt = new HashSet<>();
 
     for (List<RepositoryInfo> vals : repos.values()) {
       for (RepositoryInfo repo : vals) {
@@ -1047,7 +1047,7 @@ public class AmbariMetaInfoTest {
                 }
               }
             }
-            LinkedList<String> failedMetrics = new LinkedList<String>();
+            LinkedList<String> failedMetrics = new LinkedList<>();
             for (MetricDefinition metricDefinition : list) {
               if ("ganglia".equals(metricDefinition.getType())) {
                 //all ams metrics should be temporal

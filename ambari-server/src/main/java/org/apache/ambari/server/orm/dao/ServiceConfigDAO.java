@@ -88,7 +88,7 @@ public class ServiceConfigDAO {
     cq.where(groupVersion.get("groupId").in(configGroupIds));
     cq.groupBy(groupVersion.get("groupId"));
     List<Tuple> tuples = daoUtils.selectList(entityManagerProvider.get().createQuery(cq));
-    List<ServiceConfigEntity> result = new ArrayList<ServiceConfigEntity>();
+    List<ServiceConfigEntity> result = new ArrayList<>();
     //subquery look to be very poor, no bulk select then, cache should help here as result size is naturally limited
     for (Tuple tuple : tuples) {
       CriteriaQuery<ServiceConfigEntity> sce = cb.createQuery(ServiceConfigEntity.class);

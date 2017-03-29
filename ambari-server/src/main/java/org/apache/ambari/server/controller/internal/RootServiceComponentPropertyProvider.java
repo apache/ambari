@@ -99,7 +99,7 @@ public class RootServiceComponentPropertyProvider extends BaseProvider implement
   private final static Logger LOG = LoggerFactory.getLogger(RootServiceComponentPropertyProvider.class);
 
   static {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(JCE_POLICY_PROPERTY_ID);
     propertyIds.add(CIPHER_PROPERTIES_PROPERTY_ID);
     SUPPORTED_PROPERTY_IDS = Collections.unmodifiableSet(propertyIds);
@@ -110,7 +110,7 @@ public class RootServiceComponentPropertyProvider extends BaseProvider implement
    * <p/>
    * This is cached in memory after the first time it is needed.
    */
-  private static final Map<String, Integer> CACHED_CIPHER_MAX_KEY_LENGTHS = new HashMap<String, Integer>();
+  private static final Map<String, Integer> CACHED_CIPHER_MAX_KEY_LENGTHS = new HashMap<>();
 
   /**
    * Constructor

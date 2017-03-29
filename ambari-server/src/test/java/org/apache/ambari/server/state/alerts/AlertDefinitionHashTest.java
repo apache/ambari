@@ -101,7 +101,7 @@ public class AlertDefinitionHashTest extends TestCase {
     m_mockDao = m_injector.getInstance(AlertDefinitionDAO.class);
 
     // add HDFS/NN
-    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
+    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     ServiceComponentHost sch = EasyMock.createNiceMock(ServiceComponentHost.class);
     expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
     expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
@@ -117,19 +117,19 @@ public class AlertDefinitionHashTest extends TestCase {
     EasyMock.replay(sch);
     serviceComponentHosts.add(sch);
 
-    Map<String, ServiceComponentHost> mapComponentHosts = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> mapComponentHosts = new HashMap<>();
     ServiceComponentHost host = EasyMock.createNiceMock(ServiceComponentHost.class);
     expect(host.getHostName()).andReturn(HOSTNAME).anyTimes();
     mapComponentHosts.put(HOSTNAME, host);
 
-    Map<String, ServiceComponent> serviceComponents = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> serviceComponents = new HashMap<>();
     ServiceComponent namenode = EasyMock.createNiceMock(ServiceComponent.class);
     expect(namenode.getServiceComponentHosts()).andReturn(mapComponentHosts).anyTimes();
     expect(namenode.isMasterComponent()).andReturn(true).anyTimes();
     serviceComponents.put("NAMENODE", namenode);
 
     // create HDFS for the cluster
-    Map<String, Service> services = new HashMap<String, Service>();
+    Map<String, Service> services = new HashMap<>();
     String hdfsName = "HDFS";
     Service hdfs = EasyMock.createNiceMock(Service.class);
     expect(hdfs.getName()).andReturn("HDFS").anyTimes();
@@ -146,7 +146,7 @@ public class AlertDefinitionHashTest extends TestCase {
     expect(m_mockClusters.getClusterById(EasyMock.anyInt())).andReturn(
         m_mockCluster).atLeastOnce();
 
-    Map<String, Host> clusterHosts = new HashMap<String, Host>();
+    Map<String, Host> clusterHosts = new HashMap<>();
     clusterHosts.put(HOSTNAME, null);
 
     expect(m_mockClusters.getHostsForCluster(EasyMock.eq(CLUSTERNAME))).andReturn(
@@ -197,7 +197,7 @@ public class AlertDefinitionHashTest extends TestCase {
             EasyMock.anyObject(String.class), EasyMock.anyObject(String.class))).andReturn(
         Collections.singletonList(m_hdfsHost)).anyTimes();
 
-    m_agentDefinitions = new ArrayList<AlertDefinitionEntity>();
+    m_agentDefinitions = new ArrayList<>();
     m_agentDefinitions.add(agentScoped);
     EasyMock.expect(m_mockDao.findAgentScoped(EasyMock.anyInt())).andReturn(
         m_agentDefinitions).anyTimes();
@@ -353,7 +353,7 @@ public class AlertDefinitionHashTest extends TestCase {
 
   @Test
   public void testHashingAlgorithm() throws Exception {
-    List<String> uuids = new ArrayList<String>();
+    List<String> uuids = new ArrayList<>();
     uuids.add(m_hdfsService.getHash());
     uuids.add(m_hdfsHost.getHash());
 
@@ -394,7 +394,7 @@ public class AlertDefinitionHashTest extends TestCase {
     assertEquals(2, actionQueue.size(HOSTNAME));
     assertEquals(1, actionQueue.size("anotherHost"));
 
-    Set<String> hosts = new HashSet<String>();
+    Set<String> hosts = new HashSet<>();
     hosts.add(HOSTNAME);
 
     // should invalidate both alert commands, and add a new definition command

@@ -35,16 +35,16 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class ActionMetadata {
-  private final Map<String, List<String>> serviceActions = new HashMap<String, List<String>>();
-  private final Map<String, String> serviceClients = new HashMap<String, String>();
+  private final Map<String, List<String>> serviceActions = new HashMap<>();
+  private final Map<String, String> serviceClients = new HashMap<>();
   private final Map<String, String> serviceCheckActions =
-      new HashMap<String, String>();
-  private final List<String> defaultHostComponentCommands = new ArrayList<String>();
+    new HashMap<>();
+  private final List<String> defaultHostComponentCommands = new ArrayList<>();
   public final static String SERVICE_CHECK_POSTFIX = "_SERVICE_CHECK";
 
   private static final Map<String, String> SERVICE_CHECKS;
   static {
-      Map<String, String> serviceChecks = new HashMap<String, String>();
+      Map<String, String> serviceChecks = new HashMap<>();
 
       serviceChecks.put(Service.Type.ZOOKEEPER.toString(), "ZOOKEEPER_QUORUM_SERVICE_CHECK");
 

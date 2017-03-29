@@ -124,7 +124,7 @@ public class StageDAOTest {
    */
   @Test
   public void testStageSorting() throws Exception {
-    List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();
+    List<SortRequestProperty> sortProperties = new ArrayList<>();
     SortRequest sortRequest = new SortRequestImpl(sortProperties);
 
     Predicate predicate = new PredicateBuilder().property(
@@ -134,7 +134,7 @@ public class StageDAOTest {
     sortProperties.add(new SortRequestProperty(
         StageResourceProvider.STAGE_LOG_INFO, SortRequest.Order.ASC));
 
-    Request request = PropertyHelper.getReadRequest(new HashSet<String>(Arrays.<String>asList()),
+    Request request = PropertyHelper.getReadRequest(new HashSet<>(Arrays.<String>asList()),
         null, null, null, sortRequest);
 
     // get back all 5

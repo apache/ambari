@@ -243,7 +243,7 @@ class BSRunner extends Thread {
       command[11] = userRunAs;
       command[12] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
 
-      Map<String, String> envVariables = new HashMap<String, String>();
+      Map<String, String> envVariables = new HashMap<>();
 
       if (System.getProperty("os.name").contains("Windows")) {
         String command2[] = new String[command.length + 1];

@@ -47,7 +47,7 @@ public class StackResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<StackResponse> allResponse = new HashSet<StackResponse>();
+    Set<StackResponse> allResponse = new HashSet<>();
     allResponse.add(new StackResponse("Stack1"));
     allResponse.add(new StackResponse("Stack2"));
 
@@ -63,7 +63,7 @@ public class StackResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(StackResourceProvider.STACK_NAME_PROPERTY_ID);
 
@@ -76,7 +76,7 @@ public class StackResourceProviderTest {
     Assert.assertEquals(2, resources.size());
 
 
-    Set<String> stackNames = new HashSet<String>();
+    Set<String> stackNames = new HashSet<>();
     stackNames.add("Stack1");
     stackNames.add("Stack2");
 

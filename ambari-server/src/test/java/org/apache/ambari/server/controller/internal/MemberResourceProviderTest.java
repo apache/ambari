@@ -97,9 +97,9 @@ public class MemberResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(MemberResourceProvider.MEMBER_GROUP_NAME_PROPERTY_ID, "engineering");
@@ -202,7 +202,7 @@ public class MemberResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(MemberResourceProvider.MEMBER_GROUP_NAME_PROPERTY_ID, "engineering");
     properties.put(MemberResourceProvider.MEMBER_USER_NAME_PROPERTY_ID, "joe");

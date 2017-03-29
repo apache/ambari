@@ -63,18 +63,18 @@ public class RoleAuthorizationResourceProvider extends ReadOnlyResourceProvider 
 
   static {
     Set<String> set;
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(AUTHORIZATION_ID_PROPERTY_ID);
     set.add(PERMISSION_ID_PROPERTY_ID);
     PK_PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(AUTHORIZATION_ID_PROPERTY_ID);
     set.add(PERMISSION_ID_PROPERTY_ID);
     set.add(AUTHORIZATION_NAME_PROPERTY_ID);
     PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    HashMap<Type, String> map = new HashMap<Type, String>();
+    HashMap<Type, String> map = new HashMap<>();
     map.put(Type.Permission, PERMISSION_ID_PROPERTY_ID);
     map.put(Type.RoleAuthorization, AUTHORIZATION_ID_PROPERTY_ID);
     KEY_PROPERTY_IDS = Collections.unmodifiableMap(map);
@@ -104,7 +104,7 @@ public class RoleAuthorizationResourceProvider extends ReadOnlyResourceProvider 
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     Set<Map<String, Object>> propertyMaps;
 

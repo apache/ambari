@@ -105,7 +105,7 @@ public class AmbariServiceAlertDefinitions {
    *         component.
    */
   private List<AlertDefinition> getDefinitions(Components component) {
-    List<AlertDefinition> definitions = new ArrayList<AlertDefinition>();
+    List<AlertDefinition> definitions = new ArrayList<>();
 
     InputStream inputStream = ClassLoader.getSystemResourceAsStream("alerts.json");
     InputStreamReader reader = new InputStreamReader(inputStream);

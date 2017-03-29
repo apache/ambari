@@ -37,7 +37,7 @@ import junit.framework.Assert;
 public class AbstractDRResourceProviderTest {
   @Test
   public void testGetResourceProvider() throws Exception {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add("foo");
     propertyIds.add("cat1/foo");
     propertyIds.add("cat2/bar");
@@ -46,7 +46,7 @@ public class AbstractDRResourceProviderTest {
     propertyIds.add("cat4/sub2/sub3/bat");
     propertyIds.add("cat5/subcat5/map");
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
     IvoryService ivoryService = createMock(IvoryService.class);
 

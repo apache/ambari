@@ -181,7 +181,7 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -246,7 +246,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
 
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -315,7 +315,7 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -401,7 +401,7 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setHostname(DummyHostname1);
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
@@ -489,7 +489,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
@@ -550,7 +550,7 @@ public class HeartbeatProcessorTest {
     Assert.assertEquals(stageId, stage.getStageId());
     stage.setHostRoleStatus(DummyHostname1, HBASE_MASTER, HostRoleStatus.QUEUED);
     db.hostRoleScheduled(stage, DummyHostname1, HBASE_MASTER);
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -606,7 +606,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -725,7 +725,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -817,21 +817,21 @@ public class HeartbeatProcessorTest {
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
 
-    List<Map<String, String>> procs = new ArrayList<Map<String, String>>();
-    Map<String, String> proc1info = new HashMap<String, String>();
+    List<Map<String, String>> procs = new ArrayList<>();
+    Map<String, String> proc1info = new HashMap<>();
     proc1info.put("name", "a");
     proc1info.put("status", "RUNNING");
     procs.add(proc1info);
 
-    Map<String, String> proc2info = new HashMap<String, String>();
+    Map<String, String> proc2info = new HashMap<>();
     proc2info.put("name", "b");
     proc2info.put("status", "NOT_RUNNING");
     procs.add(proc2info);
 
-    Map<String, Object> extra = new HashMap<String, Object>();
+    Map<String, Object> extra = new HashMap<>();
     extra.put("processes", procs);
 
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
@@ -935,7 +935,7 @@ public class HeartbeatProcessorTest {
     cr2.setStdOut("dummy output");
     cr2.setExitCode(0);
     cr2.setRoleCommand(RoleCommand.UPGRADE.toString());
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     reports.add(cr2);
     hb.setReports(reports);
@@ -1002,7 +1002,7 @@ public class HeartbeatProcessorTest {
         new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
             DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
         DummyCluster, "HDFS", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, clusters);
     actionDBAccessor.persistActions(request);
@@ -1050,7 +1050,7 @@ public class HeartbeatProcessorTest {
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
     cr2.setExitCode(0);
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     reports.add(cr2);
     hb.setReports(reports);
@@ -1139,7 +1139,7 @@ public class HeartbeatProcessorTest {
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
     cr2.setExitCode(777);
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     reports.add(cr2);
     hb.setReports(reports);
@@ -1321,7 +1321,7 @@ public class HeartbeatProcessorTest {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);

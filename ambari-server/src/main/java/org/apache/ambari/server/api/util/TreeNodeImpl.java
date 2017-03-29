@@ -40,7 +40,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   /**
    * child nodes
    */
-  private Map<String, TreeNode<T>> m_mapChildren = new LinkedHashMap<String, TreeNode<T>>();
+  private Map<String, TreeNode<T>> m_mapChildren = new LinkedHashMap<>();
 
   /**
    * associated object
@@ -97,7 +97,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
 
   @Override
   public TreeNode<T> addChild(T child, String name) {
-    TreeNodeImpl<T> node = new TreeNodeImpl<T>(this, child, name);
+    TreeNodeImpl<T> node = new TreeNodeImpl<>(this, child, name);
     m_mapChildren.put(name, node);
 
     return node;
@@ -119,7 +119,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   @Override
   public void setProperty(String name, Object value) {
     if (m_mapNodeProps == null) {
-      m_mapNodeProps = new LinkedHashMap<String, Object>();
+      m_mapNodeProps = new LinkedHashMap<>();
     }
     m_mapNodeProps.put(name, value);
   }

@@ -42,7 +42,7 @@ public class AndPredicate extends ArrayPredicate {
   }
 
   public static Predicate instance(Predicate... predicates) {
-    List<Predicate> predicateList = new LinkedList<Predicate>();
+    List<Predicate> predicateList = new LinkedList<>();
 
     // Simplify the predicate array
     for (Predicate predicate : predicates) {

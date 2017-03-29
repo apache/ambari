@@ -220,7 +220,7 @@ public class ComponentService extends BaseService {
    * @return a component resource instance
    */
   ResourceInstance createComponentResource(String clusterName, String serviceName, String componentName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Service, serviceName);
     mapIds.put(Resource.Type.Component, componentName);
@@ -230,7 +230,7 @@ public class ComponentService extends BaseService {
 
   private Response createClientConfigResource(String body, HttpHeaders headers, UriInfo ui,
                                       String componentName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Service, m_serviceName);
     mapIds.put(Resource.Type.Component, componentName);

@@ -72,8 +72,8 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
 
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          SERVICE_NAME_ID, COMPONENT_NAME_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      SERVICE_NAME_ID, COMPONENT_NAME_ID}));
 
   /**
    * Provides stack information
@@ -116,7 +116,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       throws SystemException, UnsupportedPropertyException,
              NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     Set<Map<String, Object>> requestProps = getPropertyMaps(predicate);
 
     for (Map<String, Object> properties : requestProps) {
@@ -187,7 +187,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
     final String dependentComponent = (String)  properties.get(DEPENDENT_COMPONENT_NAME_ID);
     final String dependencyName = (String) properties.get(COMPONENT_NAME_ID);
 
-    List<DependencyInfo> dependencies = new ArrayList<DependencyInfo>();
+    List<DependencyInfo> dependencies = new ArrayList<>();
     if (dependencyName != null) {
       dependencies.add(getResources(new Command<DependencyInfo>() {
         @Override
@@ -206,7 +206,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       }));
     }
 
-    Collection<Resource> resources = new ArrayList<Resource>();
+    Collection<Resource> resources = new ArrayList<>();
     for (DependencyInfo dependency : dependencies) {
       if (dependency != null) {
         resources.add(toResource(dependency, stackName, version, dependentService,

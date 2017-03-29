@@ -111,7 +111,7 @@ public class TaskService extends BaseService {
    * @return a task resource instance
    */
   ResourceInstance createTaskResource(String clusterName, String requestId, String stageId, String taskId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Request, requestId);
     mapIds.put(Resource.Type.Stage, stageId);

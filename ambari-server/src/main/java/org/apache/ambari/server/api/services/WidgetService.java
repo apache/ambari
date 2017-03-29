@@ -116,7 +116,7 @@ public class WidgetService extends BaseService {
   }
 
   private ResourceInstance createResource(String widgetId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Widget, widgetId);
     return createResource(Resource.Type.Widget, mapIds);

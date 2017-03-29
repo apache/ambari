@@ -93,7 +93,7 @@ public class UserEntity {
   private Integer active = 1;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private Set<MemberEntity> memberEntities = new HashSet<MemberEntity>();
+  private Set<MemberEntity> memberEntities = new HashSet<>();
 
   @OneToOne
   @JoinColumns({

@@ -38,8 +38,8 @@ public class ConfigurationRequest {
   private boolean includeProperties;
 
   public ConfigurationRequest() {
-    configs = new HashMap<String, String>();
-    configsAttributes = new HashMap<String, Map<String,String>>();
+    configs = new HashMap<>();
+    configsAttributes = new HashMap<>();
   }
   
   public ConfigurationRequest(String clusterName,

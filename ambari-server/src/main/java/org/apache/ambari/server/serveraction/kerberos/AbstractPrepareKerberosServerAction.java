@@ -92,7 +92,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
       KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter;
 
       // Create the context to use for filtering Kerberos Identities based on the state of the cluster
-      Map<String, Object> filterContext = new HashMap<String, Object>();
+      Map<String, Object> filterContext = new HashMap<>();
       filterContext.put("configurations", currentConfigurations);
       filterContext.put("services", cluster.getServices().keySet());
 
@@ -231,7 +231,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
     Map<String, Map<String, String>> identityConfigurations = kerberosHelper.getIdentityConfigurations(identities);
     if ((identityConfigurations != null) && !identityConfigurations.isEmpty()) {
       if (propertiesToIgnore == null) {
-        propertiesToIgnore = new HashMap<String, Set<String>>();
+        propertiesToIgnore = new HashMap<>();
       }
 
       for (Map.Entry<String, Map<String, String>> entry : identityConfigurations.entrySet()) {
@@ -241,7 +241,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
         if ((properties != null) && !properties.isEmpty()) {
           Set<String> propertyNames = propertiesToIgnore.get(configType);
           if (propertyNames == null) {
-            propertyNames = new HashSet<String>();
+            propertyNames = new HashSet<>();
             propertiesToIgnore.put(configType, propertyNames);
           }
           propertyNames.addAll(properties.keySet());

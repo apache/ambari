@@ -103,10 +103,10 @@ public class ConfigurationFactoryTest {
   }
 
   private Collection<Map<String, String>> getNewSyntaxConfigProps() {
-    Collection<Map<String, String>> configurations = new ArrayList<Map<String, String>>();
+    Collection<Map<String, String>> configurations = new ArrayList<>();
 
     // type foo has both properties and attributes
-    Map<String, String> configProperties1 = new HashMap<String, String>();
+    Map<String, String> configProperties1 = new HashMap<>();
     configProperties1.put("foo-type/properties/prop1", "prop1Value");
     configProperties1.put("foo-type/properties/prop2", "prop2Value");
     // foo type attributes
@@ -117,12 +117,12 @@ public class ConfigurationFactoryTest {
     configurations.add(configProperties1);
 
     // type bar has only properties
-    Map<String, String> configProperties2 = new HashMap<String, String>();
+    Map<String, String> configProperties2 = new HashMap<>();
     configProperties2.put("bar-type/properties/prop3", "prop3Value");
     configurations.add(configProperties2);
 
     // type foobar has only attributes
-    Map<String, String> configProperties3 = new HashMap<String, String>();
+    Map<String, String> configProperties3 = new HashMap<>();
     configProperties3.put("foobar-type/properties_attributes/attribute1/prop10", "attribute1-prop10-value");
     configProperties3.put("foobar-type/properties_attributes/attribute10/prop11", "attribute10-prop11-value");
     configurations.add(configProperties3);
@@ -131,14 +131,14 @@ public class ConfigurationFactoryTest {
   }
 
   private Collection<Map<String, String>> getOldSyntaxConfigProps() {
-    Collection<Map<String, String>> configurations = new ArrayList<Map<String, String>>();
+    Collection<Map<String, String>> configurations = new ArrayList<>();
 
-    Map<String, String> configProperties1 = new HashMap<String, String>();
+    Map<String, String> configProperties1 = new HashMap<>();
     configProperties1.put("foo-type/prop1", "prop1Value");
     configProperties1.put("foo-type/prop2", "prop2Value");
     configurations.add(configProperties1);
 
-    Map<String, String> configProperties2 = new HashMap<String, String>();
+    Map<String, String> configProperties2 = new HashMap<>();
     configProperties2.put("bar-type/prop3", "prop3Value");
     configurations.add(configProperties2);
 

@@ -88,9 +88,9 @@ public class GroupResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID, "engineering");
@@ -121,7 +121,7 @@ public class GroupResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<GroupResponse> allResponse = new HashSet<GroupResponse>();
+    Set<GroupResponse> allResponse = new HashSet<>();
     allResponse.add(new GroupResponse("engineering", false));
 
     // set expectations
@@ -139,7 +139,7 @@ public class GroupResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID);
 
@@ -190,7 +190,7 @@ public class GroupResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
     Request request = PropertyHelper.getUpdateRequest(properties, null);
     Predicate predicate = new PredicateBuilder().property(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID).
         equals("engineering").toPredicate();

@@ -64,7 +64,7 @@ public class ReadHandlerTest {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     Query query = createStrictMock(Query.class);
 
-    Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<>();
     mapPartialResponseFields.put("foo/bar", null);
     Renderer renderer = new DefaultRenderer();
 
@@ -103,7 +103,7 @@ public class ReadHandlerTest {
 
     Map<String, String> requestInfoProperties = Collections.singletonMap("directive", "value");
 
-    Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<>();
     mapPartialResponseFields.put("foo", null);
     mapPartialResponseFields.put("bar/c", null);
     mapPartialResponseFields.put("bar/d/e", null);
