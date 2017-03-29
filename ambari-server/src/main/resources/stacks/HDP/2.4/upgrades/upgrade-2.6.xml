@@ -757,6 +757,11 @@
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig">
             <summary>Calculating Yarn Properties for Spark Shuffle</summary>
           </task>
+          
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
+            <summary>Validate Root Queue Ordering Policy</summary>
+          </task>
+          
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db" />
           <task xsi:type="configure" id="yarn_log4j_parameterize" />
           <task xsi:type="configure" id="yarn_env_security_opts" />

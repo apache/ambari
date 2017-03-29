@@ -303,6 +303,12 @@
           <summary>Calculating Yarn Properties for Spark Shuffle</summary>
         </task>
       </execute-stage>
+      
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Validate Root Queue Ordering Policy">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
+          <summary>Validate Root Queue Ordering Policy</summary>
+        </task>
+      </execute-stage>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Adding YARN Security ACLs">
         <task xsi:type="configure" id="yarn_env_security_opts">
