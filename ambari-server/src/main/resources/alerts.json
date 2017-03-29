@@ -149,6 +149,18 @@
             }
           ]
         }
+      },
+      {
+        "name": "ambari_agent_version_select",
+        "label": "Ambari Agent Distro/Conf Select Versions",
+        "description": "This host-level alert is triggered if the distro selector such as hdp-select cannot calculate versions available on this host. This may indicate that /usr/$stack/ directory has links/dirs that do not belong inside of it.",
+        "interval": 5,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "alert_version_select.py"
+        }
       }
     ]
   }

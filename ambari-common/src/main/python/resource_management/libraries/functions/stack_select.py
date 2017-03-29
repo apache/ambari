@@ -286,11 +286,25 @@ def _get_upgrade_stack():
 
   return None
 
+def unsafe_get_stack_versions():
+  """
+  Gets list of stack versions installed on the host.
+  By default a call to <stack-selector-tool> versions is made to get the list of installed stack versions.
+  DO NOT use a fall-back since this function is called by alerts in order to find potential errors.
+  :return: Returns a tuple of (exit code, output, list of installed stack versions).
+  """
+  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
+  code, out = call((STACK_SELECT_PREFIX, stack_selector_path, 'versions'))
+  versions = []
+  if 0 == code:
+    for line in out.splitlines():
+      versions.append(line.rstrip('\n'))
+  return (code, out, versions)
 
 def get_stack_versions(stack_root):
   """
   Gets list of stack versions installed on the host.
-  Be default a call to <stack-selector-tool> versions is made to get the list of installed stack versions.
+  By default a call to <stack-selector-tool> versions is made to get the list of installed stack versions.
   As a fallback list of installed versions is collected from stack version directories in stack install root.
   :param stack_root: Stack install root
   :return: Returns list of installed stack versions.

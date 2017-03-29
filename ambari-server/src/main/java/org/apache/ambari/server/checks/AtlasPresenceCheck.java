@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Singleton;
 
 /**
- * Checks if Atlas service is present. Upgrade to stack HDP 2.5 can't pursuit
- * with existed on the cluster Atlas service.
+ * Checks if Atlas service is present. Upgrade to stack HDP 2.5 from previous stack
+ * must first delete Atlas from the cluster.
  */
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT)
