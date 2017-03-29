@@ -50,7 +50,7 @@
                     {{#each controller.additionalHostsList}}
                       <div class="row row-no-pad additional-hosts-list">
                         <div class="col-md-4">
-                          <label class="pts pull-right">
+                          <label class="pts pull-right" {{QAAttr "component-name"}}>
                             {{label}}
                           </label>
                         </div>
@@ -60,10 +60,10 @@
                       </div>
                     {{/each}}
                     {{#each servicesMastersToShow}}
-                      <div class="row row-no-pad form-group">
+                      <div {{QAAttr "component-row"}} class="row row-no-pad form-group">
                         <div class="col-md-4">
                           <div class="control-group">
-                            <label class="pts pull-right">
+                            <label class="pts pull-right" {{QAAttr "component-name"}}>
                               {{#if showCurrentPrefix}}
                                 {{t common.current}}
                               {{/if}}
@@ -76,7 +76,7 @@
                         </div>
                         <div class="col-md-6">
                           {{#if isServiceCoHost}}
-                            <div class="hostName">
+                            <div class="hostName" {{QAAttr "service-co-host"}}>
                               {{selectedHost}}<i class="glyphicon glyphicon-asterisks">&#10037;</i>
                             </div>
                           {{else}}
@@ -134,7 +134,7 @@
                   <div class="col-md-10 col-md-offset-1">
                     <div class="hostString"><span>{{hostInfo}}</span></div>
                     {{#each masterServicesToDisplay}}
-                      <span {{bindAttr class="isInstalled:assigned-service:new-service :service-component :label"}}>{{display_name}}</span>
+                      <span {{QAAttr "component-on-host"}} {{bindAttr class="isInstalled:assigned-service:new-service :service-component :label"}}>{{display_name}}</span>
                     {{/each}}
                   </div>
                 </div>
@@ -164,14 +164,14 @@
   <div class="wizard-footer col-md-12">
     <div class="btn-area">
       {{#if view.isBackButtonVisible}}
-        <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+        <button {{QAAttr "wizard-back"}} type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
           &larr; {{t common.back}}
           {{#if App.router.backBtnClickInProgress}}
             {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
           {{/if}}
         </button>
       {{/if}}
-      <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="nextButtonDisabled"}} {{action submit target="controller"}}>
+      <button {{QAAttr "wizard-next"}} type="button" class="btn btn-success pull-right" {{bindAttr disabled="nextButtonDisabled"}} {{action submit target="controller"}}>
         {{#if App.router.nextBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
         {{/if}}

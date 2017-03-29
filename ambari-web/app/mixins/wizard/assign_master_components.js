@@ -1205,6 +1205,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
     }
 
     App.ModalPopup.show({
+      'data-qa': 'validation-issues-modal',
       primary: Em.I18n.t('common.continueAnyway'),
       header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
       body: Em.I18n.t('installer.step5.validationIssuesAttention'),

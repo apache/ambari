@@ -48,6 +48,7 @@ App.ModalPopup = Ember.View.extend({
   primaryId: '',
   secondaryId: '',
   thirdId: '',
+  'data-qa': 'modal',
   onPrimary: function () {
     this.hide();
   },
